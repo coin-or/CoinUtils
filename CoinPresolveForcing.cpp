@@ -7,6 +7,7 @@
 #include "CoinPresolveEmpty.hpp"	// for DROP_COL/DROP_ROW
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveSubst.hpp"
+#include "CoinHelperFunctions.hpp"
 #include "CoinPresolveUseless.hpp"
 #include "CoinPresolveForcing.hpp"
 #include "CoinMessage.hpp"
@@ -360,7 +361,7 @@ const CoinPresolveAction
     printf("NFORCED:  %d\n", nactions);
 #endif
     next = new forcing_constraint_action(nactions, 
-					 copyOfArray(actions,nactions), next);
+					 CoinCopyOfArray(actions,nactions), next);
   }
   deleteAction(actions,action*);
   if (nuseless_rows) {

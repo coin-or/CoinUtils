@@ -838,7 +838,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
     printf("NSUBSTS:  %d\n", nactions);
     //printf("NT: %d  NGOOD:  %d FILL_LEVEL:  %d\n", nt, ngood, fill_level);
 #   endif
-    next = new subst_constraint_action(nactions, copyOfArray(actions,nactions), next);
+    next = new subst_constraint_action(nactions, CoinCopyOfArray(actions,nactions), next);
 
     next = drop_zero_coefficients_action::presolve(prob, zerocols, nzerocols, next);
   }

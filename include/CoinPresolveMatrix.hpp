@@ -1590,40 +1590,6 @@ inline void presolve_delete_from_col2(int row, int col, CoinBigIndex *mcstrt,
 */
 //@{
 
-/*! \brief Return an array of length \p size filled with input from \p array,
-	   or null if \p array is null.
-*/
-
-template <class T> inline T*
-copyOfArray( const T * array, const int size)
-{
-  if (array) {
-    T * arrayNew = new T[size];
-    memcpy(arrayNew,array,size*sizeof(T));
-    return arrayNew;
-  } else {
-    return NULL;
-  }
-}
-
-/*! \brief Return an array of length \p size filled with input from \p array,
-	   or filled with (scalar) \p value if \p array is null
-*/
-
-template <class T> inline T*
-copyOfArray( const T * array, const int size, T value)
-{
-  T * arrayNew = new T[size];
-  if (array) {
-    memcpy(arrayNew,array,size*sizeof(T));
-  } else {
-    int i;
-    for (i=0;i<size;i++) 
-      arrayNew[i] = value;
-  }
-  return arrayNew;
-}
-
 /*! \brief Duplicate a major-dimension vector; optionally omit the entry
 	   with minor index \p tgt.
 

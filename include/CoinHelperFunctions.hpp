@@ -139,19 +139,40 @@ CoinDisjointCopy(register const T* first, register const T* last,
 
 //-----------------------------------------------------------------------------
 
-/** This helper function returns a NEW copy of an array or NULL if the
-    original pointer was NULL */
+/*! \brief Return an array of length \p size filled with input from \p array,
+	   or null if \p array is null.
+*/
+
 template <class T> inline T*
-CoinCopyOfArray(const T* array, const int size)
+CoinCopyOfArray( const T * array, const int size)
 {
   if (array) {
     T * arrayNew = new T[size];
-    CoinMemcpyN(array,size,arrayNew);
+    memcpy(arrayNew,array,size*sizeof(T));
     return arrayNew;
   } else {
     return NULL;
   }
 }
+
+/*! \brief Return an array of length \p size filled with input from \p array,
+	   or filled with (scalar) \p value if \p array is null
+*/
+
+template <class T> inline T*
+CoinCopyOfArray( const T * array, const int size, T value)
+{
+  T * arrayNew = new T[size];
+  if (array) {
+    memcpy(arrayNew,array,size*sizeof(T));
+  } else {
+    int i;
+    for (i=0;i<size;i++) 
+      arrayNew[i] = value;
+  }
+  return arrayNew;
+}
+
 
 //-----------------------------------------------------------------------------
 

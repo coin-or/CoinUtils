@@ -5,6 +5,7 @@
 
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveIsolated.hpp"
+#include "CoinHelperFunctions.hpp"
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"
@@ -98,8 +99,8 @@ const CoinPresolveAction *isolated_constraint_action::presolve(CoinPresolveMatri
   
   next = new isolated_constraint_action(rlo[irow], rup[irow],
 					irow, nc,
-					copyOfArray(&hcol[krs], nc*sizeof(int)),
-					copyOfArray(&rowels[krs], nc*sizeof(double)),
+					CoinCopyOfArray(&hcol[krs], nc*sizeof(int)),
+					CoinCopyOfArray(&rowels[krs], nc*sizeof(double)),
 					costs,
 					next);
 

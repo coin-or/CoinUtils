@@ -7,6 +7,7 @@
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveTighten.hpp"
 #include "CoinPresolveUseless.hpp"
+#include "CoinHelperFunctions.hpp"
 
 const char *do_tighten_action::name() const
 {
@@ -246,7 +247,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 #endif
 
   if (nuseless_rows) {
-    next = new do_tighten_action(nactions, copyOfArray(actions,nactions), next);
+    next = new do_tighten_action(nactions, CoinCopyOfArray(actions,nactions), next);
 
     next = useless_constraint_action::presolve(prob,
 					       useless_rows, nuseless_rows,

@@ -4,6 +4,7 @@
 #include <math.h>
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveUseless.hpp"
+#include "CoinHelperFunctions.hpp"
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"
@@ -63,8 +64,8 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
     f->ninrow = hinrow[irow];
     f->rlo = rlo[irow];
     f->rup = rup[irow];
-    f->rowcols = copyOfArray(&hcol[krs], hinrow[irow]);
-    f->rowels  = copyOfArray(&rowels[krs], hinrow[irow]);
+    f->rowcols = CoinCopyOfArray(&hcol[krs], hinrow[irow]);
+    f->rowels  = CoinCopyOfArray(&rowels[krs], hinrow[irow]);
 
     for (CoinBigIndex k=krs; k<kre; k++)
     { presolve_delete_from_col(irow,hcol[k],mcstrt,hincol,hrow,colels) ;

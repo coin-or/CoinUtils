@@ -491,7 +491,7 @@ const CoinPresolveAction
 	   nactions,nfixed_down,nfixed_up) ; }
 # endif
   if (nactions)
-  { next = new dupcol_action(nactions,copyOfArray(actions,nactions),next) ; }
+  { next = new dupcol_action(nactions,CoinCopyOfArray(actions,nactions),next) ; }
   deleteAction(actions,action*) ;
 
   if (nfixed_down)
