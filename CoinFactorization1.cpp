@@ -687,7 +687,8 @@ CoinFactorization::preProcess ( int state,
   int numberRows = numberRows_;
   int numberColumns = numberColumns_;
 
-  totalElements_ = numberElements;
+  if (state<4)
+    totalElements_ = numberElements;
   //state falls through to next state
   switch ( state ) {
   case 0:			//counts
@@ -823,6 +824,125 @@ CoinFactorization::preProcess ( int state,
 	nextColumn[iColumn] = iColumn + 1;
 	int number = numberInColumn[iColumn];
 
+	addLink ( iColumn + numberRows, number );
+      }
+      lastColumn[maximumColumnsExtra_] = numberColumns - 1;
+      nextColumn[maximumColumnsExtra_] = 0;
+      lastColumn[0] = maximumColumnsExtra_;
+      if (numberColumns)
+	nextColumn[numberColumns - 1] = maximumColumnsExtra_;
+      startColumn[maximumColumnsExtra_] = numberElements;
+    }
+    break;
+  case 4:			//move largest in column to beginning
+    {
+      CoinBigIndex i, k;
+
+      int iColumn;
+      int iRow;
+      for ( iRow = 0; iRow < numberRows; iRow++ ) {
+	if( numberInRow[iRow]>=0) {
+	  // zero count
+	  numberInRow[iRow]=0;
+	} else {
+	  // empty
+	  //numberInRow[iRow]=-1; already that
+	}
+      }
+      CoinZeroN ( numberInColumnPlus_, maximumColumnsExtra_ + 1 );
+      for ( iColumn = 0; iColumn < numberColumns; iColumn++ ) {
+	int number = numberInColumn[iColumn];
+
+	if ( number ) {
+	  // use pivotRegion and startRow for remaining elements
+	  CoinBigIndex first = startColumn[iColumn];
+	  CoinBigIndex largest = -1;
+	  
+	  double valueLargest = -1.0;
+	  int nOther=0;
+	  k = first;
+	  CoinBigIndex end = first+number;
+	  for (  ; k < end; k++ ) {
+	    int iRow = indexRow[k];
+	    double value = element[k];
+	    if (numberInRow[iRow]>=0) {
+	      numberInRow[iRow]++;
+	      double valueAbs = fabs ( value );
+	      if ( valueAbs > valueLargest ) {
+		valueLargest = valueAbs;
+		largest = nOther;
+	      }
+	      startRow[nOther]=iRow;
+	      pivotRegion_[nOther++]=value;
+	    } else {
+	      indexRow[first] = iRow;
+	      element[first++] = value;
+	    }
+	  }
+	  numberInColumnPlus_[iColumn]=first-startColumn[iColumn];
+	  startColumn[iColumn]=first;
+	  //largest
+	  if (largest>=0) {
+	    indexRow[first] = startRow[largest];
+	    element[first++] = pivotRegion_[largest];
+	  }
+	  for (k=0;k<nOther;k++) {
+	    if (k!=largest) {
+	      indexRow[first] = startRow[k];
+	      element[first++] = pivotRegion_[k];
+	    }
+	  }
+	  numberInColumn[iColumn]=first-startColumn[iColumn];
+	}
+      }
+      //and do row part
+      i = 0;
+      for ( iRow = 0; iRow < numberRows; iRow++ ) {
+	startRow[iRow] = i;
+	int n=numberInRow[iRow];
+	if (n>0) {
+	  numberInRow[iRow]=0;
+	  i += n;
+	}
+      }
+      for ( iColumn = 0; iColumn < numberColumns; iColumn++ ) {
+	int number = numberInColumn[iColumn];
+
+	if ( number ) {
+	  CoinBigIndex first = startColumn[iColumn];
+	  for ( k = first; k < first + number; k++ ) {
+	    int iRow = indexRow[k];
+	    int iLook = numberInRow[iRow];
+
+	    numberInRow[iRow] = iLook + 1;
+	    indexColumn[startRow[iRow] + iLook] = iColumn;
+	  }
+	}
+      }
+    }
+    // modified 3
+    {
+      //set markRow so no rows updated
+      CoinFillN ( markRow_, numberRows_, -1 );
+      int *lastColumn = lastColumn_;
+      int *nextColumn = nextColumn_;
+
+      int iRow;
+      int numberGood=0;
+      startColumnL_[0] = 0;	//for luck
+      for ( iRow = 0; iRow < numberRows; iRow++ ) {
+	int number = numberInRow[iRow];
+	if (number<0) {
+	  numberInRow[iRow]=0;
+	  pivotRegion_[numberGood++]=slackValue_;
+	}
+      }
+      int iColumn;
+      for ( iColumn = 0 ; iColumn < numberColumns_; iColumn++ ) {
+	lastColumn[iColumn] = iColumn - 1;
+	nextColumn[iColumn] = iColumn + 1;
+	int number = numberInColumn[iColumn];
+	deleteLink(iColumn+numberRows);
 	addLink ( iColumn + numberRows, number );
       }
       lastColumn[maximumColumnsExtra_] = numberColumns - 1;

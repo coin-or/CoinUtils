@@ -44,7 +44,7 @@ CoinFactorization::factorSparse (  )
   }
   int status = 0;
   //do slacks first
-  if (biasLU_<3) {
+  if (biasLU_<3&&numberColumns_==numberRows_) {
     int pivotColumn;
     for ( pivotColumn = 0; pivotColumn < numberColumns_;
 	  pivotColumn++ ) {
@@ -52,21 +52,33 @@ CoinFactorization::factorSparse (  )
 	CoinBigIndex start = startColumnU_[pivotColumn];
 	double value = element[start];
 	if ( value == slackValue_ && numberInColumnPlus_[pivotColumn] == 0 ) {
-	  //treat as slack
+	  // treat as slack
 	  int iRow = indexRowU_[start];
-	  
-	  
-	  totalElements_ -= numberInRow_[iRow];
-	  if ( !pivotColumnSingleton ( iRow, pivotColumn ) ) {
-	    status = -99;
-	    count=biggerDimension_+1;
-	    break;
+	  // but only if row not marked
+	  if (numberInRow_[iRow]>0) {
+	    totalElements_ -= numberInRow_[iRow];
+	    //take out this bit of indexColumnU
+	    int next = nextRow_[iRow];
+	    int last = lastRow_[iRow];
+	    
+	    nextRow_[last] = next;
+	    lastRow_[next] = last;
+	    nextRow_[iRow] = numberGoodU_;	//use for permute
+	    //modify linked list for pivots
+	    deleteLink ( iRow );
+	    numberInRow_[iRow]=-1;
+	    numberInColumn_[pivotColumn]=0;
+	    pivotRowL_[numberGoodL_] = iRow;
+	    numberGoodL_++;
+	    startColumnL_[numberGoodL_] = 0;
+	    pivotColumn_[numberGoodU_] = pivotColumn;
+	    numberGoodU_++;
 	  }
-	  pivotColumn_[numberGoodU_] = pivotColumn;
-	  numberGoodU_++;
 	}
       }
     }
+    // redo
+    preProcess(4);
   }
   numberSlacks_ = numberGoodU_;
   int *nextCount = nextCount_;
@@ -362,6 +374,7 @@ CoinFactorization::factorSparse (  )
   delete [] workArea2 ;
   return status;
 }
+
 //:method factorDense.  Does dense phase of factorization
 //return code is <0 error, 0= finished
 int CoinFactorization::factorDense()
