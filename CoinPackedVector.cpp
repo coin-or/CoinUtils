@@ -138,7 +138,8 @@ CoinPackedVector::setFull(int size, const double * elems,
     CoinIotaN(indices_, size, 0);
     CoinDisjointCopyN(elems, size, elements_);
   }
-  CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
+  // Full array can not have duplicates
+  CoinPackedVectorBase::setTestForDuplicateIndexWhenTrue(testForDuplicateIndex);
 }
 
 //#############################################################################
@@ -166,7 +167,8 @@ CoinPackedVector::setFullNonZero(int size, const double * elems,
       }
     }
   }
-  CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
+  // Full array can not have duplicates
+  CoinPackedVectorBase::setTestForDuplicateIndexWhenTrue(testForDuplicateIndex);
 }
 
 

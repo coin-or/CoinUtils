@@ -69,6 +69,16 @@ CoinPackedVectorBase::setTestForDuplicateIndex(bool test) const
 
 //#############################################################################
 
+void
+CoinPackedVectorBase::setTestForDuplicateIndexWhenTrue(bool test) const
+{
+  // We know everything is okay so let's not test (e.g. full array)
+  testForDuplicateIndex_ = test;
+  testedDuplicateIndex_ = test;
+}
+
+//#############################################################################
+
 int
 CoinPackedVectorBase::getMaxIndex() const
 {

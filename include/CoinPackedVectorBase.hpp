@@ -47,6 +47,10 @@ public:
    /** Set to the argument value whether to test for duplicate indices in the
        vector whenever they can occur. */
    void setTestForDuplicateIndex(bool test) const;
+   /** Set to the argument value whether to test for duplicate indices in the
+       vector whenever they can occur BUT we know that here there are no 
+       duplicate indices. */
+   void setTestForDuplicateIndexWhenTrue(bool test) const;
    /** Returns true if the vector should be tested for duplicate indices when
        they can occur. */
    bool testForDuplicateIndex() const { return testForDuplicateIndex_; }
