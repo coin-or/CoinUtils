@@ -122,7 +122,7 @@ public:
       all columns up to this are defined with default values and no elements)
   */
   void setColumnName(int whichColumn,const char * columnName); 
-  /** Sets integer (if column does not exist then
+  /** Sets integer state (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   void setColumnIsInteger(int whichColumn,bool columnIsInteger); 
@@ -131,11 +131,21 @@ public:
   */
   inline void setObjective(int whichColumn,double columnObjective) 
   { setColumnObjective( whichColumn, columnObjective);}; 
-  /** Sets integer (if column does not exist then
+  /** Sets integer state (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setIsInteger(int whichColumn,bool columnIsInteger) 
   { setColumnIsInteger( whichColumn, columnIsInteger);}; 
+  /** Sets integer (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  inline void setInteger(int whichColumn) 
+  { setColumnIsInteger( whichColumn, true);}; 
+  /** Sets continuous (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  inline void setContinuous(int whichColumn) 
+  { setColumnIsInteger( whichColumn, false);}; 
   /** Sets columnLower (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
