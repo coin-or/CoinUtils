@@ -56,10 +56,10 @@ public:
 */
 //@{
   /// Return the number of structural variables
-  int getNumStructural() const { return numStructural_; }
+  inline int getNumStructural() const { return numStructural_; }
 
   /// Return the number of artificial variables
-  int getNumArtificial() const { return numArtificial_; }
+  inline int getNumArtificial() const { return numArtificial_; }
 
   /** Return the number of basic structurals
   
@@ -68,13 +68,13 @@ public:
   int numberBasicStructurals();
 
   /// Return the status of the specified structural variable.
-  Status getStructStatus(int i) const {
+  inline Status getStructStatus(int i) const {
     const int st = (structuralStatus_[i>>2] >> ((i&3)<<1)) & 3;
     return static_cast<CoinWarmStartBasis::Status>(st);
   }
 
   /// Set the status of the specified structural variable.
-  void setStructStatus(int i, Status st) {
+  inline void setStructStatus(int i, Status st) {
     char& st_byte = structuralStatus_[i>>2];
     st_byte &= ~(3 << ((i&3)<<1));
     st_byte |= (st << ((i&3)<<1));
@@ -85,28 +85,28 @@ public:
     The status information is stored using the codes defined in the
     Status enum, 2 bits per variable, packed 4 variables per byte.
   */
-  char * getStructuralStatus() { return structuralStatus_; }
+  inline char * getStructuralStatus() { return structuralStatus_; }
 
   /** \c const overload for
     \link CoinWarmStartBasis::getStructuralStatus()
     	  getStructuralStatus()
     \endlink
   */
-  const char * getStructuralStatus() const { return structuralStatus_; }
+  inline const char * getStructuralStatus() const { return structuralStatus_; }
 
   /** As for \link getStructuralStatus() getStructuralStatus \endlink,
       but returns the status array for the artificial variables.
   */
-  char * getArtificialStatus() { return artificialStatus_; }
+  inline char * getArtificialStatus() { return artificialStatus_; }
 
   /// Return the status of the specified artificial variable.
-  Status getArtifStatus(int i) const {
+  inline Status getArtifStatus(int i) const {
     const int st = (artificialStatus_[i>>2] >> ((i&3)<<1)) & 3;
     return static_cast<CoinWarmStartBasis::Status>(st);
   }
 
   /// Set the status of the specified artificial variable.
-  void setArtifStatus(int i, Status st) {
+  inline void setArtifStatus(int i, Status st) {
     char& st_byte = artificialStatus_[i>>2];
     st_byte &= ~(3 << ((i&3)<<1));
     st_byte |= (st << ((i&3)<<1));
@@ -117,7 +117,7 @@ public:
     	  getArtificialStatus()
     \endlink
   */
-  const char * getArtificialStatus() const { return artificialStatus_; }
+  inline const char * getArtificialStatus() const { return artificialStatus_; }
 
   /** Assign the status vectors to be the warm start information.
   
