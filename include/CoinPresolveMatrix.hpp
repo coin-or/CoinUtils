@@ -1185,7 +1185,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /*! \brief Test if row is marked as used
 
      This is for doing faster lookups to see where two rows have entries
-     in common.
+     in common.  It can be used anywhere as long as it ends up zeroed out.
   */
   inline bool rowUsed(int i) const {
     return (rowChanged_[i]&4)!=0;
