@@ -8,14 +8,20 @@
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveZeros.hpp"
 
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
+#endif
+
+namespace {	// begin unnamed file-local namespace
 
 // searches the cols in checkcols for zero entries.
 // creates a dropped_zero entry for each one; doesn't check for out-of-memory.
 // returns number of zeros found.
-static int drop_col_zeros(int ncheckcols, int *checkcols,
-			   const CoinBigIndex *mcstrt, double *colels, int *hrow,
-			   int *hincol,
-			   dropped_zero *actions)
+
+int drop_col_zeros (int ncheckcols, int *checkcols,
+		    const CoinBigIndex *mcstrt, double *colels, int *hrow,
+		    int *hincol, presolvehlink *clink,
+		    dropped_zero *actions)
 {
   typedef dropped_zero action;
   int nactions = 0;
@@ -31,13 +37,17 @@ static int drop_col_zeros(int ncheckcols, int *checkcols,
       if (fabs(colels[k]) < ZTOLDP) {
 	actions[nactions].col = col;
 	actions[nactions].row = hrow[k];
-	nactions++;
 
-#if	DEBUG_PRESOLVE
-	if (nactions == 1)
+#       if PRESOLVE_DEBUG
+	if (nactions == 0)
 	  printf("ZEROS:  ");
+	else
+	if (nactions%10 == 0)
+	  printf("\n") ;
 	printf("(%d,%d) ", hrow[k], col);
-#endif
+#       endif
+
+	nactions++;
 
 	colels[k] = colels[kce-1];
 	hrow[k]   = hrow[kce-1];
@@ -47,60 +57,68 @@ static int drop_col_zeros(int ncheckcols, int *checkcols,
 	--k;	// redo this position
       }
     }
+  if (hincol[col] == 0)
+    PRESOLVE_REMOVE_LINK(clink,col) ;
   }
 
-#if	DEBUG_PRESOLVE
+# if PRESOLVE_DEBUG
   if (nactions)
     printf("\n");
-#endif
+# endif
 
   return (nactions);
 }
 
 // very similar to col, but without the buffer and reads zeros
-// didn't bother to change the param names
+
 void drop_row_zeros(int nzeros, const dropped_zero *zeros,
-		    const CoinBigIndex *mcstrt, double *colels, int *hrow,
-		    int *hincol)
+		    const CoinBigIndex *mrstrt, double *rowels, int *hcol,
+		    int *hinrow, presolvehlink *rlink)
 {
   int i;
   for (i=0; i<nzeros; i++) {
-    int col = zeros[i].row;
-    CoinBigIndex kcs = mcstrt[col];
-    CoinBigIndex kce = mcstrt[col] + hincol[col];
+    int row = zeros[i].row;
+    CoinBigIndex krs = mrstrt[row];
+    CoinBigIndex kre = mrstrt[row] + hinrow[row];
     CoinBigIndex k;
 
-    for (k=kcs; k<kce; k++) {
-      if (fabs(colels[k]) < ZTOLDP) {
-	colels[k] = colels[kce-1];
-	hrow[k]   = hrow[kce-1];
-	kce--;
-	hincol[col]--;
+    for (k=krs; k<kre; k++) {
+      if (fabs(rowels[k]) < ZTOLDP) {
+	rowels[k] = rowels[kre-1];
+	hcol[k]   = hcol[kre-1];
+	kre--;
+	hinrow[row]--;
 
 	--k;	// redo this position
       }
     }
+  if (hinrow[row] == 0)
+    PRESOLVE_REMOVE_LINK(rlink,row) ;
   }
 }
 
+}	// end unnamed file-local namespace
 
-const CoinPresolveAction *drop_zero_coefficients_action::presolve(CoinPresolveMatrix *prob,
-							       int *checkcols,
-							       int ncheckcols,
-							       const CoinPresolveAction *next)
+const CoinPresolveAction
+  *drop_zero_coefficients_action::presolve (CoinPresolveMatrix *prob,
+					    int *checkcols,
+					    int ncheckcols,
+					    const CoinPresolveAction *next)
 {
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt		= prob->mcstrt_;
   int *hincol		= prob->hincol_;
+  presolvehlink *clink	= prob->clink_ ;
+  presolvehlink *rlink	= prob->rlink_ ;
   int ncols		= prob->ncols_;
   int nrows		= prob->nrows_;
 
   //  int i;
   dropped_zero * zeros = new dropped_zero[ncols+nrows];
 
-  int nzeros = drop_col_zeros(ncheckcols, checkcols,
-			      mcstrt, colels, hrow, hincol,
+  int nzeros = drop_col_zeros(ncheckcols,checkcols,
+			      mcstrt,colels,hrow,hincol,clink,
 			      zeros);
 
   if (nzeros == 0) {
@@ -113,12 +131,12 @@ const CoinPresolveAction *drop_zero_coefficients_action::presolve(CoinPresolveMa
     int *hinrow		= prob->hinrow_;
     //    int nrows		= prob->nrows_;
 
-#if	PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY
     printf("NZEROS:  %d\n", nzeros);
-#endif
+#   endif
 
     // make the row rep consistent
-    drop_row_zeros(nzeros, zeros, mrstrt, rowels, hcol, hinrow);
+    drop_row_zeros(nzeros,zeros,mrstrt,rowels,hcol,hinrow,rlink) ;
 
     dropped_zero *zeros1 = new dropped_zero[nzeros];
     CoinMemcpyN(zeros, nzeros, zeros1);
@@ -163,7 +181,7 @@ void drop_zero_coefficients_action::postsolve(CoinPostsolveMatrix *prob) const
   CoinBigIndex *mcstrt		= prob->mcstrt_;
   int *hincol		= prob->hincol_;
   int *link		= prob->link_;
-  CoinBigIndex free_list		= prob->free_list_;
+  CoinBigIndex &free_list		= prob->free_list_;
 
   for (const dropped_zero *z = &zeros[nzeros-1]; zeros<=z; z--) {
     int irow	= z->row;
@@ -171,9 +189,8 @@ void drop_zero_coefficients_action::postsolve(CoinPostsolveMatrix *prob) const
 
     {
       CoinBigIndex k = free_list;
+      assert(k >= 0 && k < prob->bulk0_) ;
       free_list = link[free_list];
-      check_free_list(free_list);
-
       hrow[k] = irow;
       colels[k] = 0.0;
       link[k] = mcstrt[jcol];
@@ -183,5 +200,8 @@ void drop_zero_coefficients_action::postsolve(CoinPostsolveMatrix *prob) const
     hincol[jcol]++;
   }
 
-  prob->free_list_ = free_list;
+# if PRESOLVE_CONSISTENCY
+  presolve_check_free_list(prob) ;
+# endif
+
 } 
