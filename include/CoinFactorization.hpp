@@ -333,9 +333,12 @@ public:
   int deleteRow ( int Row );
 
   /** Replaces one Row in basis,
-      returns 0=OK, 1=Probably OK, 2=singular */
-  int replaceRow ( CoinBigIndex numberElements,
-		      int indicesColumn[], double elements[] );
+      At present assumes just a singleton on row is in basis
+      returns 0=OK, 1=Probably OK, 2=singular, 3 no space */
+  int replaceRow ( int whichRow, int numberElements,
+		      const int indicesColumn[], const double elements[] );
+  /// Takes out all entries for given rows
+  void emptyRows(int numberToEmpty, const int which[]);
   //@}
 protected:
 
@@ -376,10 +379,17 @@ protected:
   bool getColumnSpace ( int iColumn,
 			int extraNeeded );
 
-  /**  getColumnSpaceIterate.  Gets space for one extra R elemnent in Column
+  /**  getColumnSpaceIterateR.  Gets space for one extra R element in Column
        may have to do compression  (returns true)
        also moves existing vector */
-  bool getColumnSpaceIterate ( int iColumn, double value,
+  bool getColumnSpaceIterateR ( int iColumn, double value,
+			       int iRow);
+  /**  getColumnSpaceIterate.  Gets space for one extra U element in Column
+       may have to do compression  (returns true)
+       also moves existing vector.
+       Returns -1 if no memory or where element was put
+       Used by replaceRow (turns off R version) */
+  CoinBigIndex getColumnSpaceIterate ( int iColumn, double value,
 			       int iRow);
   /** Gets space for one Row with given length,
   may have to do compression  (returns True if successful),

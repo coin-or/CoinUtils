@@ -799,7 +799,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 	  startR[maximumColumnsExtra_] = min(put + 4,lengthAreaR_);
       } else {
 	// no space - do we shuffle?
-	if (!getColumnSpaceIterate(iRow,region[iRow],pivotRow)) {
+	if (!getColumnSpaceIterateR(iRow,region[iRow],pivotRow)) {
 	  // printf("Need more space for R\n");
 	  delete [] numberInColumnPlus_;
 	  numberInColumnPlus_=NULL;
@@ -1758,17 +1758,18 @@ CoinFactorization::getRowSpaceIterate ( int iRow,
   return true;
 }
 
-//  getColumnSpaceIterate.  Gets space for one extra R elemnent in Column
+//  getColumnSpaceIterateR.  Gets space for one extra R element in Column
 //may have to do compression  (returns true)
 //also moves existing vector
 bool
-CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
+CoinFactorization::getColumnSpaceIterateR ( int iColumn, double value,
 					   int iRow)
 {
   double * elementR = elementR_ + lengthAreaR_;
   int * indexRowR = indexRowR_ + lengthAreaR_;
   int * startR = startColumnR_+maximumPivots_+1;
   int number = numberInColumnPlus_[iColumn];
+  //*** modify so sees if can go in
   //see if it can go in at end
   if (lengthAreaR_-startR[maximumColumnsExtra_]<number+1) {
     //compression
@@ -1827,4 +1828,162 @@ CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
   //add 4 for luck
   startR[maximumColumnsExtra_] = min(put + 4,lengthAreaR_);
   return true;
+}
+/*  getColumnSpaceIterate.  Gets space for one extra U element in Column
+    may have to do compression  (returns true)
+    also moves existing vector.
+    Returns -1 if no memory or where element was put
+    Used by replaceRow (turns off R version) */
+CoinBigIndex 
+CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
+					   int iRow)
+{
+  if (numberInColumnPlus_) {
+    delete [] numberInColumnPlus_;
+    numberInColumnPlus_=NULL;
+  }
+  int number = numberInColumn_[iColumn];
+  int iNext=nextColumn_[iColumn];
+  CoinBigIndex space = startColumnU_[iNext]-startColumnU_[iColumn];
+  CoinBigIndex put;
+  if ( space < number + 1 ) {
+    //see if it can go in at end
+    if (lengthAreaU_-startColumnU_[maximumColumnsExtra_]<number+1) {
+      //compression
+      int jColumn = nextColumn_[maximumColumnsExtra_];
+      CoinBigIndex put = 0;
+      while ( jColumn != maximumColumnsExtra_ ) {
+	//move
+	CoinBigIndex get;
+	CoinBigIndex getEnd;
+	
+	get = startColumnU_[jColumn];
+	getEnd = get + numberInColumn_[jColumn];
+	startColumnU_[jColumn] = put;
+	CoinBigIndex i;
+	for ( i = get; i < getEnd; i++ ) {
+	  double value = elementU_[i];
+	  if (value) {
+	    indexRowU_[put] = indexRowU_[i];
+	    elementU_[put] = value;
+	    put++;
+	  } else {
+	    numberInColumn_[jColumn]--;
+	  }
+	}
+	jColumn = nextColumn_[jColumn];
+      }
+      numberCompressions_++;
+      startColumnU_[maximumColumnsExtra_]=put;
+      //space for cross reference
+      CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
+      CoinBigIndex j = 0;
+      CoinBigIndex *startRow = startRowU_;
+      
+      int iRow;
+      for ( iRow = 0; iRow < numberRowsExtra_; iRow++ ) {
+	startRow[iRow] = j;
+	j += numberInRow_[iRow];
+      }
+      factorElements_=j;
+      
+      CoinFillN ( numberInRow_, numberRowsExtra_ , 0);
+      int i;
+      for ( i = 0; i < numberRowsExtra_; i++ ) {
+	CoinBigIndex start = startColumnU_[i];
+	CoinBigIndex end = start + numberInColumn_[i];
+	
+	CoinBigIndex j;
+	for ( j = start; j < end; j++ ) {
+	  int iRow = indexRowU_[j];
+	  int iLook = numberInRow_[iRow];
+	  
+	  numberInRow_[iRow] = iLook + 1;
+	  CoinBigIndex k = startRow[iRow] + iLook;
+	  
+	  indexColumnU_[k] = i;
+	  convertRowToColumn[k] = j;
+	}
+      }
+    }
+    // Still may not be room (as iColumn was still in)
+    if (lengthAreaU_-startColumnU_[maximumColumnsExtra_]>=number+1) {
+      int next = nextColumn_[iColumn];
+      int last = lastColumn_[iColumn];
+      
+      //out
+      nextColumn_[last] = next;
+      lastColumn_[next] = last;
+      
+      put = startColumnU_[maximumColumnsExtra_];
+      //in at end
+      last = lastColumn_[maximumColumnsExtra_];
+      nextColumn_[last] = iColumn;
+      lastColumn_[maximumColumnsExtra_] = iColumn;
+      lastColumn_[iColumn] = last;
+      nextColumn_[iColumn] = maximumColumnsExtra_;
+      
+      //move
+      CoinBigIndex get = startColumnU_[iColumn];
+      startColumnU_[iColumn] = put;
+      int i = 0;
+      for (i=0 ; i < number; i ++ ) {
+	double value = elementU_[get];
+	int iRow=indexRowU_[get++];
+	if (value) {
+	  elementU_[put]= value;
+	  int n=numberInRow_[iRow];
+	  int start = startRowU_[iRow];
+	  int j;
+	  for (j=start;j<start+n;j++) {
+	    if (indexColumnU_[j]==iColumn) {
+	      convertRowToColumnU_[j]=put;
+	      break;
+	    }
+	  }
+	  assert (j<start+n);
+	  indexRowU_[put++] = iRow;
+	} else {
+	  assert (!numberInRow_[iRow]);
+	  numberInColumn_[iColumn]--;
+	}
+      }
+      //insert
+      int n=numberInRow_[iRow];
+      int start = startRowU_[iRow];
+      int j;
+      for (j=start;j<start+n;j++) {
+	if (indexColumnU_[j]==iColumn) {
+	  convertRowToColumnU_[j]=put;
+	  break;
+	}
+      }
+      assert (j<start+n);
+      elementU_[put]=value;
+      indexRowU_[put]=iRow;
+      numberInColumn_[iColumn]++;
+      //add 4 for luck
+      startColumnU_[maximumColumnsExtra_] = min(put + 4,lengthAreaU_);
+    } else {
+      // no room
+      put=-1;
+    }
+  } else {
+    // just slot in
+    put=startColumnU_[iColumn]+numberInColumn_[iColumn];
+    int n=numberInRow_[iRow];
+    int start = startRowU_[iRow];
+    int j;
+    for (j=start;j<start+n;j++) {
+      if (indexColumnU_[j]==iColumn) {
+	convertRowToColumnU_[j]=put;
+	break;
+      }
+    }
+    assert (j<start+n);
+    elementU_[put]=value;
+    indexRowU_[put]=iRow;
+    numberInColumn_[iColumn]++;
+  }
+  return put;
 }

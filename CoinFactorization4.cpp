@@ -1577,3 +1577,176 @@ void CoinFactorization::resetStatistics()
   btranAverageAfterR_=0.0;
   btranAverageAfterL_=0.0; 
 }
+/* Replaces one Row in basis,
+   At present assumes just a singleton on row is in basis
+   returns 0=OK, 1=Probably OK, 2=singular, 3 no space */
+int 
+CoinFactorization::replaceRow ( int whichRow, int numberInRow,
+				const int indicesColumn[], const double elements[] )
+{
+  if (!numberInRow)
+    return 0;
+  int next = nextRow_[whichRow];
+  int numberNow = numberInRow_[whichRow];
+  CoinBigIndex start = startRowU_[whichRow];
+  if (numberNow&&numberNow<100) {
+    int ind[100];
+    memcpy(ind,indexColumnU_+start,numberNow*sizeof(int));
+    int i;
+    for (i=0;i<numberInRow;i++) {
+      int jColumn=indicesColumn[i];
+      int k;
+      for (k=0;k<numberNow;k++) {
+	if (ind[k]==jColumn) {
+	  ind[k]=-1;
+	  break;
+	}
+      }
+      if (k==numberNow) {
+	printf("new column %d not in current\n",jColumn);
+      } else {
+	k=convertRowToColumnU_[start+k];
+	double oldValue = elementU_[k];
+	double newValue = elements[i]*pivotRegion_[jColumn];
+	if (fabs(oldValue-newValue)>1.0e-3)
+	  printf("column %d, old value %g new %g (el %g, piv %g)\n",jColumn,oldValue,
+		 newValue,elements[i],pivotRegion_[jColumn]);
+      }
+    }
+    for (i=0;i<numberNow;i++) {
+      if (ind[i]>=0)
+	printf("current column %d not in new\n",ind[i]);
+    }
+    assert (numberNow==numberInRow);
+  }
+  assert (numberInColumn_[whichRow]==0);
+  assert (pivotRegion_[whichRow]==1.0);
+  CoinBigIndex space;
+  int returnCode=0;
+      
+  space = startRowU_[next] - (start+numberInRow);
+  if ( space < 0 ) {
+    if (!getRowSpaceIterate ( whichRow, numberInRow)) 
+      returnCode=3;
+  }
+  //return 0;
+  if (!returnCode) {
+    numberInRow_[whichRow]=numberInRow;
+    start = startRowU_[whichRow];
+    int i;
+    for (i=0;i<numberInRow;i++) {
+      int iColumn = indicesColumn[i];
+      indexColumnU_[start+i]=iColumn;
+      assert (iColumn>whichRow);
+      double value  = elements[i]*pivotRegion_[iColumn];
+#if 0
+      int k;
+      bool found=false;
+      for (k=startColumnU_[iColumn];k<startColumnU_[iColumn]+numberInColumn_[iColumn];k++) {
+	if (indexRowU_[k]==whichRow) {
+	  assert (fabs(elementU_[k]-value)<1.0e-3);
+	  found=true;
+	  break;
+	}
+      }
+#if 0
+      assert (found);
+#else
+      if (found) {
+	int number = numberInColumn_[iColumn]-1;
+	numberInColumn_[iColumn]=number;
+	int j=startColumnU_[iColumn]+number;
+	if (k<j) {
+	  int iRow=indexRowU_[j];
+	  indexRowU_[k]=iRow;
+	  elementU_[k]=elementU_[j];
+	  int n=numberInRow_[iRow];
+	  int start = startRowU_[iRow];
+	  for (j=start;j<start+n;j++) {
+	    if (indexColumnU_[j]==iColumn) {
+	      convertRowToColumnU_[j]=k;
+	      break;
+	    }
+	  }
+	  assert (j<start+n);
+	}
+      }
+      found=false;
+#endif
+      if (!found) {
+#endif
+	CoinBigIndex iWhere = getColumnSpaceIterate(iColumn,value,whichRow);
+	if (iWhere>=0) {
+	  convertRowToColumnU_[start+i] = iWhere;
+	} else {
+	  returnCode=3;
+	  break;
+	}
+#if 0
+      } else {
+	convertRowToColumnU_[start+i] = k;
+      }
+#endif
+    }
+  }       
+  return returnCode;
+}
+// Takes out all entries for given rows
+void 
+CoinFactorization::emptyRows(int numberToEmpty, const int which[])
+{
+  int i;
+  int * delRow = new int [maximumRowsExtra_];
+  for (i=0;i<maximumRowsExtra_;i++)
+    delRow[i]=0;
+  for (i=0;i<numberToEmpty;i++) {
+    int iRow = which[i];
+    delRow[iRow]=1;
+    assert (numberInColumn_[iRow]==0);
+    assert (pivotRegion_[iRow]==1.0);
+    numberInRow_[iRow]=0;
+  }
+  for (i=0;i<numberU_;i++) {
+    int k;
+    int j=startColumnU_[i];
+    for (k=startColumnU_[i];k<startColumnU_[i]+numberInColumn_[i];k++) {
+      int iRow=indexRowU_[k];
+      if (!delRow[iRow]) {
+	indexRowU_[j]=indexRowU_[k];
+	elementU_[j++]=elementU_[k];
+      }
+    }
+    numberInColumn_[i] = j-startColumnU_[i];
+  }
+  delete [] delRow;
+  //space for cross reference
+  CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
+  CoinBigIndex j = 0;
+  CoinBigIndex *startRow = startRowU_;
+
+  int iRow;
+  for ( iRow = 0; iRow < numberRows_; iRow++ ) {
+    startRow[iRow] = j;
+    j += numberInRow_[iRow];
+  }
+  factorElements_=j;
+
+  CoinFillN ( numberInRow_, numberRows_ , 0);
+
+  for ( i = 0; i < numberRows_; i++ ) {
+    CoinBigIndex start = startColumnU_[i];
+    CoinBigIndex end = start + numberInColumn_[i];
+
+    CoinBigIndex j;
+    for ( j = start; j < end; j++ ) {
+      int iRow = indexRowU_[j];
+      int iLook = numberInRow_[iRow];
+
+      numberInRow_[iRow] = iLook + 1;
+      CoinBigIndex k = startRow[iRow] + iLook;
+
+      indexColumnU_[k] = i;
+      convertRowToColumn[k] = j;
+    }
+  }
+}

@@ -1465,7 +1465,7 @@ CoinFactorization::cleanup (  )
   if (k>10*numberRows_) {
     // NO
     delete []  numberInColumnPlus_ ;
-    numberInColumnPlus_ = 0;
+    numberInColumnPlus_ = NULL;
   } else {
     for ( i = 0; i < numberColumns_; i++ ) {
       lastColumn_[i] = i - 1;
