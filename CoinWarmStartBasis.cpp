@@ -38,8 +38,8 @@ CoinWarmStartBasis::assignBasisStatus(int ns, int na, char*& sStat,
   numArtificial_ = na;
   structuralStatus_ = sStat;
   artificialStatus_ = aStat;
-  sStat = 0;
-  aStat = 0;
+  sStat = NULL;
+  aStat = NULL;
 }
 CoinWarmStartBasis::CoinWarmStartBasis(int ns, int na, 
 				     const char* sStat, const char* aStat) :
@@ -145,6 +145,10 @@ CoinWarmStartBasis::deleteRows(int number, const int * which)
   }
   int nCharNew  = 4*((numArtificial_-numberDeleted+15)>>4);
   char * array = new char[nCharNew];
+  // Make sure okay for zerofault etc
+  array[nCharNew-3]=0;
+  array[nCharNew-2]=0;
+  array[nCharNew-1]=0;
   int put=0;
 # ifdef COIN_DEBUG
   int numberNotBasic=0;
@@ -187,6 +191,10 @@ CoinWarmStartBasis::deleteColumns(int number, const int * which)
   }
   int nCharNew  = 4*((numStructural_-numberDeleted+15)>>4);
   char * array = new char[nCharNew];
+  // Make sure okay for zerofault etc
+  array[nCharNew-3]=0;
+  array[nCharNew-2]=0;
+  array[nCharNew-1]=0;
   int put=0;
 # ifdef COIN_DEBUG
   int numberBasic=0;
