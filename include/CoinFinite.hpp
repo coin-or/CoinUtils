@@ -14,6 +14,16 @@ inline int CoinFinite(double d) { return d != DBL_MAX; }
 
 //=============================================================================
 
+#if !defined(__GNUC__) && defined(_AIX)
+extern "C" {
+   int isnan(double);
+}
+# define CoinFinite finite
+# define CoinIsnan  isnan
+#endif
+
+//=============================================================================
+
 #if defined(sun)
 extern "C" {
    int finite(double);
