@@ -396,17 +396,36 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     const int *rowcols	= f->rowcols;
     const double *bounds= f->bounds;
     int k;
-
+/*
+  When we restore bounds here, we need to allow for the possibility that the
+  restored bound is infinite. This implies a check for viable status.
+*/
     for (k=0; k<nlo; k++) {
       int jcol = rowcols[k];
       cup[jcol] = bounds[k];
       PRESOLVEASSERT(prob->getColumnStatus(jcol)!=CoinPrePostsolveMatrix::basic);
+      if (cup[jcol] >= PRESOLVE_INF)
+      { CoinPrePostsolveMatrix::Status statj = prob->getColumnStatus(jcol) ;
+	if (statj == CoinPrePostsolveMatrix::atUpperBound)
+	{ if (clo[jcol] > -PRESOLVE_INF)
+	  { statj = CoinPrePostsolveMatrix::atLowerBound ; }
+	  else
+	  { statj = CoinPrePostsolveMatrix::isFree ; }
+	  prob->setColumnStatus(jcol,statj) ; } }
     }
 
     for (k=nlo; k<ninrow; k++) {
       int jcol = rowcols[k];
       clo[jcol] = bounds[k];
       PRESOLVEASSERT(prob->getColumnStatus(jcol)!=CoinPrePostsolveMatrix::basic);
+      if (clo[jcol] <= -PRESOLVE_INF)
+      { CoinPrePostsolveMatrix::Status statj = prob->getColumnStatus(jcol) ;
+	if (statj == CoinPrePostsolveMatrix::atLowerBound)
+	{ if (cup[jcol] < PRESOLVE_INF)
+	  { statj = CoinPrePostsolveMatrix::atUpperBound ; }
+	  else
+	  { statj = CoinPrePostsolveMatrix::isFree ; }
+	  prob->setColumnStatus(jcol,statj) ; } }
     }
 
     PRESOLVEASSERT(prob->getRowStatus(irow)==CoinPrePostsolveMatrix::basic);

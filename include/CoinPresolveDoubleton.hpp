@@ -6,6 +6,21 @@
 
 #define	DOUBLETON	5
 
+/*! \class doubleton_action
+    \brief Solve ax+by=c for y and substitute y out of the problem.
+
+  This moves the bounds information for y onto x, making y free and allowing
+  us to substitute it away.
+  \verbatim
+	   a x + b y = c
+	   l1 <= x <= u1
+	   l2 <= y <= u2	==>
+	  
+	   l2 <= (c - a x) / b <= u2
+	   b/-a > 0 ==> (b l2 - c) / -a <= x <= (b u2 - c) / -a
+	   b/-a < 0 ==> (b u2 - c) / -a <= x <= (b l2 - c) / -a
+  \endverbatim
+*/
 class doubleton_action : public CoinPresolveAction {
  public:
   struct action {

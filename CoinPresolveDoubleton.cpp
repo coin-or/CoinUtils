@@ -14,6 +14,10 @@
 
 #include "CoinPresolvePsdebug.hpp"
 #include "CoinMessage.hpp"
+
+// #define DEBUG_PRESOLVE 1
+// #define PRESOLVE_SUMMARY 1
+
 // This one saves in one go to save [] memory and deletes row
 static double * presolve_duparray(const double * element, const int * index,
 			   int length, int offset,int row)
@@ -237,7 +241,7 @@ static bool reject_doubleton(int *mcstrt,
  */
 static bool elim_doubleton(const char *msg,
 			   CoinBigIndex *mcstrt, 
-			   double *rlo, double * acts, double *rup,
+			   double *rlo, double *rup,
 			   double *colels,
 			   int *hrow, int *hcol,
 			   int *hinrow, int *hincol,
@@ -278,9 +282,6 @@ static bool elim_doubleton(const char *msg,
 	// (2)
 	if (rup[row] < PRESOLVE_INF)
 	  rup[row] -= colels[kcoly] * bounds_factor;
-
-	// and solution
-	acts[row] -= colels[kcoly] * bounds_factor;
       }
 
 #if	DEBUG_PRESOLVE
@@ -707,6 +708,7 @@ const CoinPresolveAction *doubleton_action::presolve(CoinPresolveMatrix *prob,
 	      // update solution and basis
               int basisChoice=0;
 	      int numberBasic=0;
+	      double movement = 0 ;
 	      if (prob->columnIsBasic(icolx))
 		numberBasic++;
 	      if (prob->columnIsBasic(icoly))
@@ -714,16 +716,39 @@ const CoinPresolveAction *doubleton_action::presolve(CoinPresolveMatrix *prob,
 	      if (prob->rowIsBasic(irow))
 		numberBasic++;
               if (sol[icolx]<=lo2+ztolzb) {
-		sol[icolx] =lo2;
+		movement = lo2-sol[icolx] ;
+		sol[icolx] = lo2;
 		prob->setColumnStatus(icolx,CoinPrePostsolveMatrix::atLowerBound);
 	      } else if (sol[icolx]>=up2-ztolzb) {
-		sol[icolx] =up2;
+		movement = up2-sol[icolx] ;
+		sol[icolx] = up2;
 		prob->setColumnStatus(icolx,CoinPrePostsolveMatrix::atUpperBound);
 	      } else {
 		basisChoice=1;
 	      }
 	      if (numberBasic>1)
 		prob->setColumnStatus(icolx,CoinPrePostsolveMatrix::basic);
+/*
+  We need to compensate if x was forced to move. Beyond that, even if x didn't
+  move, we've forced y = (c-ax)/b, and that might not have been true before. So
+  even if x didn't move, y may have moved. Note that the constant term c/b is
+  subtracted out as the constraints are modified, so we don't include it when
+  calculating movement for y.
+*/
+	      if (movement)
+	      { CoinBigIndex k;
+		for (k = mcstrt[icolx] ; k < mcstrt[icolx]+hincol[icolx] ; k++)
+		{ int row = hrow[k];
+		  if (hinrow[row])
+		    acts[row] += movement*colels[k]; } }
+	      movement = (-coeffx*sol[icolx]/coeffy)-sol[icoly] ;
+	      if (movement)
+	      { for (k = mcstrt[icoly] ;
+		     k < mcstrt[icoly]+hincol[icoly] ;
+		     k++)
+		{ int row = hrow[k];
+		  if (hinrow[row])
+		    acts[row] += movement*colels[k]; } }
 	    }
 	    if (lo2 == up2)
 	      fixed[nfixed++] = icolx;
@@ -750,7 +775,7 @@ const CoinPresolveAction *doubleton_action::presolve(CoinPresolveMatrix *prob,
 
 	/* transfer the colx factors to coly */
 	bool no_mem = elim_doubleton("ELIMD",
-				     mcstrt, rlo, acts, rup, colels,
+				     mcstrt, rlo, rup, colels,
 				     hrow, hcol, hinrow, hincol,
 				     clink, ncols, 
 				     mrstrt, rowels,

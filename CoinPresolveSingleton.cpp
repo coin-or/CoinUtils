@@ -12,6 +12,9 @@
 #include "CoinPresolveSingleton.hpp"
 #include "CoinMessage.hpp"
 
+// #define DEBUG_PRESOLVE 1
+// #define PRESOLVE_SUMMARY 1
+
 /*
  * Transfers singleton row bound information to the corresponding column bounds.
  * What I refer to as a row singleton would be called a doubleton
@@ -27,7 +30,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 {
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
-  CoinBigIndex *mcstrt		= prob->mcstrt_;
+  CoinBigIndex *mcstrt	= prob->mcstrt_;
   int *hincol		= prob->hincol_;
   int ncols		= prob->ncols_;
 
@@ -45,7 +48,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 
   // If rowstat exists then all do
   unsigned char *rowstat	= prob->rowstat_;
-  //  double *acts	= prob->acts_;
+  double *acts	= prob->acts_;
   double * sol = prob->sol_;
   //  unsigned char * colstat = prob->colstat_;
 
@@ -157,9 +160,9 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	}
       }
 
-#if	0&&DEBUG_PRESOLVE
+#     if DEBUG_PRESOLVE
       printf("SINGLETON R-%d C-%d\n", irow, jcol);
-#endif
+#     endif
 
       // eliminate the row entirely from the row rep
       // rlinks don't seem to be used PRESOLVE_REMOVE_LINK(rlink, irow);
@@ -173,21 +176,32 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	// update solution and basis
 	int basisChoice=0;
 	int numberBasic=0;
+	double movement = 0 ;
 	if (prob->columnIsBasic(jcol))
 	  numberBasic++;
 	if (prob->rowIsBasic(irow))
 	  numberBasic++;
-	if (sol[jcol]<=clo[jcol]+ztolzb) {
-	  sol[jcol] =clo[jcol];
+	if (sol[jcol] <= clo[jcol]+ztolzb) {
+	  movement = clo[jcol]-sol[jcol] ;
+	  sol[jcol] = clo[jcol];
 	  prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::atLowerBound);
-	} else if (sol[jcol]>=cup[jcol]-ztolzb) {
-	  sol[jcol] =cup[jcol];
+	} else if (sol[jcol] >= cup[jcol]-ztolzb) {
+	  movement = cup[jcol]-sol[jcol] ;
+	  sol[jcol] = cup[jcol];
 	  prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::atUpperBound);
 	} else {
 	  basisChoice=1;
 	}
 	if (numberBasic>1||basisChoice)
 	  prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic);
+	if (movement) {
+	  CoinBigIndex k;
+	  for (k = mcstrt[jcol] ; k < mcstrt[jcol]+hincol[jcol] ; k++) {
+	    int row = hrow[k];
+	    if (hinrow[row])
+	      acts[row] += movement*colels[k];
+	  }
+	}
       }
 
       // remove the row from this col in the col rep
@@ -201,9 +215,9 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   }
 
   if (nactions) {
-#if	PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY
     printf("SINGLETON ROWS:  %d\n", nactions);
-#endif
+#   endif
     action *save_actions = new action[nactions];
     CoinMemcpyN(actions, nactions, save_actions);
     next = new slack_doubleton_action(nactions, save_actions, next);

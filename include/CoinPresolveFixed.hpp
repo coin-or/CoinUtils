@@ -5,21 +5,43 @@
 #define CoinPresolveFixed_H
 #define	FIXED_VARIABLE	1
 
+/*! \class remove_fixed_action
+    \brief Excise fixed variables from the model.
+
+  Implements the action of removing one or more fixed variables from the
+  model by replacing each variable with its value.
+
+  There is an implicit assumption that the variable already has the correct
+  value. If this isn't true, corrections to row activity may be incorrect.
+  If you want to guard against this possibility, consider make_fixed_action.
+
+  If you want to get into grubby detail, in terms of the
+  CoinPrePostSolveMatrix structure, the column is emptied in the column-major
+  representation, and coefficients are excised in the row-major
+  representation, but the matrix is not repacked.
+
+*/
 class remove_fixed_action : public CoinPresolveAction {
  public:
+  /*! \brief Structure to hold information necessary to reintroduce a
+	     column into the problem representation.
+  */
   struct action {
-    int col;
-    int start;
-
-    double sol;
+    int col;		///< column index of variable
+    int start;		///< start of coefficients in #colels_ and #colrows_
+    double sol;		///< value of variable
   };
+  /// Array of row indices for coefficients of excised columns
   int *colrows_;
+  /// Array of coefficients of excised columns
   double *colels_;
-
+  /// Number of entries in #actions_
   int nactions_;
+  /// Vector specifying variable(s) affected by this object
   action *actions_;
 
  private:
+  /*! \brief Constructor */
   remove_fixed_action(int nactions,
 		      action *actions,
 		      double * colels,
@@ -27,8 +49,16 @@ class remove_fixed_action : public CoinPresolveAction {
 		      const CoinPresolveAction *next);
 
  public:
+  /// Returns string "remove_fixed_action".
   const char *name() const;
 
+  /*! \brief Excise the specified columns.
+
+    Remove the specified columns (\p nfcols, \p fcols) from the problem
+    representation (\p prob), leaving the appropriate postsolve object
+    linked as the head of the list of postsolve objects (currently headed
+    by \p next).
+  */
   static const remove_fixed_action *presolve(CoinPresolveMatrix *prob,
 					 int *fcols,
 					 int nfcols,
@@ -36,26 +66,54 @@ class remove_fixed_action : public CoinPresolveAction {
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
+  /// Destructor
   ~remove_fixed_action();
 };
 
+
+/*! \relates remove_fixed_action
+    \brief Scan the problem for fixed columns and remove them.
+
+  A front end to collect a list of columns with equal bounds and hand them to
+  remove_fixed_action::presolve() for processing.
+*/
 
 const CoinPresolveAction *remove_fixed(CoinPresolveMatrix *prob,
 				    const CoinPresolveAction *next);
 
 
+/*! \class make_fixed_action
+    \brief Fix a variable at a specified bound.
 
+  Implements the action of fixing a variable by forcing both bounds to the same
+  value and forcing the value of the variable to match.
+
+  If the bounds are already equal, and the value of the variable is already
+  correct, consider remove_fixed_action.
+*/
 class make_fixed_action : public CoinPresolveAction {
+
+  /// Structure to preserve the bound overwritten when fixing a variable
   struct action {
-    double bound;
+    double bound;	///< Value of bound overwritten to fix variable.
+    int col ;		///< column index of variable
   };
 
+  /// Number of preserved bounds
   int nactions_;
+  /// Vector of preserved bounds, one for each variable fixed in this object
   const action *actions_;
 
+  /*! \brief True to fix at lower bound, false to fix at upper bound.
+
+    Note that this applies to all variables fixed in this object.
+  */
   const bool fix_to_lower_;
+
+  /// The postsolve object with information to undo the fix(es).
   const remove_fixed_action *faction_;
 
+  /*! \brief Constructor */
   make_fixed_action(int nactions,
 		    const action *actions,
 		    bool fix_to_lower,
@@ -65,25 +123,44 @@ class make_fixed_action : public CoinPresolveAction {
     nactions_(nactions), actions_(actions),
     fix_to_lower_(fix_to_lower),
     faction_(faction)
-{}
+  {}
 
  public:
+  /// Returns string "make_fixed_action".
   const char *name() const;
 
+  /*! \brief Perform actions to fix variables and return postsolve object
+
+    For each specified variable (\p nfcols, \p fcols), fix the variable to
+    the specified bound (\p fix_to_lower) by setting the variable's bounds
+    to be equal in \p prob. Create a postsolve object, link it at the head of
+    the list of postsolve objects (\p next), and return the object.
+  */
   static const CoinPresolveAction *presolve(CoinPresolveMatrix *prob,
 					 int *fcols,
-					 int hfcols,
+					 int nfcols,
 					 bool fix_to_lower,
 					 const CoinPresolveAction *next);
 
+  /*! \brief Postsolve (unfix variables)
+
+    Back out the variables fixed by the presolve side of this object.
+  */
   void postsolve(CoinPostsolveMatrix *prob) const;
 
+  /// Destructor
   ~make_fixed_action() { 
     deleteAction(actions_,action*); 
     delete faction_;
   };
 };
 
+/*! \relates make_fixed_action
+    \brief Scan variables and fix any with equal bounds
+
+  A front end to collect a list of columns with equal bounds and hand them to
+  make_fixed_action::presolve() for processing.
+*/
 
 const CoinPresolveAction *make_fixed(CoinPresolveMatrix *prob,
 				    const CoinPresolveAction *next);

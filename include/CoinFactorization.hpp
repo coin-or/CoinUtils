@@ -227,6 +227,11 @@ public:
   void slackValue (  double value );
   /// Returns maximum absolute value in factorization
   double maximumCoefficient() const;
+  /// true if Forrest Tomlin update, false if PFI 
+  inline bool forrestTomlin() const
+  { return doForrestTomlin_;};
+  inline void setForrestTomlin(bool value)
+  { doForrestTomlin_=value;};
   //@}
 
   /**@name some simple stuff */
@@ -475,10 +480,14 @@ protected:
   /// Updates part of column (FTRANU)
   void updateColumnUDensish ( CoinIndexedVector * regionSparse, 
 			      int * indexIn) const;
+  /// Updates part of column PFI (FTRAN)
+  void updateColumnPFI ( CoinIndexedVector * regionSparse) const; 
   /// Permutes back at end of updateColumn
   void permuteBack ( CoinIndexedVector * regionSparse, 
 		     CoinIndexedVector * outVector) const;
 
+  /// Updates part of column transpose PFI (BTRAN) (before rest)
+  void updateColumnTransposePFI ( CoinIndexedVector * region) const;
   /** Updates part of column transpose (BTRANU),
       assumes index is sorted i.e. region is correct */
   void updateColumnTransposeU ( CoinIndexedVector * region,
@@ -512,6 +521,12 @@ protected:
   void updateColumnTransposeLSparsish ( CoinIndexedVector * region ) const;
   /// Updates part of column transpose (BTRANL) when sparse (by Row)
   void updateColumnTransposeLSparse ( CoinIndexedVector * region ) const;
+  /** Replaces one Column to basis for PFI
+   returns 0=OK, 1=Probably OK, 2=singular, 3=no room.
+   In this case region is not empty - it is incoming variable (updated)
+  */
+  int replaceColumnPFI ( CoinIndexedVector * regionSparse,
+			 int pivotRow, double alpha);
 
   /** Returns accuracy status of replaceColumn
       returns 0=OK, 1=Probably OK, 2=singular */
@@ -1210,7 +1225,7 @@ protected:
   /// Number of compressions done
   CoinBigIndex numberCompressions_;
 
-  /// true if Forrest Tomlin update, false if PFI (dummy)
+  /// true if Forrest Tomlin update, false if PFI 
   bool doForrestTomlin_;
 
   /// For statistics 

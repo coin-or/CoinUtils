@@ -7,6 +7,12 @@
 
 const int MAX_SLACK_DOUBLETONS	= 1000;
 
+/*! \class slack_doubleton_action
+    \brief Convert an explicit bound row to a column bound
+
+  This transform looks for explicit bound constraints on a variable and
+  transfers the bound to the appropriate column bound array.
+*/
 class slack_doubleton_action : public CoinPresolveAction {
   struct action {
     double clo;

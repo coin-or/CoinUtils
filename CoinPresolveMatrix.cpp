@@ -152,7 +152,13 @@ int *presolve_duparray(const int *d, int n, int n2, char **end_mmapp)
 }
 #endif
 
+/*
+  Find the position (k) of the entry for a given row (row) within the range of
+  entries for a column (kcs, kce). Works equally well for finding the position
+  of the entry for a column within the range of entries for a row.
 
+  Print a tag and abort (DIE) if there's no entry for the specified row.
+*/
 int presolve_find_row(int row, CoinBigIndex kcs, CoinBigIndex kce, const int *hrow)
 {
   CoinBigIndex k;
@@ -163,6 +169,10 @@ int presolve_find_row(int row, CoinBigIndex kcs, CoinBigIndex kce, const int *hr
   return (0);
 }
 
+/*
+  As presolve_find_row, but simply return a position one past the end of the
+  row when the entry is not already present.
+*/
 int presolve_find_row1(int row, CoinBigIndex kcs, CoinBigIndex kce, const int *hrow)
 {
   CoinBigIndex k;
@@ -172,6 +182,11 @@ int presolve_find_row1(int row, CoinBigIndex kcs, CoinBigIndex kce, const int *h
   return (kce);
 }
 
+/*
+  The row does not occupy a contiguous block in hrow. If a<i,p> is in pos'n
+  kp of hrow, the next coefficient a<i,q> will be in pos'n kq = link[kp]. Abort
+  if we don't find it.
+*/
 int presolve_find_row2(int irow, CoinBigIndex ks, int nc, const int *hrow, const int *link)
 {
   for (int i=0; i<nc; ++i) {
@@ -183,6 +198,9 @@ int presolve_find_row2(int irow, CoinBigIndex ks, int nc, const int *hrow, const
   return -1;
 }
 
+/*
+  As presolve_find_row3, but return -1 if the entry is missing
+*/
 int presolve_find_row3(int irow, CoinBigIndex ks, int nc, const int *hrow, const int *link)
 {
   for (int i=0; i<nc; ++i) {
@@ -196,7 +214,6 @@ int presolve_find_row3(int irow, CoinBigIndex ks, int nc, const int *hrow, const
 
 // delete the entry for col from row
 // this keeps the row loosely packed
-// if we didn't want to maintain that property, we could just decrement hinrow[row].
 void presolve_delete_from_row(int row, int col /* thing to delete */,
 		     const CoinBigIndex *mrstrt,
 		     int *hinrow, int *hcol, double *dels)
@@ -204,6 +221,7 @@ void presolve_delete_from_row(int row, int col /* thing to delete */,
   CoinBigIndex krs = mrstrt[row];
   CoinBigIndex kre = krs + hinrow[row];
 
+  // find entry for column col, in entries for row
   CoinBigIndex kcol = presolve_find_row(col, krs, kre, hcol);
 
   swap(hcol[kcol], hcol[kre-1]);
@@ -335,20 +353,36 @@ CoinPresolveMatrix::~CoinPresolveMatrix()
 
 #if	CHECK_CONSISTENCY
 
-// The matrix is represented redundantly in both row and column format,
-// in what I call "loosely packed" format.
-// "packed" format would be as in normal OSL:  a vector of column starts,
-// together with two vectors that give the row indices and coefficients.
-//
-// This format is "loosely packed" because some of the elements may correspond
-// to empty rows.  This is so that we can quickly delete rows without having
-// to update the column rep and vice versa.
-//
-// Checks whether an entry is in the col rep iff it is also in the row rep,
-// and also that their values are the same (if testvals is non-zero).
-//
-// Note that there may be entries in a row that correspond to empty columns
-// and vice-versa.  --- HUH???
+/*
+ The matrix is represented redundantly in both row-major and column-major
+ format, in "loosely packed" format.
+ 
+ Using row-major for explanation, "packed" format would be as in normal
+ OSL: Two vectors with positional correspondence that give the column indices
+ and coefficients, and a vector that gives the start of each row in the
+ index and coefficient vectors. The length (number of nonzero coefficients)
+ of a row i is rowstart[i+1]-rowstart[i].
+
+ The format used here is "loosely packed" because, at any given time, there
+ may be unused entries in the column index and coefficient vectors.  This is so
+ that we can quickly delete columns without having to update (repack) the row
+ representation. Note that this requires a separate array to specify the
+ length of each row.
+
+ matrix_consistent checks whether an entry is in the column-major
+ representation iff it is also in the row-major representation, and also that
+ their values are the same (if testvals is non-zero). Note that by doing the
+ appropriate swaps of column- and row-major data structures in the parameter
+ list, we can check row-major iff column-major. 
+ (See CoinPresolveMatrix::consistent immediately below. This trick is used in
+ several other places.)
+
+ Original comment:
+ ``Note that there may be entries in a row that correspond to empty columns
+   and vice-versa.''
+ To which a previous browser had commented ``HUH???''. And I agree. -- lh --
+*/
+
 static void matrix_consistent(const CoinBigIndex *mrstrt, const int *hinrow, const int *hcol,
 			      const CoinBigIndex *mcstrt, const int *hincol, const int *hrow,
 			      const double *rowels,

@@ -136,6 +136,9 @@ CoinSort_2(Iter_S sfirst, Iter_S slast, Iter_T tfirst, const CoinCompare2& pc)
 
   typedef CoinPair<S,T> ST_pair;
   ST_pair* x = static_cast<ST_pair*>(::operator new(len * sizeof(ST_pair)));
+# ifdef ZEROFAULT
+  memset(x,0,(len*sizeof(ST_pair))) ;
+# endif
 
   int i = 0;
   Iter_S scurrent = sfirst;
@@ -175,6 +178,11 @@ CoinSort_2(S* sfirst, S* slast, T* tfirst, const CoinCompare2& pc)
 
   typedef CoinPair<S,T> ST_pair;
   ST_pair* x = static_cast<ST_pair*>(::operator new(len * sizeof(ST_pair)));
+# ifdef ZEROFAULT
+  // Can show RUI errors on some systems due to copy of ST_pair with gaps.
+  // E.g., <int, double> has 4 byte alignment gap on Solaris/SUNWspro.
+  memset(x,0,(len*sizeof(ST_pair))) ;
+# endif
 
   int i = 0;
   S* scurrent = sfirst;
@@ -182,9 +190,6 @@ CoinSort_2(S* sfirst, S* slast, T* tfirst, const CoinCompare2& pc)
   while (scurrent != slast) {
     new (x+i++) ST_pair(*scurrent++, *tcurrent++);
   }
-
-  // Can show RUI errors on some systems due to copy of ST_pair with gaps.
-  // E.g., <int, double> has 4 byte alignment gap on Solaris/SUNWspro.
 
   std::sort(x, x + len, pc);
 

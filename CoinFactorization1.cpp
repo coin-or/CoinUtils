@@ -139,6 +139,7 @@ void CoinFactorization::gutsOfInitialize(int type)
     denseThreshold_=31;
     denseThreshold_=71;
     biasLU_=2;
+    doForrestTomlin_=true;
   }
   if ((type&2)!=0) {
     numberCompressions_ = 0;
@@ -154,7 +155,6 @@ void CoinFactorization::gutsOfInitialize(int type)
     totalElements_ = 0;
     factorElements_ = 0;
     status_ = -1;
-    doForrestTomlin_=true;
     numberPivots_ = 0;
     pivotColumn_ = NULL;
     permute_ = NULL;

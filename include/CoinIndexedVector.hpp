@@ -12,6 +12,7 @@
 
 #include "CoinPackedVectorBase.hpp"
 #include "CoinSort.hpp"
+#include <cassert>
 
 #define COIN_INDEXED_TINY_ELEMENT 1.0e-50
 
