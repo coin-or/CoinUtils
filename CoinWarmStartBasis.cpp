@@ -146,26 +146,30 @@ CoinWarmStartBasis::deleteRows(int number, const int * which)
   int nCharNew  = 4*((numArtificial_-numberDeleted+15)>>4);
   char * array = new char[nCharNew];
   int put=0;
+# ifdef COIN_DEBUG
   int numberNotBasic=0;
+# endif
   for (i=0;i<numArtificial_;i++) {
     Status status = getArtifStatus(i);
     if (!deleted[i]) {
-      setArtifStatus(put, status);
-      put++;
-    } else if (status!=CoinWarmStartBasis::basic) {
-      numberNotBasic++;
-    }
+      setStatus(array,put,status) ;
+      put++; }
+#   ifdef COIN_DEBUG
+    else
+    if (status!=CoinWarmStartBasis::basic)
+    { numberNotBasic++ ; }
+#   endif
   }
-  memcpy(array,artificialStatus_,nCharNew*sizeof(char));
   delete [] artificialStatus_;
   artificialStatus_ = array;
   delete [] deleted;
   numArtificial_ -= numberDeleted;
-#ifdef COIN_DEBUG
+# ifdef COIN_DEBUG
   if (numberNotBasic)
     std::cout<<numberNotBasic<<" non basic artificials deleted"<<std::endl;
-#endif
+# endif
 }
+
 // Deletes columns
 void 
 CoinWarmStartBasis::deleteColumns(int number, const int * which)
@@ -184,17 +188,20 @@ CoinWarmStartBasis::deleteColumns(int number, const int * which)
   int nCharNew  = 4*((numStructural_-numberDeleted+15)>>4);
   char * array = new char[nCharNew];
   int put=0;
+# ifdef COIN_DEBUG
   int numberBasic=0;
+# endif
   for (i=0;i<numStructural_;i++) {
     Status status = getStructStatus(i);
     if (!deleted[i]) {
-      setStructStatus(put, status);
-      put++;
-    } else if (status==CoinWarmStartBasis::basic) {
-      numberBasic++;
-    }
+      setStatus(array,put,status) ;
+      put++; }
+#   ifdef COIN_DEBUG
+    else
+    if (status==CoinWarmStartBasis::basic)
+    { numberBasic++ ; }
+#   endif
   }
-  memcpy(array,structuralStatus_,nCharNew*sizeof(char));
   delete [] structuralStatus_;
   structuralStatus_ = array;
   delete [] deleted;
