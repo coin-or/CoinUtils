@@ -235,6 +235,8 @@ public:
 	eliminated.  
     */
     int eliminateDuplicates(double threshold);
+    /** Sort all columns so indices are increasing.in each column */
+    void orderMatrix();
   //@}
 
   //---------------------------------------------------------------------------

@@ -1615,7 +1615,7 @@ CoinFactorization::cleanup (  )
     space = space/2;
     startColumnR_ = new CoinBigIndex 
       [ extraSpace + 1 + maximumColumnsExtra_ + 1 ];
-    int * startR = startColumnR_ + extraSpace+1;
+    CoinBigIndex * startR = startColumnR_ + extraSpace+1;
     memset (startR,0,(maximumColumnsExtra_+1)*sizeof(int));
   } else {
     startColumnR_ = new CoinBigIndex [ extraSpace + 1 ];

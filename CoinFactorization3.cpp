@@ -776,7 +776,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
     // we are going to put another copy of R in R
     double * elementR = elementR_ + lengthAreaR_;
     int * indexRowR = indexRowR_ + lengthAreaR_;
-    int * startR = startColumnR_+maximumPivots_+1;
+    CoinBigIndex * startR = startColumnR_+maximumPivots_+1;
     int pivotRow = numberRowsExtra_-1;
     for ( i = 0; i < numberNonZero; i++ ) {
       int iRow = regionIndex[i];
@@ -790,7 +790,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
       int numberInR = numberInColumnPlus_[iRow];
       if (space>numberInR) {
 	// there is space
-	int put=startR[iRow]+numberInR;
+	CoinBigIndex  put=startR[iRow]+numberInR;
 	numberInColumnPlus_[iRow]=numberInR+1;
 	indexRowR[put]=pivotRow;
 	elementR[put]=region[iRow];
@@ -1767,7 +1767,7 @@ CoinFactorization::getColumnSpaceIterateR ( int iColumn, double value,
 {
   double * elementR = elementR_ + lengthAreaR_;
   int * indexRowR = indexRowR_ + lengthAreaR_;
-  int * startR = startColumnR_+maximumPivots_+1;
+  CoinBigIndex * startR = startColumnR_+maximumPivots_+1;
   int number = numberInColumnPlus_[iColumn];
   //*** modify so sees if can go in
   //see if it can go in at end

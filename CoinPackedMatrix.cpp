@@ -1827,7 +1827,7 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs,
       throw CoinError("bad major entries", 
 		      "subset constructor", "CoinPackedMatrix");
     // now create arrays
-    maxSize_=max(1,size_);
+    maxSize_=max((CoinBigIndex) 1,size_);
     start_ = new CoinBigIndex [numberColumns+1];
     length_ = new int [numberColumns];
     index_ = new int[maxSize_];
@@ -2178,4 +2178,14 @@ CoinPackedMatrix::isEquivalent2(const CoinPackedMatrix& rhs) const
     }
   }
   return true;
+}
+/* Sort all columns so indices are increasing.in each column */
+void 
+CoinPackedMatrix::orderMatrix()
+{
+  for (int i=0;i<majorDim_;i++) {
+    CoinBigIndex start = start_[i];
+    CoinBigIndex end = start + length_[i];
+    CoinSort_2(index_+start,index_+end,element_+start);
+  }
 }

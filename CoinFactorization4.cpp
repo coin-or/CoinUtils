@@ -744,7 +744,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
       // we have another copy of R in R
       double * elementR = elementR_ + lengthAreaR_;
       int * indexRowR = indexRowR_ + lengthAreaR_;
-      int * startR = startColumnR_+maximumPivots_+1;
+      CoinBigIndex * startR = startColumnR_+maximumPivots_+1;
       // For current list order does not matter as
       // only affects end
       int newNumber=0;
@@ -796,7 +796,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
       // we have another copy of R in R
       double * elementR = elementR_ + lengthAreaR_;
       int * indexRowR = indexRowR_ + lengthAreaR_;
-      int * startR = startColumnR_+maximumPivots_+1;
+      CoinBigIndex * startR = startColumnR_+maximumPivots_+1;
       // For current list order does not matter as
       // only affects end
       for ( i = 0; i < numberNonZero; i++ ) {
@@ -915,7 +915,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	// we have another copy of R in R
 	double * elementR = elementR_ + lengthAreaR_;
 	int * indexRowR = indexRowR_ + lengthAreaR_;
-	int * startR = startColumnR_+maximumPivots_+1;
+	CoinBigIndex * startR = startColumnR_+maximumPivots_+1;
 	//save in U
 	//in at end
 	int iColumn = numberColumnsExtra_;
@@ -984,7 +984,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	// we have another copy of R in R
 	double * elementR = elementR_ + lengthAreaR_;
 	int * indexRowR = indexRowR_ + lengthAreaR_;
-	int * startR = startColumnR_+maximumPivots_+1;
+	CoinBigIndex * startR = startColumnR_+maximumPivots_+1;
 	// For current list order does not matter as
 	// only affects end
 	for ( i = 0; i < numberNonZero; i++ ) {
