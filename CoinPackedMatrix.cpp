@@ -1840,7 +1840,7 @@ CoinPackedMatrix::resizeForAddingMajorVectors(const int numVec,
   int i;
 
   maxMajorDim_ =
-    CoinMax(maxMajorDim_, CoinLengthWithExtra(majorDim_ + numVec, extraMajor_));
+    CoinMax(maxMajorDim_, CoinLengthWithExtra(majorDim_+numVec, extraMajor_));
 
   CoinBigIndex * newStart = new CoinBigIndex[maxMajorDim_ + 1];
   int * newLength = new int[maxMajorDim_];
@@ -1860,7 +1860,7 @@ CoinPackedMatrix::resizeForAddingMajorVectors(const int numVec,
   }
 
   maxSize_ =
-    CoinMax(maxSize_,newStart[majorDim_]+ (int) extraMajor_);
+    CoinMax(maxSize_, (int)(newStart[majorDim_] * (1.0 + extraMajor_)));
   majorDim_ -= numVec;
 
   int * newIndex = new int[maxSize_];
