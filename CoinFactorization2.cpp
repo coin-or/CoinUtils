@@ -17,6 +17,7 @@
 extern "C" int dgetrf_(int *m, int *n, double *a, int *	lda, 
 		       int *ipiv, int *info);
 #endif
+static int counter1=0;
 //  factorSparse.  Does sparse phase of factorization
 //return code is <0 error, 0= finished
 int
@@ -27,7 +28,7 @@ CoinFactorization::factorSparse (  )
   double *element = elementU_;
   int count = 1;
   double *workArea = new double [ numberRows_ ];
-
+  counter1++;
   // when to go dense
   int denseThreshold=denseThreshold_;
 
@@ -92,7 +93,39 @@ CoinFactorization::factorSparse (  )
   int numberRows = numberRows_;
   // Put column singletons first - (if false)
   separateLinks(1,(biasLU_>1));
+  int counter2=0;
   while ( count <= biggerDimension_ ) {
+    counter2++;
+    int badRow=-1;
+    if (counter1==-1&&counter2>=0) {
+      // check counts consistent
+      for (int iCount=1;iCount<numberRows_;iCount++) {
+        int look = firstCount_[iCount];
+        while ( look >= 0 ) {
+          if ( look < numberRows_ ) {
+            int iRow = look;
+            if (iRow==badRow)
+              printf("row count for row %d is %d\n",iCount,iRow);
+            if ( numberInRow[iRow] != iCount ) {
+              printf("failed debug on %d entry to factorSparse and %d try\n",
+                     counter1,counter2);
+              printf("row %d - count %d number %d\n",iRow,iCount,numberInRow[iRow]);
+              abort();
+            }
+            look = nextCount[look];
+          } else {
+            int iColumn = look - numberRows;
+            if ( numberInColumn[iColumn] != iCount ) {
+              printf("failed debug on %d entry to factorSparse and %d try\n",
+                     counter1,counter2);
+              printf("column %d - count %d number %d\n",iColumn,iCount,numberInColumn[iColumn]);
+              abort();
+            }
+            look = nextCount[look];
+          }
+        }
+      }
+    }
     CoinBigIndex minimumCount = INT_MAX;
     double minimumCost = COIN_DBL_MAX;
 
@@ -133,7 +166,12 @@ CoinFactorization::factorSparse (  )
       if ( look < numberRows_ ) {
         int iRow = look;
         
-        assert ( numberInRow[iRow] == count );
+        if ( numberInRow[iRow] != count ) {
+          printf("failed on %d entry to factorSparse and %d try\n",
+                 counter1,counter2);
+          printf("row %d - count %d number %d\n",iRow,count,numberInRow[iRow]);
+          abort();
+        }
         look = nextCount[look];
         bool rejected = false;
         CoinBigIndex start = startRow[iRow];

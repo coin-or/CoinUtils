@@ -618,6 +618,10 @@ public:
     // Not for now int readGms();
     /// and
     int readGms(int & numberSets, CoinSet **& sets);
+    /** Read a problem in GMPL (subset of AMPL)  format from the given filenames.
+    */
+    int readGMPL(const char *modelName, const char * dataName=NULL, bool keepNames=false);
+
     /** Write the problem in MPS format to a file with the given filename.
 
 	\param compression can be set to three values to indicate what kind

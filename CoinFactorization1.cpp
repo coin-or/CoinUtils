@@ -527,12 +527,12 @@ CoinFactorization::show_self (  ) const
   int i;
 
   for ( i = 0; i < numberRows_; i++ ) {
-    std::cout << "r " << i << " " << pivotColumn_[i]
-      << " " << pivotColumnBack_[i]
-      << " " << permute_[i]
-      << " " << permuteBack_[i]
-      << " " << pivotColumn_[i]
-      << " " << pivotRegion_[i] << std::endl;
+    std::cout << "r " << i << " " << pivotColumn_[i];
+    if (pivotColumnBack_) std::cout<< " " << pivotColumnBack_[i];
+    std::cout<< " " << permute_[i];
+    if (permuteBack_) std::cout<< " " << permuteBack_[i];
+    std::cout<< " " << pivotRegion_[i];
+    std::cout << std::endl;
   }
   for ( i = 0; i < numberRows_; i++ ) {
     std::cout << "u " << i << " " << numberInColumn_[i] << std::endl;
@@ -542,6 +542,8 @@ CoinFactorization::show_self (  ) const
 	       elementU_+startColumnU_[i]);
     for ( j = startColumnU_[i]; j < startColumnU_[i] + numberInColumn_[i];
 	  j++ ) {
+      assert (indexRowU_[j]>=0&&indexRowU_[j]<numberRows_);
+      assert (elementU_[j]>-1.0e50&&elementU_[j]<1.0e50);
       std::cout << indexRowU_[j] << " " << elementU_[j] << std::endl;
     }
   }

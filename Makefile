@@ -64,11 +64,15 @@ LIBSRC += CoinPresolveIsolated.cpp
 LIBSRC += CoinPresolveSubst.cpp		    
 LIBSRC += CoinPresolveTighten.cpp		    
 LIBSRC += CoinPresolveTripleton.cpp		    
-LIBSRC += CoinPresolveUseless.cpp             
+LIBSRC += CoinPresolveUseless.cpp         
 
 ##############################################################################
 include ${MakefileDir}/Makefile.coin
 include ${MakefileDir}/Makefile.location
+ifneq ($(filter COIN_libGlpk,$(CoinLibsDefined)),)
+# We will allow for use of GMPL
+CXXFLAGS += -DCOIN_USE_GMPL
+endif
 ifeq ($(OptLevel),-O2)
 #     CXXFLAGS += -DNDEBUG
 endif
@@ -89,10 +93,10 @@ ifeq ($(OptLevel),-g)
 endif
 
 export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir} $(lapackIncDir) \
-		       $(SbbIncDir) $(OsiIncDir)
-export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir} $(lapackLibDir)
-export ExtraLibName := ${zlibLibName} ${bzlibLibName} $(lapackLibName)
+		       $(SbbIncDir) $(OsiIncDir) $(GlpkIncDir)
+export ExtraLibName := ${zlibLibName} ${bzlibLibName} $(lapackLibName) $(GlpkLibName)
 export ExtraDefine  := ${zlibDefine}  ${bzlibDefine} $(lapackDefine)
+export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir} $(lapackLibDir) $(GlpkLibDir)
 
 export LibType OptLevel LIBNAME LIBSRC
 

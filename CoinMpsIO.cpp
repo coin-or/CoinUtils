@@ -2475,6 +2475,211 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 					    <<CoinMessageEol;
   return numberErrors;
 }
+#ifdef COIN_USE_GMPL
+extern "C" {
+#include "glpmpl.h"
+}
+#endif
+/* Read a problem in GMPL (subset of AMPL)  format from the given filenames.
+   Thanks to Ted Ralphs - I just looked at his coding rather than look at the GMPL documentation.
+ */
+int 
+CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
+{
+#ifdef COIN_USE_GMPL
+  int returnCode;
+  gutsOfDestructor();
+  // initialize
+  MPL * gmpl = mpl_initialize();  
+  // read model
+  char name[2000]; // should be long enough
+  assert (strlen(modelName)<2000&&(!dataName||strlen(dataName)<2000));
+  strcpy(name,modelName);
+  returnCode = mpl_read_model(gmpl,name,false);
+  if (returnCode==1&&dataName) {
+    // read data
+    strcpy(name,dataName);
+    returnCode = mpl_read_data(gmpl,name);
+  }
+  if (returnCode!=2) {
+    // errors
+    mpl_terminate(gmpl);
+    return 1;
+  }
+  // generate model
+  returnCode = mpl_generate(gmpl,NULL);
+  if (returnCode!=3) {
+    // errors
+    mpl_terminate(gmpl);
+    return 2;
+  }
+  // Get number of rows and elements
+  numberRows_=mpl_get_num_rows(gmpl);
+  int numberObj=0;
+  numberElements_=0;
+  int iRow;
+  // Remember Fortran conventions
+  for (iRow=0; iRow<numberRows_;iRow++) {
+    int rowType = mpl_get_row_kind(gmpl, iRow+1);
+    if (rowType==MPL_ST)
+      numberElements_ += mpl_get_mat_row(gmpl,iRow+1,NULL,NULL);
+    else
+      numberObj++;
+  }
+  numberRows_ -= numberObj;
+  numberColumns_ = mpl_get_num_cols(gmpl);
+  CoinBigIndex * start = new CoinBigIndex [numberRows_+1];
+  int * index = new int [numberElements_];
+  double * element = new double[numberElements_];
+  // Row stuff
+  rowlower_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
+  rowupper_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
+  // and objective
+  objective_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
+  int iColumn;
+  for (iColumn=0; iColumn<numberColumns_;iColumn++) {
+    objective_[iColumn]=0.0;
+  }
+  objectiveOffset_ = 0.0;
+  problemName_= strdup(mpl_get_prob_name(gmpl));
+  bool objUsed=false;
+  bool minimize=true;
+  int kRow=0;
+  start[0]=0;
+  numberElements_=0;
+  // spare space for checking
+  double * el = new double[numberColumns_];
+  int * ind = new int[numberColumns_];
+  char ** names = NULL;
+  if (keepNames) {
+    names = (char **) malloc(numberRows_*sizeof(char *));
+    names_[0] = names;
+    numberHash_[0] = numberRows_;
+  }
+  for (iRow=0; iRow<numberRows_+numberObj;iRow++) {
+    int rowType = mpl_get_row_kind(gmpl, iRow+1);
+    int number = mpl_get_mat_row(gmpl,iRow+1,ind-1,el-1);
+    if (rowType==MPL_ST) {
+      double rowLower,rowUpper;
+      rowType = mpl_get_row_bnds(gmpl, iRow+1, &rowLower,&rowUpper); 
+      switch(rowType) {                                           
+      case MPL_LO: 
+        rowUpper =  COIN_DBL_MAX;
+        break;	 
+      case MPL_UP:
+        rowLower = -COIN_DBL_MAX;
+        break;
+      case MPL_FR:
+        rowLower = -COIN_DBL_MAX;
+        rowUpper =  COIN_DBL_MAX;
+        break;
+      default:
+        break;
+      }
+      rowlower_[kRow]=rowLower;
+      rowupper_[kRow]=rowUpper;
+      for (int i=0;i<number;i++) {
+        iColumn = ind[i]-1;
+        index[numberElements_]=iColumn;
+        element[numberElements_++]=el[i];
+      }
+      if (keepNames) {
+        strcpy(name,mpl_get_col_name(gmpl,iRow+1));
+        // could look at name?
+        names[kRow]=strdup(name);
+      }
+      kRow++;
+      start[kRow]=numberElements_;
+    } else {
+      if (!objUsed) {
+        objUsed=true;
+        if (rowType==MPL_MAX)
+          minimize=false; // not used but ...
+        // sign correct?
+        objectiveOffset_ = mpl_get_row_c0(gmpl,iRow+1);
+        for (int i=0;i<number;i++) {
+          iColumn = ind[i]-1;
+          objective_[iColumn]=el[i];
+        }
+      }
+    }
+  }
+  delete [] el;
+  delete [] ind;
+  // Matrix
+  matrixByColumn_ = new CoinPackedMatrix(false,numberColumns_,numberRows_,numberElements_,
+                                  element,index,start,NULL);
+  matrixByColumn_->reverseOrdering();
+  delete [] element;
+  delete [] start;
+  delete [] index;
+  // Now do columns
+  collower_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
+  colupper_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
+  integerType_ = (char *) malloc (numberColumns_*sizeof(char));
+  if (keepNames) {
+    names = (char **) malloc(numberColumns_*sizeof(char *));
+    names_[1] = names;
+    numberHash_[1] = numberColumns_;
+  }
+  int numberIntegers=0;
+  for (iColumn=0; iColumn<numberColumns_;iColumn++) {
+    double columnLower,columnUpper;
+    int columnType = mpl_get_col_bnds(gmpl, iColumn+1, &columnLower,&columnUpper); 
+    switch(columnType) {                                           
+    case MPL_LO: 
+      columnUpper =  COIN_DBL_MAX;
+      break;	 
+    case MPL_UP:
+      columnLower = -COIN_DBL_MAX;
+      break;
+    case MPL_FR:
+      columnLower = -COIN_DBL_MAX;
+      columnUpper =  COIN_DBL_MAX;
+      break;
+    default:
+      break;
+    }
+    collower_[iColumn]=columnLower;
+    colupper_[iColumn]=columnUpper;
+    columnType = mpl_get_col_kind(gmpl,iColumn+1);
+    if (columnType==MPL_INT) {
+      integerType_[iColumn]=1;
+      numberIntegers++;
+      assert ( collower_[iColumn] >= -MAX_INTEGER );
+      if ( colupper_[iColumn] > MAX_INTEGER ) 
+        colupper_[iColumn] = MAX_INTEGER;
+    } else if (columnType==MPL_BIN) {
+      numberIntegers++;
+      integerType_[iColumn]=1;
+      collower_[iColumn]=0.0;
+      colupper_[iColumn]=1.0;
+    } else {
+      integerType_[iColumn]=0;
+    }
+    if (keepNames) {
+      strcpy(name,mpl_get_col_name(gmpl,iColumn+1));
+      // could look at name?
+      names[iColumn]=strdup(name);
+    }
+  }
+  mpl_terminate(gmpl);
+  if ( !numberIntegers ) {
+    free(integerType_);
+    integerType_ = NULL;
+  }
+  handler_->message(COIN_MPS_STATS,messages_)<<problemName_
+					    <<numberRows_
+					    <<numberColumns_
+					    <<numberElements_
+					    <<CoinMessageEol;
+  return 0;
+#else
+  printf("GMPL not being used\n");
+  abort();
+  return 1;
+#endif
+}
 //------------------------------------------------------------------
 // Read gams files
 //------------------------------------------------------------------
