@@ -2244,6 +2244,12 @@ convertDouble(int formatType, double value, char outputValue[20],
 	    if (outputValue[j]!='0')
 	      break;
 	  }
+	  if (j == put) {
+	    // we need to lose something
+	    // rounding will be wrong but we are talking about stupid numbers
+	    put -= 3; // points to one before e
+	    j -= 2; // points to e
+	  }
 	  // copy rest
 	  for (  ; j < 14 ; j++) {
 	    outputValue[put++] = outputValue[j];
@@ -2772,7 +2778,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 			if (fabs(upperValue-1.0)<1.0e-8) {
 			   // BV
 			   header[0]=" BV ";
-			   value[0] = largeValue;
+			   value[0] = 1.0;
 			} else {
 			   // UI
 			   header[0]=" UI ";
