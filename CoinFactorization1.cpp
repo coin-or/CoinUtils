@@ -109,6 +109,7 @@ void CoinFactorization::gutsOfDestructor()
   status_ = -1;
   numberSlacks_ = 0;
   numberU_ = 0;
+  maximumU_=0;
   lengthU_ = 0;
   lengthAreaU_ = 0;
   numberL_ = 0;
@@ -181,6 +182,7 @@ void CoinFactorization::gutsOfInitialize(int type)
     pivotRegion_ = NULL;
     numberSlacks_ = 0;
     numberU_ = 0;
+    maximumU_=0;
     lengthU_ = 0;
     lengthAreaU_ = 0;
     elementU_ = NULL;
@@ -341,6 +343,7 @@ int CoinFactorization::factorize (
     }
   }
   lengthU_ = numberElements;
+  maximumU_ = numberElements;
 
   preProcess ( 0 );
   factor (  );
@@ -410,6 +413,7 @@ int CoinFactorization::factorize (
   CoinMemcpyN ( indicesColumn, numberOfElements, indexColumnU_ );
   CoinMemcpyN ( elements, numberOfElements, elementU_ );
   lengthU_ = numberOfElements;
+  maximumU_ = numberOfElements;
   preProcess ( 0 );
   factor (  );
   //say which column is pivoting on which row
@@ -467,6 +471,7 @@ CoinFactorization::factorizePart1 ( int numberOfRows,
   *indicesColumn = indexColumnU_ ;
   *elements = elementU_ ;
   lengthU_ = numberOfElements;
+  maximumU_ = numberElements;
   return 0;
 }
 /* This is part two of factorization
@@ -1598,6 +1603,7 @@ CoinFactorization::cleanup (  )
     startColumnU_[i] = k;
     k += numberInColumn_[i];
   }
+  maximumU_=k;
   // See whether to have extra copy of R
   if (k>10*numberRows_) {
     // NO

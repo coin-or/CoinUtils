@@ -65,6 +65,21 @@ const CoinPresolveAction
     e.jcol	= jcol;
     e.clo	= clo[jcol];
     e.cup	= cup[jcol];
+    // adjust if integer
+    if (integerType[jcol]) {
+      e.clo = ceil(e.clo-1.0e-9);
+      e.cup = floor(e.cup+1.0e-9);
+      if (e.clo>e.cup) {
+        // infeasible
+	prob->status_|= 1;
+	prob->messageHandler()->message(COIN_PRESOLVE_COLINFEAS,
+					     prob->messages())
+				 	       <<jcol
+					       <<e.clo
+					       <<e.cup
+					       <<CoinMessageEol;
+      }
+    }
     e.cost	= dcost[jcol];
 
     // there are no more constraints on this variable, 
@@ -74,14 +89,14 @@ const CoinPresolveAction
     if (dcost[jcol] * maxmin == 0.0) {
       // hopefully, we can make this non-basic
       // what does OSL currently do in this case???
-      e.sol = (-PRESOLVE_INF < clo[jcol]
-	       ? clo[jcol]
-	       : cup[jcol] < PRESOLVE_INF
-	       ? cup[jcol]
+      e.sol = (-PRESOLVE_INF < e.clo
+	       ? e.clo
+	       : e.cup < PRESOLVE_INF
+	       ? e.cup
 	       : 0.0);
     } else if (dcost[jcol] * maxmin > 0.0) {
-      if (-PRESOLVE_INF < clo[jcol])
-	e.sol = clo[jcol];
+      if (-PRESOLVE_INF < e.clo)
+	e.sol = e.clo;
       else {
 	  prob->messageHandler()->message(COIN_PRESOLVE_COLUMNBOUNDB,
 					     prob->messages())
@@ -91,8 +106,8 @@ const CoinPresolveAction
 	break;
       }
     } else {
-      if (cup[jcol] < PRESOLVE_INF)
-	e.sol = cup[jcol];
+      if (e.cup < PRESOLVE_INF)
+	e.sol = e.cup;
       else {
 	  prob->messageHandler()->message(COIN_PRESOLVE_COLUMNBOUNDA,
 					     prob->messages())

@@ -734,6 +734,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
     for ( i = 0; i < number; i++ ) {
       elementU[i] *= pivotValue;
     }       
+    maximumU_ = CoinMax(maximumU_,startU+number);
     numberRowsExtra_++;
     numberColumnsExtra_++;
     numberGoodU_++;
@@ -947,7 +948,6 @@ CoinFactorization::updateColumnTransposeUDensish
   double pivotValue;
   
   const int *numberInRow = numberInRow_;
-  
   numberNonZero = 0;
   for (i=smallestIndex ; i < last; i++ ) {
     pivotValue = region[i];
@@ -959,7 +959,6 @@ CoinFactorization::updateColumnTransposeUDensish
 	int iRow = indexColumn[j];
 	CoinBigIndex getElement = convertRowToColumn[j];
 	double value = element[getElement];
-
 	region[iRow] -=  value * pivotValue;
       }     
       regionIndex[numberNonZero++] = i;

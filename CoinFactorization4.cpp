@@ -544,6 +544,7 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   relaxCheck_ = other.relaxCheck_;
   numberSlacks_ = other.numberSlacks_;
   numberU_ = other.numberU_;
+  maximumU_=other.maximumU_;
   lengthU_ = other.lengthU_;
   lengthAreaU_ = other.lengthAreaU_;
   numberL_ = other.numberL_;
@@ -638,7 +639,19 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   CoinMemcpyN ( other.elementR_, lengthR_, elementR_ );
   CoinMemcpyN ( other.indexRowR_, lengthR_, indexRowR_ );
   //row and column copies of U
+  /* as elements of U may have been zeroed but column counts zero
+     copy all elements */
   int iRow;
+#ifndef NDEBUG
+  int maxU=0;
+  for ( iRow = 0; iRow < numberRowsExtra_; iRow++ ) {
+    CoinBigIndex start = startColumnU_[iRow];
+    int numberIn = numberInColumn_[iRow];
+    maxU = CoinMax(maxU,start+numberIn);
+  }
+  assert (maximumU_>=maxU);
+#endif
+  CoinMemcpyN ( other.elementU_ , maximumU_, elementU_ );
   for ( iRow = 0; iRow < numberRowsExtra_; iRow++ ) {
     //row
     CoinBigIndex start = startRowU_[iRow];
@@ -651,7 +664,6 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
     start = startColumnU_[iRow];
     numberIn = numberInColumn_[iRow];
     CoinMemcpyN ( other.indexRowU_ + start, numberIn, indexRowU_ + start );
-    CoinMemcpyN ( other.elementU_ + start, numberIn, elementU_ + start );
     CoinMemcpyN ( other.startColumnL_, numberRows_ + 1, startColumnL_ );
   }
   // L is contiguous

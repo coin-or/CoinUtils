@@ -1139,6 +1139,9 @@ protected:
   /// Number in U
   int numberU_;
 
+  /// Maximum space used in U
+  CoinBigIndex maximumU_;
+
   /// Base of U is always 0
   //int baseU_;
 
