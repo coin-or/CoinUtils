@@ -101,10 +101,20 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
   // singleton columns are especially likely to be caught here
   for (iLook=0;iLook<numberLook;iLook++) {
     int j = look[iLook];
-    // clean up integers
+    // modify bounds if integer
     if (integerType[j]) {
-      clo[j]=ceil(clo[j]-1.0e-12);
-      cup[j]= floor(cup[j]+1.0e-12);
+      clo[j] = ceil(clo[j]-1.0e-12);
+      cup[j] = floor(cup[j]+1.0e-12);
+      if (clo[j]>cup[j]) {
+        // infeasible
+	prob->status_|= 1;
+	prob->messageHandler()->message(COIN_PRESOLVE_COLINFEAS,
+					     prob->messages())
+				 	       <<j
+					       <<clo[j]
+					       <<cup[j]
+					       <<CoinMessageEol;
+      }
     }
     if (dcost[j]==0.0) {
       int iflag=0; /* 1 - up is towards feasibility, -1 down is towards */
