@@ -13,8 +13,8 @@ include ${MakefileDir}/Makefile.coin
 include ${MakefileDir}/Makefile.location
 
 IncDir  := ${CoinIncDir} ${zlibIncDir} ${bzlibIncDir} $(lapackIncDir)
-LibDir  := ${CoinLibDir} ${zlibLibDir} ${bzlibLibDir} $(lapackLibDir)
-LibName := ${CoinLibName} ${zlibLibName} ${bzlibLibName} $(lapackLibName)
+LibDir  := ${CoinLibDir} ${zlibLibDir} ${bzlibLibDir} $(lapackLibDir) $(GlpkLibDir)
+LibName := ${CoinLibName} ${zlibLibName} ${bzlibLibName} $(lapackLibName) $(GlpkLibName)
 Define  := ${CoinDefine} ${zlibDefine} ${bzlibDefine} $(lapackDefine)
 
 TESTSRC :=
