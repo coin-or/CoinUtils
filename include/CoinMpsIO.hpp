@@ -976,6 +976,7 @@ protected:
 void
 CoinMpsIOUnitTest(const std::string & mpsDir);
 // Function to return number in most efficient way
+// section is 0 for columns, 1 for rhs,ranges and 2 for bounds
 /* formatType is
    0 - normal and 8 character names
    1 - extra accuracy
@@ -983,6 +984,6 @@ CoinMpsIOUnitTest(const std::string & mpsDir);
    3 - IEEE hex - not INTEL
 */
 void
-CoinConvertDouble(int formatType, double value, char outputValue[20]);
+CoinConvertDouble(int section, int formatType, double value, char outputValue[20]);
 
 #endif

@@ -666,13 +666,19 @@ CoinMpsCardReader::nextField (  )
 		char * after;
 		value_ = osi_strtod(next,&after,ieeeFormat_);
 		// see if error
-		assert(after>next);
-		if ( nextBlank ) {
-		  *nextBlank = save;
-		  position_ = nextBlank;
-		} else {
-		  position_ = eol_;
-		}
+		if (after>next) {
+                  if ( nextBlank ) {
+                    *nextBlank = save;
+                    position_ = nextBlank;
+                  } else {
+                    position_ = eol_;
+                  }
+                } else {
+                  // error
+                  position_ = eol_;
+                  mpsType_ = COIN_UNKNOWN_MPS_TYPE;
+		  value_ = -1.0e100;
+                }
 	      }
 	    }
 	  }
@@ -729,13 +735,19 @@ CoinMpsCardReader::nextField (  )
 	    char * after;
 	    value_ = osi_strtod(next,&after,ieeeFormat_);
 	    // see if error
-	    assert(after>next);
-	    if ( nextBlank ) {
-	      *nextBlank = save;
-	      position_ = nextBlank;
-	    } else {
-	      position_ = eol_;
-	    }
+	    if (after>next) {
+              if ( nextBlank ) {
+                *nextBlank = save;
+                position_ = nextBlank;
+              } else {
+                position_ = eol_;
+              }
+            } else {
+              // error
+              position_ = eol_;
+              mpsType_ = COIN_UNKNOWN_MPS_TYPE;
+              value_ = -1.0e100;
+            }
 	  }
 	}
       } else {
@@ -815,12 +827,18 @@ CoinMpsCardReader::nextField (  )
     char * after;
     value_ = osi_strtod(next,&after,ieeeFormat_);
     // see if error
-    assert(after>next);
-    if ( nextBlank ) {
-      *nextBlank = save;
-      position_ = nextBlank;
+    if (after>next) {
+      if ( nextBlank ) {
+        *nextBlank = save;
+        position_ = nextBlank;
+      } else {
+        position_ = eol_;
+      }
     } else {
+      // error
       position_ = eol_;
+      mpsType_ = COIN_UNKNOWN_MPS_TYPE;
+      value_ = -1.0e100;
     }
   }
   return section_;
@@ -3069,11 +3087,11 @@ convertRowName(int formatType, const char * name, char outputRow[100])
    3 - IEEE hex - not INTEL
 */
 static void
-convertDouble(int formatType, double value, char outputValue[24],
+convertDouble(int section,int formatType, double value, char outputValue[24],
 	      const char * name, char outputRow[100])
 {
   convertRowName(formatType,name,outputRow);
-  CoinConvertDouble(formatType&3,value,outputValue);
+  CoinConvertDouble(section,formatType&3,value,outputValue);
 }
 // Function to return number in most efficient way
 /* formatType is
@@ -3083,7 +3101,7 @@ convertDouble(int formatType, double value, char outputValue[24],
    3 - IEEE hex - not INTEL
 */
 void
-CoinConvertDouble(int formatType, double value, char outputValue[20])
+CoinConvertDouble(int section, int formatType, double value, char outputValue[20])
 {
   if (formatType==0) {
     bool stripZeros=true;
@@ -3165,7 +3183,12 @@ CoinConvertDouble(int formatType, double value, char outputValue[20])
       if (fabs(value)<1.0e-20) 
 	strcpy(outputValue,"0.0");
     } else {
-      outputValue[0]= '\0'; // needs no value
+      if (section==2) {
+        outputValue[0]= '\0'; // needs no value
+      } else {
+        // probably error ... but ....
+        sprintf(outputValue,"%12.6g",value);
+      }
     }
     int i;
     // pad out to 12
@@ -3189,7 +3212,12 @@ CoinConvertDouble(int formatType, double value, char outputValue[20])
       }
       outputValue[i]='\0';
     } else {
-      outputValue[0]= '\0'; // needs no value
+      if (section==2) {
+        outputValue[0]= '\0'; // needs no value
+      } else {
+        // probably error ... but ....
+        sprintf(outputValue,"%12.6g",value);
+      }
     }
   } else {
     // IEEE
@@ -3465,7 +3493,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	    ifBounds=true;
 	 int numberFields=0;
 	 if (objective[i]) {
-	    convertDouble(formatType,objective[i],outputValue[0],
+	    convertDouble(0,formatType,objective[i],outputValue[0],
 			  "OBJROW",outputRow[0]);
 	    numberFields=1;
 	 }
@@ -3480,7 +3508,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 }
 	 int j;
 	 for (j=0;j<lengths[i];j++) {
-	    convertDouble(formatType,elements[starts[i]+j],
+	    convertDouble(0,formatType,elements[starts[i]+j],
 			  outputValue[numberFields],
 			  rowNames[rows[starts[i]+j]],
 			  outputRow[numberFields]);
@@ -3513,7 +3541,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    int numberFields = 0;
    // If there is any offset - then do that
    if (objectiveOffset_ ) {
-     convertDouble(formatType,objectiveOffset_,
+     convertDouble(1,formatType,objectiveOffset_,
 		   outputValue[0],
 		   "OBJROW",
 		   outputRow[0]);
@@ -3549,7 +3577,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 break;
       }
       if (value != 0.0) {
-	 convertDouble(formatType,value,
+	 convertDouble(1,formatType,value,
 		       outputValue[numberFields],
 		       rowNames[i],
 		       outputRow[numberFields]);
@@ -3583,7 +3611,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 if (sense[i]=='R') {
 	    double value =rowUpper[i]-rowLower[i];
 	    if (value<1.0e30) {
-	      convertDouble(formatType,value,
+	      convertDouble(1,formatType,value,
 			    outputValue[numberFields],
 			    rowNames[i],
 			    outputRow[numberFields]);
@@ -3682,7 +3710,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	       // put out fields
 	       int j;
 	       for (j=0;j<numberFields;j++) {
-		  convertDouble(formatType,value[j],
+		  convertDouble(2,formatType,value[j],
 				outputValue[0],
 				columnNames[i],
 				outputRow[0]);
@@ -3713,7 +3741,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	    j<columnQuadraticStart[iColumn]+columnQuadraticLength[iColumn];j++) {
 	 int jColumn = columnQuadratic[j];
 	 double elementValue = quadraticElement[j];
-	 convertDouble(formatType,elementValue,
+	 convertDouble(0,formatType,elementValue,
 		       outputValue[numberFields],
 		       columnNames[jColumn],
 		       outputRow[numberFields]);
