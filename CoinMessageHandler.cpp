@@ -250,7 +250,7 @@ CoinMessageHandler::print()
 void 
 CoinMessageHandler::setLogLevel(int value)
 {
-  if (value>=0)
+  if (value>=-1)
     logLevel_=value;
 }
 void 
@@ -401,7 +401,7 @@ CoinMessageHandler::message(int messageNumber,
   // do we print
   int detail = currentMessage_.detail_;
   printStatus_=0;
-  if (detail>=8) {
+  if (detail>=8&&logLevel_>=0) {
     // bit setting - debug
     if ((detail&logLevel_)==0)
       printStatus_ = 3;
