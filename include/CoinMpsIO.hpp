@@ -204,9 +204,11 @@ public:
   //@}
 
   //@{
-    /// array saying if each variable integer
-    /// at present just zero/non-zero may be extended
+    /** array saying if each variable integer
+	at present just zero/non-zero may be extended */
     const char * integerColumns() const;
+    /// Pass in array saying if each variable integer
+  void copyInIntegerInformation(const char * integerInformation);
     /// names - returns NULL if out of range
     const char * rowName(int index) const;
     const char * columnName(int index) const;

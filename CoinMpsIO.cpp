@@ -2956,6 +2956,14 @@ const char * CoinMpsIO::integerColumns() const
 {
   return integerType_;
 }
+// Pass in array saying if each variable integer
+void 
+CoinMpsIO::copyInIntegerInformation(const char * integerType)
+{
+  if (!integerType_)
+    integerType_ = new char [numberColumns_];
+  memcpy(integerType_,integerType,numberColumns_);
+}
 // names - returns NULL if out of range
 const char * CoinMpsIO::rowName(int index) const
 {
