@@ -2272,19 +2272,21 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       for (i=0;i<numberRows_;i++) {
 	 if (sense[i]=='R') {
 	    double value =rowUpper[i]-rowLower[i];
-	    convertDouble(formatType,value,
-			  outputValue[numberFields],
-			  rowNames[i],
-			  outputRow[numberFields]);
-	    numberFields++;
-	    if (numberFields==numberAcross) {
-	       // put out card
-	       outputCard(formatType, numberFields,
-			  fp, gzfp, "    ",
-			  "RANGE",
-			  outputValue,
-			  outputRow);
-	       numberFields=0;
+	    if (value<1.0e20) {
+	      convertDouble(formatType,value,
+			    outputValue[numberFields],
+			    rowNames[i],
+			    outputRow[numberFields]);
+	      numberFields++;
+	      if (numberFields==numberAcross) {
+		// put out card
+		outputCard(formatType, numberFields,
+			   fp, gzfp, "    ",
+			   "RANGE",
+			   outputValue,
+			   outputRow);
+		numberFields=0;
+	      }
 	    }
 	 }
       }
