@@ -106,6 +106,9 @@ public:
        The user should not not delete [] this.
    */
    inline double * denseVector() const { return elements_; }
+   /// For very temporary use when user needs to borrow a dense vector
+  inline void setDenseVector(double * array)
+  { elements_ = array;};
    /** Access the i'th element of the full storage vector.
    */
    double & operator[](int i) const; 

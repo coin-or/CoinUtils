@@ -258,6 +258,11 @@ CoinMessageHandler::setPrefix(bool value)
   else
     prefix_ =0;
 }
+bool  
+CoinMessageHandler::prefix() const
+{
+  return (prefix_!=0);
+}
 // Constructor
 CoinMessageHandler::CoinMessageHandler() :
   logLevel_(1),
