@@ -2626,7 +2626,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
       // eol - expect , at beginning of next line
       returnCode = cardReader_->nextGmsField(0);
       assert (!returnCode);
-      next = strchr(cardReader_->card(),',');
+      next = strchr(cardReader_->mutableCard(),',');
       assert (next);
     }
     assert (*next==','||*next==';');
@@ -2674,7 +2674,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
         // eol - expect , at beginning of next line
         returnCode = cardReader_->nextGmsField(0);
         assert (!returnCode);
-        next = strchr(cardReader_->card(),',');
+        next = strchr(cardReader_->mutableCard(),',');
         assert (next);
       }
       assert (*next==','||*next==';');
@@ -2708,7 +2708,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
       // eol - expect , at beginning of next line
       returnCode = cardReader_->nextGmsField(0);
       assert (!returnCode);
-      next = strchr(cardReader_->card(),',');
+      next = strchr(cardReader_->mutableCard(),',');
       assert (next);
     }
     assert (*next==','||*next==';');
