@@ -330,8 +330,6 @@ CoinPresolveMatrix::~CoinPresolveMatrix()
   delete[] colChanged_;
   delete[] colsToDo_;
   delete[] nextColsToDo_;
-  delete[] rowProhibited_;
-  delete[] colProhibited_;
 }
 
 #if	CHECK_CONSISTENCY

@@ -377,39 +377,63 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix {
   // Should use templates ?
   // Rows
   // Bits to say if row changed
-  unsigned int * rowChanged_;
+  // Now char so can use to find duplicates
+  unsigned char * rowChanged_;
   // Input list
   int * rowsToDo_;
   int numberRowsToDo_;
   // Output list
   int * nextRowsToDo_;
   int numberNextRowsToDo_;
+  // Flag to say if prohibited bits active
+  bool anyProhibited_;
 
   inline bool rowChanged(int i) const {
-    return (rowChanged_[i>>5]>>(i&31))!=0;
+    return (rowChanged_[i]&1)!=0;
   }
   inline void setRowChanged(int i) {
-    unsigned int & value = rowChanged_[i>>5];
-    int bit = i&31;
-    value |= (1<<bit);
+    rowChanged_[i] |= 1;
   }
   inline void addRow(int i) {
-    unsigned int & value = rowChanged_[i>>5];
-    int bit = i&31;
-    if ((value&(1<<bit))==0) {
-      value |= (1<<bit);
+    if ((rowChanged_[i]&1)==0) {
+      rowChanged_[i] |= 1;
       nextRowsToDo_[numberNextRowsToDo_++] = i;
     }
   }
   inline void unsetRowChanged(int i) {
-    unsigned int & value = rowChanged_[i>>5];
-    int bit = i&31;
-    value &= ~(1<<bit);
+    rowChanged_[i]  &= ~1;;
+  }
+  // Bits to say if row can not be touched
+  inline bool anyProhibited() const
+  { return anyProhibited_;};
+
+  inline bool rowProhibited(int i) const {
+    return (rowChanged_[i]&2)!=0;
+  }
+  // This one for lazy testing
+  inline bool rowProhibited2(int i) const {
+    if (!anyProhibited_)
+      return false;
+    else
+      return (rowChanged_[i]&2)!=0;
+  }
+  inline void setRowProhibited(int i) {
+    rowChanged_[i] |= 2;
+  }
+  // This is for doing faster lookups to see where two rows have entries in common
+  inline bool rowUsed(int i) const {
+    return (rowChanged_[i]&4)!=0;
+  }
+  inline void setRowUsed(int i) {
+    rowChanged_[i] |= 4;
+  }
+  inline void unsetRowUsed(int i) {
+    rowChanged_[i]  &= ~4;;
   }
 
   // Columns
   // Bits to say if column changed
-  unsigned int * colChanged_;
+  unsigned char * colChanged_;
   // Input list
   int * colsToDo_;
   int numberColsToDo_;
@@ -418,63 +442,43 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix {
   int numberNextColsToDo_;
 
   inline bool colChanged(int i) const {
-    return (colChanged_[i>>5]>>(i&31))!=0;
+    return (colChanged_[i]&1)!=0;
   }
   inline void setColChanged(int i) {
-    unsigned int & value = colChanged_[i>>5];
-    int bit = i&31;
-    value |= (1<<bit);
+    colChanged_[i] |= 1;
   }
   inline void addCol(int i) {
-    unsigned int & value = colChanged_[i>>5];
-    int bit = i&31;
-    if ((value&(1<<bit))==0) {
-      value |= (1<<bit);
+    if ((colChanged_[i]&1)==0) {
+      colChanged_[i] |= 1;
       nextColsToDo_[numberNextColsToDo_++] = i;
     }
   }
   inline void unsetColChanged(int i) {
-    unsigned int & value = colChanged_[i>>5];
-    int bit = i&31;
-    value &= ~(1<<bit);
+    colChanged_[i]  &= ~1;;
   }
-  // Bits to say if row can not be touched
-  unsigned int * rowProhibited_;
-  inline bool anyProhibited() const
-  { return rowProhibited_!=NULL;};
 
-  inline bool rowProhibited(int i) const {
-    return (rowProhibited_[i>>5]>>(i&31))!=0;
-  }
-  // This one for lazy testing
-  inline bool rowProhibited2(int i) const {
-    if (!rowProhibited_)
-      return false;
-    else
-      return (rowProhibited_[i>>5]>>(i&31))!=0;
-  }
-  inline void setRowProhibited(int i) {
-    unsigned int & value = rowProhibited_[i>>5];
-    int bit = i&31;
-    value |= (1<<bit);
-  }
-  // Columns
-  // Bits to say if column can not be touched
-  unsigned int * colProhibited_;
   inline bool colProhibited(int i) const {
-    return (colProhibited_[i>>5]>>(i&31))!=0;
+    return (colChanged_[i]&2)!=0;
   }
   // This one for lazy testing
   inline bool colProhibited2(int i) const {
-    if (!colProhibited_)
+    if (!anyProhibited_)
       return false;
     else
-      return (colProhibited_[i>>5]>>(i&31))!=0;
+      return (colChanged_[i]&2)!=0;
   }
   inline void setColProhibited(int i) {
-    unsigned int & value = colProhibited_[i>>5];
-    int bit = i&31;
-    value |= (1<<bit);
+    colChanged_[i] |= 2;
+  }
+  // This is for doing faster lookups to see where two cols have entries in common
+  inline bool colUsed(int i) const {
+    return (colChanged_[i]&4)!=0;
+  }
+  inline void setColUsed(int i) {
+    colChanged_[i] |= 4;
+  }
+  inline void unsetColUsed(int i) {
+    colChanged_[i]  &= ~4;;
   }
   void consistent(bool testvals = true);
 
