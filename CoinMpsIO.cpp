@@ -2000,7 +2000,7 @@ convertDouble(int formatType, double value, char outputValue[20],
       outputValue[0]= '\0'; // needs no value
     }
   } else {
-    if (value<1.0e30) {
+    if (fabs(value<1.0e40)) {
       sprintf(outputValue,"%19g",value);
       // take out blanks
       int i=0;
@@ -2228,7 +2228,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    for (i=0;i<numberColumns_;i++) {
       if (objective[i]||lengths[i]) {
 	 // see if bound will be needed
-	 if (columnLower[i]||columnUpper[i]<largeValue)
+	 if (columnLower[i]||columnUpper[i]<largeValue||isInteger(i))
 	    ifBounds=true;
 	 int numberFields=0;
 	 if (objective[i]) {
@@ -2367,58 +2367,65 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       for (i=0;i<numberColumns_;i++) {
 	 if (objective[i]||lengths[i]) {
 	    // see if bound will be needed
-	    if (columnLower[i]||columnUpper[i]<largeValue) {
+	    if (columnLower[i]||columnUpper[i]<largeValue||isInteger(i)) {
+	      double lowerValue = columnLower[i];
+	      double upperValue = columnUpper[i];
+	      if (isInteger(i)) {
+		// Old argument - what are correct ranges for integer variables
+		lowerValue = max(lowerValue,(double) -INT_MAX);
+		upperValue = min(upperValue,(double) INT_MAX);
+	      }
 	       int numberFields=1;
 	       std::string header[2];
 	       double value[2];
-	       if (columnLower[i]<=-largeValue) {
+	       if (lowerValue<=-largeValue) {
 		  // FR or MI
-		  if (columnUpper[i]>=largeValue) {
+		  if (upperValue>=largeValue) {
 		     header[0]=" FR ";
 		     value[0] = largeValue;
 		  } else {
 		     header[0]=" MI ";
 		     value[0] = largeValue;
 		     header[1]=" UP ";
-		     value[1] = columnUpper[i];
+		     value[1] = upperValue;
 		     numberFields=2;
 		  }
-	       } else if (fabs(columnUpper[i]-columnLower[i])<1.0e-8) {
+	       } else if (fabs(upperValue-lowerValue)<1.0e-8) {
 		  header[0]=" FX ";
-		  value[0] = columnLower[i];
+		  value[0] = lowerValue;
 	       } else {
 		  // do LO if needed
-		  if (columnLower[i]) {
+		  if (lowerValue) {
 		     // LO
 		     header[0]=" LO ";
-		     value[0] = columnLower[i];
+		     value[0] = lowerValue;
 		     if (isInteger(i)) {
 			// Integer variable so UI
 			header[1]=" UI ";
-			value[1] = columnUpper[i];
+			value[1] = upperValue;
 			numberFields=2;
-		     } else if (columnUpper[i]<largeValue) {
+		     } else if (upperValue<largeValue) {
 			// UP
 			header[1]=" UP ";
-			value[1] = columnUpper[i];
+			value[1] = upperValue;
 			numberFields=2;
 		     }
 		  } else {
 		     if (isInteger(i)) {
 			// Integer variable so BV or UI
-			if (fabs(columnUpper[i]-1.0)<1.0e-8) {
+			if (fabs(upperValue-1.0)<1.0e-8) {
 			   // BV
 			   header[0]=" BV ";
 			   value[0] = largeValue;
 			} else {
 			   // UI
 			   header[0]=" UI ";
-			   value[0] = columnUpper[i];
+			   value[0] = upperValue;
 			}
 		     } else {
 			// UP
 			header[0]=" UP ";
-			value[0] = columnUpper[i];
+			value[0] = upperValue;
 		     }
 		  }
 	       }
