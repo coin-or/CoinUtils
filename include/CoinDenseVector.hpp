@@ -51,7 +51,7 @@ Here is a sample usage:
 @endverbatim
 */
 template <typename T> class CoinDenseVector {
-   friend void CoinDenseVectorUnitTest<T>();
+   //friend void CoinDenseVectorUnitTest<T>();
 
 private:
    /**@name Private member data */

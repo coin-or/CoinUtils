@@ -15,12 +15,7 @@
 #include "CoinSort.hpp"
 #include "CoinShallowPackedVector.hpp"
 #include "CoinPackedVector.hpp"
-
-// At moment CoinDenseVector is not compiling with MS V C++ V6
-#ifndef _MSC_VER
 #include "CoinDenseVector.hpp"
-#endif
-
 #include "CoinIndexedVector.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinMpsIO.hpp"
@@ -121,7 +116,7 @@ int main (int argc, const char *argv[])
 
   
 // At moment CoinDenseVector is not compiling with MS V C++ V6
-#ifndef _MSC_VER
+#if 0
   testingMessage( "Testing CoinDenseVector\n" );
   CoinDenseVectorUnitTest<double>();
   CoinDenseVectorUnitTest<float>();

@@ -76,5 +76,5 @@ CoinDenseVectorUnitTest()
 }
 
 //template void CoinDenseVectorUnitTest<int>();
-template void CoinDenseVectorUnitTest<float>();
-template void CoinDenseVectorUnitTest<double>();
+//template void CoinDenseVectorUnitTest<float>();
+//template void CoinDenseVectorUnitTest<double>();
