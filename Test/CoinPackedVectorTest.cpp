@@ -599,8 +599,7 @@ CoinPackedVectorUnitTest()
   }
 #endif
 
-  
-  // Test adding vectors
+  // Test binaryOp method with addition, subtraction, multiplication, division.   // Test adding vectors: v1+<empty>, <empty>+v1, v1+v2
   {    
     const int ne1 = 5;
     int inx1[ne1]   = { 1,  3,  4,  7,  5  };
@@ -608,21 +607,32 @@ CoinPackedVectorUnitTest()
     const int ne2 = 4;
     int inx2[ne2] =   { 7,  4,  2,  1  };
     double el2[ne2] = { 7., 4., 2., 1. };
-    CoinPackedVector v1;
-    v1.setVector(ne1,inx1,el1);
-    CoinPackedVector v2;
-    v2.setVector(ne2,inx2,el2);
-    CoinPackedVector r = v1 + v2;
 
+    CoinPackedVector v1;
+    CoinPackedVector v2;
+    CoinPackedVector r ;
+    CoinPackedVector rV ;
+    
+    v1.setVector(ne1,inx1,el1);
+
+    rV.setVector(ne1,inx1,el1) ;
+    r = v1 + v2 ;
+    assert(r.isEquivalent(rV)) ;
+    r = v2 + v1 ;
+    assert(r.isEquivalent(rV)) ;
+
+    v2.setVector(ne2,inx2,el2);
+    r = v1 + v2 ;
     const int ner = 6;
     int inxr[ner] =   {    1,     2,     3,     4,     5,     7  };
     double elr[ner] = { 1.+1., 0.+2., 5.+0., 6.+4., 9.+0., 2.+7. };
-    CoinPackedVector rV;
     rV.setVector(ner,inxr,elr);
     assert( r.isEquivalent(rV) );
+
   } 
   
-  // Test subtracting vectors
+  // Test subtracting vectors. Note that zeros are not automatically
+  // compressed out of the result.
   {    
     const int ne1 = 5;
     int inx1[ne1]   = { 1,  3,  4,  7,  5  };
@@ -644,7 +654,8 @@ CoinPackedVectorUnitTest()
     assert( r.isEquivalent(rV) );
   } 
   
-  // Test multiplying vectors
+  // Test multiplying vectors. Note that zeros are not automatically
+  // compressed out of the result.
   {    
     const int ne1 = 5;
     int inx1[ne1]   = { 1,  3,  4,  7,  5  };
@@ -666,7 +677,9 @@ CoinPackedVectorUnitTest()
     assert( r.isEquivalent(rV) );
   } 
   
-  // Test dividing vectors
+  // Test dividing vectors. Note that zeros are not automatically compressed
+  // out of the result. HUGE_VAL may give portability problems, in which case
+  // CoinFinite should be upgraded  -- lh, 04.06.11 --
   {    
     const int ne1 = 3;
     int inx1[ne1]   = { 1,  4,  7  };
@@ -674,16 +687,28 @@ CoinPackedVectorUnitTest()
     const int ne2 = 4;
     int inx2[ne2] =   { 7,  4,  2,  1  };
     double el2[ne2] = { 7., 4., 2., 1. };
+
     CoinPackedVector v1;
-    v1.setVector(ne1,inx1,el1);
     CoinPackedVector v2;
+    CoinPackedVector r ;
+    CoinPackedVector rV;
+
+    v1.setVector(ne1,inx1,el1) ;
+    rV.setConstant(ne1,inx1,0) ;
+    r = v2 / v1;
+    assert(r.isEquivalent(rV)) ;
+    rV.setConstant(ne1,inx1,HUGE_VAL) ;
+    r = v1 / v2;
+    assert(r.isEquivalent(rV)) ;
+
+    r.isEquivalent(rV) ;
+
     v2.setVector(ne2,inx2,el2);
-    CoinPackedVector r = v1 / v2;
+    r = v1 / v2;
 
     const int ner = 4;
     int inxr[ner] =   {    1,     2,      4,     7  };
     double elr[ner] = { 1./1., 0./2.,  6./4., 2./7. };
-    CoinPackedVector rV;
     rV.setVector(ner,inxr,elr);
     assert( r.isEquivalent(rV) );
   }
