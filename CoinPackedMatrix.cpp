@@ -364,6 +364,7 @@ CoinPackedMatrix::compress(double threshold)
       memcpy(element_+k,eliminatedElement,kbad*sizeof(double));
     }
   }
+  size_ -= numberEliminated;
   delete [] eliminatedIndex;
   delete [] eliminatedElement;
   return numberEliminated;
