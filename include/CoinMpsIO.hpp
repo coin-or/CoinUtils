@@ -73,6 +73,20 @@ public:
   COINSectionType readToNextSection (  );
   /// Gets next field and returns section type e.g. COIN_COLUMN_SECTION
   COINSectionType nextField (  );
+  /** Gets next field for .gms file and returns type.
+      -1 - EOF
+      0 - what we expected (and processed so pointer moves past)
+      1 - not what we expected
+      leading blanks always ignored
+      input types 
+      0 - anything - stops on non blank card
+      1 - name (in columnname)
+      2 - value
+      3 - value name pair
+      4 - equation type
+      5 - ;
+  */
+  int nextGmsField ( int expectedType );
   /// Returns current section type
   inline COINSectionType whichSection (  ) const {
     return section_;
@@ -110,6 +124,16 @@ public:
   inline const char *card (  ) const {
     return card_;
   };
+  /// Whole card - so we look at it (not const so nextBlankOr will work for gms reader)
+  inline char *mutableCard (  ) {
+    return card_;
+  };
+  /// set position (again so gms reader will work)
+  inline void setPosition(char * position)
+  { position_=position;};
+  /// get position (again so gms reader will work)
+  inline char * getPosition() const
+  { return position_;};
   /// Returns card number
   inline CoinBigIndex cardNumber (  ) const {
     return cardNumber_;
@@ -160,7 +184,7 @@ protected:
   /// Messages
   CoinMessages messages_;
   //@}
-
+public:
   /**@name methods */
   //@{
   /// type - 0 normal, 1 INTEL IEEE, 2 other IEEE
@@ -570,6 +594,30 @@ public:
 		  const std::vector<std::string> & colnames,int numberColumns,
 		  const std::vector<std::string> & rownames, int numberRows);
 
+    /** Read a problem in GAMS format from the given filename.
+
+      Use "stdin" or "-" to read from stdin.
+      if convertObjective then massages objective column
+    */
+    int readGms(const char *filename, const char *extension = "gms",bool convertObjective=false);
+
+    /** Read a problem in GAMS format from the given filename.
+
+      Use "stdin" or "-" to read from stdin.
+      But do sets as well
+    */
+     int readGms(const char *filename, const char *extension ,
+        int & numberSets, CoinSet **& sets);
+
+    /** Read a problem in GAMS format from a previously opened file
+
+      More precisely, read a problem using a CoinMpsCardReader object already
+      associated with this CoinMpsIO object.
+
+    */
+    // Not for now int readGms();
+    /// and
+    int readGms(int & numberSets, CoinSet **& sets);
     /** Write the problem in MPS format to a file with the given filename.
 
 	\param compression can be set to three values to indicate what kind
@@ -653,6 +701,9 @@ public:
     */
     int readConicMps(const char * filename,
 		     int * &columnStart, int * &column, int & numberCones);
+    /// Set whether to move objective from matrix
+    inline void setConvertObjective(bool trueFalse)
+    { convertObjective_=trueFalse;};
   //@}
 
 /** @name Constructors and destructors */
@@ -908,6 +959,8 @@ protected:
       CoinMessages messages_;
       /// Card reader
       CoinMpsCardReader * cardReader_;
+      /// If .gms file should it be massaged to move objective
+      bool convertObjective_;
     //@}
 
 };

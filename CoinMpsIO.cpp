@@ -825,6 +825,264 @@ CoinMpsCardReader::nextField (  )
   }
   return section_;
 }
+static char *
+nextNonBlank ( char *image )
+{
+  while ( 1 ) {
+    if ( *image != ' ' && *image != '\t' ) 
+      break;
+    else
+      image++;
+  }
+  if ( *image == '\0' )
+    image=NULL;
+  return image;
+}
+/** Gets next field for .gms file and returns type.
+    -1 - EOF
+    0 - what we expected (and processed so pointer moves past)
+    1 - not what we expected
+    2 - equation type when expecting value name pair
+    leading blanks always ignored
+    input types 
+    0 - anything - stops on non blank card
+    1 - name (in columnname)
+    2 - value
+    3 - value name pair
+    4 - equation type
+    5 - ;
+*/
+int 
+CoinMpsCardReader::nextGmsField ( int expectedType )
+{
+  int returnCode=-1;
+  bool good=false;
+  switch(expectedType) {
+  case 0:
+    // 0 - May get * in first column or anything
+    if ( cleanCard())
+      return -1;
+    while(!strlen(card_)) {
+      if ( cleanCard())
+	return -1;
+    }
+    eol_ = card_+strlen(card_);
+    position_=card_;
+    returnCode=0;
+    break;
+  case 1:
+    // 1 - expect name
+    while (!good) {
+      position_ = nextNonBlank(position_);
+      if (position_==NULL) {
+	if ( cleanCard())
+	  return -1;
+	eol_ = card_+strlen(card_);
+	position_=card_;
+      } else {
+	good=true;
+	char nextChar =*position_;
+	if ((nextChar>='a'&&nextChar<='z')||
+	    (nextChar>='A'&&nextChar<='Z')) {
+          returnCode=0;
+          char * next=position_;
+          while (*next!=','&&*next!=';'&&*next!='='&&*next!=' '
+                 &&*next!='\t'&&*next!='-'&&*next!='+'&&*next>=32)
+            next++;
+          if (next) {
+            int length = next-position_;
+            strncpy(columnName_,position_,length);
+            columnName_[length]='\0';
+          } else {
+            strcpy(columnName_,position_);
+            next=eol_;
+          }
+          position_=next;
+        } else {
+          returnCode=1;
+        }
+      }
+    }
+    break;
+  case 2:
+    // 2 - expect value
+    while (!good) {
+      position_ = nextNonBlank(position_);
+      if (position_==NULL) {
+	if ( cleanCard())
+	  return -1;
+	eol_ = card_+strlen(card_);
+	position_=card_;
+      } else {
+	good=true;
+	char nextChar =*position_;
+	if ((nextChar>='0'&&nextChar<='9')||nextChar=='+'||nextChar=='-') {
+          returnCode=0;
+          char * next=position_;
+          while (*next!=','&&*next!=';'&&*next!='='&&*next!=' '
+                 &&*next!='\t'&&*next>=32)
+            next++;
+          if (next) {
+            int length = next-position_;
+            strncpy(rowName_,position_,length);
+            rowName_[length]='\0';
+          } else {
+            strcpy(rowName_,position_);
+            next=eol_;
+          }
+          value_=-1.0e100;
+          sscanf(rowName_,"%lg",&value_);
+          position_=next;
+        } else {
+          returnCode=1;
+        }
+      }
+    }
+    break;
+  case 3:
+    // 3 - expect value name pair
+    while (!good) {
+      position_ = nextNonBlank(position_);
+      char * savePosition = position_;
+      if (position_==NULL) {
+	if ( cleanCard())
+	  return -1;
+	eol_ = card_+strlen(card_);
+	position_=card_;
+        savePosition = position_;
+      } else {
+	good=true;
+        value_=1.0;
+	char nextChar =*position_;
+        returnCode=0;
+	if ((nextChar>='0'&&nextChar<='9')||nextChar=='+'||nextChar=='-') {
+          char * next;
+          int put=0;
+          if (nextChar=='+'||nextChar=='-') {
+            rowName_[0]=nextChar;
+            put=1;
+            next=position_+1;
+            while (*next==' '||*next=='\t')
+              next++;
+            if ((*next>='a'&&*next<='z')||
+                (*next>='A'&&*next<='Z')) {
+              // name - set value
+              if (nextChar=='+')
+                value_=1.0;
+              else
+                value_=-1.0;
+              position_=next;
+            } else if ((*next>='0'&&*next<='9')||*next=='+'||*next=='-') {
+              rowName_[put++]=*next;
+              next++;
+              while (*next!=' '&&*next!='\t'&&*next!='*') {
+                rowName_[put++]=*next;
+                next++;
+              }
+              assert (*next=='*');
+              next ++;
+              rowName_[put]='\0';
+              value_=-1.0e100;
+              sscanf(rowName_,"%lg",&value_);
+              position_=next;
+            } else {
+              returnCode=1;
+            }
+          } else {
+            // number
+            char * next = nextBlankOr(position_);
+            int length = next-position_;
+            strncpy(rowName_,position_,length);
+            rowName_[length]='\0';
+            value_=-1.0e100;
+            sscanf(rowName_,"%lg",&value_);
+            position_=next;
+          }
+	} else if ((nextChar>='a'&&nextChar<='z')||
+                   (nextChar>='A'&&nextChar<='Z')) {
+          // name so take value as 1.0
+        } else if (nextChar=='=') {
+          returnCode=2;
+          position_=savePosition;
+        } else {
+          returnCode=1;
+          position_=savePosition;
+        }
+        position_= nextNonBlank(position_);
+        if (!returnCode) {
+          char nextChar =*position_;
+          if ((nextChar>='a'&&nextChar<='z')||
+              (nextChar>='A'&&nextChar<='Z')) {
+            char * next = nextBlankOr(position_);
+            if (next) {
+              int length = next-position_;
+              strncpy(columnName_,position_,length);
+              columnName_[length]='\0';
+            } else {
+              strcpy(columnName_,position_);
+              next=eol_;
+            }
+            position_=next;
+          } else {
+            returnCode=1;
+            position_=savePosition;
+          }
+        }
+      }
+    }
+    break;
+  case 4:
+    // 4 - expect equation type
+    while (!good) {
+      position_ = nextNonBlank(position_);
+      if (position_==NULL) {
+	if ( cleanCard())
+	  return -1;
+	eol_ = card_+strlen(card_);
+	position_=card_;
+      } else {
+	good=true;
+	char nextChar =*position_;
+	if (nextChar=='=') {
+          returnCode=0;
+          char * next = nextBlankOr(position_);
+          int length = next-position_;
+          strncpy(rowName_,position_,length);
+          rowName_[length]='\0';
+          position_=next;
+        } else {
+          returnCode=1;
+        }
+      }
+    }
+    break;
+  case 5:
+    // 5 - ; expected
+    while (!good) {
+      position_ = nextNonBlank(position_);
+      if (position_==NULL) {
+	if ( cleanCard())
+	  return -1;
+	eol_ = card_+strlen(card_);
+	position_=card_;
+      } else {
+	good=true;
+	char nextChar =*position_;
+	if (nextChar==';') {
+          returnCode=0;
+          char * next = nextBlankOr(position_);
+          if (!next)
+            next=eol_;
+          position_=next;
+        } else {
+          returnCode=1;
+        }
+      }
+    }
+    break;
+  }
+  return returnCode;
+}
 
 //#############################################################################
 
@@ -1172,7 +1430,17 @@ int CoinMpsIO::readMps(const char * filename,  const char * extension)
     delete cardReader_;
     cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
   }
-  return readMps();
+  if (strcmp(extension,"gms")&&!strstr(filename,".gms")) {
+    return readMps();
+  } else {
+    int numberSets=0;
+    CoinSet ** sets=NULL;
+    int returnCode = readGms(numberSets,sets);
+    for (int i=0;i<numberSets;i++)
+      delete sets[i];
+    delete [] sets;
+    return returnCode;
+  }
 }
 int CoinMpsIO::readMps(const char * filename,  const char * extension,
 		       int & numberSets,CoinSet ** &sets)
@@ -2180,6 +2448,393 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 					    <<numberColumns_
 					    <<numberElements_
 					    <<CoinMessageEol;
+  return numberErrors;
+}
+//------------------------------------------------------------------
+// Read gams files
+//------------------------------------------------------------------
+int CoinMpsIO::readGms(const char * filename,  const char * extension,bool convertObjective)
+{
+  convertObjective_=convertObjective;
+  // Deal with filename - +1 if new, 0 if same as before, -1 if error
+  FILE *fp=NULL;
+  gzFile gzfp=NULL;
+  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+  if (returnCode<0) {
+    return -1;
+  } else if (returnCode>0) {
+    delete cardReader_;
+    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+  }
+  int numberSets=0;
+  CoinSet ** sets=NULL;
+  returnCode = readGms(numberSets,sets);
+  for (int i=0;i<numberSets;i++)
+    delete sets[i];
+  delete [] sets;
+  return returnCode;
+}
+int CoinMpsIO::readGms(const char * filename,  const char * extension,
+		       int & numberSets,CoinSet ** &sets)
+{
+  // Deal with filename - +1 if new, 0 if same as before, -1 if error
+  FILE *fp=NULL;
+  gzFile gzfp=NULL;
+  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+  if (returnCode<0) {
+    return -1;
+  } else if (returnCode>0) {
+    delete cardReader_;
+    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+  }
+  return readGms(numberSets,sets);
+}
+int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
+{
+  // First version expects comments giving size
+  numberRows_ = 0;
+  numberColumns_ = 0;
+  numberElements_ = 0;
+  bool gotName=false;
+  bool minimize=false;
+  char objName[MAX_FIELD_LENGTH];
+  int decodeType=-1;
+  while(!gotName) {
+    if (cardReader_->nextGmsField(0)<0) {
+      handler_->message(COIN_MPS_EOF,messages_)<<fileName_
+                                               <<CoinMessageEol;
+      return -3;
+    } else {
+      char * card = cardReader_->mutableCard();
+      if (card[0]!='*') {
+        // finished preamble without finding name
+        printf("bad gms file\n");
+        return -1;
+      } else {
+        // skip * and find next
+        char * next = nextNonBlank(card+1);
+        if (!next)
+          continue;
+        if (decodeType>=0) {
+          // in middle of getting a total
+          if (!strncmp(next,"Total",5)) {
+            // next line wanted
+            decodeType+=100;
+          } else if (decodeType>=100) {
+            decodeType -= 100;
+            int number = atoi(next);
+            assert (number>0);
+            if (decodeType==0)
+              numberRows_=number;
+            else if (decodeType==1)
+              numberColumns_=number;
+            else
+              numberElements_=number;
+            decodeType=-1;
+          }
+        } else if (!strncmp(next,"Equation",8)) {
+          decodeType=0;
+        } else if (!strncmp(next,"Variable",8)) {
+          decodeType=1;
+        } else if (!strncmp(next,"Nonzero",7)) {
+          decodeType=2;
+        } else if (!strncmp(next,"Solve",5)) {
+          decodeType=-1;
+          gotName=true;
+          assert (numberRows_>0&&numberColumns_>0&&numberElements_>0);
+          next = cardReader_->nextBlankOr(next+5);
+          char name[100];
+          char * put=name;
+          next= nextNonBlank(next);
+          while(*next!=' '&&*next!='\t') {
+            *put = *next;
+            put++;
+            next++;
+          }
+          *put='\0';
+          assert (put-name<100);
+          free(problemName_);
+          problemName_=strdup(name);
+          next = strchr(next,';');
+          assert (next);
+          // backup
+          while(*next!=' '&&*next!='\t') {
+            next--;
+          }
+          cardReader_->setPosition(next);
+          int returnCode=cardReader_->nextGmsField(1);
+          next = strchr(next,';');
+          cardReader_->setPosition(next+1);
+          assert (!returnCode);
+          strcpy(objName,cardReader_->columnName());
+          char * semi = strchr(objName,';');
+          if (semi)
+            *semi='\0';
+          assert (strstr(card,"maxim"));
+          minimize=false;
+        } else {
+          decodeType=-1;
+        }
+      }
+    }
+  }
+
+  objectiveOffset_ = 0.0;
+  rowlower_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
+  rowupper_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
+  collower_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
+  colupper_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
+  objective_= ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
+  CoinBigIndex *start = ( CoinBigIndex *) malloc ((numberColumns_ + 1) *
+                                                  sizeof (CoinBigIndex) );
+  COINColumnIndex * column = ( COINRowIndex * ) malloc (numberElements_ * sizeof (COINRowIndex));
+  double *element = ( double * ) malloc (numberElements_ * sizeof (double) );
+  COINMpsType *rowType =
+    ( COINMpsType * ) malloc ( numberRows_ * sizeof ( COINMpsType ) );
+  char **rowName = ( char ** ) malloc ( numberRows_ * sizeof ( char * ) );
+  COINMpsType *columnType = ( COINMpsType * )
+    malloc ( numberColumns_ * sizeof ( COINMpsType ) );
+  char **columnName = ( char ** ) malloc ( numberColumns_ * sizeof ( char * ) );
+
+  start[0] = 0;
+  numberElements_ = 0;
+
+  int numberErrors = 0;
+  int i;
+  COINColumnIndex numberIntegers = 0;
+
+  // expect Variables
+  int returnCode;
+  returnCode = cardReader_->nextGmsField(1);
+  assert (!returnCode&&!strcmp(cardReader_->columnName(),"Variables"));
+  for (i=0;i<numberColumns_;i++) {
+    returnCode = cardReader_->nextGmsField(1);
+    assert (!returnCode);
+    char * next = cardReader_->getPosition();
+    if (*next=='\0') {
+      // eol - expect , at beginning of next line
+      returnCode = cardReader_->nextGmsField(0);
+      assert (!returnCode);
+      next = strchr(cardReader_->card(),',');
+      assert (next);
+    }
+    assert (*next==','||*next==';');
+    cardReader_->setPosition(next+1);
+    columnName[i]=strdup(cardReader_->columnName());
+    // Default is free?
+    collower_[i]=-COIN_DBL_MAX;
+    colupper_[i]=COIN_DBL_MAX;
+    objective_[i]=0.0;
+    columnType[i]=COIN_UNSET_BOUND;
+  }
+  startHash ( columnName, numberColumns_ , 1 );
+  // Lists come in various flavors - I don't know many now
+  // 0 - Positive
+  // 1 - Binary
+  // -1 end
+  int listType=10;
+  while (listType>=0) {
+    returnCode=cardReader_->nextGmsField(1);
+    assert (!returnCode);
+    listType=-1;
+    if (!strcmp(cardReader_->columnName(),"Positive")) {
+      listType=0;
+    } else if (!strcmp(cardReader_->columnName(),"Binary")) {
+      listType=1;
+    } else {
+      break;
+    }
+    // skip Variables
+    returnCode=cardReader_->nextGmsField(1);
+    assert (!returnCode);
+    assert (!strcmp(cardReader_->columnName(),"Variables"));
+
+    integerType_ = (char *) malloc (numberColumns_*sizeof(char));
+    memset(integerType_,0,numberColumns_);
+    // Go through lists
+    bool inList=true;
+    while (inList) {
+      returnCode=cardReader_->nextGmsField(1);
+      assert (!returnCode);
+      char * next = cardReader_->getPosition();
+      if (*next=='\0') {
+        // eol - expect , at beginning of next line
+        returnCode = cardReader_->nextGmsField(0);
+        assert (!returnCode);
+        next = strchr(cardReader_->card(),',');
+        assert (next);
+      }
+      assert (*next==','||*next==';');
+      cardReader_->setPosition(next+1);
+      inList=(*next==',');
+      int iColumn = findHash(cardReader_->columnName(),1);
+      assert (iColumn>=0);
+      if (listType==0) {
+        collower_[iColumn]=0.0;
+      } else if (listType==1) {
+        collower_[iColumn]=0.0;
+        colupper_[iColumn]=1.0;
+        columnType[iColumn]=COIN_BV_BOUND;
+	integerType_[iColumn] = 1;
+        numberIntegers++;
+      }
+    }
+  }
+  // should be equations
+  assert (!strcmp(cardReader_->columnName(),"Equations"));
+  for (i=0;i<numberRows_;i++) {
+    returnCode = cardReader_->nextGmsField(1);
+    assert (!returnCode);
+    char * next = cardReader_->getPosition();
+    if (*next=='\0') {
+      // eol - expect , at beginning of next line
+      returnCode = cardReader_->nextGmsField(0);
+      assert (!returnCode);
+      next = strchr(cardReader_->card(),',');
+      assert (next);
+    }
+    assert (*next==','||*next==';');
+    cardReader_->setPosition(next+1);
+    rowName[i]=strdup(cardReader_->columnName());
+    // Default is free?
+    rowlower_[i]=-COIN_DBL_MAX;
+    rowupper_[i]=COIN_DBL_MAX;
+    rowType[i]=COIN_N_ROW;
+  }
+  startHash ( rowName, numberRows_ , 0 );
+  const double tinyElement = 1.0e-14;
+  const double largeElement = 1.0e14;
+  int numberTiny=0;
+  int numberLarge=0;
+  // For now expect just equations so do loop
+  for (i=0;i<numberRows_;i++) {
+    returnCode = cardReader_->nextGmsField(1);
+    assert (!returnCode);
+    char * next = cardReader_->getPosition();
+    assert (*next==' ');
+    char rowName[MAX_FIELD_LENGTH];
+    strcpy(rowName,cardReader_->columnName());
+    char * dot = strchr(rowName,'.');
+    assert (dot); 
+    *dot='\0';
+    assert (*(dot+1)=='.');
+    int iRow = findHash(rowName,0);
+    assert (i==iRow);
+    returnCode=0;
+    while(!returnCode) {
+      returnCode = cardReader_->nextGmsField(3);
+      assert (returnCode==0||returnCode==2);
+      if (returnCode==2)
+        break;
+      int iColumn = findHash(cardReader_->columnName(),1);
+      assert (iColumn>=0);
+      column[numberElements_]=iColumn;
+      double value = cardReader_->value();
+      if (fabs(value)<tinyElement)
+        numberTiny++;
+      else if (fabs(value)>largeElement)
+        numberLarge++;
+      element[numberElements_++]=value;
+    }
+    start[i+1]=numberElements_;
+    next=cardReader_->getPosition();
+    // what about ranges?
+    COINMpsType type=COIN_N_ROW;
+    if (!strncmp(next,"=E=",3))
+      type=COIN_E_ROW;
+    else if (!strncmp(next,"=G=",3))
+      type=COIN_G_ROW;
+    else if (!strncmp(next,"=L=",3))
+      type=COIN_L_ROW;
+    assert (type!=COIN_N_ROW);
+    cardReader_->setPosition(next+3);
+    returnCode = cardReader_->nextGmsField(2);
+    assert (!returnCode);
+    if (type==COIN_E_ROW) {
+      rowlower_[i]=cardReader_->value();
+      rowupper_[i]=cardReader_->value();
+    } else if (type==COIN_G_ROW) {
+      rowlower_[i]=cardReader_->value();
+    } else if (type==COIN_L_ROW) {
+      rowupper_[i]=cardReader_->value();
+    }
+    rowType[i]=type;
+    // and skip ;
+    returnCode = cardReader_->nextGmsField(5);
+    assert (!returnCode);
+    
+  }
+  // Now non default bounds
+  while (true) {
+    returnCode=cardReader_->nextGmsField(0);
+    if (returnCode<0)
+      break;
+    // if there is a . see if valid name
+    char * card = cardReader_->mutableCard();
+    char * dot = strchr(card,'.');
+    if (dot) {
+      *dot='\0';
+      int iColumn = findHash(card,1);
+      if (iColumn>=0) {
+        // bound
+        char * next = strchr(dot+1,'=');
+        assert (next);
+        double value =atof(next+1);
+        if (!strncmp(dot+1,"fx",2)) {
+          collower_[iColumn]=value;
+          colupper_[iColumn]=value;
+        } else if (!strncmp(dot+1,"up",2)) {
+          colupper_[iColumn]=value;
+        } else if (!strncmp(dot+1,"lo",2)) {
+          collower_[iColumn]=value;
+        }
+      }
+    }
+  }
+  // Objective
+  assert (!convertObjective_); // do later
+  int iObj = findHash(objName,1);
+  assert (iObj>=0);
+  objective_[iObj]=minimize ? 1.0 : -1.0;
+  stopHash(0);
+  stopHash(1);
+  // clean up integers
+  if ( !numberIntegers ) {
+    free(integerType_);
+    integerType_ = NULL;
+  } else {
+    COINColumnIndex iColumn;
+    for ( iColumn = 0; iColumn < numberColumns_; iColumn++ ) {
+      if ( integerType_[iColumn] ) {
+        assert ( collower_[iColumn] >= -MAX_INTEGER );
+        if ( colupper_[iColumn] > MAX_INTEGER ) 
+          colupper_[iColumn] = MAX_INTEGER;
+      }
+    }
+  }
+  free ( columnType );
+  free ( rowType );
+  // construct packed matrix and convert to column format
+  CoinPackedMatrix matrixByRow(false,
+                               numberColumns_,numberRows_,numberElements_,
+                               element,column,start,NULL);
+  free ( column );
+  free ( start );
+  free ( element );
+  matrixByColumn_= new CoinPackedMatrix();
+  matrixByColumn_->setExtraGap(0.0);
+  matrixByColumn_->setExtraMajor(0.0);
+  matrixByColumn_->reverseOrderedCopyOf(matrixByRow);
+  assert (matrixByColumn_->getVectorLengths()[iObj]==1);
+
+  handler_->message(COIN_MPS_STATS,messages_)<<problemName_
+					    <<numberRows_
+					    <<numberColumns_
+					    <<numberElements_
+					    <<CoinMessageEol;
+  if (numberTiny||numberLarge)
+    printf("There were %d coefficients < %g and %d > %g\n",
+           numberTiny,tinyElement,numberLarge,largeElement);
   return numberErrors;
 }
 /* Read a basis in MPS format from the given filename.
@@ -3652,7 +4307,8 @@ fileName_(strdup("stdin")),
 defaultBound_(1),
 infinity_(COIN_DBL_MAX),
 defaultHandler_(true),
-cardReader_(NULL)
+cardReader_(NULL),
+convertObjective_(false)
 {
   numberHash_[0]=0;
   hash_[0]=NULL;
@@ -3723,6 +4379,7 @@ void CoinMpsIO::gutsOfCopy(const CoinMpsIO & rhs)
   numberElements_=rhs.numberElements_;
   numberRows_=rhs.numberRows_;
   numberColumns_=rhs.numberColumns_;
+  convertObjective_=rhs.convertObjective_;
   if (rhs.rowlower_) {
     rowlower_ = (double *) malloc(numberRows_*sizeof(double));
     rowupper_ = (double *) malloc(numberRows_*sizeof(double));
