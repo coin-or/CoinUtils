@@ -235,17 +235,18 @@ CoinMpsCardReader::readToNextSection (  )
 		!strncmp( card_, "STOCH", 5 ) ) {
       section_ = COIN_NAME_SECTION;
       char *next = card_ + 5;
+      position_ = eol_ = card_+strlen(card_);
 
       handler_->message(COIN_MPS_LINE,messages_)<<cardNumber_
 					       <<card_<<CoinMessageEol;
-      while ( next != eol_ ) {
+      while ( next < eol_ ) {
 	if ( *next == ' ' || *next == '\t' ) {
 	  next++;
 	} else {
 	  break;
 	}
       }
-      if ( next != eol_ ) {
+      if ( next < eol_ ) {
 	char *nextBlank = nextBlankOr ( next );
 	char save;
 
