@@ -243,6 +243,8 @@ public:
 
    /// Throw away all entries in rows >= newSize
    void truncate(int newSize); 
+   ///  Print out
+   void print() const;
    //@}
    /**@name Arithmetic operators. */
    //@{

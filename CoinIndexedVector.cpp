@@ -6,6 +6,7 @@
 #endif
 
 #include <cassert>
+#include <cstdio>
 
 #include "CoinHelperFunctions.hpp"
 #include "CoinIndexedVector.hpp"
@@ -1347,5 +1348,19 @@ CoinIndexedVector::createPacked(int number, const int * indices,
   packedMode_=true;
   memcpy(indices_,indices,number*sizeof(int));
   memcpy(elements_,elements,number*sizeof(double));
+}
+//  Print out
+void 
+CoinIndexedVector::print() const
+{
+  printf("Vector has %d elements (%spacked mode)\n",nElements_,packedMode_ ? "" : "un");
+  for (int i=0;i<nElements_;i++) {
+    if (i&&(i%5==0))
+      printf("\n");
+    int index = indices_[i];
+    double value = packedMode_ ? elements_[i] : elements_[index];
+    printf(" (%d,%g)",index,value);
+  }
+  printf("\n");
 }
 
