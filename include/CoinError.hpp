@@ -22,9 +22,10 @@ It contains:
   <li>message text
   <li>name of method throwing exception
   <li>name of class throwing exception or hint
+  <li>name of file if assert
   <li>line number
   </ul>
-  For asserts method=> file and class=> optional hint
+  For asserts class=> optional hint
 */
 class CoinError  {
    friend void CoinErrorUnitTest();
@@ -39,12 +40,15 @@ public:
     /// get message text
     inline const std::string & message() const 
     { return message_; }
-    /// get name of method instantiating error (or file for assert)
+    /// get name of method instantiating error
     inline const std::string & methodName() const 
     { return method_;  }
     /// get name of class instantiating error (or hint for assert)
     inline const std::string & className() const 
     { return class_;   }
+    /// get name of file for assert
+    inline const std::string & fileName() const 
+    { return file_;  }
     /// get line number of assert (-1 if not assert)
     inline int lineNumber() const 
     { return lineNumber_;   }
@@ -61,6 +65,7 @@ public:
       message_(),
       method_(),
       class_(),
+      file_(),
       lineNumber_(-1)
     {
       // nothing to do here
@@ -75,6 +80,7 @@ public:
       message_(message),
       method_(methodName),
       class_(className),
+      file_(),
       lineNumber_(-1)
     {
       // nothing to do here
@@ -89,6 +95,7 @@ public:
       message_(message),
       method_(methodName),
       class_(className),
+      file_(),
       lineNumber_(-1)
     {
       // nothing to do here
@@ -97,8 +104,9 @@ public:
     /// Other alternate Constructor for assert
     CoinError ( 
       const char * assertion, 
-      const char * fileName, 
+      const char * methodName, 
       const char * hint,
+      const char * fileName, 
       int line);
 
     /// Copy constructor 
@@ -124,6 +132,8 @@ private:
     std::string method_;
     /// class name or hint
     std::string class_;
+    /// file name
+    std::string file_;
     /// Line number
     int lineNumber_;
   //@}
@@ -138,19 +148,41 @@ private:
 # define CoinAssertDebug(expression)		(static_cast<void> (0))
 # define CoinAssertDebugHint(expression,hint)		(static_cast<void> (0))
 #else
+#if  (__GNUC_PREREQ (2, 6))
 # define CoinAssertDebug(expression) \
   (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), __FILE__, "",__LINE__))))
+		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, "",\
+                       __FILE__,__LINE__))))
 # define CoinAssertDebugHint(expression,hint) \
   (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), __FILE__, hint ,__LINE__))))
+		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, hint ,\
+                        __FILE__,__LINE__))))
+#else
+# define CoinAssertDebug(expression) \
+  (static_cast<void> ((expression) ? 0 :					      \
+		       ( throw CoinError(__STRING(expression), "", "", __FILE__,__LINE__))))
+# define CoinAssertDebugHint(expression,hint) \
+  (static_cast<void> ((expression) ? 0 :					      \
+		       ( throw CoinError(__STRING(expression), "", hint , __FILE__,__LINE__))))
 #endif
+#endif
+#if  (__GNUC_PREREQ (2, 6))
 # define CoinAssert(expression) \
   (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), __FILE__, "", __LINE__))))
+		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, "",\
+                       __FILE__,__LINE__))))
 # define CoinAssertHint(expression,hint) \
   (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), __FILE__, hint , __LINE__))))
+		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, hint ,\
+                        __FILE__,__LINE__))))
+#else
+# define CoinAssert(expression) \
+  (static_cast<void> ((expression) ? 0 :					      \
+		       ( throw CoinError(__STRING(expression), "", "", __FILE__,__LINE__))))
+# define CoinAssertHint(expression,hint) \
+  (static_cast<void> ((expression) ? 0 :					      \
+		       ( throw CoinError(__STRING(expression), "", hint , __FILE__,__LINE__))))
+#endif
 #endif
 
 //#############################################################################
