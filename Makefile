@@ -58,7 +58,6 @@ LIBSRC += CoinPresolveSubst.cpp
 LIBSRC += CoinPresolveTighten.cpp		    
 LIBSRC += CoinPresolveTripleton.cpp		    
 LIBSRC += CoinPresolveUseless.cpp             
-LIBSRC += CoinDenseVector.cpp
 
 ##############################################################################
 include ${MakefileDir}/Makefile.coin
