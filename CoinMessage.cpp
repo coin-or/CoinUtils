@@ -17,18 +17,12 @@ static Coin_message us_english[]=
 {
   {COIN_MPS_LINE,1,1,"At line %d %s"},
   {COIN_MPS_STATS,2,1,"Problem %s has %d rows, %d columns and %d elements"},
-  {COIN_BAB_MAXITS,3,1,"Exiting on maximum iterations"},
-  {COIN_BAB_SOLUTION,4,1,"Integer solution of %g found after %d iterations and %d nodes"},
-  {COIN_BAB_END,5,1,"Search took %d iterations and %d nodes"},
-  {COIN_BAB_INFEAS,6,1,"The LP relaxation is infeasible or too expensive"},
-  {COIN_BAB_STRONG,7,3,"Strong branching on %d (%d), down %g up %g value %g"},
   {COIN_MPS_ILLEGAL,3001,0,"Illegal value for %s of %g"},
   {COIN_MPS_BADIMAGE,3002,0,"Bad image at line %d < %s >"},
   {COIN_MPS_DUPOBJ,3003,0,"Duplicate objective at line %d < %s >"},
   {COIN_MPS_DUPROW,3004,0,"Duplicate row %s at line %d < %s >"},
   {COIN_MPS_NOMATCHROW,3005,0,"No match for row %s at line %d < %s >"},
   {COIN_MPS_NOMATCHCOL,3006,0,"No match for column %s at line %d < %s >"},
-  {COIN_BAB_NOINT,3007,0,"No integer variables - nothing to do"},
   {COIN_MPS_FILE,6001,0,"Unable to open mps input file %s"},
   {COIN_MPS_BADFILE1,6002,0,"Unknown image %s at line 1 of file %s"},
   {COIN_MPS_BADFILE2,6003,0,"Consider the possibility of a compressed file\
