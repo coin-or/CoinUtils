@@ -39,7 +39,8 @@ CoinIndexedVector::empty()
 {
   delete [] indices_;
   indices_=NULL;
-  delete [] elements_;
+  if (elements_)
+    delete [] (elements_-offset_);
   elements_=NULL;
   nElements_ = 0;
   capacity_=0;
@@ -406,10 +407,34 @@ CoinIndexedVector::reserve(int n)
     // save pointers to existing data
     int * tempIndices = indices_;
     double * tempElements = elements_;
+    double * delTemp = elements_-offset_;
     
     // allocate new space
     indices_ = new int [n];
-    elements_ = new double [n];
+    // align on 64 byte boundary
+    double * temp = new double [n+7];
+    offset_ = 0;
+    if (sizeof (double *) == sizeof (int)) {
+      int xx = (int) temp;
+      int iBottom = xx & 63;
+      if (iBottom)
+	offset_ = (64-iBottom)>>3;
+      xx = (int) (temp+offset_);
+      iBottom = xx &63;
+      assert (!iBottom);
+    } else if (sizeof (double *) == sizeof (long)) {
+      long xx = (long) temp;
+      long iBottom = xx & 63;
+      if (iBottom)
+	offset_ = (64-iBottom)>>3;
+      xx = (long) (temp+offset_);
+      iBottom = xx &63;
+      assert (!iBottom);
+    } else {
+      throw CoinError("double * not sizeof(int) or (long)",
+		      "reserve", "CoinIndexedVector");
+    }
+    elements_ = temp + offset_;;
     
     // copy data to new space
     // and zero out part of array
@@ -423,7 +448,8 @@ CoinIndexedVector::reserve(int n)
     capacity_ = n;
     
     // free old data
-    delete [] tempElements;
+    if (tempElements)
+      delete [] delTemp;
     delete [] tempIndices;
   }
 }
@@ -511,7 +537,8 @@ capacity_(0)
 CoinIndexedVector::~CoinIndexedVector ()
 {
   delete [] indices_;
-  delete [] elements_;
+  if (elements_)
+    delete [] (elements_-offset_);
 }
 //#############################################################################
 //#############################################################################

@@ -15,6 +15,11 @@
 #include <stdio.h>
 #include <iostream>
 
+// For semi-sparse
+#define BITS_PER_CHECK 8
+#define CHECK_SHIFT 3
+typedef unsigned char CoinCheckZero;
+
 //:class CoinFactorization.  Deals with Factorization and Updates
 
 //  updateColumn.  Updates one column (FTRAN) when permuted
@@ -26,11 +31,20 @@ CoinFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   int *regionIndex = regionSparse->getIndices (  );
   int numberNonZero = regionSparse->getNumElements (  );
   
+  if (collectStatistics_) {
+    numberFtranCounts_++;
+    ftranCountInput_ += numberNonZero;
+  }
+    
   //  ******* L
   updateColumnL ( regionSparse );
+  if (collectStatistics_) 
+    ftranCountAfterL_ += regionSparse->getNumElements();
   //permute extra
   //row bits here
   updateColumnR ( regionSparse );
+  if (collectStatistics_) 
+    ftranCountAfterR_ += regionSparse->getNumElements();
   bool noRoom = false;
   
   //update counts
@@ -78,6 +92,8 @@ CoinFactorization::updateColumn ( CoinIndexedVector * regionSparse,
     updateColumnU ( regionSparse, 0, regionSparse->getNumElements (  ) );
   }
   numberNonZero = regionSparse->getNumElements (  );
+  if (collectStatistics_) 
+    ftranCountAfterU_ += numberNonZero;
   if ( !noRoom ) {
     return numberNonZero;
   } else {
@@ -111,9 +127,10 @@ CoinFactorization::throwAwayColumn (  )
   numberInColumn_[iColumn] = 0;
 }
 
-//  updateColumnL.  Updates part of column (FTRANL)
-void
-CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
+// Updates part of column (FTRANL) when densish
+void 
+CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse )
+  const
 {
   double *region = regionSparse->denseVector (  );
   int *regionIndex = regionSparse->getIndices (  );
@@ -121,120 +138,325 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
   int numberNonZero;
   double tolerance = zeroTolerance_;
   
-  if (numberL_) {
-    numberNonZero = 0;
-    int j, k;
-    int i , iPivot;
+  numberNonZero = 0;
+  int k;
+  int i , iPivot;
+  
+  CoinBigIndex *startColumn = startColumnL_;
+  int *indexRow = indexRowL_;
+  double *element = elementL_;
+  int last = baseL_ + numberL_;
+  
+  // do easy ones
+  for (k=0;k<number;k++) {
+    iPivot=regionIndex[k];
+    if (iPivot<baseL_) 
+      regionIndex[numberNonZero++]=iPivot;
+  }
+  // now others
+  for ( i = baseL_; i < last; i++ ) {
+    double pivotValue = region[i];
+    CoinBigIndex start = startColumn[i];
+    CoinBigIndex end = startColumn[i + 1];
     
-    CoinBigIndex *startColumn = startColumnL_;
-    int *indexRow = indexRowL_;
-    double *element = elementL_;
-    if (number<sparseThreshold_) {
-      // use sparse_ as temporary area
-      // mark known to be zero
-      int * stack = sparse_;  /* pivot */
-      int * list = stack + maximumRowsExtra_;  /* final list */
-      int * next = list + maximumRowsExtra_;  /* jnext */
-      char * mark = (char *) (next + maximumRowsExtra_);
-      int nList;
-#ifdef COIN_DEBUG
-      for (i=0;i<maximumRowsExtra_;i++) {
-        assert (!mark[i]);
-      }
-#endif
-      int nStack;
-      nList=0;
-      for (k=0;k<number;k++) {
-        iPivot=regionIndex[k];
-        if (iPivot>=baseL_) {
-          nStack=1;
-          stack[0]=iPivot;
-          next[0]=startColumn[iPivot+1]-1;
-          while (nStack) {
-            int kPivot,j;
-            /* take off stack */
-            kPivot=stack[--nStack];
-            if (mark[kPivot]!=1) {
-              j=next[nStack];
-              if (j<startColumn[kPivot]) {
-                /* finished so mark */
-                list[nList++]=kPivot;
-                mark[kPivot]=1;
-              } else {
-                kPivot=indexRow[j];
-                /* put back on stack */
-                next[nStack++] --;
-                if (!mark[kPivot]) {
-                  /* and new one */
-                  stack[nStack]=kPivot;
-		  mark[kPivot]=2;
-                  next[nStack++]=startColumn[kPivot+1]-1;
-                }
-              }
-            }
-          }
-        } else {
-          // just put on list
-          regionIndex[numberNonZero++]=iPivot;
-        }
-      }
-      for (i=nList-1;i>=0;i--) {
-        iPivot = list[i];
-        mark[iPivot]=0;
-        //printf("pivot %d %d\n",i,iPivot);
-        double pivotValue = region[iPivot];
-        if ( fabs ( pivotValue ) > tolerance ) {
-          regionIndex[numberNonZero++]=iPivot;
-          for ( j = startColumn[iPivot]; j < startColumn[iPivot+1]; j ++ ) {
-            int iRow = indexRow[j];
-            double value = element[j];
-            region[iRow] -= value * pivotValue;
-          }
-        } else {
-          region[iPivot]=0.0;
-        }
-      }
-      regionSparse->setNumElements ( numberNonZero );
+    if ( fabs(pivotValue) > tolerance ) {
+      CoinBigIndex j;
+      for ( j = start; j < end; j ++ ) {
+	int iRow0 = indexRow[j];
+	double result0 = region[iRow0];
+	double value0 = element[j];
+	
+	region[iRow0] = result0 - value0 * pivotValue;
+      }     
+      regionIndex[numberNonZero++] = i;
     } else {
-      int last = baseL_ + numberL_;
-      
-      // do easy ones
-      for (k=0;k<number;k++) {
-        iPivot=regionIndex[k];
-        if (iPivot<baseL_) 
-          regionIndex[numberNonZero++]=iPivot;
+      region[i] = 0.0;
+    }       
+  }     
+  regionSparse->setNumElements ( numberNonZero );
+} 
+// Updates part of column (FTRANL) when sparsish
+void 
+CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse )
+  const
+{
+  double *region = regionSparse->denseVector (  );
+  int *regionIndex = regionSparse->getIndices (  );
+  int number = regionSparse->getNumElements (  );
+  int numberNonZero;
+  double tolerance = zeroTolerance_;
+  
+  numberNonZero = 0;
+  int k;
+  int i , iPivot;
+  
+  CoinBigIndex *startColumn = startColumnL_;
+  int *indexRow = indexRowL_;
+  double *element = elementL_;
+  int last = baseL_ + numberL_;
+  
+  // use sparse_ as temporary area
+  // mark known to be zero
+  int * stack = sparse_;  /* pivot */
+  int * list = stack + maximumRowsExtra_;  /* final list */
+  int * next = list + maximumRowsExtra_;  /* jnext */
+  CoinCheckZero * mark = (CoinCheckZero *) (next + maximumRowsExtra_);
+  int nMarked=0;
+  // do easy ones
+  for (k=0;k<number;k++) {
+    iPivot=regionIndex[k];
+    if (iPivot<baseL_) { 
+      regionIndex[numberNonZero++]=iPivot;
+    } else {
+      int iWord = iPivot>>CHECK_SHIFT;
+      int iBit = iPivot-(iWord<<CHECK_SHIFT);
+      if (mark[iWord]) {
+	mark[iWord] |= 1<<iBit;
+      } else {
+	mark[iWord] = 1<<iBit;
+	stack[nMarked++]=iWord;
       }
-      // now others
-      for ( i = baseL_; i < last; i++ ) {
-        double pivotValue = region[i];
-        CoinBigIndex start = startColumn[i];
-        CoinBigIndex end = startColumn[i + 1];
-        
-        if ( fabs(pivotValue) > tolerance ) {
-          CoinBigIndex j;
-          for ( j = start; j < end; j ++ ) {
-            int iRow0 = indexRow[j];
-            double result0 = region[iRow0];
-            double value0 = element[j];
-            
-            region[iRow0] = result0 - value0 * pivotValue;
-          }     
-          regionIndex[numberNonZero++] = i;
-        } else {
-          region[i] = 0.0;
-        }       
+    }
+  }
+  // now others
+  // First do up to convenient power of 2
+  int jLast = (baseL_+BITS_PER_CHECK-1)>>CHECK_SHIFT;
+  jLast = min((jLast<<CHECK_SHIFT),last);
+  for ( i = baseL_; i < jLast; i++ ) {
+    double pivotValue = region[i];
+    CoinBigIndex start = startColumn[i];
+    CoinBigIndex end = startColumn[i + 1];
+    
+    if ( fabs(pivotValue) > tolerance ) {
+      CoinBigIndex j;
+      for ( j = start; j < end; j ++ ) {
+	int iRow0 = indexRow[j];
+	double result0 = region[iRow0];
+	double value0 = element[j];
+	region[iRow0] = result0 - value0 * pivotValue;
+	int iWord = iRow0>>CHECK_SHIFT;
+	int iBit = iRow0-(iWord<<CHECK_SHIFT);
+	if (mark[iWord]) {
+	  mark[iWord] |= 1<<iBit;
+	} else {
+	  mark[iWord] = 1<<iBit;
+	  stack[nMarked++]=iWord;
+	}
       }     
-      //clean up end
-      for ( ; i < numberRowsExtra_; i++ ) {
-        double pivotValue = region[i];
-        if ( fabs(pivotValue) > tolerance ) {
-          regionIndex[numberNonZero++] = i;
-        } else {
-          region[i] = 0.0;
-        }       
+      regionIndex[numberNonZero++] = i;
+    } else {
+      region[i] = 0.0;
+    }       
+  }
+  
+  int kLast = last>>CHECK_SHIFT;
+  if (jLast<last) {
+    // now do in chunks
+    for (k=(jLast>>CHECK_SHIFT);k<kLast;k++) {
+      unsigned int iMark = mark[k];
+      if (iMark) {
+	// something in chunk - do all (as imark may change)
+	i = k<<CHECK_SHIFT;
+	int iLast = i+BITS_PER_CHECK;
+	for ( ; i < iLast; i++ ) {
+	  double pivotValue = region[i];
+	  CoinBigIndex start = startColumn[i];
+	  CoinBigIndex end = startColumn[i + 1];
+	  
+	  if ( fabs(pivotValue) > tolerance ) {
+	    CoinBigIndex j;
+	    for ( j = start; j < end; j ++ ) {
+	      int iRow0 = indexRow[j];
+	      double result0 = region[iRow0];
+	      double value0 = element[j];
+	      region[iRow0] = result0 - value0 * pivotValue;
+	      int iWord = iRow0>>CHECK_SHIFT;
+	      int iBit = iRow0-(iWord<<CHECK_SHIFT);
+	      if (mark[iWord]) {
+		mark[iWord] |= 1<<iBit;
+	      } else {
+		mark[iWord] = 1<<iBit;
+		stack[nMarked++]=iWord;
+	      }
+	    }     
+	    regionIndex[numberNonZero++] = i;
+	  } else {
+	    region[i] = 0.0;
+	  }       
+	}
+	mark[k]=0; // zero out marked
+      }
+    }
+    i = kLast<<CHECK_SHIFT;
+  }
+  for ( ; i < last; i++ ) {
+    double pivotValue = region[i];
+    CoinBigIndex start = startColumn[i];
+    CoinBigIndex end = startColumn[i + 1];
+    
+    if ( fabs(pivotValue) > tolerance ) {
+      CoinBigIndex j;
+      for ( j = start; j < end; j ++ ) {
+	int iRow0 = indexRow[j];
+	double result0 = region[iRow0];
+	double value0 = element[j];
+	region[iRow0] = result0 - value0 * pivotValue;
+	int iWord = iRow0>>CHECK_SHIFT;
+	int iBit = iRow0-(iWord<<CHECK_SHIFT);
+	if (mark[iWord]) {
+	  mark[iWord] |= 1<<iBit;
+	} else {
+	  mark[iWord] = 1<<iBit;
+	  stack[nMarked++]=iWord;
+	}
       }     
-      regionSparse->setNumElements ( numberNonZero );
-    } 
+      regionIndex[numberNonZero++] = i;
+    } else {
+      region[i] = 0.0;
+    }       
+  }
+  // zero out ones that might have been skipped
+  mark[baseL_>>CHECK_SHIFT]=0;
+  mark[kLast]=0;
+  regionSparse->setNumElements ( numberNonZero );
+} 
+// Updates part of column (FTRANL) when sparse
+void 
+CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse )
+  const
+{
+  double *region = regionSparse->denseVector (  );
+  int *regionIndex = regionSparse->getIndices (  );
+  int number = regionSparse->getNumElements (  );
+  int numberNonZero;
+  double tolerance = zeroTolerance_;
+  
+  numberNonZero = 0;
+  int j, k;
+  int i , iPivot;
+  
+  CoinBigIndex *startColumn = startColumnL_;
+  int *indexRow = indexRowL_;
+  double *element = elementL_;
+  // use sparse_ as temporary area
+  // mark known to be zero
+  int * stack = sparse_;  /* pivot */
+  int * list = stack + maximumRowsExtra_;  /* final list */
+  int * next = list + maximumRowsExtra_;  /* jnext */
+  char * mark = (char *) (next + maximumRowsExtra_);
+  int nList;
+#ifdef COIN_DEBUG
+  for (i=0;i<maximumRowsExtra_;i++) {
+    assert (!mark[i]);
+  }
+#endif
+  int nStack;
+  nList=0;
+  for (k=0;k<number;k++) {
+    iPivot=regionIndex[k];
+    if (iPivot>=baseL_) {
+      if(!mark[iPivot]) {
+	stack[0]=iPivot;
+	int j=startColumn[iPivot+1]-1;
+	if (j>=startColumn[iPivot]) {
+	  int kPivot=indexRow[j];
+	  /* put back on stack */
+	  next[0] =j-1;
+	  /* and new one */
+	  if (!mark[kPivot]) {
+	    stack[1]=kPivot;
+	    mark[kPivot]=2;
+	    next[1]=startColumn[kPivot+1]-1;
+	    nStack=2;
+	  } else {
+	    nStack=1;
+	  }
+	  while (nStack) {
+	    int kPivot,j;
+	    /* take off stack */
+	    kPivot=stack[--nStack];
+	    j=next[nStack];
+	    if (j<startColumn[kPivot]) {
+	      /* finished so mark */
+	      list[nList++]=kPivot;
+	      mark[kPivot]=1;
+	    } else {
+	      kPivot=indexRow[j];
+	      /* put back on stack */
+	      next[nStack++] --;
+	      if (!mark[kPivot]) {
+		/* and new one */
+		stack[nStack]=kPivot;
+		mark[kPivot]=2;
+		next[nStack++]=startColumn[kPivot+1]-1;
+	      }
+	    }
+	  }
+	} else {
+	  // nothing there - just put on list
+	  list[nList++]=iPivot;
+	  mark[iPivot]=1;
+	}
+      }
+    } else {
+      // just put on list
+      regionIndex[numberNonZero++]=iPivot;
+    }
+  }
+  for (i=nList-1;i>=0;i--) {
+    iPivot = list[i];
+    mark[iPivot]=0;
+    double pivotValue = region[iPivot];
+    if ( fabs ( pivotValue ) > tolerance ) {
+      regionIndex[numberNonZero++]=iPivot;
+      for ( j = startColumn[iPivot]; j < startColumn[iPivot+1]; j ++ ) {
+	int iRow = indexRow[j];
+	double value = element[j];
+	region[iRow] -= value * pivotValue;
+      }
+    } else {
+      region[iPivot]=0.0;
+    }
+  }
+  regionSparse->setNumElements ( numberNonZero );
+}
+//  updateColumnL.  Updates part of column (FTRANL)
+void
+CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
+{
+  if (numberL_) {
+    int number = regionSparse->getNumElements (  );
+    int goSparse;
+    // Guess at number at end
+    if (sparseThreshold_>0) {
+      if (ftranAverageAfterL_) {
+	int newNumber = (int) (number*ftranAverageAfterL_);
+	if (newNumber< (sparseThreshold_>>1)&&(numberL_<<2)>sparseThreshold_)
+	  goSparse = 2;
+	else if (newNumber< (sparseThreshold_<<1)&&(numberL_<<1)>sparseThreshold_)
+	  goSparse = 1;
+	else
+	  goSparse = 0;
+      } else {
+	if (number<sparseThreshold_&&(numberL_<<2)>sparseThreshold_) 
+	  goSparse = 2;
+	else
+	  goSparse = 0;
+      }
+    } else {
+      goSparse=0;
+    }
+    switch (goSparse) {
+    case 0: // densish
+      updateColumnLDensish(regionSparse);
+      break;
+    case 1: // middling
+      updateColumnLSparsish(regionSparse);
+      break;
+    case 2: // sparse
+      updateColumnLSparse(regionSparse);
+      break;
+    }
   }
 }
 
@@ -821,26 +1043,37 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse ) co
   double *pivotRegion = pivotRegion_;
   int *regionIndex = regionSparse->getIndices (  );
   
+  if (collectStatistics_) {
+    numberBtranCounts_++;
+    btranCountInput_ += numberNonZero;
+  }
+
   for ( j = 0; j < numberNonZero; j++ ) {
     int iRow = regionIndex[j];
     region[iRow] *= pivotRegion[iRow];
   }
   updateColumnTransposeU ( regionSparse );
+  if (collectStatistics_) 
+    btranCountAfterU_ += regionSparse->getNumElements();
   //numberNonZero=regionSparse->getNumElements();
   //permute extra
   //row bits here
   updateColumnTransposeR ( regionSparse );
+  if (collectStatistics_) 
+    btranCountAfterR_ += regionSparse->getNumElements();
   //regionSparse->getNumElements(numberNonZero);
   //  ******* L
   updateColumnTransposeL ( regionSparse );
+  if (collectStatistics_) 
+    btranCountAfterL_ += regionSparse->getNumElements();
   return regionSparse->getNumElements (  );
 }
 
-//  updateColumnTransposeU.  Updates part of column transpose (BTRANU)
-//assumes index is sorted i.e. region is correct
-//does not sort by sign
-void
-CoinFactorization::updateColumnTransposeU ( CoinIndexedVector * regionSparse) const
+/* Updates part of column transpose (BTRANU) when densish,
+   assumes index is sorted i.e. region is correct */
+void 
+CoinFactorization::updateColumnTransposeUDensish 
+                        ( CoinIndexedVector * regionSparse) const
 {
   double *region = regionSparse->denseVector (  );
   int numberNonZero = regionSparse->getNumElements (  );
@@ -862,254 +1095,655 @@ CoinFactorization::updateColumnTransposeU ( CoinIndexedVector * regionSparse) co
   
   int *numberInRow = numberInRow_;
   
-  if (numberNonZero<sparseThreshold_) {
-    // use sparse_ as temporary area
-    // mark known to be zero
-    int * stack = sparse_;  /* pivot */
-    int * list = stack + maximumRowsExtra_;  /* final list */
-    int * next = list + maximumRowsExtra_;  /* jnext */
-    char * mark = (char *) (next + maximumRowsExtra_);
-    int nList;
-    int iPivot;
-#ifdef COIN_DEBUG
-    for (i=0;i<maximumRowsExtra_;i++) {
-      assert (!mark[i]);
-    }
-#endif
-    int k,nStack;
-    nList=0;
-    for (k=0;k<numberNonZero;k++) {
-      nStack=1;
-      iPivot=regionIndex[k];
-      stack[0]=iPivot;
-      next[0]=startRow[iPivot]+numberInRow[iPivot]-1;
-      while (nStack) {
-        int kPivot,j;
-        /* take off stack */
-        kPivot=stack[--nStack];
-        if (mark[kPivot]!=1) {
-          j=next[nStack];
-          if (j<startRow[kPivot]) {
-            /* finished so mark */
-            list[nList++]=kPivot;
-            mark[kPivot]=1;
-          } else {
-            kPivot=indexColumn[j];
-            /* put back on stack */
-            next[nStack++] --;
-	    // could have been zapped - if so ignore
-	    CoinBigIndex getElement = convertRowToColumn[j];
-	    double value = element[getElement];
-            if (value&&!mark[kPivot]) {
-              /* and new one */
-              stack[nStack]=kPivot;
-	      mark[kPivot]=2;
-              next[nStack++]=startRow[kPivot]+numberInRow[kPivot]-1;
-            }
-          }
-        }
-      }
-    }
-    numberNonZero=0;
-    for (i=nList-1;i>=0;i--) {
-      iPivot = list[i];
-      mark[iPivot]=0;
-      pivotValue = region[iPivot];
-      if ( fabs ( pivotValue ) > tolerance ) {
-        CoinBigIndex start = startRow[iPivot];
-        int numberIn = numberInRow[iPivot];
-        CoinBigIndex end = start + numberIn;
-        CoinBigIndex j;
-        for (j=start ; j < end; j ++ ) {
-          int iRow = indexColumn[j];
-          CoinBigIndex getElement = convertRowToColumn[j];
-          double value = element[getElement];
-          
-          region[iRow] = region[iRow]
-            - value * pivotValue;
-        }     
-        regionIndex[numberNonZero++] = iPivot;
-      } else {
-        region[iPivot] = 0.0;
-      }       
-    }       
-  } else {
-    numberNonZero = 0;
-    for (i=0 ; i < last; i++ ) {
-      pivotValue = region[i];
-      if ( fabs ( pivotValue ) > tolerance ) {
-        CoinBigIndex start = startRow[i];
-        int numberIn = numberInRow[i];
-        CoinBigIndex end = start + numberIn;
-        for (j = start ; j < end; j ++ ) {
-          int iRow = indexColumn[j];
-          CoinBigIndex getElement = convertRowToColumn[j];
-          double value = element[getElement];
-          
-          region[iRow] -=  value * pivotValue;
-        }     
-        regionIndex[numberNonZero++] = i;
-      } else {
-        region[i] = 0.0;
-      }       
+  numberNonZero = 0;
+  for (i=0 ; i < last; i++ ) {
+    pivotValue = region[i];
+    if ( fabs ( pivotValue ) > tolerance ) {
+      CoinBigIndex start = startRow[i];
+      int numberIn = numberInRow[i];
+      CoinBigIndex end = start + numberIn;
+      for (j = start ; j < end; j ++ ) {
+	int iRow = indexColumn[j];
+	CoinBigIndex getElement = convertRowToColumn[j];
+	double value = element[getElement];
+	
+	region[iRow] -=  value * pivotValue;
+      }     
+      regionIndex[numberNonZero++] = i;
+    } else {
+      region[i] = 0.0;
     }       
   }
   //set counts
   regionSparse->setNumElements ( numberNonZero );
 }
+/* Updates part of column transpose (BTRANU) when sparsish,
+      assumes index is sorted i.e. region is correct */
+void 
+CoinFactorization::updateColumnTransposeUSparsish 
+                        ( CoinIndexedVector * regionSparse) const
+{
+  double *region = regionSparse->denseVector (  );
+  int numberNonZero = regionSparse->getNumElements (  );
+  double tolerance = zeroTolerance_;
+  
+  int *regionIndex = regionSparse->getIndices (  );
+  
+  int i,j;
+  
+  CoinBigIndex *startRow = startRowU_;
+  
+  CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
+  int *indexColumn = indexColumnU_;
+  
+  double * element = elementU_;
+  int last = numberU_;
+  
+  double pivotValue;
+  
+  int *numberInRow = numberInRow_;
+  
+  // use sparse_ as temporary area
+  // mark known to be zero
+  int * stack = sparse_;  /* pivot */
+  int * list = stack + maximumRowsExtra_;  /* final list */
+  int * next = list + maximumRowsExtra_;  /* jnext */
+  CoinCheckZero * mark = (CoinCheckZero *) (next + maximumRowsExtra_);
+  int nMarked=0;
 
-//  updateColumnTransposeL.  Updates part of column transpose (BTRANL)
+  for (i=0;i<numberNonZero;i++) {
+    int iPivot=regionIndex[i];
+    int iWord = iPivot>>CHECK_SHIFT;
+    int iBit = iPivot-(iWord<<CHECK_SHIFT);
+    if (mark[iWord]) {
+      mark[iWord] |= 1<<iBit;
+    } else {
+      mark[iWord] = 1<<iBit;
+      stack[nMarked++]=iWord;
+    }
+  }
+
+  numberNonZero = 0;
+  // Find convenient power of 2
+  int kLast = last>>CHECK_SHIFT;
+  // do in chunks
+  int k;
+  for (k=0;k<kLast;k++) {
+    unsigned int iMark = mark[k];
+    if (iMark) {
+      // something in chunk - do all (as imark may change)
+      i = k<<CHECK_SHIFT;
+      int iLast = i+BITS_PER_CHECK;
+      for ( ; i < iLast; i++ ) {
+	pivotValue = region[i];
+	if ( fabs ( pivotValue ) > tolerance ) {
+	  CoinBigIndex start = startRow[i];
+	  int numberIn = numberInRow[i];
+	  CoinBigIndex end = start + numberIn;
+	  for (j = start ; j < end; j ++ ) {
+	    int iRow = indexColumn[j];
+	    CoinBigIndex getElement = convertRowToColumn[j];
+	    double value = element[getElement];
+	    int iWord = iRow>>CHECK_SHIFT;
+	    int iBit = iRow-(iWord<<CHECK_SHIFT);
+	    if (mark[iWord]) {
+	      mark[iWord] |= 1<<iBit;
+	    } else {
+	      mark[iWord] = 1<<iBit;
+	      stack[nMarked++]=iWord;
+	    }
+	    region[iRow] -=  value * pivotValue;
+	  }     
+	  regionIndex[numberNonZero++] = i;
+	} else {
+	  region[i] = 0.0;
+	}       
+      }
+      mark[k]=0;
+    }
+  }
+  i = kLast<<CHECK_SHIFT;
+  mark[kLast]=0;
+  for (; i < last; i++ ) {
+    pivotValue = region[i];
+    if ( fabs ( pivotValue ) > tolerance ) {
+      CoinBigIndex start = startRow[i];
+      int numberIn = numberInRow[i];
+      CoinBigIndex end = start + numberIn;
+      for (j = start ; j < end; j ++ ) {
+	int iRow = indexColumn[j];
+	CoinBigIndex getElement = convertRowToColumn[j];
+	double value = element[getElement];
+	
+	region[iRow] -=  value * pivotValue;
+      }     
+      regionIndex[numberNonZero++] = i;
+    } else {
+      region[i] = 0.0;
+    }       
+  }
+#ifdef COIN_DEBUG
+  for (i=0;i<maximumRowsExtra_;i++) {
+    assert (!mark[i]);
+  }
+#endif
+  //set counts
+  regionSparse->setNumElements ( numberNonZero );
+}
+/* Updates part of column transpose (BTRANU) when sparse,
+   assumes index is sorted i.e. region is correct */
+void 
+CoinFactorization::updateColumnTransposeUSparse ( 
+		   CoinIndexedVector * regionSparse) const
+{
+  double *region = regionSparse->denseVector (  );
+  int numberNonZero = regionSparse->getNumElements (  );
+  double tolerance = zeroTolerance_;
+  
+  int *regionIndex = regionSparse->getIndices (  );
+  
+  int i;
+  
+  CoinBigIndex *startRow = startRowU_;
+  
+  CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
+  int *indexColumn = indexColumnU_;
+  
+  double * element = elementU_;
+  
+  double pivotValue;
+  
+  int *numberInRow = numberInRow_;
+  
+  // use sparse_ as temporary area
+  // mark known to be zero
+  int * stack = sparse_;  /* pivot */
+  int * list = stack + maximumRowsExtra_;  /* final list */
+  int * next = list + maximumRowsExtra_;  /* jnext */
+  char * mark = (char *) (next + maximumRowsExtra_);
+  int nList;
+  int iPivot;
+#ifdef COIN_DEBUG
+  for (i=0;i<maximumRowsExtra_;i++) {
+    assert (!mark[i]);
+  }
+#endif
+  int k,nStack;
+  nList=0;
+  for (k=0;k<numberNonZero;k++) {
+    iPivot=regionIndex[k];
+    if(!mark[iPivot]) {
+      stack[0]=iPivot;
+      int j=startRow[iPivot]+numberInRow[iPivot]-1;
+      if (j>=startRow[iPivot]) {
+	int kPivot=indexColumn[j];
+	/* put back on stack */
+	next[0] =j-1;
+	/* and new one */
+	if (!mark[kPivot]) {
+	  stack[1]=kPivot;
+	  mark[kPivot]=2;
+	  next[1]=startRow[kPivot]+numberInRow[kPivot]-1;
+	  nStack=2;
+	} else {
+	  nStack=1;
+	}
+	while (nStack) {
+	  int kPivot,j;
+	  /* take off stack */
+	  kPivot=stack[--nStack];
+	  j=next[nStack];
+	  if (j<startRow[kPivot]) {
+	    /* finished so mark */
+	    list[nList++]=kPivot;
+	    mark[kPivot]=1;
+	  } else {
+	    kPivot=indexColumn[j];
+	    /* put back on stack */
+	    next[nStack++] --;
+	    if (!mark[kPivot]) {
+	      /* and new one */
+	      stack[nStack]=kPivot;
+	      mark[kPivot]=2;
+	      next[nStack++]=startRow[kPivot]+numberInRow[kPivot]-1;
+	    }
+	  }
+	}
+      } else {
+	// nothing there - just put on list
+	list[nList++]=iPivot;
+	mark[iPivot]=1;
+      }
+    }
+  }
+  numberNonZero=0;
+  for (i=nList-1;i>=0;i--) {
+    iPivot = list[i];
+    mark[iPivot]=0;
+    pivotValue = region[iPivot];
+    if ( fabs ( pivotValue ) > tolerance ) {
+      CoinBigIndex start = startRow[iPivot];
+      int numberIn = numberInRow[iPivot];
+      CoinBigIndex end = start + numberIn;
+      CoinBigIndex j;
+      for (j=start ; j < end; j ++ ) {
+	int iRow = indexColumn[j];
+	CoinBigIndex getElement = convertRowToColumn[j];
+	double value = element[getElement];
+	
+	region[iRow] = region[iRow]
+	  - value * pivotValue;
+      }     
+      regionIndex[numberNonZero++] = iPivot;
+    } else {
+      region[iPivot] = 0.0;
+    }       
+  }       
+  //set counts
+  regionSparse->setNumElements ( numberNonZero );
+}
+//  updateColumnTransposeU.  Updates part of column transpose (BTRANU)
+//assumes index is sorted i.e. region is correct
+//does not sort by sign
 void
-CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) const
+CoinFactorization::updateColumnTransposeU ( CoinIndexedVector * regionSparse) const
+{
+  int number = regionSparse->getNumElements (  );
+  int goSparse;
+  // Guess at number at end
+  if (sparseThreshold_>0) {
+    if (btranAverageAfterU_) {
+      int newNumber = (int) (number*btranAverageAfterU_);
+      if (newNumber< (sparseThreshold_>>1))
+	goSparse = 2;
+      else if (newNumber< (sparseThreshold_<<1))
+	goSparse = 1;
+      else
+	goSparse = 0;
+    } else {
+      if (number<sparseThreshold_) 
+	goSparse = 2;
+      else
+	goSparse = 0;
+    }
+  } else {
+    goSparse=0;
+  }
+  switch (goSparse) {
+  case 0: // densish
+    updateColumnTransposeUDensish(regionSparse);
+    break;
+  case 1: // middling
+    updateColumnTransposeUSparsish(regionSparse);
+    break;
+  case 2: // sparse
+    updateColumnTransposeUSparse(regionSparse);
+    break;
+  }
+}
+
+/*  updateColumnTransposeLDensish.  
+    Updates part of column transpose (BTRANL) dense by column */
+void
+CoinFactorization::updateColumnTransposeLDensish 
+     ( CoinIndexedVector * regionSparse ) const
 {
   double *region = regionSparse->denseVector (  );
   int *regionIndex = regionSparse->getIndices (  );
-  int numberNonZero = regionSparse->getNumElements (  );
+  int numberNonZero;
   double tolerance = zeroTolerance_;
   int base;
   int first = -1;
   
-  if (sparseThreshold_) {
-    // use row copy of L
-    double * element = elementByRowL_;
-    CoinBigIndex * startRow = startRowL_;
-    int * column = indexColumnL_;
+  numberNonZero=0;
+  //scan
+  for (first=numberRows_-1;first>=0;first--) {
+    if (region[first]) 
+      break;
+  }
+  if ( first >= 0 ) {
+    base = baseL_;
+    CoinBigIndex *startColumn = startColumnL_;
+    int *indexRow = indexRowL_;
+    double *element = elementL_;
+    int last = baseL_ + numberL_;
+    
+    if ( first >= last ) {
+      first = last - 1;
+    }       
     int i;
-    CoinBigIndex j;
-    if (numberNonZero<sparseThreshold_) {
-      // use sparse_ as temporary area
-      // mark known to be zero
-      int * stack = sparse_;  /* pivot */
-      int * list = stack + maximumRowsExtra_;  /* final list */
-      int * next = list + maximumRowsExtra_;  /* jnext */
-      char * mark = (char *) (next + maximumRowsExtra_);
-      int nList;
-      int number = numberNonZero;
-      int k, iPivot;
-#ifdef COIN_DEBUG
-      for (i=0;i<maximumRowsExtra_;i++) {
-        assert (!mark[i]);
-      }
-#endif
-      int nStack;
-      nList=0;
-      for (k=0;k<number;k++) {
-        iPivot=regionIndex[k];
-        nStack=1;
-        stack[0]=iPivot;
-        next[0]=startRow[iPivot+1]-1;
-        while (nStack) {
-          int kPivot,j;
-          /* take off stack */
-          kPivot=stack[--nStack];
-          if (mark[kPivot]!=1) {
-            j=next[nStack];
-            if (j<startRow[kPivot]) {
-              /* finished so mark */
-              list[nList++]=kPivot;
-              mark[kPivot]=1;
-            } else {
-              kPivot=column[j];
-              /* put back on stack */
-              next[nStack++] --;
-              if (!mark[kPivot]) {
-                /* and new one */
-                stack[nStack]=kPivot;
-		mark[kPivot]=2;
-                next[nStack++]=startRow[kPivot+1]-1;
-              }
-            }
-          }
-        }
-      }
-      numberNonZero=0;
-      for (i=nList-1;i>=0;i--) {
-        iPivot = list[i];
-        mark[iPivot]=0;
-        double pivotValue = region[iPivot];
-        if ( fabs ( pivotValue ) > tolerance ) {
-          regionIndex[numberNonZero++] = iPivot;
-          for ( j = startRow[iPivot]; j < startRow[iPivot+1]; j ++ ) {
-            int iRow = column[j];
-            double value = element[j];
-            region[iRow] -= value * pivotValue;
-          }
-        } else {
-          region[iPivot]=0.0;
-        }
-      }
-    } else {
-      for (first=numberRows_-1;first>=0;first--) {
-        if (region[first]) 
-          break;
-      }
-      numberNonZero=0;
-      for (i=first;i>=0;i--) {
-        double pivotValue = region[i];
-        if ( fabs ( pivotValue ) > tolerance ) {
-          regionIndex[numberNonZero++] = i;
-          for (j = startRow[i + 1]-1;j >= startRow[i]; j--) {
-            int iRow = column[j];
-            double value = element[j];
-            region[iRow] -= pivotValue*value;
-          }
-        } else {
-          region[i] = 0.0;
-        }     
-      }
-    }
-  } else {
-    numberNonZero=0;
-    //scan
-    for (first=numberRows_-1;first>=0;first--) {
-      if (region[first]) 
-        break;
-    }
-    if ( first >= 0 ) {
-      base = baseL_;
-      CoinBigIndex *startColumn = startColumnL_;
-      int *indexRow = indexRowL_;
-      double *element = elementL_;
-      int last = baseL_ + numberL_;
-      
-      if ( first >= last ) {
-        first = last - 1;
+    double pivotValue;
+    for (i = first ; i >= base; i-- ) {
+      CoinBigIndex j;
+      pivotValue = region[i];
+      for ( j= startColumn[i] ; j < startColumn[i+1]; j++ ) {
+	int iRow = indexRow[j];
+	double value = element[j];
+	pivotValue -= value * region[iRow];
       }       
-      int i;
-      double pivotValue;
-      for (i = first ; i >= base; i-- ) {
-        CoinBigIndex j;
-        pivotValue = region[i];
-        for ( j= startColumn[i] ; j < startColumn[i+1]; j++ ) {
-          int iRow = indexRow[j];
-          double value = element[j];
-          
-          pivotValue -= value * region[iRow];
-        }       
-        if ( fabs ( pivotValue ) > tolerance ) {
-          region[i] = pivotValue;
-          regionIndex[numberNonZero++] = i;
-        } else {
-          region[i] = 0.0;
-        }       
+      if ( fabs ( pivotValue ) > tolerance ) {
+	region[i] = pivotValue;
+	regionIndex[numberNonZero++] = i;
+      } else {
+	region[i] = 0.0;
       }       
-      //may have stopped early
-      if ( first < base ) {
-        base = first + 1;
-      }       
-      for (i = base -1 ; i >= 0; i-- ) {
-        pivotValue = region[i];
-        if ( fabs ( pivotValue ) > tolerance ) {
-          region[i] = pivotValue;
-          regionIndex[numberNonZero++] = i;
-        } else {
-          region[i] = 0.0;
-        }       
+    }       
+    //may have stopped early
+    if ( first < base ) {
+      base = first + 1;
+    }       
+    for (i = base -1 ; i >= 0; i-- ) {
+      pivotValue = region[i];
+      if ( fabs ( pivotValue ) > tolerance ) {
+	region[i] = pivotValue;
+	regionIndex[numberNonZero++] = i;
+      } else {
+	region[i] = 0.0;
       }       
     }     
   } 
   //set counts
   regionSparse->setNumElements ( numberNonZero );
+}
+/*  updateColumnTransposeLByRow. 
+    Updates part of column transpose (BTRANL) densish but by row */
+void
+CoinFactorization::updateColumnTransposeLByRow 
+    ( CoinIndexedVector * regionSparse ) const
+{
+  double *region = regionSparse->denseVector (  );
+  int *regionIndex = regionSparse->getIndices (  );
+  int numberNonZero;
+  double tolerance = zeroTolerance_;
+  int first = -1;
+  
+  // use row copy of L
+  double * element = elementByRowL_;
+  CoinBigIndex * startRow = startRowL_;
+  int * column = indexColumnL_;
+  int i;
+  CoinBigIndex j;
+  for (first=numberRows_-1;first>=0;first--) {
+    if (region[first]) 
+      break;
+  }
+  numberNonZero=0;
+  for (i=first;i>=0;i--) {
+    double pivotValue = region[i];
+    if ( fabs ( pivotValue ) > tolerance ) {
+      regionIndex[numberNonZero++] = i;
+      for (j = startRow[i + 1]-1;j >= startRow[i]; j--) {
+	int iRow = column[j];
+	double value = element[j];
+	region[iRow] -= pivotValue*value;
+      }
+    } else {
+      region[i] = 0.0;
+    }     
+  }
+  //set counts
+  regionSparse->setNumElements ( numberNonZero );
+}
+// Updates part of column transpose (BTRANL) when sparsish by row
+void
+CoinFactorization::updateColumnTransposeLSparsish 
+    ( CoinIndexedVector * regionSparse ) const
+{
+  double *region = regionSparse->denseVector (  );
+  int *regionIndex = regionSparse->getIndices (  );
+  int numberNonZero = regionSparse->getNumElements();
+  double tolerance = zeroTolerance_;
+  
+  // use row copy of L
+  double * element = elementByRowL_;
+  CoinBigIndex * startRow = startRowL_;
+  int * column = indexColumnL_;
+  int i;
+  CoinBigIndex j;
+  // use sparse_ as temporary area
+  // mark known to be zero
+  int * stack = sparse_;  /* pivot */
+  int * list = stack + maximumRowsExtra_;  /* final list */
+  int * next = list + maximumRowsExtra_;  /* jnext */
+  CoinCheckZero * mark = (CoinCheckZero *) (next + maximumRowsExtra_);
+  int nMarked=0;
+#if 1
+  for (i=0;i<numberNonZero;i++) {
+    int iPivot=regionIndex[i];
+    int iWord = iPivot>>CHECK_SHIFT;
+    int iBit = iPivot-(iWord<<CHECK_SHIFT);
+    if (mark[iWord]) {
+      mark[iWord] |= 1<<iBit;
+    } else {
+      mark[iWord] = 1<<iBit;
+      stack[nMarked++]=iWord;
+    }
+  }
+  numberNonZero = 0;
+  // First do down to convenient power of 2
+  int jLast = (numberRows_-1)>>CHECK_SHIFT;
+  jLast = (jLast<<CHECK_SHIFT);
+  for (i=numberRows_-1;i>=jLast;i--) {
+    double pivotValue = region[i];
+    if ( fabs ( pivotValue ) > tolerance ) {
+      regionIndex[numberNonZero++] = i;
+      for (j = startRow[i + 1]-1;j >= startRow[i]; j--) {
+	int iRow = column[j];
+	double value = element[j];
+	int iWord = iRow>>CHECK_SHIFT;
+	int iBit = iRow-(iWord<<CHECK_SHIFT);
+	if (mark[iWord]) {
+	  mark[iWord] |= 1<<iBit;
+	} else {
+	  mark[iWord] = 1<<iBit;
+	  stack[nMarked++]=iWord;
+	}
+	region[iRow] -= pivotValue*value;
+      }
+    } else {
+      region[i] = 0.0;
+    }     
+  }
+  // and in chunks
+  jLast = jLast>>CHECK_SHIFT;
+  int k ;
+  for (k=jLast-1;k>=0;k--) {
+    unsigned int iMark = mark[k];
+    if (iMark) {
+      // something in chunk - do all (as imark may change)
+      int iLast = k<<CHECK_SHIFT;
+      i = iLast+BITS_PER_CHECK-1;
+      for ( ; i >= iLast; i-- ) {
+	double pivotValue = region[i];
+	if ( fabs ( pivotValue ) > tolerance ) {
+	  regionIndex[numberNonZero++] = i;
+	  for (j = startRow[i + 1]-1;j >= startRow[i]; j--) {
+	    int iRow = column[j];
+	    double value = element[j];
+	    int iWord = iRow>>CHECK_SHIFT;
+	    int iBit = iRow-(iWord<<CHECK_SHIFT);
+	    if (mark[iWord]) {
+	      mark[iWord] |= 1<<iBit;
+	    } else {
+	      mark[iWord] = 1<<iBit;
+	      stack[nMarked++]=iWord;
+	    }
+	    region[iRow] -= pivotValue*value;
+	  }
+	} else {
+	  region[i] = 0.0;
+	}     
+      }
+      mark[k]=0;
+    }
+  }
+  mark[jLast]=0;
+#ifdef COIN_DEBUG
+  for (i=0;i<maximumRowsExtra_;i++) {
+    assert (!mark[i]);
+  }
+#endif
+#else
+  for (first=numberRows_-1;first>=0;first--) {
+    if (region[first]) 
+      break;
+  }
+  numberNonZero=0;
+  for (i=first;i>=0;i--) {
+    double pivotValue = region[i];
+    if ( fabs ( pivotValue ) > tolerance ) {
+      regionIndex[numberNonZero++] = i;
+      for (j = startRow[i + 1]-1;j >= startRow[i]; j--) {
+	int iRow = column[j];
+	double value = element[j];
+	region[iRow] -= pivotValue*value;
+      }
+    } else {
+      region[i] = 0.0;
+    }     
+  }
+#endif
+  //set counts
+  regionSparse->setNumElements ( numberNonZero );
+}
+/*  updateColumnTransposeLSparse. 
+    Updates part of column transpose (BTRANL) sparse */
+void
+CoinFactorization::updateColumnTransposeLSparse 
+    ( CoinIndexedVector * regionSparse ) const
+{
+  double *region = regionSparse->denseVector (  );
+  int *regionIndex = regionSparse->getIndices (  );
+  int numberNonZero = regionSparse->getNumElements (  );
+  double tolerance = zeroTolerance_;
+  
+  // use row copy of L
+  double * element = elementByRowL_;
+  CoinBigIndex * startRow = startRowL_;
+  int * column = indexColumnL_;
+  int i;
+  CoinBigIndex j;
+  // use sparse_ as temporary area
+  // mark known to be zero
+  int * stack = sparse_;  /* pivot */
+  int * list = stack + maximumRowsExtra_;  /* final list */
+  int * next = list + maximumRowsExtra_;  /* jnext */
+  char * mark = (char *) (next + maximumRowsExtra_);
+  int nList;
+  int number = numberNonZero;
+  int k, iPivot;
+#ifdef COIN_DEBUG
+  for (i=0;i<maximumRowsExtra_;i++) {
+    assert (!mark[i]);
+  }
+#endif
+  int nStack;
+  nList=0;
+  for (k=0;k<number;k++) {
+    iPivot=regionIndex[k];
+    if(!mark[iPivot]) {
+      stack[0]=iPivot;
+      int j=startRow[iPivot+1]-1;
+      if (j>=startRow[iPivot]) {
+	int kPivot=column[j];
+	/* put back on stack */
+	next[0] =j-1;
+	/* and new one */
+	if (!mark[kPivot]) {
+	  stack[1]=kPivot;
+	  mark[kPivot]=2;
+	  next[1]=startRow[kPivot+1]-1;
+	  nStack=2;
+	} else {
+	  nStack=1;
+	}
+	while (nStack) {
+	  int kPivot,j;
+	  /* take off stack */
+	  kPivot=stack[--nStack];
+	  j=next[nStack];
+	  if (j<startRow[kPivot]) {
+	    /* finished so mark */
+	    list[nList++]=kPivot;
+	    mark[kPivot]=1;
+	  } else {
+	    kPivot=column[j];
+	    /* put back on stack */
+	    next[nStack++] --;
+	    if (!mark[kPivot]) {
+	      /* and new one */
+	      stack[nStack]=kPivot;
+	      mark[kPivot]=2;
+	      next[nStack++]=startRow[kPivot+1]-1;
+	    }
+	  }
+	}
+      } else {
+	// nothing there - just put on list
+	list[nList++]=iPivot;
+	mark[iPivot]=1;
+      }
+    }
+  }
+  numberNonZero=0;
+  for (i=nList-1;i>=0;i--) {
+    iPivot = list[i];
+    mark[iPivot]=0;
+    double pivotValue = region[iPivot];
+    if ( fabs ( pivotValue ) > tolerance ) {
+      regionIndex[numberNonZero++] = iPivot;
+      for ( j = startRow[iPivot]; j < startRow[iPivot+1]; j ++ ) {
+	int iRow = column[j];
+	double value = element[j];
+	region[iRow] -= value * pivotValue;
+      }
+    } else {
+      region[iPivot]=0.0;
+    }
+  }
+  //set counts
+  regionSparse->setNumElements ( numberNonZero );
+}
+//  updateColumnTransposeL.  Updates part of column transpose (BTRANL)
+void
+CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) const
+{
+  
+  int goSparse;
+  // Guess at number at end
+  if (sparseThreshold_>0) {
+    int number = regionSparse->getNumElements (  );
+    if (btranAverageAfterL_) {
+      int newNumber = (int) (number*btranAverageAfterL_);
+      if (newNumber< (sparseThreshold_>>1)&&(numberL_<<2)>sparseThreshold_)
+	goSparse = 2;
+      else if (newNumber< (sparseThreshold_<<1)&&(numberL_<<1)>sparseThreshold_)
+	goSparse = 1;
+      else
+	goSparse = 0;
+    } else {
+      if (number<sparseThreshold_&&(numberL_<<2)>sparseThreshold_) 
+	goSparse = 2;
+      else
+	goSparse = 0;
+    }
+  } else {
+    goSparse=-1;
+  }
+  switch (goSparse) {
+  case -1: // No row copy
+    updateColumnTransposeLDensish(regionSparse);
+    break;
+  case 0: // densish but by row
+    updateColumnTransposeLByRow(regionSparse);
+    break;
+  case 1: // middling(and by row)
+    updateColumnTransposeLSparsish(regionSparse);
+    break;
+  case 2: // sparse
+    updateColumnTransposeLSparse(regionSparse);
+    break;
+  }
 }
 
 //  getRowSpaceIterate.  Gets space for one Row with given length

@@ -1121,18 +1121,25 @@ int CoinMpsIO::getDefaultBound() const
 //------------------------------------------------------------------
 int CoinMpsIO::readMps(const char * filename,  const char * extension)
 {
-  // clean up later as pointless using strings
-  std::string f(filename);
-  std::string fullname;
   free(fileName_);
   if (strcmp(filename,"stdin")&&strcmp(filename,"-")) {
-    std::string e(extension);
-    const size_t dotpos = f.find('.');
-    if (!(0 <= dotpos && dotpos < f.length()) && strlen(extension)) 
-      fullname = f + "." + e;
-    else
-      fullname = f;
-    fileName_=strdup(fullname.c_str());    
+    int i = strlen(filename)-1;
+    fileName_ = (char *) malloc(i+strlen(extension)+3);
+    strcpy(fileName_,filename);
+    bool foundDot=false; 
+    for (;i>=0;i--) {
+      char character = filename[i];
+      if (character=='/'||character=='\\') {
+	break;
+      } else if (character=='.') {
+	foundDot=true;
+	break;
+      }
+    }
+    if (strlen(extension)&&!foundDot) {
+      strcat(fileName_,".");
+      strcat(fileName_,extension);
+    }
   } else {
     fileName_=strdup("stdin");    
   }

@@ -218,6 +218,29 @@ void CoinFactorization::gutsOfInitialize(int type)
     pivotColumn_ = new int [ 1 ];
     nextColumn_ = new int [ 1 ];
     lastColumn_ = new int [ 1 ];
+    collectStatistics_=false;
+    
+    // Below are all to collect
+    ftranCountInput_=0.0;
+    ftranCountAfterL_=0.0;
+    ftranCountAfterR_=0.0;
+    ftranCountAfterU_=0.0;
+    btranCountInput_=0.0;
+    btranCountAfterU_=0.0;
+    btranCountAfterR_=0.0;
+    btranCountAfterL_=0.0;
+    
+    // We can roll over factorizations
+    numberFtranCounts_=0;
+    numberBtranCounts_=0;
+    
+    // While these are averages collected over last 
+    ftranAverageAfterL_=0;
+    ftranAverageAfterR_=0;
+    ftranAverageAfterU_=0;
+    btranAverageAfterU_=0;
+    btranAverageAfterR_=0;
+    btranAverageAfterL_=0; 
 #ifdef ZEROFAULT
     startColumnL_[0] = 0;
     startColumnR_[0] = 0;

@@ -474,6 +474,12 @@ protected:
 
   /// Updates part of column (FTRANL)
   void updateColumnL ( CoinIndexedVector * region ) const;
+  /// Updates part of column (FTRANL) when densish
+  void updateColumnLDensish ( CoinIndexedVector * region ) const;
+  /// Updates part of column (FTRANL) when sparse
+  void updateColumnLSparse ( CoinIndexedVector * region ) const;
+  /// Updates part of column (FTRANL) when sparsish
+  void updateColumnLSparsish ( CoinIndexedVector * region ) const;
 
   /// Updates part of column (FTRANR)
   void updateColumnR ( CoinIndexedVector * region ) const;
@@ -486,18 +492,43 @@ protected:
   void updateColumnUSparse ( CoinIndexedVector * regionSparse,
 			     int * indices,
 			     int numberIn ) const;
+  /// Updates part of column (FTRANU) when sparsish
+  void updateColumnUSparsish ( CoinIndexedVector * regionSparse,
+			     int * indices,
+			     int numberIn ) const;
   /// Updates part of column (FTRANU)
   void updateColumnUDensish ( CoinIndexedVector * regionSparse) const;
 
   /** Updates part of column transpose (BTRANU),
       assumes index is sorted i.e. region is correct */
   void updateColumnTransposeU ( CoinIndexedVector * region) const;
+  /** Updates part of column transpose (BTRANU) when sparsish,
+      assumes index is sorted i.e. region is correct */
+  void updateColumnTransposeUSparsish ( CoinIndexedVector * region) const;
+  /** Updates part of column transpose (BTRANU) when densish,
+      assumes index is sorted i.e. region is correct */
+  void updateColumnTransposeUDensish ( CoinIndexedVector * region) const;
+  /** Updates part of column transpose (BTRANU) when sparse,
+      assumes index is sorted i.e. region is correct */
+  void updateColumnTransposeUSparse ( CoinIndexedVector * region) const;
 
   /// Updates part of column transpose (BTRANR)
   void updateColumnTransposeR ( CoinIndexedVector * region ) const;
+  /// Updates part of column transpose (BTRANR) when dense
+  void updateColumnTransposeRDensish ( CoinIndexedVector * region ) const;
+  /// Updates part of column transpose (BTRANR) when sparse
+  void updateColumnTransposeRSparse ( CoinIndexedVector * region ) const;
 
   /// Updates part of column transpose (BTRANL)
   void updateColumnTransposeL ( CoinIndexedVector * region ) const;
+  /// Updates part of column transpose (BTRANL) when densish by column
+  void updateColumnTransposeLDensish ( CoinIndexedVector * region ) const;
+  /// Updates part of column transpose (BTRANL) when densish by row
+  void updateColumnTransposeLByRow ( CoinIndexedVector * region ) const;
+  /// Updates part of column transpose (BTRANL) when sparsish by row
+  void updateColumnTransposeLSparsish ( CoinIndexedVector * region ) const;
+  /// Updates part of column transpose (BTRANL) when sparse (by Row)
+  void updateColumnTransposeLSparse ( CoinIndexedVector * region ) const;
 
   /** Returns accuracy status of replaceColumn
       returns 0=OK, 1=Probably OK, 2=singular */
@@ -507,6 +538,9 @@ protected:
   /// 1 bit - tolerances etc, 2 more, 4 dummy arrays
   void gutsOfInitialize(int type);
   void gutsOfCopy(const CoinFactorization &other);
+
+  /// Reset all sparsity etc statistics
+  void resetStatistics();
 
 
   /********************************* START LARGE TEMPLATE ********/
@@ -1177,6 +1211,31 @@ protected:
 
   /// true if Forrest Tomlin update, false if PFI (dummy)
   bool doForrestTomlin_;
+
+  /// For statistics 
+  mutable bool collectStatistics_;
+
+  /// Below are all to collect
+  mutable double ftranCountInput_;
+  mutable double ftranCountAfterL_;
+  mutable double ftranCountAfterR_;
+  mutable double ftranCountAfterU_;
+  mutable double btranCountInput_;
+  mutable double btranCountAfterU_;
+  mutable double btranCountAfterR_;
+  mutable double btranCountAfterL_;
+
+  /// We can roll over factorizations
+  mutable int numberFtranCounts_;
+  mutable int numberBtranCounts_;
+
+  /// While these are average ratios collected over last period
+  double ftranAverageAfterL_;
+  double ftranAverageAfterR_;
+  double ftranAverageAfterU_;
+  double btranAverageAfterU_;
+  double btranAverageAfterR_;
+  double btranAverageAfterL_;
 
   /// Below this use sparse technology - if 0 then no L row copy
   int sparseThreshold_;

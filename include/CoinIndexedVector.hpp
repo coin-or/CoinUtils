@@ -343,6 +343,8 @@ private:
    int nElements_;
    /// Amount of memory allocated for indices_, and elements_.
    int capacity_;
+   ///  Offset to get where new allocated array
+   int offset_;
    //@}
 };
 
