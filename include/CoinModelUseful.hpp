@@ -318,6 +318,19 @@ public:
   */
   void addHard(int first, const CoinModelTriple * triples,
                int firstFree, int lastFree,const int * nextOther);
+  /** Deletes from list - same case i.e. delete row from row list
+  */
+  void deleteSame(int which, CoinModelTriple * triples,
+                 CoinModelHash2 & hash);
+  /** Deletes from list - hard case i.e. delete row from column list
+  */
+  void deleteOther(int which, CoinModelTriple * triples,
+                   CoinModelHash2 & hash);
+  /** Deletes from list - hard case i.e. delete row from column list
+      This is when elements have been deleted from other copy
+  */
+  void updateDeleted(int which, const CoinModelTriple * triples,
+                  int firstFree, int lastFree,const int * nextOther);
   //@}
 private:
   /**@name Data members */

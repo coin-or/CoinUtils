@@ -180,9 +180,11 @@ CoinModelHash::resize(int maxItems)
    * collide with it are not entered.
    */
   for ( i = 0; i < numberItems_; ++i ) {
-    ipos = hashValue ( names_[i]);
-    if ( hash_[ipos].index == -1 ) {
-      hash_[ipos].index = i;
+    if (names_[i]) {
+      ipos = hashValue ( names_[i]);
+      if ( hash_[ipos].index == -1 ) {
+        hash_[ipos].index = i;
+      }
     }
   }
 
@@ -194,6 +196,8 @@ CoinModelHash::resize(int maxItems)
    */
   lastSlot_ = -1;
   for ( i = 0; i < numberItems_; ++i ) {
+    if (!names_[i]) 
+      continue;
     char *thisName = names[i];
     ipos = hashValue ( thisName);
 
@@ -838,7 +842,9 @@ CoinModelLinkedList::create(int maxMajor,int maxElements,
                             int numberElements, const CoinModelTriple * triples)
 {
   maxMajor=CoinMax(maxMajor,maximumMajor_);
+  maxMajor=CoinMax(maxMajor,numberMajor);
   maxElements=CoinMax(maxElements,maximumElements_);
+  maxElements=CoinMax(maxElements,numberElements);
   type_=type;
   assert (!previous_);
   previous_ = new int [maxElements];
@@ -931,11 +937,24 @@ CoinModelLinkedList::addEasy(int majorIndex, int numberOfElements, const int * i
                              const double * elements, CoinModelTriple * triples,
                              CoinModelHash2 & hash)
 {
+#if 0
+  if (majorIndex>maximumMajor_||numberOfElements+numberElements_>maximumElements_) {
+    int newMajor =  (majorIndex>maximumMajor_) ? (3*majorIndex/2+100) : maximumMajor_;
+    int newElements = (numberOfElements+numberElements_>=maximumElements_) ? (3*numberElements_/2)+1000
+      : maximumElements_;
+    resize(newMajor,newElements);
+  }
+#endif
   assert (majorIndex<maximumMajor_);
+  if (numberOfElements+numberElements_>maximumElements_) {
+    resize(maximumMajor_,(3*(numberElements_+numberOfElements))/2+1000);
+  }
   int first=-1;
-  if (majorIndex==numberMajor_) {
-    first_[majorIndex]=-1;
-    last_[majorIndex]=-1;
+  if (majorIndex>=numberMajor_) {
+    for (int i=numberMajor_;i<=majorIndex;i++) {
+      first_[i]=-1;
+      last_[i]=-1;
+    }
   }
   if (numberOfElements) {
     bool doHash = hash.maximumItems()!=0;
@@ -993,7 +1012,6 @@ CoinModelLinkedList::addEasy(int majorIndex, int numberOfElements, const int * i
   return first;
 }
 /* Adds to list - hard case i.e. add row to column list
-   Returns where first was put
  */
 void 
 CoinModelLinkedList::addHard(int minorIndex, int numberOfElements, const int * indices,
@@ -1027,6 +1045,13 @@ CoinModelLinkedList::addHard(int minorIndex, int numberOfElements, const int * i
     triples[put].value=elements[i];
     if (doHash)
       hash.addHash(put,(int) triples[put].row,triples[put].column,triples);
+    if (other>=numberMajor_) {
+      // Need to fill in null values
+      for (int j=numberMajor_;j<=other;j++) {
+        last_[j]=-1;
+        first_[j]=-1;
+      }
+    }
     int last=last_[other];
     if (last>=0) {
       next_[last]=put;
@@ -1086,4 +1111,33 @@ CoinModelLinkedList::addHard(int first, const CoinModelTriple * triples,
     last_[other]=put;
     put = next[put];
   }
+}
+/* Deletes from list - same case i.e. delete row from row list
+   Returns where chain starts
+*/
+void 
+CoinModelLinkedList::deleteSame(int which, CoinModelTriple * triples,
+                                CoinModelHash2 & hash)
+{
+  printf("not written yet\n");
+  abort();
+}
+/* Deletes from list - hard case i.e. delete row from column list
+ */
+void 
+CoinModelLinkedList::deleteOther(int which, CoinModelTriple * triples,
+                                 CoinModelHash2 & hash)
+{
+  printf("not written yet\n");
+  abort();
+}
+/* Deletes from list - hard case i.e. delete row from column list
+   This is when elements have been deleted from other copy
+*/
+void 
+CoinModelLinkedList::updateDeleted(int which, const CoinModelTriple * triples,
+                                 int firstFree, int lastFree,const int * nextOther)
+{
+  printf("not written yet\n");
+  abort();
 }

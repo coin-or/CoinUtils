@@ -145,16 +145,16 @@ public:
   */
   inline void setColIsInteger(int whichColumn,bool columnIsInteger) 
   { setColumnIsInteger( whichColumn, columnIsInteger);}; 
-  /** Deletes all entries in row and bounds.  If last row the number of rows
-      will be decremented and true returned.  */
-  bool deleteRow(int whichRow);
+  /** Deletes all entries in row and bounds.  Will be ignored by
+      writeMps etc and will be packed down if asked for. */
+  void deleteRow(int whichRow);
+  /** Deletes all entries in column and bounds and objective.  Will be ignored by
+      writeMps etc and will be packed down if asked for. */
+  void deleteColumn(int whichColumn);
   /** Deletes all entries in column and bounds.  If last column the number of columns
       will be decremented and true returned.  */
-  bool deleteColumn(int whichColumn);
-  /** Deletes all entries in column and bounds.  If last column the number of columns
-      will be decremented and true returned.  */
-  inline bool deleteCol(int whichColumn)
-  { return deleteColumn(whichColumn);};
+  inline void deleteCol(int whichColumn)
+  { deleteColumn(whichColumn);};
   /** Packs down all rows i.e. removes empty rows permanently.  Empty rows
       have no elements and feasible bounds. returns number of rows deleted. */
   int packRows();
@@ -218,6 +218,9 @@ public:
    /// Return number of elements
   inline CoinBigIndex numberElements() const
   { return numberElements_;};
+   /// Return  elements as triples
+  inline const CoinModelTriple * elements() const
+  { return elements_;};
   /// Returns value for row i and column j
   inline double operator() (int i,int j) const
   { return getElement(i,j);};
@@ -276,6 +279,16 @@ public:
   /** Gets name (if row does not exist then "")
   */
   const char * getRowName(int whichRow) const ; 
+  inline double  rowLower(int whichRow) const
+  { return getRowLower(whichRow);};
+  /** Gets rowUpper (if row does not exist then COIN_DBL_MAX)
+  */
+  inline double  rowUpper(int whichRow) const
+  { return getRowUpper(whichRow) ;};
+  /** Gets name (if row does not exist then "")
+  */
+  inline const char * rowName(int whichRow) const
+  { return getRowName(whichRow);};
   /** Gets columnLower (if column does not exist then 0.0)
   */
   double  getColumnLower(int whichColumn) const ; 
@@ -291,6 +304,34 @@ public:
   /** Gets if integer (if column does not exist then false)
   */
   bool getColumnIsInteger(int whichColumn) const ; 
+  /** Gets columnLower (if column does not exist then 0.0)
+  */
+  inline double  columnLower(int whichColumn) const
+  { return getColumnLower(whichColumn);};
+  /** Gets columnUpper (if column does not exist then COIN_DBL_MAX)
+  */
+  inline double  columnUpper(int whichColumn) const
+  { return getColumnUpper(whichColumn) ;};
+  /** Gets columnObjective (if column does not exist then 0.0)
+  */
+  inline double  columnObjective(int whichColumn) const
+  { return getColumnObjective(whichColumn);};
+  /** Gets columnObjective (if column does not exist then 0.0)
+  */
+  inline double  objective(int whichColumn) const
+  { return getColumnObjective(whichColumn);};
+  /** Gets name (if column does not exist then "")
+  */
+  inline const char * columnName(int whichColumn) const
+  { return getColumnName(whichColumn);};
+  /** Gets if integer (if column does not exist then false)
+  */
+  inline bool columnIsInteger(int whichColumn) const
+  { return getColumnIsInteger(whichColumn);};
+  /** Gets if integer (if column does not exist then false)
+  */
+  inline bool isInteger(int whichColumn) const
+  { return getColumnIsInteger(whichColumn);};
   /** Gets columnLower (if column does not exist then 0.0)
   */
   inline double  getColLower(int whichColumn) const
@@ -341,9 +382,9 @@ private:
   /// Resize
   void resize(int maximumRows, int maximumColumns, int maximumElements);
   /// Fill in default row information
-  void fillRows(int which,bool forceCreation);
+  void fillRows(int which,bool forceCreation,bool fromAddRow=false);
   /// Fill in default column information
-  void fillColumns(int which,bool forceCreation);
+  void fillColumns(int which,bool forceCreation,bool fromAddColumn=false);
 private:
   /**@name Data members */
    //@{

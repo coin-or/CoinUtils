@@ -241,10 +241,10 @@ CoinModel::addRow(int numberInRow, const int * columns,
   if (numberElements_+numberInRow>maximumElements_) {
     newElement = (3*(numberElements_+numberInRow)/2) + 1000;
     if (numberRows_*10>maximumRows_*9)
-      newRow = (maximumRows_*3)/2+1000;
+      newRow = (maximumRows_*3)/2+100;
   }
   if (numberRows_==maximumRows_)
-    newRow = (maximumRows_*3)/2+1000;
+    newRow = (maximumRows_*3)/2+100;
   if (newRow||newColumn>=maximumColumns_||newElement) {
     if (newColumn<maximumColumns_) {
       // columns okay
@@ -254,6 +254,8 @@ CoinModel::addRow(int numberInRow, const int * columns,
       resize(newRow,(3*newColumn)/2+100,newElement);
     }
   }
+  // If rows extended - take care of that
+  fillRows(numberRows_,false,true);
   // Do name
   if (name)
     rowName_.addHash(numberRows_,name);
@@ -364,10 +366,10 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
   if (numberElements_+numberInColumn>maximumElements_) {
     newElement = (3*(numberElements_+numberInColumn)/2) + 1000;
     if (numberColumns_*10>maximumColumns_*9)
-      newColumn = (maximumColumns_*3)/2+1000;
+      newColumn = (maximumColumns_*3)/2+100;
   }
   if (numberColumns_==maximumColumns_)
-    newColumn = (maximumColumns_*3)/2+1000;
+    newColumn = (maximumColumns_*3)/2+100;
   if (newColumn||newRow>=maximumRows_||newElement) {
     if (newRow<maximumRows_) {
       // rows okay
@@ -377,6 +379,8 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
       resize((3*newRow)/2+100,newColumn,newElement);
     }
   }
+  // If columns extended - take care of that
+  fillColumns(numberColumns_,false,true);
   // Do name
   if (name)
     columnName_.addHash(numberColumns_,name);
@@ -408,13 +412,13 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
     if (numberInColumn) {
       // must update at least one link
       assert (links_);
-      if (links_==1||links_==3) {
+      if (links_==2||links_==3) {
         int first = columnList_.addEasy(numberColumns_,numberInColumn,sortIndices_,sortElements_,elements_,
                                         hashElements_);
         if (links_==3)
           rowList_.addHard(first,elements_,columnList_.firstFree(),columnList_.lastFree(),
                               columnList_.next());
-      } else if (links_==2) {
+      } else if (links_==1) {
         rowList_.addHard(numberColumns_,numberInColumn,sortIndices_,sortElements_,elements_,
                          hashElements_);
       }
@@ -488,7 +492,7 @@ CoinModel::setElement(int i,int j,double value)
       columnList_.addHard(i,1,&j,&value,elements_,hashElements_);
     }
     numberRows_=CoinMax(numberRows_,i+1);;
-    numberColumns_=CoinMax(numberColumns_,i+1);;
+    numberColumns_=CoinMax(numberColumns_,j+1);;
     numberElements_++;
   }
 }
@@ -557,14 +561,13 @@ void
 CoinModel::setRowName(int whichRow,const char * rowName)
 {
   assert (whichRow>=0);
-  if (!rowName)
-    return;
   // make sure enough room and fill
   fillRows(whichRow,true);
   const char * oldName = rowName_.name(whichRow);
   if (oldName)
     rowName_.deleteHash(whichRow);
-  rowName_.addHash(whichRow,rowName);
+  if (rowName)
+    rowName_.addHash(whichRow,rowName);
 }
 /* Sets columnLower (if column does not exist then
    all columns up to this are defined with default values and no elements)
@@ -618,14 +621,13 @@ void
 CoinModel::setColumnName(int whichColumn,const char * columnName)
 {
   assert (whichColumn>=0);
-  if (!columnName)
-    return;
   // make sure enough room and fill
   fillColumns(whichColumn,true);
   const char * oldName = columnName_.name(whichColumn);
   if (oldName)
     columnName_.deleteHash(whichColumn);
-  columnName_.addHash(whichColumn,columnName);
+  if (columnName)
+    columnName_.addHash(whichColumn,columnName);
 }
 /* Sets integer (if column does not exist then
    all columns up to this are defined with default values and no elements)
@@ -638,23 +640,48 @@ CoinModel::setColumnIsInteger(int whichColumn,bool columnIsInteger)
   fillColumns(whichColumn,true);
   integerType_[whichColumn]=(columnIsInteger) ? 1 : 0;
 }
-/* Deletes all entries in row and bounds.  If last row the number of rows
-   will be decremented and true returned.  */
-bool 
+/* Deletes all entries in row and bounds.*/
+void
 CoinModel::deleteRow(int whichRow)
 {
-  printf("not written yet\n");
-  abort();
-  return false;
+  assert (whichRow>=0);
+  if (whichRow<numberRows_) {
+    if (rowLower_) {
+      rowLower_[whichRow]=-COIN_DBL_MAX;
+      rowUpper_[whichRow]=COIN_DBL_MAX;
+      rowType_[whichRow]=0;
+      rowName_.deleteHash(whichRow);
+    }
+    // need lists
+    if (type_==0) {
+      assert (start_);
+      assert (!hashElements_.numberItems());
+      delete [] start_;
+      start_=NULL;
+      rowList_.create(maximumRows_,maximumElements_,
+                      numberRows_,numberColumns_,0,
+                    numberElements_,elements_);
+      type_=2;
+      links_ |= 1;
+    } 
+    assert (links_);
+    if (links_==1||links_==3) {
+      rowList_.deleteSame(whichRow,elements_,hashElements_);
+      // Just need to set first and last and take out
+      if (links_==3)
+        columnList_.updateDeleted(whichRow,elements_,rowList_.firstFree(),rowList_.lastFree(),
+                                  rowList_.next());
+    } else if (links_==2) {
+      columnList_.deleteOther(whichRow,elements_,hashElements_);
+    }
+  }
 }
-/* Deletes all entries in column and bounds.  If last column the number of columns
-   will be decremented and true returned.  */
-bool 
+/* Deletes all entries in column and bounds.*/
+void
 CoinModel::deleteColumn(int whichColumn)
 {
   printf("not written yet\n");
   abort();
-  return false;
 }
 /* Packs down all rows i.e. removes empty rows permanently.  Empty rows
    have no elements and feasible bounds. returns number of rows deleted. */
@@ -1138,6 +1165,7 @@ CoinModel::next(CoinModelLink & current) const
           // signal end
           link.setPosition(-1);
           link.setColumn(-1);
+          link.setRow(-1);
           link.setValue(0.0);
         }
       } else {
@@ -1152,6 +1180,7 @@ CoinModel::next(CoinModelLink & current) const
           // signal end
           link.setPosition(-1);
           link.setColumn(-1);
+          link.setRow(-1);
           link.setValue(0.0);
         }
       }
@@ -1170,6 +1199,7 @@ CoinModel::next(CoinModelLink & current) const
           // signal end
           link.setPosition(-1);
           link.setColumn(-1);
+          link.setRow(-1);
           link.setValue(0.0);
         }
       } else {
@@ -1184,6 +1214,7 @@ CoinModel::next(CoinModelLink & current) const
           // signal end
           link.setPosition(-1);
           link.setColumn(-1);
+          link.setRow(-1);
           link.setValue(0.0);
         }
       }
@@ -1408,6 +1439,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
     // need to redo row stuff
     maximumRows = CoinMax(maximumRows,numberRows_);
     if (maximumRows>maximumRows_) {
+      bool needFill = rowLower_==NULL;
       double * tempArray;
       tempArray = new double[maximumRows];
       memcpy(tempArray,rowLower_,numberRows_*sizeof(double));
@@ -1422,10 +1454,8 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       memcpy(tempArray2,rowType_,numberRows_*sizeof(int));
       delete [] rowType_;
       rowType_=tempArray2;
-      if (rowName_.numberItems()) {
-        // resize hash
-        rowName_.resize(maximumRows);
-      }
+      // resize hash
+      rowName_.resize(maximumRows);
       // If we have links we need to resize
       if ((links_&1)!=0) {
         rowList_.resize(maximumRows,maximumElements);
@@ -1444,15 +1474,18 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       }
       maximumRows_=maximumRows;
       // Fill
-      int save=numberRows_-1;
-      numberRows_=0;
-      fillRows(save,true);
+      if (needFill) {
+        int save=numberRows_-1;
+        numberRows_=0;
+        fillRows(save,true);
+      }
     }
   }
   if (type_==1||type_==2) {
     // need to redo column stuff
     maximumColumns = CoinMax(maximumColumns,numberColumns_);
     if (maximumColumns>maximumColumns_) {
+      bool needFill = columnLower_==NULL;
       double * tempArray;
       tempArray = new double[maximumColumns];
       memcpy(tempArray,columnLower_,numberColumns_*sizeof(double));
@@ -1475,12 +1508,10 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       memcpy(tempArray2,integerType_,numberColumns_*sizeof(int));
       delete [] integerType_;
       integerType_=tempArray2;
-      if (columnName_.numberItems()) {
-        // resize hash
-        columnName_.resize(maximumColumns);
-      }
+      // resize hash
+      columnName_.resize(maximumColumns);
       // If we have links we need to resize
-      if ((links_&1)!=0) {
+      if ((links_&2)!=0) {
         columnList_.resize(maximumColumns,maximumElements);
       }
       // If we have start then we need to resize that
@@ -1497,9 +1528,11 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       }
       maximumColumns_=maximumColumns;
       // Fill
-      int save=numberColumns_-1;
-      numberColumns_=0;
-      fillColumns(save,true);
+      if (needFill) {
+        int save=numberColumns_-1;
+        numberColumns_=0;
+        fillColumns(save,true);
+      }
     }
   }
   if (maximumElements>maximumElements_) {
@@ -1510,12 +1543,19 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
     if (hashElements_.numberItems())
       hashElements_.resize(maximumElements,elements_);
     maximumElements_=maximumElements;
+    // If we have links we need to resize
+    if ((links_&1)!=0) {
+      rowList_.resize(maximumRows_,maximumElements_);
+    }
+    if ((links_&2)!=0) {
+      columnList_.resize(maximumColumns_,maximumElements_);
+    }
   }
 }
 void
-CoinModel::fillRows(int whichRow, bool forceCreation)
+CoinModel::fillRows(int whichRow, bool forceCreation,bool fromAddRow)
 {
-  if (forceCreation) {
+  if (forceCreation||fromAddRow) {
     if (type_==-1) {
       // initial
       type_=0;
@@ -1537,20 +1577,30 @@ CoinModel::fillRows(int whichRow, bool forceCreation)
     // Need to fill
     int i;
     for ( i=numberRows_;i<=whichRow;i++) {
-      rowLower_[i]=0.0;
+      rowLower_[i]=-COIN_DBL_MAX;
       rowUpper_[i]=COIN_DBL_MAX;
       rowType_[i]=0;
     }
-    if (rowName_.numberItems()) {
-      // Do we need to do anything?
+  }
+  if ( !fromAddRow) {
+    numberRows_=CoinMax(whichRow+1,numberRows_);
+    // If simple minded then delete start
+    if (start_) {
+      start_ = NULL;
+      assert (!links_);
+      // mixed - do linked lists for rows
+      rowList_.create(maximumRows_,maximumElements_,
+                      numberRows_,numberColumns_,0,
+                      numberElements_,elements_);
+      type_=2;
+      links_ |= 1;
     }
   }
-  numberRows_=CoinMax(whichRow+1,numberRows_);
 }
 void
-CoinModel::fillColumns(int whichColumn,bool forceCreation)
+CoinModel::fillColumns(int whichColumn,bool forceCreation,bool fromAddColumn)
 {
-  if (forceCreation) {
+  if (forceCreation||fromAddColumn) {
     if (type_==-1) {
       // initial
       type_=1;
@@ -1578,9 +1628,19 @@ CoinModel::fillColumns(int whichColumn,bool forceCreation)
       integerType_[i]=0;
       columnType_[i]=0;
     }
-    if (columnName_.numberItems()) {
-      // Do we need to do anything?
+  }
+  if ( !fromAddColumn) {
+    numberColumns_=CoinMax(whichColumn+1,numberColumns_);
+    // If simple minded then delete start
+    if (start_) {
+      start_ = NULL;
+      assert (!links_);
+      // mixed - do linked lists for columns
+      columnList_.create(maximumColumns_,maximumElements_,
+                         numberColumns_,numberRows_,1,
+                         numberElements_,elements_);
+      type_=2;
+      links_ |= 2;
     }
   }
-  numberColumns_=CoinMax(whichColumn+1,numberColumns_);
 }
