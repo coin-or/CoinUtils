@@ -367,6 +367,8 @@ CoinIndexedVector operator/(
    /** Alternate Constructors - construct full storage with indices 0 through
        size-1. */
   CoinIndexedVector(int size, const double * elements);
+   /** Alternate Constructors - just size */
+  CoinIndexedVector(int size);
    /** Copy constructor. */
    CoinIndexedVector(const CoinIndexedVector &);
    /** Copy constructor.2 */

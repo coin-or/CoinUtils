@@ -518,6 +518,19 @@ packedMode_(false)
 {
 }
 
+
+CoinIndexedVector::CoinIndexedVector (int size) :
+indices_(NULL),
+elements_(NULL),
+nElements_(0),
+capacity_(0),
+offset_(0),
+packedMode_(false)
+{
+  // Get space
+  reserve(size);
+}
+
 //-----------------------------------------------------------------------------
 
 CoinIndexedVector::CoinIndexedVector(int size,
@@ -648,12 +661,12 @@ CoinIndexedVector::operator+(
   newOne.nElements_=nElements;
   if (needClean) {
     // go through again
-    nElements_=0;
+    newOne.nElements_=0;
     for (i=0;i<nElements;i++) {
       int indexValue=newOne.indices_[i];
       double value=newOne.elements_[indexValue];
       if (fabs(value)>=COIN_INDEXED_TINY_ELEMENT) {
-	newOne.indices_[nElements_++]=indexValue;
+	newOne.indices_[newOne.nElements_++]=indexValue;
       } else {
         newOne.elements_[indexValue]=0.0;
       }
@@ -694,12 +707,12 @@ CoinIndexedVector::operator-(
   newOne.nElements_=nElements;
   if (needClean) {
     // go through again
-    nElements_=0;
+    newOne.nElements_=0;
     for (i=0;i<nElements;i++) {
       int indexValue=newOne.indices_[i];
       double value=newOne.elements_[indexValue];
       if (fabs(value)>=COIN_INDEXED_TINY_ELEMENT) {
-	newOne.indices_[nElements_++]=indexValue;
+	newOne.indices_[newOne.nElements_++]=indexValue;
       } else {
         newOne.elements_[indexValue]=0.0;
       }
@@ -739,12 +752,12 @@ CoinIndexedVector::operator*(
 
   if (needClean) {
     // go through again
-    nElements_=0;
+    newOne.nElements_=0;
     for (i=0;i<nElements;i++) {
       int indexValue=newOne.indices_[i];
       double value=newOne.elements_[indexValue];
       if (fabs(value)>=COIN_INDEXED_TINY_ELEMENT) {
-	newOne.indices_[nElements_++]=indexValue;
+	newOne.indices_[newOne.nElements_++]=indexValue;
       } else {
         newOne.elements_[indexValue]=0.0;
       }
@@ -786,12 +799,12 @@ CoinIndexedVector::operator/ (const CoinIndexedVector& op2)
 
   if (needClean) {
     // go through again
-    nElements_=0;
+    newOne.nElements_=0;
     for (i=0;i<nElements;i++) {
       int indexValue=newOne.indices_[i];
       double value=newOne.elements_[indexValue];
       if (fabs(value)>=COIN_INDEXED_TINY_ELEMENT) {
-	newOne.indices_[nElements_++]=indexValue;
+	newOne.indices_[newOne.nElements_++]=indexValue;
       } else {
         newOne.elements_[indexValue]=0.0;
       }
