@@ -6,14 +6,14 @@ export MakefileDir := $(CoinDir)/Makefiles
 ##############################################################################
 # Static or shared libraries should be built (STATIC or SHARED)?
 LibType := SHARED
-LibType := STATIC
+#LibType := STATIC
 
 # Select optimization (-O or -g). -O will be automatically bumped up to the 
 # highest level of optimization the compiler supports. If want something in
 # between then specify the exact level you want, e.g., -O1 or -O2
 OptLevel := -g
-#OptLevel := -O1
-OptLevel := -O2
+OptLevel := -O1
+#OptLevel := -O2
 
 # Look at the ${CoinDir}/Makefiles/Makefile.location file, comment in which
 # libraries are/will be available and edit the location of the various
@@ -55,6 +55,7 @@ LIBSRC += CoinPresolveIsolated.cpp
 LIBSRC += CoinPresolveSubst.cpp		    
 LIBSRC += CoinPresolveTighten.cpp		    
 LIBSRC += CoinPresolveUseless.cpp             
+LIBSRC += CoinDenseVector.cpp
 
 ##############################################################################
 include ${MakefileDir}/Makefile.coin

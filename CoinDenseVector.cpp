@@ -1,4 +1,4 @@
-// Copyright (C) 2003, International Business Machines
+// Copyright (C) 2000, International Business Machines
 // Corporation and others.  All Rights Resized.
 #if defined(_MSC_VER)
 // Turn off compiler warning about long names
@@ -12,16 +12,16 @@
 #define min(a,b)	( (a) < (b) ? (a) : (b) )
 //#############################################################################
 
-template <typename T> void
-CoinDenseVector<T>::clear()
+void
+CoinDenseVector::clear()
 {
-   memset(elements_, 0, nElements_*sizeof(T));
+   memset(elements_, 0, nElements_*sizeof(real));
 }
 
 //#############################################################################
 
-template <typename T> CoinDenseVector<T> &
-CoinDenseVector<T>::operator=(const CoinDenseVector<T> & rhs)
+CoinDenseVector &
+CoinDenseVector::operator=(const CoinDenseVector & rhs)
 {
    if (this != &rhs) {
      setVector(rhs.getNumElements(), rhs.getElements());
@@ -31,17 +31,17 @@ CoinDenseVector<T>::operator=(const CoinDenseVector<T> & rhs)
 
 //#############################################################################
 
-template <typename T> void
-CoinDenseVector<T>::setVector(int size, const T * elems)
+void
+CoinDenseVector::setVector(int size, const real * elems)
 {
    resize(size);
-   memcpy(elements_, elems, size*sizeof(T));
+   memcpy(elements_, elems, size*sizeof(real));
 }
 
 //#############################################################################
 
-template <typename T> void
-CoinDenseVector<T>::setConstant(int size, T value)
+void
+CoinDenseVector::setConstant(int size, real value)
 {
    resize(size);
    for(int i=0; i<size; i++)
@@ -50,14 +50,14 @@ CoinDenseVector<T>::setConstant(int size, T value)
 
 //#############################################################################
 
-template <typename T> void
-CoinDenseVector<T>::resize(int newsize, T value)
+void
+CoinDenseVector::resize(int newsize, real value)
 {
   if (newsize != nElements_){	
     assert(newsize > 0);
-    T *newarray = new T[newsize];
+    real *newarray = new real[newsize];
     int cpysize = min(newsize, nElements_);
-    memcpy(newarray, elements_, cpysize*sizeof(T));
+    memcpy(newarray, elements_, cpysize*sizeof(real));
     delete[] elements_;
     elements_ = newarray;
     nElements_ = newsize;
@@ -68,8 +68,8 @@ CoinDenseVector<T>::resize(int newsize, T value)
 
 //#############################################################################
 
-template <typename T> void
-CoinDenseVector<T>::setElement(int index, T element)
+void
+CoinDenseVector::setElement(int index, real element)
 {
   assert(index >= 0 && index < nElements_);
    elements_[index] = element;
@@ -77,21 +77,21 @@ CoinDenseVector<T>::setElement(int index, T element)
 
 //#############################################################################
 
-template <typename T> void
-CoinDenseVector<T>::append(const CoinDenseVector<T> & caboose)
+void
+CoinDenseVector::append(const CoinDenseVector & caboose)
 {
    const int s = nElements_;
    const int cs = caboose.getNumElements();
    int newsize = s + cs;
    resize(newsize);
-   const T * celem = caboose.getElements();
+   const real * celem = caboose.getElements();
    CoinDisjointCopyN(celem, cs, elements_ + s);
 }
 
 //#############################################################################
 
-template <typename T> void
-CoinDenseVector<T>::operator+=(T value) 
+void
+CoinDenseVector::operator+=(real value) 
 {
   for(int i=0; i<nElements_; i++)
     elements_[i] += value;
@@ -99,8 +99,8 @@ CoinDenseVector<T>::operator+=(T value)
 
 //-----------------------------------------------------------------------------
 
-template <typename T> void
-CoinDenseVector<T>::operator-=(T value) 
+void
+CoinDenseVector::operator-=(real value) 
 {
   for(int i=0; i<nElements_; i++)
     elements_[i] -= value;
@@ -108,8 +108,8 @@ CoinDenseVector<T>::operator-=(T value)
 
 //-----------------------------------------------------------------------------
 
-template <typename T> void
-CoinDenseVector<T>::operator*=(T value) 
+void
+CoinDenseVector::operator*=(real value) 
 {
   for(int i=0; i<nElements_; i++)
     elements_[i] *= value;
@@ -117,8 +117,8 @@ CoinDenseVector<T>::operator*=(T value)
 
 //-----------------------------------------------------------------------------
 
-template <typename T> void
-CoinDenseVector<T>::operator/=(T value) 
+void
+CoinDenseVector::operator/=(real value) 
 {
   for(int i=0; i<nElements_; i++)
     elements_[i] /= value;
@@ -126,15 +126,14 @@ CoinDenseVector<T>::operator/=(T value)
 
 //#############################################################################
 
-template <typename T> CoinDenseVector<T>::CoinDenseVector():
+CoinDenseVector::CoinDenseVector():
    nElements_(0),
    elements_(NULL)
 {}
   
 //#############################################################################
 
-template <typename T> 
-CoinDenseVector<T>::CoinDenseVector(int size, const T * elems):
+CoinDenseVector::CoinDenseVector(int size, const real * elems):
    nElements_(0),
    elements_(NULL)
 {
@@ -143,7 +142,7 @@ CoinDenseVector<T>::CoinDenseVector(int size, const T * elems):
 
 //-----------------------------------------------------------------------------
 
-template <typename T> CoinDenseVector<T>::CoinDenseVector(int size, T value):
+CoinDenseVector::CoinDenseVector(int size, real value):
    nElements_(0),
    elements_(NULL)
 {
@@ -152,8 +151,7 @@ template <typename T> CoinDenseVector<T>::CoinDenseVector(int size, T value):
 
 //-----------------------------------------------------------------------------
 
-template <typename T> 
-CoinDenseVector<T>::CoinDenseVector(const CoinDenseVector<T> & rhs):
+CoinDenseVector::CoinDenseVector(const CoinDenseVector & rhs):
    nElements_(0),
    elements_(NULL)
 {
@@ -162,15 +160,24 @@ CoinDenseVector<T>::CoinDenseVector(const CoinDenseVector<T> & rhs):
 
 //-----------------------------------------------------------------------------
 
-template <typename T> CoinDenseVector<T>::~CoinDenseVector ()
+CoinDenseVector::CoinDenseVector(const CoinDenseVector * &rhs):
+   nElements_(0),
+   elements_(NULL)
+{
+     setVector(rhs->getNumElements(), rhs->getElements());
+}
+
+//-----------------------------------------------------------------------------
+
+CoinDenseVector::~CoinDenseVector ()
 {
    delete [] elements_;
 }
 
 //#############################################################################
 
-template <typename T> void
-CoinDenseVector<T>::gutsOfSetVector(int size, const T * elems)
+void
+CoinDenseVector::gutsOfSetVector(int size, const real * elems)
 {
    if ( size != 0 ) {
       resize(size);
@@ -181,8 +188,8 @@ CoinDenseVector<T>::gutsOfSetVector(int size, const T * elems)
 
 //-----------------------------------------------------------------------------
 
-template <typename T> void
-CoinDenseVector<T>::gutsOfSetConstant(int size, T value)
+void
+CoinDenseVector::gutsOfSetConstant(int size, real value)
 {
    if ( size != 0 ) {
       resize(size);
@@ -193,14 +200,11 @@ CoinDenseVector<T>::gutsOfSetConstant(int size, T value)
 
 //#############################################################################
 /** Access the i'th element of the dense vector.  */
-template <typename T> T
-CoinDenseVector<T>::operator[](int index) const
+real &
+CoinDenseVector::operator[](int index) const
 {
   assert(index >= 0 && index < nElements_);
-  return elements_[index];
+  real *where = elements_ + index;
+  return *where;
 }
 //#############################################################################
-
-template class CoinDenseVector<int>;
-template class CoinDenseVector<float>;
-template class CoinDenseVector<double>;
