@@ -132,7 +132,7 @@ public:
      double norm = 0.;
      for (int i=0; i<nElements_; i++)
        norm += elements_[i] * elements_[i];
-     return sqrt(norm);
+     return std::sqrt(norm);
    }
    /// infinity-norm of vector
    inline T infNorm() const {
