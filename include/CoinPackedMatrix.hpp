@@ -53,11 +53,6 @@
     c.majorDim() returns 8. 
   @endverbatim
 */
-#ifndef COIN_BIG_INDEX
-typedef int CoinBigIndex;
-#else
-typedef long CoinBigIndex;
-#endif
 class CoinPackedMatrix  {
    friend void CoinPackedMatrixUnitTest();
 

@@ -12,7 +12,7 @@
 
 #include <iostream>
 #include <string>
-
+#include "CoinFinite.hpp"
 class CoinPackedMatrix;
 class CoinIndexedVector;
 /** This deals with Factorization and Updates
@@ -42,11 +42,6 @@ class CoinIndexedVector;
     may be redefined to get 64 bits.
  */
 
-#ifndef COIN_BIG_INDEX
-typedef int CoinBigIndex;
-#else
-typedef long CoinBigIndex;
-#endif
 
 
 class CoinFactorization {
