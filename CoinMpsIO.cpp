@@ -15,12 +15,6 @@
 #include "CoinMpsIO.hpp"
 #include "CoinMessage.hpp"
 
-// define COIN_USE_ZLIB if you want to be able to read compressed files!
-// Look at http://www.gzip.org/zlib/
-// zlib is due to Jean-loup Gailly and Mark Adler
-// It is not under CPL but zlib.h has the following
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
 #ifdef COIN_USE_ZLIB
 #include "zlib.h"
 #else
