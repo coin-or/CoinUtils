@@ -145,10 +145,9 @@ CoinWarmStartBasis::deleteRows(int number, const int * which)
   }
   int nCharNew  = 4*((numArtificial_-numberDeleted+15)>>4);
   char * array = new char[nCharNew];
-  // Make sure okay for zerofault etc
-  array[nCharNew-3]=0;
-  array[nCharNew-2]=0;
-  array[nCharNew-1]=0;
+# ifdef ZEROFAULT
+  memset(array,0,(nCharNew*sizeof(char))) ;
+# endif
   int put=0;
 # ifdef COIN_DEBUG
   int numberNotBasic=0;
