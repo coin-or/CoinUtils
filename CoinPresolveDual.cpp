@@ -59,7 +59,8 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   // (PRESOLVE_INF/-PRESOLVE_INF) with a version of the next loop specialized
   // for row slacks.
   // In this case, it is always the case that dprice==0.0 and coeff==1.0.
-  for (int i = 0; i < nrows; i++) {
+  int i;
+  for ( i = 0; i < nrows; i++) {
     double sup = -rlo[i];	// slack ub; corresponds to cup[j]
     double slo = -rup[i];	// slack lb; corresponds to clo[j]
     bool no_lb = (slo <= -ekkinf);
@@ -75,7 +76,8 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 
   // Look for col singletons and update bounds on dual costs
   // Take the min of the maxes and max of the mins
-  for (int j = 0; j<ncols; j++) {
+  int j;
+  for ( j = 0; j<ncols; j++) {
     bool no_ub = (cup[j] >= ekkinf);
     bool no_lb = (clo[j] <= -ekkinf);
     
@@ -443,7 +445,6 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   // Also if cost is in right direction and only one binding row for variable 
   // We may wish to think about giving preference to rows with 2 or 3 elements
   int * canFix = (int *) rdmin;
-  int i;
   for ( i = 0; i < nrows; i++) {
     bool no_lb = (rlo[i] <= -ekkinf);
     bool no_ub = (rup[i] >= ekkinf);
@@ -460,7 +461,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	canFix[i]=2;
     }
   }
-  for (int j = 0; j<ncols; j++) {
+  for (j = 0; j<ncols; j++) {
     if (hincol[j]<=1)
       continue;
     CoinBigIndex kcs = mcstrt[j];
