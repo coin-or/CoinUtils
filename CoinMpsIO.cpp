@@ -2307,8 +2307,8 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 		  } else {
 		     header[0]=" MI ";
 		     value[0] = largeValue;
-		     header[0]=" UP ";
-		     value[0] = columnUpper[i];
+		     header[1]=" UP ";
+		     value[1] = columnUpper[i];
 		     numberFields=2;
 		  }
 	       } else if (fabs(columnUpper[i]-columnLower[i])<1.0e-8) {
