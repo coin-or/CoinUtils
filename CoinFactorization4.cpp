@@ -747,8 +747,9 @@ int CoinFactorization::updateColumn ( CoinIndexedVector * regionSparse,
 void
 CoinFactorization::goSparse ( )
 {
-  if (!sparseThreshold_&&numberRows_>400)
-    sparseThreshold_=(numberRows_-300)/7;
+  if (!sparseThreshold_&&numberRows_>400) {
+    sparseThreshold_=min((numberRows_-300)/7,1000);
+  }
   //sparseThreshold_=99999;
   // allow for stack, list, next and char map of mark
   int nRowIndex = (maximumRowsExtra_+sizeof(int)-1)/

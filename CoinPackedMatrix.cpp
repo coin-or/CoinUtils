@@ -672,7 +672,7 @@ CoinPackedMatrix::countOrthoLength() const
    for (int i = majorDim_ - 1; i >= 0; --i) {
       const CoinBigIndex last = getVectorLast(i);
       for (CoinBigIndex j = getVectorFirst(i); j != last; ++j) {
-         assert( index_[j] < minorDim_ );
+         assert( index_[j] < minorDim_ && index_[j]>=0);
 	 ++orthoLength[index_[j]];
       }
    }
