@@ -566,7 +566,24 @@ CoinPackedVectorUnitTest()
     assert( v2 == v2X ); 
 
     v2.setFull(0,el2); 
-    assert( v2[2] == 0. );  
+    assert( v2[2] == 0. );
+    
+    // Test setFullNonZero
+    el2[1]=0.0;
+    v2.setFullNonZero(ne2,el2);    
+    assert( v2.getNumElements()==2 );
+    assert( v2.capacity()==3 );
+    assert( v2.getIndices()[0]==0 );
+    assert( v2.getElements()[0]==1. );
+    assert( v2.getIndices()[1]==2 );
+    assert( v2.getElements()[1]==4. );
+
+    assert( v2[1] == 0. );
+
+    CoinPackedVector v2Y(ne2,el2);
+    assert( v2 != v2Y ); 
+    assert( v2 != v2X ); 
+
   }
 
   

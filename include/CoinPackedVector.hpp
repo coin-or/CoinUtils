@@ -175,6 +175,11 @@ public:
    void setFull(int size, const double * elems,
 		bool testForDuplicateIndex = true);
 
+   /** Indices are not specified and are taken to be 0,1,...,size-1,
+    but only where non zero*/
+   void setFullNonZero(int size, const double * elems,
+		bool testForDuplicateIndex = true);
+
    /** Set an existing element in the packed vector
        The first argument is the "index" into the elements() array
    */

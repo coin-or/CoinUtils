@@ -142,6 +142,35 @@ CoinPackedVector::setFull(int size, const double * elems,
 }
 
 //#############################################################################
+/* Indices are not specified and are taken to be 0,1,...,size-1,
+    but only where non zero*/
+
+void
+CoinPackedVector::setFullNonZero(int size, const double * elems,
+			 bool testForDuplicateIndex) 
+{
+  // Clear out any values presently stored
+  clear();
+
+  // For now waste space
+  // Allocate storage
+  if ( size!=0 ) {
+    reserve(size);  
+    nElements_ = 0;
+    int i;
+    for (i=0;i<size;i++) {
+      if (elems[i]) {
+	origIndices_[nElements_]= i;
+	indices_[nElements_]= i;
+	elements_[nElements_++] = elems[i];
+      }
+    }
+  }
+  CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
+}
+
+
+//#############################################################################
 
 void
 CoinPackedVector::setElement(int index, double element) throw(CoinError)
