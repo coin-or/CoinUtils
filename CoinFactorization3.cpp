@@ -1521,7 +1521,7 @@ CoinFactorization::updateColumnTransposeLSparse
   nList=0;
   for (k=0;k<number;k++) {
     int kPivot=regionIndex[k];
-    if(!mark[kPivot]) {
+    if(!mark[kPivot]&&region[kPivot]) {
       stack[0]=kPivot;
       CoinBigIndex j=startRow[kPivot+1]-1;
       nStack=0;

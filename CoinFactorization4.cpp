@@ -1333,6 +1333,7 @@ CoinFactorization::updateColumnTransposeRSparse
   // still need to do in correct order (for now)
   for ( i = last ; i >= numberRows_; i-- ) {
     putRow = permute[i];
+    assert (putRow<=i);
     pivotValue = region[i];
     //zero out  old permuted
     region[i] = 0.0;

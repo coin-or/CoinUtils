@@ -120,6 +120,9 @@ void CoinFactorization::gutsOfDestructor()
   lengthAreaR_ = 0;
   denseArea_=NULL;
   densePermute_=NULL;
+  // next two offsets but this makes cleaner
+  elementR_=NULL;
+  indexRowR_=NULL;
   numberDense_=0;
   ////denseThreshold_=0;
   
