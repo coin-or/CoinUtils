@@ -402,7 +402,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	int row = hrow[k];
 	double coeffj = colels[k];
 	if ((!cost[j]||rlo[row]==rup[row])&&hinrow[row]>1&&
-	    fabs(coeffj) > ZTOLDP&&infiniteUp[row]!=3) {
+	    fabs(coeffj) > ZTOLDP&&infiniteUp[row]!=-3) {
 	  
 	  CoinBigIndex krs = mrstrt[row];
 	  CoinBigIndex kre = krs + hinrow[row];

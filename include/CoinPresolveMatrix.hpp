@@ -488,6 +488,9 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix {
 
   inline void change_bias(double change_amount);
 
+  // Pass number
+  int pass_;
+
 };
 
 
