@@ -6,68 +6,241 @@
 #include <math.h>
 
 #include "CoinPresolveMatrix.hpp"
+#include "CoinHelperFunctions.hpp"
+
+/*
+  \file
+
+  This file contains a number of routines that are useful when doing serious
+  debugging but unneeded otherwise. Presumably if you're deep enough into
+  presolve to need these, you're willing to scan the file to see what can be
+  done. See also the Presolve Debug Functions module in the doxygen doc'n
+  and CoinPresolvePsdebug.hpp.
+
+  The general approach is that the routines return void and abort when they
+  find a problem.
+
+  Hack away as your needs dictate.
+*/
 
 
-static inline const double *
-lookup_by_col(const int *mcstrt, const int *hrow,
-	      const int *hincol, const int *hinrow, const double *colels,
-	      int row, int col)
+/*
+  Integrity checking routines for the (loosely) packed matrices of a
+  CoinPresolveMatrix object. Some routines work on column-major and row-major
+  reps separately, others do cross-checking.
+*/
+
+namespace { // begin unnamed file-local namespace
+/*
+  Check for duplicate entries in a major vector by walking the vector. For each
+  coefficient, use presolve_find_row to search the remainder of the column
+  for an entry with the same row index. We don't want to find anything.
+*/
+  
+void no_majvec_dups (const char *majdones, const CoinBigIndex *majstrts,
+		     const int *minndxs, const int *majlens, int nmaj)
+
+{ for (int maj = 0 ; maj < nmaj ; maj++) 
+  { if ((!majdones || majdones[maj]) && majlens[maj] > 0)
+    { CoinBigIndex ks = majstrts[maj] ;
+      CoinBigIndex ke = ks+majlens[maj] ;
+      for (CoinBigIndex k = ks ; k < ke ; k++)
+      { int min = minndxs[k] ;
+/*
+  Assert we fell off the end of the column without finding the entry. 
+*/
+	PRESOLVEASSERT(presolve_find_minor1(min,k+1,
+					    ke,minndxs) == ke) ; } } }
+  return ; }
+
+/*
+  As the name implies: scan for explicit zeros.
+*/
+void check_majvec_nozeros (const CoinBigIndex *majstrts, const double *majels,
+			   const int *majlens, int nmaj)
+
+{ for (int maj = 0 ; maj < nmaj ; maj++) 
+  { if (majlens[maj] > 0)
+    { CoinBigIndex ks = majstrts[maj] ;
+      CoinBigIndex ke = ks+majlens[maj] ;
+      for (CoinBigIndex k = ks ; k < ke ; k++)
+      { PRESOLVEASSERT(fabs(majels[k]) > ZTOLDP) ; } } }
+
+  return ; }
+
+/*
+  Integrity checks for the linked lists that indicate major vector ordering
+  in the bulk storage area (minor index and coefficient arrays).
+ */
+void links_ok (presolvehlink *majlink, int *majstrts, int *majlens, int nmaj)
+
+{ int maj ;
+
+/*
+  Confirm link integrity. Vectors of length 0 should not be part of the chain.
+*/
+  for (maj = 0 ; maj < nmaj ; maj++)
+  { int pre = majlink[maj].pre ;
+    int suc = majlink[maj].suc ;
+
+    if (majlens[maj] == 0)
+    { PRESOLVEASSERT(pre == NO_LINK && suc == NO_LINK) ; }
+    if (pre != NO_LINK)
+    { PRESOLVEASSERT(0 <= pre && pre <= nmaj) ;
+      PRESOLVEASSERT(majlink[pre].suc == maj) ; }
+    if (suc != NO_LINK)
+    { PRESOLVEASSERT(0 <= suc && suc <= nmaj) ;
+      PRESOLVEASSERT(majlink[suc].pre == maj) ; } }
+/*
+  There must be a first vector.
+*/
+  for (maj = 0 ; maj < nmaj ; maj++) 
+  { if (majlink[maj].pre == NO_LINK)
+      break ; }
+  PRESOLVEASSERT(maj < nmaj) ;
+/*
+  The order of the linked list should match the ordering indicated by the
+  major vector start & length arrays.
+*/
+  while (maj != NO_LINK)
+  { if (majlink[maj].suc != NO_LINK) 
+    { PRESOLVEASSERT(majstrts[maj]+majlens[maj] <=
+				majstrts[majlink[maj].suc]) ; }
+    maj = majlink[maj].suc ; }
+
+  return ; }
+
+
+/*
+ matrix_consistent checks that an entry is in the column-major representation
+ if it is in the row-major representation.  If testvals is non-zero, it also
+ checks that their values are the same.
+
+ By doing the appropriate swaps of column- and row-major data structures in
+ the parameter list, we can check that an entry is in the row-major
+ representation if it's in the column-major representation.
+
+ I can't see any nice way to rename the parameters (majmajstrt? minmajstrt?).
+
+ Original comment:  ``Note that there may be entries in a row that correspond
+ to empty columns and vice-versa.'' To which a previous browser had commented
+ ``HUH???''. And I agree. -- lh, 040907 --
+*/
+
+void matrix_consistent (const CoinBigIndex *mrstrt, const int *hinrow,
+			const int *hcol, const double *rowels,
+			const CoinBigIndex *mcstrt, const int *hincol,
+			const int *hrow, const double *colels,
+			int nrows, int testvals,
+			const char *ROW, const char *COL)
 {
-  int kcs = mcstrt[col];
-  int kce = kcs + hincol[col];
-  int k;
+  for (int irow=0; irow<nrows; irow++) {
+    if (hinrow[irow] > 0) {
+      CoinBigIndex krs = mrstrt[irow];
+      CoinBigIndex kre = krs + hinrow[irow];
 
-  if (hinrow[row] <= 0)
-    return (0);
+      for (CoinBigIndex k=krs; k<kre; k++) {
+	int jcol = hcol[k];
+	CoinBigIndex kcs = mcstrt[jcol];
+	CoinBigIndex kce = kcs + hincol[jcol];
 
-  for (k=kcs; k<kce; k++) {
-    int r = hrow[k];
-    if (r == row)
-      return (&colels[k]);
+	CoinBigIndex kk = presolve_find_row1(irow, kcs, kce, hrow);
+	if (kk == kce) {
+	  printf("MATRIX INCONSISTENT:  can't find %s %d in %s %d\n",
+		 ROW, irow, COL, jcol);
+	  fflush(stdout);
+	  abort();
+	}
+	if (testvals && colels[kk] != rowels[k]) {
+	  printf("MATRIX INCONSISTENT:  value for %s %d and %s %d\n",
+		 ROW, irow, COL, jcol);
+	  fflush(stdout);
+	  abort();
+	}
+      }
+    }
   }
-  return (0);
 }
 
-static inline void
-no_dups(const char *done,
-	const int *mcstrt, const int *hrow, const int *hincol, int ncols)
+} // end unnamed file-local namespace
+
+/*
+  Utilizes matrix_consistent to check for equivalence of the column- and
+  row-major representations. Checks for presence of coefficients in the
+  column-major matrix, given presence in the row-major matrix, then checks
+  for presence in the row-major matrix given presence in the column-major
+  matrix. If testvals == true (default), the check also tests that the
+  coefficients have equal value.
+  
+  See further comments with matrix_consistent.
+*/
+
+void presolve_consistent(const CoinPresolveMatrix *preObj, bool testvals)
 {
-#if	DEBUG_PRESOLVE
-  for (int jcol=0; jcol<ncols; jcol++) 
-    if ((!done || done[jcol]) && hincol[jcol] > 0) {
-      int kcs = mcstrt[jcol];
-      int kce = kcs + hincol[jcol];
-
-      for (int k=kcs; k<kce; k++) {
-	int row = hrow[k];
-
-	PRESOLVEASSERT(presolve_find_row1(row, k+1, kce, hrow) == kce);
-      }
-    }
-#endif
+# if PRESOLVE_CONSISTENCY
+  matrix_consistent(preObj->mrstrt_,preObj->hinrow_,preObj->hcol_,
+		    preObj->rowels_,
+		    preObj->mcstrt_,preObj->hincol_,preObj->hrow_,
+		    preObj->colels_,
+		    preObj->nrows_,testvals,"row","col") ;
+  matrix_consistent(preObj->mcstrt_,preObj->hincol_,preObj->hrow_,
+		    preObj->colels_,
+		    preObj->mrstrt_,preObj->hinrow_,preObj->hcol_,
+		    preObj->rowels_, 
+		    preObj->ncols_,testvals,"col","row") ;
+# endif
 }
 
-void presolve_no_zeros(const int *mcstrt, const double *colels, const int *hincol, int ncols)
+/*
+  Check the column- and/or row-major matrices for duplicates. By default, both
+  will be checked.
+*/
+  
+void presolve_no_dups (const CoinPresolveMatrix *preObj,
+		       bool doCol, bool doRow)
+
 {
-#if	DEBUG_PRESOLVE
-  for (int jcol=0; jcol<ncols; jcol++) 
-    if (hincol[jcol] > 0) {
-      int kcs = mcstrt[jcol];
-      int kce = kcs + hincol[jcol];
+# if PRESOLVE_CONSISTENCY
+  if (doCol)
+  { no_majvec_dups(0,preObj->mcstrt_,preObj->hrow_,
+		   preObj->hincol_,preObj->ncols_) ; }
+  if (doRow)
+  { no_majvec_dups(0,preObj->mrstrt_,preObj->hcol_,
+		   preObj->hinrow_,preObj->nrows_) ; }
+# endif
 
-      for (int k=kcs; k<kce; k++) {
-	PRESOLVEASSERT(fabs(colels[k]) > ZTOLDP);
-      }
-    }
-#endif
-}
+  return ; }
 
 
+/*
+  As the name implies: scan for explicit zeros. By default, both matrices are
+  scanned.
+*/
+void presolve_no_zeros (const CoinPresolveMatrix *preObj,
+			bool doCol, bool doRow)
+{
+# if PRESOLVE_CONSISTENCY
+  if (doCol)
+  { check_majvec_nozeros(preObj->mcstrt_,preObj->colels_,preObj->hincol_,
+			 preObj->ncols_) ; }
+  if (doRow)
+  { check_majvec_nozeros(preObj->mrstrt_,preObj->rowels_,preObj->hinrow_,
+			 preObj->nrows_) ; }
+# endif
+
+  return ; }
+
+/*
+  Lazy check on column lengths. Scan the row index array for the column.
+  If the relevant row length in the row-major rep is non-zero, assume we're ok.
+
+  Not advertised in CoinPresolvePsdebug.hpp.
+*/
 void presolve_hincol_ok(const int *mcstrt, const int *hincol,
 	       const int *hinrow,
 	       const int *hrow, int ncols)
 {
-#if	CHECK_CONSISTENCY
+# if PRESOLVE_CONSISTENCY
   int jcol;
 
   for (jcol=0; jcol<ncols; jcol++) 
@@ -85,214 +258,707 @@ void presolve_hincol_ok(const int *mcstrt, const int *hincol,
       if (n != hincol[jcol])
 	abort();
     }
-#endif
+# endif
 }
 
 /*
- * The linked list 
+  Integrity checks for the linked lists that indicate major vector ordering
+  in the bulk storage area (minor index and coefficient arrays).
  */
-void presolve_links_ok(presolvehlink *link, int *starts, int *lengths, int n)
+void presolve_links_ok (const CoinPresolveMatrix *preObj,
+			bool doCol, bool doRow)
 {
-#if	CHECK_CONSISTENCY
-  int i;
+# if PRESOLVE_CONSISTENCY
+  if (doCol)
+  { links_ok(preObj->clink_,preObj->mcstrt_,
+	     preObj->hincol_,preObj->ncols_) ; }
+  if (doRow)
+  { links_ok(preObj->rlink_,preObj->mrstrt_,
+	     preObj->hinrow_,preObj->nrows_) ; }
+# endif
 
-  for (i=0; i<n; i++) {
-    int pre = link[i].pre;
-    int suc = link[i].suc;
+  return ; }
 
-    if (pre != NO_LINK) {
-      PRESOLVEASSERT(0 <= pre && pre <= n);
-      PRESOLVEASSERT(link[pre].suc == i);
+
+
+/*
+  Routines to check a threaded matrix from a CoinPostsolve object.
+*/
+
+/*
+  Check that the column length agrees with the column thread. There must be
+  the correct number of coefficients, and the thread must end with the NO_LINK
+  marker.
+*/
+void presolve_check_threads (const CoinPostsolveMatrix *obj)
+
+{ 
+
+# if PRESOLVE_CONSISTENCY
+  CoinBigIndex *mcstrt = obj->mcstrt_ ;
+  int *hincol = obj->hincol_ ;
+  CoinBigIndex *link = obj->link_ ;
+  char *cdone = obj->cdone_ ;
+
+  int n = obj->ncols0_ ;
+
+/*
+  Scan the columns, checking only the ones that have been processed into the
+  constraint matrix.
+*/
+  for (int j = 0 ; j < n ; j++)
+  { if (!cdone[j]) continue ;
+
+    int lenj = hincol[j] ;
+    int k ;
+    for (k = mcstrt[j] ; k != NO_LINK && lenj > 0 ; k = link[k]) lenj-- ;
+
+    assert(k == NO_LINK && lenj == 0) ; }
+# endif
+
+  return ; }
+
+/*
+  Check the free list. We're looking for gross corruption here. The notion is
+  that the free list plus elements in the matrix should add up to the capacity
+  of the bulk store.
+*/
+
+void presolve_check_free_list (const CoinPostsolveMatrix *obj, bool chkElemCnt)
+
+{ 
+
+# if PRESOLVE_CONSISTENCY
+  CoinBigIndex k = obj->free_list_ ;
+  CoinBigIndex freeCnt = 0 ;
+  CoinBigIndex maxlink = obj->maxlink_ ;
+  CoinBigIndex *link = obj->link_ ;
+/*
+  Redundancy in the data structure. These should always be equal.
+*/
+  assert(maxlink == obj->bulk0_) ;
+/*
+  Walk the free list portion of link. We should never point outside the bulk
+  store. If we ever come across an entry that's less than 0, it had better be
+  NO_LINK, the end marker.
+*/
+  while (k >= 0)
+  { assert(k < maxlink) ;
+    freeCnt++ ;
+    k = link[k] ; }
+  assert(k == NO_LINK) ;
+/*
+  And a final test: elements in the matrix plus free space should equal the
+  size of the bulk area. A good thought, but less than practical. Currently
+  postsolve doesn't track the number of elements in the matrix. But you might
+  find it useful if you're checking a newly constructed postsolve matrix. Even
+  then, you need to make sure nelems_ is correct. In the normal scheme of
+  things, this requires that somewhere there's a count of elements. Right now,
+  drop_empty_cols_action::presolve does this count, and you can get an accurate
+  value from the presolve object. assignPresolveToPostsolve will transfer this
+  value. Otherwise you're on your own --- your constructor must somehow find
+  this count. Using a standard CoinPackedMatrix is another way to get a count.
+*/
+  if (chkElemCnt)
+  { assert(obj->nelems_+freeCnt == maxlink) ; }
+# endif
+
+  return ; }
+
+
+
+/*
+  Routines to check solution and basis composition.
+*/
+
+/*
+  CoinPostsolveMatrix
+
+  This routine performs two checks on reduced costs held in rcosts_:
+    * The value held in rcosts_ is checked against the status of the
+      variable.
+    * The reduced cost is calculated from scratch and compared to the
+      value held in rcosts_.
+
+  The routine is specific to CoinPostsolveMatrix because the reduced cost
+  calculation requires traversal of (threaded) matrix columns.
+*/
+
+void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
+{
+# if PRESOLVE_DEBUG
+
+  CoinMessageHandler *handler = postObj->handler_ ;
+  const CoinMessages &messages = postObj->messages_ ;
+
+  int ncols0 = postObj->ncols0_ ;
+  double *rcosts = postObj->rcosts_ ;
+
+  static bool warned = false ;
+  static double *warned_rcosts ;
+/*
+  By tracking values in warned_rcosts, we can produce a single message the
+  first time a value is determined to be incorrect.
+*/
+  if (!warned)
+  { warned = true ;
+    handler->message(COIN_PRESOLDBG_FIRSTCHECK,messages)
+      << "reduced cost" << CoinMessageEol ;
+    warned_rcosts = new double[ncols0] ;
+    CoinZeroN(warned_rcosts,ncols0) ; }
+
+  double *colels = postObj->colels_ ;
+  int *hrow = postObj->hrow_ ;
+  int *mcstrt = postObj->mcstrt_ ;
+  int *hincol = postObj->hincol_ ;
+  CoinBigIndex *link = postObj->link_ ;
+
+  unsigned char *colstat = postObj->colstat_ ;
+
+  double *clo = postObj->clo_ ;
+  double *cup = postObj->cup_ ;
+
+  double *dcost	= postObj->cost_ ;
+
+  double *sol = postObj->sol_ ;
+
+  char *cdone = postObj->cdone_ ;
+  char *rdone = postObj->rdone_ ;
+
+  const double ztoldj = postObj->ztoldj_ ;
+  const double ztolzb = postObj->ztolzb_ ;
+
+  double *rowduals = postObj->rowduals_ ;
+
+  double maxmin = postObj->maxmin_ ;
+  std::string strMaxmin((maxmin < 0)?"max":"min") ;
+
+/*
+  Scan all columns, but only check the ones that are marked as having been
+  postprocessed.
+*/
+  for (int j = 0 ; j < ncols0 ; j++)
+  { if (cdone[j] == 0) continue ;
+/*
+  Check the stored reduced cost for accuracy.
+*/
+    double dj = rcosts[j] ;
+    double wrndj = warned_rcosts[j] ;
+
+    { int ndx ;
+      CoinBigIndex k = mcstrt[j] ;
+      int len = hincol[j] ;
+      double chkdj = postObj->maxmin_*dcost[j] ;
+
+      for (ndx = 0 ; ndx < len ; ndx++)
+      { int row = hrow[k] ;
+	PRESOLVEASSERT(rdone[row] != 0) ;
+	chkdj -= rowduals[row]*colels[k] ;
+	k = link[k] ; }
+      if (fabs(dj-chkdj) > ztoldj && wrndj != dj)
+      { handler->message(COIN_PRESOLDBG_RCOSTACC,messages)
+	    << j << dj << chkdj << fabs(dj-chkdj) << CoinMessageEol ; } }
+/*
+  Check the stored reduced cost for consistency with the variable's status.
+  The cases are
+    * basic: (reduced cost) == 0
+    * at upper bound and not at lower bound: (reduced cost)*(maxmin) <= 0
+    * at lower bound and not at upper bound: (reduced cost)*(maxmin) >= 0
+    * not at either bound: any sign is correct (the variable can move either
+      way) but superbasic status is sufficiently exotic that it always
+      deserves a message. (There should be no superbasic variables at the
+      completion of postsolve.)
+*/
+    { double xj = sol[j] ;
+      double lj = clo[j] ;
+      double uj = cup[j] ;
+      const char *statjstr = postObj->columnStatusString(j) ;
+
+      if (postObj->columnIsBasic(j))
+      { if (fabs(dj) > ztoldj && wrndj != dj)
+	{ handler->message(COIN_PRESOLDBG_RCOSTSTAT,messages)
+	      << j << dj << statjstr << strMaxmin << CoinMessageEol ; } }
+      else
+      if (fabs(xj-uj) < ztolzb && fabs(xj-lj) > ztolzb)
+      { if (maxmin*dj >= ztoldj && wrndj != dj)
+	{ handler->message(COIN_PRESOLDBG_RCOSTSTAT,messages)
+	      << j << dj << statjstr << strMaxmin << CoinMessageEol ; } }
+      else
+      if (fabs(xj-lj) < ztolzb && fabs(xj-uj) > ztolzb)
+      { if (maxmin*dj <= -ztoldj && wrndj != dj)
+	{ handler->message(COIN_PRESOLDBG_RCOSTSTAT,messages)
+	      << j << dj << statjstr << strMaxmin << CoinMessageEol ; } }
+      else
+      if (fabs(xj-lj) > ztolzb && fabs(xj-uj) > ztolzb)
+      { handler->message(COIN_PRESOLDBG_STATSB,messages)
+	  << j << statjstr << dj << lj << xj << uj << CoinMessageEol ; }
     }
-    if (suc != NO_LINK) {
-      PRESOLVEASSERT(0 <= suc && suc <= n);
-      PRESOLVEASSERT(link[suc].pre == i);
-    }
-  }
 
-  for (i=0; i<n; i++) 
-    if (link[i].pre == NO_LINK)
-      break;
-  PRESOLVEASSERT(i<n);
+    warned_rcosts[j] = rcosts[j] ; }
 
-  while (i != NO_LINK) {
-    if (link[i].suc != NO_LINK) 
-      PRESOLVEASSERT(starts[i] + lengths[i] <= starts[link[i].suc]);
-    i = link[i].suc;
-  }
-#endif
+# endif
 }
 
-// I've forgotton what this is all about
-void check_pivots(const int *mrstrt, const int *hinrow, const int *hcol, int nrows,
-		  const unsigned char *colstat, const unsigned char *rowstat,
-		  int ncols)
+/*
+  CoinPostsolveMatrix
+
+  This routine checks the value and status of the dual variables. It
+  checks that the value and status fo the dual agree with the row activity.
+
+  Specific to CoinPostsolveMatrix due to the use of rdone. This could be fixed,
+  but probably better to clone the function and specialise it for
+  CoinPresolveMatrix.
+*/
+
+void presolve_check_duals (const CoinPostsolveMatrix *postObj)
 {
-#if 0
-  int i;
-  int nbasic = 0;
-  int gotone = 1;
-  int stillmore;
+# if PRESOLVE_DEBUG
 
-  return;
+  CoinMessageHandler *handler = postObj->handler_ ;
+  const CoinMessages &messages = postObj->messages_ ;
 
-  int *bcol = new int[nrows];
-  memset(bcol, -1, nrows*sizeof(int));
+  int nrows0 = postObj->nrows0_ ;
 
-  char *coldone = new char[ncols];
-  memset(coldone, 0, ncols);
+  double *rowduals = postObj->rowduals_ ;
+
+  double *acts = postObj->acts_ ;
+  double *rup = postObj->rup_ ;
+  double *rlo = postObj->rlo_ ;
+
+  char *rdone = postObj->rdone_ ;
+
+  const double ztoldj = postObj->ztoldj_ ;
+  const double ztolzb = postObj->ztolzb_ ;
+
+  double maxmin = postObj->maxmin_ ;
+  std::string strMaxmin((maxmin < 0)?"max":"min") ;
+
+/*
+  Scan all processed rows. The rules are as for normal reduced costs, but
+  we need to remember the various flips and inversions. In summary, the correct
+  situation at optimality is:
+    * acts[i] >= rup[i] ==> artificial NBLB ==> dual[i] < 0
+    * acts[i] <= rlo[i] ==> artificial NBUB ==> dual[i] > 0
+
+  We can't say much about the dual for an equality. It can go either way.
+*/
+  for (int i = 0 ; i < nrows0 ; i++)
+  { if (rdone[i] == 0) continue ;
+
+    double ui = rup[i] ;
+    double li = rlo[i] ;
+
+    if (ui-li < 1.0e-6) continue ;
+
+    double yi = rowduals[i] ;
+    double lhsi = acts[i] ;
+    const char *statistr = postObj->rowStatusString(i) ;
+
+
+    if (fabs(lhsi-li) < ztolzb)
+    { if (maxmin*yi < -ztoldj)
+      { handler->message(COIN_PRESOLDBG_DUALSTAT,messages)
+	    << i << yi << statistr << strMaxmin << CoinMessageEol ; } }
+    else
+    if (fabs(lhsi-ui) < ztolzb)
+    { if (maxmin*yi > ztoldj)
+      { handler->message(COIN_PRESOLDBG_DUALSTAT,messages)
+	    << i << yi << statistr << strMaxmin << CoinMessageEol ; } }
+    else
+    if (li < lhsi && lhsi < ui)
+    { if (fabs(yi) > ztoldj)
+      { handler->message(COIN_PRESOLDBG_DUALSTAT,messages)
+	    << i << yi << statistr << strMaxmin << CoinMessageEol ; } } }
+# endif
+  return ; }
+
+
+
+/*
+  This routine will check the primal (column) solution for feasibility and
+  status. DON'T CALL THIS ROUTINE unless the solution is present, eh?
+
+  chkColSol:	check colum solution (primal variables)
+		0 - checks off
+		1 - check for NaN/Inf
+	       *2 - check for above/below column bounds
+  chkRowAct:	check row solution (evaluate constraint lhs)
+		0 - checks off
+	       *1 - check for NaN/Inf
+		2 - check for inaccuracy, above/below row bounds
+  chkStatus:	check for valid status of architectural variables
+		0 - checks off
+	       *1 - checks on, if colstat_ exists
+
+  In general, the presolve transforms are not prepared to properly adjust the
+  row activity (reported as `inacc RSOL'). Postsolve transforms do better. On
+  the bright side, the code seems to work just fine without maintaining row
+  activity.  You probably don't want to use the level 2 checks for the row
+  solution, particularly in presolve.
+
+  To do: implement row status checks.
+
+  With a bit of thought, the various checks could be more cleanly separated
+  to require only the minimum information for each check.
+*/
+void presolve_check_sol (const CoinPresolveMatrix *preObj,
+			 int chkColSol, int chkRowAct, int chkStatus)
+
+{
+# if PRESOLVE_DEBUG
+  double *colels = preObj->colels_ ;
+  int *hrow = preObj->hrow_ ;
+  int *mcstrt = preObj->mcstrt_ ;
+  int *hincol = preObj->hincol_ ;
+  int *hinrow = preObj->hinrow_ ;
+
+  int n	= preObj->ncols_ ;
+  int m = preObj->nrows_ ;
+
+  double *csol = preObj->sol_ ;
+  double *acts = preObj->acts_ ;
+  double *clo = preObj->clo_ ;
+  double *cup = preObj->cup_ ;
+  double *rlo = preObj->rlo_ ;
+  double *rup = preObj->rup_ ;
+
+  double tol = preObj->ztolzb_ ;
+
+  double *rsol = 0 ;
+  if (chkRowAct)
+  { rsol = new double[m] ;
+    memset(rsol,0,m*sizeof(double)) ; }
+
+/*
+  Open a loop to scan each column. For each column, do the following:
+    * Update the row solution (lhs value) by adding the contribution from
+      this column.
+    * Check for bogus values (NaN, infinity)
+    * Check for feasibility (value within column bounds)
+    * Check that the status of the variable agrees with the value and with the
+      lower and upper bounds. Free should have no bounds, superbasic should
+      have at least one.
+*/
+  for (int j = 0 ; j < n ; ++j)
+  { CoinBigIndex v = mcstrt[j] ;
+    int colLen = hincol[j] ;
+    double xj = csol[j] ;
+    double lj = clo[j] ;
+    double uj = cup[j] ;
+
+    if (chkRowAct)
+    { for (int u = 0 ; u < colLen ; ++u)
+      { int i = hrow[v] ;
+	  double aij = colels[v] ;
+	  v++ ;
+	  rsol[i] += aij*xj ; } }
+
+    if (chkColSol&((1<<1)|(1<<0)))
+    { if (CoinIsnan(xj))
+      { printf("NaN CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
+      if (xj <= -PRESOLVE_INF || xj >= PRESOLVE_INF)
+      { printf("Inf CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
+      if (chkColSol > 1)
+      { if (xj < lj-tol)
+	{ printf("low CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
+	else
+	if (xj > uj+tol)
+	{ printf("high CSOL: %d  : lb = %g x = %g ub = %g\n",
+		 j,lj,xj,uj) ; } } }
+    if (chkStatus && preObj->colstat_)
+    { CoinPrePostsolveMatrix::Status statj = preObj->getColumnStatus(j) ;
+      switch (statj)
+      { case CoinPrePostsolveMatrix::atUpperBound:
+	{ if (uj >= PRESOLVE_INF || fabs(xj-uj) > tol)
+	  { printf("Bad status CSOL: %d : status atUpperBound : ",j) ;
+	    printf("lb = %g x = %g ub = %g\n",lj,xj,uj) ; }
+	  break ; }
+        case CoinPrePostsolveMatrix::atLowerBound:
+	{ if (lj <= -PRESOLVE_INF || fabs(xj-lj) > tol)
+	  { printf("Bad status CSOL: %d : status atLowerBound : ",j) ;
+	    printf("lb = %g x = %g ub = %g\n",lj,xj,uj) ; }
+	  break ; }
+        case CoinPrePostsolveMatrix::isFree:
+	{ if (lj > -PRESOLVE_INF || uj < PRESOLVE_INF)
+	  { printf("Bad status CSOL: %d : status isFree : ",j) ;
+	    printf("lb = %g x = %g ub = %g\n",lj,xj,uj) ; }
+	  break ; }
+        case CoinPrePostsolveMatrix::superBasic:
+	{ if (!(lj > -PRESOLVE_INF || uj < PRESOLVE_INF))
+	  { printf("Bad status CSOL: %d : status superBasic : ",j) ;
+	    printf("lb = %g x = %g ub = %g\n",lj,xj,uj) ; }
+	  break ; }
+        case CoinPrePostsolveMatrix::basic:
+	{ /* Nothing to do here. */
+	  break ; }
+	default:
+	{ printf("Bad status CSOL: %d : status unrecognized : ",j) ;
+	  break ; } } } }
+/*
+  Now check the row solution. acts[i] is what presolve thinks we have, rsol[i]
+  is what we've just calculated while scanning the columns. We need only
+  check nontrivial rows (i.e., rows with length > 0). For each row,
+    * Check for bogus values (NaN, infinity)
+    * Check for accuracy (acts == rsol)
+    * Check for feasibility (rsol within row bounds)
+*/
+  if (chkRowAct)
+  { for (int i = 0 ; i < m ; ++i)
+    { if (hinrow[i])
+      { double lhsi = acts[i] ;
+	double evali = rsol[i] ;
+	double li = rlo[i] ;
+	double ui = rup[i] ;
+	
+	if (CoinIsnan(evali) || CoinIsnan(lhsi))
+	{ printf("NaN RSOL: %d  : lb = %g eval = %g (expected %g) ub = %g\n",
+		 i,li,evali,lhsi,ui) ; }
+	if (evali <= -PRESOLVE_INF || evali >= PRESOLVE_INF ||
+	    lhsi <= -PRESOLVE_INF || lhsi >= PRESOLVE_INF)
+	{ printf("Inf RSOL: %d  : lb = %g eval = %g (expected %g) ub = %g\n",
+		 i,li,evali,lhsi,ui) ; }
+	if (chkRowAct > 1)
+	{ if (fabs(evali-lhsi) > tol)
+	  { printf("inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+		   i,li,evali,lhsi,ui) ; }
+	  if (evali < li-tol || lhsi < li-tol)
+	  { printf("low RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+		   i,li,evali,lhsi,ui) ; }
+	  else
+	  if (evali > ui+tol || lhsi > ui+tol)
+	  { printf("high RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+		   i,li,evali,lhsi,ui) ; } } } }
+    delete [] rsol ; }
+# endif
+  return ; }
+
+/*
+  check_sol overload for CoinPostsolveMatrix. Parameters and functionality
+  identical to check_sol immediately above, but we have to remember we're
+  working with a threaded column-major representation.
+*/
+void presolve_check_sol (const CoinPostsolveMatrix *postObj,
+			 int chkColSol, int chkRowAct, int chkStatus)
+
+{
+# if PRESOLVE_DEBUG
+  double *colels = postObj->colels_ ;
+  int *hrow = postObj->hrow_ ;
+  int *mcstrt = postObj->mcstrt_ ;
+  int *hincol = postObj->hincol_ ;
+  int *link = postObj->link_ ;
+
+  int n	= postObj->ncols_ ;
+  int m = postObj->nrows_ ;
+
+  double *csol = postObj->sol_ ;
+  double *acts = postObj->acts_ ;
+  double *clo = postObj->clo_ ;
+  double *cup = postObj->cup_ ;
+  double *rlo = postObj->rlo_ ;
+  double *rup = postObj->rup_ ;
+
+  double tol = postObj->ztolzb_ ;
+
+  double *rsol = 0 ;
+  if (chkRowAct)
+  { rsol = new double[m] ;
+    memset(rsol,0,m*sizeof(double)) ; }
+
+/*
+  Open a loop to scan each column. For each column, do the following:
+    * Update the row solution (lhs value) by adding the contribution from
+      this column.
+    * Check for bogus values (NaN, infinity)
+    * check that the status of the variable agrees with the value and with the
+      lower and upper bounds. Free should have no bounds, superbasic should
+      have at least one.
+*/
+  for (int j = 0 ; j < n ; ++j)
+  { CoinBigIndex v = mcstrt[j] ;
+    int colLen = hincol[j] ;
+    double xj = csol[j] ;
+    double lj = clo[j] ;
+    double uj = cup[j] ;
+
+    if (chkRowAct)
+    { for (int u = 0 ; u < colLen ; ++u)
+      { int i = hrow[v] ;
+	  double aij = colels[v] ;
+	  v = link[v] ;
+	  rsol[i] += aij*xj ; } }
+    if (chkColSol)
+    { if (CoinIsnan(xj))
+      { printf("NaN CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
+      if (xj <= -PRESOLVE_INF || xj >= PRESOLVE_INF)
+      { printf("Inf CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
+      if (chkColSol > 1)
+      { if (xj < lj-tol)
+	{ printf("low CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
+	else
+	if (xj > uj+tol)
+	{ printf("high CSOL: %d  : lb = %g x = %g ub = %g\n",
+		 j,lj,xj,uj) ; } } }
+    if (chkStatus && postObj->colstat_)
+    { CoinPrePostsolveMatrix::Status statj = postObj->getColumnStatus(j) ;
+      switch (statj)
+      { case CoinPrePostsolveMatrix::atUpperBound:
+	{ if (uj >= PRESOLVE_INF || fabs(xj-uj) > tol)
+	  { printf("Bad status CSOL: %d : status atUpperBound : ",j) ;
+	    printf("lb = %g x = %g ub = %g\n",lj,xj,uj) ; }
+	  break ; }
+        case CoinPrePostsolveMatrix::atLowerBound:
+	{ if (lj <= -PRESOLVE_INF || fabs(xj-lj) > tol)
+	  { printf("Bad status CSOL: %d : status atLowerBound : ",j) ;
+	    printf("lb = %g x = %g ub = %g\n",lj,xj,uj) ; }
+	  break ; }
+        case CoinPrePostsolveMatrix::isFree:
+	{ if (lj > -PRESOLVE_INF || uj < PRESOLVE_INF)
+	  { printf("Bad status CSOL: %d : status isFree : ",j) ;
+	    printf("lb = %g x = %g ub = %g\n",lj,xj,uj) ; }
+	  break ; }
+        case CoinPrePostsolveMatrix::superBasic:
+	{ if (!(lj > -PRESOLVE_INF || uj < PRESOLVE_INF))
+	  { printf("Bad status CSOL: %d : status superBasic : ",j) ;
+	    printf("lb = %g x = %g ub = %g\n",lj,xj,uj) ; }
+	  break ; }
+        case CoinPrePostsolveMatrix::basic:
+	{ /* Nothing to do here. */
+	  break ; }
+	default:
+	{ printf("Bad status CSOL: %d : status unrecognized : ",j) ;
+	  break ; } } } }
+/*
+  Now check the row solution. acts[i] is what presolve thinks we have, rsol[i]
+  is what we've just calculated while scanning the columns. CoinPostsolveMatrix
+  does not contain hinrow_, so we can't check for trivial rows (cf. check_sol
+  for CoinPresolveMatrix).  For each row,
+    * Check for bogus values (NaN, infinity)
+*/
+  if (chkRowAct)
+  { for (int i = 0 ; i < m ; ++i)
+    { double lhsi = acts[i] ;
+      double evali = rsol[i] ;
+      double li = rlo[i] ;
+      double ui = rup[i] ;
+      
+      if (CoinIsnan(evali) || CoinIsnan(lhsi))
+      { printf("NaN RSOL: %d  : lb = %g eval = %g (expected %g) ub = %g\n",
+	       i,li,evali,lhsi,ui) ; }
+      if (evali <= -PRESOLVE_INF || evali >= PRESOLVE_INF ||
+	  lhsi <= -PRESOLVE_INF || lhsi >= PRESOLVE_INF)
+      { printf("Inf RSOL: %d  : lb = %g eval = %g (expected %g) ub = %g\n",
+	       i,li,evali,lhsi,ui) ; }
+      if (chkRowAct > 1)
+      { if (fabs(evali-lhsi) > tol)
+	{ printf("inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+		 i,li,evali,lhsi,ui) ; }
+        if (evali < li-tol || lhsi < li-tol)
+	{ printf("low RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+		 i,li,evali,lhsi,ui) ; }
+	else
+	if (evali > ui+tol || lhsi > ui+tol)
+	{ printf("high RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+		 i,li,evali,lhsi,ui) ; } } }
+  delete [] rsol ; }
+# endif
+  return ; }
+
+/*
+  Make sure that the number of basic variables is correct.
+*/
+void presolve_check_nbasic (const CoinPostsolveMatrix *postObj)
+
+{
+# if PRESOLVE_DEBUG
+
+  int ncols0 = postObj->ncols0_ ;
+  int nrows0 = postObj->nrows0_ ;
+
+  char *cdone = postObj->cdone_ ;
+  char *rdone = postObj->rdone_ ;
+
+  int nbasic = 0 ;
+
+  for (int j = 0 ; j < ncols0 ; j++)
+  { if (cdone[j] != 0 && postObj->columnIsBasic(j))
+      nbasic++ ; }
+
+  for (int i = 0 ; i < nrows0 ; i++)
+  { if (rdone[i] && postObj->rowIsBasic(i))
+      nbasic++ ; }
+
+  if (nbasic != postObj->nrows_)
+  { printf("WRONG NUMBER NBASIC:  is:  %d  should be:  %d\n",
+	   nbasic, postObj->nrows_) ;
+    fflush(stdout) ; }
+# endif
+  return ; }
+
+
+/*
+  Original comment: I've forgotton what this is all about
+
+  Looks to me like it's confirming that the columns flagged as basic indeed
+  have enough coefficients between them to cover the basis. It'd be serious
+  work to get this going again. Waaaaaay out of date.   -- lh, 040831 --
+*/
+# if 0
+void check_pivots (const int *mrstrt, const int *hinrow, const int *hcol,
+		   int nrows, const unsigned char *colstat,
+		   const unsigned char *rowstat, int ncols)
+{
+  int i ;
+  int nbasic = 0 ;
+  int gotone = 1 ;
+  int stillmore ;
+
+  return ;
+
+  int *bcol = new int[nrows] ;
+  memset(bcol, -1, nrows*sizeof(int)) ;
+
+  char *coldone = new char[ncols] ;
+  memset(coldone, 0, ncols) ;
 
   while (gotone) {
-    gotone = 0;
-    stillmore = 0;
+    gotone = 0 ;
+    stillmore = 0 ;
     for (i=0; i<nrows; i++)
-      if (!prob->rowIsBasic(i)) {
-	int krs = mrstrt[i];
-	int kre = mrstrt[i] + hinrow[i];
-	int nb = 0;
-	int kk;
+      if (!postObj->rowIsBasic(i)) {
+	int krs = mrstrt[i] ;
+	int kre = mrstrt[i] + hinrow[i] ;
+	int nb = 0 ;
+	int kk ;
 	for (int k=krs; k<kre; k++)
-	  if (prob->columnIsBasic(hcol[k]) && !coldone[hcol[k]]) {
-	    nb++;
-	    kk = k;
+	  if (postObj->columnIsBasic(hcol[k]) && !coldone[hcol[k]]) {
+	    nb++ ;
+	    kk = k ;
 	    if (nb > 1)
-	      break;
+	      break ;
 	  }
 	if (nb == 1) {
-	  PRESOLVEASSERT(bcol[i] == -1);
-	  bcol[i] = hcol[kk];
-	  coldone[hcol[kk]] = 1;
-	  nbasic++;
-	  gotone = 1;
+	  PRESOLVEASSERT(bcol[i] == -1) ;
+	  bcol[i] = hcol[kk] ;
+	  coldone[hcol[kk]] = 1 ;
+	  nbasic++ ;
+	  gotone = 1 ;
 	}
 	else
-	  stillmore = 1;
+	  stillmore = 1 ;
       }
   }
-  PRESOLVEASSERT(!stillmore);
+  PRESOLVEASSERT(!stillmore) ;
 
   for (i=0; i<nrows; i++)
-    if (prob->rowIsBasic(i)) {
-      int krs = mrstrt[i];
-      int kre = mrstrt[i] + hinrow[i];
+    if (postObj->rowIsBasic(i)) {
+      int krs = mrstrt[i] ;
+      int kre = mrstrt[i] + hinrow[i] ;
       for (int k=krs; k<kre; k++)
-	PRESOLVEASSERT(!prob->columnIsBasic(hcol[k]) || coldone[hcol[k]]);
-      nbasic++;
+	PRESOLVEASSERT(!postObj->columnIsBasic(hcol[k]) || coldone[hcol[k]]) ;
+      nbasic++ ;
     }
-  PRESOLVEASSERT(nbasic == nrows);
-#endif
+  PRESOLVEASSERT(nbasic == nrows) ;
 }
 
-
-
-static inline void a_ok(CoinPostsolveMatrix *prob)
-{
-#if 0
-  static int warned = 0;
-  if (!warned) {
-    warned = 1;
-    printf("********** NO CHECKING!!!!!!! \n");
-  }
-
-  double *colels	= prob->colels;
-  int *hrow		= prob->hrow;
-  int *mcstrt		= prob->mcstrt;
-  int *hincol		= prob->hincol;
-
-  int *colstat	= prob->colstat;
-  int *rowstat	= prob->rowstat;
-
-  double *clo	= prob->clo;
-  double *cup	= prob->cup;
-
-  double *dcost	= prob->cost;
-
-  double *sol	= prob->sol;
-  double *rcosts	= prob->rcosts;
-
-  char *cdone	= prob->cdone;
-  char *rdone	= prob->rdone;
-
-  const double ztoldj	= prob->ztoldj;
-  const double ztolzb	= prob->ztolzb;
-
-  double *rowduals = prob->rowduals;
-
-  int ncols0		= prob->ncols0;
-
-#if 0
-  {
-    int ncols		= prob->ncols;
-    int nrows		= prob->nrows;
-    int *mrstrt		= prob->mrstrt;
-    int *hinrow		= prob->hinrow;
-    int *hcol		= prob->hcol;
-
-    no_dups(cdone, mcstrt, hrow, hincol, ncols);
-    no_dups(rdone, mrstrt, hcol, hinrow, nrows);
-  }
-#endif
-
-  /* DEBUG HACK */
-  static double *warned_rcosts;
-  if (!warned_rcosts) {
-    warned_rcosts = new double[ncols0];
-
-    for (int i=0; i<ncols0; i++) 
-      warned_rcosts[i] = rcosts[i];
-  }
-
-  for (int j=0; j<ncols0; j++)
-    if (cdone[j]) {
-      //int i = &paction[npaction-1]-pa;
-      int i = -666;
-
-      if (prob->columnIsBasic(j)) {
-	if (! (fabs(rcosts[j]) < ztoldj) &&
-	    warned_rcosts[j] != rcosts[j])
-	  printf("ITER[%d]: basic rcosts[%d]:  %g\n", i, j, rcosts[j]);
-      } else if (fabs(sol[j] - cup[j]) < ztolzb &&
-		 ! (fabs(sol[j] - clo[j]) < ztolzb)) {
-	if (! (rcosts[j] <= ztoldj) &&
-	    warned_rcosts[j] != rcosts[j])
-	  printf("ITER[%d]: ub rcosts[%d]:  %g\n", i, j, rcosts[j]);
-      } else if (fabs(sol[j] - clo[j]) < ztolzb &&
-		 ! (fabs(sol[j] - cup[j]) < ztolzb)){
-	if (! (rcosts[j] >= -ztoldj) &&
-	    warned_rcosts[j] != rcosts[j])
-	  printf("ITER[%d]: lb rcosts[%d]:  %g\n", i, j, rcosts[j]);
-      } else if (! (fabs(sol[j] - clo[j]) < ztolzb) &&
-		 ! (fabs(sol[j] - cup[j]) < ztolzb)) {
-	printf("SUPERBASIC (cost=%g):  %d %g < %g < %g\n",
-	       dcost[j], j, clo[j], sol[j], cup[j]);
-      }
-
-      {
-	int kcs = mcstrt[j];
-	int kce = mcstrt[j] + hincol[j];
-	int k;
-	double dj = dcost[j];
-	int row0 = (kcs<kce ? hrow[kcs] : 0);
-
-	for (k=kcs; k<kce; k++) {
-	  int row = hrow[k];
-	  PRESOLVEASSERT(rdone[row]);
-	  PRESOLVEASSERT(row != row0 || k==kcs);
-	  if (rdone[row])
-	    dj -= rowduals[row] * colels[k];
-	}
-	if (! (fabs(rcosts[j] - dj) < ztoldj) &&
-	    warned_rcosts[j] != rcosts[j])
-	  printf("ITER[%d]: rcosts[%d]:  %g <-> %g\n", i, j, rcosts[j], dj);
-      }
-    }
-
-  {
-    int i;
-    for (i=0; i<ncols0; i++) 
-      warned_rcosts[i] = rcosts[i];
-  }
-#endif
-}
-
-
+# endif
