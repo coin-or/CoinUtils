@@ -184,6 +184,7 @@ public:
 		   }
 		 } else if (fabs(element)>= COIN_INDEXED_TINY_ELEMENT) {
 		   indices_[nElements_++] = index;
+		   assert (nElements_<=capacity_);
 		   elements_[index] = element;
 		 }
 	       };
