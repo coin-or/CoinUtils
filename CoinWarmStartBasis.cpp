@@ -223,3 +223,29 @@ CoinWarmStartBasis::print() const
     std::cout<<type[getStructStatus(i)];
   std::cout<<std::endl;
 }
+CoinWarmStartBasis::CoinWarmStartBasis()
+{
+  
+  numStructural_ = 0;
+  numArtificial_ = 0;
+  structuralStatus_ = NULL;
+  artificialStatus_ = NULL;
+}
+CoinWarmStartBasis::~CoinWarmStartBasis()
+{
+  delete[] structuralStatus_;
+  delete[] artificialStatus_;
+}
+// Returns number of basic structurals
+int
+CoinWarmStartBasis::numberBasicStructurals()
+{
+  int i ;
+  int numberBasic=0;
+  for (i=0;i<numStructural_;i++) {
+    Status status = getStructStatus(i);
+    if (status==CoinWarmStartBasis::basic) 
+      numberBasic++;
+  }
+  return numberBasic;
+}

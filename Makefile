@@ -43,6 +43,11 @@ LIBSRC += CoinWarmStartBasis.cpp
 include ${MakefileDir}/Makefile.coin
 include ${MakefileDir}/Makefile.location
 
+ifeq ($(OptLevel),-g)
+# for memory checkers
+    CXXFLAGS += -DZEROFAULT
+endif
+
 export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir}
 export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir}
 export ExtraLibName := ${zlibLibName} ${bzlibLibName}

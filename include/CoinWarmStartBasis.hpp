@@ -69,18 +69,13 @@ public:
   */
   void assignBasisStatus(int ns, int na, char*& sStat, char*& aStat) ;
 
-  CoinWarmStartBasis() :
-    numStructural_(0), numArtificial_(0),
-    structuralStatus_(NULL), artificialStatus_(NULL) {}
+  CoinWarmStartBasis();
 
   CoinWarmStartBasis(int ns, int na, const char* sStat, const char* aStat) ;
 
   CoinWarmStartBasis(const CoinWarmStartBasis& ws) ;
 
-  virtual ~CoinWarmStartBasis() {
-    delete[] structuralStatus_;
-    delete[] artificialStatus_;
-  }
+  virtual ~CoinWarmStartBasis();
 
   CoinWarmStartBasis& operator=(const CoinWarmStartBasis& rhs) ;
 
@@ -90,6 +85,8 @@ public:
   void deleteRows(int number, const int * which);
   /// Deletes columns
   void deleteColumns(int number, const int * which);
+  /// Returns number of basic structurals (so you can see if all slack)
+  int numberBasicStructurals();
 
   /// Prints in readable format (for debug)
   void print() const;
