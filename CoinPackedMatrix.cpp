@@ -1212,9 +1212,22 @@ CoinPackedMatrix::deleteMajorVectors(const int numDel,
    if (numDel == majorDim_) {
       // everything is deleted
       majorDim_ = 0;
+      minorDim_ = 0;
       size_ = 0;
       if (sortedDelPtr)
 	 delete[] sortedDelPtr;
+      // Get rid of memory as well
+      maxMajorDim_ = 0;
+      delete [] length_;
+      length_ = NULL;
+      delete [] start_;
+      start_ = new CoinBigIndex[1];
+      start_[0]=0;;
+      delete [] element_;
+      element_=NULL;
+      delete [] index_;
+      index_=NULL;
+      maxSize_ = 0;
       return;
    }
 
@@ -1261,6 +1274,20 @@ void
 CoinPackedMatrix::deleteMinorVectors(const int numDel,
 				    const int * indDel) throw(CoinError)
 {
+   if (numDel == minorDim_) {
+     // everything is deleted
+     minorDim_ = 0;
+     size_ = 0;
+     // Get rid of as much memory as possible
+     memset(length_,0,majorDim_*sizeof(int));
+     memset(start_,0,(majorDim_+1)*sizeof(int));
+     delete [] element_;
+     element_=NULL;
+     delete [] index_;
+     index_=NULL;
+     maxSize_ = 0;
+     return;
+   }
   int i, j, k;
 
   // first compute the new index of every row
@@ -1987,7 +2014,7 @@ CoinPackedMatrix::resizeForAddingMajorVectors(const int numVec,
   }
 
   maxSize_ =
-    CoinMax(maxSize_,(int) (newStart[majorDim_]+ (1.0* extraMajor_)));
+    CoinMax(maxSize_,newStart[majorDim_]+ (int) extraMajor_);
   majorDim_ -= numVec;
 
   int * newIndex = new int[maxSize_];

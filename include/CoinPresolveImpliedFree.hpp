@@ -10,10 +10,10 @@ class implied_free_action : public CoinPresolveAction {
     int row, col;
     double clo, cup;
     double rlo, rup;
-    int ninrow;
     const double *rowels;
     const int *rowcols;
     const double *costs;
+    int ninrow;
   };
 
   const int nactions_;

@@ -48,8 +48,18 @@ const remove_fixed_action *remove_fixed_action::presolve(CoinPresolveMatrix *pro
 
   presolvehlink *clink = prob->clink_;
 
-  action *actions 	= new  action[nfcols];
-
+  action *actions 	= new  action[nfcols+1];
+  // Find size of arrays
+  int size=0;
+  for (int ckc=0; ckc<nfcols; ckc++) {
+    int j = fcols[ckc];
+    size += hincol[j];
+  }
+  double * els_action = new double[size];
+  int * rows_action = new int[size];
+  actions[nfcols].start=size;
+  size=0;
+  
   for (int ckc=0; ckc<nfcols; ckc++) {
     int j = fcols[ckc];
 
@@ -64,9 +74,8 @@ const remove_fixed_action *remove_fixed_action::presolve(CoinPresolveMatrix *pro
       f.col = j;
       f.sol = sol;
 
-      f.nincol = hincol[j];
-      f.colels = presolve_duparray(&colels[kcs], hincol[j]); // inefficient
-      f.colrows = presolve_duparray(&hrow[kcs], hincol[j]);  // inefficient
+      f.start = size;
+
     }
     // the bias is updated when the empty column is removed
     //prob->change_bias(sol * dcost[j]);
@@ -74,6 +83,9 @@ const remove_fixed_action *remove_fixed_action::presolve(CoinPresolveMatrix *pro
     for (k=kcs; k<kce; k++) {
       int row = hrow[k];
       double coeff = colels[k];
+      // save
+      els_action[size]=coeff;
+      rows_action[size++]=row;
 
       rlo[row] -= sol * coeff;
       rup[row] -= sol * coeff;
@@ -105,25 +117,27 @@ const remove_fixed_action *remove_fixed_action::presolve(CoinPresolveMatrix *pro
   delete [] (void *) actions;
   return nextAction;
 #else
-  return (new remove_fixed_action(nfcols, actions, next));
+  return (new remove_fixed_action(nfcols, actions, els_action,rows_action,next));
 #endif
 }
 
 remove_fixed_action::remove_fixed_action(int nactions,
-					 const action *actions,
+					 action *actions,
+					 double * els_action,
+					 int * rows_action,
 					 const CoinPresolveAction *next) :
   CoinPresolveAction(next),
+  colrows_(rows_action),
+  colels_(els_action),
   nactions_(nactions),
   actions_(actions)
 {
 }
 remove_fixed_action::~remove_fixed_action()
 {
-  for (int i=nactions_-1; i>=0; i--) {
-    delete[]actions_[i].colrows;
-    delete[]actions_[i].colels;
-  }
   deleteAction(actions_,action*);
+  delete [] colels_;
+  delete [] colrows_;
 }
 
 /*
@@ -144,7 +158,7 @@ remove_fixed_action::~remove_fixed_action()
  */
 void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
 {
-  const action *const actions = actions_;
+  action * actions = actions_;
   const int nactions	= nactions_;
 
   double *colels	= prob->colels_;
@@ -174,6 +188,9 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
 
   char *cdone	= prob->cdone_;
   //  char *rdone	= prob->rdone_;
+  double * els_action = colels_;
+  int * rows_action = colrows_;
+  int end = actions[nactions].start;
 
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
     int icol = f->col;
@@ -185,40 +202,39 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
     clo[icol] = thesol;
     cup[icol] = thesol;
 
-    {
-      int cs = -11111;
-      int nc = f->nincol;
-      double dj = maxmin * dcost[icol];
-
-      for (int i=0; i<nc; ++i) {
-	int row = f->colrows[i];
-	double coeff = f->colels[i];
-
-	// pop free_list
-	CoinBigIndex k = free_list;
-	free_list = link[free_list];
-
-	check_free_list(free_list);
-
-	// restore
-	hrow[k] = row;
-	colels[k] = coeff;
-	link[k] = cs;
-	cs = k;
-
-	if (-PRESOLVE_INF < rlo[row])
-	  rlo[row] += coeff * thesol;
-	if (rup[row] < PRESOLVE_INF)
-	  rup[row] += coeff * thesol;
-	acts[row] += coeff * thesol;
-
-	dj -= rowduals[row] * coeff;
-      }
-      mcstrt[icol] = cs;
-
-      rcosts[icol] = dj;
+    int cs = -11111;
+    int start = f->start;
+    double dj = maxmin * dcost[icol];
+    
+    for (int i=start; i<end; ++i) {
+      int row = rows_action[i];
+      double coeff =els_action[i];
+      
+      // pop free_list
+      CoinBigIndex k = free_list;
+      free_list = link[free_list];
+      
+      check_free_list(free_list);
+      
+      // restore
+      hrow[k] = row;
+      colels[k] = coeff;
+      link[k] = cs;
+      cs = k;
+      
+      if (-PRESOLVE_INF < rlo[row])
+	rlo[row] += coeff * thesol;
+      if (rup[row] < PRESOLVE_INF)
+	rup[row] += coeff * thesol;
+      acts[row] += coeff * thesol;
+      
+      dj -= rowduals[row] * coeff;
     }
-    hincol[icol] = f->nincol;
+    mcstrt[icol] = cs;
+    
+    rcosts[icol] = dj;
+    hincol[icol] = end-start;
+    end=start;
 
     /* the bounds in the reduced problem were tightened.
      * that means that this variable may not have been basic

@@ -9,10 +9,10 @@ class useless_constraint_action : public CoinPresolveAction {
   struct action {
     double rlo;
     double rup;
-    int row;
-    int ninrow;
     const int *rowcols;
     const double *rowels;
+    int row;
+    int ninrow;
   };
 
   const int nactions_;

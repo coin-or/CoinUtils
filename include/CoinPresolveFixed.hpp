@@ -9,19 +9,21 @@ class remove_fixed_action : public CoinPresolveAction {
  public:
   struct action {
     int col;
-    int nincol;
+    int start;
 
     double sol;
-    int *colrows;
-    double *colels;
   };
+  int *colrows_;
+  double *colels_;
 
   int nactions_;
-  const action *actions_;
+  action *actions_;
 
  private:
   remove_fixed_action(int nactions,
-		      const action *actions,
+		      action *actions,
+		      double * colels,
+		      int * colrows,
 		      const CoinPresolveAction *next);
 
  public:

@@ -9,22 +9,22 @@
 class subst_constraint_action : public CoinPresolveAction {
 public:
   struct action {
-    int col;
-    int rowx;
-    int rowy;
-
-    int nincol;
-    int *rows;
     double *rlos;
     double *rups;
 
     double *coeffxs;
+    int *rows;
     
     int *ninrowxs;
     /*const*/ int *rowcolsxs;
     /*const*/ double *rowelsxs;
 
     const double *costsx;
+    int col;
+    int rowx;
+    int rowy;
+
+    int nincol;
   };
 
   const int nactions_;

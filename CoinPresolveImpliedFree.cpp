@@ -568,10 +568,11 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 #if	PRESOLVE_SUMMARY
     printf("NIMPLIED FREE:  %d\n", nactions);
 #endif
-    next = new implied_free_action(nactions, actions, next);
-  } else { 
-    delete [] actions;
-  }
+    action *actions1 = new action[nactions];
+    CoinDisjointCopyN(actions, nactions, actions1);
+    next = new implied_free_action(nactions, actions1, next);
+  } 
+  delete [] actions;
 
   if (isolated_row != -1) {
     const CoinPresolveAction *nextX = isolated_constraint_action::presolve(prob, 

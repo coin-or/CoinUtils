@@ -13,12 +13,12 @@ const CoinPresolveAction *tighten_zero_cost(CoinPresolveMatrix *prob,
 
 class do_tighten_action : public CoinPresolveAction {
   struct action {
-    int col;
-    int nrows;
-    int direction;	// just for assertions
     int *rows;
     double *lbound;
     double *ubound;
+    int col;
+    int nrows;
+    int direction;	// just for assertions
   };
 
   const int nactions_;

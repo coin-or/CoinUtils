@@ -14,9 +14,9 @@ class dupcol_action : public CoinPresolveAction {
     int ithis;
     int ilast;
 
-    int nincol;
     int *colrows;
     double *colels;
+    int nincol;
   };
 
   const int nactions_;

@@ -1091,8 +1091,10 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	// for example, this is obviously true if y is a singleton column
 	rowduals[irow] = djy / coeffy;
 	rcosts[jcolx] = djx - rowduals[irow] * coeffx;
-	if (prob->columnIsBasic(jcolx))
-	  assert (fabs(rcosts[jcolx])<1.0e-5);
+#ifndef NDEBUG
+	if (prob->columnIsBasic(jcolx)&&fabs(rcosts[jcolx])>1.0e-5)
+	  printf("bad dj %d %g\n",jcolx,rcosts[jcolx]);
+#endif
 	rcosts[jcolz] = djz - rowduals[irow] * coeffz;
 	if (prob->columnIsBasic(jcolz))
 	  assert (fabs(rcosts[jcolz])<1.0e-5);

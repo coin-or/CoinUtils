@@ -16,11 +16,11 @@ private:
   const int nactions_;
 
   struct action {
-    int jcol;
     double clo;
     double cup;
     double cost;
     double sol;
+    int jcol;
   };
   const action *const actions_;
 

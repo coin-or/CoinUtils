@@ -9,27 +9,24 @@
 class doubleton_action : public CoinPresolveAction {
  public:
   struct action {
-    int icolx;
-    int row;
 
     double clox;
     double cupx;
     double costx;
     
-    int icoly;
-    double cloy;
-    double cupy;
     double costy;
 
     double rlo;
-    double rup;
 
     double coeffx;
     double coeffy;
 
-    int ncolx;
     double *colel;
 
+    int icolx;
+    int icoly;
+    int row;
+    int ncolx;
     int ncoly;
   };
 

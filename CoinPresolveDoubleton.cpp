@@ -14,6 +14,32 @@
 
 #include "CoinPresolvePsdebug.hpp"
 #include "CoinMessage.hpp"
+// This one saves in one go to save [] memory and deletes row
+static double * presolve_duparray(const double * element, const int * index,
+			   int length, int offset,int row)
+{
+  int n;
+  length--;
+  if (sizeof(double)==2*sizeof(int)) 
+    n = (3*length+1)>>1;
+  else
+    n = 2*length;
+  double * dArray = new double [n];
+  int * iArray = (int *) (dArray+length);
+  length++;
+  int i,j=0;
+  index += offset;
+  element += offset;
+  for (i=0;i<length;i++) {
+    int iRow = index[i];
+    if (iRow!=row) {
+      dArray[j]=element[i];
+      iArray[j++]=index[i];
+    }
+  }
+  return dArray;
+}
+
 
 void compact_rep(double *elems, int *indices, CoinBigIndex *starts, const int *lengths, int n,
 			const presolvehlink *link)
@@ -570,12 +596,9 @@ const CoinPresolveAction *doubleton_action::presolve(CoinPresolveMatrix *prob,
 	  s->costx = cost[icolx];
 	  
 	  s->icoly = icoly;
-	  s->cloy = clo[icoly];
-	  s->cupy = cup[icoly];
 	  s->costy = cost[icoly];
 	  
 	  s->rlo = rlo[irow];
-	  s->rup = rup[irow];
 	  
 	  s->coeffx = coeffx;
 	  
@@ -585,12 +608,13 @@ const CoinPresolveAction *doubleton_action::presolve(CoinPresolveMatrix *prob,
 	  
 	  s->ncoly	= hincol[icoly];
 	  if (s->ncoly<s->ncolx) {
+	    // Take out row 
 	    s->colel	= presolve_duparray(colels, hrow, hincol[icoly],
-					    mcstrt[icoly]);
+					    mcstrt[icoly],irow);
 	    s->ncolx=0;
 	  } else {
 	    s->colel	= presolve_duparray(colels, hrow, hincol[icolx],
-					    mcstrt[icolx]);
+					    mcstrt[icolx],irow);
 	    s->ncoly=0;
 	  }
 	}
@@ -842,9 +866,6 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
     double lo0 = f->clox;
     double up0 = f->cupx;
 
-    // probably don't need this
-    double ylo0 = f->cloy;
-    double yup0 = f->cupy;
 
     double coeffx = f->coeffx;
     double coeffy = f->coeffy;
@@ -860,14 +881,10 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 
     // probably don't need this
     rlo[irow] = f->rlo;
-    rup[irow] = f->rup;
+    rup[irow] = f->rlo;
 
     clo[jcolx] = lo0;
     cup[jcolx] = up0;
-
-    // probably don't need this
-    clo[jcoly] = ylo0;
-    cup[jcoly] = yup0;
 
     dcost[jcolx] = f->costx;
     dcost[jcoly] = f->costy;
@@ -919,34 +936,33 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
     double bounds_factor = rhs/coeffy;
     if (f->ncoly) {
       // y is shorter so was saved - need to reconstruct x
+      int ncoly=f->ncoly-1; // as row taken out
       double multiplier = coeffx/coeffy;
       //printf("Current colx %d\n",jcolx);
-      int * indy = (int *) (f->colel+f->ncoly);
+      int * indy = (int *) (f->colel+ncoly);
       int ystart = NO_LINK;
       int nX=0;
       int i,iRow;
-      for (i=0; i<f->ncoly; ++i) {
+      for (i=0; i<ncoly; ++i) {
 	int iRow = indy[i];
 	double yValue = f->colel[i];
 	CoinBigIndex k = free_list;
 	free_list = link[free_list];
 
 	check_free_list(free_list);
-	if (iRow != irow) {
-	  // are these tests always true???
-	  
-	  // undo elim_doubleton(1)
-	  if (-PRESOLVE_INF < rlo[iRow])
-	    rlo[iRow] += yValue * bounds_factor;
-	  
-	  // undo elim_doubleton(2)
-	  if (rup[iRow] < PRESOLVE_INF)
-	    rup[iRow] += yValue * bounds_factor;
-	  
-	  acts[iRow] += yValue * bounds_factor;
-	  
-	  djy -= rowduals[iRow] * yValue;
-	} 
+	// are these tests always true???
+	
+	// undo elim_doubleton(1)
+	if (-PRESOLVE_INF < rlo[iRow])
+	  rlo[iRow] += yValue * bounds_factor;
+	
+	// undo elim_doubleton(2)
+	if (rup[iRow] < PRESOLVE_INF)
+	  rup[iRow] += yValue * bounds_factor;
+	
+	acts[iRow] += yValue * bounds_factor;
+	
+	djy -= rowduals[iRow] * yValue;
 
 	hrow[k] = iRow;
 	PRESOLVEASSERT(rdone[hrow[k]] || hrow[k] == irow);
@@ -956,6 +972,22 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	yValue *= multiplier;
 	element1[iRow]=yValue;
 	index1[nX++]=iRow;
+      }
+      // And coeffy
+      {
+	double yValue = coeffy;
+	CoinBigIndex k = free_list;
+	free_list = link[free_list];
+	
+	check_free_list(free_list);
+	
+	hrow[k] = irow;
+	colels[k] = yValue;
+	link[k] = ystart;
+	ystart = k;
+	yValue *= multiplier;
+	element1[irow]=yValue;
+	index1[nX++]=irow;
       }
       mcstrt[jcoly] = ystart;
       hincol[jcoly] = f->ncoly;
@@ -1015,10 +1047,9 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
       hincol[jcolx] = numberInColumn;
     } else {
       // will use x
+      int ncolx=f->ncolx-1; // as row taken out
       double multiplier = -coeffy/coeffx;
-      coeffy=0.0;
-      coeffx=0.0;
-      int * indx = (int *) (f->colel+f->ncolx);
+      int * indx = (int *) (f->colel+ncolx);
       //printf("Current colx %d\n",jcolx);
       // find the tail 
       CoinBigIndex k=mcstrt[jcolx];
@@ -1039,7 +1070,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
       link[k] = free_list;
       free_list = mcstrt[jcolx];
       int xstart = NO_LINK;
-      for (i=0; i<f->ncolx; ++i) {
+      for (i=0; i<ncolx; ++i) {
 	int iRow = indx[i];
 	double xValue = f->colel[i];
 	//printf("x %d %d %g\n",i,indx[i],f->colel[i]);
@@ -1059,6 +1090,26 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  index1[nX++]=iRow;
 	} else {
 	  element1[iRow]+=xValue;
+	}
+      }
+      // And coeffx
+      {
+	double xValue = coeffx;
+	CoinBigIndex k = free_list;
+	free_list = link[free_list];
+	
+	check_free_list(free_list);
+	
+	hrow[k] = irow;
+	colels[k] = xValue;
+	link[k] = xstart;
+	xstart = k;
+	xValue *= multiplier;
+	if (!element1[irow]) {
+	  element1[irow]=xValue;
+	  index1[nX++]=irow;
+	} else {
+	  element1[irow]+=xValue;
 	}
       }
       mcstrt[jcolx] = xstart;
@@ -1109,8 +1160,6 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  acts[row] += coeff * bounds_factor;
 	  
 	  djy -= rowduals[row] * coeff;
-	} else {
-	  coeffy=coeff;
 	}
       }
       k = mcstrt[jcolx];
@@ -1123,12 +1172,10 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	
 	if (row != irow) {
 	  djx -= rowduals[row] * coeff;
-	} else {
-	  coeffx=coeff;
 	}
       }
     }
-    
+    assert (fabs(coeffx-f->coeffx)<1.0e-6&&fabs(coeffy-f->coeffy)<1.0e-6);
     
     
     // The only problem with keeping the reduced costs the way they were
@@ -1146,8 +1193,10 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	// for example, this is obviously true if y is a singleton column
 	rowduals[irow] = djy / coeffy;
 	rcosts[jcolx] = djx - rowduals[irow] * coeffx;
+#if 0
 	if (prob->columnIsBasic(jcolx))
 	  assert (fabs(rcosts[jcolx])<1.0e-5);
+#endif
 	rcosts[jcoly] = 0.0;
       } else {
 	prob->setColumnStatus(jcolx,CoinPrePostsolveMatrix::basic);

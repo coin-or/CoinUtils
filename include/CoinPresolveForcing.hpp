@@ -7,11 +7,11 @@
 
 class forcing_constraint_action : public CoinPresolveAction {
   struct action {
+    const int *rowcols;
+    const double *bounds;
     int row;
     int nlo;
     int nup;
-    const int *rowcols;
-    const double *bounds;
   };
 
   const int nactions_;
