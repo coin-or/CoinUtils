@@ -463,7 +463,8 @@ CoinIndexedVector::CoinIndexedVector () :
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-capacity_(0)
+capacity_(0),
+offset_(0)
 {
 }
 
@@ -474,7 +475,8 @@ CoinIndexedVector::CoinIndexedVector(int size,
   indices_(NULL),
   elements_(NULL),
   nElements_(0),
-  capacity_(0)
+  capacity_(0),
+  offset_(0)
 {
   gutsOfSetVector(size, inds, elems);
 }
@@ -486,7 +488,8 @@ CoinIndexedVector::CoinIndexedVector(int size,
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-capacity_(0)
+capacity_(0),
+offset_(0)
 {
 gutsOfSetConstant(size, inds, value);
 }
@@ -497,7 +500,8 @@ CoinIndexedVector::CoinIndexedVector(int size, const double * element) :
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-capacity_(0)
+capacity_(0),
+offset_(0)
 {
   setFull(size, element);
 }
@@ -508,7 +512,8 @@ CoinIndexedVector::CoinIndexedVector(const CoinPackedVectorBase & rhs) :
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-capacity_(0)
+capacity_(0),
+offset_(0)
 {  
   gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements());
 }
@@ -519,7 +524,8 @@ CoinIndexedVector::CoinIndexedVector(const CoinIndexedVector & rhs) :
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-capacity_(0)
+capacity_(0),
+offset_(0)
 {  
   gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
 }
@@ -530,7 +536,8 @@ CoinIndexedVector::CoinIndexedVector(const CoinIndexedVector * rhs) :
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-capacity_(0)
+capacity_(0),
+offset_(0)
 {  
   gutsOfSetVector(rhs->capacity_,rhs->nElements_, rhs->indices_, rhs->elements_);
 }
