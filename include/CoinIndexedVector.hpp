@@ -17,8 +17,8 @@
 
 /** Indexed Vector
 
-This stores values unpacked but apart from that is like CoinPackedVector.  It
-is designed to be lightweight in normal use.
+This stores values unpacked but apart from that is a bit like CoinPackedVector.
+It is designed to be lightweight in normal use.
 
 Stores vector of indices and associated element values.
 Supports sorting of indices.  
@@ -27,8 +27,7 @@ Does not support negative indices.
 
 Does NOT support testing for duplicates
 
-For a packed vector getElements is fast and [] is very slow.  Here it is other way round
-although getElements is not too bad if used as double * elements = getElements and then used.
+*** getElements is no longer supported
 
 Here is a sample usage:
 @verbatim
@@ -38,16 +37,6 @@ Here is a sample usage:
 
     // Create vector and set its valuex1
     CoinIndexedVector r(ne,inx,el);
-
-    // access each index and element
-    assert( r.getIndices ()[0]== 1  );
-    assert( r.getElements()[0]==10. );
-    assert( r.getIndices ()[1]== 4  );
-    assert( r.getElements()[1]==40. );
-    assert( r.getIndices ()[2]== 0  );
-    assert( r.getElements()[2]== 1. );
-    assert( r.getIndices ()[3]== 2  );
-    assert( r.getElements()[3]==50. );
 
     // access as a full storage vector
     assert( r[ 0]==1. );
@@ -61,13 +50,9 @@ Here is a sample usage:
 
     // access each index and element
     assert( r.getIndices ()[0]== 0  );
-    assert( r.getElements()[0]== 1. );
     assert( r.getIndices ()[1]== 1  );
-    assert( r.getElements()[1]==10. );
     assert( r.getIndices ()[2]== 4  );
-    assert( r.getElements()[2]==40. );
     assert( r.getIndices ()[3]== 2  );
-    assert( r.getElements()[3]==50. );    
 
     // access as a full storage vector
     assert( r[ 0]==1. );
@@ -98,7 +83,7 @@ Here is a sample usage:
     assert( r.sum() == 10.+40.+1.+50. );
 @endverbatim
 */
-class CoinIndexedVector : public CoinPackedVectorBase {
+class CoinIndexedVector {
    friend void CoinIndexedVectorUnitTest();
   
 public:
@@ -109,11 +94,9 @@ public:
    /// Get indices of elements
    virtual const int * getIndices() const { return indices_; }
    /// Get element values
-   virtual const double * getElements() const ;
+   // ** No longer supported virtual const double * getElements() const ;
    /// Get indices of elements
    int * getIndices() { return indices_; }
-   /// Get element values
-   double * getElements();
    /** Get the vector as a dense vector. This is normal storage method.
        The user should not not delete [] this.
    */
@@ -180,8 +163,7 @@ public:
    void add(int index, double element);
    /** Insert or if exists add an element into the vector
        Any resulting zero elements will be made tiny.
-       This version does no checking and must be followed by
-       stopQuickAdd */
+       This version does no checking */
    inline void quickAdd(int index, double element)
                {
 		 if (elements_[index]) {
@@ -197,15 +179,12 @@ public:
 		 }
 	       };
    /** Makes nonzero tiny.
-       This version does no checking and must be followed by
-       stopQuickAdd */
+       This version does no checking */
    inline void zero(int index)
                {
 		 if (elements_[index]) 
 		   elements_[index] = 1.0e-100;
 	       };
-   /// Stops quickAdd or zero - so sorts etc will work
-   void stopQuickAdd();
    /** set all small values to zero and return number remaining
       - < tolerance => 0.0 */
    int clean(double tolerance);
@@ -215,6 +194,8 @@ public:
    void checkClean();
    /// Append a CoinPackedVector to the end
    void append(const CoinPackedVectorBase & caboose);
+   /// Append a CoinIndexedVector to the end
+   void append(const CoinIndexedVector & caboose);
 
    /// Swap values in positions i and j of indices and elements
    void swap(int i, int j); 
@@ -233,6 +214,29 @@ public:
    /// divide every entry by <code>value</code> (** 0 vanishes)
    void operator/=(double value);
    //@}
+
+   /**@name Comparison operators on two indexed vectors */
+   //@{
+   /** Equal. Returns true if vectors have same length and corresponding
+       element of each vector is equal. */
+   bool operator==(const CoinPackedVectorBase & rhs) const;
+   /// Not equal
+   bool operator!=(const CoinPackedVectorBase & rhs) const;
+   /** Equal. Returns true if vectors have same length and corresponding
+       element of each vector is equal. */
+   bool operator==(const CoinIndexedVector & rhs) const;
+   /// Not equal
+   bool operator!=(const CoinIndexedVector & rhs) const;
+   //@}
+
+   /**@name Index methods */
+   //@{
+   /// Get value of maximum index
+   int getMaxIndex() const;
+   /// Get value of minimum index
+   int getMinIndex() const;
+   //@}
+
 
    /**@name Sorting */
    //@{ 
@@ -337,8 +341,6 @@ private:
    double * elements_;
    /// Size of indices and packed elements vectors
    int nElements_;
-   ///Vector packed elements (shadow of full array)
-   mutable double * packedElements_;
    /// Amount of memory allocated for indices_, and elements_.
    int capacity_;
    //@}

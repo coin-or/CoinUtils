@@ -47,6 +47,9 @@ ifeq ($(OptLevel),-g)
 # for memory checkers
     CXXFLAGS += -DZEROFAULT
 endif
+ifeq ($(OptLevel),-O2)
+#     CXXFLAGS += -DNDEBUG
+endif
 
 export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir}
 export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir}

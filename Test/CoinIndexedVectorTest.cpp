@@ -24,7 +24,6 @@ CoinIndexedVectorUnitTest()
   {
     CoinIndexedVector r;
     assert( r.indices_==NULL );
-    assert( r.packedElements_==NULL );
     assert( r.elements_==NULL );
     assert( r.getNumElements()==0 );
     assert( r.capacity_==0);
@@ -44,10 +43,7 @@ CoinIndexedVectorUnitTest()
     for ( i=0; i<ne; i++ ) {
       assert( r.getIndices()[i]  == inx[i] );
       assert( r[inx[i]]  == el[i] );
-      assert( r.getElements()[i] == el[i]  );
     }
-    assert ( r.getMaxIndex()==7 );
-    assert ( r.getMinIndex()==1 );
     
     // Test setting/getting elements with indices out of order  
     const int ne2 = 5;
@@ -59,57 +55,20 @@ CoinIndexedVectorUnitTest()
     assert( r.getNumElements()==ne2 );    
     
     assert( r.getIndices()[0]==inx2[0] );
-    assert( r.getElements()[0]==el2[0] );
     
     assert( r.getIndices()[1]==inx2[1] );
-    assert( r.getElements()[1]==el2[1] );
     
     assert( r.getIndices()[2]==inx2[2] );
-    assert( r.getElements()[2]==el2[2] );
     
     assert( r.getIndices()[3]==inx2[3] );
-    assert( r.getElements()[3]==el2[3] );
     
     assert( r.getIndices()[4]==inx2[4] );
-    assert( r.getElements()[4]==el2[4] );
     
-    assert ( r.getMaxIndex()==14 );
-    assert ( r.getMinIndex()==2 );
-    assert ( r.getMaxIndex()==14 );
-    assert ( r.getMinIndex()==2 );
-    {
-      bool errorThrown = false;
-      try {
-        r.duplicateIndex();
-      }
-      catch (CoinError e) {
-        errorThrown = true;
-      }
-      assert( !errorThrown );
-    }
 
     CoinIndexedVector r1(ne2,inx2,el2);
     assert( r == r1 );   
   }    
   CoinIndexedVector r;
-  
-  // Test operator[] where index is duplicated 
-  // Causes exception to be thrown
-  {
-    const int ne3 = 4;
-    int inx3[ne3] = { 2, 4, 2, 3 };
-    double el3[ne3] = { 2.2, 4.4, 8.8, 6.6 };
-    bool errorThrown = false;
-    try {
-      r.setVector(ne3,inx3,el3);
-    }
-    catch (CoinError e) {
-      errorThrown = true;
-    }
-    assert( errorThrown );
-    
-  } 
-  
   
   
   {
@@ -119,18 +78,11 @@ CoinIndexedVectorUnitTest()
     double el[ne] = { 2.2, 4.4, 8.8};
     r.setVector(ne,inx,el);
     int c = r.capacity();
-    int max = r.getMaxIndex();
-    int min = r.getMinIndex();
     // Test swap function
     r.swap(0,2);
     assert( r.getIndices()[0]==3 );
     assert( r.getIndices()[1]==2 );
     assert( r.getIndices()[2]==1 );
-    assert( r.getElements()[0]==8.8 );
-    assert( r.getElements()[1]==4.4 );
-    assert( r.getElements()[2]==2.2 );
-    assert( r.getMaxIndex() == max );
-    assert( r.getMinIndex() == min );
     assert( r.capacity() == c );
     
     // Test the append function
@@ -148,15 +100,6 @@ CoinIndexedVectorUnitTest()
     assert( r.getIndices()[4]==12 );
     assert( r.getIndices()[5]==13 );
     assert( r.getIndices()[6]==14 );
-    assert( r.getElements()[0]==8.8 );
-    assert( r.getElements()[1]==4.4 );
-    assert( r.getElements()[2]==2.2 );
-    assert( r.getElements()[3]==.122 );
-    assert( r.getElements()[4]==14.4 );    
-    assert( r.getElements()[5]==18.8 );
-    assert( r.getElements()[6]==19.9 );
-    assert( r.getMaxIndex() == 14 );
-    assert( r.getMinIndex() == 1 );
     
     // Test the resize function
     c = r.capacity();
@@ -166,9 +109,6 @@ CoinIndexedVectorUnitTest()
     assert( r.getIndices()[0]==3 );
     assert( r.getIndices()[1]==2 );
     assert( r.getIndices()[2]==1 );
-    assert( r.getElements()[0]==8.8 );
-    assert( r.getElements()[1]==4.4 );
-    assert( r.getElements()[2]==2.2 );
     assert( r.getMaxIndex() == 3 );
     assert( r.getMinIndex() == 1 );
     assert( r.capacity() == c );
@@ -215,8 +155,6 @@ CoinIndexedVectorUnitTest()
       
       for ( i=0; i<ne; i++ ) {
 	assert( r.getIndices()[i] == rC2.getIndices()[i] );
-	assert( r[r.getIndices()[i]] == rC2.getElements()[i]);
-	assert( r.getElements()[i] == rC2.getElements()[i] );
       }
       
       rhs=rC2;
@@ -226,7 +164,6 @@ CoinIndexedVectorUnitTest()
     
     for ( i=0; i<ne; i++ ) {
       assert( inx[i] == rhs.getIndices()[i] );
-      assert(  el[i] == rhs.getElements()[i] );
     } 
   }
   
@@ -237,20 +174,14 @@ CoinIndexedVectorUnitTest()
     assert( v2==v1 );
     assert( v1==v1 );
     assert( !(v1!=v2) );
-    assert( v1.isEquivalent(v2) );
-    assert( v2.isEquivalent(v1) );
-    assert( v1.isEquivalent(v1) );
     
     v1.setVector( ne, inx, el );
     assert ( !(v1==v2) );
     assert ( v1!=v2 );
-    assert( !v1.isEquivalent(v2) );
     
     CoinIndexedVector v3(v1);
     assert( v3==v1 );
     assert( v3!=v2 );
-    assert( v1.isEquivalent(v3) );
-    assert( v3.isEquivalent(v1) );
     
     CoinIndexedVector v4(v2);
     assert( v4!=v1 );
@@ -310,9 +241,6 @@ CoinIndexedVectorUnitTest()
     }
     assert( errorThrown );
     
-    assert(  r.isExistingIndex(2) );
-    assert( !r.isExistingIndex(3) );
-    
     assert ( r.getMaxIndex()==4 );
     assert ( r.getMinIndex()==0 );
   }
@@ -337,9 +265,6 @@ CoinIndexedVectorUnitTest()
     CoinIndexedVector v1,v2;
     v1.setVector(ne,inx1,el1);
     v2.setVector(ne,inx2,el2);
-    assert( !v1.isEquivalent(v2) );
-    assert(  v1.isEquivalent(v2,CoinAbsFltEq(.6)) );
-    assert(  v1.isEquivalent(v2,CoinRelFltEq(.6)) );
   }
   
   {
@@ -418,54 +343,35 @@ CoinIndexedVectorUnitTest()
     assert( v1.getNumElements()==0 );
     assert( v1.capacity()==0 );
     
-    assert( !v1.isExistingIndex(1) );
     v1.insert(1,1.);
     assert( v1.getNumElements()==1 );
     assert( v1.capacity()==2 );
     assert( v1.getIndices()[0] == 1 );
-    assert( v1.getElements()[0] == 1. );
-    assert( v1.isExistingIndex(1) );
     
-    assert( !v1.isExistingIndex(10) );
     v1.insert(10,10.);
     assert( v1.getNumElements()==2 );
     assert( v1.capacity()==11 );
     assert( v1.getIndices()[1] == 10 );
-    assert( v1.getElements()[1] == 10. );
-    assert( v1.isExistingIndex(1) );
-    assert( v1.isExistingIndex(10) );
     
-    assert( !v1.isExistingIndex(20) );
     v1.insert(20,20.);
     assert( v1.getNumElements()==3 );
     assert( v1.capacity()==21 );
     assert( v1.getIndices()[2] == 20 );
-    assert( v1.getElements()[2] == 20. );
-    assert( v1.isExistingIndex(20) );
     
-    assert( !v1.isExistingIndex(30) );
     v1.insert(30,30.);
     assert( v1.getNumElements()==4 );
     assert( v1.capacity()==31 );
     assert( v1.getIndices()[3] == 30 );
-    assert( v1.getElements()[3] == 30. );
-    assert( v1.isExistingIndex(30) );
-    
-    assert( !v1.isExistingIndex(40) );
+
     v1.insert(40,40.);
     assert( v1.getNumElements()==5 );
     assert( v1.capacity()==41 );
     assert( v1.getIndices()[4] == 40 );
-    assert( v1.getElements()[4] == 40. );
-    assert( v1.isExistingIndex(40) );
     
-    assert( !v1.isExistingIndex(50) );
     v1.insert(50,50.);
     assert( v1.getNumElements()==6 );
     assert( v1.capacity()==51 );
     assert( v1.getIndices()[5] == 50 );
-    assert( v1.getElements()[5] == 50. );
-    assert( v1.isExistingIndex(50) );
     
     CoinIndexedVector v2;
     const int ne1 = 3;
@@ -500,11 +406,8 @@ CoinIndexedVectorUnitTest()
     assert( v2.getNumElements()==3 );
     assert( v2.capacity()==5 );
     assert( v2.getIndices()[0]==1 );
-    assert( v2.getElements()[0]==3.14 );
     assert( v2.getIndices()[1]==3 );
-    assert( v2.getElements()[1]==3.14 );
     assert( v2.getIndices()[2]==4 );
-    assert( v2.getElements()[2]==3.14 );
     
     assert( v2[3] == 3.14 );
     
@@ -522,11 +425,8 @@ CoinIndexedVectorUnitTest()
     assert( v2.getNumElements()==3 );
     assert( v2.capacity()==3 );
     assert( v2.getIndices()[0]==0 );
-    assert( v2.getElements()[0]==1. );
     assert( v2.getIndices()[1]==1 );
-    assert( v2.getElements()[1]==3. );
     assert( v2.getIndices()[2]==2 );
-    assert( v2.getElements()[2]==4. );
     
     assert( v2[1] == 3. );
     
@@ -551,70 +451,6 @@ CoinIndexedVectorUnitTest()
 #endif
   
   
-  
-  // Test sum
-  { 
-    CoinIndexedVector s;
-    assert( s.sum() == 0 );
-    
-    s.insert(25,45.);
-    assert(s.sum()==45.);
-    
-    const int ne1 = 5;
-    int inx1[ne1]   = { 10,  3,  4,  7,  5  };
-    double el1[ne1] = { 1., 5., 6., 2., 9. };
-    s.setVector(ne1,inx1,el1);
-    
-    assert(s.sum()==1.+5.+6.+2.+9.);
-  }
-  
-  // Just another interesting test
-  {    
-    // Create numerator vector
-    const int ne1 = 2;
-    int inx1[ne1]   = { 1,  4  };
-    double el1[ne1] = { 1., 6. };
-    CoinIndexedVector v1(ne1,inx1,el1);
-    
-    // create denominator vector
-    const int ne2 = 3;
-    int inx2[ne2] =   { 1,  2,  4 };
-    double el2[ne2] = { 1., 7., 4.};
-    CoinIndexedVector v2(ne2,inx2,el2);
-    
-    // Compute ratio
-    CoinIndexedVector ratio = v1 / v2;
-    
-/*
-  The original code here used sortIncrElement, ostensibly to test that the
-  zero (nominally in ratio[2]) disappeared. In fact, it's never created, and
-  sortIncr was a noop. Changed to sortDecr to see some action.  Then it
-  turned out that the Sun CC compiler is math-challenged when it comes to
-  optimization, declaring that 1.0/1.0 = 24! Working through a temp gets it
-  over this block. To say I'm developing an active dislike for C++
-  optimization is a considerable understatement. -- lh, 02.04.09 --
-*/
-    // Sort ratios
-    ratio.sortDecrElement();
-    
-    // Test that the sort really worked
-    assert( ratio.getNumElements() == 2);
-    double temp = 1.0 ;
-    temp /= 1.0 ;
-    assert( ratio.getElements()[1] == temp );
-    temp = 6.0 ;
-    temp /= 4.0 ;
-    assert( ratio.getElements()[0] == temp );
-    
-    // Get numerator of of sorted ratio vector
-    assert( v1[ ratio.getIndices()[1] ] == 1.0 );
-    assert( v1[ ratio.getIndices()[0] ] == 6.0 );
-    
-    // Get denominator of of sorted ratio vector
-    assert( v2[ ratio.getIndices()[1] ] == 1.0 );
-    assert( v2[ ratio.getIndices()[0] ] == 4.0 );
-  }
-  
   // Test copy constructor from ShallowPackedVector
   {
     const int ne = 4;
@@ -624,13 +460,8 @@ CoinIndexedVectorUnitTest()
     CoinShallowPackedVector * spvP = new CoinShallowPackedVector(ne,inx,el);
     CoinIndexedVector pv(*spvP);
     assert( pv == std );
-    assert( pv.isEquivalent(std) );
     delete spvP;
     assert( pv == std );
-    assert( pv.isEquivalent(std) );
-    pv.sortIncrElement();
-    assert( pv != std );
-    assert( pv.isEquivalent(std) );
   }
   
   // Test assignment from ShallowPackedVector
@@ -643,13 +474,8 @@ CoinIndexedVectorUnitTest()
     CoinIndexedVector pv;
     pv = *spvP;
     assert( pv == std );
-    assert( pv.isEquivalent(std) );
     delete spvP;
     assert( pv == std );
-    assert( pv.isEquivalent(std) );
-    pv.sortIncrElement();
-    assert( pv != std );
-    assert( pv.isEquivalent(std) );
   }
   
   {
@@ -661,13 +487,9 @@ CoinIndexedVectorUnitTest()
     CoinIndexedVector r(ne,inx,el);
     
     assert( r.getIndices()[0]== 1  );
-    assert( r.getElements()[0]==10. );
     assert( r.getIndices()[1]== 4  );
-    assert( r.getElements()[1]==40. );
     assert( r.getIndices()[2]== 0  );
-    assert( r.getElements()[2]== 1. );
     assert( r.getIndices()[3]== 2  );
-    assert( r.getElements()[3]==50. );
     
     assert( r[ 0]==1. );
     assert( r[ 1]==10.);
@@ -678,13 +500,9 @@ CoinIndexedVectorUnitTest()
     r.sortIncrElement();
     
     assert( r.getIndices()[0]== 0  );
-    assert( r.getElements()[0]== 1. );
     assert( r.getIndices()[1]== 1  );
-    assert( r.getElements()[1]==10. );
     assert( r.getIndices()[2]== 4  );
-    assert( r.getElements()[2]==40. );
     assert( r.getIndices()[3]== 2  );
-    assert( r.getElements()[3]==50. );    
     
     assert( r[ 0]==1. );
     assert( r[ 1]==10.);
@@ -695,10 +513,6 @@ CoinIndexedVectorUnitTest()
     CoinIndexedVector r1;
     r1=r;
     assert( r==r1 );
-    assert( r.isEquivalent(r1) );
-    r.sortDecrElement();
-    assert( r!=r1 );
-    assert( r.isEquivalent(r1) );
     
     CoinIndexedVector add = r + r1;
     assert( add[0] ==  1.+ 1. );
@@ -707,7 +521,6 @@ CoinIndexedVectorUnitTest()
     assert( add[3] ==  0.+ 0. );
     assert( add[4] == 40.+40. );
     
-    assert( r.sum() == 10.+40.+1.+50. );
   }
   
 }

@@ -19,9 +19,6 @@ CoinIndexedVector::clear()
     elements_[indices_[i]]=0.0;
   }
   nElements_ = 0;
-  clearBase();
-  delete [] packedElements_;
-  packedElements_=NULL;
 }
 
 //#############################################################################
@@ -35,9 +32,6 @@ CoinIndexedVector::empty()
   elements_=NULL;
   nElements_ = 0;
   capacity_=0;
-  clearBase();
-  delete [] packedElements_;
-  packedElements_=NULL;
 }
 
 //#############################################################################
@@ -57,10 +51,8 @@ CoinIndexedVector::operator=(const CoinIndexedVector & rhs)
 CoinIndexedVector &
 CoinIndexedVector::operator=(const CoinPackedVectorBase & rhs)
 {
-  if (this != &rhs) {
-    clear();
-    gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements());
-  }
+  clear();
+  gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements());
   return *this;
 }
 
@@ -87,11 +79,6 @@ CoinIndexedVector::returnVector()
   elements_=NULL;
   nElements_ = 0;
   capacity_=0;
-  clearBase();
-  delete [] packedElements_;
-  packedElements_=NULL;
-  // and clear index set
-  clearIndexSet();
 }
 
 //#############################################################################
@@ -127,8 +114,6 @@ CoinIndexedVector::setFull(int size, const double * elems)
 {
   // Clear out any values presently stored
   clear();
-  // and clear index set
-  clearIndexSet();
   
   if (size<0)
     throw CoinError("negative number of indices", "setFull", "CoinIndexedVector");
@@ -184,10 +169,6 @@ CoinIndexedVector::insert( int index, double element )
     throw CoinError("Index already exists", "insert", "CoinIndexedVector");
   indices_[nElements_++] = index;
   elements_[index] = element;
-  // and clear index set
-  clearIndexSet();
-  delete [] packedElements_;
-  packedElements_=NULL;
 }
 
 //#############################################################################
@@ -210,21 +191,6 @@ CoinIndexedVector::add( int index, double element )
     indices_[nElements_++] = index;
     elements_[index] = element;
    }
-  // and clear index set
-  clearIndexSet();
-  delete [] packedElements_;
-  packedElements_=NULL;
-}
-
-//#############################################################################
-
-void
-CoinIndexedVector::stopQuickAdd( )
-{
-  // clear index set
-  clearIndexSet();
-  delete [] packedElements_;
-  packedElements_=NULL;
 }
 
 //#############################################################################
@@ -243,10 +209,6 @@ CoinIndexedVector::clean( double tolerance )
       elements_[indexValue]=0.0;
     }
   }
-  // and clear index set
-  clearIndexSet();
-  delete [] packedElements_;
-  packedElements_=NULL;
   return nElements_;
 }
 
@@ -326,10 +288,6 @@ CoinIndexedVector::append(const CoinPackedVectorBase & caboose)
       }
     }
   }
-  // and clear index set
-  clearIndexSet();
-  delete [] packedElements_;
-  packedElements_=NULL;
   if (numberDuplicates)
     throw CoinError("duplicate index", "append", "CoinIndexedVector");
 }
@@ -457,37 +415,27 @@ CoinIndexedVector::reserve(int n)
     delete [] tempElements;
     delete [] tempIndices;
   }
-  // and clear index set
-  clearIndexSet();
-  delete [] packedElements_;
-  packedElements_=NULL;
 }
 
 //#############################################################################
 
 CoinIndexedVector::CoinIndexedVector () :
-CoinPackedVectorBase(),
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-packedElements_(NULL),
 capacity_(0)
 {
-  setTestForDuplicateIndex(false);
 }
 
 //-----------------------------------------------------------------------------
 
 CoinIndexedVector::CoinIndexedVector(int size,
 				     const int * inds, const double * elems)  :
-  CoinPackedVectorBase(),
   indices_(NULL),
   elements_(NULL),
   nElements_(0),
-  packedElements_(NULL),
   capacity_(0)
 {
-  setTestForDuplicateIndex(false);
   gutsOfSetVector(size, inds, elems);
 }
 
@@ -495,70 +443,55 @@ CoinIndexedVector::CoinIndexedVector(int size,
 
 CoinIndexedVector::CoinIndexedVector(int size,
   const int * inds, double value) :
-CoinPackedVectorBase(),
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-packedElements_(NULL),
 capacity_(0)
 {
-  setTestForDuplicateIndex(false);
 gutsOfSetConstant(size, inds, value);
 }
 
 //-----------------------------------------------------------------------------
 
 CoinIndexedVector::CoinIndexedVector(int size, const double * element) :
-CoinPackedVectorBase(),
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-packedElements_(NULL),
 capacity_(0)
 {
-  setTestForDuplicateIndex(false);
   setFull(size, element);
 }
 
 //-----------------------------------------------------------------------------
 
 CoinIndexedVector::CoinIndexedVector(const CoinPackedVectorBase & rhs) :
-CoinPackedVectorBase(),
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-packedElements_(NULL),
 capacity_(0)
 {  
-  setTestForDuplicateIndex(false);
   gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements());
 }
 
 //-----------------------------------------------------------------------------
 
 CoinIndexedVector::CoinIndexedVector(const CoinIndexedVector & rhs) :
-CoinPackedVectorBase(),
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-packedElements_(NULL),
 capacity_(0)
 {  
-  setTestForDuplicateIndex(false);
   gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
 }
 
 //-----------------------------------------------------------------------------
 
 CoinIndexedVector::CoinIndexedVector(const CoinIndexedVector * rhs) :
-CoinPackedVectorBase(),
 indices_(NULL),
 elements_(NULL),
 nElements_(0),
-packedElements_(NULL),
 capacity_(0)
 {  
-  setTestForDuplicateIndex(false);
   gutsOfSetVector(rhs->capacity_,rhs->nElements_, rhs->indices_, rhs->elements_);
 }
 
@@ -567,37 +500,9 @@ capacity_(0)
 CoinIndexedVector::~CoinIndexedVector ()
 {
   delete [] indices_;
-  delete [] packedElements_;
   delete [] elements_;
 }
 //#############################################################################
-
-// Get element values
-const double * 
-CoinIndexedVector::getElements() const 
-{
-  if (!packedElements_)
-    packedElements_ = new double[nElements_];
-  int i;
-  for (i=0;i<nElements_;i++) {
-    int indexValue=indices_[i];
-    packedElements_[i]=elements_[indexValue];
-  }
-  return packedElements_;
-}
-
-double * 
-CoinIndexedVector::getElements()  
-{
-  if (!packedElements_)
-    packedElements_ = new double[nElements_];
-  int i;
-  for (i=0;i<nElements_;i++) {
-    int indexValue=indices_[i];
-    packedElements_[i]=elements_[indexValue];
-  }
-  return packedElements_;
-}
 //#############################################################################
 
 /// Return the sum of two indexed vectors
@@ -784,40 +689,46 @@ CoinIndexedVector::operator/ (const CoinIndexedVector& op2)
   return newOne;
 }
 //#############################################################################
-
 void 
 CoinIndexedVector::sortDecrIndex()
 { 
-  double * elements = getElements();
+  // Should replace with std sort
+  double * elements = new double [nElements_];
+  memset (elements,0,nElements_*sizeof(double));
   CoinSort_2(indices_, indices_ + nElements_, elements,
-    CoinFirstGreater_2<int, double>());
+	     CoinFirstGreater_2<int, double>());
+  delete [] elements;
 }
 
 void 
 CoinIndexedVector::sortIncrElement()
 { 
-  double * elements = getElements();
+  double * elements = new double [nElements_];
+  int i;
+  for (i=0;i<nElements_;i++) 
+    elements[i] = elements_[indices_[i]];
   CoinSort_2(elements, elements + nElements_, indices_,
     CoinFirstLess_2<double, int>());
+  delete [] elements;
 }
 
 void 
 CoinIndexedVector::sortDecrElement()
 { 
-  double * elements = getElements();
+  double * elements = new double [nElements_];
+  int i;
+  for (i=0;i<nElements_;i++) 
+    elements[i] = elements_[indices_[i]];
   CoinSort_2(elements, elements + nElements_, indices_,
     CoinFirstGreater_2<double, int>());
+  delete [] elements;
 }
-
 //#############################################################################
 
 void
 CoinIndexedVector::gutsOfSetVector(int size,
 				   const int * inds, const double * elems)
 {
-  // and clear index set
-  clearIndexSet();
-  
   if (size<0)
     throw CoinError("negative number of indices", "setVector", "CoinIndexedVector");
   
@@ -877,8 +788,6 @@ void
 CoinIndexedVector::gutsOfSetVector(int size, int numberIndices, 
 				   const int * inds, const double * elems)
 {
-  // and clear index set
-  clearIndexSet();
   
   int i;
   reserve(size);
@@ -931,9 +840,6 @@ CoinIndexedVector::gutsOfSetConstant(int size,
 				     const int * inds, double value)
 {
 
-  // and clear index set
-  clearIndexSet();
-  
   if (size<0)
     throw CoinError("negative number of indices", "setConstant", "CoinIndexedVector");
   
@@ -989,3 +895,162 @@ CoinIndexedVector::gutsOfSetConstant(int size,
 }
 
 //#############################################################################
+// Append a CoinIndexedVector to the end
+void 
+CoinIndexedVector::append(const CoinIndexedVector & caboose)
+{
+  const int cs = caboose.getNumElements();
+  
+  const int * cind = caboose.getIndices();
+  const double * celem = caboose.denseVector();
+  int maxIndex=-1;
+  int i;
+  for (i=0;i<cs;i++) {
+    int indexValue = cind[i];
+    if (indexValue<0)
+      throw CoinError("negative index", "append", "CoinIndexedVector");
+    if (maxIndex<indexValue)
+      maxIndex = indexValue;
+  }
+  reserve(maxIndex+1);
+  bool needClean=false;
+  int numberDuplicates=0;
+  for (i=0;i<cs;i++) {
+    int indexValue=cind[i];
+    if (elements_[indexValue]) {
+      numberDuplicates++;
+      elements_[indexValue] += celem[indexValue] ;
+      if (fabs(elements_[indexValue])<COIN_INDEXED_TINY_ELEMENT) 
+	needClean=true; // need to go through again
+    } else {
+      if (fabs(celem[indexValue])>=COIN_INDEXED_TINY_ELEMENT) {
+	elements_[indexValue]=celem[indexValue];
+	indices_[nElements_++]=indexValue;
+      }
+    }
+  }
+  if (needClean) {
+    // go through again
+    int size=nElements_;
+    nElements_=0;
+    for (i=0;i<size;i++) {
+      int indexValue=indices_[i];
+      double value=elements_[indexValue];
+      if (fabs(value)>=COIN_INDEXED_TINY_ELEMENT) {
+	indices_[nElements_++]=indexValue;
+      } else {
+        elements_[indexValue]=0.0;
+      }
+    }
+  }
+  if (numberDuplicates)
+    throw CoinError("duplicate index", "append", "CoinIndexedVector");
+}
+
+/* Equal. Returns true if vectors have same length and corresponding
+   element of each vector is equal. */
+bool 
+CoinIndexedVector::operator==(const CoinPackedVectorBase & rhs) const
+{
+  const int cs = rhs.getNumElements();
+  
+  const int * cind = rhs.getIndices();
+  const double * celem = rhs.getElements();
+  if (nElements_!=cs)
+    return false;
+  int i;
+  bool okay=true;
+  for (i=0;i<cs;i++) {
+    int iRow = cind[i];
+    if (celem[i]!=elements_[iRow]) {
+      okay=false;
+      break;
+    }
+  }
+  return okay;
+}
+// Not equal
+bool 
+CoinIndexedVector::operator!=(const CoinPackedVectorBase & rhs) const
+{
+  const int cs = rhs.getNumElements();
+  
+  const int * cind = rhs.getIndices();
+  const double * celem = rhs.getElements();
+  if (nElements_!=cs)
+    return true;
+  int i;
+  bool okay=false;
+  for (i=0;i<cs;i++) {
+    int iRow = cind[i];
+    if (celem[i]!=elements_[iRow]) {
+      okay=true;
+      break;
+    }
+  }
+  return okay;
+}
+/* Equal. Returns true if vectors have same length and corresponding
+   element of each vector is equal. */
+bool 
+CoinIndexedVector::operator==(const CoinIndexedVector & rhs) const
+{
+  const int cs = rhs.nElements_;
+  
+  const int * cind = rhs.indices_;
+  const double * celem = rhs.elements_;
+  if (nElements_!=cs)
+    return false;
+  int i;
+  bool okay=true;
+  for (i=0;i<cs;i++) {
+    int iRow = cind[i];
+    if (celem[iRow]!=elements_[iRow]) {
+      okay=false;
+      break;
+    }
+  }
+  return okay;
+}
+/// Not equal
+bool 
+CoinIndexedVector::operator!=(const CoinIndexedVector & rhs) const
+{
+  const int cs = rhs.nElements_;
+  
+  const int * cind = rhs.indices_;
+  const double * celem = rhs.elements_;
+  if (nElements_!=cs)
+    return true;
+  int i;
+  bool okay=false;
+  for (i=0;i<cs;i++) {
+    int iRow = cind[i];
+    if (celem[iRow]!=elements_[iRow]) {
+      okay=true;
+      break;
+    }
+  }
+  return okay;
+}
+// Get value of maximum index
+int 
+CoinIndexedVector::getMaxIndex() const
+{
+  int maxIndex = INT_MIN;
+  int i;
+  for (i=0;i<nElements_;i++)
+    maxIndex = max(maxIndex,indices_[i]);
+  return maxIndex;
+}
+// Get value of minimum index
+int 
+CoinIndexedVector::getMinIndex() const
+{
+  int minIndex = INT_MAX;
+  int i;
+  for (i=0;i<nElements_;i++)
+    minIndex = min(minIndex,indices_[i]);
+  return minIndex;
+}
+
