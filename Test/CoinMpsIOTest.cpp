@@ -43,12 +43,8 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
     CoinRelFltEq eq;
     CoinMpsIO m;
     std::string fn = mpsDir+"exmip1";
-    m.readMps(fn.c_str(),"mps");
-    
-     // Test language and re-use
-    m.newLanguage(CoinMessages::it);
-    m.messageHandler()->setPrefix(false);
-    m.readMps(fn.c_str(),"mps");
+    int numErr = m.readMps(fn.c_str(),"mps");
+    assert( numErr== 0 );
 
     assert( !strcmp( m.problemName_ , "EXAMPLE"));
     assert( !strcmp( m.objectiveName_ , "OBJ"));
@@ -56,6 +52,17 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
     assert( !strcmp( m.rangeName_ , "RNG1"));
     assert( !strcmp( m.boundName_ , "BND1"));
     
+     // Test language and re-use
+    m.newLanguage(CoinMessages::it);
+    m.messageHandler()->setPrefix(false);
+
+    // This call should return an error indicating that the 
+    // end-of-file was reached.
+    // This is because the file remains open to possibly read
+    // a quad. section.
+    numErr = m.readMps(fn.c_str(),"mps");
+    assert( numErr < 0 );
+
     // Test copy constructor and assignment operator
     {
       CoinMpsIO lhs;
@@ -81,6 +88,43 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
     
     {    
       CoinMpsIO dumSi(m);
+      int nc = dumSi.getNumCols();
+      int nr = dumSi.getNumRows();
+      const double * cl = dumSi.getColLower();
+      const double * cu = dumSi.getColUpper();
+      const double * rl = dumSi.getRowLower();
+      const double * ru = dumSi.getRowUpper();
+      assert( nc == 8 );
+      assert( nr == 5 );
+      assert( eq(cl[0],2.5) );
+      assert( eq(cl[1],0.0) );
+      assert( eq(cu[1],4.1) );
+      assert( eq(cu[2],1.0) );
+      assert( eq(rl[0],2.5) );
+      assert( eq(rl[4],3.0) );
+      assert( eq(ru[1],2.1) );
+      assert( eq(ru[4],15.0) );
+      
+      assert( !eq(cl[3],1.2345) );
+      
+      assert( !eq(cu[4],10.2345) );
+      
+      assert( eq( dumSi.getObjCoefficients()[0],  1.0) );
+      assert( eq( dumSi.getObjCoefficients()[1],  0.0) );
+      assert( eq( dumSi.getObjCoefficients()[2],  0.0) );
+      assert( eq( dumSi.getObjCoefficients()[3],  0.0) );
+      assert( eq( dumSi.getObjCoefficients()[4],  2.0) );
+      assert( eq( dumSi.getObjCoefficients()[5],  0.0) );
+      assert( eq( dumSi.getObjCoefficients()[6],  0.0) );
+      assert( eq( dumSi.getObjCoefficients()[7], -1.0) );
+
+      dumSi.writeMps("CoinMpsIoTest.mps");//,0,0,1);
+    }
+
+    // Read just written file
+    {    
+      CoinMpsIO dumSi;
+      dumSi.readMps("CoinMpsIoTest");
       int nc = dumSi.getNumCols();
       int nr = dumSi.getNumRows();
       const double * cl = dumSi.getColLower();
