@@ -65,7 +65,6 @@ void
 CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse,
 					  int * indexIn) const
 {
-
   double *region = regionSparse->denseVector (  );
   int * regionIndex = regionSparse->getIndices();
   double tolerance = zeroTolerance_;

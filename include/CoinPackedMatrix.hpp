@@ -496,6 +496,29 @@ public:
    //@}
 
    //--------------------------------------------------------------------------
+   /**@name non const methods.
+    This is to be used with great care when doing column generation etc */
+   //@{
+    /** A vector containing the elements in the packed matrix. Note that there
+	might be gaps in this list, entries that do not belong to any
+	major-dimension vector. To get the actual elements one should look at
+	this vector together with vectorStarts and vectorLengths. */
+    inline double * getMutableElements() const { return element_; }
+    /** A vector containing the minor indices of the elements in the packed
+        matrix. Note that there might be gaps in this list, entries that do not
+        belong to any major-dimension vector. To get the actual elements one
+        should look at this vector together with vectorStarts and
+        vectorLengths. */
+    inline int * getMutableIndices() const { return index_; }
+
+    /** The positions where the major-dimension vectors start in elements and
+        indices. */
+    inline CoinBigIndex * getMutableVectorStarts() const { return start_; }
+    /** The lengths of the major-dimension vectors. */
+    inline int * getMutableVectorLengths() const { return length_; }
+   //@}
+
+   //--------------------------------------------------------------------------
    /**@name Constructors, destructors and major modifying methods*/
    //@{
    /// Default Constructor creates an empty column ordered packed matrix
