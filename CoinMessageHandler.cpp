@@ -13,7 +13,7 @@ CoinOneMessage::CoinOneMessage()
   externalNumber_=-1;
   message_=NULL;
   severity_='I';
-  detail_=-1;
+  detail_=0;
 }
 /* Destructor */
 CoinOneMessage::~CoinOneMessage()
