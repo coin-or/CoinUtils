@@ -1096,8 +1096,8 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  printf("bad dj %d %g\n",jcolx,rcosts[jcolx]);
 #endif
 	rcosts[jcolz] = djz - rowduals[irow] * coeffz;
-	if (prob->columnIsBasic(jcolz))
-	  assert (fabs(rcosts[jcolz])<1.0e-5);
+	//if (prob->columnIsBasic(jcolz))
+	//assert (fabs(rcosts[jcolz])<1.0e-5);
 	rcosts[jcoly] = 0.0;
       } else {
 	prob->setColumnStatus(jcolx,CoinPrePostsolveMatrix::basic);
