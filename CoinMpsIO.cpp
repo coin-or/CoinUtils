@@ -2040,69 +2040,76 @@ static void
 convertDouble(int formatType, double value, char outputValue[20],
 	      const char * name, char outputRow[100])
 {
-   assert (formatType!=2);
-   if ((formatType&3)==0) {
-      if (value<1.0e20) {
-	 int power10;
-	 if (value>=0.0)
-	    power10 =(int) log10(value);
-	 else
-	    power10 =(int) log10(-value)+1;
-	 if (power10<5&&power10>-2) {
-	    char format[7];
-	    int decimal = 10-power10;
-	    if (decimal>10)
-	       decimal=10;
-	    sprintf(format,"%%12.%df",decimal);
-	    sprintf(outputValue,format,value);
-	    // take off trailing 0
-	    int j;
-	    for (j=11;j>=0;j--) {
-	       if (outputValue[j]=='0')
-		  outputValue[j]=' ';
-	       else
-		  break;
-	    }
-	 } else {
-	    sprintf(outputValue,"%12g",value);
-	 }
+  assert (formatType!=2);
+  if ((formatType&3)==0) {
+    if (value<1.0e20) {
+      int power10, decimal;
+      if (value>=0.0) {
+	power10 =(int) log10(value);
+	if (power10<9&&power10>-4) {
+	  decimal = min(10,10-power10);
+	  char format[7];
+	  sprintf(format,"%%12.%df",decimal);
+	  sprintf(outputValue,format,value);
+	} else {
+	  sprintf(outputValue,"%12.8g",value);
+	}
       } else {
-	 outputValue[0]= '\0'; // needs no value
+	power10 =(int) log10(-value)+1;
+	if (power10<8&&power10>-3) {
+	  decimal = min(9,9-power10);
+	  char format[7];
+	  sprintf(format,"%%12.%df",decimal);
+	  sprintf(outputValue,format,value);
+	} else {
+	  sprintf(outputValue,"%12.7g",value);
+	}
       }
-   } else {
-      if (value<1.0e20) {
-	 sprintf(outputValue,"%19g",value);
-	 // take out blanks
-	 int i=0;
-	 int j;
-	 for (j=0;j<19;j++) {
-	    if (outputValue[j]!=' ')
-	       outputValue[i++]=outputValue[j];
-	 }
-	 outputValue[i]='\0';
-      } else {
-	 outputValue[0]= '\0'; // needs no value
+      // take off trailing 0
+      int j;
+      for (j=11;j>=0;j--) {
+	if (outputValue[j]=='0')
+	  outputValue[j]=' ';
+	else
+	  break;
       }
-   }
-   strcpy(outputRow,name);
-   if (!formatType) {
-      int i;
-      // pad out to 12 and 8
-      for (i=0;i<12;i++) {
-	 if (outputValue[i]=='\0')
-	    break;
+    } else {
+      outputValue[0]= '\0'; // needs no value
+    }
+  } else {
+    if (value<1.0e20) {
+      sprintf(outputValue,"%19g",value);
+      // take out blanks
+      int i=0;
+      int j;
+      for (j=0;j<19;j++) {
+	if (outputValue[j]!=' ')
+	  outputValue[i++]=outputValue[j];
       }
-      for (;i<12;i++) 
-	 outputValue[i]=' ';
-      outputValue[12]='\0';
-      for (i=0;i<8;i++) {
-	 if (outputRow[i]=='\0')
-	    break;
-      }
-      for (;i<8;i++) 
-	 outputRow[i]=' ';
-      outputRow[8]='\0';
-   }
+      outputValue[i]='\0';
+    } else {
+      outputValue[0]= '\0'; // needs no value
+    }
+  }
+  strcpy(outputRow,name);
+  if (!formatType) {
+    int i;
+    // pad out to 12 and 8
+    for (i=0;i<12;i++) {
+      if (outputValue[i]=='\0')
+	break;
+    }
+    for (;i<12;i++) 
+      outputValue[i]=' ';
+    outputValue[12]='\0';
+    for (i=0;i<8;i++) {
+      if (outputRow[i]=='\0')
+	break;
+    }
+    for (;i<8;i++) 
+      outputRow[i]=' ';
+    outputRow[8]='\0';
+  }
 }
 
 static void
