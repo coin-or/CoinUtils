@@ -153,6 +153,8 @@ public:
    //@{
    /// Create the dot product with a full vector
    double dotProduct(const double* dense) const;
+   /// Return the square of the 2-norm of the vector
+   double normSquare() const;
    /// Sum elements of vector.
    double sum() const;
 

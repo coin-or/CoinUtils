@@ -155,6 +155,15 @@ CoinPackedVectorBase::dotProduct(const double* dense) const
 //-----------------------------------------------------------------------------
 
 double
+CoinPackedVectorBase::normSquare() const
+{
+   return std::inner_product(getElements(), getElements() + getNumElements(),
+			     getElements(), 0.0);
+}
+   
+//-----------------------------------------------------------------------------
+
+double
 CoinPackedVectorBase::sum() const
 {
    return std::accumulate(getElements(), getElements() + getNumElements(), 0.0);
