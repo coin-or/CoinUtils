@@ -35,8 +35,7 @@ public:
    virtual const double * getElements() const = 0;
    //@}
 
-   /**@name Methods related to whether a check for duplicate 
-       indices will be performed.
+   /**@name Methods related to whether duplicate-index checking is performed.
 
        If the checking for duplicate indices is turned off, then
        some CoinPackedVector methods may not work correctly if there
