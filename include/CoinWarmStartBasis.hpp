@@ -5,7 +5,7 @@
 
 /*! \file CoinWarmStart.hpp
     \brief Declaration of the generic simplex (basis-oriented) warm start
-	   class.
+	   class. Also contains a basis diff class.
 */
 
 #ifndef CoinWarmStartBasis_H
@@ -21,6 +21,15 @@
     
     CoinWarmStartBasis provides for a warm start object which contains the
     status of each variable (structural and artificial).
+
+    \todo Modify this class so that the number of status entries per byte
+	  and bytes per status vector allocation unit are not hardcoded.
+	  At the least, collect this into a couple of macros.
+    
+    \todo Consider separate fields for allocated capacity and actual basis
+	  size. We could avoid some reallocation, at the price of retaining
+	  more space than we need. Perhaps more important, we could do much
+	  better sanity checks.
 */
 
 class CoinWarmStartBasis : public CoinWarmStart {
@@ -120,6 +129,31 @@ public:
   inline const char * getArtificialStatus() const { return artificialStatus_; }
 
 //@}
+
+/*! \name Basis `diff' methods */
+//@{
+
+  /*! \brief Generate a `diff' that can convert the warm start basis passed as
+	     a parameter to the warm start basis specified by \c this.
+
+    The capabilities are limited: the basis passed as a parameter can be no
+    larger than the basis pointed to by \c this.
+  */
+
+  virtual CoinWarmStartDiff*
+  CoinWarmStartBasis::generateDiff (const CoinWarmStart *const oldCWS) const ;
+
+  /*! \brief Apply \p diff to this basis
+
+    Update this basis by applying \p diff. It's assumed that the allocated
+    capacity of the basis is sufficiently large.
+  */
+
+  virtual void
+  CoinWarmStartBasis::applyDiff (const CoinWarmStartDiff *const cwsdDiff) ;
+
+//@}
+
 
 /*! \name Methods to modify the warm start object */
 //@{
@@ -259,5 +293,93 @@ inline void setStatus(char * array, int i, CoinWarmStartBasis::Status st) {
   st_byte &= ~(3 << ((i&3)<<1));
   st_byte |= (st << ((i&3)<<1));
 }
+
+
+
+/*! \class CoinWarmStartBasisDiff
+    \brief A `diff' between two CoinWarmStartBasis objects
+
+  This class exists in order to hide from the world the details of
+  calculating and representing a `diff' between two CoinWarmStartBasis
+  objects. For convenience, assignment, cloning, and deletion are visible to
+  the world, and default and copy constructors are made available to derived
+  classes.  Knowledge of the rest of this structure, and of generating and
+  applying diffs, is restricted to the friend functions
+  CoinWarmStartBasis::generateDiff() and CoinWarmStartBasis::applyDiff().
+
+  The actual data structure is a pair of unsigned int vectors, #diffNdxs_ and
+  #diffVals_.
+
+  \todo This is a pretty generic structure, and vector diff is a pretty generic
+	activity. We should be able to convert this to a template.
+
+  \todo Using unsigned int as the data type for the diff vectors might help
+	to contain the damage when this code is inevitably compiled for 64 bit
+	architectures. But the notion of int as 4 bytes is hardwired into
+	CoinWarmStartBasis, so changes are definitely required.
+*/
+
+class CoinWarmStartBasisDiff : public CoinWarmStartDiff
+{ public:
+
+  /*! \brief `Virtual constructor' */
+  virtual CoinWarmStartDiff *clone() const
+  { CoinWarmStartBasisDiff *cwsbd =  new CoinWarmStartBasisDiff(*this) ;
+    return (dynamic_cast<CoinWarmStartDiff *>(cwsbd)) ; }
+
+  /*! \brief Assignment */
+  virtual
+    CoinWarmStartBasisDiff &operator= (const CoinWarmStartBasisDiff &rhs) ;
+
+  /*! \brief Destructor */
+  virtual ~CoinWarmStartBasisDiff()
+  { delete[] diffNdxs_ ;
+    delete[] diffVals_ ; }
+
+  protected:
+
+  /*! \brief Default constructor
+  
+    This is protected (rather than private) so that derived classes can
+    see it when they make <i>their</i> default constructor protected or
+    private.
+  */
+  CoinWarmStartBasisDiff () : sze_(0), diffNdxs_(0), diffVals_(0) { } ;
+
+  /*! \brief Copy constructor
+  
+    For convenience when copying objects containing CoinWarmStartBasisDiff
+    objects. But consider whether you should be using #clone() to retain
+    polymorphism.
+
+    This is protected (rather than private) so that derived classes can
+    see it when the make <i>their</i> copy constructor protected or
+    private.
+  */
+  CoinWarmStartBasisDiff (const CoinWarmStartBasisDiff &cwsbd) ;
+
+  private:
+
+  friend CoinWarmStartDiff*
+    CoinWarmStartBasis::generateDiff(const CoinWarmStart *const oldCWS) const ;
+  friend void
+    CoinWarmStartBasis::applyDiff(const CoinWarmStartDiff *const diff) ;
+
+  /*! \brief Standard constructor */
+  CoinWarmStartBasisDiff (int sze, const unsigned int *const diffNdxs,
+			  const unsigned int *const diffVals) ;
+  
+  /*! \brief Number of entries (and allocated capacity), in units of \c int. */
+  int sze_ ;
+
+  /*! \brief Array of diff indices */
+
+  unsigned int *diffNdxs_ ;
+
+  /*! \brief Array of diff values */
+
+  unsigned int *diffVals_ ;
+} ;
+
 
 #endif

@@ -16,9 +16,35 @@
 
 class CoinWarmStart {
 public:
+
+  /// Abstract destructor
   virtual ~CoinWarmStart() {} ;
 
+  /// `Virtual constructor'
   virtual CoinWarmStart *clone() const = 0 ;
 };
+
+
+/*! \class CoinWarmStartDiff
+    \brief Abstract base class for warm start `diff' objects
+
+  For those types of warm start objects where the notion of a `diff' makes
+  sense, this virtual base class is provided. As with CoinWarmStart, its sole
+  reason for existence is to make it possible to write solver-independent code.
+*/
+
+class CoinWarmStartDiff
+
+{ public:
+
+  /// Abstract destructor
+  virtual ~CoinWarmStartDiff() {} ;
+
+  /// `Virtual constructor'
+  virtual CoinWarmStartDiff *clone() const = 0 ;
+} ;
+
+
+
 
 #endif

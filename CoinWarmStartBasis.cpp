@@ -256,3 +256,196 @@ CoinWarmStartBasis::numberBasicStructurals()
   }
   return numberBasic;
 }
+
+
+/*
+  Generate a diff that'll convert oldCWS into the basis pointed to by this.
+
+  This routine is a bit of a hack, for efficiency's sake. Rather than work
+  with individual status vector entries, we're going to treat the vectors as
+  int's --- in effect, we create one diff entry for each block of 16 status
+  entries. Diffs for logicals are tagged with 0x80000000.
+*/
+
+CoinWarmStartDiff*
+CoinWarmStartBasis::generateDiff (const CoinWarmStart *const oldCWS) const
+{ 
+/*
+  Make sure the parameter is CoinWarmStartBasis or derived class.
+*/
+  const CoinWarmStartBasis *oldBasis =
+      dynamic_cast<const CoinWarmStartBasis *>(oldCWS) ;
+  if (!oldBasis)
+  { throw CoinError("Old basis not derived from CoinWarmStartBasis.",
+		    "generateDiff","CoinWarmStartBasis") ; }
+  const CoinWarmStartBasis *newBasis = this ;
+/*
+  Make sure newBasis is equal or bigger than oldBasis. Calculate the worst case
+  number of diffs and allocate vectors to hold them.
+*/
+  const int oldArtifCnt = oldBasis->getNumArtificial() ;
+  const int oldStructCnt = oldBasis->getNumStructural() ;
+  const int newArtifCnt = newBasis->getNumArtificial() ;
+  const int newStructCnt = newBasis->getNumStructural() ;
+
+  assert(newArtifCnt >= oldArtifCnt) ;
+  assert(newStructCnt >= oldStructCnt) ;
+
+  int sizeOldArtif = (oldArtifCnt+15)>>4 ;
+  int sizeNewArtif = (newArtifCnt+15)>>4 ;
+  int sizeOldStruct = (oldStructCnt+15)>>4 ;
+  int sizeNewStruct = (newStructCnt+15)>>4 ;
+  int maxBasisLength = sizeNewArtif+sizeNewStruct ;
+
+  unsigned int *diffNdx = new unsigned int [maxBasisLength]; 
+  unsigned int *diffVal = new unsigned int [maxBasisLength]; 
+/*
+  Ok, setup's over. Now scan the logicals (aka artificials, standing in for
+  constraints). For the portion of the status arrays which overlap, create
+  diffs. Then add any additional status from newBasis.
+
+  I removed the following bit of code & comment:
+
+    if (sizeNew == sizeOld) sizeOld--; // make sure all taken
+
+  I assume this is meant to trap cases where oldBasis does not occupy all of
+  the final int, but I can't see where it's necessary.
+*/
+  const unsigned int *oldStatus =
+      reinterpret_cast<const unsigned int *>(oldBasis->getArtificialStatus()) ;
+  const unsigned int *newStatus = 
+      reinterpret_cast<const unsigned int *>(newBasis->getArtificialStatus()) ;
+  int numberChanged = 0 ;
+  int i ;
+  for (i = 0 ; i < sizeOldArtif ; i++)
+  { if (oldStatus[i] != newStatus[i])
+    { diffNdx[numberChanged] = i|0x80000000 ;
+      diffVal[numberChanged++] = newStatus[i] ; } }
+  for ( ; i < sizeNewArtif ; i++)
+  { diffNdx[numberChanged] = i|0x80000000 ;
+    diffVal[numberChanged++] = newStatus[i] ; }
+/*
+  Repeat for structural variables.
+*/
+  oldStatus =
+      reinterpret_cast<const unsigned int *>(oldBasis->getStructuralStatus()) ;
+  newStatus =
+      reinterpret_cast<const unsigned int *>(newBasis->getStructuralStatus()) ;
+  for (i = 0 ; i < sizeOldStruct ; i++)
+  { if (oldStatus[i] != newStatus[i])
+    { diffNdx[numberChanged] = i ;
+      diffVal[numberChanged++] = newStatus[i] ; } }
+  for ( ; i < sizeNewStruct ; i++)
+  { diffNdx[numberChanged] = i ;
+    diffVal[numberChanged++] = newStatus[i] ; }
+/*
+  Create the object of our desire.
+*/
+  CoinWarmStartBasisDiff *diff =
+    new CoinWarmStartBasisDiff(numberChanged,diffNdx,diffVal) ;
+/*
+  Clean up and return.
+*/
+  delete[] diffNdx ;
+  delete[] diffVal ;
+
+  return (dynamic_cast<CoinWarmStartDiff *>(diff)) ; }
+
+
+/*
+  Apply a diff to the basis pointed to by this.  It's assumed that the
+  allocated capacity of the basis is sufficiently large.
+*/
+void CoinWarmStartBasis::applyDiff (const CoinWarmStartDiff *const cwsdDiff)
+{
+/*
+  Make sure we have a CoinWarmStartBasisDiff
+*/
+  const CoinWarmStartBasisDiff *diff =
+    dynamic_cast<const CoinWarmStartBasisDiff *>(cwsdDiff) ;
+  if (!diff)
+  { throw CoinError("Diff not derived from CoinWarmStartBasisDiff.",
+		    "applyDiff","CoinWarmStartBasis") ; }
+/*
+  Application is by straighforward replacement of words in the status arrays.
+  Index entries for logicals (aka artificials) are tagged with 0x80000000.
+*/
+  const int numberChanges = diff->sze_ ;
+  const unsigned int *diffNdxs = diff->diffNdxs_ ;
+  const unsigned int *diffVals = diff->diffVals_ ;
+  unsigned int *structStatus =
+      reinterpret_cast<unsigned int *>(this->getStructuralStatus()) ;
+  unsigned int *artifStatus =
+      reinterpret_cast<unsigned int *>(this->getArtificialStatus()) ;
+
+  for (int i = 0 ; i < numberChanges ; i++)
+  { unsigned int diffNdx = diffNdxs[i] ;
+    unsigned int diffVal = diffVals[i] ;
+    if ((diffNdx&0x80000000) == 0)
+    { structStatus[diffNdx] = diffVal ; }
+    else
+    { artifStatus[diffNdx&0x7fffffff] = diffVal ; } }
+
+  return ; }
+
+
+
+/* Routines for CoinWarmStartBasisDiff */
+
+/*
+  Constructor given diff data.
+*/
+CoinWarmStartBasisDiff::CoinWarmStartBasisDiff (int sze,
+  const unsigned int *const diffNdxs, const unsigned int *const diffVals)
+  : sze_(sze),
+    diffNdxs_(0),
+    diffVals_(0)
+
+{ if (sze > 0)
+  { diffNdxs_ = new unsigned int[sze] ;
+    memcpy(diffNdxs_,diffNdxs,sze*sizeof(unsigned int)) ;
+    diffVals_ = new unsigned int[sze] ;
+    memcpy(diffVals_,diffVals,sze*sizeof(unsigned int)) ; }
+  
+  return ; }
+
+/*
+  Copy constructor.
+*/
+
+CoinWarmStartBasisDiff::CoinWarmStartBasisDiff
+  (const CoinWarmStartBasisDiff &rhs)
+  : sze_(rhs.sze_),
+    diffNdxs_(0),
+    diffVals_(0)
+{ if (sze_ > 0)
+  { diffNdxs_ = new unsigned int[sze_] ;
+    memcpy(diffNdxs_,rhs.diffNdxs_,sze_*sizeof(unsigned int)) ;
+    diffVals_ = new unsigned int[sze_] ;
+    memcpy(diffVals_,rhs.diffVals_,sze_*sizeof(unsigned int)) ; }
+
+  return ; }
+
+/*
+  Assignment --- for convenience when assigning objects containing
+  CoinWarmStartBasisDiff objects.
+*/
+CoinWarmStartBasisDiff&
+CoinWarmStartBasisDiff::operator= (const CoinWarmStartBasisDiff &rhs)
+
+{ if (this != &rhs)
+  { if (sze_ > 0)
+    { delete[] diffNdxs_ ;
+      delete[] diffVals_ ; }
+    sze_ = rhs.sze_ ;
+    if (sze_ > 0)
+    { diffNdxs_ = new unsigned int[sze_] ;
+      memcpy(diffNdxs_,rhs.diffNdxs_,sze_*sizeof(unsigned int)) ;
+      diffVals_ = new unsigned int[sze_] ;
+      memcpy(diffVals_,rhs.diffVals_,sze_*sizeof(unsigned int)) ; }
+    else
+    { diffNdxs_ = 0 ;
+      diffVals_ = 0 ; } }
+  
+  return (*this) ; }
+
