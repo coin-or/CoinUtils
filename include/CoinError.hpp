@@ -4,7 +4,6 @@
 #define CoinError_H
 
 #include <string>
-using namespace std;
 //-------------------------------------------------------------------
 //
 // Error class used to throw exceptions
