@@ -440,8 +440,11 @@ CoinIndexedVector::reserve(int n)
     double * delTemp = elements_-offset_;
     
     // allocate new space
-    int nPlus=(n+3)>>2;
-    assert(sizeof(int)==4*sizeof(char));
+    int nPlus;
+    if (sizeof(int)==4*sizeof(char))
+      nPlus=(n+3)>>2;
+    else
+      nPlus=(n+7)>>4;
     indices_ = new int [n+nPlus];
     memset(indices_+n,0,nPlus*sizeof(int));
     // align on 64 byte boundary

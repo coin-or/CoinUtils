@@ -74,8 +74,11 @@ void presolve_make_memlists(CoinBigIndex *starts, int *lengths, presolvehlink *l
 double * presolve_duparray(const double * element, const int * index,
 			   int length, int offset)
 {
-  assert (sizeof(double)==2*sizeof(int));
-  int n = (3*length+1)>>1;
+  int n;
+  if (sizeof(double)==2*sizeof(int)) 
+    n = (3*length+1)>>1;
+  else
+    n = 2*length;
   double * dArray = new double [n];
   int * iArray = (int *) (dArray+length);
   memcpy(dArray,element+offset,length*sizeof(double));

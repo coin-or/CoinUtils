@@ -1213,7 +1213,7 @@ CoinFactorization::updateColumnTransposeR ( CoinIndexedVector * regionSparse ) c
   int numberNonZero = regionSparse->getNumElements (  );
 
   if (numberNonZero) {
-    if (numberNonZero < (sparseThreshold_<<2)||!numberL_) {
+    if (numberNonZero < (sparseThreshold_<<2)||(!numberL_&&sparse_)) {
       updateColumnTransposeRSparse ( regionSparse );
       if (collectStatistics_) 
 	btranCountAfterR_ += (double) regionSparse->getNumElements();

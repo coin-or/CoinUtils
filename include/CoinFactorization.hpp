@@ -505,10 +505,15 @@ protected:
   void resetStatistics();
 
   /********************************* START LARGE TEMPLATE ********/
-// this should have defines so will work in 64 bit mode
+#ifdef INT_IS_8
+#define COINFACTORIZATION_BITS_PER_INT 64
+#define COINFACTORIZATION_SHIFT_PER_INT 6
+#define COINFACTORIZATION_MASK_PER_INT 0x3f
+#else
 #define COINFACTORIZATION_BITS_PER_INT 32
 #define COINFACTORIZATION_SHIFT_PER_INT 5
 #define COINFACTORIZATION_MASK_PER_INT 0x1f
+#endif
   template <class T>  bool
   pivot ( int pivotRow,
 	  int pivotColumn,

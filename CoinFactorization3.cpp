@@ -1601,13 +1601,15 @@ CoinFactorization::updateColumnTransposeLSparse
 void
 CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) const
 {
-  if (!numberL_&&!numberDense_)
-    return;
+  int number = regionSparse->getNumElements (  );
+  if (!numberL_&&!numberDense_) {
+    if (sparse_||number<numberRows_)
+      return;
+  }
   int goSparse;
   // Guess at number at end
   // we may need to rethink on dense
   if (sparseThreshold_>0) {
-    int number = regionSparse->getNumElements (  );
     if (btranAverageAfterL_) {
       int newNumber = (int) (number*btranAverageAfterL_);
       if (newNumber< sparseThreshold_)

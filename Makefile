@@ -57,6 +57,12 @@ LIBSRC += CoinPresolveUseless.cpp
 ##############################################################################
 include ${MakefileDir}/Makefile.coin
 include ${MakefileDir}/Makefile.location
+ifeq ($(OptLevel),-O2)
+#     CXXFLAGS += -DNDEBUG
+endif
+ifeq ($(OptLevel),-g)
+     CXXFLAGS += -DZEROFAULT -DCOIN_DEBUG
+endif
 
 export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir}
 export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir}
