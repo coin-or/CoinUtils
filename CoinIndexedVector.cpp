@@ -61,7 +61,12 @@ CoinIndexedVector::operator=(const CoinIndexedVector & rhs)
   if (this != &rhs) {
     clear();
     packedMode_=rhs.packedMode_;
-    gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
+    if (!packedMode_)
+      gutsOfSetVector(rhs.capacity_,rhs.nElements_, 
+		      rhs.indices_, rhs.elements_);
+    else
+      gutsOfSetPackedVector(rhs.capacity_,rhs.nElements_, 
+		      rhs.indices_, rhs.elements_);
   }
   return *this;
 }
@@ -72,6 +77,7 @@ CoinIndexedVector &
 CoinIndexedVector::operator=(const CoinPackedVectorBase & rhs)
 {
   clear();
+  packedMode_=false;
   gutsOfSetVector(rhs.getNumElements(), 
 			    rhs.getIndices(), rhs.getElements());
   return *this;
@@ -582,8 +588,11 @@ nElements_(0),
 capacity_(0),
 offset_(0),
 packedMode_(false)
-{  
-  gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
+{
+  if (!rhs.packedMode_)
+    gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
+  else
+    gutsOfSetPackedVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
 }
 
 //-----------------------------------------------------------------------------
@@ -596,7 +605,10 @@ capacity_(0),
 offset_(0),
 packedMode_(false)
 {  
-  gutsOfSetVector(rhs->capacity_,rhs->nElements_, rhs->indices_, rhs->elements_);
+  if (!rhs->packedMode_)
+    gutsOfSetVector(rhs->capacity_,rhs->nElements_, rhs->indices_, rhs->elements_);
+  else
+    gutsOfSetPackedVector(rhs->capacity_,rhs->nElements_, rhs->indices_, rhs->elements_);
 }
 
 //-----------------------------------------------------------------------------
@@ -937,6 +949,34 @@ CoinIndexedVector::gutsOfSetVector(int size, int numberIndices,
   }
   if (numberDuplicates)
     throw CoinError("duplicate index", "setVector", "CoinIndexedVector");
+}
+
+//-----------------------------------------------------------------------------
+
+void
+CoinIndexedVector::gutsOfSetPackedVector(int size, int numberIndices, 
+				   const int * inds, const double * elems)
+{
+  packedMode_=true;  
+  
+  int i;
+  reserve(size);
+  if (numberIndices<0)
+    throw CoinError("negative number of indices", "setVector", "CoinIndexedVector");
+  nElements_ = 0;
+  // elements_ array is all zero
+  // Does not check for duplicates
+  for (i=0;i<numberIndices;i++) {
+    int indexValue=inds[i];
+    if (indexValue<0) 
+      throw CoinError("negative index", "setVector", "CoinIndexedVector");
+    else if (indexValue>=size) 
+      throw CoinError("too large an index", "setVector", "CoinIndexedVector");
+    if (fabs(elems[i])>=COIN_INDEXED_TINY_ELEMENT) {
+      elements_[nElements_]=elems[i];
+      indices_[nElements_++]=indexValue;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

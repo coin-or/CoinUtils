@@ -1924,48 +1924,6 @@ CoinFactorization::emptyRows(int numberToEmpty, const int which[])
     }
   }
 }
-// Get weighted row list 
-void
-CoinFactorization::getWeights(int * weights) const
-{
-  int * permuteBack = pivotColumnBack_;
-  if (!startRowL_||!numberInRow_) {
-    int * temp = new int[numberRows_];
-    memset(temp,0,numberRows_*sizeof(int));
-    int i;
-    for (i=0;i<numberRows_;i++) {
-      // one for pivot
-      temp[i]++;
-      CoinBigIndex j;
-      for (j=startColumnU_[i];j<startColumnU_[i]+numberInColumn_[i];j++) {
-	int iRow=indexRowU_[j];
-	temp[iRow]++;
-      }
-    }
-    for (i=baseL_;i<baseL_+numberL_;i++) {
-      CoinBigIndex j;
-      for (j=startColumnL_[i];j<startColumnL_[i+1];j++) {
-	int iRow = indexRowL_[j];
-	temp[iRow]++;
-      }
-    }
-    for (i=0;i<numberRows_;i++) {
-      int number = temp[i];
-      int iPermute = permuteBack[i];
-      weights[iPermute]=number;
-    }
-    delete [] temp;
-  } else {
-    int i;
-    for (i=0;i<numberRows_;i++) {
-      int number = startRowL_[i+1]-startRowL_[i]+numberInRow_[i]+1;
-      //number = startRowL_[i+1]-startRowL_[i]+1;
-      //number = numberInRow_[i]+1;
-      int iPermute = permuteBack[i];
-      weights[iPermute]=number;
-    }
-  }
-}
 // Updates part of column PFI (FTRAN)
 void 
 CoinFactorization::updateColumnPFI ( CoinIndexedVector * regionSparse) const

@@ -379,6 +379,8 @@ private:
 			const int * inds, const double * elems);
    void gutsOfSetVector(int size, int numberIndices,
 			const int * inds, const double * elems);
+   void gutsOfSetPackedVector(int size, int numberIndices,
+			const int * inds, const double * elems);
    ///
    void gutsOfSetConstant(int size,
 			  const int * inds, double value);
