@@ -146,6 +146,17 @@ CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse) cons
   regionSparse->setNumElements ( numberNonZero );
 }
 //  updateColumnU.  Updates part of column (FTRANU)
+/*
+  Since everything is in order I should be able to do a better job of
+  marking stuff - think.  Also as L is static maybe I can do something
+  better there (I know I could if I marked the depth of every element
+  but that would lead to other inefficiencies.
+
+  Also try the bit marking stuff - try 8 first.
+
+  Also ints averageFtranIn_, AfterL_, etc and Btran
+  and corresponding doubles
+*/
 void
 CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
 			      int * indices,
