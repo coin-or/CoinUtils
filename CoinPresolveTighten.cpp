@@ -139,7 +139,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	iflag=0; // all free anyway
       if (iflag) {
 	if (iflag==1 && cup[j]<1.0e10) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 	  printf("TIGHTEN UP:  %d\n", j);
 #endif
 	  fixup_cols[nfixup_cols] = j;
@@ -149,7 +149,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	  // symmetric case
 	  //mpre[j] = PRESOLVE_XUP;
 
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 	  printf("TIGHTEN DOWN:  %d\n", j);
 #endif
 
@@ -194,7 +194,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	    s->rows =   new int[hincol[j]];
 	    s->lbound = new double[hincol[j]];
 	    s->ubound = new double[hincol[j]];
-#ifdef DEBUG_PRESOLVE
+#ifdef PRESOLVE_DEBUG
 	    printf("TIGHTEN FREE:  %d   ", j);
 #endif
 	    int nr = 0;
@@ -214,14 +214,14 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 		rlo[irow] = -PRESOLVE_INF;
 		rup[irow] = PRESOLVE_INF;
 
-#ifdef DEBUG_PRESOLVE
+#ifdef PRESOLVE_DEBUG
 		printf("%d ", irow);
 #endif
 	      }
 	    }
 	    s->nrows = nr;
 
-#ifdef DEBUG_PRESOLVE
+#ifdef PRESOLVE_DEBUG
 	    printf("\n");
 #endif
 	  }
@@ -290,9 +290,6 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
 
 
   //  const double ztolzb	= prob->ztolzb_;
-
-  //  char *cdone	= prob->cdone_;
-  //  char *rdone	= prob->rdone_;
 
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
     int jcol = f->col;

@@ -12,7 +12,7 @@
 #include "CoinPresolveSingleton.hpp"
 #include "CoinMessage.hpp"
 
-// #define DEBUG_PRESOLVE 1
+// #define PRESOLVE_DEBUG 1
 // #define PRESOLVE_SUMMARY 1
 
 /*
@@ -160,13 +160,13 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	}
       }
 
-#     if DEBUG_PRESOLVE
+#     if PRESOLVE_DEBUG
       printf("SINGLETON R-%d C-%d\n", irow, jcol);
 #     endif
 
       // eliminate the row entirely from the row rep
-      // rlinks don't seem to be used PRESOLVE_REMOVE_LINK(rlink, irow);
       hinrow[irow] = 0;
+      PRESOLVE_REMOVE_LINK(prob->rlink_,irow) ;
 
       // just to make things squeeky
       rlo[irow] = 0.0;
@@ -204,8 +204,13 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	}
       }
 
-      // remove the row from this col in the col rep
-      presolve_delete_from_row(jcol, irow, mcstrt, hincol, hrow, colels);
+/*
+  Remove the row from this col in the col rep. It can happen that this will
+  empty the column, in which case we can delink it.
+*/
+      presolve_delete_from_col(irow,jcol,mcstrt,hincol,hrow,colels) ;
+      if (hincol[jcol] == 0)
+      { PRESOLVE_REMOVE_LINK(prob->clink_,jcol) ; }
 
       if (nactions >= MAX_SLACK_DOUBLETONS) {
 	notFinished=true;
@@ -258,9 +263,10 @@ void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   unsigned char *colstat		= prob->colstat_;
   //  unsigned char *rowstat		= prob->rowstat_;
 
-  //  char *cdone		= prob->cdone_;
+# if PRESOLVE_DEBUG
   char *rdone		= prob->rdone_;
-  CoinBigIndex free_list		= prob->free_list_;
+# endif
+  CoinBigIndex &free_list		= prob->free_list_;
 
   const double ztolzb	= prob->ztolzb_;
 
@@ -279,13 +285,11 @@ void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 
     acts[irow] = coeff * sol[jcol];
 
-    // copy col to end to make room for new element
+    // add new element
     {
       CoinBigIndex k = free_list;
+      assert(k >= 0 && k < prob->bulk0_) ;
       free_list = link[free_list];
-
-      check_free_list(free_list);
-
       hrow[k] = irow;
       colels[k] = coeff;
       link[k] = mcstrt[jcol];
@@ -355,8 +359,10 @@ void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
       }
     }
 
+#   if PRESOLVE_DEBUG
     rdone[irow] = SLACK_DOUBLETON;
+#   endif
   }
-  prob->free_list_ = free_list;
+  return ; 
 }
 

@@ -5,6 +5,9 @@
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveUseless.hpp"
 
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
+#endif
 
 // WHAT HAPPENS IF COLS ARE DROPPED AS A RESULT??
 // should be like do_tighten.
@@ -45,9 +48,9 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
 
   action *actions	= new action [nuseless_rows];
 
-#if	PRESOLVE_SUMMARY
-    printf("NUSELESS ROWS:  %d\n", nuseless_rows);
-#endif
+# if PRESOLVE_SUMMARY
+  printf("NUSELESS ROWS:  %d\n", nuseless_rows);
+# endif
 
   for (int i=0; i<nuseless_rows; ++i) {
     int irow = useless_rows[i];
@@ -64,8 +67,11 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
     f->rowels  = copyOfArray(&rowels[krs], hinrow[irow]);
 
     for (CoinBigIndex k=krs; k<kre; k++)
-      presolve_delete_from_row(hcol[k], irow, mcstrt, hincol, hrow, colels);
+    { presolve_delete_from_col(irow,hcol[k],mcstrt,hincol,hrow,colels) ;
+      if (hincol[hcol[k]] == 0)
+      { PRESOLVE_REMOVE_LINK(prob->clink_,hcol[k]) ; } }
     hinrow[irow] = 0;
+    PRESOLVE_REMOVE_LINK(prob->rlink_,irow) ;
 
     // just to make things squeeky
     rlo[irow] = 0.0;
@@ -99,7 +105,7 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   const double *sol	= prob->sol_;
 
 
-  CoinBigIndex free_list		= prob->free_list_;
+  CoinBigIndex &free_list		= prob->free_list_;
 
   double *rlo	= prob->rlo_;
   double *rup	= prob->rup_;
@@ -122,10 +128,8 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
       // append deleted row element to each col
       {
 	CoinBigIndex kk = free_list;
+	assert(kk >= 0 && kk < prob->bulk0_) ;
 	free_list = link[free_list];
-
-	check_free_list(free_list);
-
 	hrow[kk] = irow;
 	colels[kk] = rowels[k];
 	link[kk] = mcstrt[jcol];
@@ -135,6 +139,9 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
       rowact += rowels[k] * sol[jcol];
       hincol[jcol]++;
     }
+#   if PRESOLVE_CONSISTENCY
+    presolve_check_free_list(prob) ;
+#   endif
     
     // I don't know if this is always true
     PRESOLVEASSERT(prob->getRowStatus(irow)==CoinPrePostsolveMatrix::basic);
@@ -144,7 +151,7 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     deleteAction(rowcols,int *);
     deleteAction(rowels,double *);
   }
-  prob->free_list_ = free_list;
+
   deleteAction(actions_,action *);
 }
 

@@ -15,204 +15,9 @@
 #include "CoinPresolvePsdebug.hpp"
 #include "CoinMessage.hpp"
 
-static void compact_rep(double *elems, int *indices, CoinBigIndex *starts, const int *lengths, int n,
-			const presolvehlink *link)
-{
-#if	PRESOLVE_SUMMARY
-  printf("****COMPACTING****\n");
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
 #endif
-
-  // for now, just look for the first element of the list
-  int i = n;
-  while (link[i].pre != NO_LINK)
-    i = link[i].pre;
-
-  int j = 0;
-  for (; i != n; i = link[i].suc) {
-    CoinBigIndex s = starts[i];
-    CoinBigIndex e = starts[i] + lengths[i];
-
-    // because of the way link is organized, j <= s
-    starts[i] = j;
-    for (CoinBigIndex k = s; k < e; k++) {
-      elems[j] = elems[k];
-      indices[j] = indices[k];
-      j++;
-   }
-  }
-}
-
-// returns true if ran out of memory
-static bool expand_col(CoinBigIndex *mcstrt, 
-		       double *colels,
-		       int *hrow,
-		       int *hincol,
-		       presolvehlink *clink, int ncols,
-
-		       int icolx)
-{
-  CoinBigIndex kcsx = mcstrt[icolx];
-  CoinBigIndex kcex = kcsx + hincol[icolx];
-
-  const int maxk = mcstrt[ncols];	// (22)
-
-  // update col rep - need to expand the column, though.
-  int nextcol = clink[icolx].suc;
-
-  // (22)
-  if (kcex + 1 < mcstrt[nextcol] || nextcol == ncols) {
-    if (! (kcex + 1 < mcstrt[nextcol])) {
-      // nextcol==ncols and no space - must compact
-      compact_rep(colels, hrow, mcstrt, hincol, ncols, clink);
-
-      // update vars
-      kcsx = mcstrt[icolx];
-      kcex = kcsx + hincol[icolx];
-
-      if (! (kcex + 1 < mcstrt[nextcol])) {
-	return (true);
-      }
-    }
-  } else {
-    //printf("EXPAND_COL\n");
-
-    // this is not the last col 
-    // fetch last non-empty col (presolve_make_memlists-1)
-    int lastcol = clink[ncols].pre;
-    // (clink[icolx].suc != ncols) ==> (icolx != lastcol)
-
-    // put it directly after the last column 
-    int newkcsx = mcstrt[lastcol] + hincol[lastcol];
-
-    if (newkcsx + hincol[icolx] + 1 >= maxk) {
-      compact_rep(colels, hrow, mcstrt, hincol, ncols, clink);
-
-      // update vars
-      kcsx = mcstrt[icolx];
-      kcex = kcsx + hincol[icolx];
-
-      newkcsx = mcstrt[lastcol] + hincol[lastcol];
-
-      if (newkcsx + hincol[icolx] + 1 >= maxk) {
-	return (true);
-      }
-      // have to adjust various induction variables
-      kcsx = mcstrt[icolx];
-      kcex = mcstrt[icolx] + hincol[icolx];
-    }
-
-    // move the column - 1:  copy the entries
-    memcpy((void*)&hrow[newkcsx], (void*)&hrow[kcsx], hincol[icolx] * sizeof(int));
-    memcpy((void*)&colels[newkcsx], (void*)&colels[kcsx], hincol[icolx] * sizeof(double));
-
-    // move the column - 2:  update the memory-order linked list
-    PRESOLVE_REMOVE_LINK(clink, icolx);
-    PRESOLVE_INSERT_LINK(clink, icolx, lastcol);
-
-    // move the column - 3:  update loop variables to maintain invariant
-    mcstrt[icolx] = newkcsx;
-    kcsx = newkcsx;
-    kcex = newkcsx + hincol[icolx];
-  }
-
-  return (false);
-}
-
-// copy of expand_col; have to rename params
-static void expand_row(CoinBigIndex *mcstrt, 
-		    double *colels,
-		       int *hrow, // int *hcol,
-		       //int *hinrow,
-		       int *hincol,
-		    presolvehlink *clink, int ncols,
-
-		       int icolx
-		       ///, int icoly
-		       )
-{
-  /////CoinBigIndex kcs = mcstrt[icoly];
-  /////CoinBigIndex kce = kcs + hincol[icoly];
-  CoinBigIndex kcsx = mcstrt[icolx];
-  CoinBigIndex kcex = kcsx + hincol[icolx];
-
-  const int maxk = mcstrt[ncols];	// (22)
-
-  // update col rep - need to expand the column, though.
-  int nextcol = clink[icolx].suc;
-
-  // (22)
-  if (kcex + 1 < mcstrt[nextcol] || nextcol == ncols) {
-    if (! (kcex + 1 < mcstrt[nextcol])) {
-      // nextcol==ncols and no space - must compact
-      compact_rep(colels, hrow, mcstrt, hincol, ncols, clink);
-
-      // update vars
-      kcsx = mcstrt[icolx];
-      kcex = kcsx + hincol[icolx];
-
-      if (! (kcex + 1 < mcstrt[nextcol])) {
-	abort();
-      }
-    }
-  } else {
-    // this is not the last col 
-    // fetch last non-empty col (presolve_make_memlists-1)
-    int lastcol = clink[ncols].pre;
-    // (clink[icolx].suc != ncols) ==> (icolx != lastcol)
-
-    // put it directly after the last column 
-    int newkcsx = mcstrt[lastcol] + hincol[lastcol];
-
-    // well, pad it a bit
-    newkcsx += CoinMin(hincol[icolx], 5); // slack
-
-    //printf("EXPAND_ROW:  %d %d %d\n", newkcsx, maxk, icolx);
-
-    if (newkcsx + hincol[icolx] + 1 >= maxk) {
-      compact_rep(colels, hrow, mcstrt, hincol, ncols, clink);
-
-      // update vars
-      kcsx = mcstrt[icolx];
-      kcex = kcsx + hincol[icolx];
-
-      newkcsx = mcstrt[lastcol] + hincol[lastcol];
-
-      if (newkcsx + hincol[icolx] + 1 >= maxk) {
-	abort();
-      }
-      // have to adjust various induction variables
-      ////kcoly = mcstrt[icoly] + (kcoly - kcs);
-      /////kcs = mcstrt[icoly];			// do this for ease of debugging
-      /////kce = mcstrt[icoly] + hincol[icoly];
-	    
-      /////kcolx = mcstrt[icolx] + (kcolx - kcs);	// don't really need to do this
-      kcsx = mcstrt[icolx];
-      kcex = mcstrt[icolx] + hincol[icolx];
-    }
-
-    // move the column - 1:  copy the entries
-    memcpy((void*)&hrow[newkcsx], (void*)&hrow[kcsx], hincol[icolx] * sizeof(int));
-    memcpy((void*)&colels[newkcsx], (void*)&colels[kcsx], hincol[icolx] * sizeof(double));
-
-    // move the column - 2:  update the memory-order linked list
-    PRESOLVE_REMOVE_LINK(clink, icolx);
-    PRESOLVE_INSERT_LINK(clink, icolx, lastcol);
-
-    // move the column - 3:  update loop variables to maintain invariant
-    mcstrt[icolx] = newkcsx;
-    kcsx = newkcsx;
-    kcex = newkcsx + hincol[icolx];
-
-#if 0
-    hincol[icolx]++;
-    kcex = newkcsx + hincol[icolx];
-
-    // move the column - 4:  add the new entry
-    hrow[kcex-1] = row;
-    colels[kcex-1] = colels[kcoly] * coeff_factor;
-#endif
-  }
-}
 
 /*
  * Substituting y away:
@@ -273,15 +78,16 @@ static bool elim_tripleton(const char *msg,
   CoinBigIndex kcsz = mcstrt[icolz];
   CoinBigIndex kcez = kcsz + hincol[icolz];
 
-#if	DEBUG_PRESOLVE
+# if PRESOLVE_DEBUG
   printf("%s %d x=%d y=%d z=%d cfx=%g cfz=%g nx=%d yrows=(", msg,
-	 row0, icolx, icoly, icolz,coeff_factorx, coeff_factorz,  hincol[icolx]);
-#endif
+	 row0,icolx,icoly,icolz,coeff_factorx,coeff_factorz,hincol[icolx]) ;
+# endif
   for (CoinBigIndex kcoly=kcs; kcoly<kce; kcoly++) {
     int row = hrow[kcoly];
 
     // even though these values are updated, they remain consistent
     PRESOLVEASSERT(kcex == kcsx + hincol[icolx]);
+    PRESOLVEASSERT(kcez == kcsz + hincol[icolz]);
 
     // we don't need to update the row being eliminated 
     if (row != row0/* && hinrow[row] > 0*/) {
@@ -295,12 +101,19 @@ static bool elim_tripleton(const char *msg,
 	  rup[row] -= colels[kcoly] * bounds_factor;
 	
 	// and solution
-	acts[row] -= colels[kcoly] * bounds_factor;
+	if (acts)
+	{ acts[row] -= colels[kcoly] * bounds_factor; }
       }
       // see if row appears in colx
       CoinBigIndex kcolx = presolve_find_row1(row, kcsx, kcex, hrow);
+#     if PRESOLVE_DEBUG
+      printf("%d%s ",row,(kcolx<kcex)?"x+":"") ;
+#     endif
       // see if row appears in colz
       CoinBigIndex kcolz = presolve_find_row1(row, kcsz, kcez, hrow);
+#     if PRESOLVE_DEBUG
+      printf("%d%s ",row,(kcolz<kcez)?"x+":"") ;
+#     endif
 
       if (kcolx>=kcex&&kcolz<kcez) {
 	// swap
@@ -331,7 +144,7 @@ static bool elim_tripleton(const char *msg,
 	colels[kcolx] += colels[kcoly] * coeff_factorx;
 	// update row rep
 	// first, copy new value for col x into proper place in rowels
-	CoinBigIndex k2 = presolve_find_row(icolx, mrstrt[row], mrstrt[row]+hinrow[row], hcol);
+	CoinBigIndex k2 = presolve_find_col(icolx, mrstrt[row], mrstrt[row]+hinrow[row], hcol);
 	rowels[k2] = colels[kcolx];
 	if (kcolz<kcez) {
 	  // before:  both z and y are in the row
@@ -343,7 +156,7 @@ static bool elim_tripleton(const char *msg,
 	  colels[kcolz] += colels[kcoly] * coeff_factorz;
 	  // update row rep
 	  // first, copy new value for col z into proper place in rowels
-	  CoinBigIndex k2 = presolve_find_row(icolz, mrstrt[row], mrstrt[row]+hinrow[row], hcol);
+	  CoinBigIndex k2 = presolve_find_col(icolz, mrstrt[row], mrstrt[row]+hinrow[row], hcol);
 	  rowels[k2] = colels[kcolz];
 	  // now delete col y from the row; this changes hinrow[row]
 	  presolve_delete_from_row(row, icoly, mrstrt, hinrow, hcol, rowels);
@@ -354,14 +167,14 @@ static bool elim_tripleton(const char *msg,
 	  // update entry corresponding to icolz in row rep 
 	  // by just overwriting the icoly entry
 	  {
-	    CoinBigIndex k2 = presolve_find_row(icoly, mrstrt[row], mrstrt[row]+hinrow[row], hcol);
+	    CoinBigIndex k2 = presolve_find_col(icoly, mrstrt[row], mrstrt[row]+hinrow[row], hcol);
 	    hcol[k2] = icolz;
 	    rowels[k2] = colels[kcoly] * coeff_factorz;
 	  }
 	  
 	  {
-	    bool no_mem = expand_col(mcstrt, colels, hrow, hincol, clink, ncols,
-				     icolz);
+	    bool no_mem = presolve_expand_col(mcstrt,colels,hrow,hincol,
+					      clink,ncols,icolz);
 	    if (no_mem)
 	      return (true);
 	    
@@ -387,11 +200,11 @@ static bool elim_tripleton(const char *msg,
 	// update entry corresponding to icolx in row rep 
 	// by just overwriting the icoly entry
 	{
-	  CoinBigIndex k2 = presolve_find_row(icoly, mrstrt[row], mrstrt[row]+hinrow[row], hcol);
+	  CoinBigIndex k2 = presolve_find_col(icoly, mrstrt[row], mrstrt[row]+hinrow[row], hcol);
 	  hcol[k2] = icolx;
 	  rowels[k2] = colels[kcoly] * coeff_factorx;
 	}
-	expand_row(mrstrt, rowels, hcol, hinrow, rlink, nrows, row);
+	presolve_expand_row(mrstrt,rowels,hcol,hinrow,rlink,nrows,row) ;
 	// there is now an unused entry in the memory after the column - use it
 	int krez = mrstrt[row]+hinrow[row];
 	hcol[krez] = icolz;
@@ -399,8 +212,8 @@ static bool elim_tripleton(const char *msg,
 	hinrow[row]++;
 
 	{
-	  bool no_mem = expand_col(mcstrt, colels, hrow, hincol, clink, ncols,
-				   icolx);
+	  bool no_mem = presolve_expand_col(mcstrt,colels,hrow,hincol,
+					    clink,ncols,icolx) ;
 	  if (no_mem)
 	    return (true);
 
@@ -423,8 +236,8 @@ static bool elim_tripleton(const char *msg,
 	hincol[icolx]++, kcex++;	// expand the col
 	
 	{
-	  bool no_mem = expand_col(mcstrt, colels, hrow, hincol, clink, ncols,
-				   icolz);
+	  bool no_mem = presolve_expand_col(mcstrt,colels,hrow,hincol,clink,
+					    ncols,icolz);
 	  if (no_mem)
 	    return (true);
 
@@ -446,6 +259,10 @@ static bool elim_tripleton(const char *msg,
       }
     }
   }
+
+# if PRESOLVE_DEBUG
+  printf(")\n") ;
+# endif
 
   // delete the whole column
   hincol[icoly] = 0;
@@ -484,7 +301,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
   presolvehlink *clink = prob->clink_;
   presolvehlink *rlink = prob->rlink_;
 
-  const char *integerType = prob->integerType_;
+  const unsigned char *integerType = prob->integerType_;
 
   double *cost	= prob->cost_;
 
@@ -506,10 +323,9 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
   //  unsigned char * colstat = prob->colstat_;
 
 
-#if	CHECK_CONSISTENCY
-  presolve_links_ok(clink, mcstrt, hincol, ncols);
-  presolve_links_ok(rlink, mrstrt, hinrow, nrows);
-#endif
+# if PRESOLVE_CONSISTENCY
+  presolve_links_ok(prob) ;
+# endif
 
   // wasfor (int irow=0; irow<nrows; irow++)
   for (iLook=0;iLook<numberLook;iLook++) {
@@ -671,7 +487,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	  s->coeffz = coeffz;
 	  
 	  s->ncoly	= hincol[icoly];
-	  s->colel	= presolve_duparray(colels, hrow, hincol[icoly],
+	  s->colel	= presolve_dupmajor(colels, hrow, hincol[icoly],
 					    mcstrt[icoly]);
 	}
 	
@@ -726,7 +542,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	}
 
 	/* transfer the colx factors to coly */
-	bool no_mem = elim_tripleton("ELIMD",
+	bool no_mem = elim_tripleton("ELIMT",
 				     mcstrt, rlo, acts, rup, colels,
 				     hrow, hcol, hinrow, hincol,
 				     clink, ncols, rlink, nrows,
@@ -741,8 +557,8 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 
 	// now remove irow from icolx and icolz in the col rep
 	// better if this were first.
-	presolve_delete_from_row(icolx, irow, mcstrt, hincol, hrow, colels);
-	presolve_delete_from_row(icolz, irow, mcstrt, hincol, hrow, colels);
+	presolve_delete_from_col(irow,icolx,mcstrt,hincol,hrow,colels) ;
+	presolve_delete_from_col(irow,icolz,mcstrt,hincol,hrow,colels) ;
 
 	// eliminate irow entirely from the row rep
 	hinrow[irow] = 0;
@@ -763,18 +579,17 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 
       }
       
-#if 0
-      presolve_links_ok(clink, mcstrt, ncols);
-      presolve_links_ok(rlink, mrstrt, nrows);
-      prob->consistent();
-#endif
+#     if PRESOLVE_CONSISTENCY
+      presolve_links_ok(prob) ;
+      presolve_consistent(prob);
+#     endif
     }
   }
 
   if (nactions) {
-#if	PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY
     printf("NTRIPLETONS:  %d\n", nactions);
-#endif
+#   endif
     action *actions1 = new action[nactions];
     CoinMemcpyN(actions, nactions, actions1);
 
@@ -827,10 +642,12 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 
   const double maxmin	= prob->maxmin_;
 
+# if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
   char *cdone	= prob->cdone_;
   char *rdone	= prob->rdone_;
+# endif
 
-  CoinBigIndex free_list = prob->free_list_;
+  CoinBigIndex &free_list = prob->free_list_;
 
   const double ztolzb	= prob->ztolzb_;
   const double ztoldj	= prob->ztoldj_;
@@ -917,7 +734,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
     // need to reconstruct x and z
     double multiplier1 = coeffx/coeffy;
     double multiplier2 = coeffz/coeffy;
-    int * indy = (int *) (f->colel+f->ncoly);
+    int * indy = reinterpret_cast<int *>(f->colel+f->ncoly);
     int ystart = NO_LINK;
     int nX=0,nZ=0;
     int i,iRow;
@@ -925,9 +742,8 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
       int iRow = indy[i];
       double yValue = f->colel[i];
       CoinBigIndex k = free_list;
+      assert(k >= 0 && k < prob->bulk0_) ;
       free_list = link[free_list];
-      
-      check_free_list(free_list);
       if (iRow != irow) {
 	// are these tests always true???
 	
@@ -954,6 +770,9 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
       element2[iRow]=yValue*multiplier2;
       index2[nZ++]=iRow;
     }
+#   if PRESOLVE_CONSISTENCY
+    presolve_check_free_list(prob) ;
+#   endif
     mcstrt[jcoly] = ystart;
     hincol[jcoly] = f->ncoly;
     // find the tail
@@ -976,7 +795,6 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	numberInColumn--;
 	// add to free list
 	int nextk = link[k];
-	assert(free_list>=0);
 	link[k]=free_list;
 	free_list=k;
 	assert (k>=0);
@@ -996,10 +814,8 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  djx -= rowduals[iRow] * xValue;
 	numberInColumn++;
 	CoinBigIndex k = free_list;
+	assert(k >= 0 && k < prob->bulk0_) ;
 	free_list = link[free_list];
-	
-	check_free_list(free_list);
-	
 	hrow[k] = iRow;
 	PRESOLVEASSERT(rdone[hrow[k]] || hrow[k] == irow);
 	colels[k] = xValue;
@@ -1010,6 +826,9 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	last = k;
       }
     }
+#   if PRESOLVE_CONSISTENCY
+    presolve_check_free_list(prob) ;
+#   endif
     link[last]=NO_LINK;
     assert(numberInColumn);
     hincol[jcolx] = numberInColumn;
@@ -1053,10 +872,8 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  djz -= rowduals[iRow] * zValue;
 	numberInColumn++;
 	CoinBigIndex k = free_list;
+	assert(k >= 0 && k < prob->bulk0_) ;
 	free_list = link[free_list];
-	
-	check_free_list(free_list);
-	
 	hrow[k] = iRow;
 	PRESOLVEASSERT(rdone[hrow[k]] || hrow[k] == irow);
 	colels[k] = zValue;
@@ -1067,6 +884,9 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	last = k;
       }
     }
+#   if PRESOLVE_CONSISTENCY
+    presolve_check_free_list(prob) ;
+#   endif
     link[last]=NO_LINK;
     assert(numberInColumn);
     hincol[jcolz] = numberInColumn;
@@ -1091,10 +911,10 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	// for example, this is obviously true if y is a singleton column
 	rowduals[irow] = djy / coeffy;
 	rcosts[jcolx] = djx - rowduals[irow] * coeffx;
-#ifndef NDEBUG
+#       if PRESOLVE_DEBUG
 	if (prob->columnIsBasic(jcolx)&&fabs(rcosts[jcolx])>1.0e-5)
 	  printf("bad dj %d %g\n",jcolx,rcosts[jcolx]);
-#endif
+#       endif
 	rcosts[jcolz] = djz - rowduals[irow] * coeffz;
 	//if (prob->columnIsBasic(jcolz))
 	//assert (fabs(rcosts[jcolz])<1.0e-5);
@@ -1120,7 +940,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
     }
     
     // DEBUG CHECK
-#if	DEBUG_PRESOLVE
+#   if PRESOLVE_DEBUG
     {
       CoinBigIndex k = mcstrt[jcolx];
       int nx = hincol[jcolx];
@@ -1158,16 +978,17 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
       rcosts[jcoly]=dj;
       //exit(0);
     }
-#endif
+#   endif
     
+#   if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
     cdone[jcoly] = TRIPLETON;
     rdone[irow] = TRIPLETON;
+#   endif
   }
   delete [] index1;
   delete [] element1;
   delete [] index2;
   delete [] element2;
-  prob->free_list_ = free_list;
 }
 
 
