@@ -1,5 +1,7 @@
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
+
+// Also put all base defines here e.g. VC++ pragmas
 #ifndef CoinFinite_H
 #define CoinFinite_H
 
@@ -39,6 +41,18 @@ extern "C" {
 # include<float.h>
 # define CoinIsnan   _isnan
 # define CoinFinite  _finite
+// Turn off compiler warning about long names
+#  pragma warning(disable:4786)
+#if !defined(min)
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
+#if !defined(max)
+#define max(a,b)  (((a) > (b)) ? (a) : (b))
+#endif
+#else
+// Put standard min and max here
+using std::min;
+using std::max;
 #endif
 
 //=============================================================================
