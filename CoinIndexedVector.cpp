@@ -4,7 +4,7 @@
 // Turn off compiler warning about long names
 #  pragma warning(disable:4786)
 #endif
-
+  
 #include <cassert>
 #include <cstdio>
 
@@ -70,6 +70,42 @@ CoinIndexedVector::operator=(const CoinIndexedVector & rhs)
 		      rhs.indices_, rhs.elements_);
   }
   return *this;
+}
+/* Copy the contents of one vector into another.  If multiplier is 1
+   It is the equivalent of = but if vectors are same size does
+   not re-allocate memory just clears and copies */
+void 
+CoinIndexedVector::copy(const CoinIndexedVector & rhs, double multiplier)
+{
+  if (capacity_==rhs.capacity_) {
+    // can do fast
+    clear();
+    packedMode_=rhs.packedMode_;
+    nElements_=0;
+    if (!packedMode_) {
+      for (int i=0;i<rhs.nElements_;i++) {
+        int index = rhs.indices_[i];
+        double value = rhs.elements_[index]*multiplier;
+        if (fabs(value)>=COIN_INDEXED_TINY_ELEMENT) {
+          elements_[index]=value;
+          indices_[nElements_++]=index;
+        }
+      }
+    } else {
+      for (int i=0;i<rhs.nElements_;i++) {
+        int index = rhs.indices_[i];
+        double value = rhs.elements_[i]*multiplier;
+        if (fabs(value)>=COIN_INDEXED_TINY_ELEMENT) {
+          elements_[nElements_]=value;
+          indices_[nElements_++]=index;
+        }
+      }
+    }
+  } else {
+    // do as two operations
+    *this = rhs;
+    (*this) *= multiplier;
+  }
 }
 
 //#############################################################################
@@ -165,6 +201,7 @@ CoinIndexedVector::setFull(int size, const double * elems)
 double &
 CoinIndexedVector::operator[](int index) const
 {
+  assert (!packedMode_);
   if ( index >= capacity_ ) 
     throw CoinError("index >= capacity()", "[]", "CoinIndexedVector");
   if ( index < 0 ) 
@@ -401,10 +438,15 @@ CoinIndexedVector::truncate( int n )
 void
 CoinIndexedVector::operator+=(double value) 
 {
+  assert (!packedMode_);
   int i,indexValue;
   for (i=0;i<nElements_;i++) {
     indexValue = indices_[i];
-    elements_[indexValue] += value;
+    double newValue = elements_[indexValue] + value;
+    if (fabs(newValue)>=COIN_INDEXED_TINY_ELEMENT)
+      elements_[indexValue] = newValue;
+    else
+      elements_[indexValue] = COIN_INDEXED_REALLY_TINY_ELEMENT;
   }
 }
 
@@ -413,10 +455,15 @@ CoinIndexedVector::operator+=(double value)
 void
 CoinIndexedVector::operator-=(double value) 
 {
+  assert (!packedMode_);
   int i,indexValue;
   for (i=0;i<nElements_;i++) {
     indexValue = indices_[i];
-    elements_[indexValue] -= value;
+    double newValue = elements_[indexValue] - value;
+    if (fabs(newValue)>=COIN_INDEXED_TINY_ELEMENT)
+      elements_[indexValue] = newValue;
+    else
+      elements_[indexValue] = COIN_INDEXED_REALLY_TINY_ELEMENT;
   }
 }
 
@@ -425,10 +472,15 @@ CoinIndexedVector::operator-=(double value)
 void
 CoinIndexedVector::operator*=(double value) 
 {
+  assert (!packedMode_);
   int i,indexValue;
   for (i=0;i<nElements_;i++) {
     indexValue = indices_[i];
-    elements_[indexValue] *= value;
+    double newValue = elements_[indexValue] * value;
+    if (fabs(newValue)>=COIN_INDEXED_TINY_ELEMENT)
+      elements_[indexValue] = newValue;
+    else
+      elements_[indexValue] = COIN_INDEXED_REALLY_TINY_ELEMENT;
   }
 }
 
@@ -437,10 +489,15 @@ CoinIndexedVector::operator*=(double value)
 void
 CoinIndexedVector::operator/=(double value) 
 {
+  assert (!packedMode_);
   int i,indexValue;
   for (i=0;i<nElements_;i++) {
     indexValue = indices_[i];
-    elements_[indexValue] /= value;
+    double newValue = elements_[indexValue] / value;
+    if (fabs(newValue)>=COIN_INDEXED_TINY_ELEMENT)
+      elements_[indexValue] = newValue;
+    else
+      elements_[indexValue] = COIN_INDEXED_REALLY_TINY_ELEMENT;
   }
 }
 //#############################################################################
@@ -634,6 +691,7 @@ CoinIndexedVector
 CoinIndexedVector::operator+(
                             const CoinIndexedVector& op2)
 {
+  assert (!packedMode_);
   int i;
   int nElements=nElements_;
   int capacity = CoinMax(capacity_,op2.capacity_);
@@ -680,6 +738,7 @@ CoinIndexedVector
 CoinIndexedVector::operator-(
                             const CoinIndexedVector& op2)
 {
+  assert (!packedMode_);
   int i;
   int nElements=nElements_;
   int capacity = CoinMax(capacity_,op2.capacity_);
@@ -726,6 +785,7 @@ CoinIndexedVector
 CoinIndexedVector::operator*(
                             const CoinIndexedVector& op2)
 {
+  assert (!packedMode_);
   int i;
   int nElements=nElements_;
   int capacity = CoinMax(capacity_,op2.capacity_);
@@ -746,9 +806,7 @@ CoinIndexedVector::operator*(
     }
   }
 
-// I don't see why this is necessary. Multiplication cannot add new values.
-//newOne.nElements_=nElements;
-  assert(newOne.nElements_ == nElements) ;
+  newOne.nElements_=nElements;
 
   if (needClean) {
     // go through again
@@ -770,6 +828,7 @@ CoinIndexedVector::operator*(
 CoinIndexedVector 
 CoinIndexedVector::operator/ (const CoinIndexedVector& op2) 
 {
+  assert (!packedMode_);
   // I am treating 0.0/0.0 as 0.0
   int i;
   int nElements=nElements_;
@@ -793,9 +852,7 @@ CoinIndexedVector::operator/ (const CoinIndexedVector& op2)
     }
   }
 
-// I don't see why this is necessary. Division can only modify existing.
-//newOne.nElements_=nElements;
-  assert(newOne.nElements_ == nElements) ;
+  newOne.nElements_=nElements;
 
   if (needClean) {
     // go through again
@@ -811,6 +868,37 @@ CoinIndexedVector::operator/ (const CoinIndexedVector& op2)
     }
   }
   return newOne;
+}
+// The sum of two indexed vectors
+void 
+CoinIndexedVector::operator+=(const CoinIndexedVector& op2)
+{
+  // do slowly at first
+  *this = *this + op2;
+}
+
+// The difference of two indexed vectors
+void 
+CoinIndexedVector::operator-=( const CoinIndexedVector& op2)
+{
+  // do slowly at first
+  *this = *this - op2;
+}
+
+// The element-wise product of two indexed vectors
+void 
+CoinIndexedVector::operator*=(const CoinIndexedVector& op2)
+{
+  // do slowly at first
+  *this = *this * op2;
+}
+
+// The element-wise ratio of two indexed vectors (0.0/0.0 => 0.0) (0 vanishes)
+void 
+CoinIndexedVector::operator/=(const CoinIndexedVector& op2)
+{
+  // do slowly at first
+  *this = *this / op2;
 }
 //#############################################################################
 void 

@@ -142,6 +142,10 @@ public:
    /** Assignment operator from a CoinPackedVectorBase. <br>
    <strong>NOTE</strong>: This assumes no duplicates */
    CoinIndexedVector & operator=(const CoinPackedVectorBase & rhs);
+   /** Copy the contents of one vector into another.  If multiplier is 1
+       It is the equivalent of = but if vectors are same size does
+       not re-allocate memory just clears and copies */
+   void copy(const CoinIndexedVector & rhs, double multiplier=1.0);
 
    /** Borrow ownership of the arguments to this vector.
        Size is the length of the unpacked elements vector. */
@@ -335,6 +339,17 @@ CoinIndexedVector operator*(
 /// Return the element-wise ratio of two indexed vectors (0.0/0.0 => 0.0) (0 vanishes)
 CoinIndexedVector operator/(
 			   const CoinIndexedVector& op2);
+/// The sum of two indexed vectors
+void operator+=(const CoinIndexedVector& op2);
+
+/// The difference of two indexed vectors
+void operator-=( const CoinIndexedVector& op2);
+
+/// The element-wise product of two indexed vectors
+void operator*=(const CoinIndexedVector& op2);
+
+/// The element-wise ratio of two indexed vectors (0.0/0.0 => 0.0) (0 vanishes)
+void operator/=(const CoinIndexedVector& op2);
 //@}
 
    /**@name Memory usage */
@@ -382,7 +397,7 @@ CoinIndexedVector operator/(
 private:
    /**@name Private methods */
    //@{  
-   /// Copy internal date
+   /// Copy internal data
    void gutsOfSetVector(int size,
 			const int * inds, const double * elems);
    void gutsOfSetVector(int size, int numberIndices,
