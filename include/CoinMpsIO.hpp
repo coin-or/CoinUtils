@@ -147,6 +147,17 @@ protected:
   /// Messages
   CoinMessages messages_;
   //@}
+
+  /**@name methods */
+  //@{
+  /// type - 0 normal, 1 INTEL IEEE, 2 other IEEE
+  static double osi_strtod(char * ptr, char ** output, int type);
+  /// remove blanks 
+  static void strcpyAndCompress ( char *to, const char *from );
+  ///
+  static char * CoinMpsCardReader::nextBlankOr ( char *image );
+  //@}
+
 };
 
 //#############################################################################

@@ -18,7 +18,7 @@
 
 //#############################################################################
 // type - 0 normal, 1 INTEL IEEE, 2 other IEEE
-static double osi_strtod(char * ptr, char ** output, int type) 
+double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type) 
 {
 
   static const double fraction[]=
@@ -265,7 +265,7 @@ int CoinMpsCardReader::cleanCard()
 }
 
 char *
-nextBlankOr ( char *image )
+CoinMpsCardReader::nextBlankOr ( char *image )
 {
   char * saveImage=image;
   while ( 1 ) {
@@ -411,7 +411,7 @@ CoinMpsCardReader::~CoinMpsCardReader (  )
 }
 
 void
-strcpyAndCompress ( char *to, const char *from )
+CoinMpsCardReader::strcpyAndCompress ( char *to, const char *from )
 {
   int n = strlen ( from );
   int i;
