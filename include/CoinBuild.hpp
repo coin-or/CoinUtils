@@ -34,6 +34,12 @@ public:
                   const double * elements, 
                   double columnLower=0.0, 
                   double columnUpper=COIN_DBL_MAX, double objectiveValue=0.0);
+   /// add a column
+   inline void addCol(int numberInColumn, const int * rows,
+                  const double * elements, 
+                  double columnLower=0.0, 
+                  double columnUpper=COIN_DBL_MAX, double objectiveValue=0.0)
+  { addColumn(numberInColumn, rows, elements, columnLower, columnUpper, objectiveValue);};
    /// Return number of rows or maximum found so far
   inline int numberRows() const
   { return (type_==0) ? numberItems_ : numberOther_;};
