@@ -1,3 +1,5 @@
+// Copyright (C) 2002, International Business Machines
+// Corporation and others.  All Rights Reserved.
 #include <stdio.h>
 #include <math.h>
 

@@ -127,8 +127,6 @@ void CoinFactorization::gutsOfDestructor()
 // type - 1 bit tolerances etc, 2 rest
 void CoinFactorization::gutsOfInitialize(int type)
 {
-  // change defines to allow for 64 bits
-  assert (COINFACTORIZATION_BITS_PER_INT==8*sizeof(int));
   if ((type&1)!=0) {
     areaFactor_ = 0.0;
     pivotTolerance_ = 1.0e-1;

@@ -1,3 +1,5 @@
+// Copyright (C) 2002, International Business Machines
+// Corporation and others.  All Rights Reserved.
 #include <stdio.h>
 #include <math.h>
 
@@ -93,6 +95,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
     int j = look[iLook];
     if (dcost[j]==0.0) {
       int iflag=0; /* 1 - up is towards feasibility, -1 down is towards */
+      int nonFree=0; // Number of non-free rows
 
       CoinBigIndex kcs = mcstrt[j];
       CoinBigIndex kce = kcs + hincol[j];
@@ -108,6 +111,8 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	  // bounded - we lose
 	  iflag=0;
 	  break;
+	} else if (-1.0e28 < rlb || rub < 1.0e28) {
+	  nonFree++;
 	}
 
 	PRESOLVEASSERT(fabs(coeff) > ZTOLDP);
@@ -130,7 +135,8 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	}
       }
       // done checking constraints
-
+      if (!nonFree)
+	iflag=0; // all free anyway
       if (iflag) {
 	if (iflag==1 && cup[j]<1.0e10) {
 #if	DEBUG_PRESOLVE
@@ -144,7 +150,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	  //mpre[j] = PRESOLVE_XUP;
 
 #if	DEBUG_PRESOLVE
-	  printf("TIGHTEN DOWN:  %d\n", j);
+	  printf("TIGHTEN DOWN:  %d\n", j)f;
 #endif
 
 	  fixdown_cols[nfixdown_cols] = j;

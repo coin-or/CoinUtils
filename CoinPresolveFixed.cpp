@@ -359,8 +359,8 @@ const CoinPresolveAction *make_fixed(CoinPresolveMatrix *prob,
     if (hincol[i] > 0 && fabs(cup[i] - clo[i]) < ZTOLDP&&!prob->colProhibited2(i)) 
       fcols[nfcols++] = i;
 
-  if (nfcols)
-    next = make_fixed_action::presolve(prob, fcols, nfcols,
+  // Always make action as first to be done
+  next = make_fixed_action::presolve(prob, fcols, nfcols,
 				     true, // arbitrary
 				     next);
   delete[]fcols;
