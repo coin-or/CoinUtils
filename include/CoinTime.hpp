@@ -11,6 +11,10 @@
 // Turn off compiler warning about long names
 #  pragma warning(disable:4786)
 #else
+// MacOS-X
+#if defined(__MACH__)
+#include <sys/time.h>
+#endif
 #include <sys/resource.h>
 #endif
 
