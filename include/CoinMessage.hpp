@@ -8,16 +8,20 @@
 #  pragma warning(disable:4786)
 #endif
 
-/** This deals with Coin messages (as against Clp messages etc).
-    CoinMessageHandler.hpp is the general part of message handling.
-    All it has are enum's for the various messages.
-    CoinMessage.cpp has text in various languages.
+/*! \file
 
-    It is trivial to use the .hpp and .cpp file as a basis for
-    messages for other components.
- */
+    This file contains the enum for the standard set of Coin messages and a
+    class definition whose sole purpose is to supply a constructor. The text
+    ot the messages is defined in CoinMessage.cpp,
+
+    CoinMessageHandler.hpp contains the generic facilities for message
+    handling.
+*/
 
 #include "CoinMessageHandler.hpp"
+
+/*! \brief Symbolic names for the standard set of COIN messages */
+
 enum COIN_Message
 {
   COIN_MPS_LINE=0,
@@ -47,8 +51,24 @@ enum COIN_Message
   COIN_PRESOLVE_POSTSOLVE,
   COIN_PRESOLVE_NEEDS_CLEANING,
   COIN_PRESOLVE_PASS,
+# if PRESOLVE_DEBUG
+  COIN_PRESOLDBG_FIRSTCHECK,
+  COIN_PRESOLDBG_RCOSTACC,
+  COIN_PRESOLDBG_RCOSTSTAT,
+  COIN_PRESOLDBG_STATSB,
+  COIN_PRESOLDBG_DUALSTAT,
+# endif
   COIN_DUMMY_END
 };
+
+
+/*! \class CoinMessage
+    \brief The standard set of Coin messages
+
+    This class provides convenient access to the standard set of Coin messages.
+    In a nutshell, it's a CoinMessages object with a constructor that
+    preloads the standard Coin messages.
+*/
 
 class CoinMessage : public CoinMessages {
 
@@ -56,7 +76,11 @@ public:
 
   /**@name Constructors etc */
   //@{
-  /** Constructor */
+  /*! \brief Constructor
+  
+    Build a CoinMessages object and load it with the standard set of
+    Coin messages.
+  */
   CoinMessage(Language language=us_en);
   //@}
 
