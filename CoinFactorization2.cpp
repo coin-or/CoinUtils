@@ -7,6 +7,7 @@
 #endif
 
 #include <cassert>
+#include <cfloat>
 #include <stdio.h>
 #include "CoinFactorization.hpp"
 #include "CoinIndexedVector.hpp"
@@ -93,7 +94,7 @@ CoinFactorization::factorSparse (  )
   separateLinks(1,(biasLU_>1));
   while ( count <= biggerDimension_ ) {
     CoinBigIndex minimumCount = INT_MAX;
-    CoinBigIndex minimumCost = INT_MAX;
+    double minimumCost = COIN_DBL_MAX;
 
     count = 1;
     bool stopping = false;
@@ -124,6 +125,7 @@ CoinFactorization::factorSparse (  )
 	    pivotRow = iRow;
 	    pivotRowPosition = start;
 	    pivotColumn = iColumn;
+            assert (pivotRow>=0&&pivotColumn>=0);
 	    pivotColumnPosition = -1;
 	    stopping = true;
 	    look = -1;
@@ -152,7 +154,8 @@ CoinFactorization::factorSparse (  )
 	  CoinBigIndex i;
 	  for ( i = start; i < end; i++ ) {
 	    int iColumn = indexColumn[i];
-	    CoinBigIndex cost = ( count - 1 ) * numberInColumn[iColumn];
+            assert (numberInColumn[iColumn]>0);
+	    double cost = ( count - 1 ) * numberInColumn[iColumn];
 
 	    if ( cost < minimumCost ) {
 	      CoinBigIndex where = startColumn[iColumn];
@@ -181,6 +184,7 @@ CoinFactorization::factorSparse (  )
 		pivotRow = iRow;
 		pivotRowPosition = -1;
 		pivotColumn = iColumn;
+                assert (pivotRow>=0&&pivotColumn>=0);
 		pivotColumnPosition = i;
 		if ( minimumCount < count ) {
 		  stopping = true;
@@ -225,14 +229,17 @@ CoinFactorization::factorSparse (  )
 	    value = fabs ( value );
 	    if ( value >= minimumValue ) {
 	      int iRow = indexRow[i];
-	      CoinBigIndex cost = ( count - 1 ) * numberInRow[iRow];
+              int nInRow = numberInRow[iRow];
+              assert (nInRow>0);
+	      double cost = ( count - 1 ) * nInRow;
 
 	      if ( cost < minimumCost ) {
 		minimumCost = cost;
-		minimumCount = numberInRow[iRow];
+		minimumCount = nInRow;
 		pivotRow = iRow;
 		pivotRowPosition = i;
 		pivotColumn = iColumn;
+                assert (pivotRow>=0&&pivotColumn>=0);
 		pivotColumnPosition = -1;
 		if ( minimumCount <= count + 1 ) {
 		  stopping = true;
@@ -316,6 +323,7 @@ CoinFactorization::factorSparse (  )
 		}
 	      }
 	    } else {
+              assert (!numberDoRow);
 	      if ( !pivotRowSingleton ( pivotRow, pivotColumn ) ) {
 		status = -99;
 		count=biggerDimension_+1;
@@ -323,6 +331,7 @@ CoinFactorization::factorSparse (  )
 	      }
 	    }
 	  } else {
+            assert (!numberDoColumn);
 	    if ( !pivotColumnSingleton ( pivotRow, pivotColumn ) ) {
 	      status = -99;
 	      count=biggerDimension_+1;
@@ -331,6 +340,11 @@ CoinFactorization::factorSparse (  )
 	  }
 	  pivotColumn_[numberGoodU_] = pivotColumn;
 	  numberGoodU_++;
+          // This should not need to be trapped here - but be safe
+          if (numberGoodU_==numberRows_) {
+            count=biggerDimension_+1;
+            break;
+          }
 	}
       }
     }				/* endwhile */
