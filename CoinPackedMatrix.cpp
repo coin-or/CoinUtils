@@ -690,8 +690,9 @@ CoinPackedMatrix::assignMatrix(const bool colordered,
    maxMajorDim_ = maxmajor != -1 ? maxmajor : major;
    maxSize_ = maxsize != -1 ? maxsize : numels;
    if (len == NULL) {
-      length_ = new int[maxMajorDim_];
-      std::adjacent_difference(start + 1, start + (major + 1), length_);
+     delete [] length_;
+     length_ = new int[maxMajorDim_];
+     std::adjacent_difference(start + 1, start + (major + 1), length_);
    } else {
       length_ = len;
    }
@@ -1901,29 +1902,33 @@ CoinPackedMatrix::gutsOfCopyOf(const bool colordered,
    maxMajorDim_ = CoinLengthWithExtra(majorDim_, extraMajor_);
 
    if (maxMajorDim_ > 0) {
-      length_ = new int[maxMajorDim_];
-      if (len == 0) {
-	 std::adjacent_difference(start + 1, start + (major + 1), length_);
-      } else {
-	 CoinMemcpyN(len, major, length_);
-      }
-      start_ = new CoinBigIndex[maxMajorDim_+1];
-      CoinMemcpyN(start, major+1, start_);
+     delete [] length_;
+     length_ = new int[maxMajorDim_];
+     if (len == 0) {
+       std::adjacent_difference(start + 1, start + (major + 1), length_);
+     } else {
+       CoinMemcpyN(len, major, length_);
+     }
+     delete [] start_;
+     start_ = new CoinBigIndex[maxMajorDim_+1];
+     CoinMemcpyN(start, major+1, start_);
    }
 
    maxSize_ = maxMajorDim_ > 0 ? start_[major] : 0;
    maxSize_ = CoinLengthWithExtra(maxSize_, extraMajor_);
 
    if (maxSize_ > 0) {
-      element_ = new double[maxSize_];
-      index_ = new int[maxSize_];
-      // we can't just simply memcpy these content over, because that can
-      // upset memory debuggers like purify if there were gaps and those gaps
-      // were uninitialized memory blocks
-      for (int i = majorDim_ - 1; i >= 0; --i) {
-	 CoinMemcpyN(ind + start[i], length_[i], index_ + start_[i]);
-	 CoinMemcpyN(elem + start[i], length_[i], element_ + start_[i]);
-      }
+     delete [] element_;
+     delete []index_;
+     element_ = new double[maxSize_];
+     index_ = new int[maxSize_];
+     // we can't just simply memcpy these content over, because that can
+     // upset memory debuggers like purify if there were gaps and those gaps
+     // were uninitialized memory blocks
+     for (int i = majorDim_ - 1; i >= 0; --i) {
+       CoinMemcpyN(ind + start[i], length_[i], index_ + start_[i]);
+       CoinMemcpyN(elem + start[i], length_[i], element_ + start_[i]);
+     }
    }
 }
 
@@ -1945,12 +1950,14 @@ CoinPackedMatrix::gutsOfOpEqual(const bool colordered,
 
    int i;
    if (maxMajorDim_ > 0) {
+     delete [] length_;
       length_ = new int[maxMajorDim_];
       if (len == 0) {
 	 std::adjacent_difference(start + 1, start + (major + 1), length_);
       } else {
 	 CoinMemcpyN(len, major, length_);
       }
+      delete [] start_;
       start_ = new CoinBigIndex[maxMajorDim_+1];
       start_[0] = 0;
       if (extraGap_ == 0) {
@@ -1963,6 +1970,7 @@ CoinPackedMatrix::gutsOfOpEqual(const bool colordered,
       }
    } else {
      // empty matrix
+     delete [] start_;
      start_ = new CoinBigIndex[1];
      start_[0] = 0;
    }
@@ -1971,15 +1979,17 @@ CoinPackedMatrix::gutsOfOpEqual(const bool colordered,
    maxSize_ = CoinLengthWithExtra(maxSize_, extraMajor_);
 
    if (maxSize_ > 0) {
-      element_ = new double[maxSize_];
-      index_ = new int[maxSize_];
-      // we can't just simply memcpy these content over, because that can
-      // upset memory debuggers like purify if there were gaps and those gaps
-      // were uninitialized memory blocks
-      for (i = majorDim_ - 1; i >= 0; --i) {
-	 CoinMemcpyN(ind + start[i], length_[i], index_ + start_[i]);
-	 CoinMemcpyN(elem + start[i], length_[i], element_ + start_[i]);
-      }
+     delete [] element_;
+     delete [] index_;
+     element_ = new double[maxSize_];
+     index_ = new int[maxSize_];
+     // we can't just simply memcpy these content over, because that can
+     // upset memory debuggers like purify if there were gaps and those gaps
+     // were uninitialized memory blocks
+     for (i = majorDim_ - 1; i >= 0; --i) {
+       CoinMemcpyN(ind + start[i], length_[i], index_ + start_[i]);
+       CoinMemcpyN(elem + start[i], length_[i], element_ + start_[i]);
+     }
    }
 }
 
