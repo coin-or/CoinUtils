@@ -327,9 +327,7 @@ CoinMpsCardReader::readToNextSection (  )
 	  *nextBlank = '\0';
 	  strcpy ( columnName_, next );
 	  *nextBlank = save;
-	  if ( strstr ( nextBlank, "FREE" ) ) {
-	    freeFormat_ = true;
-	  } else if ( strstr ( nextBlank, "FREEIEEE" ) ) {
+	  if ( strstr ( nextBlank, "FREEIEEE" ) ) {
 	    freeFormat_ = true;
 	    // see if intel
 	    ieeeFormat_=1;
@@ -341,6 +339,8 @@ CoinMpsCardReader::readToNextSection (  )
 	    } else {
 	      assert (x[0]==0);
 	    }
+	  } else if ( strstr ( nextBlank, "FREE" ) ) {
+	    freeFormat_ = true;
 	  } else if ( strstr ( nextBlank, "IEEE" ) ) {
 	    // see if intel
 	    ieeeFormat_=1;
