@@ -44,6 +44,7 @@ LIBSRC += CoinWarmStartDual.cpp
 LIBSRC += CoinBuild.cpp
 LIBSRC += CoinModel.cpp
 LIBSRC += CoinModelUseful.cpp
+LIBSRC += CoinModelUseful2.cpp
 LIBSRC += CoinPostsolveMatrix.cpp
 LIBSRC += CoinPrePostsolveMatrix.cpp
 LIBSRC += CoinPresolveMatrix.cpp
