@@ -1814,6 +1814,20 @@ int CoinMpsIO::readMps()
 	    if ( value == -1.0e100 )
 	      ifError = true;
 	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
+	    } else if ( columnType[icolumn] == COIN_UI_BOUND ||
+			columnType[icolumn] == COIN_BV_BOUND) {
+	      // Allow so people can easily put FX's at end
+	      double value2 = floor(value);
+	      if (fabs(value2-value)>1.0e-12||
+		  value2<collower_[icolumn]||
+		  value2>colupper_[icolumn]) {
+		ifError=true;
+	      } else {
+		// take off integer list
+		assert(integerType_[icolumn] );
+		numberIntegers--;
+		integerType_[icolumn] = 0;
+	      }
 	    } else {
 	      ifError = true;
 	    }
