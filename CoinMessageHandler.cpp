@@ -606,7 +606,7 @@ CoinMessageHandler::operator<< (long longvalue)
   return *this;
 }
 #endif
-#ifdef COIN_BIG_INDEX=2
+#if COIN_BIG_INDEX==2
 CoinMessageHandler & 
 CoinMessageHandler::operator<< (long long longvalue)
 {
