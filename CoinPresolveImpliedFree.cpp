@@ -232,9 +232,6 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		int infiniteLower=infiniteDown[row];
 		double maximumUp = maxUp[row];
 		double maximumDown = maxDown[row];
-		// Build in a margin of error
-		maximumUp += 1.0e-8*fabs(maximumUp);
-		maximumDown -= 1.0e-8*fabs(maximumDown);
 		if (value > 0.0) {
 		  // positive value
 		  if (lower>-large) {
