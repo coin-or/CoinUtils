@@ -94,11 +94,11 @@ useless_constraint_action::useless_constraint_action(int nactions,
 {}
 useless_constraint_action::~useless_constraint_action() 
 {
-  //for (int i=0;i<nactions_;i++) {
-  //delete [] actions_[i].rowcols;
-  //delete [] actions_[i].rowels;
-  //}
-  //delete [] actions_;
+  for (int i=0;i<nactions_;i++) {
+    deleteAction(actions_[i].rowcols, int *);
+    deleteAction(actions_[i].rowels, double *);
+  }
+  deleteAction(actions_, action *);
 }
 
 const char *useless_constraint_action::name() const
@@ -127,6 +127,7 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   double *rlo	= prob->rlo_;
   double *rup	= prob->rup_;
 
+  printf("nactions %d\n",nactions_);
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
 
     int irow	= f->row;
@@ -165,11 +166,12 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     // rcosts are unaffected since rowdual is 0
 
     rowacts[irow] = rowact;
-    deleteAction(rowcols,int *);
-    deleteAction(rowels,double *);
+    // leave until desctructor
+    //deleteAction(rowcols,int *);
+    //deleteAction(rowels,double *);
   }
 
-  deleteAction(actions_,action *);
+  //deleteAction(actions_,action *);
 }
 
 
