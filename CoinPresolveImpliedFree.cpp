@@ -7,14 +7,18 @@
 #include "CoinPresolveSubst.hpp"
 #include "CoinPresolveIsolated.hpp"
 #include "CoinPresolveImpliedFree.hpp"
+#include "CoinPresolveUseless.hpp"
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
-static int testRedundant(CoinPresolveMatrix *prob)
+static const CoinPresolveAction *  testRedundant(CoinPresolveMatrix *prob,
+						 const CoinPresolveAction *next,
+						 int & numberInfeasible)
 {
   prob->pass_++;
+  numberInfeasible=0;
   if (prob->pass_%2!=1)
-    return 0;
+    return next;
   int numberColumns = prob->ncols_;
   double * columnLower	= new double[numberColumns];
   double * columnUpper	= new double[numberColumns];
@@ -27,6 +31,9 @@ static int testRedundant(CoinPresolveMatrix *prob)
   const int *rowLength	= prob->hinrow_;
   int numberRows	= prob->nrows_;
 
+  int *useless_rows	= new int[numberRows];
+  int nuseless_rows	= 0;
+
   double *rowLower	= prob->rlo_;
   double *rowUpper	= prob->rup_;
 
@@ -36,7 +43,6 @@ static int testRedundant(CoinPresolveMatrix *prob)
 #ifndef NDEBUG
   double large2= 1.0e10*large;
 #endif
-  int numberInfeasible=0;
   int totalTightened = 0;
 
   int iRow, iColumn;
@@ -343,19 +349,25 @@ static int testRedundant(CoinPresolveMatrix *prob)
 	if (maxUp <= rowUpper[iRow] + tolerance && 
 	    maxDown >= rowLower[iRow] - tolerance) {
 	  
-	  // Row is redundant - make totally free
-	  rowLower[iRow]=-COIN_DBL_MAX;
-	  rowUpper[iRow]=COIN_DBL_MAX;
+	  // Row is redundant 
+	  useless_rows[nuseless_rows++] = iRow;
 	  prob->addRow(iRow);
 	  
 	}
       }
     }
   }
+  if (nuseless_rows) 
+    next = useless_constraint_action::presolve(prob,
+					       useless_rows, nuseless_rows,
+					       next);
+
+  delete[]useless_rows;
+
   delete [] columnLower;
   delete [] columnUpper;
   delete [] markRow;
-    return (numberInfeasible);
+  return next;
 }
 
 // If there is a row with a singleton column such that no matter what
@@ -422,7 +434,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   const double tol = prob->feasibilityTolerance_;
 #if 1  
   // This needs to be made faster
-  if (testRedundant(prob)) {
+  int numberInfeasible;
+  next = testRedundant(prob,next,numberInfeasible);
+  if (numberInfeasible) {
     // infeasible
     prob->status_|= 1;
     return (next);

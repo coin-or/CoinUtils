@@ -42,6 +42,7 @@ static Coin_message us_english[]=
   {COIN_PRESOLVE_INTEGERMODS,510,1,"Presolve is modifying %d integer bounds and re-presolving"},
   {COIN_PRESOLVE_POSTSOLVE,511,1,"After Postsolve, objective %g, infeasibilities - dual %g (%d), primal %g (%d)"},
   {COIN_PRESOLVE_NEEDS_CLEANING,512,1,"Presolved model was optimal, full model needs cleaning up"},
+  {COIN_PRESOLVE_PASS,513,3,"%d rows dropped after presolve pass %d"},
   {COIN_DUMMY_END,999999,0,""}
 };
 // **** aiutami!
