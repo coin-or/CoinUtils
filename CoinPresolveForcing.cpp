@@ -369,7 +369,7 @@ const CoinPresolveAction
   { if (nfixed_cols > 1)
     { std::sort(fixed_cols,fixed_cols+nfixed_cols) ;
       int *end = std::unique(fixed_cols,fixed_cols+nfixed_cols) ;
-      nfixed_cols = reinterpret_cast<int>(end-fixed_cols) ; }
+      nfixed_cols = static_cast<int>(end-fixed_cols) ; }
     next = remove_fixed_action::presolve(prob,fixed_cols,nfixed_cols,next) ; }
   delete[]fixed_cols ;
 

@@ -171,7 +171,8 @@ void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
   gaps are *really* big.
 */
   assert(src_mcstrt[ncols_] <= bulk0_) ;
-  for (int j = 0 ; j < numCols ; j++)
+  int j;
+  for ( j = 0 ; j < numCols ; j++)
   { int lenj = src_hincol[j] ;
     CoinBigIndex offset = mcstrt_[j] ;
     CoinMemcpyN(src_colels+offset,lenj,colels_+offset) ;
@@ -182,7 +183,7 @@ void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
   coefficients in a row, we know how to lay out the bulk storage area.
 */
   CoinZeroN(hinrow_,nrows0_+1) ;
-  for (int j = 0 ; j < ncols_ ; j++)
+  for ( j = 0 ; j < ncols_ ; j++)
   { int *rowIndices = hrow_+mcstrt_[j] ;
     int lenj = hincol_[j] ;
     for (int k = 0 ; k < lenj ; k++)
@@ -198,12 +199,13 @@ void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
   { totalCoeffs += hinrow_[i] ;
     mrstrt_[i] = totalCoeffs ; }
   mrstrt_[nrows_] = totalCoeffs ;
-  for (int j = ncols_-1 ; j >= 0 ; j--)
+  for ( j = ncols_-1 ; j >= 0 ; j--)
   { int lenj = hincol_[j] ;
     double *colCoeffs = colels_+mcstrt_[j] ;
     int *rowIndices = hrow_+mcstrt_[j] ;
     for (int k = 0 ; k < lenj ; k++)
-    { int i = rowIndices[k] ;
+    { int i;
+      i = rowIndices[k] ;
       double aij = colCoeffs[k] ;
       CoinBigIndex l = --mrstrt_[i] ;
       rowels_[l] = aij ;
@@ -216,9 +218,9 @@ void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
   if (originalColumn_ == 0) originalColumn_ = new int [ncols0_] ;
   if (originalRow_ == 0) originalRow_ = new int [nrows0_] ;
 
-  for (int j = 0 ; j < ncols0_ ; j++) 
+  for ( j = 0 ; j < ncols0_ ; j++) 
     originalColumn_[j] = j ;
-  for (int i = 0 ; i < nrows0_ ; i++) 
+  for ( i = 0 ; i < nrows0_ ; i++) 
     originalRow_[i] = i ;
 /*
   We have help to set up the clink_ and rlink_ vectors (aids for matrix bulk
