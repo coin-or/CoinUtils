@@ -138,7 +138,7 @@ void CoinFactorization::gutsOfInitialize(int type)
     slackValue_ = 1.0;
     messageLevel_=0;
     maximumPivots_=200;
-    numberTrials_ = 2;
+    numberTrials_ = 4;
     relaxCheck_=1.0;
     denseThreshold_=31;
     denseThreshold_=71;
@@ -1056,13 +1056,7 @@ CoinFactorization::pivotRowSingleton ( int pivotRow,
     pivotRowPosition++;
     iRow = indexRowU_[pivotRowPosition];
   }				/* endwhile */
-#if COIN_DEBUG
-  {
-    if ( pivotRowPosition >= endColumn ) {
-      abort (  );
-    }
-  }
-#endif
+  assert ( pivotRowPosition < endColumn );
   //store column in L, compress in U and take column out
   CoinBigIndex l = lengthL_;
 
@@ -1098,11 +1092,7 @@ CoinFactorization::pivotRowSingleton ( int pivotRow,
     while ( indexColumnU_[where] != pivotColumn ) {
       where++;
     }				/* endwhile */
-#if COIN_DEBUG
-    if ( where >= end ) {
-      abort (  );
-    }
-#endif
+    assert ( where < end );
     indexColumnU_[where] = indexColumnU_[end - 1];
     numberInRow--;
     numberInRow_[iRow] = numberInRow;
@@ -1124,11 +1114,7 @@ CoinFactorization::pivotRowSingleton ( int pivotRow,
     while ( indexColumnU_[where] != pivotColumn ) {
       where++;
     }				/* endwhile */
-#if COIN_DEBUG
-    if ( where >= end ) {
-      abort (  );
-    }
-#endif
+    assert ( where < end );
     indexColumnU_[where] = indexColumnU_[end - 1];
     numberInRow--;
     numberInRow_[iRow] = numberInRow;
@@ -1204,17 +1190,8 @@ CoinFactorization::pivotColumnSingleton ( int pivotRow,
 	  pivot++;
 	  iRow = indexRowU_[pivot];
 	}
-#if COIN_DEBUG
-	{
-	  assert (indexRowU_[pivot]==pivotRow);
-	  CoinBigIndex end_debug = startColumnU_[iColumn] +
-
-	    numberInColumn_[iColumn];
-	  if ( pivot >= end_debug ) {
-	    abort (  );
-	  }
-	}
-#endif
+        assert (pivot < startColumnU_[iColumn] +
+                numberInColumn_[iColumn]);
 	if ( pivot != start ) {
 	  //move largest one up
 	  double value = elementU_[start];
@@ -1902,11 +1879,7 @@ CoinFactorization::pivotOneOtherRow ( int pivotRow,
   while ( indexColumnU_[where] != pivotColumn ) {
     where++;
   }				/* endwhile */
-#if COIN_DEBUG
-  if ( where >= end ) {
-    abort (  );
-  }
-#endif
+  assert ( where < end );
   end--;
   indexColumnU_[where] = indexColumnU_[end];
   int numberAdded = 0;
@@ -2086,11 +2059,7 @@ CoinFactorization::pivotOneOtherRow ( int pivotRow,
 	  while ( indexColumnU_[where] != iColumn ) {
 	    where++;
 	  }			/* endwhile */
-#if COIN_DEBUG
-	  if ( where >= end ) {
-	    abort (  );
-	  }
-#endif
+	  assert ( where < end );
 	  end--;
 	  indexColumnU_[where] = indexColumnU_[end];
 	}

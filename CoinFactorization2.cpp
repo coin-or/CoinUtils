@@ -96,8 +96,6 @@ CoinFactorization::factorSparse (  )
     CoinBigIndex minimumCount = INT_MAX;
     double minimumCost = COIN_DBL_MAX;
 
-    count = 1;
-    bool stopping = false;
     int pivotRow = -1;
     int pivotColumn = -1;
     int pivotRowPosition = -1;
@@ -105,284 +103,253 @@ CoinFactorization::factorSparse (  )
     int look = firstCount_[count];
     int trials = 0;
 
-    while ( !stopping ) {
-      if ( count == 1 && firstCount_[1] >= 0 &&!biasLU_) {
-	//do column singletons first to put more in U
-	while ( look >= 0 ) {
-	  if ( look < numberRows_ ) {
-	    look = nextCount_[look];
-	  } else {
-	    int iColumn = look - numberRows_;
-
-#if COIN_DEBUG
-	    if ( numberInColumn_[iColumn] != count ) {
-	      abort (  );
-	    }
-#endif
-	    CoinBigIndex start = startColumnU_[iColumn];
-	    int iRow = indexRow[start];
-
-	    pivotRow = iRow;
-	    pivotRowPosition = start;
-	    pivotColumn = iColumn;
-            assert (pivotRow>=0&&pivotColumn>=0);
-	    pivotColumnPosition = -1;
-	    stopping = true;
-	    look = -1;
-	    break;
-	  }
-	}			/* endwhile */
-	if ( !stopping ) {
-	  //back to singletons
-	  look = firstCount_[1];
-	}
-      }
+    if ( count == 1 && firstCount_[1] >= 0 &&!biasLU_) {
+      //do column singletons first to put more in U
       while ( look >= 0 ) {
-	if ( look < numberRows_ ) {
-	  int iRow = look;
-
-#if COIN_DEBUG
-	  if ( numberInRow[iRow] != count ) {
-	    abort (  );
-	  }
-#endif
-	  look = nextCount[look];
-	  bool rejected = false;
-	  CoinBigIndex start = startRow[iRow];
-	  CoinBigIndex end = start + count;
-
-	  CoinBigIndex i;
-	  for ( i = start; i < end; i++ ) {
-	    int iColumn = indexColumn[i];
-            assert (numberInColumn[iColumn]>0);
-	    double cost = ( count - 1 ) * numberInColumn[iColumn];
-
-	    if ( cost < minimumCost ) {
-	      CoinBigIndex where = startColumn[iColumn];
-	      double minimumValue = element[where];
-
-	      minimumValue = fabs ( minimumValue ) * pivotTolerance;
-	      while ( indexRow[where] != iRow ) {
-		where++;
-	      }			/* endwhile */
-#if COIN_DEBUG
-	      {
-		CoinBigIndex end_debug = startColumn[iColumn] +
-		  numberInColumn[iColumn];
-
-		if ( where >= end_debug ) {
-		  abort (  );
-		}
-	      }
-#endif
-	      double value = element[where];
-
-	      value = fabs ( value );
-	      if ( value >= minimumValue ) {
-		minimumCost = cost;
-		minimumCount = numberInColumn[iColumn];
-		pivotRow = iRow;
-		pivotRowPosition = -1;
-		pivotColumn = iColumn;
-                assert (pivotRow>=0&&pivotColumn>=0);
-		pivotColumnPosition = i;
-		if ( minimumCount < count ) {
-		  stopping = true;
-		  look = -1;
-		  break;
-		}
-	      } else if ( pivotRow == -1 ) {
-		rejected = true;
-	      }
-	    }
-	  }
-	  trials++;
-	  if ( trials >= numberTrials && pivotRow >= 0 ) {
-	    stopping = true;
-	    look = -1;
-	    break;
-	  }
-	  if ( rejected ) {
-	    //take out for moment
-	    //eligible when row changes
-	    deleteLink ( iRow );
-	    addLink ( iRow, biggerDimension_ + 1 );
-	  }
-	} else {
-	  int iColumn = look - numberRows;
-
-#if COIN_DEBUG
-	  if ( numberInColumn[iColumn] != count ) {
-	    abort (  );
-	  }
-#endif
-	  look = nextCount[look];
-	  CoinBigIndex start = startColumn[iColumn];
-	  CoinBigIndex end = start + numberInColumn[iColumn];
-	  double minimumValue = element[start];
-
-	  minimumValue = fabs ( minimumValue ) * pivotTolerance;
-	  CoinBigIndex i;
-	  for ( i = start; i < end; i++ ) {
-	    double value = element[i];
-
-	    value = fabs ( value );
-	    if ( value >= minimumValue ) {
-	      int iRow = indexRow[i];
-              int nInRow = numberInRow[iRow];
-              assert (nInRow>0);
-	      double cost = ( count - 1 ) * nInRow;
-
-	      if ( cost < minimumCost ) {
-		minimumCost = cost;
-		minimumCount = nInRow;
-		pivotRow = iRow;
-		pivotRowPosition = i;
-		pivotColumn = iColumn;
-                assert (pivotRow>=0&&pivotColumn>=0);
-		pivotColumnPosition = -1;
-		if ( minimumCount <= count + 1 ) {
-		  stopping = true;
-		  look = -1;
-		  break;
-		}
-	      }
-	    }
-	  }
-	  trials++;
-	  if ( trials >= numberTrials && pivotRow >= 0 ) {
-	    stopping = true;
-	    look = -1;
-	    break;
-	  }
-	}
-      }				/* endwhile */
-      //end of this - onto next
-      if ( !stopping ) {
-	count++;
-	if ( count <= biggerDimension_ ) {
-	  look = firstCount_[count];
-	} else {
-	  stopping = true;
-	}
+        if ( look < numberRows_ ) {
+          look = nextCount_[look];
+        } else {
+          int iColumn = look - numberRows_;
+          
+          assert ( numberInColumn_[iColumn] == count );
+          CoinBigIndex start = startColumnU_[iColumn];
+          int iRow = indexRow[start];
+          
+          pivotRow = iRow;
+          pivotRowPosition = start;
+          pivotColumn = iColumn;
+          assert (pivotRow>=0&&pivotColumn>=0);
+          pivotColumnPosition = -1;
+          look = -1;
+          break;
+        }
+      }			/* endwhile */
+      if ( pivotRow < 0 ) {
+        //back to singletons
+        look = firstCount_[1];
+      }
+    }
+    while ( look >= 0 ) {
+      if ( look < numberRows_ ) {
+        int iRow = look;
+        
+        assert ( numberInRow[iRow] == count );
+        look = nextCount[look];
+        bool rejected = false;
+        CoinBigIndex start = startRow[iRow];
+        CoinBigIndex end = start + count;
+        
+        CoinBigIndex i;
+        for ( i = start; i < end; i++ ) {
+          int iColumn = indexColumn[i];
+          assert (numberInColumn[iColumn]>0);
+          double cost = ( count - 1 ) * numberInColumn[iColumn];
+          
+          if ( cost < minimumCost ) {
+            CoinBigIndex where = startColumn[iColumn];
+            double minimumValue = element[where];
+            
+            minimumValue = fabs ( minimumValue ) * pivotTolerance;
+            while ( indexRow[where] != iRow ) {
+              where++;
+            }			/* endwhile */
+            assert ( where < startColumn[iColumn] +
+                     numberInColumn[iColumn]);
+            double value = element[where];
+            
+            value = fabs ( value );
+            if ( value >= minimumValue ) {
+              minimumCost = cost;
+              minimumCount = numberInColumn[iColumn];
+              pivotRow = iRow;
+              pivotRowPosition = -1;
+              pivotColumn = iColumn;
+              assert (pivotRow>=0&&pivotColumn>=0);
+              pivotColumnPosition = i;
+              rejected=false;
+              if ( minimumCount < count ) {
+                look = -1;
+                break;
+              }
+            } else if ( pivotRow == -1 ) {
+              rejected = true;
+            }
+          }
+        }
+        trials++;
+        if ( trials >= numberTrials && pivotRow >= 0 ) {
+          look = -1;
+          break;
+        }
+        if ( rejected ) {
+          //take out for moment
+          //eligible when row changes
+          deleteLink ( iRow );
+          addLink ( iRow, biggerDimension_ + 1 );
+        }
       } else {
-	if ( pivotRow >= 0 ) {
-	  int numberDoRow = numberInRow_[pivotRow] - 1;
-	  int numberDoColumn = numberInColumn_[pivotColumn] - 1;
-
-	  totalElements_ -= ( numberDoRow + numberDoColumn + 1 );
-	  if ( numberDoColumn > 0 ) {
-	    if ( numberDoRow > 0 ) {
-	      if ( numberDoColumn > 1 ) {
-		//  if (1) {
-		//need to adjust more for cache and SMP
-		//allow at least 4 extra
-		int increment = numberDoColumn + 1 + 4;
-
-		if ( increment & 15 ) {
-		  increment = increment & ( ~15 );
-		  increment += 16;
-		}
-		int increment2 =
-
-		  ( increment + COINFACTORIZATION_BITS_PER_INT - 1 ) >> COINFACTORIZATION_SHIFT_PER_INT;
-		CoinBigIndex size = increment2 * numberDoRow;
-
-		if ( size > workSize ) {
-		  workSize = size;
-		  delete []  workArea2 ;
-		  workArea2 = ( unsigned int * ) new int [ workSize ];
-		}
-		bool goodPivot;
-
-		if ( larger < 32766 ) {
-		  //branch out to best pivot routine 
-		  goodPivot = pivot ( pivotRow, pivotColumn,
-				      pivotRowPosition, pivotColumnPosition,
-				      workArea, workArea2, increment,
-				      increment2, ( short * ) markRow_ ,
-				      32767);
-		} else {
-		  //might be able to do better by permuting
-		  goodPivot = pivot ( pivotRow, pivotColumn,
-				      pivotRowPosition, pivotColumnPosition,
-				      workArea, workArea2, increment,
-				      increment2, ( int * ) markRow_ ,
-				      INT_MAX);
-		}
-		if ( !goodPivot ) {
-		  status = -99;
-		  count=biggerDimension_+1;
-		  break;
-		}
-	      } else {
-		if ( !pivotOneOtherRow ( pivotRow, pivotColumn ) ) {
-		  status = -99;
-		  count=biggerDimension_+1;
-		  break;
-		}
-	      }
-	    } else {
-              assert (!numberDoRow);
-	      if ( !pivotRowSingleton ( pivotRow, pivotColumn ) ) {
-		status = -99;
-		count=biggerDimension_+1;
-		break;
-	      }
-	    }
-	  } else {
-            assert (!numberDoColumn);
-	    if ( !pivotColumnSingleton ( pivotRow, pivotColumn ) ) {
-	      status = -99;
-	      count=biggerDimension_+1;
-	      break;
-	    }
-	  }
-	  pivotColumn_[numberGoodU_] = pivotColumn;
-	  numberGoodU_++;
-          // This should not need to be trapped here - but be safe
-          if (numberGoodU_==numberRows_) {
+        int iColumn = look - numberRows;
+        
+        assert ( numberInColumn[iColumn] == count );
+        look = nextCount[look];
+        CoinBigIndex start = startColumn[iColumn];
+        CoinBigIndex end = start + numberInColumn[iColumn];
+        double minimumValue = element[start];
+        
+        minimumValue = fabs ( minimumValue ) * pivotTolerance;
+        CoinBigIndex i;
+        for ( i = start; i < end; i++ ) {
+          double value = element[i];
+          
+          value = fabs ( value );
+          if ( value >= minimumValue ) {
+            int iRow = indexRow[i];
+            int nInRow = numberInRow[iRow];
+            assert (nInRow>0);
+            double cost = ( count - 1 ) * nInRow;
+            
+            if ( cost < minimumCost ) {
+              minimumCost = cost;
+              minimumCount = nInRow;
+              pivotRow = iRow;
+              pivotRowPosition = i;
+              pivotColumn = iColumn;
+              assert (pivotRow>=0&&pivotColumn>=0);
+              pivotColumnPosition = -1;
+              if ( minimumCount <= count + 1 ) {
+                look = -1;
+                break;
+              }
+            }
+          }
+        }
+        trials++;
+        if ( trials >= numberTrials && pivotRow >= 0 ) {
+          look = -1;
+          break;
+        }
+      }
+    }				/* endwhile */
+    if (pivotRow>=0) {
+      if ( pivotRow >= 0 ) {
+        int numberDoRow = numberInRow_[pivotRow] - 1;
+        int numberDoColumn = numberInColumn_[pivotColumn] - 1;
+        
+        totalElements_ -= ( numberDoRow + numberDoColumn + 1 );
+        if ( numberDoColumn > 0 ) {
+          if ( numberDoRow > 0 ) {
+            if ( numberDoColumn > 1 ) {
+              //  if (1) {
+              //need to adjust more for cache and SMP
+              //allow at least 4 extra
+              int increment = numberDoColumn + 1 + 4;
+              
+              if ( increment & 15 ) {
+                increment = increment & ( ~15 );
+                increment += 16;
+              }
+              int increment2 =
+                
+                ( increment + COINFACTORIZATION_BITS_PER_INT - 1 ) >> COINFACTORIZATION_SHIFT_PER_INT;
+              CoinBigIndex size = increment2 * numberDoRow;
+              
+              if ( size > workSize ) {
+                workSize = size;
+                delete []  workArea2 ;
+                workArea2 = ( unsigned int * ) new int [ workSize ];
+              }
+              bool goodPivot;
+              
+              if ( larger < 32766 ) {
+                //branch out to best pivot routine 
+                goodPivot = pivot ( pivotRow, pivotColumn,
+                                    pivotRowPosition, pivotColumnPosition,
+                                    workArea, workArea2, increment,
+                                    increment2, ( short * ) markRow_ ,
+                                    32767);
+              } else {
+                //might be able to do better by permuting
+                goodPivot = pivot ( pivotRow, pivotColumn,
+                                    pivotRowPosition, pivotColumnPosition,
+                                    workArea, workArea2, increment,
+                                    increment2, ( int * ) markRow_ ,
+                                    INT_MAX);
+              }
+              if ( !goodPivot ) {
+                status = -99;
+                count=biggerDimension_+1;
+                break;
+              }
+            } else {
+              if ( !pivotOneOtherRow ( pivotRow, pivotColumn ) ) {
+                status = -99;
+                count=biggerDimension_+1;
+                break;
+              }
+            }
+          } else {
+            assert (!numberDoRow);
+            if ( !pivotRowSingleton ( pivotRow, pivotColumn ) ) {
+              status = -99;
+              count=biggerDimension_+1;
+              break;
+            }
+          }
+        } else {
+          assert (!numberDoColumn);
+          if ( !pivotColumnSingleton ( pivotRow, pivotColumn ) ) {
+            status = -99;
             count=biggerDimension_+1;
             break;
           }
-	}
+        }
+        pivotColumn_[numberGoodU_] = pivotColumn;
+        numberGoodU_++;
+        // This should not need to be trapped here - but be safe
+        if (numberGoodU_==numberRows_) 
+          count=biggerDimension_+1;
       }
-    }				/* endwhile */
 #if COIN_DEBUG==2
-    checkConsistency (  );
+      checkConsistency (  );
 #endif
-    if (denseThreshold) {
-      // see whether to go dense 
-      int leftRows=numberRows_-numberGoodU_;
-      double full = leftRows;
-      full *= full;
-      assert (full>=0.0);
-      double leftElements = totalElements_;
-      //if (leftRows==100)
-      //printf("at 100 %d elements\n",totalElements_);
-      if ((1.5*leftElements>full&&leftRows>denseThreshold_)) {
-      	//return to do dense
-	if (status!=0)
-	  break;
+      if (denseThreshold) {
+        // see whether to go dense 
+        int leftRows=numberRows_-numberGoodU_;
+        double full = leftRows;
+        full *= full;
+        assert (full>=0.0);
+        double leftElements = totalElements_;
+        //if (leftRows==100)
+        //printf("at 100 %d elements\n",totalElements_);
+        if ((1.5*leftElements>full&&leftRows>denseThreshold_)) {
+          //return to do dense
+          if (status!=0)
+            break;
 #ifdef DENSE_CODE
-	int check=0;
-	for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
-	  if (numberInColumn_[iColumn]) 
-	    check++;
-	}
-	if (check!=leftRows) {
-	  printf("** mismatch %d columns left, %d rows\n",check,leftRows);
-	  denseThreshold=0;
-	} else {
-	  status=2;
-	  if ((messageLevel_&4)!=0) 
-	    std::cout<<"      Went dense at "<<leftRows<<" rows "<<
-	      totalElements_<<" "<<full<<" "<<leftElements<<std::endl;
-	  break;
-	}
+          int check=0;
+          for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
+            if (numberInColumn_[iColumn]) 
+              check++;
+          }
+          if (check!=leftRows) {
+            printf("** mismatch %d columns left, %d rows\n",check,leftRows);
+            denseThreshold=0;
+          } else {
+            status=2;
+            if ((messageLevel_&4)!=0) 
+              std::cout<<"      Went dense at "<<leftRows<<" rows "<<
+                totalElements_<<" "<<full<<" "<<leftElements<<std::endl;
+            break;
+          }
 #endif
+        }
       }
-    }
+      // start at 1 again
+      count = 1;
+    } else {
+      //end of this - onto next
+      count++;
+    } 
   }				/* endwhile */
   delete []  workArea ;
   delete [] workArea2 ;
