@@ -3,13 +3,13 @@
 
 #ifndef CoinHelperFunctions_H
 #define CoinHelperFunctions_H
-
 #if defined(_MSC_VER)
 #  include <direct.h>
 #  define getcwd _getcwd
 #else
 #  include <unistd.h>
 #endif
+
 
 #include "CoinError.hpp"
 
@@ -457,6 +457,5 @@ inline char CoinFindDirSeparator()
   delete[] buf;
   return dirsep;
 }
-
 
 #endif

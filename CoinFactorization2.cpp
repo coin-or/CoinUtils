@@ -7,7 +7,7 @@
 #endif
 
 #include <cassert>
-
+#include <stdio.h>
 #include "CoinFactorization.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
@@ -34,9 +34,7 @@ CoinFactorization::factorSparse (  )
   //get space for bit work area
   CoinBigIndex workSize = 1000;
   unsigned int *workArea2 = ( unsigned int * ) new int [ workSize ];
-  int lastColumnInBlock;
 
-  lastColumnInBlock = numberColumns_;
   int larger;
 
   if ( numberRows_ < numberColumns_ ) {
@@ -46,30 +44,41 @@ CoinFactorization::factorSparse (  )
   }
   int status = 0;
   //do slacks first
-  int pivotColumn;
-  for ( pivotColumn = 0; pivotColumn < lastColumnInBlock;
-	pivotColumn++ ) {
-    if ( numberInColumn_[pivotColumn] == 1 ) {
-      CoinBigIndex start = startColumnU_[pivotColumn];
-      double value = element[start];
-
-      if ( value == slackValue_ && numberInColumnPlus_[pivotColumn] == 0 ) {
-	//treat as slack
-	int iRow = indexRowU_[start];
-
-
-	totalElements_ -= numberInRow_[iRow];
-	if ( !pivotColumnSingleton ( iRow, pivotColumn ) ) {
-	  status = -99;
-	  count=biggerDimension_+1;
-	  break;
+  if (biasLU_<3) {
+    int pivotColumn;
+    for ( pivotColumn = 0; pivotColumn < numberColumns_;
+	  pivotColumn++ ) {
+      if ( numberInColumn_[pivotColumn] == 1 ) {
+	CoinBigIndex start = startColumnU_[pivotColumn];
+	double value = element[start];
+	if ( value == slackValue_ && numberInColumnPlus_[pivotColumn] == 0 ) {
+	  //treat as slack
+	  int iRow = indexRowU_[start];
+	  
+	  
+	  totalElements_ -= numberInRow_[iRow];
+	  if ( !pivotColumnSingleton ( iRow, pivotColumn ) ) {
+	    status = -99;
+	    count=biggerDimension_+1;
+	    break;
+	  }
+	  pivotColumn_[numberGoodU_] = pivotColumn;
+	  numberGoodU_++;
 	}
-	pivotColumn_[numberGoodU_] = pivotColumn;
-	numberGoodU_++;
       }
     }
   }
   numberSlacks_ = numberGoodU_;
+  int *nextCount = nextCount_;
+  int *numberInRow = numberInRow_;
+  int *numberInColumn = numberInColumn_;
+  CoinBigIndex *startRow = startRowU_;
+  CoinBigIndex *startColumn = startColumnU_;
+  double pivotTolerance = pivotTolerance_;
+  int numberTrials = numberTrials_;
+  int numberRows = numberRows_;
+  // Put column singletons first - (if false)
+  separateLinks(1,(biasLU_>1));
   while ( count <= biggerDimension_ ) {
     CoinBigIndex minimumCount = INT_MAX;
     CoinBigIndex minimumCost = INT_MAX;
@@ -84,7 +93,7 @@ CoinFactorization::factorSparse (  )
     int trials = 0;
 
     while ( !stopping ) {
-      if ( count == 1 && firstCount_[1] >= 0 ) {
+      if ( count == 1 && firstCount_[1] >= 0 &&!biasLU_) {
 	//do column singletons first to put more in U
 	while ( look >= 0 ) {
 	  if ( look < numberRows_ ) {
@@ -114,15 +123,6 @@ CoinFactorization::factorSparse (  )
 	  look = firstCount_[1];
 	}
       }
-      int *nextCount = nextCount_;
-      int *numberInRow = numberInRow_;
-      int *numberInColumn = numberInColumn_;
-      CoinBigIndex *startRow = startRowU_;
-      CoinBigIndex *startColumn = startColumnU_;
-      double pivotTolerance = pivotTolerance_;
-      int numberTrials = numberTrials_;
-      int numberRows = numberRows_;
-
       while ( look >= 0 ) {
 	if ( look < numberRows_ ) {
 	  int iRow = look;
@@ -334,8 +334,8 @@ CoinFactorization::factorSparse (  )
       double leftElements = totalElements_;
       //if (leftRows==100)
       //printf("at 100 %d elements\n",totalElements_);
-      if (2.0*leftElements>full&&leftRows>denseThreshold_) {
-	//return to do dense
+      if ((1.5*leftElements>full&&leftRows>denseThreshold_)) {
+      	//return to do dense
 	if (status!=0)
 	  break;
 #ifdef DENSE_CODE
@@ -349,8 +349,9 @@ CoinFactorization::factorSparse (  )
 	  denseThreshold=0;
 	} else {
 	  status=2;
-	  printf("** Went dense at %d rows %d %g %g\n",leftRows,
-		 totalElements_,full,leftElements);
+	  if ((messageLevel_&4)!=0) 
+	    std::cout<<"      Went dense at "<<leftRows<<" rows "<<
+	      totalElements_<<" "<<full<<" "<<leftElements<<std::endl;
 	  break;
 	}
 #endif
@@ -552,4 +553,53 @@ int CoinFactorization::factorDense()
 #endif
 #endif
   return status;
+}
+// Separate out links with same row/column count
+void 
+CoinFactorization::separateLinks(int count,bool rowsFirst)
+{
+  int next = firstCount_[count];
+  int firstRow=-1;
+  int firstColumn=-1;
+  int lastRow=-1;
+  int lastColumn=-1;
+  while(next>=0) {
+    int next2=nextCount_[next];
+    if (next>=numberRows_) {
+      nextCount_[next]=-1;
+      // Column
+      if (firstColumn>=0) {
+	lastCount_[next]=lastColumn;
+	nextCount_[lastColumn]=next;
+      } else {
+	lastCount_[next]= -2 - count;
+	firstColumn=next;
+      }
+      lastColumn=next;
+    } else {
+      // Row
+      if (firstRow>=0) {
+	lastCount_[next]=lastRow;
+	nextCount_[lastRow]=next;
+      } else {
+	lastCount_[next]= -2 - count;
+	firstRow=next;
+      }
+      lastRow=next;
+    }
+    next=next2;
+  }
+  if (rowsFirst&&firstRow>=0) {
+    firstCount_[count]=firstRow;
+    nextCount_[lastRow]=firstColumn;
+    if (firstColumn>=0)
+      lastCount_[firstColumn]=lastRow;
+  } else if (firstRow<0) {
+    firstCount_[count]=firstColumn;
+  } else if (firstColumn>=0) {
+    firstCount_[count]=firstColumn;
+    nextCount_[lastColumn]=firstRow;
+    if (firstRow>=0)
+      lastCount_[firstRow]=lastColumn;
+  } 
 }

@@ -6,12 +6,14 @@ export MakefileDir := $(CoinDir)/Makefiles
 ##############################################################################
 # Static or shared libraries should be built (STATIC or SHARED)?
 LibType := SHARED
+#LibType := STATIC
 
 # Select optimization (-O or -g). -O will be automatically bumped up to the 
 # highest level of optimization the compiler supports. If want something in
 # between then specify the exact level you want, e.g., -O1 or -O2
-OptLevel := -O3
-#OptLevel := -g
+OptLevel := -g
+OptLevel := -O1
+#OptLevel := -O2
 
 # Look at the ${CoinDir}/Makefiles/Makefile.location file, comment in which
 # libraries are/will be available and edit the location of the various
@@ -39,10 +41,37 @@ LIBSRC += CoinPackedVector.cpp
 LIBSRC += CoinPackedVectorBase.cpp
 LIBSRC += CoinShallowPackedVector.cpp
 LIBSRC += CoinWarmStartBasis.cpp
+LIBSRC += CoinPresolveMatrix.cpp
+LIBSRC += CoinPresolveDoubleton.cpp
+LIBSRC += CoinPresolveEmpty.cpp
+LIBSRC += CoinPresolveFixed.cpp
+LIBSRC += CoinPresolvePsdebug.cpp
+LIBSRC += CoinPresolveSingleton.cpp
+LIBSRC += CoinPresolveZeros.cpp
+LIBSRC += CoinPresolveDual.cpp		    
+LIBSRC += CoinPresolveDupcol.cpp		    
+LIBSRC += CoinPresolveForcing.cpp		    
+LIBSRC += CoinPresolveImpliedFree.cpp	    
+LIBSRC += CoinPresolveIsolated.cpp	    
+LIBSRC += CoinPresolveSubst.cpp		    
+LIBSRC += CoinPresolveTighten.cpp		    
+LIBSRC += CoinPresolveTripleton.cpp		    
+LIBSRC += CoinPresolveUseless.cpp             
+LIBSRC += CoinDenseVector.cpp
 
 ##############################################################################
 include ${MakefileDir}/Makefile.coin
 include ${MakefileDir}/Makefile.location
+ifeq ($(OptLevel),-O2)
+#     CXXFLAGS += -DNDEBUG
+endif
+ifeq ($(OptLevel),-g)
+#     CXXFLAGS += -DZEROFAULT -DCOIN_DEBUG
+#CXXFLAGS += -DPRINT_DEBUG -DDEBUG_PRESOLVE
+#CXXFLAGS +=  -DDEBUG_PRESOLVE
+#CXXFLAGS += -DCOIN_DEBUG
+endif
+#CXXFLAGS += -DDENSE_CODE=1
 
 export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir}
 export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir}

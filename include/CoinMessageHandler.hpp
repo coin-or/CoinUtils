@@ -222,6 +222,7 @@ public:
   void setLogLevel(int value);
   /// Switch on or off prefix
   void setPrefix(bool yesNo);
+  bool  prefix() const;
   /// values in message
   inline double doubleValue(int position) const
   { return doubleValue_[position];}
