@@ -601,8 +601,8 @@ CoinFactorization::getAreas ( int numberOfRows,
   if ( areaFactor_ != 1.0 ) {
     if ((messageLevel_&16)!=0) 
       std::cout<<"Increasing factorization areas by "<<areaFactor_<<std::endl;
-    lengthAreaU_ *= (CoinBigIndex) areaFactor_;
-    lengthAreaL_ *= (CoinBigIndex) areaFactor_;
+    lengthAreaU_ =  (CoinBigIndex) (areaFactor_*lengthAreaU_);
+    lengthAreaL_ =  (CoinBigIndex) (areaFactor_*lengthAreaL_);
   }
   elementU_ = new double [ lengthAreaU_ ];
   indexRowU_ = new int [ lengthAreaU_ ];
