@@ -325,7 +325,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   
   //return at once if too many iterations
   if ( numberColumnsExtra_ >= maximumColumnsExtra_ ) {
-    return 3;
+    return 5;
   }       
   if ( lengthAreaU_ < startColumnU_[maximumColumnsExtra_] ) {
     return 3;
