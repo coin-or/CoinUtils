@@ -513,6 +513,18 @@ public:
   { return -1.23456787654321e-97;};
   /// Creates a packed matrix - return number of errors
   int createPackedMatrix(CoinPackedMatrix & matrix, const double * associated);
+  /** Fills in startPositive and startNegative with counts for +-1 matrix.
+      If not +-1 then startPositive[0]==-1 otherwise counts and
+      startPositive[numberColumns]== size
+      - return number of errors
+  */
+  int countPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * startNegative,
+                        const double * associated);
+  /** Creates +-1 matrix given startPositive and startNegative counts for +-1 matrix.
+  */
+  void createPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * startNegative,
+                         int * indices,
+                         const double * associated);
   /// Creates copies of various arrays - return number of errors
   int createArrays(double * & rowLower, double * &  rowUpper,
                    double * & columnLower, double * & columnUpper,

@@ -1330,6 +1330,108 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix, const double * associat
   delete [] element;
   return numberErrors;
 }
+/* Fills in startPositive and startNegative with counts for +-1 matrix.
+   If not +-1 then startPositive[0]==-1 otherwise counts and
+   startPositive[numberColumns]== size
+      - return number of errors
+*/
+int 
+CoinModel::countPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * startNegative,
+                             const double * associated)
+{
+  memset(startPositive,0,numberColumns_*sizeof(int));
+  memset(startNegative,0,numberColumns_*sizeof(int));
+  // Set to say all parts
+  type_=2;
+  resize(numberRows_,numberColumns_,numberElements_);
+  int numberErrors=0;
+  CoinBigIndex numberElements=0;
+  for (CoinBigIndex i=0;i<numberElements_;i++) {
+    int column = elements_[i].column;
+    if (column>=0) {
+      double value = elements_[i].value;
+      if (elements_[i].string) {
+        int position = (int) value;
+        assert (position<sizeAssociated_);
+        value = associated[position];
+        if (value==unsetValue()) {
+          numberErrors++;
+          value=0.0;
+          startPositive[0]=-1;
+          break;
+        }
+      }
+      if (value) {
+        numberElements++;
+        if (value==1.0) {
+          startPositive[column]++;
+        } else if (value==-1.0) {
+          startNegative[column]++;
+        } else {
+          startPositive[0]=-1;
+          break;
+        }
+      }
+    }
+  }
+  if (startPositive[0]>=0) 
+    startPositive[numberColumns_]=numberElements;
+  return numberErrors;
+}
+/* Creates +-1 matrix given startPositive and startNegative counts for +-1 matrix.
+ */
+void 
+CoinModel::createPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * startNegative,
+                              int * indices,
+                              const double * associated)
+{
+  CoinBigIndex size=0;
+  int iColumn;
+  for (iColumn=0;iColumn<numberColumns_;iColumn++) {
+    CoinBigIndex n=startPositive[iColumn];
+    startPositive[iColumn]=size;
+    size+= n;
+    n=startNegative[iColumn];
+    startNegative[iColumn]=size;
+    size+= n;
+  }
+  startPositive[numberColumns_]=size;
+  for (CoinBigIndex i=0;i<numberElements_;i++) {
+    int column = elements_[i].column;
+    if (column>=0) {
+      double value = elements_[i].value;
+      if (elements_[i].string) {
+        int position = (int) value;
+        assert (position<sizeAssociated_);
+        value = associated[position];
+      }
+      int iRow=(int) elements_[i].row;
+      if (value==1.0) {
+        CoinBigIndex position = startPositive[column];
+        indices[position]=iRow;
+        startPositive[column]++;
+      } else if (value==-1.0) {
+        CoinBigIndex position = startNegative[column];
+        indices[position]=iRow;
+        startNegative[column]++;
+      }
+    }
+  }
+  // and now redo starts
+  for (iColumn=numberColumns_-1;iColumn>=0;iColumn--) {
+    startPositive[iColumn+1]=startNegative[iColumn];
+    startNegative[iColumn]=startPositive[iColumn];
+  }
+  startPositive[0]=0;
+  for (iColumn=0;iColumn<numberColumns_;iColumn++) {
+    CoinBigIndex start = startPositive[iColumn];
+    CoinBigIndex end = startNegative[iColumn];
+    std::sort(indices+start,indices+end);
+    start = startNegative[iColumn];
+    end = startPositive[iColumn+1];
+    std::sort(indices+start,indices+end);
+  }
+}
 // Fills in all associated - returning number of errors
 int CoinModel::computeAssociated(double * associated)
 {
