@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <cfloat>
+#include <cassert>
 
 #if defined(_MSC_VER)
 // Avoid MS Compiler problem in recognizing type to delete
