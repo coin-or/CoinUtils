@@ -37,7 +37,7 @@ enum COINSectionType { COIN_NO_SECTION, COIN_NAME_SECTION, COIN_ROW_SECTION,
   COIN_COLUMN_SECTION,
   COIN_RHS_SECTION, COIN_RANGES_SECTION, COIN_BOUNDS_SECTION,
   COIN_ENDATA_SECTION, COIN_EOF_SECTION, COIN_QUADRATIC_SECTION, 
-		       COIN_CONIC_SECTION,COIN_UNKNOWN_SECTION
+		       COIN_CONIC_SECTION,COIN_SOS_SECTION, COIN_UNKNOWN_SECTION
 };
 
 enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
@@ -45,7 +45,7 @@ enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
   COIN_INTORG, COIN_INTEND, COIN_SOSEND, COIN_UNSET_BOUND,
   COIN_UP_BOUND, COIN_FX_BOUND, COIN_LO_BOUND, COIN_FR_BOUND,
   COIN_MI_BOUND, COIN_PL_BOUND, COIN_BV_BOUND, COIN_UI_BOUND,
-  COIN_SC_BOUND, COIN_UNKNOWN_MPS_TYPE
+		   COIN_SC_BOUND, COIN_S1_BOUND, COIN_S2_BOUND,COIN_UNKNOWN_MPS_TYPE
 };
 class CoinMpsIO;
 /// Very simple code for reading MPS data
@@ -144,6 +144,102 @@ protected:
   CoinMessageHandler * handler_;
   /// Messages
   CoinMessages messages_;
+  //@}
+};
+
+//#############################################################################
+#ifdef USE_SBB
+class SbbObject;
+class SbbModel;
+#endif
+/// Very simple class for containing data on set
+class CoinSet {
+
+public:
+
+  /**@name Constructor and destructor */
+  //@{
+  /// Constructor 
+  CoinSet ( int numberEntries, const int * which);
+
+  /// Destructor
+  virtual ~CoinSet (  );
+  //@}
+
+
+  /**@name gets */
+  //@{
+  /// Returns number of entries
+  inline int numberEntries (  ) const 
+  { return numberEntries_;  };
+  /// Returns type of set - 1 =SOS1, 2 =SOS2
+  inline int setType (  ) const 
+  { return setType_;  };
+  /// Returns list of variables
+  inline const int * which (  ) const 
+  { return which_;  };
+  //@}
+
+#ifdef USE_SBB
+  /**@name Use in sbb */
+  //@{
+  /// returns an object of type SbbObject
+  virtual SbbObject * sbbObject(SbbModel * model) const 
+  { return NULL;};
+  //@}
+#endif
+
+////////////////// data //////////////////
+protected:
+
+  /**@name data */
+  //@{
+  /// Number of entries
+  int numberEntries_;
+  /// type of set
+  int setType_;
+  /// Which variables are in set
+  int * which_;
+  //@}
+};
+
+//#############################################################################
+/// Very simple class for containing SOS set
+class CoinSosSet : public CoinSet{
+
+public:
+
+  /**@name Constructor and destructor */
+  //@{
+  /// Constructor 
+  CoinSosSet ( int numberEntries, const int * which, const double * weights, int type);
+
+  /// Destructor
+  virtual ~CoinSosSet (  );
+  //@}
+
+
+  /**@name gets */
+  //@{
+  /// Returns weights
+  inline const double * weights (  ) const 
+  { return weights_;  };
+  //@}
+#ifdef USE_SBB
+  /**@name Use in sbb */
+  //@{
+  /// returns an object of type SbbObject
+  virtual SbbObject * sbbObject(SbbModel * model) const ;
+  //@}
+#endif
+
+////////////////// data //////////////////
+protected:
+
+  /**@name data */
+  //@{
+  /// Weights
+  double * weights_;
   //@}
 };
 
@@ -406,6 +502,14 @@ public:
     */
     int readMps(const char *filename, const char *extension = "mps");
 
+    /** Read a problem in MPS format from the given filename.
+
+      Use "stdin" or "-" to read from stdin.
+      But do sets as well
+    */
+     int readMps(const char *filename, const char *extension ,
+        int & numberSets, CoinSet **& sets);
+
     /** Read a problem in MPS format from a previously opened file
 
       More precisely, read a problem using a CoinMpsCardReader object already
@@ -417,6 +521,8 @@ public:
       cardReader_ field.
     */
     int readMps();
+    /// and
+    int readMps(int & numberSets, CoinSet **& sets);
 
     /** Write the problem in MPS format to a file with the given filename.
 

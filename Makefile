@@ -71,7 +71,7 @@ ifeq ($(OptLevel),-g)
 #CXXFLAGS += -DCOIN_DEBUG
 endif
 
-export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir} $(lapackIncDir)
+export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir} $(lapackIncDir) $(SbbIncDir) $(OsiIncDir)
 export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir} $(lapackLibDir)
 export ExtraLibName := ${zlibLibName} ${bzlibLibName} $(lapackLibName)
 export ExtraDefine  := ${zlibDefine}  ${bzlibDefine} $(lapackDefine)

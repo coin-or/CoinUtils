@@ -124,7 +124,8 @@ double osi_strtod(char * ptr, char ** output)
 //#############################################################################
 // sections
 const static char *section[] = {
-  "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ","QSECTION", "CSECTION", " "
+  "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ","QSECTION", "CSECTION", "SOS",
+  " "
 };
 
 // what is allowed in each section - must line up with COINSectionType
@@ -134,7 +135,7 @@ const static COINMpsType startType[] = {
   COIN_BLANK_COLUMN, COIN_BLANK_COLUMN,
   COIN_UP_BOUND, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
-  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE
+  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_S1_BOUND, COIN_UNKNOWN_MPS_TYPE
 };
 const static COINMpsType endType[] = {
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
@@ -142,13 +143,14 @@ const static COINMpsType endType[] = {
   COIN_S1_COLUMN, COIN_S1_COLUMN,
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
-  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE
+  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE
 };
 const static int allowedLength[] = {
   0, 0,
   1, 2,
   0, 0,
   2, 0,
+  0, 0,
   0, 0
 };
 
@@ -389,6 +391,15 @@ CoinMpsCardReader::nextField (  )
 	  // if columns section only look for first field if MARKER
 	  if ( section_ == COIN_COLUMN_SECTION
 	       && !strstr ( next, "'MARKER'" ) ) nchar = -1;
+	  if (section_ == COIN_SOS_SECTION) {
+	    if (!strncmp(card_," S1",3)) {
+	      mpsType_ = COIN_S1_BOUND;
+	      break;
+	    } else if (!strncmp(card_," S2",3)) {
+	      mpsType_ = COIN_S2_BOUND;
+	      break;
+	    }
+	  }
 	  if ( nchar == allowedLength[section_] ) {
 	    //could be a type
 	    int i;
@@ -679,7 +690,7 @@ CoinMpsCardReader::nextField (  )
 	break;
       }
     }
-    if ( next == eol_ ) {
+    if ( next == eol_ && section_ != COIN_SOS_SECTION) {
       // error
       position_ = eol_;
       mpsType_ = COIN_UNKNOWN_MPS_TYPE;
@@ -1053,7 +1064,32 @@ int CoinMpsIO::readMps(const char * filename,  const char * extension)
   }
   return readMps();
 }
+int CoinMpsIO::readMps(const char * filename,  const char * extension,
+		       int & numberSets,CoinSet ** &sets)
+{
+  // Deal with filename - +1 if new, 0 if same as before, -1 if error
+  FILE *fp=NULL;
+  gzFile gzfp=NULL;
+  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+  if (returnCode<0) {
+    return -1;
+  } else if (returnCode>0) {
+    delete cardReader_;
+    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+  }
+  return readMps(numberSets,sets);
+}
 int CoinMpsIO::readMps()
+{
+  int numberSets=0;
+  CoinSet ** sets=NULL;
+  int returnCode = readMps(numberSets,sets);
+  for (int i=0;i<numberSets;i++)
+    delete sets[i];
+  delete [] sets;
+  return returnCode;
+}
+int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 {
   bool ifmps;
 
@@ -1862,6 +1898,63 @@ int CoinMpsIO::readMps()
 	}
       }
     }
+    int i;
+    for (i=0;i<numberSets;i++)
+      delete sets[i];
+    numberSets=0;
+    delete [] sets;
+    sets=NULL;
+    
+    // Do SOS if found
+    if ( cardReader_->whichSection (  ) == COIN_SOS_SECTION ) {
+      int numberInSet=0;
+      int iType=-1;
+      int * which = new int[numberColumns_];
+      double * weights = new double[numberColumns_];
+      CoinSet ** setsA = new CoinSet * [numberColumns_];
+      while ( cardReader_->nextField (  ) == COIN_SOS_SECTION ) {
+	if (cardReader_->mpsType()==COIN_S1_BOUND||
+	    cardReader_->mpsType()==COIN_S2_BOUND) {
+	  if (numberInSet) {
+	    CoinSosSet * newSet = new CoinSosSet(numberInSet,which,weights,iType);
+	    setsA[numberSets++]=newSet;
+	  }
+	  numberInSet=0;
+	  iType = cardReader_->mpsType()== COIN_S1_BOUND ? 1 : 2;
+	  // skip
+	  continue;
+	}
+	// get column number
+	COINColumnIndex icolumn = findHash ( cardReader_->columnName (  ) , 1 );
+	if ( icolumn >= 0 ) {
+	  //integerType_[icolumn]=2;
+	  double value = cardReader_->value (  );
+	  if (value==-1.0e100)
+	    value = atof(cardReader_->rowName()); // try from row name
+	  which[numberInSet]=icolumn;
+	  weights[numberInSet++]=value;
+	} else {
+	  numberErrors++;
+	  if ( numberErrors < 100 ) {
+	    handler_->message(COIN_MPS_NOMATCHCOL,messages_)
+	      <<cardReader_->columnName()<<cardReader_->cardNumber()<<cardReader_->card()
+	      <<CoinMessageEol;
+	  } else if (numberErrors > 100000) {
+	    handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+	    return numberErrors;
+	  }
+	}
+      }
+      if (numberInSet) {
+	CoinSosSet * newSet = new CoinSosSet(numberInSet,which,weights,iType);
+	setsA[numberSets++]=newSet;
+      }
+      if (numberSets) {
+	sets = new CoinSet * [numberSets];
+	memcpy(sets,setsA,numberSets*sizeof(CoinSet **));
+      }
+      delete [] setsA;
+    }
     stopHash ( 1 );
     // clean up integers
     if ( !numberIntegers ) {
@@ -1887,7 +1980,7 @@ int CoinMpsIO::readMps()
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
-      return numberErrors;
+      return numberErrors+1000;
     }
   } else {
     // This is very simple format - what should we use?
@@ -3603,3 +3696,42 @@ CoinMpsIO::readConicMps(const char * filename,
   stopHash(1);
   return numberErrors;
 }
+// Constructor 
+CoinSet::CoinSet ( int numberEntries, const int * which)
+{
+  numberEntries_ = numberEntries;
+  which_ = new int [numberEntries_];
+  memcpy(which_,which,numberEntries_*sizeof(int));
+}
+
+// Destructor
+CoinSet::~CoinSet (  )
+{
+  delete [] which_;
+}
+// Constructor 
+CoinSosSet::CoinSosSet ( int numberEntries, const int * which, const double * weights, int type)
+  : CoinSet(numberEntries,which)
+{
+  weights_= new double [numberEntries_];
+  memcpy(weights_,weights,numberEntries_*sizeof(double));
+  setType_ = type;
+}
+
+// Destructor
+CoinSosSet::~CoinSosSet (  )
+{
+  delete [] weights_;
+}
+#ifdef USE_SBB
+#include "SbbModel.hpp"
+#include "SbbBranchActual.hpp"
+// returns an object of type SbbObject
+SbbObject * 
+CoinSosSet::sbbObject(SbbModel * model) const 
+{
+  // which are matrix here - need to put as integer index
+  abort();
+  return new SbbSOS(model,numberEntries_,which_,weights_,0,setType_);
+}
+#endif
