@@ -245,6 +245,8 @@ protected:
    //@{
    /** Default constructor. */
    CoinPackedVectorBase();
+
+public:
    /** Destructor */
    virtual ~CoinPackedVectorBase();
    //@}
