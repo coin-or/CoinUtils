@@ -320,6 +320,61 @@ CoinPackedMatrix::replaceVector(const int index,
 #endif
   }
 }
+/* Modify one element of packed matrix.  An element may be added.
+   If the new element is zero it will be deleted unless
+   keepZero true */
+void 
+CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
+				    bool keepZero)
+{
+  int minorIndex,majorIndex;
+  if (colOrdered_) {
+    majorIndex=column;
+    minorIndex=row;
+  } else {
+    minorIndex=column;
+    majorIndex=row;
+  }
+  if (majorIndex >= 0 && majorIndex < majorDim_) {
+    if (minorIndex >= 0 && minorIndex < minorDim_) {
+      int j;
+      int end=start_[majorIndex]+length_[majorIndex];;
+      for (j=start_[majorIndex];j<end;j++) {
+	if (minorIndex==index_[j]) {
+	  // replacement
+	  if (newElement||keepZero) {
+	    element_[j]=newElement;
+	  } else {
+	    // pack down and return
+	    length_[majorIndex]--;
+	    end--;
+	    for (;j<end;j++) {
+	      element_[j]=element_[j+1];
+	      index_[j]=index_[j+1];
+	    }
+	  }
+	  break;
+	}
+      }
+      if (j==end) {
+	// we need to insert
+	throw CoinError("coding needed", "modifyCoefficient",
+		      "CoinPackedMatrix");
+      }
+    } else {
+#ifdef COIN_DEBUG
+      throw CoinError("bad minor index", "modifyCoefficient",
+		      "CoinPackedMatrix");
+#endif
+    }
+  } else {
+#ifdef COIN_DEBUG
+    throw CoinError("bad major index", "modifyCoefficient",
+		    "CoinPackedMatrix");
+#endif
+  }
+}
+	
 //#############################################################################
 /* Eliminate all elements in matrix whose 
    absolute value is less than threshold.

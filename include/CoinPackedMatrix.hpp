@@ -217,6 +217,13 @@ public:
         The index is between 0 and major dimension of matrix */
     void replaceVector(const int index,
 		       const int numReplace, const double * newElements);
+    /** Modify one element of packed matrix.  An element may be added.
+        This works for either ordering
+	If the new element is zero it will be deleted unless
+	keepZero true */
+    void modifyCoefficient(int row, int column, double newElement,
+			   bool keepZero=false);
+	
     /** Eliminate all elements in matrix whose 
 	absolute value is less than threshold.
 	The column starts are not affected.  Returns number of elements
