@@ -127,7 +127,6 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   double *rlo	= prob->rlo_;
   double *rup	= prob->rup_;
 
-  printf("nactions %d\n",nactions_);
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
 
     int irow	= f->row;
