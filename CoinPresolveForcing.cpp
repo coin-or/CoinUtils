@@ -181,8 +181,10 @@ static bool some_col_was_fixed(const int *hcol, CoinBigIndex krs, CoinBigIndex k
 // Note that both of these operations will cause problems
 // if the variables in question really need to exceed their bounds in order
 // to make the problem feasible.
-const CoinPresolveAction *forcing_constraint_action::presolve(CoinPresolveMatrix *prob,
-					  const CoinPresolveAction *next)
+
+const CoinPresolveAction
+    *forcing_constraint_action::presolve(CoinPresolveMatrix *prob,
+					 const CoinPresolveAction *next)
 {
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
@@ -214,13 +216,20 @@ const CoinPresolveAction *forcing_constraint_action::presolve(CoinPresolveMatrix
   int numberLook = prob->numberRowsToDo_;
   int iLook;
   int * look = prob->rowsToDo_;
-
+/*
+  Open a loop to scan the constraints of interest. There must be variables
+  left in the row.
+*/
   for (iLook=0;iLook<numberLook;iLook++) {
     int irow = look[iLook];
     if (hinrow[irow] > 0) {
       CoinBigIndex krs = mrstrt[irow];
       CoinBigIndex kre = krs + hinrow[irow];
-
+/*
+  Calculate upper and lower bounds on the row activity based on upper and lower
+  bounds on the variables. If these are finite and incompatible with the given
+  row bounds, we have infeasibility.
+*/
       double maxup, maxdown;
       implied_row_bounds(rowels, clo, cup, hcol, krs, kre,
 			 &maxup, &maxdown);
@@ -252,13 +261,21 @@ const CoinPresolveAction *forcing_constraint_action::presolve(CoinPresolveMatrix
 	       (rup[irow] >= PRESOLVE_INF ||
 		(maxup < PRESOLVE_INF && rup[irow] >= maxup))) {
 
-	// I'm not sure that these transforms don't intefere with each other
-        // We can get it next time
-	if (some_col_was_fixed(hcol, krs, kre, clo, cup)) {
-	  // make sure on next time
-	  prob->addRow(irow);
-	  continue;
-	}
+/*
+  Original comment: I'm not sure that these transforms don't intefere with
+		    each other. We can get it next time.
+
+  Well, I'll argue that bounds are never really loosened (at worst, they're
+  transferred onto some other variable, or inferred to be unnecessary.
+  Once useless, always useless. Leaving this hook in place allows for a sort
+  of infinite loop where this routine keeps queuing the same constraints over
+  and over.  -- lh, 040901 --
+
+	 if (some_col_was_fixed(hcol, krs, kre, clo, cup)) {
+	   prob->addRow(irow);
+	   continue;
+	 }
+*/
 
 	// this constraint must always be satisfied - drop it
 	useless_rows[nuseless_rows++] = irow;
@@ -272,15 +289,16 @@ const CoinPresolveAction *forcing_constraint_action::presolve(CoinPresolveMatrix
 	const int lbound_tight = (maxup < PRESOLVE_INF &&
 				  fabs(rlo[irow] - maxup) < tol);
 
-	// I'm not sure that these transforms don't intefere with each other
-        // We can get it next time
+/*
+  Original comment and rebuttal as above.
 	if (some_col_was_fixed(hcol, krs, kre, clo, cup)) {
 	  // make sure on next time
 	  prob->addRow(irow);
 	  continue;
 	}
-
-	// out of space - this probably never happens
+*/
+	// out of space - this probably never happens (but this routine will
+	// often put duplicates in the fixed column list)
 	if (nfixed_cols + (kre-krs) >= ncols)
 	  break;
 
@@ -342,11 +360,18 @@ const CoinPresolveAction *forcing_constraint_action::presolve(CoinPresolveMatrix
 					       next);
   }
   delete[]useless_rows;
-
-  if (nfixed_cols) {
-    next = remove_fixed_action::presolve(prob, fixed_cols, nfixed_cols, next);
-  }
-  delete[]fixed_cols;
+/*
+  We need to remove duplicates here, or we get into trouble in
+  remove_fixed_action::postsolve when we try to reinstate a column multiple
+  times.
+*/
+  if (nfixed_cols)
+  { if (nfixed_cols > 1)
+    { std::sort(fixed_cols,fixed_cols+nfixed_cols) ;
+      int *end = std::unique(fixed_cols,fixed_cols+nfixed_cols) ;
+      nfixed_cols = reinterpret_cast<int>(end-fixed_cols) ; }
+    next = remove_fixed_action::presolve(prob,fixed_cols,nfixed_cols,next) ; }
+  delete[]fixed_cols ;
 
   return (next);
 }
@@ -386,12 +411,19 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     const double *bounds= f->bounds;
     int k;
 /*
-  When we restore bounds here, we need to allow for the possibility that the
-  restored bound is infinite. This implies a check for viable status.
+  Original comment: When we restore bounds here, we need to allow for the
+	possibility that the restored bound is infinite. This implies a check
+	for viable status.
+
+  Hmmm ... I'm going to argue that in fact we have no choice: the status
+  of the variable must reflect the value it was fixed at, else we lose
+  feasibility. We don't care what the other bound does.   -- lh, 040903 --
 */
     for (k=0; k<nlo; k++) {
       int jcol = rowcols[k];
       cup[jcol] = bounds[k];
+      prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::atLowerBound) ;
+/*
       PRESOLVEASSERT(prob->getColumnStatus(jcol)!=CoinPrePostsolveMatrix::basic);
       if (cup[jcol] >= PRESOLVE_INF)
       { CoinPrePostsolveMatrix::Status statj = prob->getColumnStatus(jcol) ;
@@ -401,11 +433,14 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	  else
 	  { statj = CoinPrePostsolveMatrix::isFree ; }
 	  prob->setColumnStatus(jcol,statj) ; } }
+*/
     }
 
     for (k=nlo; k<ninrow; k++) {
       int jcol = rowcols[k];
       clo[jcol] = bounds[k];
+      prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::atUpperBound) ;
+/*
       PRESOLVEASSERT(prob->getColumnStatus(jcol)!=CoinPrePostsolveMatrix::basic);
       if (clo[jcol] <= -PRESOLVE_INF)
       { CoinPrePostsolveMatrix::Status statj = prob->getColumnStatus(jcol) ;
@@ -415,6 +450,7 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	  else
 	  { statj = CoinPrePostsolveMatrix::isFree ; }
 	  prob->setColumnStatus(jcol,statj) ; } }
+*/
     }
 
     PRESOLVEASSERT(prob->getRowStatus(irow)==CoinPrePostsolveMatrix::basic);
@@ -463,7 +499,7 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
 
 
-#if 0
+#if 0		// (A)
 // Determine the maximum and minimum values the constraint sums
 // may take, given the bounds on the variables.
 // If there are infinite terms, record where the first one is,
@@ -674,7 +710,7 @@ static void implied_bounds1(CoinPresolveMatrix * prob, const double *rowels,
   }
 }
 
-#if 0
+#if 0		// (B)
 postsolve for implied_bound
 	{
 	  double lo0	= pa->clo;
@@ -711,7 +747,7 @@ postsolve for implied_bound
 	      if (k<ninrow) {
 		int col = rowcols[k];
 		// steal this basic variable
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		printf("PIVOTING ON COL:  %d %d -> %d\n", irow, col, jcol);
 #endif
 		colstat[col] = 0;
@@ -769,7 +805,7 @@ postsolve for implied_bound
 		int col = rowcols[badbasic];
 
 		if (fabs(acts[irow]) < ZTOLDP) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		  printf("PIVOTING COL TO SLACK!:  %d %d\n", irow, col);
 #endif
 		  colstat[col] = 0;
@@ -781,8 +817,9 @@ postsolve for implied_bound
 	    }
 	  }
 	}
-#endif
-#endif
+#endif		// #if 0	// (B)
+#endif		// #if 0	// (A)
+
 forcing_constraint_action::~forcing_constraint_action() 
 { 
   int i;
