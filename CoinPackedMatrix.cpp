@@ -354,7 +354,7 @@ CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
 	      index_[j]=index_[j+1];
 	    }
 	  }
-	  break;
+	  return;
 	}
       }
       if (j==end&&(newElement||keepZero)) {
@@ -365,8 +365,26 @@ CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
 	  element_[end]=newElement;
 	  index_[end]=minorIndex;
 	} else {
-	  throw CoinError("coding needed", "modifyCoefficient",
-			  "CoinPackedMatrix");
+	   int * addedEntries = new int[majorDim_];
+	   memset(addedEntries, 0, majorDim_ * sizeof(int));
+	   addedEntries[majorIndex] = 1;
+	   resizeForAddingMinorVectors(addedEntries);
+	   delete[] addedEntries;
+	   // So where to insert? We're just going to assume that the entries
+	   // in the major vector are in increasing order, so we'll insert the
+	   // new entry to the last place we can
+	   const int start = start_[majorIndex];
+	   for (j = end - 1; j >= start; --j) {
+	      if (element_[j] <= newElement)
+		 break;
+	      index_[j+1] = index_[j];
+	      element_[j+1] = element_[j];
+	   }
+	   ++j;
+	   index_[j] = minorIndex;
+	   element_[j] = newElement;
+	   size_++;
+	   length_[majorIndex]++;
 	}
       }
     } else {
