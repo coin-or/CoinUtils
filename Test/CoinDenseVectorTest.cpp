@@ -39,7 +39,8 @@ CoinDenseVectorUnitTest(T dummy)
     // Test norms etc
     assert( r.sum() == 10.+40.+1.+50. );
     assert( r.oneNorm() == 101.0);
-    assert( r.twoNorm() == std::sqrt(100.0 + 1600. + 1. + 2500.));
+    // std namespace removed to compile with Microsoft Visual C++ V6
+    assert( r.twoNorm() == /*std::*/sqrt(100.0 + 1600. + 1. + 2500.));
     assert( r.infNorm() == 50.);
     assert(r[0]+r[1]+r[2]+r[3]==101.);
 
