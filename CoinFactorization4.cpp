@@ -155,7 +155,7 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
   // mark known to be zero
   int * stack = sparse_;  /* pivot */
   int * list = stack + maximumRowsExtra_;  /* final list */
-  int * next = list + maximumRowsExtra_;  /* jnext */
+  CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
   char * mark = (char *) (next + maximumRowsExtra_);
   int nList, nStack;
   int i , iPivot;
@@ -176,7 +176,7 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
     if (iPivot>=numberSlacks_) {
       if(!mark[iPivot]) {
 	stack[0]=iPivot;
-	int j=numberInColumn[iPivot];
+	CoinBigIndex j=numberInColumn[iPivot];
 	if (j>0) {
 	  j += startColumn[iPivot]-1;
 	  int kPivot=indexRow[j];
@@ -207,8 +207,8 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
 	  while (nStack) {
 	    /* take off stack */
 	    int kPivot=stack[--nStack];
-	    int j=next[nStack];
-	    int start = startColumn[kPivot];
+	    CoinBigIndex j=next[nStack];
+	    CoinBigIndex start = startColumn[kPivot];
 	    bool finished=true;
 	    while (j>start) {
 	      j--;
@@ -318,7 +318,7 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
   // mark known to be zero
   int * stack = sparse_;  /* pivot */
   int * list = stack + maximumRowsExtra_;  /* final list */
-  int * next = list + maximumRowsExtra_;  /* jnext */
+  CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
   CoinCheckZero * mark = (CoinCheckZero *) (next + maximumRowsExtra_);
   const int *numberInColumn = numberInColumn_;
   int i, iPivot;
@@ -350,8 +350,8 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
   }
   numberNonZero = 0;
   // First do down to convenient power of 2
-  int jLast = (numberU_-1)>>CHECK_SHIFT;
-  jLast = max((jLast<<CHECK_SHIFT),numberSlacks_);
+  CoinBigIndex jLast = (numberU_-1)>>CHECK_SHIFT;
+  jLast = max((jLast<<CHECK_SHIFT),(CoinBigIndex) numberSlacks_);
   for (i = numberU_-1 ; i >= jLast; i-- ) {
     double pivotValue = region[i];
     region[i] = 0.0;
@@ -459,7 +459,7 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
     double factor = slackValue_;
     if (factor==1.0) {
       // First do down to convenient power of 2
-      int jLast = (numberSlacks_-1)>>CHECK_SHIFT;
+      CoinBigIndex jLast = (numberSlacks_-1)>>CHECK_SHIFT;
       jLast = jLast<<CHECK_SHIFT;
       for ( i = numberSlacks_-1; i>=jLast;i--) {
 	double value = region[i];
@@ -497,7 +497,7 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
     } else {
       assert (factor==-1.0);
       // First do down to convenient power of 2
-      int jLast = (numberSlacks_-1)>>CHECK_SHIFT;
+      CoinBigIndex jLast = (numberSlacks_-1)>>CHECK_SHIFT;
       jLast = jLast<<CHECK_SHIFT;
       for ( i = numberSlacks_-1; i>=jLast;i--) {
 	double value = region[i];
@@ -734,7 +734,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
       // mark known to be zero
       int * stack = sparse_;  /* pivot */
       int * list = stack + maximumRowsExtra_;  /* final list */
-      int * next = list + maximumRowsExtra_;  /* jnext */
+      CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
       char * mark = (char *) (next + maximumRowsExtra_);
       // mark all rows which will be permuted
       for ( i = numberRows_; i < numberRowsExtra_; i++ ) {
@@ -757,8 +757,8 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	if (number) {
 	  pivotValue = region[iRow];
 	  CoinBigIndex j;
-	  int start=startR[iRow];
-	  int end = start+number;
+	  CoinBigIndex start=startR[iRow];
+	  CoinBigIndex end = start+number;
 	  for ( j = start; j < end; j ++ ) {
 	    double value = elementR[j];
 	    int jRow = indexRowR[j];
@@ -779,8 +779,8 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	    regionIndex[numberNonZero++] = i;
 	  int number = numberInColumnPlus_[i];
 	  CoinBigIndex j;
-	  int start=startR[i];
-	  int end = start+number;
+	  CoinBigIndex start=startR[i];
+	  CoinBigIndex end = start+number;
 	  for ( j = start; j < end; j ++ ) {
 	    double value = elementR[j];
 	    int jRow = indexRowR[j];
@@ -806,8 +806,8 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	if (number) {
 	  pivotValue = region[iRow];
 	  CoinBigIndex j;
-	  int start=startR[iRow];
-	  int end = start+number;
+	  CoinBigIndex start=startR[iRow];
+	  CoinBigIndex end = start+number;
 	  for ( j = start; j < end; j ++ ) {
 	    double value = elementR[j];
 	    int jRow = indexRowR[j];
@@ -826,8 +826,8 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	  regionIndex[numberNonZero++] = i;
 	  int number = numberInColumnPlus_[i];
 	  CoinBigIndex j;
-	  int start=startR[i];
-	  int end = start+number;
+	  CoinBigIndex start=startR[i];
+	  CoinBigIndex end = start+number;
 	  for ( j = start; j < end; j ++ ) {
 	    double value = elementR[j];
 	    int jRow = indexRowR[j];
@@ -839,10 +839,10 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
       }
     }
   } else {
-    int start = startColumn[numberRows_];
+    CoinBigIndex start = startColumn[numberRows_];
     for ( i = numberRows_; i < numberRowsExtra_; i++ ) {
       //move using permute_ (stored in inverse fashion)
-      int end = startColumn[i+1];
+      CoinBigIndex end = startColumn[i+1];
       iRow = permute[i];
       pivotValue = region[iRow];
       //zero out pre-permuted
@@ -905,7 +905,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	// mark known to be zero
 	int * stack = sparse_;  /* pivot */
 	int * list = stack + maximumRowsExtra_;  /* final list */
-	int * next = list + maximumRowsExtra_;  /* jnext */
+	CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
 	char * mark = (char *) (next + maximumRowsExtra_);
 	// mark all rows which will be permuted
 	for ( i = numberRows_; i < numberRowsExtra_; i++ ) {
@@ -940,8 +940,8 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	  int number = numberInColumnPlus_[iRow];
 	  if (number) {
 	    CoinBigIndex j;
-	    int start=startR[iRow];
-	    int end = start+number;
+	    CoinBigIndex start=startR[iRow];
+	    CoinBigIndex end = start+number;
 	    for ( j = start; j < end; j ++ ) {
 	      double value = elementR[j];
 	      int jRow = indexRowR[j];
@@ -965,8 +965,8 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	    }
 	    int number = numberInColumnPlus_[i];
 	    CoinBigIndex j;
-	    int start=startR[i];
-	    int end = start+number;
+	    CoinBigIndex start=startR[i];
+	    CoinBigIndex end = start+number;
 	    for ( j = start; j < end; j ++ ) {
 	      double value = elementR[j];
 	      int jRow = indexRowR[j];
@@ -994,8 +994,8 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	  if (number) {
 	    pivotValue = region[iRow];
 	    CoinBigIndex j;
-	    int start=startR[iRow];
-	    int end = start+number;
+	    CoinBigIndex start=startR[iRow];
+	    CoinBigIndex end = start+number;
 	    for ( j = start; j < end; j ++ ) {
 	      double value = elementR[j];
 	      int jRow = indexRowR[j];
@@ -1014,8 +1014,8 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	    regionIndex[numberNonZero++] = i;
 	    int number = numberInColumnPlus_[i];
 	    CoinBigIndex j;
-	    int start=startR[i];
-	    int end = start+number;
+	    CoinBigIndex start=startR[i];
+	    CoinBigIndex end = start+number;
 	    for ( j = start; j < end; j ++ ) {
 	      double value = elementR[j];
 	      int jRow = indexRowR[j];
@@ -1027,10 +1027,10 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	}
       }
     } else {
-      int start = startColumn[numberRows_];
+      CoinBigIndex start = startColumn[numberRows_];
       for ( i = numberRows_; i < numberRowsExtra_; i++ ) {
 	//move using permute_ (stored in inverse fashion)
-	int end = startColumn[i+1];
+	CoinBigIndex end = startColumn[i+1];
 	iRow = permute[i];
 	pivotValue = region[iRow];
 	//zero out pre-permuted
@@ -1441,9 +1441,11 @@ CoinFactorization::goSparse ( )
   int nRowIndex = (maximumRowsExtra_+sizeof(int)-1)/
     sizeof(char);
   delete []sparse_;
-  sparse_ = new int [ 3*maximumRowsExtra_ + nRowIndex ];
+  int nInBig = sizeof(CoinBigIndex)/sizeof(int);
+  assert (nInBig>=1);
+  sparse_ = new int [ (2+nInBig)*maximumRowsExtra_ + nRowIndex ];
   // zero out mark
-  memset(sparse_+3*maximumRowsExtra_,0,maximumRowsExtra_*sizeof(char));
+  memset(sparse_+(2+nInBig)*maximumRowsExtra_,0,maximumRowsExtra_*sizeof(char));
   delete []elementByRowL_;
   delete []startRowL_;
   delete []indexColumnL_;
@@ -1657,13 +1659,13 @@ CoinFactorization::replaceRow ( int whichRow, int numberInRow,
       if (found) {
 	int number = numberInColumn_[iColumn]-1;
 	numberInColumn_[iColumn]=number;
-	int j=startColumnU_[iColumn]+number;
+	CoinBigIndex j=startColumnU_[iColumn]+number;
 	if (k<j) {
 	  int iRow=indexRowU_[j];
 	  indexRowU_[k]=iRow;
 	  elementU_[k]=elementU_[j];
 	  int n=numberInRow_[iRow];
-	  int start = startRowU_[iRow];
+	  CoinBigIndex start = startRowU_[iRow];
 	  for (j=start;j<start+n;j++) {
 	    if (indexColumnU_[j]==iColumn) {
 	      convertRowToColumnU_[j]=k;
@@ -1710,7 +1712,7 @@ CoinFactorization::emptyRows(int numberToEmpty, const int which[])
   }
   for (i=0;i<numberU_;i++) {
     int k;
-    int j=startColumnU_[i];
+    CoinBigIndex j=startColumnU_[i];
     for (k=startColumnU_[i];k<startColumnU_[i]+numberInColumn_[i];k++) {
       int iRow=indexRowU_[k];
       if (!delRow[iRow]) {
