@@ -559,8 +559,8 @@ const CoinPresolveAction *duprow_action::presolve(CoinPresolveMatrix *prob,
 
   int nuseless_rows = 0;
 
-  double * workcol = new double[ncols];
-  double * workrow = new double[nrows];
+  double * workcol = new double[ncols+1];
+  double * workrow = new double[nrows+1];
   int * sort = new int[nrows];
 
   init_random_vec(workcol, ncols);

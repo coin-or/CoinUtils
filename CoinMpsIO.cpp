@@ -1238,10 +1238,14 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
       return numberErrors;
     }
-    assert ( gotNrow );
-    rowType =
-      ( COINMpsType * ) realloc ( rowType,
-				 numberRows_ * sizeof ( COINMpsType ) );
+    //assert ( gotNrow );
+    if (numberRows_)
+      rowType =
+	( COINMpsType * ) realloc ( rowType,
+				    numberRows_ * sizeof ( COINMpsType ) );
+    else
+      rowType =
+	( COINMpsType * ) realloc ( rowType,sizeof ( COINMpsType ) );
     // put objective and other free rows at end
     rowName =
       ( char ** ) realloc ( rowName,
@@ -1438,23 +1442,45 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
       return numberErrors;
     }
-    columnType =
-      ( COINMpsType * ) realloc ( columnType,
-				 numberColumns_ * sizeof ( COINMpsType ) );
-    columnName =
-
-      ( char ** ) realloc ( columnName, numberColumns_ * sizeof ( char * ) );
-    objective_ = ( double * )
-      realloc ( objective_, numberColumns_ * sizeof ( double ) );
+    if (numberColumns_) {
+      columnType =
+	( COINMpsType * ) realloc ( columnType,
+				    numberColumns_ * sizeof ( COINMpsType ) );
+      columnName =
+	
+	( char ** ) realloc ( columnName, numberColumns_ * sizeof ( char * ) );
+      objective_ = ( double * )
+	realloc ( objective_, numberColumns_ * sizeof ( double ) );
+    } else {
+      columnType =
+	( COINMpsType * ) realloc ( columnType,
+				    sizeof ( COINMpsType ) );
+      columnName =
+	
+	( char ** ) realloc ( columnName, sizeof ( char * ) );
+      objective_ = ( double * )
+	realloc ( objective_, sizeof ( double ) );
+    }
     start = ( CoinBigIndex * )
       realloc ( start, ( numberColumns_ + 1 ) * sizeof ( CoinBigIndex ) );
-    row = ( COINRowIndex * )
-      realloc ( row, numberElements_ * sizeof ( COINRowIndex ) );
-    element = ( double * )
-      realloc ( element, numberElements_ * sizeof ( double ) );
-
-    rowlower_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
-    rowupper_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
+    if (numberElements_) {
+      row = ( COINRowIndex * )
+	realloc ( row, numberElements_ * sizeof ( COINRowIndex ) );
+      element = ( double * )
+	realloc ( element, numberElements_ * sizeof ( double ) );
+    } else {
+      row = ( COINRowIndex * )
+	realloc ( row,  sizeof ( COINRowIndex ) );
+      element = ( double * )
+	realloc ( element, sizeof ( double ) );
+    }
+    if (numberRows_) {
+      rowlower_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
+      rowupper_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
+    } else {
+      rowlower_ = ( double * ) malloc ( sizeof ( double ) );
+      rowupper_ = ( double * ) malloc ( sizeof ( double ) );
+    }
     for (i=0;i<numberRows_;i++) {
       rowlower_[i]=-infinity_;
       rowupper_[i]=infinity_;
@@ -1681,15 +1707,22 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
     }
     free ( rowType );
     // default bounds
-    collower_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
-    colupper_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
+    if (numberColumns_) {
+      collower_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
+      colupper_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
+    } else {
+      collower_ = ( double * ) malloc ( sizeof ( double ) );
+      colupper_ = ( double * ) malloc ( sizeof ( double ) );
+    }
     for (i=0;i<numberColumns_;i++) {
       collower_[i]=0.0;
       colupper_[i]=infinity_;
     }
     // set up integer region just in case
-    integerType_ = (char *) malloc (numberColumns_*sizeof(char));
-
+    if (numberColumns_) 
+      integerType_ = (char *) malloc (numberColumns_*sizeof(char));
+    else
+      integerType_ = (char *) malloc (sizeof(char));
     for ( column = 0; column < numberColumns_; column++ ) {
       if ( columnType[column] == COIN_INTORG ) {
 	columnType[column] = COIN_UNSET_BOUND;

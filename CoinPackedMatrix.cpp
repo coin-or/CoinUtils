@@ -1919,6 +1919,12 @@ CoinPackedMatrix::gutsOfCopyOf(const bool colordered,
      delete [] start_;
      start_ = new CoinBigIndex[maxMajorDim_+1];
      CoinMemcpyN(start, major+1, start_);
+   } else {
+     // empty but be safe
+     delete [] length_;
+     length_ = NULL;
+     delete [] start_;
+     start_ = new CoinBigIndex[1];
    }
 
    maxSize_ = maxMajorDim_ > 0 ? start_[major] : 0;
