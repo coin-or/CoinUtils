@@ -62,8 +62,7 @@ void CoinFactorization::gutsOfDestructor()
   delete [] startRowL_ ;
   delete [] indexColumnL_ ;
   delete []sparse_;
-#ifdef ZEROFAULT
-  // make more visible
+
   elementU_ = NULL;
   startRowU_ = NULL;
   convertRowToColumnU_ = NULL;
@@ -96,7 +95,6 @@ void CoinFactorization::gutsOfDestructor()
   startRowL_ = NULL;
   indexColumnL_ = NULL;
   sparse_= NULL;
-#endif
 }
 // type - 1 bit tolerances etc, 2 rest
 void CoinFactorization::gutsOfInitialize(int type)

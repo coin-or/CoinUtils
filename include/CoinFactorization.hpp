@@ -349,6 +349,9 @@ public:
 			    CoinIndexedVector * regionSparse2,
 			    bool erase = true ) const;
 
+  /// Get rid of all memory
+  inline void clearArrays()
+  { gutsOfDestructor();};
   //@}
 
   /**@name various updates - none of which have been written! */
