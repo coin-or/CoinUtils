@@ -17,8 +17,8 @@
 
 
 //#############################################################################
-
-double osi_strtod(char * ptr, char ** output) 
+// type - 0 normal, 1 INTEL IEEE, 2 other IEEE
+static double osi_strtod(char * ptr, char ** output, int type) 
 {
 
   static const double fraction[]=
@@ -36,90 +36,159 @@ double osi_strtod(char * ptr, char ** output)
   // take off leading white space
   while (*ptr==' '||*ptr=='\t')
     ptr++;
-  double sign1=1.0;
-  // do + or -
-  if (*ptr=='-') {
-    sign1=-1.0;
-    ptr++;
-  } else if (*ptr=='+') {
-    ptr++;
-  }
-  // more white space
-  while (*ptr==' '||*ptr=='\t')
-    ptr++;
-  char thisChar=0;
-  while (value<1.0e30) {
-    thisChar = *ptr;
-    ptr++;
-    if (thisChar>='0'&&thisChar<='9') 
-      value = value*10.0+thisChar-'0';
-    else
-      break;
-  }
-  if (value<1.0e30) {
-    if (thisChar=='.') {
-      // do fraction
-      double value2 = 0.0;
-      int nfrac=0;
-      while (nfrac<20) {
-	thisChar = *ptr;
-	ptr++;
-	if (thisChar>='0'&&thisChar<='9') {
-	  value2 = value2*10.0+thisChar-'0';
-	  nfrac++;
-	} else {
-	  break;
-	}
-      }
-      if (nfrac<20) {
-	value += value2*fraction[nfrac];
-      } else {
-	thisChar='x'; // force error
-      }
+  if (!type) {
+    double sign1=1.0;
+    // do + or -
+    if (*ptr=='-') {
+      sign1=-1.0;
+      ptr++;
+    } else if (*ptr=='+') {
+      ptr++;
     }
-    if (thisChar=='e'||thisChar=='E') {
-      // exponent
-      int sign2=1;
-      // do + or -
-      if (*ptr=='-') {
-	sign2=-1;
-	ptr++;
-      } else if (*ptr=='+') {
-	ptr++;
-      }
-      int value3 = 0;
-      while (value3<100) {
-	thisChar = *ptr;
-	ptr++;
-	if (thisChar>='0'&&thisChar<='9') {
-	  value3 = value3*10+thisChar-'0';
+    // more white space
+    while (*ptr==' '||*ptr=='\t')
+      ptr++;
+    char thisChar=0;
+    while (value<1.0e30) {
+      thisChar = *ptr;
+      ptr++;
+      if (thisChar>='0'&&thisChar<='9') 
+	value = value*10.0+thisChar-'0';
+      else
+	break;
+    }
+    if (value<1.0e30) {
+      if (thisChar=='.') {
+	// do fraction
+	double value2 = 0.0;
+	int nfrac=0;
+	while (nfrac<20) {
+	  thisChar = *ptr;
+	  ptr++;
+	  if (thisChar>='0'&&thisChar<='9') {
+	    value2 = value2*10.0+thisChar-'0';
+	    nfrac++;
+	  } else {
+	    break;
+	  }
+	}
+	if (nfrac<20) {
+	  value += value2*fraction[nfrac];
 	} else {
-	  break;
+	  thisChar='x'; // force error
 	}
       }
-      if (value3<200) {
-	value3 *= sign2; // power of 10
-	if (abs(value3)<10) {
-	  // do most common by lookup (for accuracy?)
-	  value *= exponent[value3+9];
-	} else {
-	  value *= pow(10.0,value3);
+      if (thisChar=='e'||thisChar=='E') {
+	// exponent
+	int sign2=1;
+	// do + or -
+	if (*ptr=='-') {
+	  sign2=-1;
+	  ptr++;
+	} else if (*ptr=='+') {
+	  ptr++;
 	}
+	int value3 = 0;
+	while (value3<100) {
+	  thisChar = *ptr;
+	  ptr++;
+	  if (thisChar>='0'&&thisChar<='9') {
+	    value3 = value3*10+thisChar-'0';
+	  } else {
+	    break;
+	  }
+	}
+	if (value3<200) {
+	  value3 *= sign2; // power of 10
+	  if (abs(value3)<10) {
+	    // do most common by lookup (for accuracy?)
+	    value *= exponent[value3+9];
+	  } else {
+	    value *= pow(10.0,value3);
+	  }
+	} else {
+	  thisChar='x'; // force error
+	}
+      } 
+      if (thisChar==0||thisChar=='\t'||thisChar==' ') {
+	// okay
+	*output=ptr;
       } else {
-	thisChar='x'; // force error
+	*output=save;
       }
-    } 
-    if (thisChar==0||thisChar=='\t'||thisChar==' ') {
-      // okay
-      *output=ptr;
     } else {
+      // bad value
       *output=save;
     }
+    value *= sign1;
   } else {
-    // bad value
-    *output=save;
+    // ieee - 3 bytes go to 2
+    assert (sizeof(double)==8*sizeof(char));
+    assert (sizeof(unsigned short) == 2*sizeof(char));
+    unsigned short shortValue[4];
+    *output = ptr+12; // say okay
+    if (type==1) {
+      // INTEL
+      for (int i=3;i>=0;i--) {
+	int integerValue=0;
+	char * three = (char *) &integerValue;
+	three[1]=ptr[0];
+	three[2]=ptr[1];
+	three[3]=ptr[2];
+	unsigned short thisValue=0;
+	// decode 6 bits at a time
+	for (int j=2;j>=0;j--) {
+	  thisValue = thisValue<<6;
+	  char thisChar = ptr[j];
+	  if (thisChar >= '0' && thisChar <= '0' + 9) {
+	    thisValue |= thisChar - '0';
+	  } else if (thisChar >= 'a' && thisChar <= 'a' + 25) {
+	    thisValue |= thisChar - 'a' + 10;
+	  } else if (thisChar >= 'A' && thisChar <= 'A' + 25) {
+	    thisValue |= thisChar - 'A' + 36;
+	  } else if (thisChar >= '*' && thisChar <= '*' + 1) {
+	    thisValue |= thisChar - '*' + 62;
+	  } else {
+	    // error 
+	    *output=save;
+	  }
+	}
+	ptr+=3;
+	shortValue[i]=thisValue;
+      }
+    } else {
+      // not INTEL
+      for (int i=0;i<4;i++) {
+	int integerValue=0;
+	char * three = (char *) &integerValue;
+	three[1]=ptr[0];
+	three[2]=ptr[1];
+	three[3]=ptr[2];
+	unsigned short thisValue=0;
+	// decode 6 bits at a time
+	for (int j=2;j>=0;j--) {
+	  thisValue = thisValue<<6;
+	  char thisChar = ptr[j];
+	  if (thisChar >= '0' && thisChar <= '0' + 9) {
+	    thisValue |= thisChar - '0';
+	  } else if (thisChar >= 'a' && thisChar <= 'a' + 25) {
+	    thisValue |= thisChar - 'a' + 10;
+	  } else if (thisChar >= 'A' && thisChar <= 'A' + 25) {
+	    thisValue |= thisChar - 'A' + 36;
+	  } else if (thisChar >= '*' && thisChar <= '*' + 1) {
+	    thisValue |= thisChar - '*' + 62;
+	  } else {
+	    // error 
+	    *output=save;
+	  }
+	}
+	ptr+=3;
+	shortValue[i]=thisValue;
+      }
+    }
+    memcpy(&value,shortValue,sizeof(double));
   }
-  return value*sign1;
+  return value;
 } 
 //#############################################################################
 // sections
@@ -255,8 +324,32 @@ CoinMpsCardReader::readToNextSection (  )
 	  *nextBlank = '\0';
 	  strcpy ( columnName_, next );
 	  *nextBlank = save;
-	  if ( strstr ( nextBlank, "FREE" ) )
+	  if ( strstr ( nextBlank, "FREE" ) ) {
 	    freeFormat_ = true;
+	  } else if ( strstr ( nextBlank, "FREEIEEE" ) ) {
+	    freeFormat_ = true;
+	    // see if intel
+	    ieeeFormat_=1;
+	    double value=1.0;
+	    char x[8];
+	    memcpy(x,&value,8);
+	    if (x[0]==63) {
+	      ieeeFormat_=2; // not intel
+	    } else {
+	      assert (x[0]==0);
+	    }
+	  } else if ( strstr ( nextBlank, "IEEE" ) ) {
+	    // see if intel
+	    ieeeFormat_=1;
+	    double value=1.0;
+	    char x[8];
+	    memcpy(x,&value,8);
+	    if (x[0]==63) {
+	      ieeeFormat_=2; // not intel
+	    } else {
+	      assert (x[0]==0);
+	    }
+	  }
 	} else {
 	  strcpy ( columnName_, next );
 	}
@@ -298,6 +391,7 @@ CoinMpsCardReader::CoinMpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * rea
   section_ = COIN_EOF_SECTION;
   cardNumber_ = 0;
   freeFormat_ = false;
+  ieeeFormat_ = 0;
   eightChar_ = true;
   reader_ = reader;
   handler_ = reader_->messageHandler();
@@ -558,7 +652,7 @@ CoinMpsCardReader::nextField (  )
 		  *nextBlank = '\0';
 		}
 		char * after;
-		value_ = osi_strtod(next,&after);
+		value_ = osi_strtod(next,&after,ieeeFormat_);
 		// see if error
 		assert(after>next);
 		if ( nextBlank ) {
@@ -621,7 +715,7 @@ CoinMpsCardReader::nextField (  )
 	      *nextBlank = '\0';
 	    }
 	    char * after;
-	    value_ = osi_strtod(next,&after);
+	    value_ = osi_strtod(next,&after,ieeeFormat_);
 	    // see if error
 	    assert(after>next);
 	    if ( nextBlank ) {
@@ -704,7 +798,7 @@ CoinMpsCardReader::nextField (  )
     }
     //value_ = -1.0e100;
     char * after;
-    value_ = osi_strtod(next,&after);
+    value_ = osi_strtod(next,&after,ieeeFormat_);
     // see if error
     assert(after>next);
     if ( nextBlank ) {
@@ -2080,15 +2174,19 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 /* formatType is
    0 - normal and 8 character names
    1 - extra accuracy
-   2 - IEEE hex
-   4 - normal but free format
+   2 - IEEE hex - INTEL
+   3 - IEEE hex - not INTEL
+   4 - normal and free format
+   5 - extra accuracy and free format
+   6 - IEEE hex - INTEL and free format
+   7 - IEEE hex - not INTEL and free format
 */
 static void
 convertDouble(int formatType, double value, char outputValue[20],
 	      const char * name, char outputRow[100])
 {
-  assert (formatType!=2);
-  if ((formatType&3)==0) {
+  int encoding = formatType&7;
+  if (encoding==0) {
     bool stripZeros=true;
     if (fabs(value)<1.0e40) {
       int power10, decimal;
@@ -2148,7 +2246,7 @@ convertDouble(int formatType, double value, char outputValue[20],
     } else {
       outputValue[0]= '\0'; // needs no value
     }
-  } else {
+  } else if (encoding==1) {
     if (fabs(value)<1.0e40) {
       sprintf(outputValue,"%.18g",value);
       // take out blanks
@@ -2162,6 +2260,57 @@ convertDouble(int formatType, double value, char outputValue[20],
     } else {
       outputValue[0]= '\0'; // needs no value
     }
+  } else {
+    // IEEE
+    // ieee - 3 bytes go to 2
+    assert (sizeof(double)==8*sizeof(char));
+    assert (sizeof(unsigned short) == 2*sizeof(char));
+    unsigned short shortValue[4];
+    memcpy(shortValue,&value,sizeof(double));
+    outputValue[12]='\0';
+    if (encoding==2) {
+      // INTEL
+      char * thisChar = outputValue;
+      for (int i=3;i>=0;i--) {
+	unsigned short thisValue=shortValue[i];
+	// encode 6 bits at a time
+	for (int j=0;j<3;j++) {
+	  unsigned short thisPart = thisValue &63;
+	  thisValue = thisValue>>6;
+	  if (thisPart < 10) {
+	    *thisChar = (char) (thisPart+'0');
+	  } else if (thisPart < 36) {
+	    *thisChar = (char) (thisPart-10+'a');
+	  } else if (thisPart < 62) {
+	    *thisChar = (char) (thisPart-36+'A');
+	  } else {
+	    *thisChar = (char) (thisPart-62+'*');
+	  }
+	  thisChar++;
+	}
+      }
+    } else {
+      // not INTEL
+      char * thisChar = outputValue;
+      for (int i=0;i<4;i++) {
+	unsigned short thisValue=shortValue[i];
+	// encode 6 bits at a time
+	for (int j=0;j<3;j++) {
+	  unsigned short thisPart = thisValue &63;
+	  thisValue = thisValue>>6;
+	  if (thisPart < 10) {
+	    *thisChar = (char) (thisPart+'0');
+	  } else if (thisPart < 36) {
+	    *thisChar = (char) (thisPart-10+'a');
+	  } else if (thisPart < 62) {
+	    *thisChar = (char) (thisPart-36+'A');
+	  } else {
+	    *thisChar = (char) (thisPart-62+'*');
+	  }
+	  thisChar++;
+	}
+      }
+    }
   }
   strcpy(outputRow,name);
   if (!formatType) {
@@ -2174,6 +2323,16 @@ convertDouble(int formatType, double value, char outputValue[20],
     for (;i<12;i++) 
       outputValue[i]=' ';
     outputValue[12]='\0';
+    for (i=0;i<8;i++) {
+      if (outputRow[i]=='\0')
+	break;
+    }
+    for (;i<8;i++) 
+      outputRow[i]=' ';
+    outputRow[8]='\0';
+  } else if (formatType>1&&formatType<8) {
+    int i;
+    // pad out to 8
     for (i=0;i<8;i++) {
       if (outputRow[i]=='\0')
 	break;
@@ -2207,7 +2366,7 @@ static void outputCard(int formatType,int numberFields,
    // fprintf(fp,"%s",head.c_str());
    std::string line = head;
    int i;
-   if (!formatType) {
+   if (formatType==0||(formatType>=2&&formatType<8)) {
       char outputColumn[9];
       strcpy(outputColumn,name);
       for (i=0;i<8;i++) {
@@ -2251,6 +2410,12 @@ int
 CoinMpsIO::writeMps(const char *filename, int compression,
 		   int formatType, int numberAcross) const
 {
+  // Clean up format and numberacross
+  numberAcross=max(1,numberAcross);
+  numberAcross=min(2,numberAcross);
+  formatType=max(0,formatType);
+  formatType=min(2,formatType);
+  
    std::string line = filename;
    FILE * fp = NULL;
    gzFile gzfp = NULL;
@@ -2284,7 +2449,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    const char * const * const columnNames = names_[1];
    int i;
    unsigned int length = 8;
-   bool freeFormat = (formatType!=0);
+   bool freeFormat = (formatType==1);
    for (i = 0 ; i < numberRows_; ++i) {
       if (strlen(rowNames[i]) > length) {
 	 length = strlen(rowNames[i]);
@@ -2299,10 +2464,11 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 }
       }
    }
-   if (length > 8 && !freeFormat) {
+   if (length > 8 && freeFormat!=1) {
       freeFormat = true;
-      formatType = 4;
+      formatType += 8;
    }
+
    
    // NAME card
 
@@ -2317,8 +2483,24 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 line.append(8-strlen(problemName_), ' ');
       }
    }
-   if (freeFormat)
-      line.append("  FREE");
+   if (freeFormat&&(formatType&7)!=2)
+     line.append("  FREE");
+   else if (freeFormat)
+     line.append("  FREEIEEE");
+   else if ((formatType&7)==2)
+     line.append("  IEEE");
+   // See if INTEL if IEEE
+   if ((formatType&7)==2) {
+     // test intel here and add 1 if not intel
+     double value=1.0;
+     char x[8];
+     memcpy(x,&value,8);
+     if (x[0]==63) {
+       formatType ++; // not intel
+     } else {
+       assert (x[0]==0);
+     }
+   }
    // finish off name and do ROWS card and objective 
    line.append("\nROWS\n N  OBJROW\n");
    writeString(fp, gzfp, line.c_str());
@@ -2427,6 +2609,23 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    writeString(fp, gzfp, "RHS\n");
 
    int numberFields = 0;
+   // If there is any offset - then do that
+   if (objectiveOffset_ ) {
+     convertDouble(formatType,objectiveOffset_,
+		   outputValue[0],
+		   "OBJROW",
+		   outputRow[0]);
+     numberFields++;
+     if (numberFields==numberAcross) {
+       // put out card
+       outputCard(formatType, numberFields,
+		  fp, gzfp, "    ",
+		  "RHS",
+		  outputValue,
+		  outputRow);
+       numberFields=0;
+     }
+   }
    for (i=0;i<numberRows_;i++) {
       double value;
       switch (sense[i]) {

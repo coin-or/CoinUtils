@@ -136,6 +136,8 @@ protected:
   CoinBigIndex cardNumber_;
   /// Whether free format.  Just for blank RHS etc
   bool freeFormat_;
+  /// Whether IEEE - 0 no, 1 INTEL, 2 not INTEL
+  int ieeeFormat_;
   /// If all names <= 8 characters then allow embedded blanks
   bool eightChar_;
   /// MpsIO
@@ -389,6 +391,9 @@ public:
 	This is the RHS entry for the objective row
     */
     double objectiveOffset() const;
+    /// Set objective offset
+    inline void setObjectiveOffset(double value)
+    { objectiveOffset_=value;};
 
     /// Return the problem name
     const char * getProblemName() const;
