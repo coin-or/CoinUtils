@@ -21,8 +21,8 @@ CoinDenseVectorUnitTest(T dummy)
   // Test default constructor
   {
     CoinDenseVector<T> r;
-    assert( r.elements_== 0 );
-    assert( r.getNumElements()==0 );
+    assert( r.getElements() == 0 );
+    assert( r.getNumElements() == 0 );
   }
     const int ne = 4;
     T el[ne] = { 10, 40, 1, 50 };

@@ -12,6 +12,16 @@
 #include <cmath>
 #include "CoinHelperFunctions.hpp"
 
+//#############################################################################
+/** A function that tests the methods in the CoinDenseVector class. The
+    only reason for it not to be a member method is that this way it doesn't
+    have to be compiled into the library. And that's a gain, because the
+    library should be compiled with optimization on, but this method should be
+    compiled with debugging. */
+    template <typename T> void
+    CoinDenseVectorUnitTest(T dummy);
+
+//#############################################################################
 /** Dense Vector
 
 Stores a dense (or expanded) vector of floating point values.
@@ -52,7 +62,7 @@ Here is a sample usage:
 */
 template <typename T> class CoinDenseVector {
    //friend void CoinDenseVectorUnitTest<T>();
-   friend void CoinDenseVectorUnitTest(T dummy);
+   friend void CoinDenseVectorUnitTest<>(T dummy);
 
 private:
    /**@name Private member data */
@@ -367,12 +377,4 @@ CoinDenseVector<T> operator/(T value, const CoinDenseVector<T>& op1){
 }
 //@}
 
-//#############################################################################
-/** A function that tests the methods in the CoinDenseVector class. The
-    only reason for it not to be a member method is that this way it doesn't
-    have to be compiled into the library. And that's a gain, because the
-    library should be compiled with optimization on, but this method should be
-    compiled with debugging. */
-    template <typename T> void
-    CoinDenseVectorUnitTest(T dummy);
 #endif
