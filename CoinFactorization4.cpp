@@ -1,3 +1,11 @@
+// Copyright (C) 2002, International Business Machines
+// Corporation and others.  All Rights Reserved.
+
+#if defined(_MSC_VER)
+// Turn off compiler warning about long names
+#  pragma warning(disable:4786)
+#endif
+
 #include "CoinFactorization.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
@@ -76,27 +84,28 @@ CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse) cons
 
   double *region = regionSparse->denseVector (  );
   double tolerance = zeroTolerance_;
-  CoinBigIndex *startColumn = startColumnU_;
-  int *indexRow = indexRowU_;
-  double *element = elementU_;
+  const CoinBigIndex *startColumn = startColumnU_;
+  const int *indexRow = indexRowU_;
+  const double *element = elementU_;
   int *regionIndex = regionSparse->getIndices (  );
   int numberNonZero = 0;
-  int *numberInColumn = numberInColumn_;
+  const int *numberInColumn = numberInColumn_;
   int i;
-  double *pivotRegion = pivotRegion_;
+  const double *pivotRegion = pivotRegion_;
 
   for (i = numberU_-1 ; i >= numberSlacks_; i-- ) {
     double pivotValue = region[i];
     if ( fabs ( pivotValue ) > tolerance ) {
       CoinBigIndex start = startColumn[i];
-      int end = start + numberInColumn[i];
+      const double * thisElement = element+start;
+      const int * thisIndex = indexRow+start;
       
-      CoinBigIndex j;
-      for ( j = start; j < end; j++ ) {
-	double value = element[j];
-	int iRow = indexRow[j];
-
-	region[iRow] -= value * pivotValue;
+      CoinBigIndex j= numberInColumn[i]-1;;
+      for ( ; j >=0; j-- ) {
+	int iRow = thisIndex[j];
+	double regionValue = region[iRow];
+	double value = thisElement[j];
+	region[iRow] = regionValue - value * pivotValue;
       }
       region[i] = pivotValue*pivotRegion[i];
       regionIndex[numberNonZero++] = i;
@@ -109,8 +118,9 @@ CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse) cons
   double factor = slackValue_;
   if (factor==1.0) {
     for ( i = numberSlacks_-1; i>=0;i--) {
-      double absValue = fabs ( region[i] );
-      if ( absValue ) {
+      double value = region[i];
+      double absValue = fabs ( value );
+      if ( value ) {
 	if ( absValue > tolerance ) {
 	  regionIndex[numberNonZero++] = i;
 	} else {
@@ -119,12 +129,14 @@ CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse) cons
       }
     }
   } else {
+    assert (factor==-1.0);
     for ( i = numberSlacks_-1; i>=0;i--) {
-      double absValue = fabs ( region[i] );
-      if ( absValue ) {
+      double value = -region[i];
+      double absValue = fabs ( value );
+      if ( value ) {
 	if ( absValue > tolerance ) {
 	  regionIndex[numberNonZero++] = i;
-	  region [i] *= factor;
+	  region [i] = value;
 	} else {
 	  region[i] = 0.0;
 	}
@@ -253,9 +265,9 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
     for (;put<putLast;put++) {
       int iPivot = *put;
       mark[iPivot]=0;
-      double pivotValue = region[iPivot];
+      double pivotValue = -region[iPivot];
       if ( fabs ( pivotValue ) > tolerance ) {
-	region[iPivot] = pivotValue*slackValue_;
+	region[iPivot] = pivotValue;
 	regionIndex[numberNonZero++]= iPivot;
       } else {
 	region[iPivot]=0.0;
