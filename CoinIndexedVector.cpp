@@ -481,17 +481,10 @@ CoinIndexedVector::reserve(int n)
     // align on 64 byte boundary
     double * temp = new double [n+7];
     offset_ = 0;
-#ifndef __64BIT__
-    int xx = (int) temp;
-    int iBottom = xx & 63;
+    int64_t xx = reinterpret_cast<int64_t>(temp);
+    int64_t iBottom = xx & 63;
     if (iBottom)
       offset_ = (64-iBottom)>>3;
-#else
-    long xx = (long) temp;
-    long iBottom = xx & 63;
-    if (iBottom)
-      offset_ = (64-iBottom)>>3;
-#endif
     elements_ = temp + offset_;;
     
     // copy data to new space
@@ -1288,21 +1281,12 @@ CoinIndexedVector::cleanAndPackSafe( double tolerance )
       gotMemory=false;
       // But may need to align on 8 byte boundary
       char * tempC = (char *) (indices_+number);
-#ifndef __64BIT__
-      int xx = (int) tempC;
-      int iBottom = xx & 7;
-#else
-      long xx = (long) tempC;
-      long iBottom = xx & 7;
-#endif
+      int64_t xx = reinterpret_cast<int64_t>(tempC);
+      int64_t iBottom = xx & 7;
       if (iBottom)
 	tempC += 8-iBottom;
       temp = (double *) tempC;
-#ifndef __64BIT__
-      xx = (int) temp;
-#else
-      xx = (long) temp;
-#endif
+      xx = reinterpret_cast<int64_t>(temp);
       iBottom = xx & 7;
       assert(!iBottom);
     } else {
