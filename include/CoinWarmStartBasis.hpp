@@ -45,7 +45,7 @@ public:
 
 public:
 
-/*! \name Methods to get and set information about variables
+/*! \name Methods to get and set basis information.
 
   The status of variables is kept in a pair of arrays, one for structural
   variables, and one for artificials (aka logicals and slacks). The status
@@ -119,34 +119,42 @@ public:
   */
   inline const char * getArtificialStatus() const { return artificialStatus_; }
 
-  /** Assign the status vectors to be the warm start information.
-  
-      In this method the CoinWarmStartBasis object assumes ownership of the
-      pointers and upon return the argument pointers will be NULL.
-      If copying is desirable, use
-      CoinWarmStartBasis(int,int,const char*,const char*).
-
-      \note
-      The pointers passed to this method will be
-      freed using delete[], so they must be created using new[].
-  */
-  void assignBasisStatus(int ns, int na, char*& sStat, char*& aStat) ;
-
 //@}
 
 /*! \name Methods to modify the warm start object */
 //@{
-  void setSize(int ns, int na) ;
 
-  /// Resizes 
-  void resize (int newNumberRows, int newNumberColumns);
-  /// Deletes rows
-  void deleteRows(int number, const int * which);
-  /// Deletes columns
-  void deleteColumns(int number, const int * which);
+  /// Set basis capacity; existing basis is discarded.
+  virtual void setSize(int ns, int na) ;
 
-  /// Prints in readable format (for debug)
-  virtual void print() const;
+  /// Set basis capacity; existing basis is maintained.
+  virtual void resize (int newNumberRows, int newNumberColumns);
+
+  /** \brief Delete a set of rows from the basis
+
+    \warning
+    The resulting basis is guaranteed valid only if all deleted
+    constraints are slack (hence the associated logicals are basic).
+
+
+    Removal of a tight constraint with a nonbasic logical implies that
+    some basic variable must be made nonbasic. This correction is left to
+    the client.
+  */
+
+  virtual void deleteRows(int number, const int * which);
+
+  /** \brief Delete a set of columns from the basis
+
+    \warning
+    The resulting basis is guaranteed valid only if all deleted variables
+    are nonbasic.
+
+    Removal of a basic variable implies that some nonbasic variable must be
+    made basic. This correction is left to the client.
+ */
+
+  virtual void deleteColumns(int number, const int * which);
 
 //@}
 
@@ -181,9 +189,37 @@ public:
      return new CoinWarmStartBasis(*this);
   }
 
+  /** Destructor */
   virtual ~CoinWarmStartBasis();
 
-  CoinWarmStartBasis& operator=(const CoinWarmStartBasis& rhs) ;
+  /** Assignment */
+
+  virtual CoinWarmStartBasis& operator=(const CoinWarmStartBasis& rhs) ;
+
+  /** Assign the status vectors to be the warm start information.
+  
+      In this method the CoinWarmStartBasis object assumes ownership of the
+      pointers and upon return the argument pointers will be NULL.
+      If copying is desirable, use the
+      \link CoinWarmStartBasis(int,int,const char*,const char*)
+	    array constructor \endlink
+      or the
+      \link operator=(const CoinWarmStartBasis&)
+	    assignment operator \endlink.
+
+      \note
+      The pointers passed to this method will be
+      freed using delete[], so they must be created using new[].
+  */
+  virtual void assignBasisStatus(int ns, int na, char*& sStat, char*& aStat) ;
+//@}
+
+/*! \name Miscellaneous methods */
+//@{
+
+  /// Prints in readable format (for debug)
+  virtual void print() const;
+
 //@}
 
 private:
