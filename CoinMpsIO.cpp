@@ -991,6 +991,11 @@ CoinMpsCardReader::nextGmsField ( int expectedType )
           } else {
             // number
             char * next = nextBlankOr(position_);
+            // but could be *
+            char * next2 = strchr(position_,'*');
+            if (next2&&next2-position_<next-position_) {
+              next=next2;
+            }
             int length = next-position_;
             strncpy(rowName_,position_,length);
             rowName_[length]='\0';
@@ -1008,6 +1013,8 @@ CoinMpsCardReader::nextGmsField ( int expectedType )
           returnCode=1;
           position_=savePosition;
         }
+        if ((*position_)=='*')
+          position_++;
         position_= nextNonBlank(position_);
         if (!returnCode) {
           char nextChar =*position_;
@@ -2632,6 +2639,8 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     columnType[i]=COIN_UNSET_BOUND;
   }
   startHash ( columnName, numberColumns_ , 1 );
+  integerType_ = (char *) malloc (numberColumns_*sizeof(char));
+  memset(integerType_,0,numberColumns_);
   // Lists come in various flavors - I don't know many now
   // 0 - Positive
   // 1 - Binary
@@ -2645,6 +2654,8 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
       listType=0;
     } else if (!strcmp(cardReader_->columnName(),"Binary")) {
       listType=1;
+    } else if (!strcmp(cardReader_->columnName(),"Integer")) {
+      listType=2;
     } else {
       break;
     }
@@ -2653,8 +2664,6 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     assert (!returnCode);
     assert (!strcmp(cardReader_->columnName(),"Variables"));
 
-    integerType_ = (char *) malloc (numberColumns_*sizeof(char));
-    memset(integerType_,0,numberColumns_);
     // Go through lists
     bool inList=true;
     while (inList) {
@@ -2679,6 +2688,11 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
         collower_[iColumn]=0.0;
         colupper_[iColumn]=1.0;
         columnType[iColumn]=COIN_BV_BOUND;
+	integerType_[iColumn] = 1;
+        numberIntegers++;
+      } else if (listType==2) {
+        collower_[iColumn]=0.0;
+        columnType[iColumn]=COIN_UI_BOUND;
 	integerType_[iColumn] = 1;
         numberIntegers++;
       }
