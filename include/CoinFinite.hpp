@@ -72,4 +72,15 @@ using std::max;
 
 //=============================================================================
 
+#if defined(__GNUC__) && defined(__MACH__)
+extern "C" {
+   int isnan(double);
+}
+inline int CoinFinite(double d);
+# define CoinFinite finite
+# define CoinIsnan  isnan
+#endif
+
+//=============================================================================
+
 #endif
