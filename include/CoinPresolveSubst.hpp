@@ -21,7 +21,6 @@ public:
 
     const double *costsx;
     int col;
-    int rowx;
     int rowy;
 
     int nincol;
