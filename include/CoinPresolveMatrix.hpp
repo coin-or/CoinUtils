@@ -8,6 +8,7 @@
 #include "CoinMessage.hpp"
 
 #include <cmath>
+#include <cassert>
 #include <cfloat>
 
 #if defined(_MSC_VER)
