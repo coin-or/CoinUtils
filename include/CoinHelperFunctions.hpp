@@ -10,7 +10,6 @@
 #  include <unistd.h>
 #endif
 
-
 #include "CoinError.hpp"
 //#############################################################################
 
@@ -136,6 +135,22 @@ CoinDisjointCopy(register const T* first, register const T* last,
 		 register T* to)
 {
    CoinDisjointCopyN(first, static_cast<int>(last - first), to);
+}
+
+//-----------------------------------------------------------------------------
+
+/** This helper function returns a NEW copy of an array or NULL if the
+    original pointer was NULL */
+template <class T> inline T*
+CoinCopyOfArray(const T* array, const int size)
+{
+  if (array) {
+    T * arrayNew = new T[size];
+    CoinMemcpyN(array,size,arrayNew);
+    return arrayNew;
+  } else {
+    return NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------
