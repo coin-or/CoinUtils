@@ -73,17 +73,12 @@
 #include <math.h>  /* For math functions, cos(), sin(), etc.  */
 
 
-symrec *putsym ( symrec * & symtable, char const *, func_t);
-symrec *getsym ( symrec *symtable,char const *);
 #include <cstdio>
 #include <ctype.h>
 #include <cstring>
 #include <cstdlib>
 #include <cassert>
-int yylex ( symrec * & symtable,const char * line, int * position, char * & symbuf, int & length,
-             const double * associated, const CoinModelHash & string,
-            int & error, double unsetValue);
-void yyerror (char const *);
+static void yyerror (char const *);
 
 
 /* Enabling traces.  */
@@ -556,7 +551,7 @@ do {					\
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
    multiple parsers can coexist.  */
-int yydebug;
+static int yydebug;
 #else /* !YYDEBUG */
 # define YYDPRINTF(Args)
 # define YYDSYMPRINT(Args)
@@ -709,24 +704,202 @@ yydestruct (yytype, yyvaluep)
 
 
 
-/* The lookahead symbol.  */
-int yychar;
+static     symrec *
+     putsym ( symrec * & symtable, char const *sym_name, int sym_type)
+     {
+       symrec *ptr;
+       ptr = (symrec *) malloc (sizeof (symrec));
+       ptr->name = (char *) malloc (strlen (sym_name) + 1);
+       strcpy (ptr->name,sym_name);
+       ptr->type = sym_type;
+       ptr->value.var = 0; /* Set value to 0 even if fctn.  */
+       ptr->next = (struct symrec *)symtable;
+       symtable = ptr;
+       return ptr;
+     }
+     
+static     symrec *
+     getsym ( symrec *symtable,char const *sym_name)
+     {
+       symrec *ptr;
+       for (ptr = symtable; ptr != (symrec *) 0;
+            ptr = (symrec *)ptr->next)
+         if (strcmp (ptr->name,sym_name) == 0)
+           return ptr;
+       return 0;
+     }
+     
+static     void
+     freesym ( symrec *symtable)
+     {
+       symrec *ptr;
+       for (ptr = symtable; ptr != (symrec *) NULL;) {
+         free (ptr->name);
+         symrec * ptrNext = (symrec *)ptr->next ;
+         free (ptr);
+         ptr=ptrNext;
+       }
+     }
+     
+     /* Called by yyparse on error.  */
+static     void
+     yyerror (char const *s)
+     {
+       // Put back if needed
+       //printf ("%s\n", s);
+     }
+     
+     struct init
+     {
+       char const *fname;
+       double (*fnct) (double);
+     };
+     
+     struct init const arith_fncts[] =
+     {
+       {"sin",  sin},
+       {"cos",  cos},
+       {"atan", atan},
+       {"ln",   log},
+       {"exp",  exp},
+       {"sqrt", sqrt},
+       {"fabs", fabs},
+       {"abs", fabs},
+       {NULL, 0}
+     };
+     
+     /* The symbol table: a chain of `struct symrec'.  */
+     
+     /* Put arithmetic functions in table.  */
+static     void
+     init_table ( symrec * &symtable)
+     {
+       int i;
+       symrec *ptr;
+       for (i = 0; arith_fncts[i].fname != NULL; i++)
+         {
+           ptr = putsym ( symtable,arith_fncts[i].fname, FNCT);
+           ptr->value.fnctptr = arith_fncts[i].fnct;
+         }
+     }
+     
 
-/* The semantic value of the lookahead symbol.  */
-YYSTYPE yylval;
-
-/* Number of syntax errors so far.  */
-int yynerrs;
-
+     
+static     int
+     yylex ( symrec *&symtable, const char * line, int * position, char * & symbuf, int & length,
+             const double * associated, const CoinModelHash & string,
+             int & error, double unsetValue,
+                        YYSTYPE &yylval)
+     {
+       int c;
+       int ipos=*position;
+       /* Ignore white space, get first nonwhite character.  */
+       while ((c = line[ipos]) == ' ' || c == '\t')
+         ipos++;
+     
+       if (c == EOF) 
+         return 0;
+     
+       /* Char starts a number => parse the number.         */
+       if (c == '.' || isdigit (c))
+         {
+           sscanf (line+ipos,"%lf", &yylval.val);
+           /* Get first white or other character.  */
+           int nE=0;
+           int nDot=0;
+           if (c=='.')
+             nDot=1;
+           ipos++; // skip possible sign
+           while (true) {
+             c=line[ipos];
+             if (isdigit(c)) {
+             } else if (!nDot&&c=='.') {
+               nDot=1;
+             } else if (c=='e'&&!nE) {
+               nE=1;
+               if (line[ipos+1]=='+'||line[ipos+1]=='-')
+                 ipos++;
+             } else {
+               break;
+             }
+             ipos++;
+           }
+           *position = ipos;
+           return NUM;
+         }
+     
+       /* Char starts an identifier => read the name.       */
+       if (isalpha (c))
+         {
+           symrec *s;
+           int i;
+     
+           /* Initially make the buffer long enough
+              for a 40-character symbol name.  */
+           if (length == 0)
+             length = 40, symbuf = (char *)malloc (length + 1);
+     
+           i = 0;
+           do
+             {
+               /* If buffer is full, make it bigger.        */
+               if (i == length)
+                 {
+                   length *= 2;
+                   symbuf = (char *) realloc (symbuf, length + 1);
+                 }
+               /* Add this character to the buffer.         */
+               symbuf[i++] = c;
+               /* Get another character.                    */
+               ipos++;
+               c = line[ipos];
+             }
+           while (isalnum (c));
+     
+           symbuf[i] = '\0';
+     
+           s = getsym ( symtable, symbuf);
+           if (s == 0) {
+             // Find in strings
+             int find = string.hash(symbuf);
+             double value;
+             if (find>=0) {
+               value = associated[find];
+               //printf("symbol %s found with value of %g\n",symbuf,value);
+               if (value==unsetValue)
+                 error=CoinMax(error,1);
+             } else {
+               //printf("unknown symbol %s\n",symbuf);
+               value=unsetValue;
+               error=3;
+             }
+             s = putsym (symtable, symbuf, VAR);
+             s->value.var=value;
+           }
+           yylval.tptr = s;
+           *position = ipos;
+           return s->type;
+         }
+     
+       /* Any other character is a token by itself.        */
+       if (c) {
+         *position = ipos+1;
+         return c;
+       } else {
+         *position = ipos;
+         return 10;
+       }
+     }
 
 
 /*----------.
 | yyparse.  |
 `----------*/
 
-double yyparse ( symrec *& symtable, const char * line, char * & symbuf, int & length,
-                 const double * associated, const CoinModelHash & string, int & error,
-                 double unsetValue)
+static double yyparse ( symrec *& symtable, const char * line, char * & symbuf, int & length,
+                        const double * associated, const CoinModelHash & string, int & error,
+                        double unsetValue,
+                        int & yychar, YYSTYPE &yylval, int & yynerrs)
 {
   
   int position=0;
@@ -892,7 +1065,7 @@ yybackup:
     {
       YYDPRINTF ((stderr, "Reading a token: "));
       yychar = yylex( symtable, line,&position,symbuf,length,
-                      associated,string,error,unsetValue);
+                      associated,string,error,unsetValue,yylval);
       if (yychar==10) {
         if (nEof)
           yychar=0;
@@ -1259,87 +1432,6 @@ yyreturn:
   return yyresult;
 }
 
-
-
-     symrec *
-     putsym ( symrec * & symtable, char const *sym_name, int sym_type)
-     {
-       symrec *ptr;
-       ptr = (symrec *) malloc (sizeof (symrec));
-       ptr->name = (char *) malloc (strlen (sym_name) + 1);
-       strcpy (ptr->name,sym_name);
-       ptr->type = sym_type;
-       ptr->value.var = 0; /* Set value to 0 even if fctn.  */
-       ptr->next = (struct symrec *)symtable;
-       symtable = ptr;
-       return ptr;
-     }
-     
-     symrec *
-     getsym ( symrec *symtable,char const *sym_name)
-     {
-       symrec *ptr;
-       for (ptr = symtable; ptr != (symrec *) 0;
-            ptr = (symrec *)ptr->next)
-         if (strcmp (ptr->name,sym_name) == 0)
-           return ptr;
-       return 0;
-     }
-     
-     void
-     freesym ( symrec *symtable)
-     {
-       symrec *ptr;
-       for (ptr = symtable; ptr != (symrec *) NULL;) {
-         free (ptr->name);
-         symrec * ptrNext = (symrec *)ptr->next ;
-         free (ptr);
-         ptr=ptrNext;
-       }
-     }
-     
-     /* Called by yyparse on error.  */
-     void
-     yyerror (char const *s)
-     {
-       // Put back if needed
-       //printf ("%s\n", s);
-     }
-     
-     struct init
-     {
-       char const *fname;
-       double (*fnct) (double);
-     };
-     
-     struct init const arith_fncts[] =
-     {
-       {"sin",  sin},
-       {"cos",  cos},
-       {"atan", atan},
-       {"ln",   log},
-       {"exp",  exp},
-       {"sqrt", sqrt},
-       {"fabs", fabs},
-       {"abs", fabs},
-       {NULL, 0}
-     };
-     
-     /* The symbol table: a chain of `struct symrec'.  */
-     
-     /* Put arithmetic functions in table.  */
-     void
-     init_table ( symrec * &symtable)
-     {
-       int i;
-       symrec *ptr;
-       for (i = 0; arith_fncts[i].fname != NULL; i++)
-         {
-           ptr = putsym ( symtable,arith_fncts[i].fname, FNCT);
-           ptr->value.fnctptr = arith_fncts[i].fnct;
-         }
-     }
-     
 double
 CoinModel::getDoubleFromString(CoinYacc & info,const char * string)
 {
@@ -1350,8 +1442,21 @@ CoinModel::getDoubleFromString(CoinYacc & info,const char * string)
     info.unsetValue=unsetValue();
   }
   int error=0;
+
+  // Here to make thread safe
+  /* The lookahead symbol.  */
+  int yychar;
+  
+  /* The semantic value of the lookahead symbol.  */
+  YYSTYPE yylval;
+  
+  /* Number of syntax errors so far.  */
+  int yynerrs;
+
   double value = yyparse ( info.symtable, string,info.symbuf,info.length,
-                           associated_,string_,error,info.unsetValue);
+                           associated_,string_,error,info.unsetValue,
+                           yychar, yylval,  yynerrs);
+
   if (error){
     // 1 means strings found but unset value
     // 2 syntax error
@@ -1373,111 +1478,5 @@ CoinModel::freeStringMemory(CoinYacc & info)
   free(info.symbuf);
   info.length=0;
 }
-
-     
-     int
-     yylex ( symrec *&symtable, const char * line, int * position, char * & symbuf, int & length,
-             const double * associated, const CoinModelHash & string,
-             int & error, double unsetValue)
-     {
-       int c;
-       int ipos=*position;
-       /* Ignore white space, get first nonwhite character.  */
-       while ((c = line[ipos]) == ' ' || c == '\t')
-         ipos++;
-     
-       if (c == EOF) 
-         return 0;
-     
-       /* Char starts a number => parse the number.         */
-       if (c == '.' || isdigit (c))
-         {
-           sscanf (line+ipos,"%lf", &yylval.val);
-           /* Get first white or other character.  */
-           int nE=0;
-           int nDot=0;
-           if (c=='.')
-             nDot=1;
-           ipos++; // skip possible sign
-           while (true) {
-             c=line[ipos];
-             if (isdigit(c)) {
-             } else if (!nDot&&c=='.') {
-               nDot=1;
-             } else if (c=='e'&&!nE) {
-               nE=1;
-               if (line[ipos+1]=='+'||line[ipos+1]=='-')
-                 ipos++;
-             } else {
-               break;
-             }
-             ipos++;
-           }
-           *position = ipos;
-           return NUM;
-         }
-     
-       /* Char starts an identifier => read the name.       */
-       if (isalpha (c))
-         {
-           symrec *s;
-           int i;
-     
-           /* Initially make the buffer long enough
-              for a 40-character symbol name.  */
-           if (length == 0)
-             length = 40, symbuf = (char *)malloc (length + 1);
-     
-           i = 0;
-           do
-             {
-               /* If buffer is full, make it bigger.        */
-               if (i == length)
-                 {
-                   length *= 2;
-                   symbuf = (char *) realloc (symbuf, length + 1);
-                 }
-               /* Add this character to the buffer.         */
-               symbuf[i++] = c;
-               /* Get another character.                    */
-               ipos++;
-               c = line[ipos];
-             }
-           while (isalnum (c));
-     
-           symbuf[i] = '\0';
-     
-           s = getsym ( symtable, symbuf);
-           if (s == 0) {
-             // Find in strings
-             int find = string.hash(symbuf);
-             double value;
-             if (find>=0) {
-               value = associated[find];
-               //printf("symbol %s found with value of %g\n",symbuf,value);
-               if (value==unsetValue)
-                 error=CoinMax(error,1);
-             } else {
-               //printf("unknown symbol %s\n",symbuf);
-               value=unsetValue;
-               error=3;
-             }
-             s = putsym (symtable, symbuf, VAR);
-             s->value.var=value;
-           }
-           yylval.tptr = s;
-           *position = ipos;
-           return s->type;
-         }
-     
-       /* Any other character is a token by itself.        */
-       if (c) {
-         *position = ipos+1;
-         return c;
-       } else {
-         *position = ipos;
-         return 10;
-       }
-     }
 
 
