@@ -41,6 +41,7 @@ CoinDenseVectorUnitTest()
     assert( r.oneNorm() == 101.0);
     assert( r.twoNorm() == sqrt(100.0 + 1600. + 1. + 2500.));
     assert( r.infNorm() == 50.);
+    assert(r[0]+r[1]+r[2]+r[3]==101.);
 
     // Test for equality
     CoinDenseVector<T> r1;
@@ -74,6 +75,6 @@ CoinDenseVectorUnitTest()
 
 }
 
-template void CoinDenseVectorUnitTest<int>();
+//template void CoinDenseVectorUnitTest<int>();
 template void CoinDenseVectorUnitTest<float>();
 template void CoinDenseVectorUnitTest<double>();

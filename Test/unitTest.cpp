@@ -116,7 +116,7 @@ int main (int argc, const char *argv[])
 
   testingMessage( "Testing CoinDenseVector\n" );
   CoinDenseVectorUnitTest<double>();
-  CoinDenseVectorUnitTest<int>();
+  CoinDenseVectorUnitTest<float>();
 
   testingMessage( "Testing CoinMpsIO\n" );
   CoinMpsIOUnitTest(mpsDir);
