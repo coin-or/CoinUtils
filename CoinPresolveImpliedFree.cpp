@@ -22,10 +22,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 					 const CoinPresolveAction *next,
 					 int & numberInfeasible)
 {
-  prob->pass_++;
   numberInfeasible=0;
-  if (prob->pass_%2!=1)
-    return next;
   int numberColumns = prob->ncols_;
   double * columnLower	= new double[numberColumns];
   double * columnUpper	= new double[numberColumns];
@@ -58,8 +55,12 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
   int iRow, iColumn;
 
   int * markRow = new int[numberRows];
-  for (iRow=0;iRow<numberRows;iRow++)
-    markRow[iRow]=-1;
+  for (iRow=0;iRow<numberRows;iRow++) {
+    if ((rowLower[iRow]>-large||rowUpper[iRow]<large)&&rowLength[iRow]>0) 
+      markRow[iRow]=-1;
+    else
+      markRow[iRow]=1;
+  }
 #define MAXPASS 10
 
   // Loop round seeing if we can tighten bounds
@@ -75,7 +76,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
     
     for (iRow = 0; iRow < numberRows; iRow++) {
 
-      if (markRow[iRow]==-1&&(rowLower[iRow]>-large||rowUpper[iRow]<large)&&rowLength[iRow]>0) {
+      if (markRow[iRow]==-1) {
 
 	// possible row - but mark as useless next time
 	markRow[iRow]=-2;
@@ -175,7 +176,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 		    int row = hrow[k];
 		    if (markRow[row]==-2) {
 		      // on list for next time
-		      markRow[row]=-2;
+		      markRow[row]=-1;
 		    }
 		  }
 		  // check infeasible (relaxed)
@@ -224,7 +225,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 		    int row = hrow[k];
 		    if (markRow[row]==-2) {
 		      // on list for next time
-		      markRow[row]=-2;
+		      markRow[row]=-1;
 		    }
 		  }
 		  // check infeasible (relaxed)
@@ -275,7 +276,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 		    int row = hrow[k];
 		    if (markRow[row]==-2) {
 		      // on list for next time
-		      markRow[row]=-2;
+		      markRow[row]=-1;
 		    }
 		  }
 		  // check infeasible (relaxed)
@@ -324,7 +325,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 		    int row = hrow[k];
 		    if (markRow[row]==-2) {
 		      // on list for next time
-		      markRow[row]=-2;
+		      markRow[row]=-1;
 		    }
 		  }
 		  // check infeasible (relaxed)
@@ -357,7 +358,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
   if (!numberInfeasible) {
     for (iRow = 0; iRow < numberRows; iRow++) {
       
-      if ((rowLower[iRow]>-large||rowUpper[iRow]<large)&&markRow[iRow]<0&&rowLength[iRow]>0) {
+      if (markRow[iRow]<0) {
 	
 	// possible row
 	int infiniteUpper = 0;
@@ -492,6 +493,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 #if 1  
   // This needs to be made faster
   int numberInfeasible;
+  prob->pass_++;
+  if (prob->pass_%4!=1)
+    return next;
   next = testRedundant(prob,next,numberInfeasible);
   if (numberInfeasible) {
     // infeasible

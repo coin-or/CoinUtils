@@ -490,7 +490,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
     }
 #endif
 
-    if (!tightened||nfixdown_cols||nfixup_cols)
+    if (tightened<100||nfixdown_cols||nfixup_cols)
       break;
 #if	PRESOLVE_TIGHTEN_DUALS
     else
