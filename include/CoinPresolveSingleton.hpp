@@ -5,13 +5,18 @@
 #define CoinPresolveSingleton_H
 #define	SLACK_DOUBLETON	2
 
+/*!
+  \file
+*/
+
 const int MAX_SLACK_DOUBLETONS	= 1000;
 
 /*! \class slack_doubleton_action
-    \brief Convert an explicit bound row to a column bound
+    \brief Convert an explicit bound constraint to a column bound
 
-  This transform looks for explicit bound constraints on a variable and
+  This transform looks for explicit bound constraints for a variable and
   transfers the bound to the appropriate column bound array.
+  The constraint is removed from the constraint system.
 */
 class slack_doubleton_action : public CoinPresolveAction {
   struct action {
@@ -41,8 +46,13 @@ class slack_doubleton_action : public CoinPresolveAction {
  public:
   const char *name() const { return ("slack_doubleton_action"); }
 
-  // notFinished is set if action array filled up
-  static const CoinPresolveAction *presolve(CoinPresolveMatrix *,
+  /*! \brief Convert explicit bound constraints to column bounds.
+  
+    There is a hard limit (#MAX_SLACK_DOUBLETONS) on the number of
+    constraints processed in a given call. \p notFinished is set to true
+    if candidates remain.
+  */
+  static const CoinPresolveAction *presolve(CoinPresolveMatrix *prob,
 					   const CoinPresolveAction *next,
 					bool &notFinished);
 
