@@ -42,18 +42,7 @@
 CoinPrePostsolveMatrix::CoinPrePostsolveMatrix
   (int ncols_alloc, int nrows_alloc, CoinBigIndex nelems_alloc)
 
-  : sol_(0),
-    rowduals_(0),
-    acts_(0),
-    rcosts_(0),
-    colstat_(0),
-    rowstat_(0),
-
-    handler_(0),
-    defaultHandler_(false),
-    messages_(),
-
-    ncols_(0),
+  : ncols_(0),
     nrows_(0),
     nelems_(0),
     ncols0_(ncols_alloc),
@@ -66,8 +55,8 @@ CoinPrePostsolveMatrix::CoinPrePostsolveMatrix
     hrow_(0),
     colels_(0),
 
-    originalOffset_(0),
     cost_(0),
+    originalOffset_(0),
     clo_(0),
     cup_(0),
     rlo_(0),
@@ -79,7 +68,18 @@ CoinPrePostsolveMatrix::CoinPrePostsolveMatrix
     ztolzb_(0.0),
     ztoldj_(0.0),
 
-    maxmin_(0)
+    maxmin_(0),
+
+    sol_(0),
+    rowduals_(0),
+    acts_(0),
+    rcosts_(0),
+    colstat_(0),
+    rowstat_(0),
+
+    handler_(0),
+    defaultHandler_(false),
+    messages_()
 
 { handler_ = new CoinMessageHandler() ;
   defaultHandler_ = true ;

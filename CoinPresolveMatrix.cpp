@@ -38,19 +38,21 @@ CoinPresolveMatrix::CoinPresolveMatrix
 
   : CoinPrePostsolveMatrix(ncols_alloc,nrows_alloc,nelems_alloc),
 
-    dobias_(0.0),
-    integerType_(0),
-    feasibilityTolerance_(0.0),
-    status_(-1),
-    pass_(0),
-
     clink_(0),
     rlink_(0),
+
+    dobias_(0.0),
 
     mrstrt_(0),
     hinrow_(0),
     rowels_(0),
     hcol_(0),
+
+    integerType_(0),
+    anyInteger_(false),
+    feasibilityTolerance_(0.0),
+    status_(-1),
+    pass_(0),
 
     colChanged_(0),
     colsToDo_(0),
