@@ -51,7 +51,8 @@ const remove_fixed_action *remove_fixed_action::presolve(CoinPresolveMatrix *pro
   action *actions 	= new  action[nfcols+1];
   // Find size of arrays
   int size=0;
-  for (int ckc=0; ckc<nfcols; ckc++) {
+  int ckc;
+  for ( ckc=0; ckc<nfcols; ckc++) {
     int j = fcols[ckc];
     size += hincol[j];
   }
@@ -60,7 +61,7 @@ const remove_fixed_action *remove_fixed_action::presolve(CoinPresolveMatrix *pro
   actions[nfcols].start=size;
   size=0;
   
-  for (int ckc=0; ckc<nfcols; ckc++) {
+  for ( ckc=0; ckc<nfcols; ckc++) {
     int j = fcols[ckc];
 
     double sol = clo[j];
