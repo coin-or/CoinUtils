@@ -62,7 +62,7 @@ CoinPostsolveMatrix::~CoinPostsolveMatrix()
   transferred to the CoinPostsolveMatrix object, and the empty shell of the
   CoinPresolveObject will be destroyed.
 
-  There routine expects an empty CoinPostsolveMatrix object, and will leak
+  The routine expects an empty CoinPostsolveMatrix object, and will leak
   any memory already allocated.
 */
 
@@ -147,12 +147,16 @@ CoinPostsolveMatrix::assignPresolveToPostsolve (CoinPresolveMatrix *&preObj)
   points to the end of the bulk storage area, so when we process the last
   column in the bulk storage area, we'll add the free space block at the end
   of bulk storage to the free list.
-*/
-  { free_list_ = NO_LINK ;
-    maxlink_ = bulk0_ ;
-    link_ = new CoinBigIndex [maxlink_] ;
 
-    CoinBigIndex minkcs = -1 ;
+  We need to allow for a 0x0 matrix here --- a pathological case, but it slips
+  in when (for example) confirming a solution in an ILP code.
+*/
+  free_list_ = NO_LINK ;
+  maxlink_ = bulk0_ ;
+  link_ = new CoinBigIndex [maxlink_] ;
+
+  if (ncols_ > 0)
+  { CoinBigIndex minkcs = -1 ;
     for (int j = 0 ; j < ncols_ ; j++)
     { CoinBigIndex kcs = mcstrt_[j] ;
       int lenj = hincol_[j] ;
@@ -178,6 +182,10 @@ CoinPostsolveMatrix::assignPresolveToPostsolve (CoinPresolveMatrix *&preObj)
     { for (CoinBigIndex k = 0 ; k < minkcs ; k++)
       { link_[k] = free_list_ ;
 	free_list_ = k ; } } }
+  else
+  { for (CoinBigIndex k = 0 ; k < maxlink_ ; k++)
+    { link_[k] = free_list_ ;
+      free_list_ = k ; } }
 /*
   That's it, preObj can die now.
 */
