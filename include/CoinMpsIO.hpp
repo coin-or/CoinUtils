@@ -151,30 +151,31 @@ private:
 
 /** MPS IO Interface
 
-    This can be used to read in mps files without a solver.
-    After reading the file this contains all relevant data which
-    may be more than the CoinSolverInterface allows for.  Items may be
-    deleted to allow for flexibility of data storage.
+    This class can be used to read in mps files without a solver.  After
+    reading the file, the CoinMpsIO object contains all relevant data, which
+    may be more than a particular OsiSolverInterface allows for.  Items may
+    be deleted to allow for flexibility of data storage.
 
-    This design makes it look very like a dummy solver as the same
-    conventions are used.
+    The implementation makes the CoinMpsIO object look very like a dummy solver,
+    as the same conventions are used.
 */
 
 class CoinMpsIO {
    friend void CoinMpsIOUnitTest(const std::string & mpsDir);
 
 public:
-  /**@name Problem information methods 
 
-   These methods return
-   information about the problem referred to by the current object.
-   Querying a problem that has no data associated with it result in
-   zeros for the number of rows and columns, and NULL pointers from
-   the methods that return vectors.
+/** @name Methods to retrieve problem information
 
-   Const pointers returned from any data-query method are always valid
-  */
-  //@{
+   These methods return information about the problem held by the CoinMpsIO
+   object.
+   
+   Querying an object that has no data associated with it result in zeros for
+   the number of rows and columns, and NULL pointers from the methods that
+   return vectors.  Const pointers returned from any data-query method are
+   always valid
+*/
+//@{
     /// Get number of columns
     int getNumCols() const;
 
@@ -190,7 +191,7 @@ public:
     /// Get pointer to array[getNumCols()] of column upper bounds
     const double * getColUpper() const;
 
-    /** Get pointer to array[getNumRows()] of row constraint senses.
+    /** Get pointer to array[getNumRows()] of constraint senses.
 	<ul>
 	<li>'L': <= constraint
 	<li>'E': =  constraint
@@ -201,7 +202,10 @@ public:
     */
     const char * getRowSense() const;
 
-    /** Get pointer to array[getNumRows()] of rows right-hand sides
+    /** Get pointer to array[getNumRows()] of constraint right-hand sides.
+
+	Given constraints with upper (rowupper) and/or lower (rowlower) bounds,
+	the constraint right-hand side (rhs) is set as
 	<ul>
 	  <li> if rowsense()[i] == 'L' then rhs()[i] == rowupper()[i]
 	  <li> if rowsense()[i] == 'G' then rhs()[i] == rowlower()[i]
@@ -212,12 +216,17 @@ public:
     const double * getRightHandSide() const;
 
     /** Get pointer to array[getNumRows()] of row ranges.
+
+	Given constraints with upper (rowupper) and/or lower (rowlower) bounds, 
+	the constraint range (rowrange) is set as
 	<ul>
           <li> if rowsense()[i] == 'R' then
                   rowrange()[i] == rowupper()[i] - rowlower()[i]
           <li> if rowsense()[i] != 'R' then
                   rowrange()[i] is 0.0
         </ul>
+	Put another way, only range constraints have a nontrivial value for
+	rowrange.
     */
     const double * getRowRange() const;
 
@@ -230,142 +239,265 @@ public:
     /// Get pointer to array[getNumCols()] of objective function coefficients
     const double * getObjCoefficients() const;
 
-    /// Get pointer to row-wise copy of matrix
+    /// Get pointer to row-wise copy of the coefficient matrix
     const CoinPackedMatrix * getMatrixByRow() const;
 
-    /// Get pointer to column-wise copy of matrix
+    /// Get pointer to column-wise copy of the coefficient matrix
     const CoinPackedMatrix * getMatrixByCol() const;
-  
-   /// Set the data
-   void setMpsData(const CoinPackedMatrix& m, const double infinity,
-		   const double* collb, const double* colub,
-		   const double* obj, const char* integrality,
-		   const double* rowlb, const double* rowub,
-		   char const * const * const colnames,
-		   char const * const * const rownames);
-   void setMpsData(const CoinPackedMatrix& m, const double infinity,
-		   const double* collb, const double* colub,
-		   const double* obj, const char* integrality,
-		   const double* rowlb, const double* rowub,
-       const std::vector<std::string> & colnames,
-		   const std::vector<std::string> & rownames);
-   void setMpsData(const CoinPackedMatrix& m, const double infinity,
-		   const double* collb, const double* colub,
-		   const double* obj, const char* integrality,
-		   const char* rowsen, const double* rowrhs,
-		   const double* rowrng,
-		   char const * const * const colnames,
-		   char const * const * const rownames);
-   void setMpsData(const CoinPackedMatrix& m, const double infinity,
-		   const double* collb, const double* colub,
-		   const double* obj, const char* integrality,
-		   const char* rowsen, const double* rowrhs,
-		   const double* rowrng,
-		   const std::vector<std::string> & colnames,
-		   const std::vector<std::string> & rownames);
 
-    /// Sets infinity!
-    void setInfinity(double value);
-    /// Gets infinity
-    double getInfinity() const;
-    /// Return true if column is continuous
+    /// Return true if column is a continuous variable
     bool isContinuous(int colNumber) const;
 
-    /** Return true if column is integer.
+    /** Return true if a column is an integer variable
+
         Note: This function returns true if the the column
-        is binary or a general integer.
+        is a binary or general integer variable.
     */
     bool isInteger(int columnNumber) const;
+  
+    /** Returns array[getNumCols()] specifying if a variable is integer.
+
+	At present, simply coded as zero (continuous) and non-zero (integer)
+	May be extended at a later date.
+    */
+    const char * integerColumns() const;
+
+    /** Returns the row name for the specified index.
+
+	Returns 0 if the index is out of range.
+    */
+    const char * rowName(int index) const;
+
+    /** Returns the column name for the specified index.
+
+	Returns 0 if the index is out of range.
+    */
+    const char * columnName(int index) const;
+
+    /** Returns the index for the specified row name
+  
+	Returns -1 if the name is not found.
+        Returns numberRows for the objective row and > numberRows for
+	dropped free rows.
+    */
+    int rowIndex(const char * name) const;
+
+    /** Returns the index for the specified column name
+  
+	Returns -1 if the name is not found.
+    */
+    int columnIndex(const char * name) const;
+
+    /** Returns the (constant) objective offset
+    
+	This is the RHS entry for the objective row
+    */
+    double objectiveOffset() const;
+
+    /// Return the problem name
+    const char * getProblemName() const;
+
+    /// Return the objective name
+    const char * getObjectiveName() const;
+
+    /// Return the RHS vector name
+    const char * getRhsName() const;
+
+    /// Return the range vector name
+    const char * getRangeName() const;
+
+    /// Return the bound vector name
+    const char * getBoundName() const;
+//@}
 
 
-  /**@name Methods to input/output a problem (returns number of errors) 
-    -1 if file not opened */
-  //@{
-    /** Read an mps file from the given filename.
-	Note: if the MpsIO class was compiled with support for libz and/or
-	libbz then reapMps will try to append .gz (.bz2 (TODO)) to the
-	filename and open it as a compressed file if the original file cannot
-	be opened. */
+/** @name Methods to set problem information
+
+    Methods to load a problem into the CoinMpsIO object.
+*/
+//@{
+  
+    /// Set the problem data
+    void setMpsData(const CoinPackedMatrix& m, const double infinity,
+		     const double* collb, const double* colub,
+		     const double* obj, const char* integrality,
+		     const double* rowlb, const double* rowub,
+		     char const * const * const colnames,
+		     char const * const * const rownames);
+    void setMpsData(const CoinPackedMatrix& m, const double infinity,
+		     const double* collb, const double* colub,
+		     const double* obj, const char* integrality,
+		     const double* rowlb, const double* rowub,
+		     const std::vector<std::string> & colnames,
+		     const std::vector<std::string> & rownames);
+    void setMpsData(const CoinPackedMatrix& m, const double infinity,
+		     const double* collb, const double* colub,
+		     const double* obj, const char* integrality,
+		     const char* rowsen, const double* rowrhs,
+		     const double* rowrng,
+		     char const * const * const colnames,
+		     char const * const * const rownames);
+    void setMpsData(const CoinPackedMatrix& m, const double infinity,
+		     const double* collb, const double* colub,
+		     const double* obj, const char* integrality,
+		     const char* rowsen, const double* rowrhs,
+		     const double* rowrng,
+		     const std::vector<std::string> & colnames,
+		     const std::vector<std::string> & rownames);
+
+    /** Pass in an array[getNumCols()] specifying if a variable is integer.
+
+	At present, simply coded as zero (continuous) and non-zero (integer)
+	May be extended at a later date.
+    */
+    void copyInIntegerInformation(const char * integerInformation);
+//@}
+
+/** @name Parameter set/get methods
+
+  Methods to set and retrieve MPS IO parameters.
+*/
+
+//@{
+    /// Set infinity
+    void setInfinity(double value);
+
+    /// Get infinity
+    double getInfinity() const;
+
+    /// Set default upper bound for integer variables
+    void setDefaultBound(int value);
+
+    /// Get default upper bound for integer variables
+    int getDefaultBound() const;
+//@}
+
+
+/** @name Methods for problem input and output
+
+  Methods to read and write MPS format problem files.
+   
+  The read and write methods return the number of errors that occurred during
+  the IO operation, or -1 if no file is opened.
+
+  \note
+  If the CoinMpsIO class was compiled with support for libz then
+  readMps will automatically try to append .gz to the file name and open it as
+  a compressed file if the specified file name cannot be opened.
+  (Automatic append of the .bz2 suffix when libbz is used is on the TODO list.)
+
+  \todo
+  Allow for file pointers and positioning
+*/
+
+//@{
+    /// Set the current file name for the CoinMpsIO object
+    void setFileName(const char * name);
+
+    /// Get the current file name for the CoinMpsIO object
+    const char * getFileName() const;
+
+    /// Test if a file with the currrent file name exists and is readable
+    const bool fileReadable() const;
+
+    /** Read a problem in MPS format from the given filename.
+
+      Use "stdin" or "-" to read from stdin.
+    */
     int readMps(const char *filename, const char *extension = "mps");
-    /// Read an mps file from previously given filename (or stdin)
+
+    /** Read a problem in MPS format from a previously opened file
+
+      More precisely, read a problem using a CoinMpsCardReader object already
+      associated with this CoinMpsIO object.
+
+      \todo
+      Provide an interface that will allow a client to associate a
+      CoinMpsCardReader object with a CoinMpsIO object by setting the
+      cardReader_ field.
+    */
     int readMps();
-    /** write out the problem into a file with the given filename.
-	- \c compression can be set to three values to indicate what kind
-	  of file should be written
-	  - 0: plain text (default)
-	  - 1: gzip compressed (.gz is appended to \c filename) (TODO)
-	  - 2: bzip2 compressed (.bz2 is appended to \c filename) (TODO)
-	  .
-	  If the library was not compiled with the requested compression then
-	  writeMps falls back to writing a plain text file.
-	- \c formatType specifies the precision to be written into the MPS
-	file
-	  - 0: normal precision (default)
-	  - 1: extra accuracy
-	  - 2: IEEE hex (to be implemented)
-	  .
-	- \c numberAcross specifies whether 1 or 2 values should be specied on
-	every data line in the MPS file (default is 2)
-	.
+
+    /** Write the problem in MPS format to a file with the given filename.
+
+	\param compression can be set to three values to indicate what kind
+	of file should be written
+	<ul>
+	  <li> 0: plain text (default)
+	  <li> 1: gzip compressed (.gz is appended to \c filename)
+	  <li> 2: bzip2 compressed (.bz2 is appended to \c filename) (TODO)
+	</ul>
+	If the library was not compiled with the requested compression then
+	writeMps falls back to writing a plain text file.
+
+	\param formatType specifies the precision to used for values in the
+	MPS file
+	<ul>
+	  <li> 0: normal precision (default)
+	  <li> 1: extra accuracy
+	  <li> 2: IEEE hex (TODO)
+	</ul>
+
+	\param numberAcross specifies whether 1 or 2 (default) values should be
+	specified on every data line in the MPS file.
     */
     int writeMps(const char *filename, int compression = 0,
 		 int formatType = 0, int numberAcross = 2) const;
-    /** Read in a quadratic objective from the given filename.  
-      If filename is NULL (or same) then continues reading from previous file.
-      If not then the previous file is closed.  Code should be added to
-      general MPS reader to read this if QSECTION
 
+    /** Read in a quadratic objective from the given filename.
+
+      If filename is NULL (or the same as the currently open file) then
+      reading continues from the current file.
+      If not, the file is closed and the specified file is opened.
+      
+      Code should be added to
+      general MPS reader to read this if QSECTION
       Data is assumed to be Q and objective is c + 1/2 xT Q x
-      No assumption is made on symmetry, positive definite etc.
+      No assumption is made for symmetry, positive definite, etc.
       No check is made for duplicates or non-triangular if checkSymmetry==0.
       If 1 checks lower triangular (so off diagonal should be 2*Q)
       if 2 makes lower triangular and assumes full Q (but adds off diagonals)
       
       Arrays should be deleted by delete []
 
-      Returns number of errors, -1 bad file, -2 no Quadratic section, -3 empty section
-      +n then matching errors etc (symmetry forced)
-      -4 - no matching errors but fails triangular test (triangularity forced)
-
+      Returns number of errors:
+      <ul>
+	<li> -1: bad file
+	<li> -2: no Quadratic section
+	<li> -3: an empty section
+        <li> +n: then matching errors etc (symmetry forced)
+        <li> -4: no matching errors but fails triangular test
+		 (triangularity forced)
+      </ul>
       columnStart is numberColumns+1 long, others numberNonZeros
     */
     int readQuadraticMps(const char * filename,
 			 int * &columnStart, int * &column, double * &elements,
 			 int checkSymmetry);
-    /** Read in a list of cones from the given filename.  
-      If filename is NULL (or same) then continues reading from previous file.
-      If not then the previous file is closed.  Code should be added to
-      general MPS reader to read this if CSECTION
 
+    /** Read in a list of cones from the given filename.  
+
+      If filename is NULL (or the same as the currently open file) then
+      reading continues from the current file.
+      If not, the file is closed and the specified file is opened.
+
+      Code should be added to
+      general MPS reader to read this if CSECTION
       No checking is done that in unique cone
 
       Arrays should be deleted by delete []
 
-      Returns number of errors, -1 bad file, -2 no conic section, -3 empty section
+      Returns number of errors, -1 bad file, -2 no conic section,
+      -3 empty section
 
       columnStart is numberCones+1 long, other number of columns in matrix
     */
     int readConicMps(const char * filename,
 		     int * &columnStart, int * &column, int & numberCones);
-    /// Set file name
-    void setFileName(const char * name);
-    /// Get file name
-    const char * getFileName() const;
-    /// Test if current file exists and readable
-    const bool fileReadable() const;
-    // Could later allow for file pointers and positioning
-    /// Sets default upper bound for integer variables
-    void setDefaultBound(int value);
-    /// gets default upper bound for integer variables
-    int getDefaultBound() const;
   //@}
 
-  /**@name Methods to output a problem (returns number of errors) 
-    -1 if file not opened */
-  //@{
-
-  /**@name Constructors and destructors */
-  //@{
+/** @name Constructors and destructors */
+//@{
     /// Default Constructor
     CoinMpsIO(); 
       
@@ -377,94 +509,75 @@ public:
   
     /// Destructor 
     ~CoinMpsIO ();
-  //@}
+//@}
 
-  //@{
-    /** array saying if each variable integer
-	at present just zero/non-zero may be extended */
-    const char * integerColumns() const;
-    /// Pass in array saying if each variable integer
-  void copyInIntegerInformation(const char * integerInformation);
-    /// names - returns NULL if out of range
-    const char * rowName(int index) const;
-    const char * columnName(int index) const;
-  /** names - returns -1 if name not found
-      at present rowIndex will return numberRows for objective
-      and > numberRows for dropped free rows */
-    int rowIndex(const char * name) const;
-    int columnIndex(const char * name) const;
-    /** objective offset - this is RHS entry for objective row */
-    double objectiveOffset() const;
-  //@}
 
-  /**@name Message handling */
-  //@{
-  /// Pass in Message handler (not deleted at end)
+/**@name Message handling */
+//@{
+  /** Pass in Message handler
+  
+      Supply a custom message handler. It will not be destroyed when the
+      CoinMpsIO object is destroyed.
+  */
   void passInMessageHandler(CoinMessageHandler * handler);
-  /// Set language
+
+  /// Set the language for messages.
   void newLanguage(CoinMessages::Language language);
-  void setLanguage(CoinMessages::Language language)
-  {newLanguage(language);};
-  /// Return handler
-  CoinMessageHandler * messageHandler() const
-  {return handler_;};
-  /// Return messages
-  CoinMessages messages() 
-  {return messages_;};
-  //@}
 
-  /**@name Name type methods */
-  //@{
-    /// Problem name
-    const char * getProblemName() const;
-    /// Objective name
-    const char * getObjectiveName() const;
-    /// Rhs name
-    const char * getRhsName() const;
-    /// Range name
-    const char * getRangeName() const;
-    /// Bound name
-    const char * getBoundName() const;
-  //@}
+  /// Set the language for messages.
+  void setLanguage(CoinMessages::Language language) {newLanguage(language);};
+
+  /// Return the message handler
+  CoinMessageHandler * messageHandler() const {return handler_;};
+
+  /// Return the messages
+  CoinMessages messages() {return messages_;};
+//@}
 
 
-  /**@name release storage */
-  //@{
-    /** Release all information which can be re-calculated e.g. rowsense
-	also any row copies OR hash tables for names */
+/**@name Methods to release storage
+
+  These methods allow the client to reduce the storage used by the CoinMpsIO
+  object be selectively releasing unneeded problem information.
+*/
+//@{
+    /** Release all information which can be re-calculated.
+    
+	E.g., row sense, copies of rows, hash tables for names.
+    */
     void releaseRedundantInformation();
+
     /// Release all row information (lower, upper)
     void releaseRowInformation();
+
     /// Release all column information (lower, upper, objective)
     void releaseColumnInformation();
+
     /// Release integer information
     void releaseIntegerInformation();
+
     /// Release row names
     void releaseRowNames();
+
     /// Release column names
     void releaseColumnNames();
+
     /// Release matrix information
     void releaseMatrixInformation();
-  
   //@}
 
 private:
   
-  
-  /**@name Private methods */
+/**@name Miscellaneous helper functions */
   //@{
-  
-    /// The real work of a copy constructor (used by copy and assignment)
-    void gutsOfDestructor();
-    void gutsOfCopy(const CoinMpsIO &);
-  
-    /// Methods that are used several times to implement public methods
+
+    /// Utility method used several times to implement public methods
     void
     setMpsDataWithoutRowAndColNames(
-                                  const CoinPackedMatrix& m, const double infinity,
-                                  const double* collb, const double* colub,
-                                  const double* obj, const char* integrality,
-                                  const double* rowlb, const double* rowub);
+		      const CoinPackedMatrix& m, const double infinity,
+		      const double* collb, const double* colub,
+		      const double* obj, const char* integrality,
+		      const double* rowlb, const double* rowub);
     void
     setMpsDataColAndRowNames(
 		      const std::vector<std::string> & colnames,
@@ -474,10 +587,17 @@ private:
 		      char const * const * const colnames,
 		      char const * const * const rownames);
 
-    /// The real work of a destructor (used by copy and assignment)
+  
+    /// Does the heavy lifting for destruct and assignment.
+    void gutsOfDestructor();
+
+    /// Does the heavy lifting for copy and assignment.
+    void gutsOfCopy(const CoinMpsIO &);
+  
+    /// Clears problem data from the CoinMpsIO object.
     void freeAll();
 
-    /** A quick inlined function to convert from lb/ub stryle constraint
+    /** A quick inlined function to convert from lb/ub style constraint
 	definition to sense/rhs/range style */
     inline void
     convertBoundToSense(const double lower, const double upper,
@@ -488,7 +608,19 @@ private:
     convertSenseToBound(const char sense, const double right,
 			const double range,
 			double& lower, double& upper) const;
-  /// Deal with filename - +1 if new, 0 if same as before, -1 if error
+
+  /** Deal with a filename
+  
+    As the name says.
+    Returns +1 if the file name is new, 0 if it's the same as before
+    (i.e., matches fileName_), and -1 if there's an error and the file
+    can't be opened.
+    Handles automatic append of .gz suffix when compiled with libz.
+
+    \todo
+    Add automatic append of .bz2 suffix when compiled with libbz.
+  */
+
   int dealWithFileName(const char * filename,  const char * extension,
 		       FILE * & fp, gzFile  & gzfp); 
   //@}
@@ -498,9 +630,10 @@ private:
   typedef struct {
     int index, next;
   } CoinHashLink;
-  /**@name hash stuff */
+
+  /**@name Hash table methods */
   //@{
-  /// Creates hash list for names (0 rows, 1 columns)
+  /// Creates hash list for names (section = 0 for rows, 1 columns)
   void startHash ( char **names, const int number , int section );
   /// This one does it when names are already in
   void startHash ( int section ) const;
@@ -510,62 +643,112 @@ private:
   int findHash ( const char *name , int section ) const;
   //@}
 
-  /**@name Protected member data */
-  //@{
-    /**@name Cached information */
+    /**@name Cached problem information */
     //@{
+      /// Problem name
+      char * problemName_;
+
+      /// Objective row name
+      char * objectiveName_;
+
+      /// Right-hand side vector name
+      char * rhsName_;
+
+      /// Range vector name
+      char * rangeName_;
+
+      /// Bounds vector name
+      char * boundName_;
+
+      /// Number of rows
+      int numberRows_;
+
+      /// Number of columns
+      int numberColumns_;
+
+      /// Number of coefficients
+      CoinBigIndex numberElements_;
+
       /// Pointer to dense vector of row sense indicators
       mutable char    *rowsense_;
   
       /// Pointer to dense vector of row right-hand side values
       mutable double  *rhs_;
   
-      /** Pointer to dense vector of slack upper bounds for range 
+      /** Pointer to dense vector of slack variable upper bounds for range 
           constraints (undefined for non-range rows)
       */
       mutable double  *rowrange_;
    
       /// Pointer to row-wise copy of problem matrix coefficients.
       mutable CoinPackedMatrix *matrixByRow_;  
+
       /// Pointer to column-wise copy of problem matrix coefficients.
       CoinPackedMatrix *matrixByColumn_;  
+
+      /// Pointer to dense vector of row lower bounds
       double * rowlower_;
+
+      /// Pointer to dense vector of row upper bounds
       double * rowupper_;
+
+      /// Pointer to dense vector of column lower bounds
       double * collower_;
+
+      /// Pointer to dense vector of column upper bounds
       double * colupper_;
+
+      /// Pointer to dense vector of objective coefficients
       double * objective_;
+
+      /// Constant offset for objective value (i.e., RHS value for OBJ row)
+      double objectiveOffset_;
+
+
+      /** Pointer to dense vector specifying if a variable is continuous
+	  (0) or integer (1).
+      */
       char * integerType_;
-      char * fileName_;
-      /// Number in hash table
-      int numberHash_[2];
-      /// Hash tables
-      mutable CoinHashLink *hash_[2];
-      /// Names linked to hash (0 - row names, 1 column names)
+
+      /** Row and column names
+	  Linked to hash table sections (0 - row names, 1 column names)
+      */
       char **names_[2];
-      int numberRows_;
-      int numberColumns_;
-      CoinBigIndex numberElements_;
+    //@}
+
+    /** @name Hash tables */
+    //@{
+      /// Current file name
+      char * fileName_;
+
+      /// Number of entries in a hash table section
+      int numberHash_[2];
+
+      /// Hash tables (two sections, 0 - row names, 1 - column names)
+      mutable CoinHashLink *hash_[2];
+    //@}
+
+    /** @name CoinMpsIO object parameters */
+    //@{
       /// Upper bound when no bounds for integers
       int defaultBound_; 
+
+      /// Value to use for infinity
       double infinity_;
-      /// offset for objective function (i.e. rhs of OBJ row)
-      double objectiveOffset_;
-      /// information on problem
-      char * problemName_;
-      char * objectiveName_;
-      char * rhsName_;
-      char * rangeName_;
-      char * boundName_;
+
       /// Message handler
       CoinMessageHandler * handler_;
-      /// Flag to say if default handler (so delete)
+      /** Flag to say if the message handler is the default handler.
+
+          If true, the handler will be destroyed when the CoinMpsIO
+	  object is destroyed; if false, it will not be destroyed.
+      */
       bool defaultHandler_;
       /// Messages
       CoinMessages messages_;
       /// Card reader
       CoinMpsCardReader * cardReader_;
     //@}
-  //@}
 
 };
 
