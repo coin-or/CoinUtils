@@ -364,7 +364,13 @@ binaryOp(CoinPackedVector& retVal,
    retVal.clear();
    const int s1 = op1.getNumElements();
    const int s2 = op2.getNumElements();
-   if (s1 == 0 || s2 == 0)
+/*
+  Replaced || with &&, in response to complaint from Sven deVries, who
+  rightly points out || is not appropriate for additive operations. &&
+  should be ok as long as binaryOp is understood not to create something
+  from nothing.		-- lh, 04.06.11
+*/
+   if (s1 == 0 && s2 == 0)
       return;
 
    retVal.reserve(s1+s2);
