@@ -288,7 +288,9 @@ CoinMpsCardReader::CoinMpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * rea
   memset ( columnName_, 0, MAX_FIELD_LENGTH );
   value_ = 0.0;
   fp_ = fp;
+#ifdef COIN_USE_ZLIB
   gzfp_ = gzfp;
+#endif
   section_ = COIN_EOF_SECTION;
   cardNumber_ = 0;
   freeFormat_ = false;
