@@ -251,6 +251,13 @@ public:
   /// Number of compressions done
   inline CoinBigIndex numberCompressions() const
   { return numberCompressions_;};
+  /** L to U bias
+      0 - U bias, 1 - some U bias, 2 some L bias, 3 L bias
+  */
+  inline int biasLU() const
+  { return biasLU_;};
+  inline void setBiasLU(int value)
+  { biasLU_=value;};
   //@}
 
   /**@name rank one updates which do exist */
@@ -1246,6 +1253,10 @@ protected:
 
   /// Sparse regions
   mutable int * sparse_;
+  /** L to U bias
+      0 - U bias, 1 - some U bias, 2 some L bias, 3 L bias
+  */
+  int biasLU_;
   //@}
 };
 #endif

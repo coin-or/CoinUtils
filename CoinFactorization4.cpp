@@ -634,6 +634,7 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   btranAverageAfterU_=other.btranAverageAfterU_;
   btranAverageAfterR_=other.btranAverageAfterR_;
   btranAverageAfterL_=other.btranAverageAfterL_; 
+  biasLU_=other.biasLU_;
   sparseThreshold_=other.sparseThreshold_;
   sparseThreshold2_=other.sparseThreshold2_;
   CoinBigIndex space = lengthAreaL_ - lengthL_;

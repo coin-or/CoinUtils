@@ -6,6 +6,7 @@ export MakefileDir := $(CoinDir)/Makefiles
 ##############################################################################
 # Static or shared libraries should be built (STATIC or SHARED)?
 LibType := SHARED
+#LibType := STATIC
 
 # Select optimization (-O or -g). -O will be automatically bumped up to the 
 # highest level of optimization the compiler supports. If want something in
@@ -61,7 +62,7 @@ ifeq ($(OptLevel),-O2)
 #     CXXFLAGS += -DNDEBUG
 endif
 ifeq ($(OptLevel),-g)
-     CXXFLAGS += -DZEROFAULT -DCOIN_DEBUG
+#     CXXFLAGS += -DZEROFAULT -DCOIN_DEBUG
 endif
 
 export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir}

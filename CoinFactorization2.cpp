@@ -34,9 +34,7 @@ CoinFactorization::factorSparse (  )
   //get space for bit work area
   CoinBigIndex workSize = 1000;
   unsigned int *workArea2 = ( unsigned int * ) new int [ workSize ];
-  int lastColumnInBlock;
 
-  lastColumnInBlock = numberColumns_;
   int larger;
 
   if ( numberRows_ < numberColumns_ ) {
@@ -46,25 +44,27 @@ CoinFactorization::factorSparse (  )
   }
   int status = 0;
   //do slacks first
-  int pivotColumn;
-  for ( pivotColumn = 0; pivotColumn < lastColumnInBlock;
-	pivotColumn++ ) {
-    if ( numberInColumn_[pivotColumn] == 1 ) {
-      CoinBigIndex start = startColumnU_[pivotColumn];
-      double value = element[start];
-      if ( value == slackValue_ && numberInColumnPlus_[pivotColumn] == 0 ) {
-	//treat as slack
-	int iRow = indexRowU_[start];
-
-
-	totalElements_ -= numberInRow_[iRow];
-	if ( !pivotColumnSingleton ( iRow, pivotColumn ) ) {
-	  status = -99;
-	  count=biggerDimension_+1;
-	  break;
+  if (biasLU_<3) {
+    int pivotColumn;
+    for ( pivotColumn = 0; pivotColumn < numberColumns_;
+	  pivotColumn++ ) {
+      if ( numberInColumn_[pivotColumn] == 1 ) {
+	CoinBigIndex start = startColumnU_[pivotColumn];
+	double value = element[start];
+	if ( value == slackValue_ && numberInColumnPlus_[pivotColumn] == 0 ) {
+	  //treat as slack
+	  int iRow = indexRowU_[start];
+	  
+	  
+	  totalElements_ -= numberInRow_[iRow];
+	  if ( !pivotColumnSingleton ( iRow, pivotColumn ) ) {
+	    status = -99;
+	    count=biggerDimension_+1;
+	    break;
+	  }
+	  pivotColumn_[numberGoodU_] = pivotColumn;
+	  numberGoodU_++;
 	}
-	pivotColumn_[numberGoodU_] = pivotColumn;
-	numberGoodU_++;
       }
     }
   }
@@ -77,8 +77,8 @@ CoinFactorization::factorSparse (  )
   double pivotTolerance = pivotTolerance_;
   int numberTrials = numberTrials_;
   int numberRows = numberRows_;
-  // Put column singletons first
-  separateLinks(1,false);
+  // Put column singletons first - (if false)
+  separateLinks(1,(biasLU_>1));
   while ( count <= biggerDimension_ ) {
     CoinBigIndex minimumCount = INT_MAX;
     CoinBigIndex minimumCost = INT_MAX;
@@ -93,8 +93,7 @@ CoinFactorization::factorSparse (  )
     int trials = 0;
 
     while ( !stopping ) {
-#if 0
-      if ( count == 1 && firstCount_[1] >= 0 ) {
+      if ( count == 1 && firstCount_[1] >= 0 &&!biasLU_) {
 	//do column singletons first to put more in U
 	while ( look >= 0 ) {
 	  if ( look < numberRows_ ) {
@@ -124,7 +123,6 @@ CoinFactorization::factorSparse (  )
 	  look = firstCount_[1];
 	}
       }
-#endif
       while ( look >= 0 ) {
 	if ( look < numberRows_ ) {
 	  int iRow = look;

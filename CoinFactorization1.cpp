@@ -138,6 +138,7 @@ void CoinFactorization::gutsOfInitialize(int type)
     relaxCheck_=1.0;
     denseThreshold_=31;
     denseThreshold_=71;
+    biasLU_=2;
   }
   if ((type&2)!=0) {
     numberCompressions_ = 0;
@@ -906,6 +907,17 @@ CoinFactorization::factor (  )
     numberCompressions_=0;
     cleanup (  );
   }
+#if 0
+  if (!status_) {
+    int n=0;
+    int i;
+    for (i=0;i<numberRows_;i++) {
+      n += numberInColumn_[i];
+    }
+    printf("LU level %d lengthU %d lengthL %d\n",
+	   biasLU_,n,lengthL_);
+  }
+#endif
   return status_;
 }
 
