@@ -4,6 +4,7 @@
 #define CoinSort_H
 
 #include <functional>
+#include <new>
 #include <CoinDistance.hpp>
 
 //#############################################################################
