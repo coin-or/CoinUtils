@@ -71,21 +71,34 @@ private:
 #endif
 
 private:
-   inline bool evaluate(const bool past) {
 #ifdef COIN_COMPILE_WITH_TRACING
-      int ipast = past;
+   inline bool evaluate(bool b_tmp) const {
+      int i_tmp = b_tmp;
       if (stream) {
-	 
 	 if (write_stream)
-	    (*stream) << ipast << "\n";
+	    (*stream) << i_tmp << "\n";
 	 else 
-	    (*stream) >> ipast;
+	    (*stream) >> i_tmp;
       }
-      return ipast;
-#else
-      return past;
-#endif
+      return i_tmp;
    }
+   inline double evaluate(double d_tmp) const {
+      if (stream) {
+	 if (write_stream)
+	    (*stream) << d_tmp << "\n";
+	 else 
+	    (*stream) >> d_tmp;
+      }
+      return d_tmp;
+   }
+#else
+   inline bool evaluate(const bool b_tmp) const {
+      return b_tmp;
+   }
+   inline double evaluate(const double d_tmp) const {
+      return d_tmp;
+   }
+#endif   
 
 public:
    /// Default constructor creates a timer with no time limit and no tracing
@@ -127,18 +140,23 @@ public:
 
    /** Return whether the given percentage of the time limit has elapsed since
        the timer was started */
-   inline bool isPastPercent(double pct) {
+   inline bool isPastPercent(double pct) const {
       return evaluate(start + limit * pct > CoinCpuTime());
    }
    /** Return whether the given amount of time has elapsed since the timer was
        started */
-   inline bool isPast(double lim) {
+   inline bool isPast(double lim) const {
       return evaluate(start + lim > CoinCpuTime());
    }
    /** Return whether the originally specified time limit has passed since the
        timer was started */
-   inline bool isExpired() {
+   inline bool isExpired() const {
       return evaluate(end < CoinCpuTime());
+   }
+
+   /** Return how much time is left on the timer */
+   inline double timeLeft() const {
+      return evaluate(end - CoinCpuTime());
    }
 };
 
