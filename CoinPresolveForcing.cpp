@@ -782,7 +782,7 @@ forcing_constraint_action::~forcing_constraint_action()
     delete [] actions_[i].rowcols;
     delete [] actions_[i].bounds;
   }
-  delete [] actions_;
+  deleteAction( actions_, action *);
 }
 
 

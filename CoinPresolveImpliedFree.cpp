@@ -835,5 +835,5 @@ implied_free_action::~implied_free_action()
     delete [] actions_[i].rowels;
     //delete [] actions_[i].costs; deleted earlier
   }
-  delete [] actions_;
+  deleteAction(actions_,action *);
 }

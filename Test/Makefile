@@ -12,10 +12,10 @@ export MakefileDir := $(CoinDir)/Makefiles
 include ${MakefileDir}/Makefile.coin
 include ${MakefileDir}/Makefile.location
 
-IncDir  := ${CoinIncDir} ${zlibIncDir} ${bzlibIncDir}
-LibDir  := ${CoinLibDir} ${zlibLibDir} ${bzlibLibDir}
-LibName := ${CoinLibName} ${zlibLibName} ${bzlibLibName}
-Define  := ${CoinDefine} ${zlibDefine} ${bzlibDefine}
+IncDir  := ${CoinIncDir} ${zlibIncDir} ${bzlibIncDir} $(lapackIncDir)
+LibDir  := ${CoinLibDir} ${zlibLibDir} ${bzlibLibDir} $(lapackLibDir)
+LibName := ${CoinLibName} ${zlibLibName} ${bzlibLibName} $(lapackLibName)
+Define  := ${CoinDefine} ${zlibDefine} ${bzlibDefine} $(lapackDefine)
 
 TESTSRC :=
 

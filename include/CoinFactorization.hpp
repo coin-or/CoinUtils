@@ -1265,4 +1265,8 @@ protected:
   int biasLU_;
   //@}
 };
+// Dense coding
+#ifdef COIN_USE_DENSE
+#define DENSE_CODE 1
+#endif
 #endif

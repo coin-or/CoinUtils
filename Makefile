@@ -72,12 +72,11 @@ ifeq ($(OptLevel),-g)
 #CXXFLAGS +=  -DDEBUG_PRESOLVE
 #CXXFLAGS += -DCOIN_DEBUG
 endif
-#CXXFLAGS += -DDENSE_CODE=1
 
-export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir}
-export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir}
-export ExtraLibName := ${zlibLibName} ${bzlibLibName}
-export ExtraDefine  := ${zlibDefine}  ${bzlibDefine}
+export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir} $(lapackIncDir)
+export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir} $(lapackLibDir)
+export ExtraLibName := ${zlibLibName} ${bzlibLibName} $(lapackLibName)
+export ExtraDefine  := ${zlibDefine}  ${bzlibDefine} $(lapackDefine)
 
 export LibType OptLevel LIBNAME LIBSRC
 
