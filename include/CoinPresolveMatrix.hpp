@@ -35,26 +35,28 @@
 */
 const double ZTOLDP      = 1e-12;
 
+// Debugging macros/functions
 
-#if PRESOLVE_DEBUG
-inline void DIE(const char *s)	{ std::cout<<s; abort(); }
-#else
-inline void DIE(const char *s)	{}
-#endif
-
-#if PRESOLVE_DEBUG
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #define	PRESOLVE_STMT(s)	s
 #define PRESOLVEASSERT(x) \
   ((x) ? 1 : \
 	((std::cerr << "FAILED ASSERTION at line " \
 		    << __LINE__ << ":  " #x "\n"), abort(), 0))
 
+inline void DIE(const char *s)	{ std::cout<<s; abort(); }
+
 // This code is used in [cr]done for columns and rows that are present in
 // the presolved system.
 #define PRESENT_IN_REDUCED	'\377'
+
 #else
+
 #define PRESOLVEASSERT(x)
 #define	PRESOLVE_STMT(s)
+
+inline void DIE(const char *s)	{}
+
 #endif
 
 inline int ALIGN(int n, int m)	{ return (((n + m - 1) / m) * m); }
