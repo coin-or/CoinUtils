@@ -4,8 +4,29 @@
 #ifndef CoinPresolveZeros_H
 #define CoinPresolveZeros_H
 
+/*! \file
+
+  Drop/reintroduce explicit zeros.
+*/
+
 #define	DROP_ZERO	8
 
+/*! \brief Tracking information for an explicit zero coefficient
+
+  \todo Why isn't this a nested class in drop_zero_coefficients_action?
+	That would match the structure of other presolve classes.
+*/
+
+struct dropped_zero {
+  int row;
+  int col;
+};
+
+/*! \brief Removal of explicit zeros
+
+  The presolve action for this class removes explicit zeros from the constraint
+  matrix. The postsolve action puts them back.
+*/
 class drop_zero_coefficients_action : public CoinPresolveAction {
 
   const int nzeros_;
