@@ -49,6 +49,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 
   const double ekkinf = 1e28;
   const double ekkinf2 = 1e20;
+  const double ztoldj = prob->ztoldj_;
 
   double *rdmin	= new double[nrows];
   double *rdmax	= new double[nrows];
@@ -169,7 +170,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	djmax[j] = (iflagu ? -PRESOLVE_INF : ddjhi);
 #endif
 
-	if (ddjlo > ZTOLDP && iflagl == 0&&!prob->colProhibited2(j)) {
+	if (ddjlo > ztoldj && iflagl == 0&&!prob->colProhibited2(j)) {
 	  // dj>0 at optimality ==> must be at lower bound
 	  if (clo[j] <= -ekkinf) {
 	    prob->messageHandler()->message(COIN_PRESOLVE_COLUMNBOUNDB,
@@ -181,7 +182,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	  } else {
 	    fixdown_cols[nfixdown_cols++] = j;
 	  }
-	} else if (ddjhi < -ZTOLDP && iflagu == 0&&!prob->colProhibited2(j)) {
+	} else if (ddjhi < -ztoldj && iflagu == 0&&!prob->colProhibited2(j)) {
 	  // dj<0 at optimality ==> must be at upper bound
 	  if (cup[j] >= ekkinf) {
 	    prob->messageHandler()->message(COIN_PRESOLVE_COLUMNBOUNDA,
