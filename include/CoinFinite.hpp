@@ -83,4 +83,14 @@ inline int CoinFinite(double d);
 
 //=============================================================================
 
+#if defined(__FreeBSD__)
+extern "C" {
+   int finite(double);
+   int isnan(double);
+}
+# define CoinFinite finite
+# define CoinIsnan  isnan
+#endif
+
+//=============================================================================
 #endif

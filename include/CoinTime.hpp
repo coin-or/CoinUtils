@@ -11,7 +11,7 @@
 // Turn off compiler warning about long names
 #  pragma warning(disable:4786)
 #else
-// MacOS-X
+// MacOS-X and FreeBSD needs sys/time.h
 #if defined(__MACH__) || defined (__FreeBSD__)
 #include <sys/time.h>
 #endif
