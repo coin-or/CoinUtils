@@ -61,9 +61,6 @@ Here is a sample usage:
 @endverbatim
 */
 template <typename T> class CoinDenseVector {
-   //friend void CoinDenseVectorUnitTest<T>();
-   friend void CoinDenseVectorUnitTest<>(T dummy);
-
 private:
    /**@name Private member data */
    //@{
