@@ -903,6 +903,12 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   */
   inline bool anyInteger () const
   { return (anyInteger_) ; }
+  /// Picks up any special options
+  inline int presolveOptions() const
+  { return presolveOptions_;};
+  /// Sets any special options
+  inline void setPresolveOptions(int value)
+  { presolveOptions_=value;};
   //@}
 
   /*! \name Matrix storage management links
@@ -1049,6 +1055,10 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   int * nextRowsToDo_;
   /// Length of #nextRowsToDo_
   int numberNextRowsToDo_;
+  /** Presolve options
+      1 set if allow duplicate column tests for integer variables
+  */
+  int presolveOptions_;
   /*! Flag to say if any rows or columns are marked as prohibited
 
     Note that this flag is <i>not</i> manipulated by any of the

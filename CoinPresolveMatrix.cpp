@@ -68,6 +68,7 @@ CoinPresolveMatrix::CoinPresolveMatrix
     numberRowsToDo_(0),
     nextRowsToDo_(0),
     numberNextRowsToDo_(0),
+    presolveOptions_(0),
     anyProhibited_(0)
 
 { /* nothing to do here */ 
