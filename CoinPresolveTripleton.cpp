@@ -164,7 +164,7 @@ static void expand_row(CoinBigIndex *mcstrt,
     int newkcsx = mcstrt[lastcol] + hincol[lastcol];
 
     // well, pad it a bit
-    newkcsx += min(hincol[icolx], 5); // slack
+    newkcsx += CoinMin(hincol[icolx], 5); // slack
 
     //printf("EXPAND_ROW:  %d %d %d\n", newkcsx, maxk, icolx);
 

@@ -1157,7 +1157,7 @@ CoinIndexedVector::getMinIndex() const
   int minIndex = INT_MAX;
   int i;
   for (i=0;i<nElements_;i++)
-    minIndex = min(minIndex,indices_[i]);
+    minIndex = CoinMin(minIndex,indices_[i]);
   return minIndex;
 }
 // Scan dense region and set up indices
@@ -1172,7 +1172,7 @@ int
 CoinIndexedVector::scan(int start, int end)
 {
   assert(!packedMode_);
-  end = min(end,capacity_);
+  end = CoinMin(end,capacity_);
   start = CoinMax(start,0);
   int i;
   int number = 0;
@@ -1195,7 +1195,7 @@ int
 CoinIndexedVector::scan(int start, int end, double tolerance)
 {
   assert(!packedMode_);
-  end = min(end,capacity_);
+  end = CoinMin(end,capacity_);
   start = CoinMax(start,0);
   int i;
   int number = 0;
@@ -1298,7 +1298,7 @@ int
 CoinIndexedVector::scanAndPack(int start, int end)
 {
   assert(!packedMode_);
-  end = min(end,capacity_);
+  end = CoinMin(end,capacity_);
   start = CoinMax(start,0);
   int i;
   int number = 0;
@@ -1327,7 +1327,7 @@ int
 CoinIndexedVector::scanAndPack(int start, int end, double tolerance)
 {
   assert(!packedMode_);
-  end = min(end,capacity_);
+  end = CoinMin(end,capacity_);
   start = CoinMax(start,0);
   int i;
   int number = 0;

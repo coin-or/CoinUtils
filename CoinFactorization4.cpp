@@ -1381,7 +1381,7 @@ CoinFactorization::updateColumnTransposeR ( CoinIndexedVector * regionSparse ) c
       // we have lost indices
       // make sure won't try and go sparse again
       if (collectStatistics_) 
-	btranCountAfterR_ += (double) min((numberNonZero<<1),numberRows_);
+	btranCountAfterR_ += (double) CoinMin((numberNonZero<<1),numberRows_);
       regionSparse->setNumElements (numberRows_+1);
     }
   }
@@ -1589,11 +1589,11 @@ CoinFactorization::goSparse ( )
   if (!sparseThreshold_) {
     if (numberRows_>200) {
       if (numberRows_<10000) {
-	sparseThreshold_=min(numberRows_/6,500);
+	sparseThreshold_=CoinMin(numberRows_/6,500);
 	sparseThreshold2_=sparseThreshold_;
       } else {
-	sparseThreshold_=min(numberRows_/8,1000);
-	sparseThreshold2_=sparseThreshold_+min((numberRows_-200)/5,2000);
+	sparseThreshold_=CoinMin(numberRows_/8,1000);
+	sparseThreshold2_=sparseThreshold_+CoinMin((numberRows_-200)/5,2000);
 	//sparseThreshold2_=sparseThreshold_;
       }
       sparseThreshold2_=numberRows_>>2;
@@ -1603,7 +1603,7 @@ CoinFactorization::goSparse ( )
     }
   } else {
     if (!sparseThreshold_&&numberRows_>400) {
-      sparseThreshold_=min((numberRows_-300)/9,1000);
+      sparseThreshold_=CoinMin((numberRows_-300)/9,1000);
     }
     sparseThreshold2_=sparseThreshold_;
   }

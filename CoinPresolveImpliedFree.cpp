@@ -662,7 +662,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		      maximumUp += (newBound-now) * value;
 		      nowUpper = newBound;
 		    }
-		    high=min(high,newBound);
+		    high=CoinMin(high,newBound);
 		  }
 		} else {
 		  // negative value
@@ -695,7 +695,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		      maximumDown += (newBound-now) * value;
 		      nowUpper = newBound;
 		    }
-		    high=min(high,newBound);
+		    high=CoinMin(high,newBound);
 		  }
 		  if (upper <large) {
 		    if (!infiniteLower) {
@@ -1071,7 +1071,7 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	upActivity = (rlo[irow]-act)/coeff;
       }
       loActivity = CoinMax(loActivity,clo[icol]);
-      upActivity = min(upActivity,cup[icol]);
+      upActivity = CoinMin(upActivity,cup[icol]);
       int where; //0 in basis, -1 at lb, +1 at ub
       const double tolCheck	= 0.1*prob->ztolzb_;
       if (loActivity<clo[icol]+tolCheck/fabs(coeff)&&thisCost>=0.0)

@@ -9,7 +9,6 @@
 #include "CoinDenseVector.hpp"
 #include "CoinHelperFunctions.hpp"
 
-#define min(a,b)	( (a) < (b) ? (a) : (b) )
 //#############################################################################
 
 template <typename T> void
@@ -56,7 +55,7 @@ CoinDenseVector<T>::resize(int newsize, T value)
   if (newsize != nElements_){	
     assert(newsize > 0);
     T *newarray = new T[newsize];
-    int cpysize = min(newsize, nElements_);
+    int cpysize = CoinMin(newsize, nElements_);
     memcpy(newarray, elements_, cpysize*sizeof(T));
     delete[] elements_;
     elements_ = newarray;
