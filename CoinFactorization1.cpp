@@ -1436,7 +1436,7 @@ CoinFactorization::cleanup (  )
   int *indexRowU = indexRowU_;
   double *elementU = elementU_;
 
-  for ( i = 0; i < numberRows_; i++ ) {
+  for ( i = numberSlacks_; i < numberRows_; i++ ) {
     CoinBigIndex start = startColumn[i];
     CoinBigIndex end = start + numberInColumn[i];
 
@@ -1445,7 +1445,7 @@ CoinFactorization::cleanup (  )
       indexColumnU[j] = k++;
     }
   }
-  for ( i = 0; i < numberRows_; i++ ) {
+  for ( i = numberSlacks_; i < numberRows_; i++ ) {
     CoinBigIndex start = startColumn[i];
     CoinBigIndex end = start + numberInColumn[i];
 
@@ -1469,8 +1469,9 @@ CoinFactorization::cleanup (  )
       }				/* endwhile */
     }
   }
+  CoinZeroN ( startColumnU_, numberSlacks_ );
   k = 0;
-  for ( i = 0; i < numberRows_; i++ ) {
+  for ( i = numberSlacks_; i < numberRows_; i++ ) {
     startColumnU_[i] = k;
     k += numberInColumn_[i];
   }
@@ -1506,15 +1507,12 @@ CoinFactorization::cleanup (  )
     CoinBigIndex end = start + numberInColumn_[i];
 
     totalElements_ += numberInColumn_[i];
-    if ( end > start || pivotRegion_[i] != 1.0 ) {
-      CoinBigIndex j;
-      for ( j = start; j < end; j++ ) {
-	int iRow = indexRowU_[j];
-
-	iRow = permute_[iRow];
-	indexRowU_[j] = iRow;
-	numberInRow_[iRow]++;
-      }
+    CoinBigIndex j;
+    for ( j = start; j < end; j++ ) {
+      int iRow = indexRowU_[j];
+      iRow = permute_[iRow];
+      indexRowU_[j] = iRow;
+      numberInRow_[iRow]++;
     }
   }
   //space for cross reference

@@ -8,6 +8,7 @@
 
 #include "CoinHelperFunctions.hpp"
 #include "CoinPresolveMatrix.hpp"
+#include "CoinTime.hpp"
 
 /*! \file
 
@@ -50,6 +51,8 @@ CoinPresolveMatrix::CoinPresolveMatrix
 
     integerType_(0),
     anyInteger_(false),
+    tuning_(false),
+    startTime_(0.0),
     feasibilityTolerance_(0.0),
     status_(-1),
     pass_(0),
@@ -395,3 +398,10 @@ int CoinPresolveMatrix::stepRowsToDo ()
   numberNextRowsToDo_ = 0 ;
 
   return (numberRowsToDo_) ; }
+// Say we want statistics - also set time
+void 
+CoinPresolveMatrix::statistics()
+{
+  tuning_=true;
+  startTime_ = CoinCpuTime();
+}

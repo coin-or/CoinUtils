@@ -127,6 +127,9 @@ const CoinPresolveAction
     *dupcol_action::presolve (CoinPresolveMatrix *prob,
 			      const CoinPresolveAction *next)
 {
+  double startTime = 0.0;
+  if (prob->tuning_)
+    startTime = CoinCpuTime();
 
   double maxmin	= prob->maxmin_ ;
 
@@ -475,6 +478,11 @@ const CoinPresolveAction
   delete[] rowmul ;
   delete[] colsum ;
   delete[] sort ;
+  if (prob->tuning_) {
+    double thisTime=CoinCpuTime();
+    printf("CoinPresolveDupcol(128) - %d actions in time %g total %g\n",
+	   nactions,thisTime-startTime,thisTime-prob->startTime_);
+  }
 
 # if PRESOLVE_SUMMARY || PRESOLVE_DEBUG
   if (nactions+nfixed_down+nfixed_up > 0)
@@ -623,6 +631,9 @@ const CoinPresolveAction
     *duprow_action::presolve (CoinPresolveMatrix *prob,
 			      const CoinPresolveAction *next)
 {
+  double startTime = 0.0;
+  if (prob->tuning_)
+    startTime = CoinCpuTime();
   double *rowels	= prob->rowels_;
   int *hcol		= prob->hcol_;
   CoinBigIndex *mrstrt	= prob->mrstrt_;
@@ -751,6 +762,11 @@ const CoinPresolveAction
   delete[]workrow;
   delete[]workcol;
 
+  if (prob->tuning_) {
+    double thisTime=CoinCpuTime();
+    printf("CoinPresolveDuprow(256) - %d actions in time %g total %g\n",
+	   nuseless_rows,thisTime-startTime,thisTime-prob->startTime_);
+  }
 
   if (nuseless_rows) {
 #   if PRESOLVE_SUMMARY

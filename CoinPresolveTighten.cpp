@@ -55,6 +55,9 @@ const char *do_tighten_action::name() const
 const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 						   const CoinPresolveAction *next)
 {
+  double startTime = 0.0;
+  if (prob->tuning_)
+    startTime = CoinCpuTime();
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt		= prob->mcstrt_;
@@ -230,6 +233,11 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
     }
   }
 
+  if (prob->tuning_) {
+    double thisTime=CoinCpuTime();
+    printf("CoinPresolveTighten(16) - %d actions in time %g total %g\n",
+	   nactions,thisTime-startTime,thisTime-prob->startTime_);
+  }
 
 #if	PRESOLVE_SUMMARY
   if (nfixdown_cols || nfixup_cols || nuseless_rows) {

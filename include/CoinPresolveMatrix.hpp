@@ -6,6 +6,7 @@
 #include "CoinPragma.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessage.hpp"
+#include "CoinTime.hpp"
 
 #include <cmath>
 #include <cassert>
@@ -956,6 +957,12 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
     \c setVariableType routines.
   */
   bool anyInteger_ ;
+  /// Print statistics for tuning
+  bool tuning_;
+  /// Say we want statistics - also set time
+  void statistics();
+  /// Start time of presolve
+  double startTime_;
 
   /// Bounds can be moved by this to retain feasibility
   double feasibilityTolerance_;

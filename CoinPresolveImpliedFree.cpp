@@ -464,6 +464,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 						     const CoinPresolveAction *next,
 						    int & fill_level)
 {
+  double startTime = 0.0;
+  if (prob->tuning_)
+    startTime = CoinCpuTime();
   double *colels	= prob->colels_;
   int *hrow	= prob->hrow_;
   const CoinBigIndex *mcstrt	= prob->mcstrt_;
@@ -493,9 +496,8 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 #if 1  
   // This needs to be made faster
   int numberInfeasible;
-  prob->pass_++;
-  if (prob->pass_%2!=1)
-    return next;
+  //if (prob->pass_%2!=1)
+  //return next;
   next = testRedundant(prob,next,numberInfeasible);
   if (numberInfeasible) {
     // infeasible
@@ -1009,6 +1011,11 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   }
 
   delete [] look2;
+  if (prob->tuning_) {
+    double thisTime=CoinCpuTime();
+    printf("CoinPresolveImpliedFree(64) - %d actions in time %g total %g\n",
+	   nactions,thisTime-startTime,thisTime-prob->startTime_);
+  }
   if (nactions) {
 #   if PRESOLVE_SUMMARY
     printf("NIMPLIED FREE:  %d\n", nactions);

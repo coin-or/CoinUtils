@@ -187,6 +187,9 @@ const CoinPresolveAction
     *forcing_constraint_action::presolve(CoinPresolveMatrix *prob,
 					 const CoinPresolveAction *next)
 {
+  double startTime = 0.0;
+  if (prob->tuning_)
+    startTime = CoinCpuTime();
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
 
@@ -347,6 +350,11 @@ const CoinPresolveAction
   }
 
 
+  if (prob->tuning_) {
+    double thisTime=CoinCpuTime();
+    printf("CoinPresolveForcing(32) - %d actions in time %g total %g\n",
+	   nactions,thisTime-startTime,thisTime-prob->startTime_);
+  }
   if (nactions) {
 #if	PRESOLVE_SUMMARY
     printf("NFORCED:  %d\n", nactions);

@@ -280,6 +280,9 @@ static bool elim_tripleton(const char *msg,
 const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 						  const CoinPresolveAction *next)
 {
+  double startTime = 0.0;
+  if (prob->tuning_)
+    startTime = CoinCpuTime();
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt		= prob->mcstrt_;
@@ -585,7 +588,11 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 #     endif
     }
   }
-
+  if (prob->tuning_) {
+    double thisTime=CoinCpuTime();
+    printf("CoinPresolveTripleton(8) - %d actions in time %g total %g\n",
+	   nactions,thisTime-startTime,thisTime-prob->startTime_);
+  }
   if (nactions) {
 #   if PRESOLVE_SUMMARY
     printf("NTRIPLETONS:  %d\n", nactions);
