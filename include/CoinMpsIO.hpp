@@ -3,6 +3,9 @@
 #ifndef CoinMpsIO_H
 #define CoinMpsIO_H
 
+#include <vector>
+#include <string>
+
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessageHandler.hpp"
 //#############################################################################
@@ -104,10 +107,23 @@ public:
    void setMpsData(const CoinPackedMatrix& m, const double infinity,
 		   const double* collb, const double* colub,
 		   const double* obj, const char* integrality,
+		   const double* rowlb, const double* rowub,
+       const std::vector<std::string> & colnames,
+		   const std::vector<std::string> & rownames);
+   void setMpsData(const CoinPackedMatrix& m, const double infinity,
+		   const double* collb, const double* colub,
+		   const double* obj, const char* integrality,
 		   const char* rowsen, const double* rowrhs,
 		   const double* rowrng,
 		   char const * const * const colnames,
 		   char const * const * const rownames);
+   void setMpsData(const CoinPackedMatrix& m, const double infinity,
+		   const double* collb, const double* colub,
+		   const double* obj, const char* integrality,
+		   const char* rowsen, const double* rowrhs,
+		   const double* rowrng,
+		   const std::vector<std::string> & colnames,
+		   const std::vector<std::string> & rownames);
 
     /// Sets infinity!
     void setInfinity(double value);
@@ -264,6 +280,22 @@ private:
     void gutsOfDestructor();
     void gutsOfCopy(const CoinMpsIO &);
   
+    /// Methods that are used several times to implement public methods
+    void
+    setMpsDataWithoutRowAndColNames(
+                                  const CoinPackedMatrix& m, const double infinity,
+                                  const double* collb, const double* colub,
+                                  const double* obj, const char* integrality,
+                                  const double* rowlb, const double* rowub);
+    void
+    setMpsDataColAndRowNames(
+		      const std::vector<std::string> & colnames,
+		      const std::vector<std::string> & rownames);
+    void
+    setMpsDataColAndRowNames(
+		      char const * const * const colnames,
+		      char const * const * const rownames);
+
     /// The real work of a destructor (used by copy and assignment)
     void freeAll();
 

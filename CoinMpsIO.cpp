@@ -2223,13 +2223,13 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    // NAME card
 
    line = "NAME          ";
-   if (!problemName_) {
+   if (strcmp(problemName_,"")==0) {
       line.append("BLANK   ");
    } else {
       if (strlen(problemName_) >= 8) {
 	 line.append(problemName_, 8);
       } else {
-	 line.append("problemName_");
+	 line.append(problemName_);
 	 line.append(8-strlen(problemName_), ' ');
       }
    }
@@ -2729,44 +2729,56 @@ const CoinPackedMatrix * CoinMpsIO::getMatrixByCol() const
 // Save the data ...
 //------------------------------------------------------------------
 void
-CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
-		      const double* collb, const double* colub,
-		      const double* obj, const char* integrality,
-		      const double* rowlb, const double* rowub,
+CoinMpsIO::setMpsDataWithoutRowAndColNames(
+                                  const CoinPackedMatrix& m, const double infinity,
+                                  const double* collb, const double* colub,
+                                  const double* obj, const char* integrality,
+                                  const double* rowlb, const double* rowub)
+{
+  freeAll();
+  if (m.isColOrdered()) {
+    matrixByColumn_ = new CoinPackedMatrix(m);
+  } else {
+    matrixByColumn_ = new CoinPackedMatrix;
+    matrixByColumn_->reverseOrderedCopyOf(m);
+  }
+  numberColumns_ = matrixByColumn_->getNumCols();
+  numberRows_ = matrixByColumn_->getNumRows();
+  numberElements_ = matrixByColumn_->getNumElements();
+  defaultBound_ = 1;
+  infinity_ = infinity;
+  objectiveOffset_ = 0;
+  
+  rowlower_ = (double *) malloc (numberRows_ * sizeof(double));
+  rowupper_ = (double *) malloc (numberRows_ * sizeof(double));
+  collower_ = (double *) malloc (numberColumns_ * sizeof(double));
+  colupper_ = (double *) malloc (numberColumns_ * sizeof(double));
+  objective_ = (double *) malloc (numberColumns_ * sizeof(double));
+  std::copy(rowlb, rowlb + numberRows_, rowlower_);
+  std::copy(rowub, rowub + numberRows_, rowupper_);
+  std::copy(collb, collb + numberColumns_, collower_);
+  std::copy(colub, colub + numberColumns_, colupper_);
+  std::copy(obj, obj + numberColumns_, objective_);
+  if (integrality) {
+    integerType_ = (char *) malloc (numberColumns_ * sizeof(char));
+    std::copy(integrality, integrality + numberColumns_, integerType_);
+  } else {
+    integerType_ = 0;
+  }
+    
+  problemName_ = strdup("");
+  objectiveName_ = strdup("");
+  rhsName_ = strdup("");
+  rangeName_ = strdup("");
+  boundName_ = strdup("");
+}
+
+
+void
+CoinMpsIO::setMpsDataColAndRowNames(
 		      char const * const * const colnames,
 		      char const * const * const rownames)
-{
-   freeAll();
-   if (m.isColOrdered()) {
-      matrixByColumn_ = new CoinPackedMatrix(m);
-   } else {
-      matrixByColumn_ = new CoinPackedMatrix;
-      matrixByColumn_->reverseOrderedCopyOf(m);
-   }
-   numberColumns_ = matrixByColumn_->getNumCols();
-   numberRows_ = matrixByColumn_->getNumRows();
-   numberElements_ = matrixByColumn_->getNumElements();
-   defaultBound_ = 1;
-   infinity_ = infinity;
-   objectiveOffset_ = 0;
-
-   rowlower_ = (double *) malloc (numberRows_ * sizeof(double));
-   rowupper_ = (double *) malloc (numberRows_ * sizeof(double));
-   collower_ = (double *) malloc (numberColumns_ * sizeof(double));
-   colupper_ = (double *) malloc (numberColumns_ * sizeof(double));
-   objective_ = (double *) malloc (numberColumns_ * sizeof(double));
-   std::copy(rowlb, rowlb + numberRows_, rowlower_);
-   std::copy(rowub, rowub + numberRows_, rowupper_);
-   std::copy(collb, collb + numberColumns_, collower_);
-   std::copy(colub, colub + numberColumns_, colupper_);
-   std::copy(obj, obj + numberColumns_, objective_);
-   if (integrality) {
-      integerType_ = (char *) malloc (numberColumns_ * sizeof(char));
-      std::copy(integrality, integrality + numberColumns_, integerType_);
-   } else {
-      integerType_ = 0;
-   }
-   
+{  
    // If long names free format
    names_[0] = (char **) malloc(numberRows_ * sizeof(char *));
    names_[1] = (char **) malloc (numberColumns_ * sizeof(char *));
@@ -2774,31 +2786,82 @@ CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
    char** colNames_ = names_[1];
    int i;
    if (rownames) {
-      for (i = 0 ; i < numberRows_; ++i) {
-	 rowNames_[i] = strdup(rownames[i]);
-      }
+     for (i = 0 ; i < numberRows_; ++i) {
+       rowNames_[i] = strdup(rownames[i]);
+     }
    } else {
-      for (i = 0; i < numberRows_; ++i) {
-	 rowNames_[i] = (char *) malloc (9 * sizeof(char));
-	 sprintf(rowNames_[i],"R%7.7d",i);
-      }
+     for (i = 0; i < numberRows_; ++i) {
+       rowNames_[i] = (char *) malloc (9 * sizeof(char));
+       sprintf(rowNames_[i],"R%7.7d",i);
+     }
    }
    if (colnames) {
-      for (i = 0 ; i < numberColumns_; ++i) {
-	 colNames_[i] = strdup(colnames[i]);
-      }
+     for (i = 0 ; i < numberColumns_; ++i) {
+       colNames_[i] = strdup(colnames[i]);
+     }
    } else {
-      for (i = 0; i < numberColumns_; ++i) {
-	 colNames_[i] = (char *) malloc (9 * sizeof(char));
-	 sprintf(colNames_[i],"C%7.7d",i);
-      }
+     for (i = 0; i < numberColumns_; ++i) {
+       colNames_[i] = (char *) malloc (9 * sizeof(char));
+       sprintf(colNames_[i],"C%7.7d",i);
+     }
    }
+}
 
-   problemName_ = strdup("");
-   objectiveName_ = strdup("");
-   rhsName_ = strdup("");
-   rangeName_ = strdup("");
-   boundName_ = strdup("");
+void
+CoinMpsIO::setMpsDataColAndRowNames(
+		      const std::vector<std::string> & colnames,
+		      const std::vector<std::string> & rownames)
+{  
+   // If long names free format
+   names_[0] = (char **) malloc(numberRows_ * sizeof(char *));
+   names_[1] = (char **) malloc (numberColumns_ * sizeof(char *));
+   char** rowNames_ = names_[0];
+   char** colNames_ = names_[1];
+   int i;
+   if (rownames.size()!=0) {
+     for (i = 0 ; i < numberRows_; ++i) {
+       rowNames_[i] = strdup(rownames[i].c_str());
+     }
+   } else {
+     for (i = 0; i < numberRows_; ++i) {
+       rowNames_[i] = (char *) malloc (9 * sizeof(char));
+       sprintf(rowNames_[i],"R%7.7d",i);
+     }
+   }
+   if (colnames.size()!=0) {
+     for (i = 0 ; i < numberColumns_; ++i) {
+       colNames_[i] = strdup(colnames[i].c_str());
+     }
+   } else {
+     for (i = 0; i < numberColumns_; ++i) {
+       colNames_[i] = (char *) malloc (9 * sizeof(char));
+       sprintf(colNames_[i],"C%7.7d",i);
+     }
+   }
+}
+
+void
+CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
+                      const double* collb, const double* colub,
+                      const double* obj, const char* integrality,
+                      const double* rowlb, const double* rowub,
+                      char const * const * const colnames,
+                      char const * const * const rownames)
+{
+  setMpsDataWithoutRowAndColNames(m,infinity,collb,colub,obj,integrality,rowlb,rowub);
+  setMpsDataColAndRowNames(colnames,rownames);
+}
+
+void
+CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
+                      const double* collb, const double* colub,
+                      const double* obj, const char* integrality,
+                      const double* rowlb, const double* rowub,
+                      const std::vector<std::string> & colnames,
+                      const std::vector<std::string> & rownames)
+{
+  setMpsDataWithoutRowAndColNames(m,infinity,collb,colub,obj,integrality,rowlb,rowub);
+  setMpsDataColAndRowNames(colnames,rownames);
 }
 
 void
@@ -2809,6 +2872,27 @@ CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
 		      const double* rowrng,
 		      char const * const * const colnames,
 		      char const * const * const rownames)
+{
+   const int numrows = matrixByColumn_->getNumRows();
+
+   double * rlb = numrows ? new double[numrows] : 0;
+   double * rub = numrows ? new double[numrows] : 0;
+
+   for (int i = 0; i < numrows; ++i) {
+      convertSenseToBound(rowsen[i], rowrhs[i], rowrng[i], rlb[i], rub[i]);
+   }
+   setMpsData(m, infinity, collb, colub, obj, integrality, rlb, rub,
+	      colnames, rownames);
+}
+
+void
+CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
+		      const double* collb, const double* colub,
+		      const double* obj, const char* integrality,
+		      const char* rowsen, const double* rowrhs,
+		      const double* rowrng,
+		      const std::vector<std::string> & colnames,
+		      const std::vector<std::string> & rownames)
 {
    const int numrows = matrixByColumn_->getNumRows();
 
