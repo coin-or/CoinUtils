@@ -240,17 +240,40 @@ CoinIndexedVector::clean( double tolerance )
 // For debug check vector is clear i.e. no elements
 void CoinIndexedVector::checkClear()
 {
+#ifndef NDEBUG
   assert(!nElements_);
   assert(!packedMode_);
   int i;
   for (i=0;i<capacity_;i++) {
     assert(!elements_[i]);
   }
-#ifndef NDEBUG
   // check mark array zeroed
   char * mark = (char *) (indices_+capacity_);
   for (i=0;i<capacity_;i++) {
     assert(!mark[i]);
+  }
+#else
+  if(nElements_) {
+    printf("%d nElements_ - checkClear\n",nElements_);
+    abort();
+  }
+  if(packedMode_) {
+    printf("packed mode when empty - checkClear\n");
+    abort();
+  }
+  int i;
+  int n=0;
+  int k=-1;
+  for (i=0;i<capacity_;i++) {
+    if(elements_[i]) {
+      n++;
+      if (k<0)
+	k=i;
+    }
+  }
+  if(n) {
+    printf("%d elements, first %d - checkClear\n",n,k);
+    abort();
   }
 #endif
 }

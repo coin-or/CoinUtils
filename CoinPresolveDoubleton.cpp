@@ -460,6 +460,8 @@ const CoinPresolveAction *doubleton_action::presolve(CoinPresolveMatrix *prob,
       if (fabs(rowels[k]) < ZTOLDP)
 	continue;
       icolx = hcol[k];
+      if (prob->colProhibited(icolx))
+	continue;
       
       /* locate second column */
       for (k++; k<kre; k++) {
@@ -471,6 +473,8 @@ const CoinPresolveAction *doubleton_action::presolve(CoinPresolveMatrix *prob,
       if (fabs(rowels[k]) < ZTOLDP)
 	continue;
       icoly = hcol[k];
+      if (prob->colProhibited(icoly))
+	continue;
       
       // don't bother with fixed variables
       if (!(fabs(cup[icolx] - clo[icolx]) < ZTOLDP) &&
