@@ -18,7 +18,7 @@
 
 //#############################################################################
 
-static double osi_strtod(char * ptr, char ** output) 
+double osi_strtod(char * ptr, char ** output) 
 {
 
   static const double fraction[]=
@@ -228,9 +228,11 @@ CoinMpsCardReader::readToNextSection (  )
       section_ = COIN_EOF_SECTION;
       break;
     }
-    if ( !strncmp ( card_, "NAME", 4 ) ) {
+    if ( !strncmp ( card_, "NAME", 4 ) ||
+		!strncmp( card_, "TIME", 4 ) ||
+		!strncmp( card_, "STOCH", 5 ) ) {
       section_ = COIN_NAME_SECTION;
-      char *next = card_ + 4;
+      char *next = card_ + 5;
 
       handler_->message(COIN_MPS_LINE,messages_)<<cardNumber_
 					       <<card_<<CoinMessageEol;
@@ -2181,7 +2183,6 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    memcpy( sense , getRowSense(), numberRows_);
    const double * rowLower = getRowLower();
    const double * rowUpper = getRowUpper();
-
   
    for (i=0;i<numberRows_;i++) {
       line = " ";
@@ -2190,11 +2191,11 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       } else {
 	if (rowLower[i]>-1.0e30) {
 	  if(rowUpper[i]<1.0e30) {
-	    line.append("L");
+	 line.append("L");
 	  } else {
 	    sense[i]='G';
 	    line.append(1,sense[i]);
-	  }
+      }
 	} else {
 	  sense[i]='L';
 	  line.append(1,sense[i]);
@@ -2286,7 +2287,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 break;
       case 'R':
 	 value=rowUpper[i];
-	 ifRange=true;
+	   ifRange=true;
 	 break;
       case 'L':
 	 value=rowUpper[i];

@@ -108,7 +108,7 @@ public:
   //@}
 
 ////////////////// data //////////////////
-private:
+protected:
 
   /**@name data */
   //@{
@@ -566,7 +566,7 @@ public:
     void releaseMatrixInformation();
   //@}
 
-private:
+protected:
   
 /**@name Miscellaneous helper functions */
   //@{
