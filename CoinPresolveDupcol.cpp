@@ -10,17 +10,13 @@
 #include "CoinPresolveUseless.hpp"
 #include "CoinMessage.hpp"
 
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
+#endif
+
 #define DSEED2 2147483647.0
 
-const char *dupcol_action::name() const
-{
-  return ("dupcol_action");
-}
-
-const char *duprow_action::name() const
-{
-  return ("duprow_action");
-}
+namespace {	// begin unnamed file-local namespace
 
 void init_random_vec(double *work, int n)
 {
@@ -36,392 +32,46 @@ void init_random_vec(double *work, int n)
   }
 }
 
-int compute_sums(const int *len, const CoinBigIndex *starts,
-		 /*const*/ int *index, /*const*/ double *elems,	// index/elems are sorted
-		 const double *work,
-		 double *sums, int *sorted, int n)
+/*
+  For each candidate major-dimension vector in majcands, calculate the sum
+  over the vector, with each minor dimension weighted by a random amount.
+  (E.g., calculate column sums with each row weighted by a random amount.)
+  The sums are returned in the corresponding entries of majsums.
+*/
+
+void compute_sums (int n, const int *majlens, const CoinBigIndex *majstrts,
+		   int *minndxs, double *elems, const double *minmuls,
+		   int *majcands, double *majsums, int nlook)
+
+{ for (int cndx = 0 ; cndx < nlook ; ++cndx)
+  { int i = majcands[cndx] ;
+    PRESOLVEASSERT(majlens[i] > 0) ;
+
+    CoinBigIndex kcs = majstrts[i] ;
+    CoinBigIndex kce = kcs + majlens[i] ;
+
+    double value = 0.0 ;
+
+    for (CoinBigIndex k = kcs ; k < kce ; k++)
+    { int irow = minndxs[k] ;
+      value += minmuls[irow]*elems[k] ; }
+
+    majsums[cndx] = value ; }
+
+  return ; }
+
+
+void create_col (int col, int n, double *els,
+		 CoinBigIndex *mcstrt, double *colels, int *hrow, int *link,
+		 CoinBigIndex *free_listp)
 {
-  int nlook=0;
-  for (int i = 0; i < n; ++i)
-    if (len[i] > 0 /*1?*/) {
-      CoinBigIndex kcs = starts[i];
-      CoinBigIndex kce = kcs + len[i];
-
-      double value=0.0;
-
-      // sort all columns for easy comparison in next loop
-      CoinSort_2(index+kcs,index+kcs+len[i],elems+kcs);
-      //ekk_sort2(index+kcs, elems+kcs, len[i]);
-
-      for (CoinBigIndex k=kcs;k<kce;k++) {
-	int irow=index[k];
-	value += work[irow]*elems[k];
-      }
-      sums[nlook]=value;
-      sorted[nlook]=i;
-      ++nlook;
-    }
-  return (nlook);
-}
-
-dupcol_action::dupcol_action(int nactions,
-		const action *actions,
-		const CoinPresolveAction *next) :
-    CoinPresolveAction(next),
-    nactions_(nactions), actions_(actions)
-{
-}
-
-
-// This is just ekkredc5, adapted into the new framework.
-// the datasets scorpion.mps and allgrade.mps have duplicate columns.
-const CoinPresolveAction *dupcol_action::presolve(CoinPresolveMatrix *prob,
-					       const CoinPresolveAction *next)
-{
-  double *colels	= prob->colels_;
-  int *hrow		= prob->hrow_;
-  CoinBigIndex *mcstrt		= prob->mcstrt_;
-  int *hincol		= prob->hincol_;
-  int ncols		= prob->ncols_;
-
-  double *clo	= prob->clo_;
-  double *cup	= prob->cup_;
-  double * sol = prob->sol_;
-
-  double *rowels	= prob->rowels_;
-  int *hcol	= prob->hcol_;
-  const CoinBigIndex *mrstrt	= prob->mrstrt_;
-  int *hinrow		= prob->hinrow_;
-  int nrows		= prob->nrows_;
-
-  //  double *rlo	= prob->rlo_;
-  //  double *rup	= prob->rup_;
-
-  double *dcost	= prob->cost_;
-
-  const char *integerType = prob->integerType_;
-
-  double maxmin	= prob->maxmin_;
-
-  action *actions	= new action [ncols];
-  int nactions = 0;
-
-  int *fixed_down	= new int[ncols];
-  int nfixed_down	= 0;
-  int *fixed_up		= new int[ncols];
-  int nfixed_up		= 0;
-
-  double * workcol = new double[ncols];
-  double * workrow = new double[nrows];
-  int * sort = new int[ncols];
-
-  // initialize workrow to have "random" values
-  init_random_vec(workrow, nrows);
-
-  // If we sum all the coefficients of a column,
-  // then duplicate columns must have the same sum.
-  // However, other columns may also.
-  // To weed most of them out, we multiply the coefficients
-  // by the random value associated with the row.
-  int nlook = compute_sums(hincol, mcstrt, hrow, colels, workrow, workcol, sort, ncols);
-
-#if 1
-  // not tested yet
-  if (maxmin < 0.0)
-    return (next);
-#endif
-
-  CoinSort_2(workcol,workcol+nlook,sort);
-  //ekk_sortonDouble(workcol,sort,nlook);
-
-#if 0
-  // It may be the case that several columns are duplicate.
-  // If not all have the same cost, then we have to make sure
-  // that we set the most expensive one to its minimum
-  // now sort in each class by cost
-  {
-    double dval = workcol[0];
-    int first = 0;
-    for (int jj = 1; jj < nlook; jj++) {
-      while (workcol[jj]==dval) 
-	jj++;
-
-      if (first + 1 < jj) {
-	double buf[jj - first];
-	for (int i=first; i<jj; ++i)
-	  buf[i-first] = dcost[sort[i]]*maxmin;
-
-	CoinSort_2(buf,buf+jj-first,sort+first);
-	//ekk_sortonDouble(buf,&sort[first],jj-first);
-      }
-    }
-  }
-#endif
-
-  // it appears to be the case that this loop is finished,
-  // there may still be duplicate cols left.
-  // I haven't done anything about that yet.
-  for (int jj = 1; jj < nlook; jj++) {
-    if (workcol[jj]==workcol[jj-1]) {
-      int ithis=sort[jj];
-      int ilast=sort[jj-1];
-      CoinBigIndex kcs = mcstrt[ithis];
-      CoinBigIndex kce = kcs + hincol[ithis];
-
-      if (hincol[ithis] == hincol[ilast]&&!prob->colProhibited2(ithis)) {
-	int ishift = mcstrt[ilast] - kcs;
-	CoinBigIndex k;
-	for (k=kcs;k<kce;k++) {
-	  if (hrow[k] != hrow[k+ishift] ||
-	      colels[k] != colels[k+ishift]) {
-	    break;
-	  }
-	}
-	if (k == kce) {
-	  // these really are duplicate columns
-
-	  /* now check bounds and costs to see what is what */
-	  double clo1=clo[ilast];
-	  double cup1=cup[ilast];
-	  double clo2=clo[ithis];
-	  double cup2=cup[ithis];
-	  double dcost1=dcost[ilast]*maxmin;
-	  double dcost2=dcost[ithis]*maxmin;
-          double newSolution = sol[ilast]+sol[ithis];
-	  //int itype=27;
-	  if (clo1==cup1||clo2==cup2)
-	    abort();
-
-	  if (/*ddjs[ilast]||ddjs[ithis]*/
-	      integerType[ilast] || integerType[ithis]) {
-	    continue;
-	  } else if (dcost1==dcost2) {
-	    //
-	    // SAME COSTS
-	    //
-	    double l_j = clo[ithis];
-	    double u_j = cup[ithis];
-	    double l_k = clo[ilast];
-	    double u_k = cup[ilast];
-
-	    if (! (l_j + u_k <= l_k + u_j)) {
-	      swap(ilast, ithis);
-	      swap(clo1, clo2);
-	      swap(cup1, cup2);
-	      //swap(dcost1, dcost2);
-	    }
-
-	    //PRESOLVE_STMT(printf("DUPCOL (%d,%d)\n", ithis, ilast));
-
-	    /* identical cost so can add ranges */
-	    clo1 += clo2;
-	    cup1 += cup2;
-	    if (clo1<-1.0e20) {
-	      clo1=-COIN_DBL_MAX;
-	    }
-	    if (cup1>1.0e20) {
-	      cup1=COIN_DBL_MAX;
-	    }
-	    /*dfix=0.0;*/
-	    //itype=26;
-
-	    {
-	      action *s = &actions[nactions];	  
-	      nactions++;
-
-	      s->thislo = clo[ithis];
-	      s->thisup = cup[ithis];
-	      s->lastlo = clo[ilast];
-	      s->lastup = cup[ilast];
-	      s->ithis  = ithis;
-	      s->ilast  = ilast;
-
-	      s->nincol	= hincol[ithis];
-	      s->colels	= copyOfArray(&colels[mcstrt[ithis]], hincol[ithis]);
-	      s->colrows= copyOfArray(&hrow[mcstrt[ithis]], hincol[ithis]);
-	    }
-
-	    // adjust ilast
-	    clo[ilast]=clo1;
-	    cup[ilast]=cup1;
-	    sol[ilast] = newSolution;
-	    if (prob->getColumnStatus(ilast)==CoinPrePostsolveMatrix::basic||
-		prob->getColumnStatus(ithis)==CoinPrePostsolveMatrix::basic)
-	      prob->setColumnStatus(ilast,CoinPrePostsolveMatrix::basic);
-
-	    // delete ithis
-	    dcost[ithis] = 0.0;
-	    sol[ithis]=clo2;
-	    {
-	      CoinBigIndex kcs = mcstrt[ithis];
-	      CoinBigIndex kce = kcs + hincol[ithis];
-	      for (CoinBigIndex k=kcs; k<kce; ++k)
-		// delete ithis from its rows
-		presolve_delete_from_row(hrow[k], ithis, mrstrt, hinrow, hcol, rowels);
-	    }
-	    hincol[ithis] = 0;
-
-	    /* make sure fixed one out of way */
-	    sort[jj] = ilast;
-	    //if (ithis==sort[jj]) {
-	    //sort[jj]=sort[jj-1];
-	    //}
-	  } else {
-	    //
-	    // (dcost1!=dcost2) - DIFFERENT COSTS
-	    //
-	    /* look to see whether we can drop one ? */
-	    if (clo1<-1.0e20 && clo2<-1.0e20) {
-	      // both unbounded below 
-	      /* can't cope for now */
-#ifdef PRINT_DEBUG
-	      printf("** Odd columns %d and %d\n", ilast,ithis);
-#endif
-	      continue;
-	    } else if (clo1<-1.0e20) {
-	      //printf("ILAST:  %d %d\n", ilast, ithis);
-	      swap(ilast, ithis);
-	      //printf("ILAST1:  %d %d\n", ilast, ithis);
-	      swap(clo1, clo2);
-	      swap(cup1, cup2);
-	      swap(dcost1, dcost2);
-	    }
-	    // first one (ilast) bounded below - PRESOLVEASSERT(! (clo1<-1.0e20) );
-
-	    if (cup1>1.0e20) {
-	      /* ilast can go to plus infinity */
-	      if (clo2<-1.0e20) {
-		if (dcost1<dcost2) {
-#ifdef PRINT_DEBUG
-		  printf("** Problem seems unbounded %d and %d\n", ilast,ithis);
-#endif
-		  break;
-		} else {
-		  continue;
-		}
-	      } else if (cup2>1.0e20) {
-		//PRESOLVE_STMT(printf("DUPCOL1 (%d,%d) %g\n", ithis, ilast, workcol[jj]));
-		// both have an lb, both have no ub
-		// the more expensive one would end up at its lb
-		if (dcost1>dcost2) {
-		  swap(ilast, ithis);
-		  swap(clo1, clo2);
-		  swap(cup1, cup2);
-		  swap(dcost1, dcost2);
-		}
-		sol[ilast] = newSolution;
-		if (prob->getColumnStatus(ilast)==CoinPrePostsolveMatrix::basic||
-		    prob->getColumnStatus(ithis)==CoinPrePostsolveMatrix::basic)
-		  prob->setColumnStatus(ilast,CoinPrePostsolveMatrix::basic);
-
-		sol[ithis]=clo2;
-		fixed_down[nfixed_down++] = ithis ;
-		sort[jj]                  = ilast;
-	      } else {
-		/* ithis ranged - last not */
-		if (dcost2>dcost1) {
-		  //PRESOLVE_STMT(printf("DUPCOL2 (%d,%d)\n", ithis, ilast));
-		  /* set ithis to lower bound */
-		  fixed_down[nfixed_down++] = ithis;
-		  sort[jj] = ilast;
-		  sol[ilast] = newSolution;
-		  if (prob->getColumnStatus(ilast)==CoinPrePostsolveMatrix::basic||
-		      prob->getColumnStatus(ithis)==CoinPrePostsolveMatrix::basic)
-		    prob->setColumnStatus(ilast,CoinPrePostsolveMatrix::basic);
-		  
-		  sol[ithis]=clo2;
-		} else {
-		  /* no good */
-		  continue;
-		}
-	      }
-	    } else {
-	      /* ilast ranged */
-	      if (clo2<-1.0e20) {
-		// ithis has no lb
-		if (dcost2>dcost1) {
-		  //PRESOLVE_STMT(printf("DUPCOL3 (%d,%d)\n", ithis, ilast));
-		  /* set ilast to upper bound */
-		  fixed_up[nfixed_up++] = ilast;
-		  sort[jj] = ithis;
-		  sol[ithis] = newSolution;
-		  if (prob->getColumnStatus(ithis)==CoinPrePostsolveMatrix::basic||
-		      prob->getColumnStatus(ilast)==CoinPrePostsolveMatrix::basic)
-		    prob->setColumnStatus(ithis,CoinPrePostsolveMatrix::basic);
-		  
-		  sol[ilast]=clo1;
-		} else {
-		  /* need both */
-		  continue;
-		}
-	      } else if (cup2>1.0e20) {
-		if (dcost2<dcost1) {
-		  //PRESOLVE_STMT(printf("DUPCOL4 (%d,%d)\n", ithis, ilast));
-		  /* set ilast to lower bound */
-		  //SWAP(int, ilast, ithis);
-		  fixed_down[nfixed_down++] = ilast;
-		  sort[jj] = ithis;
-		  sol[ithis] = newSolution;
-		  if (prob->getColumnStatus(ithis)==CoinPrePostsolveMatrix::basic||
-		      prob->getColumnStatus(ilast)==CoinPrePostsolveMatrix::basic)
-		    prob->setColumnStatus(ithis,CoinPrePostsolveMatrix::basic);
-		  
-		  sol[ilast]=clo1;
-		} else {
-		  /* need both */
-		  continue;
-		}
-	      } else {
-		/* both ranged - no hope */
-		continue;
-	      }
-	    }
-	  }
-	}
-      }
-    }
-  }
-
-  delete[]workrow;
-  delete[]workcol;
-  delete[]sort;
-
-
-  if (nactions) {
-#if	PRESOLVE_SUMMARY
-    printf("DUPLICATE COLS:  %d\n", nactions);
-#endif
-    next = new dupcol_action(nactions, copyOfArray(actions,nactions), next);
-  }
-  deleteAction(actions,action*);
-  if (nfixed_down)
-    next = make_fixed_action::presolve(prob, fixed_down, nfixed_down,
-				       true,
-				       next);
-
-  if (nfixed_up)
-    next = make_fixed_action::presolve(prob, fixed_up, nfixed_up,
-				       false,
-				       next);
-
-  delete[]fixed_down;
-  delete[]fixed_up;
-
-  return (next);
-}
-
-void create_col(int col, int n, int *rows, double *els,
-		CoinBigIndex *mcstrt, double *colels, int *hrow, int *link,
-		CoinBigIndex *free_listp)
-{
+  int *rows = reinterpret_cast<int *>(els+n) ;
   CoinBigIndex free_list = *free_listp;
   int xstart = NO_LINK;
   for (int i=0; i<n; ++i) {
     CoinBigIndex k = free_list;
+    assert(k >= 0) ;
     free_list = link[free_list];
-
-    check_free_list(free_list);
-
     hrow[k]   = rows[i];
     colels[k] = els[i];
     link[k] = xstart;
@@ -430,6 +80,425 @@ void create_col(int col, int n, int *rows, double *els,
   mcstrt[col] = xstart;
   *free_listp = free_list;
 }
+
+
+} // end unnamed file-local namespace
+
+
+
+dupcol_action::dupcol_action (int nactions, const action *actions,
+			      const CoinPresolveAction *next)
+  : CoinPresolveAction(next),
+    nactions_(nactions),
+    actions_(actions)
+{ }
+
+const char *dupcol_action::name () const
+{
+  return ("dupcol_action");
+}
+
+
+/*
+  Original comment: This is just ekkredc5, adapted into the new framework.
+	The datasets scorpion.mps and allgrade.mps have duplicate columns.
+
+  In case you don't have your OSL manual handy, a somewhat more informative
+  explanation: We're looking for an easy-to-detect special case of linearly
+  dependent columns, where the coefficients of the duplicate columns are
+  exactly equal. The idea for locating such columns is to generate pseudo-
+  random weights for each row and then calculate the weighted sum of
+  coefficients of each column. Columns with equal sums are checked more
+  thoroughly.
+
+  Analysis of the situation says there are two major cases:
+    * If the columns have equal objective coefficients, we can combine
+      them.
+    * If the columns have unequal objective coefficients, we may be able to
+      fix one at bound. If the required bound doesn't exist, we have dual
+      infeasibility (hence one of primal infeasibility or unboundedness).
+
+  In the comments below are a few fragments of code from the original
+  routine. I don't think they make sense, but I've left them for the nonce in
+  case someone else recognises the purpose.   -- lh, 040909 --
+*/
+
+const CoinPresolveAction
+    *dupcol_action::presolve (CoinPresolveMatrix *prob,
+			      const CoinPresolveAction *next)
+{
+
+  double maxmin	= prob->maxmin_ ;
+
+#if 1
+  // not tested yet
+  if (maxmin < 0.0)
+    return (next) ;
+#endif
+
+  double *colels	= prob->colels_ ;
+  int *hrow		= prob->hrow_ ;
+  CoinBigIndex *mcstrt	= prob->mcstrt_ ;
+  int *hincol		= prob->hincol_ ;
+  int ncols		= prob->ncols_ ;
+  int nrows		= prob->nrows_ ;
+
+/*
+  Scan the columns for candidates, and write the indices into sort. We're not
+  interested in columns that are empty, prohibited, or integral.
+
+  Question: Should we exclude singletons, which are useful in other transforms?
+  Question: Why are we excluding integral columns?
+*/
+  int *sort = new int[ncols] ;
+  int nlook = 0 ;
+  for (int j = 0 ; j < ncols ; j++)
+  { if (hincol[j] == 0) continue ;
+    if (prob->colProhibited2(j)) continue ;
+    if (prob->isInteger(j)) continue ;
+    sort[nlook++] = j ; }
+  if (nlook == 0)
+  { delete[] sort ;
+    return (next) ; }
+/*
+  Prep: add the coefficients of each candidate column. To reduce false
+  positives, multiply each row by a `random' multiplier when forming the
+  sums.  On return from compute_sums, sort and colsum are loaded with the
+  indices and column sums, respectively, of candidate columns.  The pair of
+  arrays are then sorted by sum so that equal sums are adjacent.
+*/
+  double *colsum = new double[ncols] ;
+  double *rowmul = new double[nrows] ;
+  init_random_vec(rowmul,nrows) ;
+  compute_sums(ncols,hincol,mcstrt,hrow,colels,rowmul,sort,colsum,nlook) ;
+  CoinSort_2(colsum,colsum+nlook,sort) ;
+/*
+  General prep --- unpack the various vectors we'll need, and allocate arrays
+  to record the results.
+*/
+  presolvehlink *clink	= prob->clink_ ;
+
+  double *clo	= prob->clo_ ;
+  double *cup	= prob->cup_ ;
+  double *sol	= prob->sol_ ;
+
+  double *rowels	= prob->rowels_ ;
+  int *hcol		= prob->hcol_ ;
+  const CoinBigIndex *mrstrt = prob->mrstrt_ ;
+  int *hinrow		= prob->hinrow_ ;
+
+  double *dcost	= prob->cost_ ;
+
+  action *actions	= new action [nlook] ;
+  int nactions = 0 ;
+# ifdef ZEROFAULT
+  memset(actions,0,nlook*sizeof(action)) ;
+# endif
+
+  int *fixed_down	= new int[nlook] ;
+  int nfixed_down	= 0 ;
+  int *fixed_up		= new int[nlook] ;
+  int nfixed_up		= 0 ;
+
+#if 0
+  // Excluded in the original routine. I'm guessing it's excluded because
+  // it's just not cost effective to worry about this. -- lh, 040908 --
+
+  // It may be the case that several columns are duplicate.
+  // If not all have the same cost, then we have to make sure
+  // that we set the most expensive one to its minimum
+  // now sort in each class by cost
+  {
+    double dval = colsum[0] ;
+    int first = 0 ;
+    for (int jj = 1; jj < nlook; jj++) {
+      while (colsum[jj]==dval) 
+	jj++ ;
+
+      if (first + 1 < jj) {
+	double buf[jj - first] ;
+	for (int i=first; i<jj; ++i)
+	  buf[i-first] = dcost[sort[i]]*maxmin ;
+
+	CoinSort_2(buf,buf+jj-first,sort+first) ;
+	//ekk_sortonDouble(buf,&sort[first],jj-first) ;
+      }
+    }
+  }
+#endif
+
+/*
+  Original comment: It appears to be the case that this loop is finished,
+	there may still be duplicate cols left. I haven't done anything
+	about that yet.
+
+  Open the main loop to compare column pairs. We'll compare sort[jj] to
+  sort[tgt]. This allows us to accumulate multiple columns into one. But
+  we don't manage all-pairs comparison when we can't combine columns.
+
+  We can quickly dismiss pairs which have unequal sums or lengths.
+*/
+  int isorted = -1 ;
+  int tgt = 0 ;
+  for (int jj = 1 ;  jj < nlook ; jj++)
+  { if (colsum[jj] != colsum[jj-1]) continue ;
+
+    int j2 = sort[jj] ;
+    int j1 = sort[tgt] ;
+    int len2 = hincol[j2] ;
+    int len1 =  hincol[j1] ;
+
+    if (len2 != len1)
+    { tgt = jj ;
+      continue ; }
+/*
+  The final test: sort the columns by row index and compare each index and
+  coefficient.
+*/
+    CoinBigIndex kcs = mcstrt[j2] ;
+    CoinBigIndex kce = kcs+hincol[j2] ;
+    int ishift = mcstrt[j1]-kcs ;
+
+    if (len1 > 1 && isorted < j1)
+    { CoinSort_2(hrow+mcstrt[j1],hrow+mcstrt[j1]+len1,
+		 colels+mcstrt[j1]) ;
+      isorted = j1 ; }
+    if (len2 > 1 && isorted < j2)
+    { CoinSort_2(hrow+kcs,hrow+kcs+len2,colels+kcs) ;
+      isorted = j2 ; }
+
+    CoinBigIndex k ;
+    for (k = kcs ; k < kce ; k++)
+    { if (hrow[k] != hrow[k+ishift] || colels[k] != colels[k+ishift])
+      { break ; } }
+    if (k != kce)
+    { tgt = jj ;
+      continue ; }
+/*
+  These really are duplicate columns. Grab values for convenient reference.
+  Convert the objective coefficients for minimization.
+*/
+    double clo1 = clo[j1] ;
+    double cup1 = cup[j1] ;
+    double clo2 = clo[j2] ;
+    double cup2 = cup[j2] ;
+    double c1 = dcost[j1]*maxmin ;
+    double c2 = dcost[j2]*maxmin ;
+
+    PRESOLVEASSERT(!(clo1 == cup1 || clo2 == cup2)) ;
+/*
+  There are two main cases: The objective coefficients are equal or unequal.
+
+  For equal objective coefficients c1 == c2, we can combine the columns by
+  making the substitution x<j1> = x'<j1> - x<j2>. This will eliminate column
+  sort[jj] = j2 and leave the new variable x' in column sort[tgt] = j1. tgt
+  doesn't move.
+*/
+    if (c1 == c2)
+    { 
+/*
+  As far as the presolved lp, there's no difference between columns. But we
+  need this relation to hold in order to guarantee that we can split the
+  value of the combined column during postsolve without damaging the basis.
+  (The relevant case is when the combined column is basic --- we need to be
+  able to retain column j1 in the basis and make column j2 nonbasic.)
+*/
+      if (!(clo2+cup1 <= clo1+cup2))
+      { swap(j1,j2) ;
+	swap(clo1,clo2) ;
+	swap(cup1,cup2) ;
+	tgt = jj ; }
+/*
+  Create the postsolve action before we start to modify the columns.
+*/
+      PRESOLVE_STMT(printf("DUPCOL: (%d,%d) %d += %d\n",j1,j2,j1,j2)) ;
+
+      action *s = &actions[nactions++] ;	  
+      s->thislo = clo[j2] ;
+      s->thisup = cup[j2] ;
+      s->lastlo = clo[j1] ;
+      s->lastup = cup[j1] ;
+      s->ithis  = j2 ;
+      s->ilast  = j1 ;
+      s->nincol = hincol[j2] ;
+      s->colels = presolve_dupmajor(colels,hrow,hincol[j2],mcstrt[j2]) ;
+/*
+  Combine the columns into column j1. Upper and lower bounds and solution
+  simply add, and the coefficients are unchanged.
+
+  I'm skeptical of pushing a bound to infinity like this, but leave it for now.
+  -- lh, 040908 --
+*/
+      clo1 += clo2 ;
+      if (clo1 < -1.0e20)
+      { clo1 = -PRESOLVE_INF ; }
+      clo[j1] = clo1 ;
+      cup1 += cup2 ;
+      if (cup1 > 1.0e20)
+      { cup1 = PRESOLVE_INF ; }
+      cup[j1] = cup1 ;
+      if (sol)
+      { sol[j1] += sol[j2] ; }
+      if (prob->colstat_)
+      { if (prob->getColumnStatus(j1) == CoinPrePostsolveMatrix::basic ||
+	    prob->getColumnStatus(j2) == CoinPrePostsolveMatrix::basic)
+	{ prob->setColumnStatus(j1,CoinPrePostsolveMatrix::basic); } }
+/*
+  Empty column j2.
+*/
+      dcost[j2] = 0.0 ;
+      if (sol)
+      { sol[j2] = clo2 ; }
+      CoinBigIndex k2cs = mcstrt[j2] ;
+      CoinBigIndex k2ce = k2cs + hincol[j2] ;
+      for (CoinBigIndex k = k2cs ; k < k2ce ; ++k)
+      { presolve_delete_from_row(hrow[k],j2,mrstrt,hinrow,hcol,rowels) ; }
+      hincol[j2] = 0 ;
+      PRESOLVE_REMOVE_LINK(clink,j2) ;
+      continue ; }
+/*
+  Unequal reduced costs. In this case, we may be able to fix one of the columns
+  or prove dual infeasibility. Given column a_k, duals y, objective
+  coefficient c_k, the reduced cost cbar_k = c_k - dot(y,a_k). Given
+  a_1 = a_2, substitute for dot(y,a_1) in the relation for cbar_2 to get
+    cbar_2 = (c_2 - c_1) + cbar_1
+  Independent elements here are variable bounds l_k, u_k, and difference
+  (c_2 - c_1). Infinite bounds for l_k, u_k will constrain the sign of cbar_k.
+  Assume minimization. If you do the case analysis, you find these cases of
+  interest:
+
+        l_1	u_1	l_2	u_2	cbar_1	c_2-c_1	cbar_2	result
+
+    A    any	finite	-inf	any	<= 0	  > 0	  <= 0	x_1 -> NBUB
+    B   -inf	 any	 any	finite	<= 0	  < 0	  < 0	x_2 -> NBUB
+
+    C   finite	 any	 any	+inf	>= 0	  < 0	  >= 0	x_1 -> NBLB
+    D    any	+inf	finite	 any	>= 0	  > 0	  >= 0	x_2 -> NBLB
+
+    E   -inf	any	 any	+inf	<= 0	  < 0	  >= 0	dual infeas
+    F    any	inf	-inf	 any	>= 0	  > 0	  <= 0  dual infeas
+
+    G    any	finite	finite	 any		  > 0		no inference
+    H   finite	 any	 any	finite		  < 0		no inference
+
+  The cases labelled dual infeasible are primal unbounded.
+
+  To keep the code compact, we'll always aim to take x_2 to bound. In the cases
+  where x_1 should go to bound, we'll swap. The implementation is boolean
+  algebra. Define bits for infinite bounds and (c_2 > c_1), then look for the
+  correct patterns.
+*/
+    else
+    { int minterm = 0 ;
+      bool swapped = false ;
+      if (c2 > c1) minterm |= 1<<0 ;
+      if (cup2 >= PRESOLVE_INF) minterm |= 1<<1 ;
+      if (clo2 <= -PRESOLVE_INF) minterm |= 1<<2 ;
+      if (cup1 >= PRESOLVE_INF) minterm |= 1<<3 ;
+      if (clo1 <= -PRESOLVE_INF) minterm |= 1<<4 ;
+/*
+  The most common case in a well-formed system should be no inference. We're
+  looking for x00x1 (case G) and 0xx00 (case H). This is where we have the
+  potential to miss inferences: If there are three or more columns with the
+  same sum, sort[tgt] == j1 will only be compared to the second in the
+  group.
+*/
+      if ((minterm&0x0d) == 0x1 || (minterm&0x13) == 0)
+      { tgt = jj ;
+	continue ; }
+/*
+  Next remove the unbounded cases, 1xx10 and x11x1.
+*/
+      if ((minterm&0x13) == 0x12 || (minterm&0x0d) == 0x0d)
+      { prob->setStatus(2) ;
+	PRESOLVE_STMT(printf("DUPCOL: (%d,%d) Unbounded\n",j1,j2)) ;
+	break ; }
+/*
+  With the no inference and unbounded cases removed, all that's left are the
+  cases where we can push a variable to bound. Swap if necessary (x01x1 or
+  0xx10) so that we're always fixing index j2.  This means that column
+  sort[tgt] = j1 will be fixed. Unswapped, we fix column sort[jj] = j2.
+*/
+      if ((minterm&0x0d) == 0x05 || (minterm&0x13) == 0x02)
+      { swap(j1, j2) ;
+	swap(clo1, clo2) ;
+	swap(cup1, cup2) ;
+	swap(c1, c2) ;
+	int tmp1 = minterm&0x18 ;
+	int tmp2 = minterm&0x06 ;
+	int tmp3 = minterm&0x01 ;
+	minterm = (tmp1>>2)|(tmp2<<2)|(tmp3^0x01) ;
+	swapped = true ; }
+/*
+  Force x_2 to upper bound? (Case B, boolean 1X100, where X == don't care.)
+*/
+      if ((minterm&0x13) == 0x10)
+      { fixed_up[nfixed_up++] = j2 ;
+	PRESOLVE_STMT(printf("DUPCOL: (%d,%d) %d -> NBUB\n",j1,j2,j2)) ;
+	if (prob->colstat_)
+	{ if (prob->getColumnStatus(j1) == CoinPrePostsolveMatrix::basic ||
+	      prob->getColumnStatus(j2) == CoinPrePostsolveMatrix::basic)
+	  { prob->setColumnStatus(j1,CoinPrePostsolveMatrix::basic) ; }
+	  prob->setColumnStatus(j2,CoinPrePostsolveMatrix::atUpperBound) ; }
+	if (sol)
+	{ double delta2 = cup2-sol[j2] ;
+	  sol[j2] = cup2 ;
+	  sol[j1] -= delta2 ; }
+	if (swapped)
+	{ tgt = jj ; }
+	continue ; }
+/*
+  Force x_2 to lower bound? (Case C, boolean X1011.)
+*/
+      if ((minterm&0x0d) == 0x09)
+      { fixed_down[nfixed_down++] = j2 ;
+	PRESOLVE_STMT(printf("DUPCOL: (%d,%d) %d -> NBLB\n",j1,j2,j2)) ;
+	if (prob->colstat_)
+	{ if (prob->getColumnStatus(j1) == CoinPrePostsolveMatrix::basic ||
+	      prob->getColumnStatus(j2) == CoinPrePostsolveMatrix::basic)
+	  { prob->setColumnStatus(j1,CoinPrePostsolveMatrix::basic) ; }
+	  prob->setColumnStatus(j2,CoinPrePostsolveMatrix::atLowerBound) ; }
+	if (sol)
+	{ double delta2 = clo2-sol[j2] ;
+	  sol[j2] = clo2 ;
+	  sol[j1] -= delta2 ; }
+	if (swapped)
+	{ tgt = jj ; }
+	continue ; } }
+/*
+  We should never reach this point in the loop --- all cases force a new
+  iteration or loop termination. If we get here, something happened that we
+  didn't anticipate.
+*/
+    PRESOLVE_STMT(printf("DUPCOL: (%d,%d) UNEXPECTED!\n",j1,j2)) ; }
+/*
+  What's left? Deallocate vectors, and call make_fixed_action to handle any
+  variables that were fixed to bound.
+*/
+  delete[] rowmul ;
+  delete[] colsum ;
+  delete[] sort ;
+
+# if PRESOLVE_SUMMARY || PRESOLVE_DEBUG
+  if (nactions+nfixed_down+nfixed_up > 0)
+  { printf("DUPLICATE COLS: %d combined, %d lb, %d ub\n",
+	   nactions,nfixed_down,nfixed_up) ; }
+# endif
+  if (nactions)
+  { next = new dupcol_action(nactions,copyOfArray(actions,nactions),next) ; }
+  deleteAction(actions,action*) ;
+
+  if (nfixed_down)
+  { next =
+      make_fixed_action::presolve(prob,fixed_down,nfixed_down,true,next) ; }
+  delete[]fixed_down ;
+
+  if (nfixed_up)
+  { next =
+      make_fixed_action::presolve(prob,fixed_up,nfixed_up,false,next) ; }
+  delete[]fixed_up ;
+
+  return (next) ; }
 
 
 void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
@@ -451,8 +520,6 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
 
   double *rcosts	= prob->rcosts_;
 
-  CoinBigIndex free_list		= prob->free_list_;
-
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
     int icol  = f->ithis;	// was fixed
     int icol2 = f->ilast;	// was kept
@@ -463,8 +530,11 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
     clo[icol2] = f->lastlo;
     cup[icol2] = f->lastup;
 
-    create_col(icol, f->nincol, f->colrows, f->colels,
-	       mcstrt, colels, hrow, link, &free_list);
+    create_col(icol,f->nincol,f->colels,mcstrt,colels,hrow,link,
+	       &prob->free_list_) ;
+#   if PRESOLVE_CONSISTENCY
+    presolve_check_free_list(prob) ;
+#   endif
     hincol[icol] = hincol[icol2]; // right?
 
     int nfinite = ((fabs(f->thislo) < PRESOLVE_INF) +
@@ -487,7 +557,7 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
       } else {
 	sol[icol2] = u_k;
 	sol[icol] = x_k_sol - u_k;
-	prob->setColumnStatus(icol2,CoinPrePostsolveMatrix::atLowerBound);
+	prob->setColumnStatus(icol2,CoinPrePostsolveMatrix::atUpperBound) ;
       }
     } else if (nfinite == 1) {
       double x_k_sol = sol[icol2];
@@ -521,52 +591,76 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
     // row activity doesn't change
     // dj of both variables is the same
     rcosts[icol] = rcosts[icol2];
-    deleteAction(f->colrows,int *);
     deleteAction(f->colels,double *);
 
-#ifdef DEBUG_PRESOLVE
+#   if PRESOLVE_DEBUG
     const double ztolzb = prob->ztolzb_;
     if (! (clo[icol] - ztolzb <= sol[icol] && sol[icol] <= cup[icol] + ztolzb))
 	     printf("BAD DUPCOL BOUNDS:  %g %g %g\n", clo[icol], sol[icol], cup[icol]);
     if (! (clo[icol2] - ztolzb <= sol[icol2] && sol[icol2] <= cup[icol2] + ztolzb))
 	     printf("BAD DUPCOL BOUNDS:  %g %g %g\n", clo[icol2], sol[icol2], cup[icol2]);
-#endif
+#   endif
   }
-  prob->free_list_ = free_list;
   deleteAction(actions_,action *);
 }
 
+
 
+/*
+  Routines for duplicate rows. This is definitely unfinished --- there's no
+  postsolve action.
+*/
 
-
+const char *duprow_action::name () const
+{
+  return ("duprow_action");
+}
 
 // This is just ekkredc4, adapted into the new framework.
-const CoinPresolveAction *duprow_action::presolve(CoinPresolveMatrix *prob,
-					       const CoinPresolveAction *next)
+/*
+  I've made minimal changes for compatibility with dupcol: An initial scan to
+  accumulate rows of interest in sort.
+  -- lh, 040909 --
+*/
+const CoinPresolveAction
+    *duprow_action::presolve (CoinPresolveMatrix *prob,
+			      const CoinPresolveAction *next)
 {
-  //  CoinBigIndex *mcstrt		= prob->mcstrt_;
-  //  int *hincol		= prob->hincol_;
-  int ncols		= prob->ncols_;
-
   double *rowels	= prob->rowels_;
-  /*const*/ int *hcol	= prob->hcol_;
-  const CoinBigIndex *mrstrt	= prob->mrstrt_;
+  int *hcol		= prob->hcol_;
+  CoinBigIndex *mrstrt	= prob->mrstrt_;
   int *hinrow		= prob->hinrow_;
+  int ncols		= prob->ncols_;
   int nrows		= prob->nrows_;
+
+/*
+  Scan the rows for candidates, and write the indices into sort. We're not
+  interested in rows that are empty or prohibited.
+
+  Question: Should we exclude singletons, which are useful in other transforms?
+  Question: Why are we excluding integral columns?
+*/
+  int *sort = new int[nrows] ;
+  int nlook = 0 ;
+  for (int i = 0 ; i < nrows ; i++)
+  { if (hinrow[i] == 0) continue ;
+    if (prob->rowProhibited2(i)) continue ;
+    sort[nlook++] = i ; }
+  if (nlook == 0)
+  { delete[] sort ;
+    return (next) ; }
+
+  double * workcol = new double[ncols+1];
+  double * workrow = new double[nrows+1];
+
+  init_random_vec(workcol, ncols);
+  compute_sums(nrows,hinrow,mrstrt,hcol,rowels,workcol,sort,workrow,nlook);
+  CoinSort_2(workrow,workrow+nlook,sort);
 
   double *rlo	= prob->rlo_;
   double *rup	= prob->rup_;
 
   int nuseless_rows = 0;
-
-  double * workcol = new double[ncols+1];
-  double * workrow = new double[nrows+1];
-  int * sort = new int[nrows];
-
-  init_random_vec(workcol, ncols);
-
-  int nlook = compute_sums(hinrow, mrstrt, hcol, rowels, workcol, workrow, sort, nrows);
-  CoinSort_2(workrow,workrow+nlook,sort);
 
   double dval = workrow[0];
   for (int jj = 1; jj < nlook; jj++) {
@@ -604,10 +698,10 @@ const CoinPresolveAction *duprow_action::presolve(CoinPresolveMatrix *prob,
 	      sort[jj]=ilast;
 	    } else {
 	      /* overlapping - could merge */
-#ifdef PRINT_DEBUG
+#	      if PRESOLVE_DEBUG
 	      printf("overlapping duplicate row %g %g, %g %g\n",
 		     rlo1,rup1,rlo2,rup2);
-#endif
+#	      endif
 	      if (rup1<rlo2) {
 		// infeasible
 		prob->status_|= 1;
@@ -631,10 +725,10 @@ const CoinPresolveAction *duprow_action::presolve(CoinPresolveMatrix *prob,
 	      sort[jj]=ilast;
 	    } else {
 	      /* overlapping - could merge */
-#ifdef PRINT_DEBUG
+#	      if PRESOLVE_DEBUG
 	      printf("overlapping duplicate row %g %g, %g %g\n",
 		     rlo1,rup1,rlo2,rup2);
-#endif
+#	      endif
 	      if (rup2<rlo1) {
 		// infeasible
 		prob->status_|= 1;
@@ -662,9 +756,9 @@ const CoinPresolveAction *duprow_action::presolve(CoinPresolveMatrix *prob,
 
 
   if (nuseless_rows) {
-#if	PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY
     printf("DUPLICATE ROWS:  %d\n", nuseless_rows);
-#endif
+#   endif
     next = useless_constraint_action::presolve(prob,
 					       sort, nuseless_rows,
 					       next);
@@ -679,3 +773,4 @@ void duprow_action::postsolve(CoinPostsolveMatrix *prob) const
   printf("STILL NO POSTSOLVE FOR DUPROW!\n");
   abort();
 }
+
