@@ -15,6 +15,7 @@
 #include "CoinSort.hpp"
 #include "CoinShallowPackedVector.hpp"
 #include "CoinPackedVector.hpp"
+#include "CoinDenseVector.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinMpsIO.hpp"
@@ -112,6 +113,10 @@ int main (int argc, const char *argv[])
 
   testingMessage( "Testing CoinPackedMatrix\n" );
   CoinPackedMatrixUnitTest();
+
+  testingMessage( "Testing CoinDenseVector\n" );
+  CoinDenseVectorUnitTest<double>();
+  CoinDenseVectorUnitTest<int>();
 
   testingMessage( "Testing CoinMpsIO\n" );
   CoinMpsIOUnitTest(mpsDir);
