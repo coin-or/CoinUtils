@@ -378,6 +378,7 @@ CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
 	   // in the major vector are in increasing order, so we'll insert the
 	   // new entry to the last place we can
 	   const int start = start_[majorIndex];
+	   end = start_[majorIndex]+length_[majorIndex]; // recalculate end
 	   for (j = end - 1; j >= start; --j) {
 	      if (element_[j] <= newElement)
 		 break;
