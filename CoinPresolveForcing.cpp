@@ -137,7 +137,8 @@ const char *forcing_constraint_action::name() const
 {
   return ("forcing_constraint_action");
 }
-
+// defed out to avoid compiler warning
+#if 0
 static bool some_col_was_fixed(const int *hcol, CoinBigIndex krs, CoinBigIndex kre,
 			       const double *clo, 
 			       const double *cup)
@@ -150,7 +151,7 @@ static bool some_col_was_fixed(const int *hcol, CoinBigIndex krs, CoinBigIndex k
   }
   return (k<kre);
 }
-
+#endif
 
 //
 // It may be the case that the variable bounds are such that no matter what

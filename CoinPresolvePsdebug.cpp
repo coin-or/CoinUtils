@@ -31,6 +31,7 @@
 */
 
 namespace { // begin unnamed file-local namespace
+#if PRESOLVE_DEBUG
 /*
   Check for duplicate entries in a major vector by walking the vector. For each
   coefficient, use presolve_find_row to search the remainder of the column
@@ -161,7 +162,7 @@ void matrix_consistent (const CoinBigIndex *mrstrt, const int *hinrow,
     }
   }
 }
-
+#endif
 } // end unnamed file-local namespace
 
 /*
