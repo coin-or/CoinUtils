@@ -1123,22 +1123,28 @@ int CoinMpsIO::readMps(const char * filename,  const char * extension)
 {
   free(fileName_);
   if (strcmp(filename,"stdin")&&strcmp(filename,"-")) {
-    int i = strlen(filename)-1;
-    fileName_ = (char *) malloc(i+strlen(extension)+3);
-    strcpy(fileName_,filename);
-    bool foundDot=false; 
-    for (;i>=0;i--) {
-      char character = filename[i];
-      if (character=='/'||character=='\\') {
-	break;
-      } else if (character=='.') {
-	foundDot=true;
-	break;
+    if (extension&&strlen(extension)) {
+      // There was an extension - but see if user gave .xxx
+      int i = strlen(filename)-1;
+      fileName_ = (char *) malloc(i+strlen(extension)+3);
+      strcpy(fileName_,filename);
+      bool foundDot=false; 
+      for (;i>=0;i--) {
+	char character = filename[i];
+	if (character=='/'||character=='\\') {
+	  break;
+	} else if (character=='.') {
+	  foundDot=true;
+	  break;
+	}
       }
-    }
-    if (strlen(extension)&&!foundDot) {
-      strcat(fileName_,".");
-      strcat(fileName_,extension);
+      if (!foundDot) {
+	strcat(fileName_,".");
+	strcat(fileName_,extension);
+      }
+    } else {
+      // no extension
+      fileName_ = strdup(filename);
     }
   } else {
     fileName_=strdup("stdin");    
