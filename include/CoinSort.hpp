@@ -183,6 +183,9 @@ CoinSort_2(S* sfirst, S* slast, T* tfirst, const CoinCompare2& pc)
     new (x+i++) ST_pair(*scurrent++, *tcurrent++);
   }
 
+  // Can show RUI errors on some systems due to copy of ST_pair with gaps.
+  // E.g., <int, double> has 4 byte alignment gap on Solaris/SUNWspro.
+
   std::sort(x, x + len, pc);
 
   scurrent = sfirst;
