@@ -415,7 +415,7 @@ int CoinFactorization::checkPivot(double saveFromU,
 				 double oldPivot) const
 {
   int status;
-  if ( fabs ( saveFromU ) > 1.0e-7 ) {
+  if ( fabs ( saveFromU ) > 1.0e-8 ) {
     double checkTolerance;
     
     if ( numberRowsExtra_ < numberRows_ + 2 ) {
