@@ -1241,13 +1241,16 @@ CoinPackedMatrix::CoinPackedMatrix() :
    extraMajor_(0.25),
    element_(0), 
    index_(0),
-   start_(0),
    length_(0),
    majorDim_(0),
    minorDim_(0),
    size_(0),
    maxMajorDim_(0),
-   maxSize_(0) {}
+   maxSize_(0) 
+{
+  start_ = new int[1];
+  start_[0] = 0;
+}
 
 //-----------------------------------------------------------------------------
 
@@ -1259,13 +1262,16 @@ CoinPackedMatrix::CoinPackedMatrix(const bool colordered,
    extraMajor_(extraMajor),
    element_(0), 
    index_(0),
-   start_(0),
    length_(0),
    majorDim_(0),
    minorDim_(0),
    size_(0),
    maxMajorDim_(0),
-   maxSize_(0) {}
+   maxSize_(0)
+{
+  start_ = new int[1];
+  start_[0] = 0;
+}
 
 //-----------------------------------------------------------------------------
 
@@ -1639,6 +1645,10 @@ CoinPackedMatrix::gutsOfOpEqual(const bool colordered,
 	for (i = 0; i < major; ++i)
 	  start_[i+1] = start_[i] + CoinLengthWithExtra(length_[i], extra_gap);
       }
+   } else {
+     // empty matrix
+     start_ = new int[1];
+     start_[0] = 0;
    }
 
    maxSize_ = maxMajorDim_ > 0 ? start_[major] : 0;
