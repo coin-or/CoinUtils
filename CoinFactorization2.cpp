@@ -30,7 +30,7 @@ CoinFactorization::factorSparse (  )
   // when to go dense
   int denseThreshold=denseThreshold_;
 
-  CoinFillN ( workArea, numberRows_ , 0.0);
+  CoinZeroN ( workArea, numberRows_ );
   //get space for bit work area
   CoinBigIndex workSize = 1000;
   unsigned int *workArea2 = ( unsigned int * ) new int [ workSize ];

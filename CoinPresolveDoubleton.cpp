@@ -799,7 +799,7 @@ const CoinPresolveAction *doubleton_action::presolve(CoinPresolveMatrix *prob,
     printf("NDOUBLETONS:  %d\n", nactions);
 #endif
     action *actions1 = new action[nactions];
-    CoinDisjointCopyN(actions, nactions, actions1);
+    CoinMemcpyN(actions, nactions, actions1);
 
     next = new doubleton_action(nactions, actions1, next);
 

@@ -12,13 +12,13 @@
 
 
 #include "CoinError.hpp"
-
 //#############################################################################
 
 /** This helper function copies an array to another location using Duff's
     device (for a speedup of ~2). The arrays are given by pointers to their
     first entries and by the size of the source array. Overlapping arrays are
     handled correctly. */
+
 template <class T> inline void
 CoinCopyN(register const T* from, const int size, register T* to)
 {
@@ -81,7 +81,10 @@ CoinCopy(register const T* first, register const T* last, register T* to)
 /** This helper function copies an array to another location. The two arrays
     must not overlap (otherwise an exception is thrown). For speed 8 entries
     are copied at a time. The arrays are given by pointers to their first
-    entries and by the size of the source array. */
+    entries and by the size of the source array. 
+
+    Note JJF - the speed claim seems to be false on IA32 so I have added 
+    CoinMemcpyN which can be used for atomic data */
 template <class T> inline void
 CoinDisjointCopyN(register const T* from, const int size, register T* to)
 {
@@ -135,11 +138,91 @@ CoinDisjointCopy(register const T* first, register const T* last,
    CoinDisjointCopyN(first, static_cast<int>(last - first), to);
 }
 
+//-----------------------------------------------------------------------------
+
+/** This helper function copies an array to another location. The two arrays
+    must not overlap (otherwise an exception is thrown). For speed 8 entries
+    are copied at a time. The arrays are given by pointers to their first
+    entries and by the size of the source array. 
+
+    Note JJF - the speed claim seems to be false on IA32 so I have added 
+    alternative coding if USE_MEMCPY defined*/
+template <class T> inline void
+CoinMemcpyN(register const T* from, const int size, register T* to)
+{
+#ifndef _MSC_VER
+#ifdef USE_MEMCPY
+  // Use memcpy - seems a lot faster on Intel with gcc
+#ifndef NDEBUG
+  // Some debug so check
+  if (size < 0)
+    throw CoinError("trying to copy negative number of entries",
+		    "CoinMemcpyN", "");
+  
+  const int dist = to - from;
+  if (-size < dist && dist < size)
+    throw CoinError("overlapping arrays", "CoinMemcpyN", "");
+#endif
+  memcpy(to,from,size*sizeof(T));
+#else
+   if (size == 0 || from == to)
+      return;
+
+   if (size < 0)
+      throw CoinError("trying to copy negative number of entries",
+		     "CoinMemcpyN", "");
+
+   const int dist = to - from;
+   if (-size < dist && dist < size)
+      throw CoinError("overlapping arrays", "CoinMemcpyN", "");
+
+   for (register int n = size / 8; n > 0; --n, from += 8, to += 8) {
+      to[0] = from[0];
+      to[1] = from[1];
+      to[2] = from[2];
+      to[3] = from[3];
+      to[4] = from[4];
+      to[5] = from[5];
+      to[6] = from[6];
+      to[7] = from[7];
+   }
+   switch (size % 8) {
+    case 7: to[6] = from[6];
+    case 6: to[5] = from[5];
+    case 5: to[4] = from[4];
+    case 4: to[3] = from[3];
+    case 3: to[2] = from[2];
+    case 2: to[1] = from[1];
+    case 1: to[0] = from[0];
+    case 0: break;
+   }
+#endif
+#else
+   CoinCopyN(from, size, to);
+#endif
+}
+
+//-----------------------------------------------------------------------------
+
+/** This helper function copies an array to another location. The two arrays
+    must not overlap (otherwise an exception is thrown). For speed 8 entries
+    are copied at a time. The source array is given by its first and "after
+    last" entry; the target array is given by its first entry. */
+template <class T> inline void
+CoinMemcpy(register const T* first, register const T* last,
+		 register T* to)
+{
+   CoinMemcpyN(first, static_cast<int>(last - first), to);
+}
+
 //#############################################################################
 
 /** This helper function fills an array with a given value. For speed 8 entries
     are filled at a time. The array is given by a pointer to its first entry
-    and its size. */
+    and its size. 
+
+    Note JJF - the speed claim seems to be false on IA32 so I have added 
+    CoinZero to allow for memset. */
 template <class T> inline void
 CoinFillN(register T* to, const int size, register const T value)
 {
@@ -198,6 +281,85 @@ template <class T> inline void
 CoinFill(register T* first, register T* last, const T value)
 {
    CoinFillN(first, last - first, value);
+}
+
+//#############################################################################
+
+/** This helper function fills an array with zero. For speed 8 entries
+    are filled at a time. The array is given by a pointer to its first entry
+    and its size.
+
+    Note JJF - the speed claim seems to be false on IA32 so I have allowed 
+    for memset as an alternative */
+template <class T> inline void
+CoinZeroN(register T* to, const int size)
+{
+#ifdef USE_MEMCPY
+  // Use memset - seems faster on Intel with gcc
+#ifndef NDEBUG
+  // Some debug so check
+  if (size < 0)
+    throw CoinError("trying to fill negative number of entries",
+		     "CoinZeroN", "");
+#endif
+  memset(to,0,size*sizeof(T));
+#else
+   if (size == 0)
+      return;
+
+   if (size < 0)
+      throw CoinError("trying to fill negative number of entries",
+		     "CoinZeroN", "");
+
+#if 1
+   for (register int n = size / 8; n > 0; --n, to += 8) {
+      to[0] = 0;
+      to[1] = 0;
+      to[2] = 0;
+      to[3] = 0;
+      to[4] = 0;
+      to[5] = 0;
+      to[6] = 0;
+      to[7] = 0;
+   }
+   switch (size % 8) {
+    case 7: to[6] = 0;
+    case 6: to[5] = 0;
+    case 5: to[4] = 0;
+    case 4: to[3] = 0;
+    case 3: to[2] = 0;
+    case 2: to[1] = 0;
+    case 1: to[0] = 0;
+    case 0: break;
+   }
+#else
+   // Use Duff's device to fill
+   register int n = (size + 7) / 8;
+   --to;
+   switch (size % 8) {
+     case 0: do{     *++to = 0;
+     case 7:         *++to = 0;
+     case 6:         *++to = 0;
+     case 5:         *++to = 0;
+     case 4:         *++to = 0;
+     case 3:         *++to = 0;
+     case 2:         *++to = 0;
+     case 1:         *++to = 0;
+               }while(--n>0);
+   }
+#endif
+#endif
+}
+
+//-----------------------------------------------------------------------------
+
+/** This helper function fills an array with a given value. For speed 8
+    entries are filled at a time. The array is given by its first and "after
+    last" entry. */
+template <class T> inline void
+CoinZero(register T* first, register T* last, const T value)
+{
+   CoinZeroN(first, last - first, value);
 }
 
 //#############################################################################

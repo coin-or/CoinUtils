@@ -1887,7 +1887,7 @@ CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
       }
       factorElements_=j;
       
-      CoinFillN ( numberInRow_, numberRowsExtra_ , 0);
+      CoinZeroN ( numberInRow_, numberRowsExtra_ );
       int i;
       for ( i = 0; i < numberRowsExtra_; i++ ) {
 	CoinBigIndex start = startColumnU_[i];

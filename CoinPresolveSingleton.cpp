@@ -205,7 +205,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
     printf("SINGLETON ROWS:  %d\n", nactions);
 #endif
     action *save_actions = new action[nactions];
-    CoinDisjointCopyN(actions, nactions, save_actions);
+    CoinMemcpyN(actions, nactions, save_actions);
     next = new slack_doubleton_action(nactions, save_actions, next);
 
     if (nfixed_cols)

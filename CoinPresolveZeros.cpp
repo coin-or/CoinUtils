@@ -121,7 +121,7 @@ const CoinPresolveAction *drop_zero_coefficients_action::presolve(CoinPresolveMa
     drop_row_zeros(nzeros, zeros, mrstrt, rowels, hcol, hinrow);
 
     dropped_zero *zeros1 = new dropped_zero[nzeros];
-    CoinDisjointCopyN(zeros, nzeros, zeros1);
+    CoinMemcpyN(zeros, nzeros, zeros1);
 
     delete [] zeros;
     return (new drop_zero_coefficients_action(nzeros, zeros1, next));

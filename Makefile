@@ -13,7 +13,6 @@ LibType := SHARED
 # between then specify the exact level you want, e.g., -O1 or -O2
 OptLevel := -g
 OptLevel := -O1
-#OptLevel := -O2
 
 # Look at the ${CoinDir}/Makefiles/Makefile.location file, comment in which
 # libraries are/will be available and edit the location of the various

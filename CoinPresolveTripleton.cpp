@@ -776,7 +776,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
     printf("NTRIPLETONS:  %d\n", nactions);
 #endif
     action *actions1 = new action[nactions];
-    CoinDisjointCopyN(actions, nactions, actions1);
+    CoinMemcpyN(actions, nactions, actions1);
 
     next = new tripleton_action(nactions, actions1, next);
 

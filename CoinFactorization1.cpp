@@ -358,8 +358,8 @@ int CoinFactorization::factorize (
     // Set up permutation vector
     // these arrays start off as copies of permute
     // (and we could use permute_ instead of pivotColumn (not back though))
-    CoinDisjointCopyN ( permute_, numberRows_ , pivotColumn_  );
-    CoinDisjointCopyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
+    CoinMemcpyN ( permute_, numberRows_ , pivotColumn_  );
+    CoinMemcpyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
   } else if (status_ == -1) {
     // mark as basic or non basic
     for (i=0;i<numberRows_;i++) {
@@ -403,9 +403,9 @@ int CoinFactorization::factorize (
     areaFactor_ = areaFactor;
   getAreas ( numberOfRows, numberOfColumns, maximumL, maximumU );
   //copy
-  CoinDisjointCopyN ( indicesRow, numberOfElements, indexRowU_ );
-  CoinDisjointCopyN ( indicesColumn, numberOfElements, indexColumnU_ );
-  CoinDisjointCopyN ( elements, numberOfElements, elementU_ );
+  CoinMemcpyN ( indicesRow, numberOfElements, indexRowU_ );
+  CoinMemcpyN ( indicesColumn, numberOfElements, indexColumnU_ );
+  CoinMemcpyN ( elements, numberOfElements, elementU_ );
   lengthU_ = numberOfElements;
   preProcess ( 0 );
   factor (  );
@@ -421,8 +421,8 @@ int CoinFactorization::factorize (
     // Set up permutation vector
     // these arrays start off as copies of permute
     // (and we could use permute_ instead of pivotColumn (not back though))
-    CoinDisjointCopyN ( permute_, numberRows_ , pivotColumn_  );
-    CoinDisjointCopyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
+    CoinMemcpyN ( permute_, numberRows_ , pivotColumn_  );
+    CoinMemcpyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
   } else if (status_ == -1) {
     // mark as basic or non basic
     for (i=0;i<numberOfColumns;i++) {
@@ -490,8 +490,8 @@ CoinFactorization::factorizePart2 (int permutation[],int exactNumberElements)
     // Set up permutation vector
     // these arrays start off as copies of permute
     // (and we could use permute_ instead of pivotColumn (not back though))
-    CoinDisjointCopyN ( permute_, numberRows_ , pivotColumn_  );
-    CoinDisjointCopyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
+    CoinMemcpyN ( permute_, numberRows_ , pivotColumn_  );
+    CoinMemcpyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
   } else if (status_ == -1) {
     // mark as basic or non basic
     for (i=0;i<numberColumns_;i++) {
@@ -692,8 +692,8 @@ CoinFactorization::preProcess ( int state,
   switch ( state ) {
   case 0:			//counts
     {
-      CoinFillN ( numberInRow, numberRows + 1 , 0);
-      CoinFillN ( numberInColumn, maximumColumnsExtra_ + 1 , 0);
+      CoinZeroN ( numberInRow, numberRows + 1 );
+      CoinZeroN ( numberInColumn, maximumColumnsExtra_ + 1 );
       CoinBigIndex i;
       for ( i = 0; i < numberElements; i++ ) {
 	int iRow = indexRow[i];
@@ -756,7 +756,7 @@ CoinFactorization::preProcess ( int state,
 	startRow[iRow] = i;
 	i += numberInRow[iRow];
       }
-      CoinFillN ( numberInRow, numberRows , 0);
+      CoinZeroN ( numberInRow, numberRows );
       int iColumn;
       for ( iColumn = 0; iColumn < numberColumns; iColumn++ ) {
 	int number = numberInColumn[iColumn];
@@ -803,7 +803,7 @@ CoinFactorization::preProcess ( int state,
 
       CoinFillN ( firstCount_, biggerDimension_ + 2, -1 );
       CoinFillN ( pivotColumn_, numberColumns_, -1 );
-      CoinFillN ( numberInColumnPlus_, maximumColumnsExtra_ + 1, 0 );
+      CoinZeroN ( numberInColumnPlus_, maximumColumnsExtra_ + 1 );
       int iRow;
       for ( iRow = 0; iRow < numberRows; iRow++ ) {
 	lastRow[iRow] = iRow - 1;
@@ -1238,8 +1238,8 @@ CoinFactorization::getColumnSpace ( int iColumn,
 	indexRow[put + i + 1] = index1;
       }
     } else {
-      CoinDisjointCopyN ( &indexRowU_[get], number, &indexRowU_[put] );
-      CoinDisjointCopyN ( &elementU_[get], number, &elementU_[put] );
+      CoinMemcpyN ( &indexRowU_[get], number, &indexRowU_[put] );
+      CoinMemcpyN ( &elementU_[get], number, &elementU_[put] );
     }
     put += number;
     get += number;
@@ -1529,7 +1529,7 @@ CoinFactorization::cleanup (  )
   }
   CoinBigIndex numberInU = j;
 
-  CoinFillN ( numberInRow_, numberRows_ , 0);
+  CoinZeroN ( numberInRow_, numberRows_ );
   CoinBigIndex lowCount = 0;
   CoinBigIndex highCount = numberInU;
   int lowC = 0;

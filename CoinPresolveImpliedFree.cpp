@@ -920,7 +920,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
     printf("NIMPLIED FREE:  %d\n", nactions);
 #endif
     action *actions1 = new action[nactions];
-    CoinDisjointCopyN(actions, nactions, actions1);
+    CoinMemcpyN(actions, nactions, actions1);
     next = new implied_free_action(nactions, actions1, next);
   } 
   delete [] actions;

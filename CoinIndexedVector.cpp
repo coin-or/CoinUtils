@@ -263,7 +263,7 @@ void CoinIndexedVector::checkClean()
       assert(!elements_[i]);
   } else {
     double * copy = new double[capacity_];
-    CoinDisjointCopyN(elements_,capacity_,copy);
+    CoinMemcpyN(elements_,capacity_,copy);
     for (i=0;i<nElements_;i++) {
       int indexValue = indices_[i];
       copy[indexValue]=0.0;
@@ -466,11 +466,11 @@ CoinIndexedVector::reserve(int n)
     // copy data to new space
     // and zero out part of array
     if (nElements_ > 0) {
-      CoinDisjointCopyN(tempIndices, nElements_, indices_);
-      CoinDisjointCopyN(tempElements, capacity_, elements_);
-      CoinFillN(elements_+capacity_,n-capacity_,0.0);
+      CoinMemcpyN(tempIndices, nElements_, indices_);
+      CoinMemcpyN(tempElements, capacity_, elements_);
+      CoinZeroN(elements_+capacity_,n-capacity_);
     } else {
-      CoinFillN(elements_,n,0.0);
+      CoinZeroN(elements_,n);
     }
     capacity_ = n;
     
