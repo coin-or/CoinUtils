@@ -11,9 +11,16 @@
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
-static const CoinPresolveAction *  testRedundant(CoinPresolveMatrix *prob,
-						 const CoinPresolveAction *next,
-						 int & numberInfeasible)
+
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
+#endif
+
+namespace {	// begin unnamed file-local namespace
+
+const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
+					 const CoinPresolveAction *next,
+					 int & numberInfeasible)
 {
   prob->pass_++;
   numberInfeasible=0;
@@ -370,6 +377,8 @@ static const CoinPresolveAction *  testRedundant(CoinPresolveMatrix *prob,
   return next;
 }
 
+} // end unnamed file-local namespace
+
 // If there is a row with a singleton column such that no matter what
 // the values of the other variables are, the constraint forces the singleton
 // column to have a feasible value, then we can drop the column and row,
@@ -397,7 +406,7 @@ static const CoinPresolveAction *  testRedundant(CoinPresolveMatrix *prob,
 // with a column singleton, one can't always drop an equality.
 //
 // It is possible for two singleton columns to be in the same row.
-// In that case, the other one will become empty.  If it's bounds and
+// In that case, the other one will become empty.  If its bounds and
 // costs aren't just right, this signals an unbounded problem.
 // We don't need to check that specially here.
 //
@@ -429,7 +438,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   presolvehlink *rlink = prob->rlink_;
   presolvehlink *clink = prob->clink_;
 
-  const char *integerType = prob->integerType_;
+  const unsigned char *integerType = prob->integerType_;
 
   const double tol = prob->feasibilityTolerance_;
 #if 1  
@@ -445,6 +454,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   //  int nbounds = 0;
 
   action *actions	= new action [ncols];
+# ifdef ZEROFAULT
+  CoinZeroN(reinterpret_cast<char *>(actions),ncols*sizeof(action)) ;
+# endif
   int nactions = 0;
 
   int *implied_free = new int[ncols];
@@ -473,6 +485,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   int * look = prob->colsToDo_;
   int * look2 = NULL;
   // if gone from 2 to 3 look at all
+  // why does this loop not check for prohibited columns? -- lh, 040818 --
   if (fill_level<0) {
     look2 = new int[ncols];
     look=look2;
@@ -741,6 +754,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	      
 	    // both column bounds implied by the constraints of the problem
 	    // get row
+	    // If more than one equality is present, how do I know the one I
+	    // select here will be the one that actually implied tighter
+	    // bounds? Seems like I should care.  -- lh, 040818 --
 	    largestElement *= 0.1;
 	    int krow=-1;
 	    int ninrow=ncols+1;
@@ -814,6 +830,8 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
       }
     }
   }
+  // this comment is incorrect? implied_free[j] is a row index, not column
+  // length    -- lh, 040818 --
   // implied_free[j] == hincol[j] && hincol[j] > 0 ==> j is implied free
 
   delete [] infiniteDown;
@@ -865,8 +883,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	s->rup = rup[row];
 
 	s->ninrow = hinrow[row];
-	s->rowels = presolve_duparray(&rowels[krs], hinrow[row]);
-	s->rowcols = presolve_duparray(&hcol[krs], hinrow[row]);
+	s->rowels = presolve_dupmajor(rowels,hcol,hinrow[row],krs) ;
 	s->costs = save_costs;
       }
 
@@ -874,9 +891,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	double rhs = rlo[row];
 	double costj = cost[j];
 
-#if	DEBUG_PRESOLVE
+#	if PRESOLVE_DEBUG
 	printf("FREE COSTS:  %g  ", costj);
-#endif
+#	endif
 	for (CoinBigIndex k=krs; k<kre; k++) {
 	  int jcol = hcol[k];
 	  save_costs[k-krs] = cost[jcol];
@@ -884,9 +901,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	  if (jcol != j) {
 	    double coeff = rowels[k];
 
-#if	DEBUG_PRESOLVE
+#	    if PRESOLVE_DEBUG
 	    printf("%g %g   ", cost[jcol], coeff/coeffj);
-#endif
+#	    endif
 	    /*
 	     * Similar to eliminating doubleton:
 	     *   cost1 x = cost1 (c - b y) / a = (c cost1)/a - (b cost1)/a
@@ -895,14 +912,14 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	    cost[jcol] += costj * (-coeff / coeffj);
 	  }
 	}
-#if	DEBUG_PRESOLVE
+#	if PRESOLVE_DEBUG
 	printf("\n");
 
 	/* similar to doubleton */
 	printf("BIAS??????? %g %g %g %g\n",
 	       costj * rhs / coeffj,
 	       costj, rhs, coeffj);
-#endif
+#	endif
 	prob->change_bias(costj * rhs / coeffj);
 	// ??
 	cost[j] = 0.0;
@@ -912,7 +929,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
       for (CoinBigIndex k=krs; k<kre; k++) {
 	int jcol=hcol[k];
 	prob->addCol(jcol);
-	presolve_delete_from_row(jcol, row, mcstrt, hincol, hrow, colels);
+	presolve_delete_from_col(row,jcol,mcstrt,hincol,hrow,colels) ;
+	if (hincol[jcol] == 0)
+	{ PRESOLVE_REMOVE_LINK(prob->clink_,jcol) ; }
       }
       PRESOLVE_REMOVE_LINK(rlink, row);
       hinrow[row] = 0;
@@ -930,9 +949,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 
   delete [] look2;
   if (nactions) {
-#if	PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY
     printf("NIMPLIED FREE:  %d\n", nactions);
-#endif
+#   endif
     action *actions1 = new action[nactions];
     CoinMemcpyN(actions, nactions, actions1);
     next = new implied_free_action(nactions, actions1, next);
@@ -986,13 +1005,14 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
   double *acts	= prob->acts_;
   double *rowduals = prob->rowduals_;
 
-  //  const double ztoldj	= prob->ztoldj_;
-
   const double maxmin	= prob->maxmin_;
 
+# if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
   char *cdone	= prob->cdone_;
   char *rdone	= prob->rdone_;
-  CoinBigIndex free_list = prob->free_list_;
+# endif
+
+  CoinBigIndex &free_list = prob->free_list_;
 
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
 
@@ -1001,7 +1021,7 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	  
     int ninrow = f->ninrow;
     const double *rowels = f->rowels;
-    const int *rowcols = f->rowcols;
+    const int *rowcols = reinterpret_cast<const int *>(rowels+ninrow) ;
     const double *save_costs = f->costs;
 
     // put back coefficients in the row
@@ -1017,10 +1037,8 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	}
 	{
 	  CoinBigIndex kk = free_list;
+	  assert(kk >= 0 && kk < prob->bulk0_) ;
 	  free_list = link[free_list];
-
-	  check_free_list(free_list);
-
 	  link[kk] = columnStart[jcol];
 	  columnStart[jcol] = kk;
 	  elementByColumn[kk] = coeff;
@@ -1033,12 +1051,19 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	  clo[icol] = f->clo;
 	  cup[icol] = f->cup;
 
+# 	  if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 	  cdone[icol] = IMPLIED_FREE;
+#	  endif
 	} else {
 	  numberInColumn[jcol]++;
 	}
       }
+#     if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
       rdone[irow] = IMPLIED_FREE;
+#     endif
+#     if PRESOLVE_CONSISTENCY
+      presolve_check_free_list(prob) ;
+#     endif
 
       rlo[irow] = f->rlo;
       rup[irow] = f->rup;
@@ -1167,7 +1192,7 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	acts[irow] = act + sol[icol]*coeff;
 	assert (acts[irow]>=rlo[irow]-1.0e-5&&acts[irow]<=rup[irow]+1.0e-5);
       }
-#if	DEBUG_PRESOLVE
+#     if PRESOLVE_DEBUG
       {
 	double *colels	= prob->colels_;
 	int *hrow	= prob->hrow_;
@@ -1190,21 +1215,24 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	    printf("changed\n");
 	}
       }
-#endif
+#     endif
     }
   }
-  prob->free_list_ = free_list;
+
+  return ;
 }
+
+
+/*
+  Why do we delete costs during postsolve() execution, but none of the other
+  components of the action?
+*/
 implied_free_action::~implied_free_action() 
 { 
   int i;
   for (i=0;i<nactions_;i++) {
-    //delete [] actions_[i].rowcols; MS Visual C++ V6 can not compile
-    //delete [] actions_[i].rowels; MS Visual C++ V6 can not compile
-    deleteAction(actions_[i].rowcols,int *);
-    deleteAction(actions_[i].rowels,int *);
+    deleteAction(actions_[i].rowels,double *);
     //delete [] actions_[i].costs; deleted earlier
   }
-  // delete [] actions_; MS Visual C++ V6 can not compile
   deleteAction(actions_,action *);
 }

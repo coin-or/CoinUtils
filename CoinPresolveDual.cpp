@@ -8,7 +8,7 @@
 #include "CoinPresolveDual.hpp"
 #include "CoinMessage.hpp"
 //#define PRESOLVE_TIGHTEN_DUALS 1
-//#define DEBUG_PRESOLVE 1
+//#define PRESOLVE_DEBUG 1
 
 // this looks for "dominated columns"
 // following ekkredc
@@ -23,6 +23,14 @@
 // This implies:
 //	there is no lb ==> dj<=0 at optimality
 //	there is no ub ==> dj>=0 at optimality
+
+/*
+  This routine looks to be something of a work in progres. See the comment
+  that begins with `Gack!'. And down in the bound propagation loop, why do we
+  only work with variables with u_j = infty? The corresponding section of code
+  for l_j = -infty is ifdef'd away. And why exclude the code protected by
+  PRESOLVE_TIGHTEN_DUALS?
+*/
 const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 				   const CoinPresolveAction *next)
 {
@@ -194,7 +202,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 		  }
 		  rdmax[i] = newValue;
 		  tightened++;
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		  printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
 #endif
 		}
@@ -211,7 +219,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 		  }
 		  rdmin[i] = newValue;
 		  tightened++;
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		  printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
 #endif
 		  ddjlo = 0.0;
@@ -228,14 +236,14 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 		rdmax[i] += ddjlo/coeff;
 		ddjlo =0.0;
 		tightened++;
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
 #endif
 	      } else if (coeff < 0.0 ) {
 		rdmin[i] += ddjlo/coeff;
 		ddjlo =0.0;
 		tightened++;
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
 #endif
 	      }
@@ -264,7 +272,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 		  }
 		  rdmax[i] = newValue;
 		  tightened++;
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		  printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
 #endif
 		}
@@ -281,7 +289,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 		  }
 		  rdmin[i] = newValue;
 		  tightened++;
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		  printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
 #endif
 		}
@@ -297,14 +305,14 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 		rdmax[i] += ddjhi/coeff;
 		ddjhi =0.0;
 		tightened++;
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
 #endif
 	      } else if (coeff > 0.0 ) {
 		rdmin[i] += ddjhi/coeff;
 		ddjhi =0.0;
 		tightened++;
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
 #endif
 	      }
@@ -377,7 +385,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    if (coeff > ZTOLDP && djmax0 <PRESOLVE_INF && cup[icol]>=ekkinf) {
 	      double bnd = djmax0 / coeff;
 	      if (rmax > bnd) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		printf("MAX TIGHT[%d,%d]:  %g --> %g\n", i,hrow[k], rdmax[i], bnd);
 #endif
 		rdmax[i] = rmax = bnd;
@@ -386,7 +394,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    } else if (coeff < -ZTOLDP && djmax0 <PRESOLVE_INF && cup[icol] >= ekkinf) {
 	      double bnd = djmax0 / coeff ;
 	      if (rmin < bnd) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		printf("MIN TIGHT[%d,%d]:  %g --> %g\n", i, hrow[k], rdmin[i], bnd);
 #endif
 		rdmin[i] = rmin = bnd;
@@ -398,7 +406,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    if (coeff > ZTOLDP && djmin0 > -PRESOLVE_INF && clo[icol]<=-ekkinf) {
 	      double bnd = djmin0 / coeff ;
 	      if (rmin < bnd) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		printf("MIN1 TIGHT[%d,%d]:  %g --> %g\n", i, hrow[k], rdmin[i], bnd);
 #endif
 		rdmin[i] = rmin = bnd;
@@ -407,7 +415,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    } else if (coeff < -ZTOLDP && djmin0 > -PRESOLVE_INF && clo[icol] <= -ekkinf) {
 	      double bnd = djmin0 / coeff ;
 	      if (rmax > bnd) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 		printf("MAX TIGHT1[%d,%d]:  %g --> %g\n", i,hrow[k], rdmax[i], bnd);
 #endif
 		rdmax[i] = rmax = bnd;
@@ -429,14 +437,14 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   }
 
   if (nfixup_cols) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
     printf("NDUAL:  %d\n", nfixup_cols);
 #endif
     next = make_fixed_action::presolve(prob, fixup_cols, nfixup_cols, false, next);
   }
 
   if (nfixdown_cols) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
     printf("NDUAL:  %d\n", nfixdown_cols);
 #endif
     next = make_fixed_action::presolve(prob, fixdown_cols, nfixdown_cols, true, next);
@@ -444,6 +452,12 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   // If dual says so then we can make equality row
   // Also if cost is in right direction and only one binding row for variable 
   // We may wish to think about giving preference to rows with 2 or 3 elements
+/*
+  Gack! Ok, I can appreciate the thought here, but I'm seriously sceptical
+  about writing canFix[0] before reading rdmin[0]. After that, we should be out
+  of the interference zone for the typical situation where sizeof(double) is
+  twice sizeof(int).
+*/
   int * canFix = (int *) rdmin;
   for ( i = 0; i < nrows; i++) {
     bool no_lb = (rlo[i] <= -ekkinf);
