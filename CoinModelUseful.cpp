@@ -701,8 +701,6 @@ CoinModelHash2::hashValue(int row, int column) const
   int maxHash = 2 * maximumItems_;
   int absN = abs(n);
   int returnValue = absN % maxHash;
-  printf("%d and %d with maxHash of %d computes %d and returns %d\n",
-         row,column,maxHash,n,returnValue);
   return returnValue;
 }
 //#############################################################################

@@ -199,6 +199,11 @@ public:
   int writeMps(const char *filename, int compression = 0,
                int formatType = 0, int numberAcross = 2) ;
   
+  /** Check two models against each other.  Return nonzero if different.
+      Ignore names if that set.
+      May modify both models by cleaning up
+  */
+  int differentModel(CoinModel & other, bool ignoreNames);
    //@}
 
 

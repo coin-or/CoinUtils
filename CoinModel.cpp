@@ -6,6 +6,7 @@
 #include "CoinModel.hpp"
 #include "CoinSort.hpp"
 #include "CoinMpsIO.hpp"
+#include "CoinFloatEqual.hpp"
 
 //#############################################################################
 // Constructors / Destructor / Assignment
@@ -191,7 +192,7 @@ CoinModel::addRow(int numberInRow, const int * columns,
     type_=2;
     links_ |= 1;
   }
-  int newColumn=0;
+  int newColumn=-1;
   if (numberInRow>0) {
     // Move and sort
     if (numberInRow>sortSize_) {
@@ -233,9 +234,7 @@ CoinModel::addRow(int numberInRow, const int * columns,
       printf("duplicates - what do we want\n");
       abort();
     }
-    if (last>=numberColumns_) {
-      newColumn = last+1;
-    }
+    newColumn = CoinMax(newColumn,last);
   }
   int newRow=0;
   int newElement=0;
@@ -246,8 +245,8 @@ CoinModel::addRow(int numberInRow, const int * columns,
   }
   if (numberRows_==maximumRows_)
     newRow = (maximumRows_*3)/2+1000;
-  if (newRow||newColumn||newElement) {
-    if (!newColumn) {
+  if (newRow||newColumn>=maximumColumns_||newElement) {
+    if (newColumn<maximumColumns_) {
       // columns okay
       resize(newRow,0,newElement);
     } else {
@@ -316,7 +315,7 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
     type_=2;
     links_ |= 2;
   }
-  int newRow=0;
+  int newRow=-1;
   if (numberInColumn>0) {
     // Move and sort
     if (numberInColumn>sortSize_) {
@@ -358,9 +357,7 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
       printf("duplicates - what do we want\n");
       abort();
     }
-    if (last>=numberRows_) {
-      newRow = last+1;
-    }
+    newRow = CoinMax(newRow,last);
   }
   int newColumn=0;
   int newElement=0;
@@ -371,8 +368,8 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
   }
   if (numberColumns_==maximumColumns_)
     newColumn = (maximumColumns_*3)/2+1000;
-  if (newColumn||newRow||newElement) {
-    if (!newRow) {
+  if (newColumn||newRow>=maximumRows_||newElement) {
+    if (newRow<maximumRows_) {
       // rows okay
       resize(0,newColumn,newElement);
     } else {
@@ -480,7 +477,7 @@ CoinModel::setElement(int i,int j,double value)
     // If columns extended - take care of that
     fillColumns(j,false);
     // If rows extended - take care of that
-    fillRows(j,false);
+    fillRows(i,false);
     // treat as addRow unless only columnList_ exists
     if ((links_&1)!=0) {
       int first = rowList_.addEasy(i,1,&j,&value,elements_,hashElements_);
@@ -763,6 +760,164 @@ CoinModel::writeMps(const char *filename, int compression,
 		     columnNames,rowNames);
   delete[] integrality;
   return writer.writeMps(filename, compression, formatType, numberAcross);
+}
+/* Check two models against each other.  Return nonzero if different.
+   Ignore names if that set.
+   May modify both models by cleaning up
+*/
+int 
+CoinModel::differentModel(CoinModel & other, bool ignoreNames)
+{
+  // Set to say all parts
+  type_=2;
+  resize(numberRows_,numberColumns_,numberElements_);
+  // and other one
+  other.type_=2;
+  other.resize(other.numberRows_,other.numberColumns_,other.numberElements_);
+  int returnCode=0;
+  if (numberRows_!=other.numberRows_||numberColumns_!=other.numberColumns_) {
+    printf("** Mismatch on size, this has %d rows, %d columns - other has %d rows, %d columns\n",
+           numberRows_,numberColumns_,other.numberRows_,other.numberColumns_);
+    returnCode=1000;
+  }
+  CoinRelFltEq tolerance;
+  if (numberRows_==other.numberRows_) {
+    bool checkNames = !ignoreNames;
+    if (!rowName_.numberItems()||
+        !other.rowName_.numberItems())
+      checkNames=false;
+    int numberDifferentL = 0;
+    int numberDifferentU = 0;
+    int numberDifferentN = 0;
+    for (int i=0;i<numberRows_;i++) {
+      if (!tolerance(rowLower_[i],other.rowLower_[i]))
+        numberDifferentL++;
+      if (!tolerance(rowUpper_[i],other.rowUpper_[i]))
+        numberDifferentU++;
+      if (checkNames&&rowName_.name(i)&&other.rowName_.name(i)) {
+        if (strcmp(rowName_.name(i),other.rowName_.name(i)))
+          numberDifferentN++;
+      }
+    }
+    int n = numberDifferentL+numberDifferentU+numberDifferentN;
+    returnCode+=n;
+    if (n) 
+      printf("Row differences , %d lower, %d upper and %d names\n",
+             numberDifferentL,numberDifferentU,numberDifferentN);
+  }
+  if (numberColumns_==other.numberColumns_) {
+    int numberDifferentL = 0;
+    int numberDifferentU = 0;
+    int numberDifferentN = 0;
+    int numberDifferentO = 0;
+    int numberDifferentI = 0;
+    bool checkNames = !ignoreNames;
+    if (!columnName_.numberItems()||
+        !other.columnName_.numberItems())
+      checkNames=false;
+    for (int i=0;i<numberColumns_;i++) {
+      if (!tolerance(columnLower_[i],other.columnLower_[i]))
+        numberDifferentL++;
+      if (!tolerance(columnUpper_[i],other.columnUpper_[i]))
+        numberDifferentU++;
+      if (!tolerance(objective_[i],other.objective_[i]))
+        numberDifferentO++;
+      int i1 = (integerType_) ? integerType_[i] : 0;
+      int i2 = (other.integerType_) ? other.integerType_[i] : 0;
+      if (i1!=i2)
+        numberDifferentI++;
+      if (checkNames&&columnName_.name(i)&&other.columnName_.name(i)) {
+        if (strcmp(columnName_.name(i),other.columnName_.name(i)))
+          numberDifferentN++;
+      }
+    }
+    int n = numberDifferentL+numberDifferentU+numberDifferentN;
+    n+= numberDifferentO+numberDifferentI;
+    returnCode+=n;
+    if (n) 
+      printf("Column differences , %d lower, %d upper, %d objective, %d integer and %d names\n",
+             numberDifferentL,numberDifferentU,numberDifferentO,
+             numberDifferentI,numberDifferentN);
+  }
+  if (numberRows_==other.numberRows_&&
+      numberColumns_==other.numberColumns_&&
+      numberElements_==other.numberElements_) {
+    // Do counts for CoinPackedMatrix
+    int * length = new int[numberColumns_];
+    CoinZeroN(length,numberColumns_);
+    int i;
+    int numberElements=0;
+    for (i=0;i<numberElements_;i++) {
+      int column = elements_[i].column;
+      if (column>=0) {
+        length[column]++;
+        numberElements++;
+      }
+    }
+    CoinBigIndex * start = new int[numberColumns_+1];
+    int * row = new int[numberElements];
+    double * element = new double[numberElements];
+    start[0]=0;
+    for (i=0;i<numberColumns_;i++) {
+      start[i+1]=start[i]+length[i];
+      length[i]=0;
+    }
+    for (i=0;i<numberElements_;i++) {
+      int column = elements_[i].column;
+      if (column>=0) {
+        int put=start[column]+length[column];
+        row[put]=(int) elements_[i].row;
+        element[put]=elements_[i].value;
+        length[column]++;
+      }
+    }
+    for (i=0;i<numberColumns_;i++) {
+      int put = start[i];
+      CoinSort_2(row+put,row+put+length[i],element+put);
+    }
+    CoinPackedMatrix matrix(true,numberRows_,numberColumns_,numberElements,
+                            element,row,start,length);
+    // and for second
+    CoinZeroN(length,numberColumns_);
+    numberElements=0;
+    for (i=0;i<numberElements_;i++) {
+      int column = other.elements_[i].column;
+      if (column>=0) {
+        length[column]++;
+        numberElements++;
+      }
+    }
+    start[0]=0;
+    for (i=0;i<numberColumns_;i++) {
+      start[i+1]=start[i]+length[i];
+      length[i]=0;
+    }
+    for (i=0;i<numberElements_;i++) {
+      int column = other.elements_[i].column;
+      if (column>=0) {
+        int put=start[column]+length[column];
+        row[put]=(int) other.elements_[i].row;
+        element[put]=other.elements_[i].value;
+        length[column]++;
+      }
+    }
+    for (i=0;i<numberColumns_;i++) {
+      int put = start[i];
+      CoinSort_2(row+put,row+put+length[i],element+put);
+    }
+    CoinPackedMatrix matrix2(true,numberRows_,numberColumns_,numberElements,
+                            element,row,start,length);
+    delete [] start;
+    delete [] length;
+    delete [] row;
+    delete [] element;
+    if (!matrix.isEquivalent(matrix2,tolerance)) {
+      returnCode+=100;
+      printf("Two matrices are not same\n");
+    }
+  }
+
+  return returnCode;
 }
 // Returns value for row i and column j
 double 
@@ -1390,7 +1545,7 @@ CoinModel::fillRows(int whichRow, bool forceCreation)
       // Do we need to do anything?
     }
   }
-  numberRows_=whichRow+1;
+  numberRows_=CoinMax(whichRow+1,numberRows_);
 }
 void
 CoinModel::fillColumns(int whichColumn,bool forceCreation)
@@ -1427,5 +1582,5 @@ CoinModel::fillColumns(int whichColumn,bool forceCreation)
       // Do we need to do anything?
     }
   }
-  numberColumns_=whichColumn+1;
+  numberColumns_=CoinMax(whichColumn+1,numberColumns_);
 }
