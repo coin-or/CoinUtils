@@ -7,6 +7,11 @@
 #include <new>
 #include <CoinDistance.hpp>
 
+// Uncomment the next three lines to get thorough initialisation of memory.
+// #ifndef ZEROFAULT
+// #define ZEROFAULT
+// #endif
+
 //#############################################################################
 
 /** An ordered pair. It's the same as std::pair, just this way it'll have the
