@@ -37,7 +37,7 @@ enum COINSectionType { COIN_NO_SECTION, COIN_NAME_SECTION, COIN_ROW_SECTION,
   COIN_COLUMN_SECTION,
   COIN_RHS_SECTION, COIN_RANGES_SECTION, COIN_BOUNDS_SECTION,
   COIN_ENDATA_SECTION, COIN_EOF_SECTION, COIN_QUADRATIC_SECTION, 
-		       COIN_CONIC_SECTION,COIN_SOS_SECTION, COIN_UNKNOWN_SECTION
+		       COIN_CONIC_SECTION,COIN_QUAD_SECTION,COIN_SOS_SECTION, COIN_UNKNOWN_SECTION
 };
 
 enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
@@ -73,6 +73,10 @@ public:
   /// Returns current section type
   inline COINSectionType whichSection (  ) const {
     return section_;
+  };
+  /// Sets current section type
+  inline void setWhichSection(COINSectionType section  ) {
+    section_=section;
   };
   /// Only for first field on card otherwise BLANK_COLUMN
   /// e.g. COIN_E_ROW
@@ -566,6 +570,10 @@ public:
     int writeMps(const char *filename, int compression = 0,
 		 int formatType = 0, int numberAcross = 2) const;
 
+    /// Return card reader object so can see what last card was e.g. QUADOBJ
+    inline const CoinMpsCardReader * reader() const
+    { return cardReader_;};
+  
     /** Read in a quadratic objective from the given filename.
 
       If filename is NULL (or the same as the currently open file) then
@@ -718,6 +726,7 @@ protected:
   
     /// Clears problem data from the CoinMpsIO object.
     void freeAll();
+
 
     /** A quick inlined function to convert from lb/ub style constraint
 	definition to sense/rhs/range style */

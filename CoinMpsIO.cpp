@@ -193,7 +193,8 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 //#############################################################################
 // sections
 const static char *section[] = {
-  "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ","QSECTION", "CSECTION", "SOS",
+  "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ","QSECTION", "CSECTION", 
+  "QUADOBJ" , "SOS",
   " "
 };
 
@@ -204,7 +205,7 @@ const static COINMpsType startType[] = {
   COIN_BLANK_COLUMN, COIN_BLANK_COLUMN,
   COIN_UP_BOUND, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
-  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_S1_BOUND, COIN_UNKNOWN_MPS_TYPE
+  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_S1_BOUND, COIN_UNKNOWN_MPS_TYPE
 };
 const static COINMpsType endType[] = {
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
@@ -212,7 +213,7 @@ const static COINMpsType endType[] = {
   COIN_S1_COLUMN, COIN_S1_COLUMN,
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
-  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE
+  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE
 };
 const static int allowedLength[] = {
   0, 0,
@@ -220,7 +221,8 @@ const static int allowedLength[] = {
   0, 0,
   2, 0,
   0, 0,
-  0, 0
+  0, 0,
+  0
 };
 
 // names of types
@@ -455,7 +457,7 @@ CoinMpsCardReader::nextField (  )
     if ( cleanCard() ) {
       return COIN_EOF_SECTION;
     }
-    if ( card_[0] == ' ' ) {
+    if ( card_[0] == ' ' || card_[0] == '\0') {
       // not a section or comment
       position_ = card_;
       eol_ = card_ + strlen ( card_ );
@@ -726,6 +728,9 @@ CoinMpsCardReader::nextField (  )
 	    }
 	  }
 	}
+      } else {
+	// blank
+	continue;
       }
       return section_;
     } else if ( card_[0] != '*' ) {
@@ -2103,7 +2108,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
       }
     }
     free ( columnType );
-    if ( cardReader_->whichSection (  ) != COIN_ENDATA_SECTION ) {
+    if ( cardReader_->whichSection (  ) != COIN_ENDATA_SECTION &&
+	 cardReader_->whichSection (  ) != COIN_QUAD_SECTION ) {
       handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
@@ -3640,27 +3646,31 @@ CoinMpsIO::readQuadraticMps(const char * filename,
     delete cardReader_;
     cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
   }
-
-  cardReader_->readToNextSection();
-
-  // Skip NAME
-  if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) 
-    cardReader_->readToNextSection();
-  if ( cardReader_->whichSection (  ) == COIN_QUADRATIC_SECTION ) {
-    // save name of section
-    free(problemName_);
-    problemName_=strdup(cardReader_->columnName());
-  } else if ( cardReader_->whichSection (  ) == COIN_EOF_SECTION ) {
-    handler_->message(COIN_MPS_EOF,messages_)<<fileName_
-					    <<CoinMessageEol;
-    return -3;
+  // See if QUADOBJ just found
+  if (!filename&&cardReader_->whichSection (  ) == COIN_QUAD_SECTION ) {
+    cardReader_->setWhichSection(COIN_QUADRATIC_SECTION);
   } else {
+    cardReader_->readToNextSection();
+    
+    // Skip NAME
+    if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) 
+      cardReader_->readToNextSection();
+    if ( cardReader_->whichSection (  ) == COIN_QUADRATIC_SECTION ) {
+      // save name of section
+      free(problemName_);
+      problemName_=strdup(cardReader_->columnName());
+    } else if ( cardReader_->whichSection (  ) == COIN_EOF_SECTION ) {
+      handler_->message(COIN_MPS_EOF,messages_)<<fileName_
+					       <<CoinMessageEol;
+      return -3;
+    } else {
     handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
 						  <<cardReader_->cardNumber()
-						 <<fileName_
+						  <<fileName_
 						  <<CoinMessageEol;
     return -2;
-  }
+    }
+  }    
 
   int numberErrors = 0;
 
