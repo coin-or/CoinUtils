@@ -2414,7 +2414,8 @@ static void outputCard(int formatType,int numberFields,
 
 int
 CoinMpsIO::writeMps(const char *filename, int compression,
-		   int formatType, int numberAcross) const
+		   int formatType, int numberAcross,
+		    CoinPackedMatrix * quadratic ) const
 {
   // Clean up format and numberacross
   numberAcross=max(1,numberAcross);
@@ -2800,6 +2801,47 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	    }
 	 }
       }
+   }
+   
+   // do any quadratic part
+   if (quadratic) {
+
+     writeString(fp, gzfp, "QUADOBJ\n");
+
+     const int * columnQuadratic = quadratic->getIndices();
+     const CoinBigIndex * columnQuadraticStart = quadratic->getVectorStarts();
+     const int * columnQuadraticLength = quadratic->getVectorLengths();
+     const double * quadraticElement = quadratic->getElements();
+     for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
+       int numberFields=0;
+       for (int j=columnQuadraticStart[iColumn];
+	    j<columnQuadraticStart[iColumn]+columnQuadraticLength[iColumn];j++) {
+	 int jColumn = columnQuadratic[j];
+	 double elementValue = quadraticElement[j];
+	 convertDouble(formatType,elementValue,
+		       outputValue[numberFields],
+		       columnNames[jColumn],
+		       outputRow[numberFields]);
+	 numberFields++;
+	 if (numberFields==numberAcross) {
+	   // put out card
+	   outputCard(formatType, numberFields,
+		      fp, gzfp, "    ",
+		      columnNames[iColumn],
+		      outputValue,
+		      outputRow);
+	   numberFields=0;
+	 }
+       }
+       if (numberFields) {
+	 // put out card
+	 outputCard(formatType, numberFields,
+		    fp, gzfp, "    ",
+		    columnNames[iColumn],
+		    outputValue,
+		    outputRow);
+       }
+     }
    }
 
    // and finish

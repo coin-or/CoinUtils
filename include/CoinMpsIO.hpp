@@ -570,9 +570,12 @@ public:
 
 	\param numberAcross specifies whether 1 or 2 (default) values should be
 	specified on every data line in the MPS file.
+
+	\param quadratic specifies quadratic objective to be output
     */
     int writeMps(const char *filename, int compression = 0,
-		 int formatType = 0, int numberAcross = 2) const;
+		 int formatType = 0, int numberAcross = 2,
+		 CoinPackedMatrix * quadratic = NULL) const;
 
     /// Return card reader object so can see what last card was e.g. QUADOBJ
     inline const CoinMpsCardReader * reader() const
