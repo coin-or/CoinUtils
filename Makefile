@@ -58,10 +58,12 @@ default: install
 unitTest: install
 	(cd Test && $(MAKE) unitTest)
 
-install clean doc library: % :
+install doc library: % :
 	$(MAKE) -f ${MakefileDir}/Makefile.lib $*
 
-libcoin: libCoin
+libcoin libCoin: library
 
-libCoin:
-	$(MAKE) -f ${MakefileDir}/Makefile.lib library
+clean:
+	@rm -rf Junk
+	@rm -rf $(UNAME)*
+	@rm -rf dep

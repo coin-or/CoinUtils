@@ -98,9 +98,9 @@ doc:
 	doxygen $(MakefileDir)/doxygen.conf
 
 clean :
-	rm -rf Junk
-	@rm -rf $(DEPDIR)
-	@rm -rf $(TARGETDIR)
+	@rm -rf Junk
+	@rm -rf $(UNAME)
+	@rm -rf dep
 
 ###############################################################################
 
