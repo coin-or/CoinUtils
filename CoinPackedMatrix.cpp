@@ -2108,6 +2108,7 @@ CoinPackedMatrix::gutsOfOpEqual(const bool colordered,
      delete [] index_;
      element_ = new double[maxSize_];
      index_ = new int[maxSize_];
+     assert (maxSize_>=start_[majorDim_-1]+length_[majorDim_-1]);
      // we can't just simply memcpy these content over, because that can
      // upset memory debuggers like purify if there were gaps and those gaps
      // were uninitialized memory blocks
@@ -2116,6 +2117,15 @@ CoinPackedMatrix::gutsOfOpEqual(const bool colordered,
        CoinMemcpyN(elem + start[i], length_[i], element_ + start_[i]);
      }
    }
+#ifndef NDEBUG
+   for ( i = majorDim_ - 1; i >= 0; --i) {
+     const CoinBigIndex last = getVectorLast(i);
+     for (CoinBigIndex j = getVectorFirst(i); j < last; ++j) {
+       int index = index_[j];
+       assert (index>=0&&index<minorDim_);
+     }
+   }
+#endif
 }
 
 //#############################################################################
