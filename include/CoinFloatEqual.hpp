@@ -123,7 +123,11 @@ class CoinRelFltEq
 
   //! Default constructor
 
+#ifndef COIN_FLOAT
   CoinRelFltEq () : epsilon_(1.e-10) {} ;
+#else
+  CoinRelFltEq () : epsilon_(1.e-6) {} ; // as float
+#endif
 
   //! Alternate constructor with epsilon as a parameter
 

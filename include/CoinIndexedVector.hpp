@@ -14,7 +14,13 @@
 #include "CoinSort.hpp"
 #include <cassert>
 
+#ifndef COIN_FLOAT
 #define COIN_INDEXED_TINY_ELEMENT 1.0e-50
+#define COIN_INDEXED_REALLY_TINY_ELEMENT 1.0e-100
+#else
+#define COIN_INDEXED_TINY_ELEMENT 1.0e-35
+#define COIN_INDEXED_REALLY_TINY_ELEMENT 1.0e-39
+#endif
 
 /** Indexed Vector
 

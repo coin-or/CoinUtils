@@ -1345,7 +1345,7 @@ CoinFactorization::updateColumnTransposeRSparse
 	double newValue = oldValue - value * pivotValue;
 	if (oldValue) {
 	  if (!newValue)
-	    newValue=1.0e-100;
+	    newValue=COIN_INDEXED_REALLY_TINY_ELEMENT;
 	  region[iRow]=newValue;
 	} else if (fabs(newValue)>tolerance) {
 	  region[iRow] = newValue;
@@ -1964,14 +1964,14 @@ CoinFactorization::updateColumnPFI ( CoinIndexedVector * regionSparse) const
 	    if (fabs(value)>tolerance) {
 	      region[iRow]=value;
 	    } else {
-	      region[iRow]=1.0e-100;
+	      region[iRow]=COIN_INDEXED_REALLY_TINY_ELEMENT;
 	    }
 	  }
 	}       
 	pivotValue *= pivotRegion[i];
 	region[pivotRow]=pivotValue;
       } else if (pivotValue) {
-	region[pivotRow]=1.0e-100;
+	region[pivotRow]=COIN_INDEXED_REALLY_TINY_ELEMENT;
       }
     }
   }
@@ -2016,7 +2016,7 @@ CoinFactorization::updateColumnTransposePFI ( CoinIndexedVector * regionSparse) 
       region[pivotRow] = pivotValue;
     } else {
       if (region[pivotRow])
-	region[pivotRow] = 1.0e-100;
+	region[pivotRow] = COIN_INDEXED_REALLY_TINY_ELEMENT;
     }       
   }       
   //set counts

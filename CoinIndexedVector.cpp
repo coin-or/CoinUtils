@@ -213,7 +213,7 @@ CoinIndexedVector::add( int index, double element )
     if (fabs(element)>= COIN_INDEXED_TINY_ELEMENT) {
       elements_[index] = element;
     } else {
-      elements_[index] = 1.0e-100;
+      elements_[index] = COIN_INDEXED_REALLY_TINY_ELEMENT;
     }
   } else if (fabs(element)>= COIN_INDEXED_TINY_ELEMENT) {
     indices_[nElements_++] = index;
