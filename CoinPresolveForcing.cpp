@@ -188,8 +188,13 @@ const CoinPresolveAction
 					 const CoinPresolveAction *next)
 {
   double startTime = 0.0;
-  if (prob->tuning_)
+  int startEmptyRows=0;
+  int startEmptyColumns = 0;
+  if (prob->tuning_) {
     startTime = CoinCpuTime();
+    startEmptyRows = prob->countEmptyRows();
+    startEmptyColumns = prob->countEmptyCols();
+  }
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
 
@@ -350,11 +355,6 @@ const CoinPresolveAction
   }
 
 
-  if (prob->tuning_) {
-    double thisTime=CoinCpuTime();
-    printf("CoinPresolveForcing(32) - %d actions in time %g total %g\n",
-	   nactions,thisTime-startTime,thisTime-prob->startTime_);
-  }
   if (nactions) {
 #if	PRESOLVE_SUMMARY
     printf("NFORCED:  %d\n", nactions);
@@ -382,6 +382,13 @@ const CoinPresolveAction
     next = remove_fixed_action::presolve(prob,fixed_cols,nfixed_cols,next) ; }
   delete[]fixed_cols ;
 
+  if (prob->tuning_) {
+    double thisTime=CoinCpuTime();
+    int droppedRows = prob->countEmptyRows() - startEmptyRows ;
+    int droppedColumns =  prob->countEmptyCols() - startEmptyColumns;
+    printf("CoinPresolveForcing(32) - %d rows, %d columns dropped in time %g, total %g\n",
+	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
+  }
   return (next);
 }
 

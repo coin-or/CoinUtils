@@ -29,8 +29,13 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 				 bool & notFinished)
 {
   double startTime = 0.0;
-  if (prob->tuning_)
+  int startEmptyRows=0;
+  int startEmptyColumns = 0;
+  if (prob->tuning_) {
     startTime = CoinCpuTime();
+    startEmptyRows = prob->countEmptyRows();
+    startEmptyColumns = prob->countEmptyCols();
+  }
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt	= prob->mcstrt_;
@@ -222,11 +227,6 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
     }
   }
 
-  if (prob->tuning_) {
-    double thisTime=CoinCpuTime();
-    printf("CoinPresolveSingleton(2) - %d actions in time %g total %g\n",
-	   nactions,thisTime-startTime,thisTime-prob->startTime_);
-  }
   if (nactions) {
 #   if PRESOLVE_SUMMARY
     printf("SINGLETON ROWS:  %d\n", nactions);
@@ -241,6 +241,13 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 					 next);
   }
   delete [] fixed_cols;
+  if (prob->tuning_) {
+    double thisTime=CoinCpuTime();
+    int droppedRows = prob->countEmptyRows() - startEmptyRows ;
+    int droppedColumns =  prob->countEmptyCols() - startEmptyColumns;
+    printf("CoinPresolveSingleton(2) - %d rows, %d columns dropped in time %g, total %g\n",
+	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
+  }
   return (next);
 }
 

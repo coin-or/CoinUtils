@@ -465,8 +465,13 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 						    int & fill_level)
 {
   double startTime = 0.0;
-  if (prob->tuning_)
+  int startEmptyRows=0;
+  int startEmptyColumns = 0;
+  if (prob->tuning_) {
     startTime = CoinCpuTime();
+    startEmptyRows = prob->countEmptyRows();
+    startEmptyColumns = prob->countEmptyCols();
+  }
   double *colels	= prob->colels_;
   int *hrow	= prob->hrow_;
   const CoinBigIndex *mcstrt	= prob->mcstrt_;
@@ -1011,11 +1016,6 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   }
 
   delete [] look2;
-  if (prob->tuning_) {
-    double thisTime=CoinCpuTime();
-    printf("CoinPresolveImpliedFree(64) - %d actions in time %g total %g\n",
-	   nactions,thisTime-startTime,thisTime-prob->startTime_);
-  }
   if (nactions) {
 #   if PRESOLVE_SUMMARY
     printf("NIMPLIED FREE:  %d\n", nactions);
@@ -1038,6 +1038,13 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   }
   delete[]implied_free;
 
+  if (prob->tuning_) {
+    double thisTime=CoinCpuTime();
+    int droppedRows = prob->countEmptyRows() - startEmptyRows ;
+    int droppedColumns =  prob->countEmptyCols() - startEmptyColumns;
+    printf("CoinPresolveImpliedFree(64) - %d rows, %d columns dropped in time %g, total %g\n",
+	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
+  }
   return (next);
 }
 
