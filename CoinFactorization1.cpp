@@ -106,7 +106,7 @@ void CoinFactorization::gutsOfDestructor()
   numberGoodL_ = 0;
   totalElements_ = 0;
   factorElements_ = 0;
-  status_ = 0;
+  status_ = -1;
   numberSlacks_ = 0;
   numberU_ = 0;
   lengthU_ = 0;
@@ -153,7 +153,7 @@ void CoinFactorization::gutsOfInitialize(int type)
     numberGoodL_ = 0;
     totalElements_ = 0;
     factorElements_ = 0;
-    status_ = 0;
+    status_ = -1;
     doForrestTomlin_=true;
     numberPivots_ = 0;
     pivotColumn_ = NULL;
