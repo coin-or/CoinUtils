@@ -41,10 +41,13 @@ const CoinPresolveAction *isolated_constraint_action::presolve(CoinPresolveMatri
   double *dcost	= prob->cost_;
 
 #if	DEBUG_PRESOLVE
-  printf("ISOLATED:  %d - ", irow);
-  for (CoinBigIndex k = krs; k<kre; ++k)
-    printf("%d ", hcol[k]);
-  printf("\n");
+  {
+    printf("ISOLATED:  %d - ", irow);
+    CoinBigIndex k;
+    for ( k = krs; k<kre; ++k)
+      printf("%d ", hcol[k]);
+    printf("\n");
+  }
 #endif
 
   if (rlo[irow] != 0.0 || rup[irow] != 0.0) {

@@ -1330,12 +1330,13 @@ void check_doubletons1(const CoinPresolveAction * paction,
 #if	DEBUG_PRESOLVE
   doubleton_mult = new double[ncols];
   doubleton_id = new int[ncols];
-  for (int i=0; i<ncols; ++i)
+  int i;
+  for ( i=0; i<ncols; ++i)
     doubleton_id[i] = i;
   check_doubletons(paction);
   double minmult = 1.0;
   int minid = -1;
-  for (int i=0; i<ncols; ++i) {
+  for ( i=0; i<ncols; ++i) {
     double mult = 1.0;
     int j = i;
     if (doubleton_id[j] != j) {
