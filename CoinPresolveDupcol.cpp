@@ -194,10 +194,6 @@ const CoinPresolveAction *dupcol_action::presolve(CoinPresolveMatrix *prob,
 
 	  if (/*ddjs[ilast]||ddjs[ithis]*/
 	      integerType[ilast] || integerType[ithis]) {
-#ifdef PRINT_DEBUG
-	    printf("at least one of %d or %d integer\n",ilast-nrowsmx,
-		   ithis-nrowsmx);
-#endif
 	    continue;
 	  } else if (dcost1==dcost2) {
 	    //

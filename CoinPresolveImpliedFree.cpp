@@ -220,7 +220,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		  maxUp[row]=maximumUp;
 		  maxDown[row]=maximumDown;
 		}
-	      }
+	      } 
 	      if (infiniteUp[row]>=0) {
 		double lower = rlo[row];
 		double upper = rup[row];
@@ -337,6 +337,11 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		    low = max(low,newBound);
 		  }
 		}
+	      } else if (infiniteUp[row]==-3) {
+		// give up
+		high=COIN_DBL_MAX;
+		low=-COIN_DBL_MAX;
+		break;
 	      }
 	    }
 	  }
@@ -360,6 +365,8 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	    }
 	    if (krow>=0) {
 	      implied_free[j] = krow;
+	      // And say row no good for further use
+	      infiniteUp[krow]=-3;
 	      //printf("column %d implied free by row %d hincol %d hinrow %d\n",
 	      //     j,krow,hincol[j],hinrow[krow]);
 	    }
@@ -371,8 +378,8 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	int row = hrow[k];
 	double coeffj = colels[k];
 	if ((!cost[j]||rlo[row]==rup[row])&&hinrow[row]>1&&
-	    fabs(coeffj) > ZTOLDP) {
-	    
+	    fabs(coeffj) > ZTOLDP&&infiniteUp[row]!=3) {
+	  
 	  CoinBigIndex krs = mrstrt[row];
 	  CoinBigIndex kre = krs + hinrow[row];
 	  
@@ -407,6 +414,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	    
 	    // both column bounds implied by the constraints of the problem
 	    implied_free[j] = row;
+	    infiniteUp[row]=-3;
 	    //printf("column %d implied free by row %d hincol %d hinrow %d\n",
 	    //   j,row,hincol[j],hinrow[row]);
 	  }
@@ -586,7 +594,6 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
   double *rowduals = prob->rowduals_;
 
   //  const double ztoldj	= prob->ztoldj_;
-  //  const double ztolzb	= prob->ztolzb_;
 
   const double maxmin	= prob->maxmin_;
 
@@ -611,9 +618,10 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	int jcol = rowcols[k];
 	double coeff = rowels[k];
 
-	if (save_costs)
+	if (save_costs) {
+	  rcosts[jcol] += maxmin*(save_costs[k]-dcost[jcol]);
 	  dcost[jcol] = save_costs[k];
-
+	}
 	{
 	  CoinBigIndex kk = free_list;
 	  free_list = link[free_list];
@@ -660,23 +668,136 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	}
 	    
       PRESOLVEASSERT(fabs(coeff) > ZTOLDP);
-      // choose rowdual to make this col basic
-      rowduals[irow] = maxmin*dcost[icol] / coeff;
-      rcosts[icol] = 0.0;
-      if ((rlo[irow] < rup[irow] && rowduals[irow] < 0.0)
-	  || rlo[irow]< -1.0e20) {
-	if (rlo[irow]<-1.0e20&&rowduals[irow]>=0.0)
-	  printf("IMP %g %g %g\n",rlo[irow],rup[irow],rowduals[irow]);
-	sol[icol] = (rup[irow] - act) / coeff;
-	acts[irow] = rup[irow];
+      double thisCost = maxmin*dcost[icol];
+      double loActivity,upActivity;
+      if (coeff>0) {
+	loActivity = (rlo[irow]-act)/coeff;
+	upActivity = (rup[irow]-act)/coeff;
       } else {
-	sol[icol] = (rlo[irow] - act) / coeff;
-	acts[irow] = rlo[irow];
+	loActivity = (rup[irow]-act)/coeff;
+	upActivity = (rlo[irow]-act)/coeff;
       }
-
-
-      prob->setRowStatus(irow,CoinPrePostsolveMatrix::atLowerBound);
-      prob->setColumnStatus(icol,CoinPrePostsolveMatrix::basic);
+      loActivity = max(loActivity,clo[icol]);
+      upActivity = min(upActivity,cup[icol]);
+      int where; //0 in basis, -1 at lb, +1 at ub
+      const double tolCheck	= 0.1*prob->ztolzb_;
+      if (loActivity<clo[icol]+tolCheck/fabs(coeff)&&thisCost>=0.0)
+	where=-1;
+      else if (upActivity>cup[icol]-tolCheck/fabs(coeff)&&thisCost<0.0)
+	where=1;
+      else
+	where =0;
+      // But we may need to put in basis to stay dual feasible
+      double possibleDual = thisCost/coeff;
+      if (where) {
+	double worst=  prob->ztoldj_;
+	for (int k = 0; k<ninrow; k++) {
+	  int jcol = rowcols[k];
+	  if (jcol!=icol) {
+	    CoinPrePostsolveMatrix::Status status = prob->getColumnStatus(jcol);
+	    // can only trust basic
+	    if (status==CoinPrePostsolveMatrix::basic) {
+	      if (fabs(rcosts[jcol])>worst)
+		worst=fabs(rcosts[jcol]);
+	    } else if (sol[jcol]<clo[jcol]+ZTOLDP) {
+	      if (-rcosts[jcol]>worst)
+		worst=-rcosts[jcol];
+	    } else if (sol[jcol]>cup[jcol]-ZTOLDP) {
+	      if (rcosts[jcol]>worst)
+		worst=rcosts[jcol];
+	    } 
+	  }
+	}
+	if (worst>prob->ztoldj_) {
+	  // see if better if in basis
+	  double worst2	= prob->ztoldj_;
+	  for (int k = 0; k<ninrow; k++) {
+	    int jcol = rowcols[k];
+	    if (jcol!=icol) {
+	      double coeff = rowels[k];
+	      double newDj = rcosts[jcol]-possibleDual*coeff;
+	      CoinPrePostsolveMatrix::Status status = prob->getColumnStatus(jcol);
+	      // can only trust basic
+	      if (status==CoinPrePostsolveMatrix::basic) {
+		if (fabs(newDj)>worst2)
+		  worst2=fabs(newDj);
+	      } else if (sol[jcol]<clo[jcol]+ZTOLDP) {
+		if (-newDj>worst2)
+		  worst2=-newDj;
+	      } else if (sol[jcol]>cup[jcol]-ZTOLDP) {
+		if (newDj>worst2)
+		  worst2=newDj;
+	      } 
+	    }
+	  }
+	  if (worst2<worst)
+	    where=0; // put in basis
+	}
+      }
+      if (!where) {
+	// choose rowdual to make this col basic
+	rowduals[irow] = possibleDual;
+	if ((rlo[irow] < rup[irow] && rowduals[irow] < 0.0)
+	    || rlo[irow]< -1.0e20) {
+	  if (rlo[irow]<-1.0e20&&rowduals[irow]>ZTOLDP)
+	    printf("IMP %g %g %g\n",rlo[irow],rup[irow],rowduals[irow]);
+	  sol[icol] = (rup[irow] - act) / coeff;
+	  assert (sol[icol]>=clo[icol]-1.0e-5&&sol[icol]<=cup[icol]+1.0e-5);
+	  acts[irow] = rup[irow];
+	  prob->setRowStatus(irow,CoinPrePostsolveMatrix::atUpperBound);
+	} else {
+	  sol[icol] = (rlo[irow] - act) / coeff;
+	  assert (sol[icol]>=clo[icol]-1.0e-5&&sol[icol]<=cup[icol]+1.0e-5);
+	  acts[irow] = rlo[irow];
+	  prob->setRowStatus(irow,CoinPrePostsolveMatrix::atLowerBound);
+	}
+	prob->setColumnStatus(icol,CoinPrePostsolveMatrix::basic);
+	for (int k = 0; k<ninrow; k++) {
+	  int jcol = rowcols[k];
+	  double coeff = rowels[k];
+	  rcosts[jcol] -= possibleDual*coeff;
+	}
+	rcosts[icol] = 0.0;
+      } else {
+	rowduals[irow] = 0.0;
+	rcosts[icol] = thisCost;
+	prob->setRowStatus(irow,CoinPrePostsolveMatrix::basic);
+	if (where<0) {
+	  // to lb
+	  prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atLowerBound);
+	  sol[icol]=clo[icol];
+	} else {
+	  // to ub
+	  prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atUpperBound);
+	  sol[icol]=cup[icol];
+	}
+	acts[irow] = act + sol[icol]*coeff;
+	assert (acts[irow]>=rlo[irow]-1.0e-5&&acts[irow]<=rup[irow]+1.0e-5);
+      }
+#if	DEBUG_PRESOLVE
+      {
+	double *colels	= prob->colels_;
+	int *hrow	= prob->hrow_;
+	const CoinBigIndex *mcstrt	= prob->mcstrt_;
+	int *hincol	= prob->hincol_;
+	for (int j = 0; j<ninrow; j++) {
+	  int jcol = rowcols[j];
+	  CoinBigIndex k = mcstrt[jcol];
+	  int nx = hincol[jcol];
+	  double dj = dcost[jcol];
+	  for (int i=0; i<nx; ++i) {
+	    int row = hrow[k];
+	    double coeff = colels[k];
+	    k = link[k];
+	    dj -= rowduals[row] * coeff;
+	    //printf("col jcol row %d coeff %g dual %g new dj %g\n",
+	    // row,coeff,rowduals[row],dj);
+	  }
+	  if (fabs(dj-rcosts[jcol])>1.0e-3)
+	    printf("changed\n");
+	}
+      }
+#endif
     }
   }
   prob->free_list_ = free_list;

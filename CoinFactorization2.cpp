@@ -334,8 +334,8 @@ CoinFactorization::factorSparse (  )
       double leftElements = totalElements_;
       //if (leftRows==100)
       //printf("at 100 %d elements\n",totalElements_);
-      if (1.5*leftElements>full&&leftRows>denseThreshold_) {
-	//return to do dense
+      if ((1.5*leftElements>full&&leftRows>denseThreshold_)) {
+      	//return to do dense
 	if (status!=0)
 	  break;
 #ifdef DENSE_CODE

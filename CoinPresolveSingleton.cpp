@@ -157,7 +157,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	}
       }
 
-#if	DEBUG_PRESOLVE
+#if	0&&DEBUG_PRESOLVE
       printf("SINGLETON R-%d C-%d\n", irow, jcol);
 #endif
 

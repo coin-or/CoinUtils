@@ -630,7 +630,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 
 	// now adjust for the implied free row - COPIED
 	if (nonzero_cost) {
-#ifdef	DEBUG_PRESOLVE
+#if	0&&DEBUG_PRESOLVE
 	  printf("NONZERO SUBST COST:  %d %g\n", jcoly, dcost[jcoly]);
 #endif
 	  double *cost = dcost;
@@ -666,7 +666,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	  cost[jcoly] = 0.0;
 	}
 
-#if	DEBUG_PRESOLVE
+#if	0&&DEBUG_PRESOLVE
 	    if (hincol[jcoly] == 3) {
 	      CoinBigIndex krs = mrstrt[rowy];
 	      CoinBigIndex kre = krs + hinrow[rowy];
@@ -699,7 +699,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 		double coeffx = ap->coeffxs[k];
 		double coeff_factor = -coeffx / coeffy;	// backwards from doubleton
 
-#if	DEBUG_PRESOLVE
+#if	0&&DEBUG_PRESOLVE
 		{
 		  CoinBigIndex krs = mrstrt[rowx];
 		  CoinBigIndex kre = krs + hinrow[rowx];
@@ -793,7 +793,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 		// better if this were first
 		presolve_delete_from_row(rowx, jcoly, mrstrt, hinrow, hcol, rowels);
 #endif
-#if	DEBUG_PRESOLVE
+#if	0&&DEBUG_PRESOLVE
 		{
 		  CoinBigIndex krs = mrstrt[rowx];
 		  CoinBigIndex kre = krs + hinrow[rowx];
@@ -819,7 +819,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	      }
 	    }
 
-#if	DEBUG_PRESOLVE
+#if	0&&DEBUG_PRESOLVE
 	    printf("\n");
 #endif
 

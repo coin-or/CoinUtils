@@ -150,7 +150,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	  //mpre[j] = PRESOLVE_XUP;
 
 #if	DEBUG_PRESOLVE
-	  printf("TIGHTEN DOWN:  %d\n", j)f;
+	  printf("TIGHTEN DOWN:  %d\n", j);
 #endif
 
 	  fixdown_cols[nfixdown_cols] = j;

@@ -12,7 +12,8 @@ LibType := STATIC
 # highest level of optimization the compiler supports. If want something in
 # between then specify the exact level you want, e.g., -O1 or -O2
 OptLevel := -g
-OptLevel := -O1
+#OptLevel := -O1
+OptLevel := -O2
 
 # Look at the ${CoinDir}/Makefiles/Makefile.location file, comment in which
 # libraries are/will be available and edit the location of the various
@@ -63,6 +64,9 @@ ifeq ($(OptLevel),-O2)
 endif
 ifeq ($(OptLevel),-g)
 #     CXXFLAGS += -DZEROFAULT -DCOIN_DEBUG
+#CXXFLAGS += -DPRINT_DEBUG -DDEBUG_PRESOLVE
+CXXFLAGS +=  -DDEBUG_PRESOLVE
+#CXXFLAGS += -DCOIN_DEBUG
 endif
 CXXFLAGS += -DDENSE_CODE=1
 
