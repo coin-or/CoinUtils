@@ -40,6 +40,8 @@ static inline double CoinCpuTime()
 
 //#############################################################################
 
+#include <fstream>
+
 /**
  This class implements a timer that also implements a tracing functionality.
 
@@ -58,23 +60,6 @@ static inline double CoinCpuTime()
 class CoinTimer
 {
 private:
-   inline bool evaluate(const bool past) {
-#ifndef COIN_COMPILE_WITH_TRACING
-      int ipast = past;
-      if (stream) {
-	 
-	 if (write_stream)
-	    stream << ipast << "\n";
-	 else 
-	    stream >> ipast;
-      }
-      return ipast;
-#else
-      return past;
-#endif
-   }
-
-private:
    /// When the timer was initialized/reset/restarted
    double start;
    /// 
@@ -85,10 +70,27 @@ private:
    bool write_stream;
 #endif
 
+private:
+   inline bool evaluate(const bool past) {
+#ifdef COIN_COMPILE_WITH_TRACING
+      int ipast = past;
+      if (stream) {
+	 
+	 if (write_stream)
+	    (*stream) << ipast << "\n";
+	 else 
+	    (*stream) >> ipast;
+      }
+      return ipast;
+#else
+      return past;
+#endif
+   }
+
 public:
    /// Default constructor creates a timer with no time limit and no tracing
    CoinTimer() :
-      start(0), limit(DBL_MAX), end(DBL_MAX)
+      start(0), limit(1e100), end(1e100)
 #ifdef COIN_COMPILE_WITH_TRACING
       , stream(0), write_stream(true)
 #endif
@@ -106,14 +108,14 @@ public:
    /** Create a timer with no time limit and with writing/reading the trace
        to/from the given stream, depending on the argument \c write. */
    CoinTimer(std::fstream* s, bool write) :
-      start(0), limit(DBL_MAX), end(DBL_MAX),
+      start(0), limit(1e100), end(1e100),
       stream(s), write_stream(write) {}
    
    /** Create a timer with the given time limit and with writing/reading the
        trace to/from the given stream, depending on the argument \c write. */
    CoinTimer(double lim, std::fstream* s, bool w) :
       start(CoinCpuTime()), limit(lim), end(start+lim),
-      stream(s), write_stream(write) {}
+      stream(s), write_stream(w) {}
 #endif
    
    /// Restart the timer (keeping the same time limit)
@@ -138,6 +140,6 @@ public:
    inline bool isExpired() {
       return evaluate(end < CoinCpuTime());
    }
-}
+};
 
 #endif
