@@ -251,6 +251,11 @@ public:
   /// Highest message number (indicates any errors)
   inline int highestNumber() const
   {return highestNumber_;}
+  /// Set new file pointer
+  inline FILE * filePointer() const
+  { return fp_;}
+  inline void setFilePointer(FILE * fp)
+  { fp_ = fp;}
   //@}
   
   /**@name Actions to create a message  */
