@@ -18,7 +18,7 @@ class CoinWarmStart {
 public:
   virtual ~CoinWarmStart() {} ;
 
-  virtual CoinWarmStart *clone() = 0 ;
+  virtual CoinWarmStart *clone() const = 0 ;
 };
 
 #endif

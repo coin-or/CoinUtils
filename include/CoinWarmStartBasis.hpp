@@ -176,13 +176,10 @@ public:
   CoinWarmStartBasis(const CoinWarmStartBasis& ws) ;
 
   /** `Virtual constructor' */
-  virtual CoinWarmStart *clone()
-  { const CoinWarmStartBasis *cwsb_orig =
-	dynamic_cast<const CoinWarmStartBasis *>(this) ;
-    CoinWarmStartBasis *cwsb_new = 0 ;
-    if (cwsb_orig)
-    { cwsb_new = new CoinWarmStartBasis(*cwsb_orig) ; }
-    return (dynamic_cast<CoinWarmStart *>(cwsb_new)) ; }
+  virtual CoinWarmStart *clone() const
+  {
+     return new CoinWarmStartBasis(*this);
+  }
 
   virtual ~CoinWarmStartBasis();
 
