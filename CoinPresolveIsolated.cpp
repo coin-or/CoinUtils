@@ -6,6 +6,9 @@
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveIsolated.hpp"
 
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
+#endif
 
 // Rarely, there may a constraint whose variables only
 // occur in that constraint.
@@ -40,7 +43,7 @@ const CoinPresolveAction *isolated_constraint_action::presolve(CoinPresolveMatri
   
   double *dcost	= prob->cost_;
 
-#if	DEBUG_PRESOLVE
+# if PRESOLVE_DEBUG
   {
     printf("ISOLATED:  %d - ", irow);
     CoinBigIndex k;
@@ -48,22 +51,22 @@ const CoinPresolveAction *isolated_constraint_action::presolve(CoinPresolveMatri
       printf("%d ", hcol[k]);
     printf("\n");
   }
-#endif
+# endif
 
   if (rlo[irow] != 0.0 || rup[irow] != 0.0) {
-#if	DEBUG_PRESOLVE
+#   if PRESOLVE_DEBUG
     printf("can't handle non-trivial isolated constraints for now\n");
-#endif
+#   endif
     return NULL;
   }
   CoinBigIndex k;
   for ( k = krs; k<kre; ++k) {
     int jcol = hcol[k];
     if (clo[jcol] != 0.0 && cup[jcol] != 0.0) {
-#if	DEBUG_PRESOLVE
+#     if PRESOLVE_DEBUG
       printf("can't handle non-trivial isolated constraints for now\n");
-#endif
-    return NULL;
+#     endif
+      return NULL;
     }
   }
 
@@ -101,12 +104,20 @@ const CoinPresolveAction *isolated_constraint_action::presolve(CoinPresolveMatri
 					next);
 
   for ( k=krs; k<kre; k++)
-    presolve_delete_from_row(hcol[k], irow, mcstrt, hincol, hrow, colels);
-  hinrow[irow] = 0;
+  { presolve_delete_from_col(irow,hcol[k],mcstrt,hincol,hrow,colels) ;
+    if (hincol[hcol[k]] == 0)
+    { PRESOLVE_REMOVE_LINK(prob->clink_,hcol[k]) ; } }
+  hinrow[irow] = 0 ;
+  PRESOLVE_REMOVE_LINK(prob->rlink_,irow) ;
 
   // just to make things squeeky
   rlo[irow] = 0.0;
   rup[irow] = 0.0;
+
+# if CHECK_CONSISTENCY
+  presolve_links_ok(prob) ;
+  presolve_consistent(prob);
+# endif
 
   return (next);
 }
@@ -128,7 +139,7 @@ void isolated_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   double *rowacts	= prob->acts_;
   double *sol		= prob->sol_;
 
-  CoinBigIndex free_list		= prob->free_list_;
+  CoinBigIndex &free_list		= prob->free_list_;
 
 
   // hides fields
@@ -149,9 +160,8 @@ void isolated_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     sol[jcol] = 0.0;	// ONLY ACCEPTED SUCH CONSTRAINTS
 
     CoinBigIndex kk = free_list;
+    assert(kk >= 0 && kk < prob->bulk0_) ;
     free_list = link[free_list];
-
-    check_free_list(free_list);
 
     mcstrt[jcol] = kk;
 
@@ -159,9 +169,14 @@ void isolated_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
     colels[kk] = this->rowels_[k];
     hrow[kk]   = irow;
+    link[kk] = NO_LINK ;
 
     hincol[jcol] = 1;
   }
+
+# if PRESOLVE_CONSISTENCY
+  presolve_check_free_list(prob) ;
+# endif
 
   // ???
   prob->setRowStatus(irow,CoinPrePostsolveMatrix::basic);
@@ -169,7 +184,6 @@ void isolated_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
   rowacts[irow] = rowact;
 
-  prob->free_list_ = free_list;
   deleteAction(rowcols_,int *);
   deleteAction(rowels_,double *);
   deleteAction(costs_,double *);
