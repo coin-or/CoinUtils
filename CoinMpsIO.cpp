@@ -1430,7 +1430,7 @@ int CoinMpsIO::readMps(const char * filename,  const char * extension)
     delete cardReader_;
     cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
   }
-  if (strcmp(extension,"gms")&&!strstr(filename,".gms")) {
+  if (!extension||(strcmp(extension,"gms")&&!strstr(filename,".gms"))) {
     return readMps();
   } else {
     int numberSets=0;

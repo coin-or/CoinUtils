@@ -578,6 +578,11 @@ protected:
 		     const double * elem, const int * ind,
 		     const CoinBigIndex * start, const int * len,
 		     const double extraMajor=0.0, const double extraGap=0.0);
+   /// When no gaps we can do faster
+   void gutsOfCopyOfNoGaps(const bool colordered,
+		     const int minor, const int major,
+		     const double * elem, const int * ind,
+                           const CoinBigIndex * start);
    void gutsOfOpEqual(const bool colordered,
 		      const int minor, const int major, const CoinBigIndex numels,
 		      const double * elem, const int * ind,
