@@ -10,7 +10,7 @@
 
 
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 
 /** This is a first attempt at a message handler.

@@ -168,7 +168,7 @@ CoinSort_2(Iter_S sfirst, Iter_S slast, Iter_T tfirst)
 template <class S, class T, class CoinCompare2> void
 CoinSort_2(S* sfirst, S* slast, T* tfirst, const CoinCompare2& pc)
 {
-  const int len = coinDistance<S*,int>(sfirst, slast);
+  const int len = coinDistance(sfirst, slast);
   if (len <= 1)
     return;
 
@@ -386,8 +386,7 @@ CoinSort_3(Iter_S sfirst, Iter_S slast, Iter_T tfirst, Iter_U, ufirst)
 template <class S, class T, class U, class CoinCompare3> void
 CoinSort_3(S* sfirst, S* slast, T* tfirst, U* ufirst, const CoinCompare3& tc)
 {
-  int len ;
-  coinDistance(sfirst,slast,len);
+  const int len = coinDistance(sfirst,slast);
   if (len <= 1)
     return;
 

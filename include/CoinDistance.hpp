@@ -18,8 +18,7 @@ This is the Coin implementation of the std::function that is
 designed to work on multiple platforms.
 */
 template <class ForwardIterator, class Distance>
-void coinDistance(ForwardIterator first,
-		  ForwardIterator last,
+void coinDistance(ForwardIterator first, ForwardIterator last,
 		  Distance& n)
 {
 #if defined(__SUNPRO_CC)
@@ -30,11 +29,10 @@ void coinDistance(ForwardIterator first,
 #endif
 }
 
-template <class ForwardIterator, class Distance>
-Distance coinDistance(ForwardIterator first,
-		      ForwardIterator last)
+template <class ForwardIterator>
+size_t coinDistance(ForwardIterator first, ForwardIterator last)
 {
-   Distance retVal;
+   size_t retVal;
 #if defined(__SUNPRO_CC)
    retVal = 0;
    std::distance(first,last,retVal);
