@@ -3,13 +3,20 @@
 #if defined(_MSC_VER)
 // Turn off compiler warning about long names
 #  pragma warning(disable:4786)
+#if !defined(min)
+#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#endif
+#if !defined(max)
+#define max(a,b)  (((a) > (b)) ? (a) : (b))
+#endif
+#else
+using std::min;
+using std::max;
 #endif
 
 #include "CoinMessageHandler.hpp"
 #include <cassert>
 #include <map>
-using std::min;
-using std::max;
 
 /* Default constructor. */
 CoinOneMessage::CoinOneMessage()
