@@ -2080,7 +2080,7 @@ static void outputCard(int formatType,int numberFields,
 	 line += outputValue[i];
 	 if (i<numberFields-1) {
 	    // fprintf(fp,"   ");
-	    line += "  ";
+	    line += "   ";
 	 }
       }
    } else {
