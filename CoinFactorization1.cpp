@@ -996,6 +996,7 @@ CoinFactorization::pivotRowSingleton ( int pivotRow,
 
   nextRow_[last] = next;
   lastRow_[next] = last;
+  lastRow_[pivotRow] =-2;
   nextRow_[pivotRow] = numberGoodU_;	//use for permute
   return true;
 }
@@ -1271,9 +1272,6 @@ CoinFactorization::getRowSpace ( int iRow,
   CoinBigIndex put = startRowU_[maximumRowsExtra_];
   int next = nextRow_[iRow];
   int last = lastRow_[iRow];
-
-  assert(last>=0&&last<=maximumRowsExtra_);
-  assert(next>=0&&next<=maximumRowsExtra_);
 
   //out
   nextRow_[last] = next;
