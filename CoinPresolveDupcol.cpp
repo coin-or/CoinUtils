@@ -279,9 +279,9 @@ const CoinPresolveAction *dupcol_action::presolve(CoinPresolveMatrix *prob,
 #endif
 	      continue;
 	    } else if (clo1<-1.0e20) {
-	      printf("ILAST:  %d %d\n", ilast, ithis);
+	      //printf("ILAST:  %d %d\n", ilast, ithis);
 	      swap(ilast, ithis);
-	      printf("ILAST1:  %d %d\n", ilast, ithis);
+	      //printf("ILAST1:  %d %d\n", ilast, ithis);
 	      swap(clo1, clo2);
 	      swap(cup1, cup2);
 	      swap(dcost1, dcost2);
