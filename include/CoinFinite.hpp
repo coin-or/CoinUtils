@@ -5,6 +5,7 @@
 #ifndef CoinFinite_H
 #define CoinFinite_H
 
+#include <algorithm>
 #include <cmath>
 
 //=============================================================================
