@@ -1,3 +1,9 @@
+##############################################################################
+# The location of the customized Makefiles
+export CoinDir = $(shell cd ..; pwd)
+export MakefileDir := $(CoinDir)/Makefiles
+
+##############################################################################
 # Static or shared libraries should be built (STATIC or SHARED)?
 LibType := SHARED
 
@@ -34,9 +40,6 @@ LIBSRC += CoinShallowPackedVector.cpp
 LIBSRC += CoinWarmStartBasis.cpp
 
 ##############################################################################
-# The location of the customized Makefiles
-export CoinDir = $(shell cd ..; pwd)
-export MakefileDir := $(CoinDir)/Makefiles
 include ${MakefileDir}/Makefile.coin
 include ${MakefileDir}/Makefile.location
 
@@ -51,18 +54,22 @@ export LibType OptLevel LIBNAME LIBSRC
 
 .DELETE_ON_ERROR:
 
-.PHONY: default install libcoin libCoin library clean doc
+.PHONY: default libcoin libCoin install unitTest library clean doc
 
 default: install
 
 unitTest: install
 	(cd Test && $(MAKE) unitTest)
 
-install doc library: % :
-	$(MAKE) -f ${MakefileDir}/Makefile.lib $*
+install library:
+	$(MAKE) -f ${MakefileDir}/Makefile.lib $@
 
 libcoin libCoin: library
 
+doc:
+	doxygen $(MakefileDir)/doxygen.conf
+
+###############################################################################
 clean:
 	@rm -rf Junk
 	@rm -rf $(UNAME)*

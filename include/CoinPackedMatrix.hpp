@@ -19,7 +19,7 @@
   matrix.
 
   For example if the matrix:
-  <pre>
+  @verbatim
      3  1  0   -2   -1  0  0   -1                 
      0  2  1.1  0    0  0  0    0                       
      0  0  1    0    0  1  0    0         
@@ -51,7 +51,7 @@
       0 2 4 6 8 10 11 12 14 
     c.size() returns 14. 
     c.majorDim() returns 8. 
-  </pre>
+  @endverbatim
 */
 #ifndef COIN_BIG_INDEX
 typedef int CoinBigIndex;
@@ -261,9 +261,9 @@ public:
         argument, but the major ordering reversed. The extra space parameters
         are copied and reversed, too. */
     void reverseOrderedCopyOf(const CoinPackedMatrix& rhs);
-    /** Assign the arguments to the matrix. If <code>len<code> is a NULL pointer
-        then the matrix is assumed to have no gaps in it and <code>len</code>
-        will be created accordingly. <br>
+    /** Assign the arguments to the matrix. If <code>len</code> is a NULL
+	pointer then the matrix is assumed to have no gaps in it and
+	<code>len</code> will be created accordingly. <br>
         <strong>NOTE 1</strong>: After this method returns the pointers
         passed to the method will be NULL pointers! <br>
         <strong>NOTE 2</strong>: When the matrix is eventually destructed the
@@ -301,15 +301,15 @@ public:
   /**@name Matrix times vector methods */
   //@{
     /** Return <code>A * x</code> in <code>y</code>.
-        @precond <code>x<code> must be of size <code>numColumns()</code>
-        @precond <code>y<code> must be of size <code>numRows()</code> */
+        @pre <code>x</code> must be of size <code>numColumns()</code>
+        @pre <code>y</code> must be of size <code>numRows()</code> */
     void times(const double * x, double * y) const;
     /** Return <code>A * x</code> in <code>y</code>. Same as the previous
         method, just <code>x</code> is given in the form of a packed vector. */
     void times(const CoinPackedVectorBase& x, double * y) const;
     /** Return <code>x * A</code> in <code>y</code>.
-        @precond <code>x<code> must be of size <code>numRows()</code>
-        @precond <code>y<code> must be of size <code>numColumns()</code> */
+        @pre <code>x</code> must be of size <code>numRows()</code>
+        @pre <code>y</code> must be of size <code>numColumns()</code> */
     void transposeTimes(const double * x, double * y) const;
     /** Return <code>x * A</code> in <code>y</code>. Same as the previous
         method, just <code>x</code> is given in the form of a packed vector. */
@@ -387,26 +387,26 @@ public:
     */
     //@{
       /** Append the columns of the argument to the right end of this matrix.
-	  @precondition <code>minorDim_ == matrix.minorDim_</code> <br>
+	  @pre <code>minorDim_ == matrix.minorDim_</code> <br>
 	  This method throws an exception if the minor dimensions are not the
 	  same. */
       void majorAppendSameOrdered(const CoinPackedMatrix& matrix)
 	 throw(CoinError);
       /** Append the columns of the argument to the bottom end of this matrix.
-	  @precondition <code>majorDim_ == matrix.majorDim_</code> <br>
+	  @pre <code>majorDim_ == matrix.majorDim_</code> <br>
 	  This method throws an exception if the major dimensions are not the
 	  same. */
       void minorAppendSameOrdered(const CoinPackedMatrix& matrix)
 	 throw(CoinError);
       /** Append the rows of the argument to the right end of this matrix.
-	  @precondition <code>minorDim_ == matrix.majorDim_</code> <br>
+	  @pre <code>minorDim_ == matrix.majorDim_</code> <br>
 	  This method throws an exception if the minor dimension of the
 	  current matrix is not the same as the major dimension of the
 	  argument matrix. */
       void majorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
 	 throw(CoinError);
       /** Append the rows of the argument to the bottom end of this matrix.
-	  @precondition <code>majorDim_ == matrix.minorDim_</code> <br>
+	  @pre <code>majorDim_ == matrix.minorDim_</code> <br>
 	  This method throws an exception if the major dimension of the
 	  current matrix is not the same as the minor dimension of the
 	  argument matrix. */
@@ -432,8 +432,8 @@ public:
       //@{
       /** Return <code>A * x</code> (multiplied from the "right" direction) in
 	  <code>y</code>.
-	  @precond <code>x<code> must be of size <code>majorDim()</code>
-	  @precond <code>y<code> must be of size <code>minorDim()</code> */
+	  @pre <code>x</code> must be of size <code>majorDim()</code>
+	  @pre <code>y</code> must be of size <code>minorDim()</code> */
       void timesMajor(const double * x, double * y) const;
       /** Return <code>A * x</code> (multiplied from the "right" direction) in
 	  <code>y</code>. Same as the previous method, just <code>x</code> is
@@ -441,8 +441,8 @@ public:
       void timesMajor(const CoinPackedVectorBase& x, double * y) const;
       /** Return <code>A * x</code> (multiplied from the "right" direction) in
 	  <code>y</code>.
-	  @precond <code>x<code> must be of size <code>minorDim()</code>
-	  @precond <code>y<code> must be of size <code>majorDim()</code> */
+	  @pre <code>x</code> must be of size <code>minorDim()</code>
+	  @pre <code>y</code> must be of size <code>majorDim()</code> */
       void timesMinor(const double * x, double * y) const;
       /** Return <code>A * x</code> (multiplied from the "right" direction) in
 	  <code>y</code>. Same as the previous method, just <code>x</code> is

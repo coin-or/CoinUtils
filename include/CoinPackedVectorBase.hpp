@@ -57,7 +57,7 @@ public:
    //@{
    /** Get the vector as a dense vector. The argument specifies how long this
        dense vector is. <br>
-       <strong>NOTE</code>: The user needs to <code>delete[]</code> this
+       <strong>NOTE</strong>: The user needs to <code>delete[]</code> this
        pointer after it's not needed anymore.
    */
    double * denseVector(int denseSize) const throw(CoinError);

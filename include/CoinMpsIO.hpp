@@ -307,48 +307,48 @@ private:
       /// Pointer to dense vector of row right-hand side values
       mutable double  *rhs_;
   
-     /** Pointer to dense vector of slack upper bounds for range 
-         constraints (undefined for non-range rows)
-     */
-     mutable double  *rowrange_;
-  
-     /// Pointer to row-wise copy of problem matrix coefficients.
-     mutable CoinPackedMatrix *matrixByRow_;  
-     /// Pointer to column-wise copy of problem matrix coefficients.
-     CoinPackedMatrix *matrixByColumn_;  
-     double * rowlower_;
-     double * rowupper_;
-     double * collower_;
-     double * colupper_;
-     double * objective_;
-     char * integerType_;
-     char * fileName_;
-     /// Number in hash table
-     int numberHash_[2];
-     /// Hash tables
-     mutable CoinHashLink *hash_[2];
-     /// Names linked to hash (0 - row names, 1 column names)
-     char **names_[2];
-     int numberRows_;
-     int numberColumns_;
-     CoinBigIndex numberElements_;
-     /// Upper bound when no bounds for integers
-     int defaultBound_; 
-     double infinity_;
-     /// offset for objective function (i.e. rhs of OBJ row)
-     double objectiveOffset_;
-     /// information on problem
-     char * problemName_;
-     char * objectiveName_;
-     char * rhsName_;
-     char * rangeName_;
-     char * boundName_;
-  /// Message handler
-  CoinMessageHandler * handler_;
-  /// Flag to say if default handler (so delete)
-  bool defaultHandler_;
-  /// Messages
-  CoinMessages messages_;
+      /** Pointer to dense vector of slack upper bounds for range 
+          constraints (undefined for non-range rows)
+      */
+      mutable double  *rowrange_;
+   
+      /// Pointer to row-wise copy of problem matrix coefficients.
+      mutable CoinPackedMatrix *matrixByRow_;  
+      /// Pointer to column-wise copy of problem matrix coefficients.
+      CoinPackedMatrix *matrixByColumn_;  
+      double * rowlower_;
+      double * rowupper_;
+      double * collower_;
+      double * colupper_;
+      double * objective_;
+      char * integerType_;
+      char * fileName_;
+      /// Number in hash table
+      int numberHash_[2];
+      /// Hash tables
+      mutable CoinHashLink *hash_[2];
+      /// Names linked to hash (0 - row names, 1 column names)
+      char **names_[2];
+      int numberRows_;
+      int numberColumns_;
+      CoinBigIndex numberElements_;
+      /// Upper bound when no bounds for integers
+      int defaultBound_; 
+      double infinity_;
+      /// offset for objective function (i.e. rhs of OBJ row)
+      double objectiveOffset_;
+      /// information on problem
+      char * problemName_;
+      char * objectiveName_;
+      char * rhsName_;
+      char * rangeName_;
+      char * boundName_;
+      /// Message handler
+      CoinMessageHandler * handler_;
+      /// Flag to say if default handler (so delete)
+      bool defaultHandler_;
+      /// Messages
+      CoinMessages messages_;
     //@}
   //@}
 

@@ -24,7 +24,7 @@ This class stores pointers to the vectors.
 It does not actually contain the vectors.
 
 Here is a sample usage:
-<pre>
+@verbatim
    const int ne = 4; 
    int inx[ne] =   {  1,   4,  0,   2 }; 
    double el[ne] = { 10., 40., 1., 50. }; 
@@ -66,7 +66,7 @@ Here is a sample usage:
    assert( add[3] ==  0.+ 0. ); 
    assert( add[4] == 40.+40. ); 
    assert( r.sum() == 10.+40.+1.+50. ); 
-   </pre>
+@endverbatim
 */
 class CoinShallowPackedVector : public CoinPackedVectorBase {
    friend void CoinShallowPackedVectorUnitTest();
@@ -89,7 +89,7 @@ public:
    void clear();
    /** Assignment operator. */
    CoinShallowPackedVector& operator=(const CoinShallowPackedVector & x);
-   /** Assignment operator <em>from base</em>. */
+   /** Assignment operator from a CoinPackedVectorBase. */
    CoinShallowPackedVector& operator=(const CoinPackedVectorBase & x);
    /** just like the explicit constructor */
    void setVector(int size, const int * indices, const double * elements,

@@ -19,7 +19,7 @@ Stores vector of indices and associated element values.
 Supports sorting of vector while maintaining the original indices.
 
 Here is a sample usage:
-<pre>
+@verbatim
     const int ne = 4;
     int inx[ne] =   {  1,   4,  0,   2 };
     double el[ne] = { 10., 40., 1., 50. };
@@ -108,7 +108,7 @@ Here is a sample usage:
     assert( add[4] == 40.+40. );
 
     assert( r.sum() == 10.+40.+1.+50. );
-</pre>
+@endverbatim
 */
 class CoinPackedVector : public CoinPackedVectorBase {
    friend void CoinPackedVectorUnitTest();
@@ -144,7 +144,7 @@ public:
        <code>testForDuplicateIndex</code> setting, and affter copying the data
        it acts accordingly. */
    CoinPackedVector & operator=(const CoinPackedVector &);
-   /** Assignment operator <em>for a PackedVectorBase</em>. <br>
+   /** Assignment operator from a CoinPackedVectorBase. <br>
        <strong>NOTE</strong>: This operator keeps the current
        <code>testForDuplicateIndex</code> setting, and affter copying the data
        it acts accordingly. */

@@ -15,12 +15,13 @@
   Two objects are provided; one tests for equality to an absolute tolerance,
   one to a scaled tolerance. The tests will handle IEEE floating point, but
   note that infinity == infinity. Mathematicians are rolling in their graves,
-  but this matches the behaviour for the common practice of using DBL_MAX
-  (numeric_limits<double>::max(), or similar large finite number) as infinity.
+  but this matches the behaviour for the common practice of using
+  <code>DBL_MAX</code> (<code>numeric_limits<double>::max()</code>, or similar
+  large finite number) as infinity.
 
   <p>
   Example usage:
-  <pre>
+  @verbatim
     double d1 = 3.14159 ;
     double d2 = d1 ;
     double d3 = d1+.0001 ;
@@ -31,9 +32,8 @@
     assert(  eq1(d1,d2) ) ;
     assert( !eq1(d1,d3) ) ;
     assert(  eq2(d1,d3) ) ;
-  </pre>
-  CoinRelFltEq follows the same pattern.
-*/
+  @endverbatim
+  CoinRelFltEq follows the same pattern.  */
 
 /*! \brief Equality to an absolute tolerance
 

@@ -31,7 +31,7 @@ For a packed vector getElements is fast and [] is very slow.  Here it is other w
 although getElements is not too bad if used as double * elements = getElements and then used.
 
 Here is a sample usage:
-<pre>
+@verbatim
     const int ne = 4;
     int inx[ne] =   {  1,   4,  0,   2 };
     double el[ne] = { 10., 40., 1., 50. };
@@ -96,7 +96,7 @@ Here is a sample usage:
     assert( add[4] == 40.+40. );
 
     assert( r.sum() == 10.+40.+1.+50. );
-</pre>
+@endverbatim
 */
 class CoinIndexedVector : public CoinPackedVectorBase {
    friend void CoinIndexedVectorUnitTest();
@@ -137,7 +137,7 @@ public:
    void empty();
    /** Assignment operator. */
    CoinIndexedVector & operator=(const CoinIndexedVector &);
-   /** Assignment operator <em>for a PackedVectorBase</em>. <br>
+   /** Assignment operator from a CoinPackedVectorBase. <br>
    <strong>NOTE</strong>: This assumes no duplicates */
    CoinIndexedVector & operator=(const CoinPackedVectorBase & rhs);
 

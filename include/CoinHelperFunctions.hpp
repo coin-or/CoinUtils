@@ -202,9 +202,9 @@ CoinFill(register T* first, register T* last, const T value)
 
 //#############################################################################
 
-/** Return the larger (according to <code>operator<()<code> of the arguments.
+/** Return the larger (according to <code>operator<()</code> of the arguments.
     This function was introduced because for some reason compiler tend to
-    handle the max() function differently. */
+    handle the <code>max()</code> function differently. */
 template <class T> inline T
 CoinMax(register const T x1, register const T x2)
 {
