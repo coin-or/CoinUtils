@@ -285,10 +285,12 @@ CoinPackedMatrix::bottomAppendPackedMatrix(const CoinPackedMatrix& matrix)
 void
 CoinPackedMatrix::deleteCols(const int numDel, const int * indDel)
 {
-   if (colOrdered_)
+  if (numDel) {
+    if (colOrdered_)
       deleteMajorVectors(numDel, indDel);
-   else
+    else
       deleteMinorVectors(numDel, indDel);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -296,10 +298,12 @@ CoinPackedMatrix::deleteCols(const int numDel, const int * indDel)
 void
 CoinPackedMatrix::deleteRows(const int numDel, const int * indDel)
 {
-   if (colOrdered_)
+  if (numDel) {
+    if (colOrdered_)
       deleteMinorVectors(numDel, indDel);
-   else
+    else
       deleteMajorVectors(numDel, indDel);
+  }
 }
 
 //#############################################################################
@@ -1226,10 +1230,10 @@ CoinPackedMatrix::deleteMajorVectors(const int numDel,
    }
 
    // copy the last block of length_ and start_
+   const int ind = sortedDel[last];
+   deleted += length_[ind];
    if (sortedDel[last] != majorDim_ - 1) {
-      const int ind = sortedDel[last];
       const int ind1 = majorDim_;
-      deleted += length_[ind];
       CoinCopy(start_ + (ind + 1), start_ + ind1, start_ + (ind - last));
       CoinCopy(length_ + (ind + 1), length_ + ind1, length_ + (ind - last));
    }
