@@ -1711,7 +1711,7 @@ CoinFactorization::emptyRows(int numberToEmpty, const int which[])
     numberInRow_[iRow]=0;
   }
   for (i=0;i<numberU_;i++) {
-    int k;
+    CoinBigIndex k;
     CoinBigIndex j=startColumnU_[i];
     for (k=startColumnU_[i];k<startColumnU_[i]+numberInColumn_[i];k++) {
       int iRow=indexRowU_[k];

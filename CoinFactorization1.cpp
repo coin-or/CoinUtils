@@ -328,7 +328,7 @@ int CoinFactorization::factorize (
   }
   for (i=0;i<numberColumns;i++) {
     if (columnIsBasic[i]>=0) {
-      int j;
+      CoinBigIndex j;
       for (j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
 	indexRowU_[numberElements]=row[j];
 	indexColumnU_[numberElements]=numberBasic;
@@ -920,7 +920,7 @@ CoinFactorization::pivotRowSingleton ( int pivotRow,
   CoinBigIndex startColumn = startColumnU_[pivotColumn];
   int numberDoColumn = numberInColumn_[pivotColumn] - 1;
   CoinBigIndex endColumn = startColumn + numberDoColumn + 1;
-  int pivotRowPosition = startColumn;
+  CoinBigIndex pivotRowPosition = startColumn;
   int iRow = indexRowU_[pivotRowPosition];
 
   while ( iRow != pivotRow ) {

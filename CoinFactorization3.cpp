@@ -268,7 +268,7 @@ CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse ,
     if (iPivot>=baseL_) {
       if(!mark[iPivot]) {
 	stack[0]=iPivot;
-	int j=startColumn[iPivot+1]-1;
+	CoinBigIndex j=startColumn[iPivot+1]-1;
 	if (j>=startColumn[iPivot]) {
 	  int kPivot=indexRow[j];
 	  /* put back on stack */
