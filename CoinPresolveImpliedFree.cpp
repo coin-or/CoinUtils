@@ -531,9 +531,10 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 #if	PRESOLVE_SUMMARY
     printf("NIMPLIED FREE:  %d\n", nactions);
 #endif
-    next = new implied_free_action(nactions, copyOfArray(actions,nactions), next);
+    next = new implied_free_action(nactions, actions, next);
+  } else { 
+    delete [] actions;
   }
-  deleteAction(actions,action*);
 
   if (isolated_row != -1) {
     const CoinPresolveAction *nextX = isolated_constraint_action::presolve(prob, 
@@ -677,4 +678,14 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
     }
   }
   prob->free_list_ = free_list;
+}
+implied_free_action::~implied_free_action() 
+{ 
+  int i;
+  for (i=0;i<nactions_;i++) {
+    delete [] actions_[i].rowcols;
+    delete [] actions_[i].rowels;
+    //delete [] actions_[i].costs; deleted earlier
+  }
+  delete [] actions_;
 }

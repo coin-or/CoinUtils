@@ -773,6 +773,15 @@ postsolve for implied_bound
 	}
 #endif
 #endif
+forcing_constraint_action::~forcing_constraint_action() 
+{ 
+  int i;
+  for (i=0;i<nactions_;i++) {
+    delete [] actions_[i].rowcols;
+    delete [] actions_[i].bounds;
+  }
+  delete [] actions_;
+}
 
 
 

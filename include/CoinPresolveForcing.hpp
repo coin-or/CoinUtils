@@ -31,7 +31,7 @@ class forcing_constraint_action : public CoinPresolveAction {
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~forcing_constraint_action() { deleteAction(actions_,action*); }
+  ~forcing_constraint_action();
 };
 
 
