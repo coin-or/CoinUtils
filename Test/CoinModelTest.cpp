@@ -41,7 +41,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
   lastColumn[0]=0;
   lastRow[3]=numberRows;
   lastColumn[3]=numberColumns;
-  for (int i=1;i<3;i++) {
+  for ( i=1;i<3;i++) {
     int size;
     size = (int) ((0.25*random+0.2)*numberRows);
     random = CoinDrand48();
