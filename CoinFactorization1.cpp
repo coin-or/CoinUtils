@@ -1272,6 +1272,9 @@ CoinFactorization::getRowSpace ( int iRow,
   int next = nextRow_[iRow];
   int last = lastRow_[iRow];
 
+  assert(last>=0&&last<=maximumRowsExtra_);
+  assert(next>=0&&next<=maximumRowsExtra_);
+
   //out
   nextRow_[last] = next;
   lastRow_[next] = last;

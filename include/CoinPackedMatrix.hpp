@@ -223,6 +223,11 @@ public:
 	eliminated.  Elements eliminated are at end of each vector
     */
     int compress(double threshold);
+    /** Eliminate all duplicate AND small elements in matrix 
+	The column starts are not affected.  Returns number of elements
+	eliminated.  
+    */
+    int eliminateDuplicates(double threshold);
   //@}
 
   //---------------------------------------------------------------------------

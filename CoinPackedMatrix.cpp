@@ -361,6 +361,51 @@ CoinPackedMatrix::compress(double threshold)
   return numberEliminated;
 }
 //#############################################################################
+/* Eliminate all elements in matrix whose 
+   absolute value is less than threshold.ALSO removes duplicates
+   The column starts are not affected.  Returns number of elements
+   eliminated. 
+*/
+int 
+CoinPackedMatrix::eliminateDuplicates(double threshold)
+{
+  CoinBigIndex numberEliminated =0;
+  // space for eliminated
+  int * mark = new int [minorDim_];
+  int i;
+  for (i=0;i<minorDim_;i++)
+    mark[i]=-1;
+  for (i=0;i<majorDim_;i++) {
+    CoinBigIndex k=start_[i];
+    CoinBigIndex end = k+length_[i];
+    CoinBigIndex j;
+    for (j=k;j<end;j++) {
+      int index = index_[j];
+      if (mark[index]==-1) {
+	mark[index]=j;
+      } else {
+	// duplicate
+	int jj = mark[index];
+	element_[jj] += element_[j];
+	element_[j]=0.0;
+      }
+    }
+    for (j=k;j<end;j++) {
+      int index = index_[j];
+      mark[index]=-1;
+      if (fabs(element_[j])>=threshold) {
+	element_[k]=element_[j];
+	index_[k++]=index_[j];
+      }
+    }
+    numberEliminated += end-k;
+    length_[i] = k-start_[i];
+  }
+  size_ -= numberEliminated;
+  delete [] mark;
+  return numberEliminated;
+}
+//#############################################################################
 
 void
 CoinPackedMatrix::removeGaps()
