@@ -18,17 +18,18 @@
 #include "CoinBuild.hpp"
 
 /*
-  Format of each row is a bit sleazy.
-  First we have pointer to next row
-  Then we have two ints giving row number and number of elements
-  Then we have two double for lower and upper
+  Format of each item is a bit sleazy.
+  First we have pointer to next item
+  Then we have two ints giving item number and number of elements
+  Then we have three double for objective lower and upper
   Then we have elements
   Then indices
 */
 struct buildFormat {
   buildFormat * next;
-  int rowNumber;
+  int itemNumber;
   int numberElements;
+  double objective;
   double lower;
   double upper;
   double restDouble[1]; 
@@ -43,52 +44,67 @@ struct buildFormat {
 // Default Constructor 
 //-------------------------------------------------------------------
 CoinBuild::CoinBuild () 
-  : numberRows_(0),
-    numberColumns_(0),
+  : numberItems_(0),
+    numberOther_(0),
     numberElements_(0),
-    currentRow_(NULL),
-    firstRow_(NULL),
-    lastRow_(NULL),
-    type_(0)
+    currentItem_(NULL),
+    firstItem_(NULL),
+    lastItem_(NULL),
+    type_(-1)
 {
+}
+//-------------------------------------------------------------------
+// Constructor with type
+//-------------------------------------------------------------------
+CoinBuild::CoinBuild (int type) 
+  : numberItems_(0),
+    numberOther_(0),
+    numberElements_(0),
+    currentItem_(NULL),
+    firstItem_(NULL),
+    lastItem_(NULL),
+    type_(type)
+{
+  if (type<0||type>1)
+    type_=-1; // unset
 }
 
 //-------------------------------------------------------------------
 // Copy constructor 
 //-------------------------------------------------------------------
 CoinBuild::CoinBuild (const CoinBuild & rhs) 
-  : numberRows_(rhs.numberRows_),
-    numberColumns_(rhs.numberColumns_),
+  : numberItems_(rhs.numberItems_),
+    numberOther_(rhs.numberOther_),
     numberElements_(rhs.numberElements_),
     type_(rhs.type_)
 {
-  if (numberRows_) {
-    firstRow_=NULL;
-    buildFormat * lastRow = NULL;
-    buildFormat * currentRow = (buildFormat *) rhs.firstRow_;
-    for (int iRow=0;iRow<numberRows_;iRow++) {
-      buildFormat * row = currentRow;
-      assert (row);
-      int numberElements = row->numberElements;
+  if (numberItems_) {
+    firstItem_=NULL;
+    buildFormat * lastItem = NULL;
+    buildFormat * currentItem = (buildFormat *) rhs.firstItem_;
+    for (int iItem=0;iItem<numberItems_;iItem++) {
+      buildFormat * item = currentItem;
+      assert (item);
+      int numberElements = item->numberElements;
       int length = sizeof(buildFormat)+(numberElements-1)*(sizeof(double)+sizeof(int));
       int doubles = (length + sizeof(double)-1)/sizeof(double);
-      double * copyOfRow = new double [doubles];
-      memcpy(copyOfRow,row,length);
-      if (!firstRow_) {
-        firstRow_ = copyOfRow;
+      double * copyOfItem = new double [doubles];
+      memcpy(copyOfItem,item,length);
+      if (!firstItem_) {
+        firstItem_ = copyOfItem;
       } else {
         // update pointer
-        lastRow->next = (buildFormat *) copyOfRow;
+        lastItem->next = (buildFormat *) copyOfItem;
       }
-      currentRow = currentRow->next; // on to next
-      lastRow = (buildFormat *) copyOfRow;
+      currentItem = currentItem->next; // on to next
+      lastItem = (buildFormat *) copyOfItem;
     }
-    currentRow_=firstRow_;
-    lastRow_=(double *) lastRow;
+    currentItem_=firstItem_;
+    lastItem_=(double *) lastItem;
   } else {
-    currentRow_=NULL;
-    firstRow_=NULL;
-    lastRow_=NULL;
+    currentItem_=NULL;
+    firstItem_=NULL;
+    lastItem_=NULL;
   }
 }
 
@@ -97,10 +113,10 @@ CoinBuild::CoinBuild (const CoinBuild & rhs)
 //-------------------------------------------------------------------
 CoinBuild::~CoinBuild ()
 {
-  buildFormat * row = (buildFormat *) firstRow_;
-  for (int iRow=0;iRow<numberRows_;iRow++) {
-    double * array = (double *) row;
-    row = row->next;
+  buildFormat * item = (buildFormat *) firstItem_;
+  for (int iItem=0;iItem<numberItems_;iItem++) {
+    double * array = (double *) item;
+    item = item->next;
     delete [] array;
   }
 }
@@ -112,43 +128,43 @@ CoinBuild &
 CoinBuild::operator=(const CoinBuild& rhs)
 {
   if (this != &rhs) {
-    buildFormat * row = (buildFormat *) firstRow_;
-    for (int iRow=0;iRow<numberRows_;iRow++) {
-      double * array = (double *) row;
-      row = row->next;
+    buildFormat * item = (buildFormat *) firstItem_;
+    for (int iItem=0;iItem<numberItems_;iItem++) {
+      double * array = (double *) item;
+      item = item->next;
       delete [] array;
     }
-    numberRows_=rhs.numberRows_;
-    numberColumns_=rhs.numberColumns_;
+    numberItems_=rhs.numberItems_;
+    numberOther_=rhs.numberOther_;
     numberElements_=rhs.numberElements_;
     type_=rhs.type_;
-    if (numberRows_) {
-      firstRow_=NULL;
-      buildFormat * lastRow = NULL;
-      buildFormat * currentRow = (buildFormat *) rhs.firstRow_;
-      for (int iRow=0;iRow<numberRows_;iRow++) {
-        buildFormat * row = currentRow;
-        assert (row);
-        int numberElements = row->numberElements;
+    if (numberItems_) {
+      firstItem_=NULL;
+      buildFormat * lastItem = NULL;
+      buildFormat * currentItem = (buildFormat *) rhs.firstItem_;
+      for (int iItem=0;iItem<numberItems_;iItem++) {
+        buildFormat * item = currentItem;
+        assert (item);
+        int numberElements = item->numberElements;
         int length = sizeof(buildFormat)+(numberElements-1)*(sizeof(double)+sizeof(int));
         int doubles = (length + sizeof(double)-1)/sizeof(double);
-        double * copyOfRow = new double [doubles];
-        memcpy(copyOfRow,row,length);
-        if (!firstRow_) {
-          firstRow_ = copyOfRow;
+        double * copyOfItem = new double [doubles];
+        memcpy(copyOfItem,item,length);
+        if (!firstItem_) {
+          firstItem_ = copyOfItem;
         } else {
           // update pointer
-          lastRow->next = (buildFormat *) copyOfRow;
+          lastItem->next = (buildFormat *) copyOfItem;
         }
-        currentRow = currentRow->next; // on to next
-        lastRow = (buildFormat *) copyOfRow;
+        currentItem = currentItem->next; // on to next
+        lastItem = (buildFormat *) copyOfItem;
       }
-      currentRow_=firstRow_;
-      lastRow_=(double *) lastRow;
+      currentItem_=firstItem_;
+      lastItem_=(double *) lastItem;
     } else {
-      currentRow_=NULL;
-      firstRow_=NULL;
-      lastRow_=NULL;
+      currentItem_=NULL;
+      firstItem_=NULL;
+      lastItem_=NULL;
     }
   }
   return *this;
@@ -159,36 +175,14 @@ CoinBuild::addRow(int numberInRow, const int * columns,
                  const double * elements, double rowLower, 
                  double rowUpper)
 {
-  buildFormat * lastRow = (buildFormat *) lastRow_;
-  int length = sizeof(buildFormat)+(numberInRow-1)*(sizeof(double)+sizeof(int));
-  int doubles = (length + sizeof(double)-1)/sizeof(double);
-  double * newRow = new double [doubles];
-  if (!firstRow_) {
-    firstRow_ = newRow;
-  } else {
-    // update pointer
-    lastRow->next = (buildFormat *) newRow;
+  if (type_<0) {
+    type_=0;
+  } else if (type_==1) {
+    printf("CoinBuild:: unable to add a row in column mode\n");
+    abort();
   }
-  lastRow_=newRow;
-  currentRow_=newRow;
-  // now fill in
-  buildFormat * row = (buildFormat *) newRow;
-  double * els = &row->restDouble[0];
-  int * cols = (int *) (els+numberInRow);
-  row->next=NULL;
-  row->rowNumber=numberRows_;
-  numberRows_++;
-  row->numberElements=numberInRow;
-  numberElements_ += numberInRow;
-  row->lower=rowLower;
-  row->upper=rowUpper;
-  for (int k=0;k<numberInRow;k++) {
-    int iColumn = columns[k];
-    assert (iColumn>=0);
-    numberColumns_ = CoinMax(numberColumns_,iColumn+1);
-    els[k]=elements[k];
-    cols[k]=iColumn;
-  }
+  addItem(numberInRow, columns, elements, 
+          rowLower,rowUpper,0.0);
 }
 /*  Returns number of elements in a row and information in row
  */
@@ -196,8 +190,10 @@ int
 CoinBuild::row(int whichRow, double & rowLower, double & rowUpper,
               const int * & indices, const double * & elements) const
 {
-  setMutableCurrentRow(whichRow);
-  return currentRow(rowLower,rowUpper,indices,elements);
+  assert (type_==0);
+  setMutableCurrent(whichRow);
+  double dummyObjective;
+  return currentItem(rowLower,rowUpper,dummyObjective,indices,elements);
 }
 /*  Returns number of elements in current row and information in row
     Used as rows may be stored in a chain
@@ -206,51 +202,178 @@ int
 CoinBuild::currentRow(double & rowLower, double & rowUpper,
                      const int * & indices, const double * & elements) const
 {
-  buildFormat * row = (buildFormat *) currentRow_;
-  if (row) {
-    int numberElements = row->numberElements;
-    elements = &row->restDouble[0];
-    indices = (const int *) (elements+numberElements);
-    rowLower = row->lower;
-    rowUpper=row->upper;
-    return numberElements;
-  } else {
-    return -1;
-  }
+  assert (type_==0);
+  double dummyObjective;
+  return currentItem(rowLower,rowUpper,dummyObjective,indices,elements);
 }
 // Set current row
 void 
 CoinBuild::setCurrentRow(int whichRow)
 {
-  setMutableCurrentRow(whichRow);
-}
-// Set current row
-void 
-CoinBuild::setMutableCurrentRow(int whichRow) const
-{
-  if (whichRow>=0&&whichRow<numberRows_) {
-    int nSkip = whichRow-1;
-    buildFormat * row = (buildFormat *) firstRow_;
-    // if further on then we can start from where we are
-    buildFormat * current = (buildFormat *) currentRow_;
-    if (current->rowNumber<=whichRow) {
-      row=current;
-      nSkip = whichRow-current->rowNumber;
-    }
-    for (int iRow=0;iRow<nSkip;iRow++) {
-      row = row->next;
-    }
-    assert (whichRow==row->rowNumber);
-    currentRow_ = (double *) row;
-  }
+  assert (type_==0);
+  setMutableCurrent(whichRow);
 }
 // Returns current row number
 int 
 CoinBuild::currentRow() const
 {
-  buildFormat * row = (buildFormat *) currentRow_;
-  if (row)
-    return row->rowNumber;
+  assert (type_==0);
+  return currentItem();
+}
+// add a column
+void 
+CoinBuild::addColumn(int numberInColumn, const int * rows,
+                     const double * elements, 
+                     double columnLower, 
+                     double columnUpper, double objectiveValue)
+{
+  if (type_<0) {
+    type_=1;
+  } else if (type_==0) {
+    printf("CoinBuild:: unable to add a column in row mode\n");
+    abort();
+  }
+  addItem(numberInColumn, rows, elements,
+          columnLower,columnUpper, objectiveValue);
+}
+/*  Returns number of elements in a column and information in column
+ */
+int 
+CoinBuild::column(int whichColumn,
+                  double & columnLower, double & columnUpper, double & objectiveValue, 
+                  const int * & indices, const double * & elements) const
+{
+  assert (type_==1);
+  setMutableCurrent(whichColumn);
+  return currentItem(columnLower,columnUpper,objectiveValue,indices,elements);
+}
+/*  Returns number of elements in current column and information in column
+    Used as columns may be stored in a chain
+*/
+int 
+CoinBuild::currentColumn( double & columnLower, double & columnUpper, double & objectiveValue, 
+                         const int * & indices, const double * & elements) const
+{
+  assert (type_==1);
+  return currentItem(columnLower,columnUpper,objectiveValue,indices,elements);
+}
+// Set current column
+void 
+CoinBuild::setCurrentColumn(int whichColumn)
+{
+  assert (type_==1);
+  setMutableCurrent(whichColumn);
+}
+// Returns current column number
+int 
+CoinBuild::currentColumn() const
+{
+  assert (type_==1);
+  return currentItem();
+}
+// add a item
+void 
+CoinBuild::addItem(int numberInItem, const int * indices,
+                  const double * elements, 
+                  double itemLower, 
+                  double itemUpper, double objectiveValue)
+{
+  buildFormat * lastItem = (buildFormat *) lastItem_;
+  int length = sizeof(buildFormat)+(numberInItem-1)*(sizeof(double)+sizeof(int));
+  int doubles = (length + sizeof(double)-1)/sizeof(double);
+  double * newItem = new double [doubles];
+  if (!firstItem_) {
+    firstItem_ = newItem;
+  } else {
+    // update pointer
+    lastItem->next = (buildFormat *) newItem;
+  }
+  lastItem_=newItem;
+  currentItem_=newItem;
+  // now fill in
+  buildFormat * item = (buildFormat *) newItem;
+  double * els = &item->restDouble[0];
+  int * cols = (int *) (els+numberInItem);
+  item->next=NULL;
+  item->itemNumber=numberItems_;
+  numberItems_++;
+  item->numberElements=numberInItem;
+  numberElements_ += numberInItem;
+  item->objective=objectiveValue;
+  item->lower=itemLower;
+  item->upper=itemUpper;
+  for (int k=0;k<numberInItem;k++) {
+    int iColumn = indices[k];
+    assert (iColumn>=0);
+    numberOther_ = CoinMax(numberOther_,iColumn+1);
+    els[k]=elements[k];
+    cols[k]=iColumn;
+  }
+}
+/*  Returns number of elements in a item and information in item
+ */
+int 
+CoinBuild::item(int whichItem, 
+                double & itemLower, double & itemUpper, double & objectiveValue, 
+                const int * & indices, const double * & elements) const
+{
+  setMutableCurrent(whichItem);
+  return currentItem(itemLower,itemUpper,objectiveValue,indices,elements);
+}
+/*  Returns number of elements in current item and information in item
+    Used as items may be stored in a chain
+*/
+int 
+CoinBuild::currentItem(double & itemLower, double & itemUpper,
+                       double & objectiveValue, 
+                       const int * & indices, const double * & elements) const
+{
+  buildFormat * item = (buildFormat *) currentItem_;
+  if (item) {
+    int numberElements = item->numberElements;
+    elements = &item->restDouble[0];
+    indices = (const int *) (elements+numberElements);
+    objectiveValue=item->objective;
+    itemLower = item->lower;
+    itemUpper=item->upper;
+    return numberElements;
+  } else {
+    return -1;
+  }
+}
+// Set current item
+void 
+CoinBuild::setCurrentItem(int whichItem)
+{
+  setMutableCurrent(whichItem);
+}
+// Set current item
+void 
+CoinBuild::setMutableCurrent(int whichItem) const
+{
+  if (whichItem>=0&&whichItem<numberItems_) {
+    int nSkip = whichItem-1;
+    buildFormat * item = (buildFormat *) firstItem_;
+    // if further on then we can start from where we are
+    buildFormat * current = (buildFormat *) currentItem_;
+    if (current->itemNumber<=whichItem) {
+      item=current;
+      nSkip = whichItem-current->itemNumber;
+    }
+    for (int iItem=0;iItem<nSkip;iItem++) {
+      item = item->next;
+    }
+    assert (whichItem==item->itemNumber);
+    currentItem_ = (double *) item;
+  }
+}
+// Returns current item number
+int 
+CoinBuild::currentItem() const
+{
+  buildFormat * item = (buildFormat *) currentItem_;
+  if (item)
+    return item->itemNumber;
   else
     return -1;
 }
