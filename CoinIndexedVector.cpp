@@ -414,7 +414,8 @@ CoinIndexedVector::reserve(int n)
     // align on 64 byte boundary
     double * temp = new double [n+7];
     offset_ = 0;
-    if (sizeof (double *) == sizeof (int)) {
+    //if (sizeof (double *) == sizeof (int)) {
+#ifndef __64BIT__
       int xx = (int) temp;
       int iBottom = xx & 63;
       if (iBottom)
@@ -422,7 +423,8 @@ CoinIndexedVector::reserve(int n)
       xx = (int) (temp+offset_);
       iBottom = xx &63;
       // assert (!iBottom); out as with checkers could be false
-    } else if (sizeof (double *) == sizeof (long)) {
+#else
+      //} else if (sizeof (double *) == sizeof (long)) {
       long xx = (long) temp;
       long iBottom = xx & 63;
       if (iBottom)
@@ -430,10 +432,11 @@ CoinIndexedVector::reserve(int n)
       xx = (long) (temp+offset_);
       iBottom = xx &63;
       // assert (!iBottom); out as with checkers could be false
-    } else {
-      throw CoinError("double * not sizeof(int) or (long)",
-		      "reserve", "CoinIndexedVector");
-    }
+#endif
+      //} else {
+      //throw CoinError("double * not sizeof(int) or (long)",
+      //		      "reserve", "CoinIndexedVector");
+  //}
     elements_ = temp + offset_;;
     
     // copy data to new space

@@ -348,6 +348,7 @@ CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
 	    // pack down and return
 	    length_[majorIndex]--;
 	    end--;
+	    size_--;
 	    for (;j<end;j++) {
 	      element_[j]=element_[j+1];
 	      index_[j]=index_[j+1];
@@ -356,10 +357,17 @@ CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
 	  break;
 	}
       }
-      if (j==end) {
+      if (j==end&&(newElement||keepZero)) {
 	// we need to insert
-	throw CoinError("coding needed", "modifyCoefficient",
-		      "CoinPackedMatrix");
+	if (end<start_[majorIndex+1]) {
+	  size_++;
+	  length_[majorIndex]++;
+	  element_[end]=newElement;
+	  index_[end]=minorIndex;
+	} else {
+	  throw CoinError("coding needed", "modifyCoefficient",
+			  "CoinPackedMatrix");
+	}
       }
     } else {
 #ifdef COIN_DEBUG
