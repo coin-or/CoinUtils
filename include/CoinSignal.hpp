@@ -45,6 +45,13 @@
 
 #if defined (__hpux)
 #  define CoinSighandler_t_defined
+#  if defined(__GNUC__)
+      typedef typeof(SIG_DFL) CoinSighandler_t;
+#  else
+      extern "C" {
+         typedef void (*CoinSighandler_t) (int);
+      }
+#  endif
 #endif
 
 //-----------------------------------------------------------------------------

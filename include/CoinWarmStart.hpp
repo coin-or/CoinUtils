@@ -20,16 +20,18 @@ class CoinWarmStart {
 public:
 
   /// Abstract destructor
-  virtual ~CoinWarmStart() {} ;
+  virtual ~CoinWarmStart() {}
 
   /// `Virtual constructor'
   virtual CoinWarmStart *clone() const = 0 ;
    
   virtual CoinWarmStartDiff*
-  generateDiff (const CoinWarmStart *const oldCWS) const ;
+  generateDiff (const CoinWarmStart *const oldCWS) const { return 0; }
+   
    
   virtual void
-  applyDiff (const CoinWarmStartDiff *const cwsdDiff) ;
+  applyDiff (const CoinWarmStartDiff *const cwsdDiff) {}
+
 };
 
 
@@ -41,18 +43,14 @@ public:
   reason for existence is to make it possible to write solver-independent code.
 */
 
-class CoinWarmStartDiff
-
-{ public:
+class CoinWarmStartDiff {
+public:
 
   /// Abstract destructor
-  virtual ~CoinWarmStartDiff() {} ;
+  virtual ~CoinWarmStartDiff() {}
 
   /// `Virtual constructor'
   virtual CoinWarmStartDiff *clone() const = 0 ;
-} ;
-
-
-
+};
 
 #endif
