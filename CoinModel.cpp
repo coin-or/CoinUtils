@@ -590,6 +590,8 @@ CoinModel::associateElement(const char * stringValue, double value)
       double * temp = new double[newSize];
       memcpy(temp,associated_,sizeAssociated_*sizeof(double));
       CoinFillN(temp+sizeAssociated_,newSize-sizeAssociated_,unsetValue());
+      delete [] associated_;
+      associated_ = temp;
       sizeAssociated_=newSize;
     }
     associated_[position]=value;
@@ -1253,7 +1255,7 @@ CoinModel::pack()
 }
 // Creates a packed matrix - return snumber of errors
 int 
-CoinModel::createPackedMatrix(CoinPackedMatrix & matrix)
+CoinModel::createPackedMatrix(CoinPackedMatrix & matrix, const double * associated)
 {
   // Set to say all parts
   type_=2;
@@ -1270,6 +1272,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix)
       numberElements++;
     }
   }
+  int numberErrors=0;
   CoinBigIndex * start = new int[numberColumns_+1];
   int * row = new int[numberElements];
   double * element = new double[numberElements];
@@ -1280,11 +1283,23 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix)
   }
   for (i=0;i<numberElements_;i++) {
     int column = elements_[i].column;
-    if (column>=0&&elements_[i].value) {
-      int put=start[column]+length[column];
-      row[put]=(int) elements_[i].row;
-      element[put]=elements_[i].value;
-      length[column]++;
+    if (column>=0) {
+      double value = elements_[i].value;
+      if (elements_[i].string) {
+        int position = (int) value;
+        assert (position<sizeAssociated_);
+        value = associated[position];
+        if (value==unsetValue()) {
+          numberErrors++;
+          value=0.0;
+        }
+      }
+      if (value) {
+        int put=start[column]+length[column];
+        row[put]=(int) elements_[i].row;
+        element[put]=value;
+        length[column]++;
+      }
     }
   }
   for (i=0;i<numberColumns_;i++) {
@@ -1297,7 +1312,114 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix)
   delete [] length;
   delete [] row;
   delete [] element;
-  return 0;
+  return numberErrors;
+}
+// Fills in all associated - returning number of errors
+int CoinModel::computeAssociated(double * associated)
+{
+  CoinYacc info;
+  info.length=0;
+  int numberErrors=0;
+  for (int i=0;i<string_.numberItems();i++) {
+    if (string_.name(i)&&associated[i]==unsetValue()) {
+      associated[i] = getDoubleFromString(info,string_.name(i));
+      if (associated[i]==unsetValue())
+        numberErrors++;
+    }
+  }
+  return numberErrors;
+}
+// Creates copies of various arrays - return number of errors
+int 
+CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
+                        double * & columnLower, double * & columnUpper,
+                        double * & objective, int * & integerType,
+                        double * & associated)
+{
+  int numberErrors=0;
+  if (sizeAssociated_<string_.numberItems()) {
+    int newSize = string_.numberItems();
+    double * temp = new double[newSize];
+    memcpy(temp,associated_,sizeAssociated_*sizeof(double));
+    CoinFillN(temp+sizeAssociated_,newSize-sizeAssociated_,unsetValue());
+    delete [] associated_;
+    associated_ = temp;
+    sizeAssociated_=newSize;
+  }
+  associated = CoinCopyOfArray(associated_,sizeAssociated_);
+  numberErrors += computeAssociated(associated);
+  // Fill in as much as possible
+  rowLower = CoinCopyOfArray( rowLower_,numberRows_);
+  rowUpper = CoinCopyOfArray( rowUpper_,numberRows_);
+  for (int iRow=0;iRow<numberRows_;iRow++) {
+    if ((rowType_[iRow]&1)!=0) {
+      int position = (int) rowLower[iRow];
+      assert (position<sizeAssociated_);
+      double value = associated[position];
+      if (value!=unsetValue()) {
+        rowLower[iRow]=value;
+      } else {
+        numberErrors++;
+      }
+    }
+    if ((rowType_[iRow]&2)!=0) {
+      int position = (int) rowUpper[iRow];
+      assert (position<sizeAssociated_);
+      double value = associated[position];
+      if (value!=unsetValue()) {
+        rowUpper[iRow]=value;
+      } else {
+        numberErrors++;
+      }
+    }
+  }
+  columnLower = CoinCopyOfArray( columnLower_,numberColumns_);
+  columnUpper = CoinCopyOfArray( columnUpper_,numberColumns_);
+  objective = CoinCopyOfArray( objective_,numberColumns_);
+  integerType = CoinCopyOfArray( integerType_,numberColumns_);
+  for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
+    if ((columnType_[iColumn]&1)!=0) {
+      int position = (int) columnLower[iColumn];
+      assert (position<sizeAssociated_);
+      double value = associated[position];
+      if (value!=unsetValue()) {
+        columnLower[iColumn]=value;
+      } else {
+        numberErrors++;
+      }
+    }
+    if ((columnType_[iColumn]&2)!=0) {
+      int position = (int) columnUpper[iColumn];
+      assert (position<sizeAssociated_);
+      double value = associated[position];
+      if (value!=unsetValue()) {
+        columnUpper[iColumn]=value;
+      } else {
+        numberErrors++;
+      }
+    }
+    if ((columnType_[iColumn]&4)!=0) {
+      int position = (int) objective[iColumn];
+      assert (position<sizeAssociated_);
+      double value = associated[position];
+      if (value!=unsetValue()) {
+        objective[iColumn]=value;
+      } else {
+        numberErrors++;
+      }
+    }
+    if ((columnType_[iColumn]&8)!=0) {
+      int position = integerType[iColumn];
+      assert (position<sizeAssociated_);
+      double value = associated[position];
+      if (value!=unsetValue()) {
+        integerType[iColumn]=(int) value;
+      } else {
+        numberErrors++;
+      }
+    }
+  }
+  return numberErrors;
 }
 
 /* Write the problem in MPS format to a file with the given filename.
@@ -1306,8 +1428,7 @@ int
 CoinModel::writeMps(const char *filename, int compression,
                     int formatType , int numberAcross ) 
 {
-  CoinPackedMatrix matrix;
-  createPackedMatrix(matrix);
+  int numberErrors = 0;
   // Set arrays for normal use
   double * rowLower = rowLower_;
   double * rowUpper = rowUpper_;
@@ -1315,6 +1436,14 @@ CoinModel::writeMps(const char *filename, int compression,
   double * columnUpper = columnUpper_;
   double * objective = objective_;
   int * integerType = integerType_;
+  double * associated = associated_;
+  // If strings then do copies
+  if (string_.numberItems()) {
+    numberErrors = createArrays(rowLower, rowUpper, columnLower, columnUpper,
+                                 objective, integerType,associated);
+  }
+  CoinPackedMatrix matrix;
+  numberErrors = createPackedMatrix(matrix,associated);
   char* integrality = new char[numberColumns_];
   bool hasInteger = false;
   for (int i = 0; i < numberColumns_; i++) {
@@ -1347,6 +1476,9 @@ CoinModel::writeMps(const char *filename, int compression,
     delete [] columnUpper;
     delete [] objective;
     delete [] integerType;
+    delete [] associated;
+    if (numberErrors)
+      printf("%d string elements had no values associated with them\n",numberErrors);
   }
   return writer.writeMps(filename, compression, formatType, numberAcross);
 }
@@ -1357,16 +1489,47 @@ CoinModel::writeMps(const char *filename, int compression,
 int 
 CoinModel::differentModel(CoinModel & other, bool ignoreNames)
 {
-  CoinPackedMatrix matrix;
-  createPackedMatrix(matrix);
-  CoinPackedMatrix matrix2;
-  other.createPackedMatrix(matrix2);
+  int numberErrors = 0;
+  int numberErrors2 = 0;
   int returnCode=0;
   if (numberRows_!=other.numberRows_||numberColumns_!=other.numberColumns_) {
     printf("** Mismatch on size, this has %d rows, %d columns - other has %d rows, %d columns\n",
            numberRows_,numberColumns_,other.numberRows_,other.numberColumns_);
     returnCode=1000;
   }
+  // Set arrays for normal use
+  double * rowLower = rowLower_;
+  double * rowUpper = rowUpper_;
+  double * columnLower = columnLower_;
+  double * columnUpper = columnUpper_;
+  double * objective = objective_;
+  int * integerType = integerType_;
+  double * associated = associated_;
+  // If strings then do copies
+  if (string_.numberItems()) {
+    numberErrors += createArrays(rowLower, rowUpper, columnLower, columnUpper,
+                                 objective, integerType,associated);
+  }
+  // Set arrays for normal use
+  double * rowLower2 = other.rowLower_;
+  double * rowUpper2 = other.rowUpper_;
+  double * columnLower2 = other.columnLower_;
+  double * columnUpper2 = other.columnUpper_;
+  double * objective2 = other.objective_;
+  int * integerType2 = other.integerType_;
+  double * associated2 = other.associated_;
+  // If strings then do copies
+  if (other.string_.numberItems()) {
+    numberErrors2 += other.createArrays(rowLower2, rowUpper2, columnLower2, columnUpper2,
+                                 objective2, integerType2,associated2);
+  }
+  CoinPackedMatrix matrix;
+  numberErrors += createPackedMatrix(matrix,associated);
+  CoinPackedMatrix matrix2;
+  numberErrors2 += other.createPackedMatrix(matrix2,associated2);
+  if (numberErrors||numberErrors2)
+    printf("** Errors when converting strings, %d on this, %d on other\n",
+           numberErrors,numberErrors2);
   CoinRelFltEq tolerance;
   if (numberRows_==other.numberRows_) {
     bool checkNames = !ignoreNames;
@@ -1377,9 +1540,9 @@ CoinModel::differentModel(CoinModel & other, bool ignoreNames)
     int numberDifferentU = 0;
     int numberDifferentN = 0;
     for (int i=0;i<numberRows_;i++) {
-      if (!tolerance(rowLower_[i],other.rowLower_[i]))
+      if (!tolerance(rowLower[i],rowLower2[i]))
         numberDifferentL++;
-      if (!tolerance(rowUpper_[i],other.rowUpper_[i]))
+      if (!tolerance(rowUpper[i],rowUpper2[i]))
         numberDifferentU++;
       if (checkNames&&rowName_.name(i)&&other.rowName_.name(i)) {
         if (strcmp(rowName_.name(i),other.rowName_.name(i)))
@@ -1403,14 +1566,14 @@ CoinModel::differentModel(CoinModel & other, bool ignoreNames)
         !other.columnName_.numberItems())
       checkNames=false;
     for (int i=0;i<numberColumns_;i++) {
-      if (!tolerance(columnLower_[i],other.columnLower_[i]))
+      if (!tolerance(columnLower[i],columnLower2[i]))
         numberDifferentL++;
-      if (!tolerance(columnUpper_[i],other.columnUpper_[i]))
+      if (!tolerance(columnUpper[i],columnUpper2[i]))
         numberDifferentU++;
-      if (!tolerance(objective_[i],other.objective_[i]))
+      if (!tolerance(objective[i],objective2[i]))
         numberDifferentO++;
-      int i1 = (integerType_) ? integerType_[i] : 0;
-      int i2 = (other.integerType_) ? other.integerType_[i] : 0;
+      int i1 = (integerType) ? integerType[i] : 0;
+      int i2 = (integerType2) ? integerType2[i] : 0;
       if (i1!=i2)
         numberDifferentI++;
       if (checkNames&&columnName_.name(i)&&other.columnName_.name(i)) {
@@ -1435,6 +1598,24 @@ CoinModel::differentModel(CoinModel & other, bool ignoreNames)
     }
   }
 
+  if (rowLower!=rowLower_) {
+    delete [] rowLower;
+    delete [] rowUpper;
+    delete [] columnLower;
+    delete [] columnUpper;
+    delete [] objective;
+    delete [] integerType;
+    delete [] associated;
+  }
+  if (rowLower2!=other.rowLower_) {
+    delete [] rowLower2;
+    delete [] rowUpper2;
+    delete [] columnLower2;
+    delete [] columnUpper2;
+    delete [] objective2;
+    delete [] integerType2;
+    delete [] associated2;
+  }
   return returnCode;
 }
 // Returns value for row i and column j

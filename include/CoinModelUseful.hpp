@@ -115,6 +115,31 @@ typedef struct {
   int index, next;
 } CoinModelHashLink;
 
+/* Function type.  */
+typedef double (*func_t) (double);
+
+/// For string evaluation
+/* Data type for links in the chain of symbols.  */
+struct symrec
+{
+  char *name;  /* name of symbol */
+  int type;    /* type of symbol: either VAR or FNCT */
+  union
+  {
+    double var;      /* value of a VAR */
+    func_t fnctptr;  /* value of a FNCT */
+  } value;
+  struct symrec *next;  /* link field */
+};
+     
+typedef struct symrec symrec;
+
+typedef struct {
+  symrec * symtable;
+  char * symbuf;
+  int length;
+  double unsetValue;
+} CoinYacc;
 class CoinModelHash {
   
 public:

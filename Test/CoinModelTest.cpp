@@ -535,6 +535,70 @@ CoinModelUnitTest(const std::string & mpsDir,
     // check equal
     assert (!model.differentModel(temp,false));
   }
+  // Try creating model with strings
+  {
+    CoinModel temp;
+    int i;
+    for (i=numberRows-1;i>=0;i--) {
+      double value = model.getRowLower(i);
+      if (value==-1.0)
+        temp.setRowLower(i,"minusOne");
+      else if (value==1.0)
+        temp.setRowLower(i,"plusOne");
+      else
+        temp.setRowLower(i,value);
+    }
+    for (i=0;i<numberColumns;i++) {
+      double value;
+      value = model.getColumnUpper(i);
+      if (value==-1.0)
+        temp.setColumnUpper(i,"minusOne");
+      else if (value==1.0)
+        temp.setColumnUpper(i,"plusOne");
+      else
+        temp.setColumnUpper(i,value);
+      temp.setColumnName(i,model.getColumnName(i));
+    }
+    for (i=numberColumns-1;i>=0;i--) {
+      temp.setColumnLower(i,model.getColumnLower(i));
+      temp.setColumnObjective(i,model.getColumnObjective(i));
+      temp.setColumnIsInteger(i,model.getColumnIsInteger(i));
+    }
+    for (i=0;i<numberRows;i++) {
+      double value = model.getRowUpper(i);
+      if (value==-1.0)
+        temp.setRowUpper(i,"minusOne");
+      else if (value==1.0)
+        temp.setRowUpper(i,"plusOne");
+      else
+        temp.setRowUpper(i,value);
+      temp.setRowName(i,model.getRowName(i));
+    }
+    // Now elements
+    for (i=0;i<numberRows;i++) {
+      CoinModelLink triple=model.firstInRow(i);
+      while (triple.column()>=0) {
+        double value = triple.value();
+        if (value==-1.0)
+          temp(i,triple.column(),"minusOne");
+        else if (value==1.0)
+          temp(i,triple.column(),"plusOne");
+        else if (value==-2.0)
+          temp(i,triple.column(),"minusOne-1.0");
+        else if (value==2.0)
+          temp(i,triple.column(),"plusOne+1.0+minusOne+(2.0-plusOne)");
+        else
+          temp(i,triple.column(),value);
+        triple=model.next(triple);
+      }
+    }
+    temp.associateElement("minusOne",-1.0);
+    temp.associateElement("plusOne",1.0);
+    temp.writeMps("string.mps");
+    
+    // check equal
+    assert (!model.differentModel(temp,false));
+  }
   // Test with various ways of generating
   {
     // Get a model

@@ -483,8 +483,13 @@ public:
   /// returns unset value
   inline double unsetValue() const
   { return -1.23456787654321e-97;};
-  /// Creates a packed matrix - return snumber of errors
-  int createPackedMatrix(CoinPackedMatrix & matrix);
+  /// Creates a packed matrix - return number of errors
+  int createPackedMatrix(CoinPackedMatrix & matrix, const double * associated);
+  /// Creates copies of various arrays - return number of errors
+  int createArrays(double * & rowLower, double * &  rowUpper,
+                   double * & columnLower, double * & columnUpper,
+                   double * & objective, int * & integerType,
+                   double * & associated);
    //@}
 
   /**@name Constructors, destructor */
@@ -520,6 +525,15 @@ private:
   void createList(int type) const;
   /// Adds one string, returns index
   int addString(const char * string);
+  /** Gets a double from a string possibly containing named strings,
+      returns unset if not found
+  */
+  double getDoubleFromString(CoinYacc & info, const char * string);
+  /// Frees value memory
+  void freeStringMemory(CoinYacc & info);
+  /// Fills in all associated - returning number of errors
+  int computeAssociated(double * associated);
+  
   
 private:
   /**@name Data members */
