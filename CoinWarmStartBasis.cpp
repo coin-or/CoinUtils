@@ -19,11 +19,17 @@ CoinWarmStartBasis::setSize(int ns, int na) {
   delete[] artificialStatus_;
   // Round all so arrays multiple of 4
   int nint = (ns+15) >> 4;
-  structuralStatus_ = new char[4*nint];
+  if (nint)
+    structuralStatus_ = new char[4*nint];
+  else
+    structuralStatus_ = NULL;
   // CoinFillN was used here - I am sure memset will be cleaner for char
   memset (structuralStatus_, 0, (4*nint) * sizeof(char));
   nint = (na+15) >> 4;
-  artificialStatus_ = new char[4*nint];
+  if (nint)
+    artificialStatus_ = new char[4*nint];
+  else
+    artificialStatus_ = NULL;
   memset (artificialStatus_, 0, (4*nint) * sizeof(char));
   numArtificial_ = na;
   numStructural_ = ns;

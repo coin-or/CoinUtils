@@ -153,7 +153,7 @@ const CoinPresolveAction
   Question: Should we exclude singletons, which are useful in other transforms?
   Question: Why are we excluding integral columns?
 */
-  // allow integral columns if saked for
+  // allow integral columns if asked for
   bool allowIntegers = ( prob->presolveOptions_&1)!=0;
   int *sort = new int[ncols] ;
   int nlook = 0 ;

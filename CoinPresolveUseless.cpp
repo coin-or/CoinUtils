@@ -84,6 +84,22 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
 
   return (next);
 }
+// Put constructors here
+useless_constraint_action::useless_constraint_action(int nactions,
+                                                     const action *actions,
+                                                     const CoinPresolveAction *next) 
+  :   CoinPresolveAction(next),
+      nactions_(nactions),
+      actions_(actions)
+{}
+useless_constraint_action::~useless_constraint_action() 
+{
+  for (int i=0;i<nactions_;i++) {
+    delete [] actions_[i].rowcols;
+    delete [] actions_[i].rowels;
+  }
+  delete [] actions_;
+}
 
 const char *useless_constraint_action::name() const
 {

@@ -19,10 +19,9 @@ class useless_constraint_action : public CoinPresolveAction {
   const action *const actions_;
 
   useless_constraint_action(int nactions,
-		      const action *actions,
-		      const CoinPresolveAction *next) :
-    CoinPresolveAction(next),
-    nactions_(nactions), actions_(actions) {};
+                            const action *actions,
+                            const CoinPresolveAction *next);
+  ~useless_constraint_action();
 
  public:
   const char *name() const;
