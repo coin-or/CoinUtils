@@ -195,7 +195,8 @@ void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
   When we're done, mrstrt[i] will point to the start of row i, as it should.
 */
   int totalCoeffs = 0 ;
-  for (int i = 0 ; i < nrows_ ; i++)
+  int i;
+  for ( i = 0 ; i < nrows_ ; i++)
   { totalCoeffs += hinrow_[i] ;
     mrstrt_[i] = totalCoeffs ; }
   mrstrt_[nrows_] = totalCoeffs ;
@@ -204,10 +205,10 @@ void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
     double *colCoeffs = colels_+mcstrt_[j] ;
     int *rowIndices = hrow_+mcstrt_[j] ;
     for (int k = 0 ; k < lenj ; k++)
-    { int i;
-      i = rowIndices[k] ;
+    { int ri;
+      ri = rowIndices[k] ;
       double aij = colCoeffs[k] ;
-      CoinBigIndex l = --mrstrt_[i] ;
+      CoinBigIndex l = --mrstrt_[ri] ;
       rowels_[l] = aij ;
       hcol_[l] = j ; } }
 /*
