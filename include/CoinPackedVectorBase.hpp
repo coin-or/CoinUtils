@@ -239,7 +239,7 @@ public:
   
 protected:
 
-   /**@name Constructors, destructor<br>
+   /**@name Constructors, destructor
       <strong>NOTE</strong>: All constructors are protected. There's no need
       to expose them, after all, this is an abstract class. */
    //@{
