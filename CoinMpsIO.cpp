@@ -1907,6 +1907,7 @@ convertDouble(int formatType, double value, char outputValue[20],
 {
   assert (formatType!=2);
   if ((formatType&3)==0) {
+    bool stripZeros=true;
     if (value<1.0e20) {
       int power10, decimal;
       if (value>=0.0) {
@@ -1918,6 +1919,7 @@ convertDouble(int formatType, double value, char outputValue[20],
 	  sprintf(outputValue,format,value);
 	} else {
 	  sprintf(outputValue,"%12.7g",value);
+	  stripZeros=false;
 	}
       } else {
 	power10 =(int) log10(-value)+1;
@@ -1928,15 +1930,18 @@ convertDouble(int formatType, double value, char outputValue[20],
 	  sprintf(outputValue,format,value);
 	} else {
 	  sprintf(outputValue,"%12.6g",value);
+	  stripZeros=false;
 	}
       }
-      // take off trailing 0
-      int j;
-      for (j=11;j>=0;j--) {
-	if (outputValue[j]=='0')
-	  outputValue[j]=' ';
-	else
-	  break;
+      if (stripZeros) {
+	// take off trailing 0
+	int j;
+	for (j=11;j>=0;j--) {
+	  if (outputValue[j]=='0')
+	    outputValue[j]=' ';
+	  else
+	    break;
+	}
       }
     } else {
       outputValue[0]= '\0'; // needs no value
