@@ -779,10 +779,13 @@ forcing_constraint_action::~forcing_constraint_action()
 { 
   int i;
   for (i=0;i<nactions_;i++) {
-    delete [] actions_[i].rowcols;
-    delete [] actions_[i].bounds;
+    //delete [] actions_[i].rowcols; MS Visual C++ V6 can not compile
+    //delete [] actions_[i].bounds; MS Visual C++ V6 can not compile
+    deleteAction(actions_[i].rowcols,int *);
+    deleteAction(actions_[i].bounds,double *);
   }
-  deleteAction( actions_, action *);
+  // delete [] actions_; MS Visual C++ V6 can not compile
+  deleteAction(actions_,action *);
 }
 
 

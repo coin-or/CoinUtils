@@ -831,9 +831,12 @@ implied_free_action::~implied_free_action()
 { 
   int i;
   for (i=0;i<nactions_;i++) {
-    delete [] actions_[i].rowcols;
-    delete [] actions_[i].rowels;
+    //delete [] actions_[i].rowcols; MS Visual C++ V6 can not compile
+    //delete [] actions_[i].rowels; MS Visual C++ V6 can not compile
+    deleteAction(actions_[i].rowcols,int *);
+    deleteAction(actions_[i].rowels,int *);
     //delete [] actions_[i].costs; deleted earlier
   }
+  // delete [] actions_; MS Visual C++ V6 can not compile
   deleteAction(actions_,action *);
 }
