@@ -494,7 +494,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   // This needs to be made faster
   int numberInfeasible;
   prob->pass_++;
-  if (prob->pass_%4!=1)
+  if (prob->pass_%2!=1)
     return next;
   next = testRedundant(prob,next,numberInfeasible);
   if (numberInfeasible) {
