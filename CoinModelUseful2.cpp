@@ -78,7 +78,7 @@ symrec *getsym ( symrec *symtable,char const *);
 #include <cstdio>
 #include <ctype.h>
 #include <cstring>
-#include <malloc.h>
+#include <cstdlib>
 #include <cassert>
 int yylex ( symrec * & symtable,const char * line, int * position, char * & symbuf, int & length,
              const double * associated, const CoinModelHash & string,
