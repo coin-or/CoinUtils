@@ -1147,7 +1147,7 @@ CoinIndexedVector::getMaxIndex() const
   int maxIndex = INT_MIN;
   int i;
   for (i=0;i<nElements_;i++)
-    maxIndex = max(maxIndex,indices_[i]);
+    maxIndex = CoinMax(maxIndex,indices_[i]);
   return maxIndex;
 }
 // Get value of minimum index
@@ -1173,7 +1173,7 @@ CoinIndexedVector::scan(int start, int end)
 {
   assert(!packedMode_);
   end = min(end,capacity_);
-  start = max(start,0);
+  start = CoinMax(start,0);
   int i;
   int number = 0;
   int * indices = indices_+nElements_;
@@ -1196,7 +1196,7 @@ CoinIndexedVector::scan(int start, int end, double tolerance)
 {
   assert(!packedMode_);
   end = min(end,capacity_);
-  start = max(start,0);
+  start = CoinMax(start,0);
   int i;
   int number = 0;
   int * indices = indices_+nElements_;
@@ -1299,7 +1299,7 @@ CoinIndexedVector::scanAndPack(int start, int end)
 {
   assert(!packedMode_);
   end = min(end,capacity_);
-  start = max(start,0);
+  start = CoinMax(start,0);
   int i;
   int number = 0;
   int * indices = indices_+nElements_;
@@ -1328,7 +1328,7 @@ CoinIndexedVector::scanAndPack(int start, int end, double tolerance)
 {
   assert(!packedMode_);
   end = min(end,capacity_);
-  start = max(start,0);
+  start = CoinMax(start,0);
   int i;
   int number = 0;
   int * indices = indices_+nElements_;

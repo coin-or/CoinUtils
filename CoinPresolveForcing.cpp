@@ -11,17 +11,6 @@
 #include "CoinPresolveForcing.hpp"
 #include "CoinMessage.hpp"
 
-#if 0
-inline double max(double x, double y)
-{
-  return (x < y) ? y : x;
-}
-
-inline double min(double x, double y)
-{
-  return (x < y) ? x : y;
-}
-#endif
 
 /*static*/ void implied_bounds(const double *els,
 			   const double *clo, const double *cup,

@@ -502,7 +502,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		 fabs(coeffj) > ZTOLDP) {
 	      possible=true;
 	    }
-	    largestElement = max(largestElement,fabs(coeffj));
+	    largestElement = CoinMax(largestElement,fabs(coeffj));
 	  } else {
 	    singleton=true;
 	  }
@@ -631,7 +631,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		      maximumDown += (newBound-now) * value;
 		      nowLower = newBound;
 		    }
-		    low=max(low,newBound);
+		    low=CoinMax(low,newBound);
 		  } 
 		  if (upper <large) {
 		    if (!infiniteLower) {
@@ -726,7 +726,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		      maximumUp += (newBound-now) * value;
 		      nowLower = newBound;
 		    }
-		    low = max(low,newBound);
+		    low = CoinMax(low,newBound);
 		  }
 		}
 	      } else if (infiniteUp[row]==-3) {
@@ -1070,7 +1070,7 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	loActivity = (rup[irow]-act)/coeff;
 	upActivity = (rlo[irow]-act)/coeff;
       }
-      loActivity = max(loActivity,clo[icol]);
+      loActivity = CoinMax(loActivity,clo[icol]);
       upActivity = min(upActivity,cup[icol]);
       int where; //0 in basis, -1 at lb, +1 at ub
       const double tolCheck	= 0.1*prob->ztolzb_;

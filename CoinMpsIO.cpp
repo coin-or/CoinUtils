@@ -14,6 +14,7 @@
 
 #include "CoinMpsIO.hpp"
 #include "CoinMessage.hpp"
+#include "CoinHelperFunctions.hpp"
 
 
 //#############################################################################
@@ -2418,9 +2419,9 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 		    CoinPackedMatrix * quadratic ) const
 {
   // Clean up format and numberacross
-  numberAcross=max(1,numberAcross);
+  numberAcross=CoinMax(1,numberAcross);
   numberAcross=min(2,numberAcross);
-  formatType=max(0,formatType);
+  formatType=CoinMax(0,formatType);
   formatType=min(2,formatType);
   
    std::string line = filename;
@@ -2727,7 +2728,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	      double upperValue = columnUpper[i];
 	      if (isInteger(i)) {
 		// Old argument - what are correct ranges for integer variables
-		lowerValue = max(lowerValue,(double) -INT_MAX);
+		lowerValue = CoinMax(lowerValue,(double) -INT_MAX);
 		upperValue = min(upperValue,(double) INT_MAX);
 	      }
 	       int numberFields=1;

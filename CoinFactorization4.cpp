@@ -305,7 +305,7 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
   numberNonZero = 0;
   // First do down to convenient power of 2
   CoinBigIndex jLast = (numberU_-1)>>CHECK_SHIFT;
-  jLast = max((jLast<<CHECK_SHIFT),(CoinBigIndex) numberSlacks_);
+  jLast = CoinMax((jLast<<CHECK_SHIFT),(CoinBigIndex) numberSlacks_);
   for (i = numberU_-1 ; i >= jLast; i-- ) {
     double pivotValue = region[i];
     region[i] = 0.0;

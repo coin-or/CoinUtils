@@ -54,7 +54,7 @@ CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse ,
     if (iPivot<baseL_) 
       regionIndex[numberNonZero++]=iPivot;
     else
-      smallestIndex = min(iPivot,smallestIndex);
+      smallestIndex = CoinMin(iPivot,smallestIndex);
   }
   // now others
   for ( i = smallestIndex; i < last; i++ ) {
@@ -100,7 +100,7 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
 #ifdef DENSE_CODE2
   if (numberDense_) {
     //can take out last bit of sparse L as empty
-    last = min(last,numberRows_-numberDense_);
+    last = CoinMin(last,numberRows_-numberDense_);
   } 
 #endif
   
@@ -118,7 +118,7 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
     if (iPivot<baseL_) { 
       regionIndex[numberNonZero++]=iPivot;
     } else {
-      smallestIndex = min(iPivot,smallestIndex);
+      smallestIndex = CoinMin(iPivot,smallestIndex);
       int iWord = iPivot>>CHECK_SHIFT;
       int iBit = iPivot-(iWord<<CHECK_SHIFT);
       if (mark[iWord]) {
@@ -132,7 +132,7 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
   // now others
   // First do up to convenient power of 2
   int jLast = (smallestIndex+BITS_PER_CHECK-1)>>CHECK_SHIFT;
-  jLast = min((jLast<<CHECK_SHIFT),last);
+  jLast = CoinMin((jLast<<CHECK_SHIFT),last);
   for ( i = smallestIndex; i < jLast; i++ ) {
     double pivotValue = region[i];
     CoinBigIndex start = startColumn[i];
@@ -517,7 +517,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   if (!checkBeforeModifying) {
     for ( i = start; i < end ; i ++ ) {
       int iColumn = indexColumn[i];
-      smallestIndex = min(smallestIndex,iColumn);
+      smallestIndex = CoinMin(smallestIndex,iColumn);
       CoinBigIndex j = convertRowToColumn[i];
       
       region[iColumn] = element[j];
@@ -531,7 +531,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   } else {
     for ( i = start; i < end ; i ++ ) {
       int iColumn = indexColumn[i];
-      smallestIndex = min(smallestIndex,iColumn);
+      smallestIndex = CoinMin(smallestIndex,iColumn);
       CoinBigIndex j = convertRowToColumn[i];
       
       region[iColumn] = element[j];
@@ -786,7 +786,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 	elementR[put]=region[iRow];
 	//add 4 for luck
 	if (next==maximumColumnsExtra_)
-	  startR[maximumColumnsExtra_] = min((CoinBigIndex) (put + 4) ,lengthAreaR_);
+	  startR[maximumColumnsExtra_] = CoinMin((CoinBigIndex) (put + 4) ,lengthAreaR_);
       } else {
 	// no space - do we shuffle?
 	if (!getColumnSpaceIterateR(iRow,region[iRow],pivotRow)) {
@@ -1800,7 +1800,7 @@ CoinFactorization::getColumnSpaceIterateR ( int iColumn, double value,
   indexRowR[put++]=iRow;
   numberInColumnPlus_[iColumn]++;
   //add 4 for luck
-  startR[maximumColumnsExtra_] = min((CoinBigIndex) (put + 4) ,lengthAreaR_);
+  startR[maximumColumnsExtra_] = CoinMin((CoinBigIndex) (put + 4) ,lengthAreaR_);
   return true;
 }
 /*  getColumnSpaceIterate.  Gets space for one extra U element in Column
@@ -1937,7 +1937,7 @@ CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
       indexRowU_[put]=iRow;
       numberInColumn_[iColumn]++;
       //add 4 for luck
-      startColumnU_[maximumColumnsExtra_] = min((CoinBigIndex) (put + 4) ,lengthAreaU_);
+      startColumnU_[maximumColumnsExtra_] = CoinMin((CoinBigIndex) (put + 4) ,lengthAreaU_);
     } else {
       // no room
       put=-1;

@@ -176,7 +176,7 @@ static bool reject_doubleton(int *mcstrt,
 	double orig  = fabs(colels[kcoly] * coeff_factor);
 	double addin = fabs(colels[kcolx]);
 
-	if (max_coeff_ratio * min(orig,addin) < max(orig,addin)) {
+	if (max_coeff_ratio * CoinMin(orig,addin) < CoinMax(orig,addin)) {
 #if	DEBUG_PRESOLVE
 	  printf("REJECTED %d %g %g\n", row0, orig, addin);
 #endif
@@ -682,8 +682,8 @@ const CoinPresolveAction *doubleton_action::presolve(CoinPresolveMatrix *prob,
 	    }
 #endif
 	  } else {
-	    double lo2 = max(clo[icolx], lo1);
-	    double up2 = min(cup[icolx], up1);
+	    double lo2 = CoinMax(clo[icolx], lo1);
+	    double up2 = CoinMin(cup[icolx], up1);
 	    if (lo2 > up2) {
 	      if (lo2 <= up2 + prob->feasibilityTolerance_) {
 		// If close to integer then go there

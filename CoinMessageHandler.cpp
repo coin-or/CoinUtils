@@ -4,6 +4,7 @@
 #include "CoinFinite.hpp"
 
 #include "CoinMessageHandler.hpp"
+#include "CoinHelperFunctions.hpp"
 #include <cassert>
 #include <map>
 
@@ -413,7 +414,7 @@ CoinMessageHandler::message(int messageNumber,
   format_ = currentMessage_.message_;
   messageBuffer_[0]='\0';
   messageOut_=messageBuffer_;
-  highestNumber_ = max(highestNumber_,currentMessage_.externalNumber_);
+  highestNumber_ = CoinMax(highestNumber_,currentMessage_.externalNumber_);
   // do we print
   int detail = currentMessage_.detail_;
   printStatus_=0;
@@ -456,7 +457,7 @@ CoinMessageHandler::message(int externalNumber,const char * source,
   source_ = source;
   // mark so will not update buffer
   printStatus_=2;
-  highestNumber_ = max(highestNumber_,externalNumber);
+  highestNumber_ = CoinMax(highestNumber_,externalNumber);
   // If we get here we always print
   if (prefix_) {
     sprintf(messageOut_,"%s%4.4d%c ",source_.c_str(),

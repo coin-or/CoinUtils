@@ -250,7 +250,7 @@ CoinPackedMatrix::appendRows(const int numrows,
       const int vecsize = rows[i]->getNumElements();
       const int* vecind = rows[i]->getIndices();
       for (int j = vecsize - 1; j >= 0; --j) 
-	maxDim = max(maxDim,vecind[j]);
+	maxDim = CoinMax(maxDim,vecind[j]);
     }
     maxDim++;
     if (maxDim>majorDim_) {
@@ -1856,7 +1856,7 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs,
       throw CoinError("bad major entries", 
 		      "subset constructor", "CoinPackedMatrix");
     // now create arrays
-    maxSize_=max((CoinBigIndex) 1,size_);
+    maxSize_=CoinMax((CoinBigIndex) 1,size_);
     start_ = new CoinBigIndex [numberColumns+1];
     length_ = new int [numberColumns];
     index_ = new int[maxSize_];
