@@ -159,7 +159,7 @@ protected:
   /// remove blanks 
   static void strcpyAndCompress ( char *to, const char *from );
   ///
-  static char * CoinMpsCardReader::nextBlankOr ( char *image );
+  static char * nextBlankOr ( char *image );
   //@}
 
 };

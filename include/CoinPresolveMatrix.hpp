@@ -919,7 +919,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   double dobias_;
 
   /// Adjust objective function constant offset
-  inline void CoinPresolveMatrix::change_bias(double change_amount)
+  inline void change_bias(double change_amount)
   {
     dobias_ += change_amount;
   #if PRESOLVE_DEBUG
