@@ -4038,7 +4038,12 @@ CoinMpsIO::setMpsDataColAndRowNames(
    int i;
    if (rownames) {
      for (i = 0 ; i < numberRows_; ++i) {
-       rowNames[i] = strdup(rownames[i]);
+       if (rownames[i]) {
+         rowNames[i] = strdup(rownames[i]);
+       } else {
+         rowNames[i] = (char *) malloc (9 * sizeof(char));
+         sprintf(rowNames[i],"R%7.7d",i);
+       }
      }
    } else {
      for (i = 0; i < numberRows_; ++i) {
@@ -4048,7 +4053,12 @@ CoinMpsIO::setMpsDataColAndRowNames(
    }
    if (colnames) {
      for (i = 0 ; i < numberColumns_; ++i) {
-       columnNames[i] = strdup(colnames[i]);
+       if (colnames[i]) {
+         columnNames[i] = strdup(colnames[i]);
+       } else {
+         columnNames[i] = (char *) malloc (9 * sizeof(char));
+         sprintf(columnNames[i],"C%7.7d",i);
+       }
      }
    } else {
      for (i = 0; i < numberColumns_; ++i) {
