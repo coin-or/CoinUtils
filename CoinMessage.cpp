@@ -43,6 +43,17 @@ static Coin_message us_english[]=
   {COIN_PRESOLVE_POSTSOLVE,511,1,"After Postsolve, objective %g, infeasibilities - dual %g (%d), primal %g (%d)"},
   {COIN_PRESOLVE_NEEDS_CLEANING,512,1,"Presolved model was optimal, full model needs cleaning up"},
   {COIN_PRESOLVE_PASS,513,3,"%d rows dropped after presolve pass %d"},
+# if PRESOLVE_DEBUG
+  { COIN_PRESOLDBG_FIRSTCHECK,514,3,"First occurrence of %s checks." },
+  { COIN_PRESOLDBG_RCOSTACC,515,3,
+    "rcost[%d] = %g should be %g |diff| = %g." },
+  { COIN_PRESOLDBG_RCOSTSTAT,516,3,
+    "rcost[%d] = %g inconsistent with status %s (%s)." },
+  { COIN_PRESOLDBG_STATSB,517,3,
+    "status[%d] = %s rcost = %g lb = %g val = %g ub = %g." },
+  { COIN_PRESOLDBG_DUALSTAT,518,3,
+    "dual[%d] = %g inconsistent with status %s (%s)." },
+# endif
   {COIN_DUMMY_END,999999,0,""}
 };
 // **** aiutami!
