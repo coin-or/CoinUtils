@@ -90,13 +90,13 @@ public:
 	might be gaps in this list, entries that do not belong to any
 	major-dimension vector. To get the actual elements one should look at
 	this vector together with vectorStarts and vectorLengths. */
-    const double * getElements() const { return element_; }
+    inline const double * getElements() const { return element_; }
     /** A vector containing the minor indices of the elements in the packed
         matrix. Note that there might be gaps in this list, entries that do not
         belong to any major-dimension vector. To get the actual elements one
         should look at this vector together with vectorStarts and
         vectorLengths. */
-    const int * getIndices() const { return index_; }
+    inline const int * getIndices() const { return index_; }
 
     /** The size of the <code>vectorStarts</code> array */
     int getSizeVectorStarts()const { return majorDim_ > 0 ? majorDim_+1 : 0;}
@@ -104,9 +104,9 @@ public:
     int getSizeVectorLengths() const { return majorDim_; }
     /** The positions where the major-dimension vectors start in elements and
         indices. */
-    const CoinBigIndex * getVectorStarts() const { return start_; }
+    inline const CoinBigIndex * getVectorStarts() const { return start_; }
     /** The lengths of the major-dimension vectors. */
-    const int * getVectorLengths() const { return length_; }
+    inline const int * getVectorLengths() const { return length_; }
 
 
     /** The position of the first element in the i'th major-dimension vector.

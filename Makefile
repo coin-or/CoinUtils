@@ -11,7 +11,7 @@ LibType := SHARED
 # highest level of optimization the compiler supports. If want something in
 # between then specify the exact level you want, e.g., -O1 or -O2
 OptLevel := -g
-OptLevel := -O2
+OptLevel := -O3
 
 # Look at the ${CoinDir}/Makefiles/Makefile.location file, comment in which
 # libraries are/will be available and edit the location of the various
@@ -47,8 +47,8 @@ ifeq ($(OptLevel),-g)
 # for memory checkers
     CXXFLAGS += -DZEROFAULT
 endif
-ifeq ($(OptLevel),-O2)
-#     CXXFLAGS += -DNDEBUG
+ifeq ($(OptLevel),-O3)
+     CXXFLAGS += -DNDEBUG 
 endif
 
 export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir}
