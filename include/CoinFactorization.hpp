@@ -58,6 +58,12 @@ public:
    ~CoinFactorization (  );
   /// Debug show object (shows one representation)
   void show_self (  ) const;
+  /// Debug - save on file - 0 if no error
+  int saveFactorization (const char * file  ) const;
+  /** Debug - restore from file - 0 if no error on file.
+      If factor true then factorizes as if called from ClpFactorization
+  */
+  int restoreFactorization (const char * file  , bool factor=false) ;
   /// Debug - sort so can compare
   void sort (  ) const;
   /// = copy

@@ -597,3 +597,220 @@ CoinFactorization::separateLinks(int count,bool rowsFirst)
       lastCount_[firstRow]=lastColumn;
   } 
 }
+// Debug - save on file
+int
+CoinFactorization::saveFactorization (const char * file  ) const
+{
+  FILE * fp = fopen(file,"wb");
+  if (fp) {
+    // Save so we can pick up scalars
+    const char * first = (const char *) &pivotTolerance_;
+    const char * last = (const char *) &biasLU_;
+    // increment
+    last += sizeof(int);
+    if (fwrite(first,last-first,1,fp)!=1)
+      return 1;
+    int extraSpace = maximumColumnsExtra_ - numberColumns_;
+    // Now arrays
+    if (CoinToFile(elementU_,lengthAreaU_ , fp ))
+      return 1;
+    if (CoinToFile(indexRowU_,lengthAreaU_ , fp ))
+      return 1;
+    if (CoinToFile(indexColumnU_,lengthAreaU_ , fp ))
+      return 1;
+    if (CoinToFile(convertRowToColumnU_,lengthAreaU_ , fp ))
+      return 1;
+    if (CoinToFile(elementByRowL_,lengthAreaL_ , fp ))
+      return 1;
+    if (CoinToFile(indexColumnL_,lengthAreaL_ , fp ))
+      return 1;
+    if (CoinToFile(startRowL_ , numberRows_+1, fp ))
+      return 1;
+    if (CoinToFile(elementL_,lengthAreaL_ , fp ))
+      return 1;
+    if (CoinToFile(indexRowL_,lengthAreaL_ , fp ))
+      return 1;
+    if (CoinToFile(startColumnL_,numberRows_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(markRow_,numberRows_  , fp))
+      return 1;
+    if (CoinToFile(saveColumn_,numberColumns_  , fp))
+      return 1;
+    if (CoinToFile(startColumnR_ , extraSpace + 1 , fp ))
+      return 1;
+    if (CoinToFile(startRowU_,maximumRowsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(numberInRow_,maximumRowsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(nextRow_,maximumRowsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(lastRow_,maximumRowsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(pivotRegion_,maximumRowsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(permuteBack_,maximumRowsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(permute_,maximumRowsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(pivotColumnBack_,maximumRowsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(startColumnU_,maximumColumnsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(numberInColumn_,maximumColumnsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(numberInColumnPlus_,maximumColumnsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(firstCount_,biggerDimension_ + 2 , fp ))
+      return 1;
+    if (CoinToFile(nextCount_,numberRows_ + numberColumns_ , fp ))
+      return 1;
+    if (CoinToFile(lastCount_,numberRows_ + numberColumns_ , fp ))
+      return 1;
+    if (CoinToFile(pivotRowL_,numberRows_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(pivotColumn_,maximumColumnsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(nextColumn_,maximumColumnsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(lastColumn_,maximumColumnsExtra_ + 1 , fp ))
+      return 1;
+    if (CoinToFile(denseArea_ , numberDense_*numberDense_, fp ))
+      return 1;
+    if (CoinToFile(densePermute_ , numberDense_, fp ))
+      return 1;
+    fclose(fp);
+  }
+  return 0;
+}
+// Debug - restore from file
+int 
+CoinFactorization::restoreFactorization (const char * file , bool factorIt ) 
+{
+  FILE * fp = fopen(file,"rb");
+  if (fp) {
+    // Get rid of current
+    gutsOfDestructor();
+    int newSize=0; // for checking - should be same
+    // Restore so we can pick up scalars
+    char * first = (char *) &pivotTolerance_;
+    char * last = (char *) &biasLU_;
+    // increment
+    last += sizeof(int);
+    if (fread(first,last-first,1,fp)!=1)
+      return 1;
+    int extraSpace = maximumColumnsExtra_ - numberColumns_;
+    CoinBigIndex space = lengthAreaL_ - lengthL_;
+    // Now arrays
+    if (CoinFromFile(elementU_,lengthAreaU_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==lengthAreaU_);
+    if (CoinFromFile(indexRowU_,lengthAreaU_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==lengthAreaU_);
+    if (CoinFromFile(indexColumnU_,lengthAreaU_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==lengthAreaU_);
+    if (CoinFromFile(convertRowToColumnU_,lengthAreaU_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==lengthAreaU_||(newSize==0&&!convertRowToColumnU_));
+    if (CoinFromFile(elementByRowL_,lengthAreaL_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==lengthAreaL_||(newSize==0&&!elementByRowL_));
+    if (CoinFromFile(indexColumnL_,lengthAreaL_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==lengthAreaL_||(newSize==0&&!indexColumnL_));
+    if (CoinFromFile(startRowL_ , numberRows_+1, fp, newSize )==1)
+      return 1;
+    assert (newSize==numberRows_+1||(newSize==0&&!startRowL_));
+    if (CoinFromFile(elementL_,lengthAreaL_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==lengthAreaL_);
+    if (CoinFromFile(indexRowL_,lengthAreaL_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==lengthAreaL_);
+    if (CoinFromFile(startColumnL_,numberRows_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==numberRows_+1);
+    if (CoinFromFile(markRow_,numberRows_  , fp, newSize )==1)
+      return 1;
+    assert (newSize==numberRows_);
+    if (CoinFromFile(saveColumn_,numberColumns_  , fp, newSize )==1)
+      return 1;
+    assert (newSize==numberColumns_);
+    if (CoinFromFile(startColumnR_ , extraSpace + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==extraSpace+1||(newSize==0&&!startColumnR_));
+    if (CoinFromFile(startRowU_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!startRowU_));
+    if (CoinFromFile(numberInRow_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1);
+    if (CoinFromFile(nextRow_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1);
+    if (CoinFromFile(lastRow_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1);
+    if (CoinFromFile(pivotRegion_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1);
+    if (CoinFromFile(permuteBack_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!permuteBack_));
+    if (CoinFromFile(permute_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!permute_));
+    if (CoinFromFile(pivotColumnBack_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!pivotColumnBack_));
+    if (CoinFromFile(startColumnU_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumColumnsExtra_+1);
+    if (CoinFromFile(numberInColumn_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumColumnsExtra_+1);
+    if (CoinFromFile(numberInColumnPlus_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumColumnsExtra_+1);
+    if (CoinFromFile(firstCount_,biggerDimension_ + 2 , fp, newSize )==1)
+      return 1;
+    assert (newSize==biggerDimension_+2);
+    if (CoinFromFile(nextCount_,numberRows_ + numberColumns_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==numberRows_+numberColumns_);
+    if (CoinFromFile(lastCount_,numberRows_ + numberColumns_ , fp, newSize )==1)
+      return 1;
+    assert (newSize==numberRows_+numberColumns_);
+    if (CoinFromFile(pivotRowL_,numberRows_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==numberRows_+1);
+    if (CoinFromFile(pivotColumn_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumColumnsExtra_+1);
+    if (CoinFromFile(nextColumn_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumColumnsExtra_+1);
+    if (CoinFromFile(lastColumn_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumColumnsExtra_+1);
+    if (CoinFromFile(denseArea_ , numberDense_*numberDense_, fp, newSize )==1)
+      return 1;
+    assert (newSize==numberDense_*numberDense_);
+    if (CoinFromFile(densePermute_ , numberDense_, fp, newSize )==1)
+      return 1;
+    assert (newSize==numberDense_);
+    lengthAreaR_ = space;
+    elementR_ = elementL_ + lengthL_;
+    indexRowR_ = indexRowL_ + lengthL_;
+    fclose(fp);
+    if (factorIt) {
+      if (biasLU_>=3||numberRows_!=numberColumns_)
+        preProcess ( 2 );
+      else
+        preProcess ( 3 ); // no row copy
+      factor (  );
+    }
+  }
+  return 0;
+}

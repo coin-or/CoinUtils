@@ -656,8 +656,63 @@ inline char CoinFindDirSeparator()
   delete[] buf;
   return dirsep;
 }
+//#############################################################################
+
 /// Swap the arguments.
 template <class T> inline void CoinSwap (T &x, T &y) {T t = x ; x = y ; y = t ; }
 
+//#############################################################################
 
+/** This helper function copies an array to file 
+    Returns 0 if OK, 1 if bad write.
+*/
+
+template <class T> inline int
+CoinToFile( const T* array, int size, FILE * fp)
+{
+  int numberWritten;
+  if (array&&size) {
+    numberWritten = fwrite(&size,sizeof(int),1,fp);
+    if (numberWritten!=1)
+      return 1;
+    numberWritten = fwrite(array,sizeof(T),size,fp);
+    if (numberWritten!=size)
+      return 1;
+  } else {
+    size = 0;
+    numberWritten = fwrite(&size,sizeof(int),1,fp);
+    if (numberWritten!=1)
+      return 1;
+  }
+  return 0;
+}
+
+//#############################################################################
+
+/** This helper function copies an array from file and creates with new.
+    Passed in array is ignored i.e. not deleted.
+    But if NULL and size does not match and newSize 0 then leaves as NULL and 0
+    Returns 0 if OK, 1 if bad read, 2 if size did not match.
+ */
+
+template <class T> inline int
+CoinFromFile( T* &array, int size, FILE * fp,int & newSize)
+{
+  int numberRead;
+  numberRead = fread(&newSize,sizeof(int),1,fp);
+  if (numberRead!=1)
+    return 1;
+  int returnCode=0;
+  if (size!=newSize&&(newSize||array))
+    returnCode=2;
+  if (newSize) {
+    array = new T [newSize];
+    numberRead = fread(array,sizeof(T),newSize,fp);
+    if (numberRead!=newSize)
+      returnCode=1;
+  } else {
+    array = NULL;
+  }
+  return returnCode;
+}
 #endif
