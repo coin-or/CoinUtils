@@ -15,44 +15,6 @@
 #include "CoinMpsIO.hpp"
 #include "CoinMessage.hpp"
 
-#ifdef COIN_USE_ZLIB
-#include "zlib.h"
-#else
-/* just to make the code much nicer (no need for so many ifdefs */
-typedef void* gzFile;
-#endif
-
-// Plus infinity
-#ifndef COIN_DBL_MAX
-#define COIN_DBL_MAX DBL_MAX
-#endif
-
-/// The following lengths are in decreasing order (for 64 bit etc)
-/// Large enough to contain element index
-/// This is already defined as CoinBigIndex
-/// Large enough to contain column index
-typedef int COINColumnIndex;
-
-/// Large enough to contain row index (or basis)
-typedef int COINRowIndex;
-
-// We are allowing free format - but there is a limit!
-#define MAX_FIELD_LENGTH 100
-#define MAX_CARD_LENGTH 5*MAX_FIELD_LENGTH+80
-
-enum COINSectionType { COIN_NO_SECTION, COIN_NAME_SECTION, COIN_ROW_SECTION,
-  COIN_COLUMN_SECTION,
-  COIN_RHS_SECTION, COIN_RANGES_SECTION, COIN_BOUNDS_SECTION,
-  COIN_ENDATA_SECTION, COIN_EOF_SECTION, COIN_UNKNOWN_SECTION
-};
-
-enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
-  COIN_BLANK_COLUMN, COIN_S1_COLUMN, COIN_S2_COLUMN, COIN_S3_COLUMN,
-  COIN_INTORG, COIN_INTEND, COIN_SOSEND, COIN_UNSET_BOUND,
-  COIN_UP_BOUND, COIN_FX_BOUND, COIN_LO_BOUND, COIN_FR_BOUND,
-  COIN_MI_BOUND, COIN_PL_BOUND, COIN_BV_BOUND, COIN_UI_BOUND,
-  COIN_SC_BOUND, COIN_UNKNOWN_MPS_TYPE
-};
 
 //#############################################################################
 
@@ -159,107 +121,10 @@ static double osi_strtod(char * ptr, char ** output)
   }
   return value*sign1;
 } 
-/// Very simple code for reading MPS data
-class MpsCardReader {
-
-public:
-
-  /**@name Constructor and destructor */
-  //@{
-  /// Constructor expects file to be open - reads down to (and reads) NAME card
-  MpsCardReader ( FILE * fp , CoinMpsIO * reader);
-#ifdef COIN_USE_ZLIB
-  /// This one takes gzFile if fp null
-  MpsCardReader ( FILE * fp, gzFile gzfp, CoinMpsIO * reader );
-#endif
-  /// Destructor
-  ~MpsCardReader (  );
-  //@}
-
-
-  /**@name card stuff */
-  //@{
-  /// Gets next field and returns section type e.g. COIN_COLUMN_SECTION
-  COINSectionType nextField (  );
-  /// Returns current section type
-  inline COINSectionType whichSection (  ) const {
-    return section_;
-  };
-  /// Only for first field on card otherwise BLANK_COLUMN
-  /// e.g. COIN_E_ROW
-  inline COINMpsType mpsType (  ) const {
-    return mpsType_;
-  };
-  /// Reads and cleans card - taking out trailing blanks - return 1 if EOF
-  int cleanCard();
-  /// Returns row name of current field
-  inline const char *rowName (  ) const {
-    return rowName_;
-  };
-  /// Returns column name of current field
-  inline const char *columnName (  ) const {
-    return columnName_;
-  };
-  /// Returns value in current field
-  inline double value (  ) const {
-    return value_;
-  };
-  /// Whole card (for printing)
-  inline const char *card (  ) const {
-    return card_;
-  };
-  /// Returns card number
-  inline CoinBigIndex cardNumber (  ) const {
-    return cardNumber_;
-  };
-  //@}
-
-////////////////// data //////////////////
-private:
-
-  /**@name data */
-  //@{
-  /// Current value
-  double value_;
-  /// Current card image
-  char card_[MAX_CARD_LENGTH];
-  /// Current position within card image
-  char *position_;
-  /// End of card
-  char *eol_;
-  /// Current COINMpsType
-  COINMpsType mpsType_;
-  /// Current row name
-  char rowName_[MAX_FIELD_LENGTH];
-  /// Current column name
-  char columnName_[MAX_FIELD_LENGTH];
-  /// File pointer
-  FILE *fp_;
-#ifdef COIN_USE_ZLIB
-  /// Compressed file object
-  gzFile gzfp_;
-#endif
-  /// Which section we think we are in
-  COINSectionType section_;
-  /// Card number
-  CoinBigIndex cardNumber_;
-  /// Whether free format.  Just for blank RHS etc
-  bool freeFormat_;
-  /// If all names <= 8 characters then allow embedded blanks
-  bool eightChar_;
-  /// MpsIO
-  CoinMpsIO * reader_;
-  /// Message handler
-  CoinMessageHandler * handler_;
-  /// Messages
-  CoinMessages messages_;
-  //@}
-};
-
 //#############################################################################
 // sections
 const static char *section[] = {
-  "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " "
+  "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ","QSECTION", " "
 };
 
 // what is allowed in each section - must line up with COINSectionType
@@ -268,14 +133,16 @@ const static COINMpsType startType[] = {
   COIN_N_ROW, COIN_BLANK_COLUMN,
   COIN_BLANK_COLUMN, COIN_BLANK_COLUMN,
   COIN_UP_BOUND, COIN_UNKNOWN_MPS_TYPE,
-  COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE
+  COIN_UNKNOWN_MPS_TYPE,
+  COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE
 };
 const static COINMpsType endType[] = {
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
   COIN_BLANK_COLUMN, COIN_UNSET_BOUND,
   COIN_S1_COLUMN, COIN_S1_COLUMN,
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
-  COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE
+  COIN_UNKNOWN_MPS_TYPE,
+  COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE
 };
 const static int allowedLength[] = {
   0, 0,
@@ -292,7 +159,7 @@ const static char *mpsTypes[] = {
   "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "SC"
 };
 
-int MpsCardReader::cleanCard()
+int CoinMpsCardReader::cleanCard()
 {
   char * getit;
 #ifdef COIN_USE_ZLIB
@@ -347,24 +214,10 @@ nextBlankOr ( char *image )
   return image;
 }
 
-//  MpsCardReader.  Constructor
-MpsCardReader::MpsCardReader (  FILE * fp , CoinMpsIO * reader)
+// Read to NAME card - return nonzero if bad
+COINSectionType
+CoinMpsCardReader::readToNextSection (  )
 {
-  memset ( card_, 0, MAX_CARD_LENGTH );
-  position_ = card_;
-  eol_ = card_;
-  mpsType_ = COIN_UNKNOWN_MPS_TYPE;
-  memset ( rowName_, 0, MAX_FIELD_LENGTH );
-  memset ( columnName_, 0, MAX_FIELD_LENGTH );
-  value_ = 0.0;
-  fp_ = fp;
-  section_ = COIN_EOF_SECTION;
-  cardNumber_ = 0;
-  freeFormat_ = false;
-  eightChar_ = true;
-  reader_ = reader;
-  handler_ = reader_->messageHandler();
-  messages_ = reader_->messages();
   bool found = false;
 
   while ( !found ) {
@@ -377,6 +230,7 @@ MpsCardReader::MpsCardReader (  FILE * fp , CoinMpsIO * reader)
     if ( !strncmp ( card_, "NAME", 4 ) ) {
       section_ = COIN_NAME_SECTION;
       char *next = card_ + 4;
+
       handler_->message(COIN_MPS_LINE,messages_)<<cardNumber_
 					       <<card_<<CoinMessageEol;
       while ( next != eol_ ) {
@@ -403,17 +257,28 @@ MpsCardReader::MpsCardReader (  FILE * fp , CoinMpsIO * reader)
       } else {
 	strcpy ( columnName_, "no_name" );
       }
-      position_=eol_;
       break;
     } else if ( card_[0] != '*' && card_[0] != '#' ) {
-      section_ = COIN_UNKNOWN_SECTION;
+      // not a comment
+      int i;
+
+      handler_->message(COIN_MPS_LINE,messages_)<<cardNumber_
+					       <<card_<<CoinMessageEol;
+      for ( i = COIN_ROW_SECTION; i < COIN_UNKNOWN_SECTION; i++ ) {
+	if ( !strncmp ( card_, section[i], strlen ( section[i] ) ) ) {
+	  break;
+	}
+      }
+      position_ = card_;
+      eol_ = card_;
+      section_ = ( COINSectionType ) i;
       break;
     }
   }
+  return section_;
 }
-#ifdef COIN_USE_ZLIB
 // This one takes gzFile if fp null
-MpsCardReader::MpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * reader)
+CoinMpsCardReader::CoinMpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * reader)
 {
   memset ( card_, 0, MAX_CARD_LENGTH );
   position_ = card_;
@@ -431,55 +296,9 @@ MpsCardReader::MpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * reader)
   reader_ = reader;
   handler_ = reader_->messageHandler();
   messages_ = reader_->messages();
-  bool found = false;
-
-  while ( !found ) {
-    // need new image
-
-    if ( cleanCard() ) {
-      section_ = COIN_EOF_SECTION;
-      break;
-    }
-    if ( !strncmp ( card_, "NAME", 4 ) ) {
-      section_ = COIN_NAME_SECTION;
-      char *next = card_ + 4;
-
-      handler_->message(COIN_MPS_LINE,messages_)<<cardNumber_
-					       <<card_<<CoinMessageEol;
-      while ( next != eol_ ) {
-	if ( *next == ' ' || *next == '\t' ) {
-	  next++;
-	} else {
-	  break;
-	}
-      }
-      if ( next != eol_ ) {
-	char *nextBlank = nextBlankOr ( next );
-	char save;
-
-	if ( nextBlank ) {
-	  save = *nextBlank;
-	  *nextBlank = '\0';
-	  strcpy ( columnName_, next );
-	  *nextBlank = save;
-	  if ( strstr ( nextBlank, "FREE" ) )
-	    freeFormat_ = true;
-	} else {
-	  strcpy ( columnName_, next );
-	}
-      } else {
-	strcpy ( columnName_, "no_name" );
-      }
-      break;
-    } else if ( card_[0] != '*' && card_[0] != '#' ) {
-      section_ = COIN_UNKNOWN_SECTION;
-      break;
-    }
-  }
 }
-#endif
-//  ~MpsCardReader.  Destructor
-MpsCardReader::~MpsCardReader (  )
+//  ~CoinMpsCardReader.  Destructor
+CoinMpsCardReader::~CoinMpsCardReader (  )
 {
 #ifdef COIN_USE_ZLIB
   if (!fp_) {
@@ -510,7 +329,7 @@ strcpyAndCompress ( char *to, const char *from )
 
 //  nextField
 COINSectionType
-MpsCardReader::nextField (  )
+CoinMpsCardReader::nextField (  )
 {
   mpsType_ = COIN_BLANK_COLUMN;
   // find next non blank character
@@ -705,9 +524,12 @@ MpsCardReader::nextField (  )
 	      if ( next == eol_ ) {
 		// error unless bounds
 		position_ = eol_;
-		value_ = -1.0e100;
-		if ( section_ != COIN_BOUNDS_SECTION )
+		if ( section_ != COIN_BOUNDS_SECTION ) {
+		  value_ = -1.0e100;
 		  mpsType_ = COIN_UNKNOWN_MPS_TYPE;
+		} else {
+		  value_ = 0.0;
+		}
 	      } else {
 		nextBlank = nextBlankOr ( next );
 		if ( nextBlank ) {
@@ -1094,6 +916,95 @@ const bool CoinMpsIO::fileReadable() const
     return true;
   }
 }
+// Deal with filename - +1 if new, 0 if same as before, -1 if error
+int
+CoinMpsIO::dealWithFileName(const char * filename,  const char * extension,
+		       FILE * & fp, gzFile  & gzfp)
+{
+  fp=NULL;
+  int goodFile=0;
+  gzfp=NULL;
+  if (!fileName_||(filename!=NULL&&strcmp(filename,fileName_))) {
+    if (filename==NULL) {
+      handler_->message(COIN_MPS_FILE,messages_)<<"NULL"
+						<<CoinMessageEol;
+      return -1;
+    }
+    goodFile=-1;
+    // looks new name
+    char newName[400];
+    if (strcmp(filename,"stdin")&&strcmp(filename,"-")) {
+      if (extension&&strlen(extension)) {
+	// There was an extension - but see if user gave .xxx
+	int i = strlen(filename)-1;
+	strcpy(newName,filename);
+	bool foundDot=false; 
+	for (;i>=0;i--) {
+	  char character = filename[i];
+	  if (character=='/'||character=='\\') {
+	    break;
+	  } else if (character=='.') {
+	    foundDot=true;
+	    break;
+	  }
+	}
+	if (!foundDot) {
+	  strcat(newName,".");
+	  strcat(newName,extension);
+	}
+      } else {
+	// no extension
+	strcpy(newName,filename);
+      }
+    } else {
+      strcpy(newName,"stdin");    
+    }
+    // See if new name
+    if (fileName_&&!strcmp(newName,fileName_)) {
+      // old name
+      return 0;
+    } else {
+      // new file
+      free(fileName_);
+      fileName_=strdup(newName);    
+      if (strcmp(fileName_,"stdin")) {
+#ifdef COIN_USE_ZLIB
+	int length=strlen(fileName_);
+	if (!strcmp(fileName_+length-3,".gz")) {
+	  gzfp = gzopen(fileName_,"rb");
+	  fp = NULL;
+	  goodFile = (gzfp!=NULL);
+	} else {
+#endif
+	  fp = fopen ( fileName_, "r" );
+	  if (fp!=NULL)
+	    goodFile=1;
+#ifdef COIN_USE_ZLIB
+	  if (goodFile<0) {
+	    std::string fname(fileName_);
+	    fname += ".gz";
+	    gzfp = gzopen(fname.c_str(),"rb");
+	    printf("%s\n", fname.c_str());
+	    if (gzfp!=NULL)
+	      goodFile=1;
+	  }
+	}
+#endif
+      } else {
+	fp = stdin;
+	goodFile = 1;
+      }
+    }
+  } else {
+    // same as before
+    // reset section ?
+    goodFile=0;
+  }
+  if (goodFile<0) 
+    handler_->message(COIN_MPS_FILE,messages_)<<fileName_
+					      <<CoinMessageEol;
+  return goodFile;
+}
 /* objective offset - this is RHS entry for objective row */
 double CoinMpsIO::objectiveOffset() const
 {
@@ -1121,99 +1032,43 @@ int CoinMpsIO::getDefaultBound() const
 //------------------------------------------------------------------
 int CoinMpsIO::readMps(const char * filename,  const char * extension)
 {
-  free(fileName_);
-  if (strcmp(filename,"stdin")&&strcmp(filename,"-")) {
-    if (extension&&strlen(extension)) {
-      // There was an extension - but see if user gave .xxx
-      int i = strlen(filename)-1;
-      fileName_ = (char *) malloc(i+strlen(extension)+3);
-      strcpy(fileName_,filename);
-      bool foundDot=false; 
-      for (;i>=0;i--) {
-	char character = filename[i];
-	if (character=='/'||character=='\\') {
-	  break;
-	} else if (character=='.') {
-	  foundDot=true;
-	  break;
-	}
-      }
-      if (!foundDot) {
-	strcat(fileName_,".");
-	strcat(fileName_,extension);
-      }
-    } else {
-      // no extension
-      fileName_ = strdup(filename);
-    }
-  } else {
-    fileName_=strdup("stdin");    
+  // Deal with filename - +1 if new, 0 if same as before, -1 if error
+  FILE *fp=NULL;
+  gzFile gzfp=NULL;
+  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+  if (returnCode<0) {
+    return -1;
+  } else if (returnCode>0) {
+    delete cardReader_;
+    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
   }
   return readMps();
 }
 int CoinMpsIO::readMps()
 {
-  FILE *fp=NULL;
-  bool goodFile=false;
-#ifdef COIN_USE_ZLIB
-  gzFile gzfp=NULL;
-#endif
-  if (strcmp(fileName_,"stdin")) {
-#ifdef COIN_USE_ZLIB
-    int length=strlen(fileName_);
-    if (!strcmp(fileName_+length-3,".gz")) {
-      gzfp = gzopen(fileName_,"rb");
-      fp = NULL;
-      goodFile = (gzfp!=NULL);
-    } else {
-#endif
-      fp = fopen ( fileName_, "r" );
-      goodFile = (fp!=NULL);
-#ifdef COIN_USE_ZLIB
-      if (!goodFile) {
-	 std::string fname(fileName_);
-	 fname += ".gz";
-	 gzfp = gzopen(fname.c_str(),"rb");
-	 printf("%s\n", fname.c_str());
-	 goodFile = (gzfp!=NULL);
-      }
-    }
-#endif
-  } else {
-    fp = stdin;
-    goodFile = true;
-  }
-  if (!goodFile) {
-    handler_->message(COIN_MPS_FILE,messages_)<<fileName_
-					     <<CoinMessageEol;
-    return -1;
-  }
   bool ifmps;
-#ifdef COIN_USE_ZLIB
-  MpsCardReader mpsfile ( fp , gzfp, this);
-#else
-  MpsCardReader mpsfile ( fp , this);
-#endif
 
-  if ( mpsfile.whichSection (  ) == COIN_NAME_SECTION ) {
+  cardReader_->readToNextSection();
+
+  if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) {
     ifmps = true;
     // save name of section
     free(problemName_);
-    problemName_=strdup(mpsfile.columnName());
-  } else if ( mpsfile.whichSection (  ) == COIN_UNKNOWN_SECTION ) {
-    handler_->message(COIN_MPS_BADFILE1,messages_)<<mpsfile.card()
+    problemName_=strdup(cardReader_->columnName());
+  } else if ( cardReader_->whichSection (  ) == COIN_UNKNOWN_SECTION ) {
+    handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
 						 <<fileName_
 						 <<CoinMessageEol;
 #ifdef COIN_USE_ZLIB
-    if (!fp) 
+    if (!cardReader_->filePointer()) 
       handler_->message(COIN_MPS_BADFILE2,messages_)<<CoinMessageEol;
 
 #endif
     return -2;
-  } else if ( mpsfile.whichSection (  ) != COIN_EOF_SECTION ) {
+  } else if ( cardReader_->whichSection (  ) != COIN_EOF_SECTION ) {
     // save name of section
     free(problemName_);
-    problemName_=strdup(mpsfile.card());
+    problemName_=strdup(cardReader_->card());
     ifmps = false;
   } else {
     handler_->message(COIN_MPS_EOF,messages_)<<fileName_
@@ -1233,8 +1088,8 @@ int CoinMpsIO::readMps()
     bool gotNrow = false;
 
     //get ROWS
-    mpsfile.nextField (  ) ;
-    assert ( mpsfile.whichSection (  ) == COIN_ROW_SECTION );
+    cardReader_->nextField (  ) ;
+    assert ( cardReader_->whichSection (  ) == COIN_ROW_SECTION );
     //use malloc etc as I don't know how to do realloc in C++
     numberRows_ = 0;
     numberColumns_ = 0;
@@ -1251,14 +1106,14 @@ int CoinMpsIO::readMps()
     char **freeRowName =
 
       ( char ** ) malloc ( maxFreeRows * sizeof ( char * ) );
-    while ( mpsfile.nextField (  ) == COIN_ROW_SECTION ) {
-      switch ( mpsfile.mpsType (  ) ) {
+    while ( cardReader_->nextField (  ) == COIN_ROW_SECTION ) {
+      switch ( cardReader_->mpsType (  ) ) {
       case COIN_N_ROW:
 	if ( !gotNrow ) {
 	  gotNrow = true;
 	  // save name of section
 	  free(objectiveName_);
-	  objectiveName_=strdup(mpsfile.columnName());
+	  objectiveName_=strdup(cardReader_->columnName());
 	} else {
 	  // add to discard list
 	  if ( numberOtherFreeRows == maxFreeRows ) {
@@ -1269,7 +1124,7 @@ int CoinMpsIO::readMps()
 				    maxFreeRows * sizeof ( char * ) );
 	  }
 	  freeRowName[numberOtherFreeRows] =
-	    strdup ( mpsfile.columnName (  ) );
+	    strdup ( cardReader_->columnName (  ) );
 	  numberOtherFreeRows++;
 	}
 	break;
@@ -1285,15 +1140,15 @@ int CoinMpsIO::readMps()
 
 	    ( char ** ) realloc ( rowName, maxRows * sizeof ( char * ) );
 	}
-	rowType[numberRows_] = mpsfile.mpsType (  );
-	rowName[numberRows_] = strdup ( mpsfile.columnName (  ) );
+	rowType[numberRows_] = cardReader_->mpsType (  );
+	rowName[numberRows_] = strdup ( cardReader_->columnName (  ) );
 	numberRows_++;
 	break;
       default:
 	numberErrors++;
 	if ( numberErrors < 100 ) {
-	  handler_->message(COIN_MPS_BADIMAGE,messages_)<<mpsfile.cardNumber()
-						       <<mpsfile.card()
+	  handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						       <<cardReader_->card()
 						       <<CoinMessageEol;
 	} else if (numberErrors > 100000) {
 	  handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1301,7 +1156,7 @@ int CoinMpsIO::readMps()
 	}
       }
     }
-    assert ( mpsfile.whichSection (  ) == COIN_COLUMN_SECTION );
+    assert ( cardReader_->whichSection (  ) == COIN_COLUMN_SECTION );
     assert ( gotNrow );
     rowType =
       ( COINMpsType * ) realloc ( rowType,
@@ -1349,10 +1204,10 @@ int CoinMpsIO::readMps()
     COINColumnIndex numberIntegers = 0;
     const double tinyElement = 1.0e-14;
 
-    while ( mpsfile.nextField (  ) == COIN_COLUMN_SECTION ) {
-      switch ( mpsfile.mpsType (  ) ) {
+    while ( cardReader_->nextField (  ) == COIN_COLUMN_SECTION ) {
+      switch ( cardReader_->mpsType (  ) ) {
       case COIN_BLANK_COLUMN:
-	if ( strcmp ( lastColumn, mpsfile.columnName (  ) ) ) {
+	if ( strcmp ( lastColumn, cardReader_->columnName (  ) ) ) {
 	  // new column
 
 	  // reset old column and take out tiny
@@ -1392,13 +1247,13 @@ int CoinMpsIO::readMps()
 	    columnType[column] = COIN_INTORG;
 	    numberIntegers++;
 	  }
-	  columnName[column] = strdup ( mpsfile.columnName (  ) );
-	  strcpy ( lastColumn, mpsfile.columnName (  ) );
+	  columnName[column] = strdup ( cardReader_->columnName (  ) );
+	  strcpy ( lastColumn, cardReader_->columnName (  ) );
 	  objective_[column] = 0.0;
 	  start[column] = numberElements_;
 	  numberColumns_++;
 	}
-	if ( fabs ( mpsfile.value (  ) ) > tinyElement ) {
+	if ( fabs ( cardReader_->value (  ) ) > tinyElement ) {
 	  if ( numberElements_ == maxElements ) {
 	    maxElements = ( 3 * maxElements ) / 2 + 1000;
 	    row = ( COINRowIndex * )
@@ -1407,10 +1262,10 @@ int CoinMpsIO::readMps()
 	      realloc ( element, maxElements * sizeof ( double ) );
 	  }
 	  // get row number
-	  COINRowIndex irow = findHash ( mpsfile.rowName (  ) , 0 );
+	  COINRowIndex irow = findHash ( cardReader_->rowName (  ) , 0 );
 
 	  if ( irow >= 0 ) {
-	    double value = mpsfile.value (  );
+	    double value = cardReader_->value (  );
 
 	    // check for duplicates
 	    if ( irow == numberRows_ ) {
@@ -1419,7 +1274,7 @@ int CoinMpsIO::readMps()
 		numberErrors++;
 		if ( numberErrors < 100 ) {
 		  handler_->message(COIN_MPS_DUPOBJ,messages_)
-		    <<mpsfile.cardNumber()<<mpsfile.card()
+		    <<cardReader_->cardNumber()<<cardReader_->card()
 		    <<CoinMessageEol;
 		} else if (numberErrors > 100000) {
 		  handler_->message(COIN_MPS_RETURNING,messages_)
@@ -1440,8 +1295,8 @@ int CoinMpsIO::readMps()
 		numberErrors++;
 		if ( numberErrors < 100 ) {
 		  handler_->message(COIN_MPS_DUPROW,messages_)
-		    <<mpsfile.rowName()<<mpsfile.cardNumber()
-		    <<mpsfile.card()
+		    <<cardReader_->rowName()<<cardReader_->cardNumber()
+		    <<cardReader_->card()
 		    <<CoinMessageEol;
 		} else if (numberErrors > 100000) {
 		  handler_->message(COIN_MPS_RETURNING,messages_)
@@ -1459,7 +1314,7 @@ int CoinMpsIO::readMps()
 	    numberErrors++;
 	    if ( numberErrors < 100 ) {
 		  handler_->message(COIN_MPS_NOMATCHROW,messages_)
-		    <<mpsfile.rowName()<<mpsfile.cardNumber()<<mpsfile.card()
+		    <<cardReader_->rowName()<<cardReader_->cardNumber()<<cardReader_->card()
 		    <<CoinMessageEol;
 	    } else if (numberErrors > 100000) {
 	      handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1484,8 +1339,8 @@ int CoinMpsIO::readMps()
       default:
 	numberErrors++;
 	if ( numberErrors < 100 ) {
-	  handler_->message(COIN_MPS_BADIMAGE,messages_)<<mpsfile.cardNumber()
-						       <<mpsfile.card()
+	  handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						       <<cardReader_->card()
 						       <<CoinMessageEol;
 	} else if (numberErrors > 100000) {
 	  handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1495,7 +1350,7 @@ int CoinMpsIO::readMps()
     }
     start[numberColumns_] = numberElements_;
     delete[]rowUsed;
-    assert ( mpsfile.whichSection (  ) == COIN_RHS_SECTION );
+    assert ( cardReader_->whichSection (  ) == COIN_RHS_SECTION );
     columnType =
       ( COINMpsType * ) realloc ( columnType,
 				 numberColumns_ * sizeof ( COINMpsType ) );
@@ -1522,30 +1377,30 @@ int CoinMpsIO::readMps()
     bool gotRhs = false;
 
     // need coding for blank rhs
-    while ( mpsfile.nextField (  ) == COIN_RHS_SECTION ) {
+    while ( cardReader_->nextField (  ) == COIN_RHS_SECTION ) {
       COINRowIndex irow;
 
-      switch ( mpsfile.mpsType (  ) ) {
+      switch ( cardReader_->mpsType (  ) ) {
       case COIN_BLANK_COLUMN:
-	if ( strcmp ( lastColumn, mpsfile.columnName (  ) ) ) {
+	if ( strcmp ( lastColumn, cardReader_->columnName (  ) ) ) {
 
 	  // skip rest if got a rhs
 	  if ( gotRhs ) {
-	    while ( mpsfile.nextField (  ) == COIN_RHS_SECTION ) {
+	    while ( cardReader_->nextField (  ) == COIN_RHS_SECTION ) {
 	    }
 	    break;
 	  } else {
 	    gotRhs = true;
-	    strcpy ( lastColumn, mpsfile.columnName (  ) );
+	    strcpy ( lastColumn, cardReader_->columnName (  ) );
 	    // save name of section
 	    free(rhsName_);
-	    rhsName_=strdup(mpsfile.columnName());
+	    rhsName_=strdup(cardReader_->columnName());
 	  }
 	}
 	// get row number
-	irow = findHash ( mpsfile.rowName (  ) , 0 );
+	irow = findHash ( cardReader_->rowName (  ) , 0 );
 	if ( irow >= 0 ) {
-	  double value = mpsfile.value (  );
+	  double value = cardReader_->value (  );
 
 	  // check for duplicates
 	  if ( irow == numberRows_ ) {
@@ -1554,7 +1409,7 @@ int CoinMpsIO::readMps()
 	      numberErrors++;
 	      if ( numberErrors < 100 ) {
 		  handler_->message(COIN_MPS_DUPOBJ,messages_)
-		    <<mpsfile.cardNumber()<<mpsfile.card()
+		    <<cardReader_->cardNumber()<<cardReader_->card()
 		    <<CoinMessageEol;
 	      } else if (numberErrors > 100000) {
 		handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1569,7 +1424,7 @@ int CoinMpsIO::readMps()
 	      numberErrors++;
 	      if ( numberErrors < 100 ) {
 		handler_->message(COIN_MPS_DUPROW,messages_)
-		  <<mpsfile.rowName()<<mpsfile.cardNumber()<<mpsfile.card()
+		  <<cardReader_->rowName()<<cardReader_->cardNumber()<<cardReader_->card()
 		  <<CoinMessageEol;
 	      } else if (numberErrors > 100000) {
 		handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1583,7 +1438,7 @@ int CoinMpsIO::readMps()
 	  numberErrors++;
 	  if ( numberErrors < 100 ) {
 	    handler_->message(COIN_MPS_NOMATCHROW,messages_)
-	      <<mpsfile.rowName()<<mpsfile.cardNumber()<<mpsfile.card()
+	      <<cardReader_->rowName()<<cardReader_->cardNumber()<<cardReader_->card()
 	      <<CoinMessageEol;
 	  } else if (numberErrors > 100000) {
 	    handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1594,8 +1449,8 @@ int CoinMpsIO::readMps()
       default:
 	numberErrors++;
 	if ( numberErrors < 100 ) {
-	  handler_->message(COIN_MPS_BADIMAGE,messages_)<<mpsfile.cardNumber()
-						       <<mpsfile.card()
+	  handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						       <<cardReader_->card()
 						       <<CoinMessageEol;
 	} else if (numberErrors > 100000) {
 	  handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1603,34 +1458,34 @@ int CoinMpsIO::readMps()
 	}
       }
     }
-    if ( mpsfile.whichSection (  ) == COIN_RANGES_SECTION ) {
+    if ( cardReader_->whichSection (  ) == COIN_RANGES_SECTION ) {
       memset ( lastColumn, '\0', 200 );
       bool gotRange = false;
       COINRowIndex irow;
 
       // need coding for blank range
-      while ( mpsfile.nextField (  ) == COIN_RANGES_SECTION ) {
-	switch ( mpsfile.mpsType (  ) ) {
+      while ( cardReader_->nextField (  ) == COIN_RANGES_SECTION ) {
+	switch ( cardReader_->mpsType (  ) ) {
 	case COIN_BLANK_COLUMN:
-	  if ( strcmp ( lastColumn, mpsfile.columnName (  ) ) ) {
+	  if ( strcmp ( lastColumn, cardReader_->columnName (  ) ) ) {
 
 	    // skip rest if got a range
 	    if ( gotRange ) {
-	      while ( mpsfile.nextField (  ) == COIN_RANGES_SECTION ) {
+	      while ( cardReader_->nextField (  ) == COIN_RANGES_SECTION ) {
 	      }
 	      break;
 	    } else {
 	      gotRange = true;
-	      strcpy ( lastColumn, mpsfile.columnName (  ) );
+	      strcpy ( lastColumn, cardReader_->columnName (  ) );
 	      // save name of section
 	      free(rangeName_);
-	      rangeName_=strdup(mpsfile.columnName());
+	      rangeName_=strdup(cardReader_->columnName());
 	    }
 	  }
 	  // get row number
-	  irow = findHash ( mpsfile.rowName (  ) , 0 );
+	  irow = findHash ( cardReader_->rowName (  ) , 0 );
 	  if ( irow >= 0 ) {
-	    double value = mpsfile.value (  );
+	    double value = cardReader_->value (  );
 
 	    // check for duplicates
 	    if ( irow == numberRows_ ) {
@@ -1638,7 +1493,7 @@ int CoinMpsIO::readMps()
 	      numberErrors++;
 	      if ( numberErrors < 100 ) {
 		  handler_->message(COIN_MPS_DUPOBJ,messages_)
-		    <<mpsfile.cardNumber()<<mpsfile.card()
+		    <<cardReader_->cardNumber()<<cardReader_->card()
 		    <<CoinMessageEol;
 	      } else if (numberErrors > 100000) {
 		handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1649,7 +1504,7 @@ int CoinMpsIO::readMps()
 		numberErrors++;
 		if ( numberErrors < 100 ) {
 		  handler_->message(COIN_MPS_DUPROW,messages_)
-		    <<mpsfile.rowName()<<mpsfile.cardNumber()<<mpsfile.card()
+		    <<cardReader_->rowName()<<cardReader_->cardNumber()<<cardReader_->card()
 		    <<CoinMessageEol;
 		} else if (numberErrors > 100000) {
 		  handler_->message(COIN_MPS_RETURNING,messages_)
@@ -1664,7 +1519,7 @@ int CoinMpsIO::readMps()
 	    numberErrors++;
 	    if ( numberErrors < 100 ) {
 	      handler_->message(COIN_MPS_NOMATCHROW,messages_)
-		<<mpsfile.rowName()<<mpsfile.cardNumber()<<mpsfile.card()
+		<<cardReader_->rowName()<<cardReader_->cardNumber()<<cardReader_->card()
 		<<CoinMessageEol;
 	    } else if (numberErrors > 100000) {
 	      handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1675,8 +1530,8 @@ int CoinMpsIO::readMps()
 	default:
 	  numberErrors++;
 	  if ( numberErrors < 100 ) {
-	  handler_->message(COIN_MPS_BADIMAGE,messages_)<<mpsfile.cardNumber()
-						       <<mpsfile.card()
+	  handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						       <<cardReader_->card()
 						       <<CoinMessageEol;
 	  } else if (numberErrors > 100000) {
 	    handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1758,34 +1613,34 @@ int CoinMpsIO::readMps()
     }
     // start hash even if no bound section - to make sure names survive
     startHash ( columnName, numberColumns_ , 1 );
-    if ( mpsfile.whichSection (  ) == COIN_BOUNDS_SECTION ) {
+    if ( cardReader_->whichSection (  ) == COIN_BOUNDS_SECTION ) {
       memset ( lastColumn, '\0', 200 );
       bool gotBound = false;
 
-      while ( mpsfile.nextField (  ) == COIN_BOUNDS_SECTION ) {
-	if ( strcmp ( lastColumn, mpsfile.columnName (  ) ) ) {
+      while ( cardReader_->nextField (  ) == COIN_BOUNDS_SECTION ) {
+	if ( strcmp ( lastColumn, cardReader_->columnName (  ) ) ) {
 
 	  // skip rest if got a bound
 	  if ( gotBound ) {
-	    while ( mpsfile.nextField (  ) == COIN_BOUNDS_SECTION ) {
+	    while ( cardReader_->nextField (  ) == COIN_BOUNDS_SECTION ) {
 	    }
 	    break;
 	  } else {
 	    gotBound = true;;
-	    strcpy ( lastColumn, mpsfile.columnName (  ) );
+	    strcpy ( lastColumn, cardReader_->columnName (  ) );
 	    // save name of section
 	    free(boundName_);
-	    boundName_=strdup(mpsfile.columnName());
+	    boundName_=strdup(cardReader_->columnName());
 	  }
 	}
 	// get column number
-	COINColumnIndex icolumn = findHash ( mpsfile.rowName (  ) , 1 );
+	COINColumnIndex icolumn = findHash ( cardReader_->rowName (  ) , 1 );
 
 	if ( icolumn >= 0 ) {
-	  double value = mpsfile.value (  );
+	  double value = cardReader_->value (  );
 	  bool ifError = false;
 
-	  switch ( mpsfile.mpsType (  ) ) {
+	  switch ( cardReader_->mpsType (  ) ) {
 	  case COIN_UP_BOUND:
 	    if ( value == -1.0e100 )
 	      ifError = true;
@@ -1936,8 +1791,8 @@ int CoinMpsIO::readMps()
 	    numberErrors++;
 	    if ( numberErrors < 100 ) {
 	      handler_->message(COIN_MPS_BADIMAGE,messages_)
-		<<mpsfile.cardNumber()
-		<<mpsfile.card()
+		<<cardReader_->cardNumber()
+		<<cardReader_->card()
 		<<CoinMessageEol;
 	    } else if (numberErrors > 100000) {
 	      handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1948,7 +1803,7 @@ int CoinMpsIO::readMps()
 	  numberErrors++;
 	  if ( numberErrors < 100 ) {
 	    handler_->message(COIN_MPS_NOMATCHCOL,messages_)
-	      <<mpsfile.rowName()<<mpsfile.cardNumber()<<mpsfile.card()
+	      <<cardReader_->rowName()<<cardReader_->cardNumber()<<cardReader_->card()
 	      <<CoinMessageEol;
 	  } else if (numberErrors > 100000) {
 	    handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
@@ -1977,10 +1832,11 @@ int CoinMpsIO::readMps()
       }
     }
     free ( columnType );
-    assert ( mpsfile.whichSection (  ) == COIN_ENDATA_SECTION );
+    assert ( cardReader_->whichSection (  ) == COIN_ENDATA_SECTION );
   } else {
     // This is very simple format - what should we use?
     COINColumnIndex i;
+    FILE * fp = cardReader_->filePointer();
     fscanf ( fp, "%d %d %d\n", &numberRows_, &numberColumns_, &i);
     numberElements_  = i; // done this way in case numberElements_ long
 
@@ -3091,7 +2947,8 @@ objectiveName_(strdup("")),
 rhsName_(strdup("")),
 rangeName_(strdup("")),
 boundName_(strdup("")),
-defaultHandler_(true)
+defaultHandler_(true),
+cardReader_(NULL)
 {
   numberHash_[0]=0;
   hash_[0]=NULL;
@@ -3131,7 +2988,8 @@ objectiveName_(strdup("")),
 rhsName_(strdup("")),
 rangeName_(strdup("")),
 boundName_(strdup("")),
-defaultHandler_(true)
+defaultHandler_(true),
+cardReader_(NULL)
 {
   numberHash_[0]=0;
   hash_[0]=NULL;
@@ -3248,6 +3106,8 @@ void CoinMpsIO::gutsOfDestructor()
     delete handler_;
     handler_ = NULL;
   }
+  delete cardReader_;
+  cardReader_ = NULL;
 }
 
 
@@ -3317,4 +3177,219 @@ CoinMpsIO::newLanguage(CoinMessages::Language language)
   messages_ = CoinMessage(language);
 }
 
-//#############################################################################
+/* Read in a quadratic objective from the given filename.  
+   If filename is NULL then continues reading from previous file.  If
+   not then the previous file is closed.
+   
+   No assumption is made on symmetry, positive definite etc.
+   No check is made for duplicates or non-triangular
+   
+   Returns number of errors
+*/
+int 
+CoinMpsIO::readQuadraticMps(const char * filename,
+			    int * &columnStart, int * &column2, double * &elements,
+			    int checkSymmetry)
+{
+  // Deal with filename - +1 if new, 0 if same as before, -1 if error
+  FILE *fp=NULL;
+  gzFile gzfp=NULL;
+  int returnCode = dealWithFileName(filename,"",fp,gzfp);
+  if (returnCode<0) {
+    return -1;
+  } else if (returnCode>0) {
+    delete cardReader_;
+    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+  }
+
+  cardReader_->readToNextSection();
+
+  // Skip NAME
+  if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) 
+    cardReader_->readToNextSection();
+  if ( cardReader_->whichSection (  ) == COIN_QUADRATIC_SECTION ) {
+    // save name of section
+    free(problemName_);
+    problemName_=strdup(cardReader_->columnName());
+  } else if ( cardReader_->whichSection (  ) == COIN_EOF_SECTION ) {
+    handler_->message(COIN_MPS_EOF,messages_)<<fileName_
+					    <<CoinMessageEol;
+    return -3;
+  } else {
+    handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
+						 <<fileName_
+						  <<CoinMessageEol;
+    return -2;
+  }
+
+  int numberErrors = 0;
+
+  // Guess at size of data
+  int maximumNonZeros = 5 *numberColumns_;
+  // Use malloc so can use realloc
+  int * column = (int *) malloc(maximumNonZeros*sizeof(int));
+  int * column2Temp = (int *) malloc(maximumNonZeros*sizeof(int));
+  double * elementTemp = (double *) malloc(maximumNonZeros*sizeof(double));
+
+  startHash(1);
+  int numberElements=0;
+
+  const double tinyElement = 1.0e-14;
+  
+  while ( cardReader_->nextField (  ) == COIN_QUADRATIC_SECTION ) {
+    switch ( cardReader_->mpsType (  ) ) {
+    case COIN_BLANK_COLUMN:
+      if ( fabs ( cardReader_->value (  ) ) > tinyElement ) {
+	if ( numberElements == maximumNonZeros ) {
+	  maximumNonZeros = ( 3 * maximumNonZeros ) / 2 + 1000;
+	  column = ( COINColumnIndex * )
+	    realloc ( column, maximumNonZeros * sizeof ( COINColumnIndex ) );
+	  column2Temp = ( COINColumnIndex * )
+	    realloc ( column2Temp, maximumNonZeros * sizeof ( COINColumnIndex ) );
+	  elementTemp = ( double * )
+	    realloc ( elementTemp, maximumNonZeros * sizeof ( double ) );
+	}
+	// get indices
+	COINColumnIndex iColumn1 = findHash ( cardReader_->columnName (  ) , 1 );
+	COINColumnIndex iColumn2 = findHash ( cardReader_->rowName (  ) , 1 );
+
+	if ( iColumn1 >= 0 ) {
+	  if (iColumn2 >=0) {
+	    double value = cardReader_->value (  );
+	    column[numberElements]=iColumn1;
+	    column2Temp[numberElements]=iColumn2;
+	    elementTemp[numberElements++]=value;
+	  } else {
+	    numberErrors++;
+	    if ( numberErrors < 100 ) {
+		  handler_->message(COIN_MPS_NOMATCHROW,messages_)
+		    <<cardReader_->rowName()<<cardReader_->cardNumber()<<cardReader_->card()
+		    <<CoinMessageEol;
+	    } else if (numberErrors > 100000) {
+	      handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+	      return numberErrors;
+	    }
+	  }
+	} else {
+	  numberErrors++;
+	  if ( numberErrors < 100 ) {
+	    handler_->message(COIN_MPS_NOMATCHCOL,messages_)
+	      <<cardReader_->columnName()<<cardReader_->cardNumber()<<cardReader_->card()
+	      <<CoinMessageEol;
+	  } else if (numberErrors > 100000) {
+	    handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+	    return numberErrors;
+	  }
+	}
+      }
+      break;
+    default:
+      numberErrors++;
+      if ( numberErrors < 100 ) {
+	handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						      <<cardReader_->card()
+						      <<CoinMessageEol;
+      } else if (numberErrors > 100000) {
+	handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+	return numberErrors;
+      }
+    }
+  }
+  stopHash(1);
+  // Do arrays as new [] and make column ordered
+  columnStart = new int [numberColumns_+1];
+  // for counts
+  int * count = new int[numberColumns_];
+  memset(count,0,numberColumns_*sizeof(int));
+  CoinBigIndex i;
+  // See about lower triangular
+  if (checkSymmetry&&numberErrors) 
+    checkSymmetry=2; // force corrections
+  if (checkSymmetry) {
+    if (checkSymmetry==1) {
+      // just check lower triangular
+      for ( i = 0; i < numberElements; i++ ) {
+	int iColumn = column[i];
+	int iColumn2 = column2Temp[i];
+	if (iColumn2<iColumn) {
+	  numberErrors=-4;
+	  column[i]=iColumn2;
+	  column2Temp[i]=iColumn;
+	}
+      }
+    } else {
+      // make lower triangular
+      for ( i = 0; i < numberElements; i++ ) {
+	int iColumn = column[i];
+	int iColumn2 = column2Temp[i];
+	if (iColumn2<iColumn) {
+	  column[i]=iColumn2;
+	  column2Temp[i]=iColumn;
+	}
+      }
+    }
+  }
+  for ( i = 0; i < numberElements; i++ ) {
+    int iColumn = column[i];
+    count[iColumn]++;
+  }
+  // Do starts
+  int number = 0;
+  columnStart[0]=0;
+  for (i=0;i<numberColumns_;i++) {
+    number += count[i];
+    count[i]= columnStart[i];
+    columnStart[i+1]=number;
+  }
+  column2 = new int[numberElements];
+  elements = new double[numberElements];
+
+  // Get column ordering
+  for ( i = 0; i < numberElements; i++ ) {
+    int iColumn = column[i];
+    int iColumn2 = column2Temp[i];
+    int put = count[iColumn];
+    elements[put]=elementTemp[i];
+    column2[put++]=iColumn2;
+    count[iColumn]=put;
+  }
+  free(column);
+  free(column2Temp);
+  free(elementTemp);
+
+  // Now in column order - deal with duplicates
+  for (i=0;i<numberColumns_;i++) 
+    count[i] = -1;
+
+  int start = 0;
+  number=0;
+  for (i=0;i<numberColumns_;i++) {
+    int j;
+    for (j=start;j<columnStart[i+1];j++) {
+      int iColumn2 = column2[j];
+      if (count[iColumn2]<0) {
+	count[iColumn2]=j;
+      } else {
+	// duplicate
+	int iOther = count[iColumn2];
+	double value = elements[iOther]+elements[j];
+	elements[iOther]=value;
+	elements[j]=0.0;
+      }
+    }
+    for (j=start;j<columnStart[i+1];j++) {
+      int iColumn2 = column2[j];
+      count[iColumn2]=-1;
+      double value = elements[j];
+      if (value) {
+	column2[number]=iColumn2;
+	elements[number++]=value;
+      }
+    }
+    start = columnStart[i+1];
+    columnStart[i+1]=number;
+  }
+
+  delete [] count;
+  return numberErrors;
+}

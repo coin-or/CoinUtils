@@ -8,6 +8,146 @@
 
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessageHandler.hpp"
+#ifdef COIN_USE_ZLIB
+#include "zlib.h"
+#else
+/* just to make the code much nicer (no need for so many ifdefs */
+typedef void* gzFile;
+#endif
+
+// Plus infinity
+#ifndef COIN_DBL_MAX
+#define COIN_DBL_MAX DBL_MAX
+#endif
+
+/// The following lengths are in decreasing order (for 64 bit etc)
+/// Large enough to contain element index
+/// This is already defined as CoinBigIndex
+/// Large enough to contain column index
+typedef int COINColumnIndex;
+
+/// Large enough to contain row index (or basis)
+typedef int COINRowIndex;
+
+// We are allowing free format - but there is a limit!
+#define MAX_FIELD_LENGTH 100
+#define MAX_CARD_LENGTH 5*MAX_FIELD_LENGTH+80
+
+enum COINSectionType { COIN_NO_SECTION, COIN_NAME_SECTION, COIN_ROW_SECTION,
+  COIN_COLUMN_SECTION,
+  COIN_RHS_SECTION, COIN_RANGES_SECTION, COIN_BOUNDS_SECTION,
+  COIN_ENDATA_SECTION, COIN_EOF_SECTION, COIN_QUADRATIC_SECTION, COIN_UNKNOWN_SECTION
+};
+
+enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
+  COIN_BLANK_COLUMN, COIN_S1_COLUMN, COIN_S2_COLUMN, COIN_S3_COLUMN,
+  COIN_INTORG, COIN_INTEND, COIN_SOSEND, COIN_UNSET_BOUND,
+  COIN_UP_BOUND, COIN_FX_BOUND, COIN_LO_BOUND, COIN_FR_BOUND,
+  COIN_MI_BOUND, COIN_PL_BOUND, COIN_BV_BOUND, COIN_UI_BOUND,
+  COIN_SC_BOUND, COIN_UNKNOWN_MPS_TYPE
+};
+class CoinMpsIO;
+/// Very simple code for reading MPS data
+class CoinMpsCardReader {
+
+public:
+
+  /**@name Constructor and destructor */
+  //@{
+  /// Constructor expects file to be open 
+  /// This one takes gzFile if fp null
+  CoinMpsCardReader ( FILE * fp, gzFile gzfp, CoinMpsIO * reader );
+
+  /// Destructor
+  ~CoinMpsCardReader (  );
+  //@}
+
+
+  /**@name card stuff */
+  //@{
+  /// Read to next section
+  COINSectionType readToNextSection (  );
+  /// Gets next field and returns section type e.g. COIN_COLUMN_SECTION
+  COINSectionType nextField (  );
+  /// Returns current section type
+  inline COINSectionType whichSection (  ) const {
+    return section_;
+  };
+  /// Only for first field on card otherwise BLANK_COLUMN
+  /// e.g. COIN_E_ROW
+  inline COINMpsType mpsType (  ) const {
+    return mpsType_;
+  };
+  /// Reads and cleans card - taking out trailing blanks - return 1 if EOF
+  int cleanCard();
+  /// Returns row name of current field
+  inline const char *rowName (  ) const {
+    return rowName_;
+  };
+  /// Returns column name of current field
+  inline const char *columnName (  ) const {
+    return columnName_;
+  };
+  /// Returns value in current field
+  inline double value (  ) const {
+    return value_;
+  };
+  /// Whole card (for printing)
+  inline const char *card (  ) const {
+    return card_;
+  };
+  /// Returns card number
+  inline CoinBigIndex cardNumber (  ) const {
+    return cardNumber_;
+  };
+  /// Returns file pointer
+  inline FILE * filePointer (  ) const {
+    return fp_;
+  };
+  //@}
+
+////////////////// data //////////////////
+private:
+
+  /**@name data */
+  //@{
+  /// Current value
+  double value_;
+  /// Current card image
+  char card_[MAX_CARD_LENGTH];
+  /// Current position within card image
+  char *position_;
+  /// End of card
+  char *eol_;
+  /// Current COINMpsType
+  COINMpsType mpsType_;
+  /// Current row name
+  char rowName_[MAX_FIELD_LENGTH];
+  /// Current column name
+  char columnName_[MAX_FIELD_LENGTH];
+  /// File pointer
+  FILE *fp_;
+#ifdef COIN_USE_ZLIB
+  /// Compressed file object
+  gzFile gzfp_;
+#endif
+  /// Which section we think we are in
+  COINSectionType section_;
+  /// Card number
+  CoinBigIndex cardNumber_;
+  /// Whether free format.  Just for blank RHS etc
+  bool freeFormat_;
+  /// If all names <= 8 characters then allow embedded blanks
+  bool eightChar_;
+  /// MpsIO
+  CoinMpsIO * reader_;
+  /// Message handler
+  CoinMessageHandler * handler_;
+  /// Messages
+  CoinMessages messages_;
+  //@}
+};
+
 //#############################################################################
 
 /** MPS IO Interface
@@ -171,6 +311,27 @@ public:
     */
     int writeMps(const char *filename, int compression = 0,
 		 int formatType = 0, int numberAcross = 2) const;
+    /** Read in a quadratic objective from the given filename.  
+      If filename is NULL (or same) then continues reading from previous file.  If
+      not then the previous file is closed.
+
+      Data is assumed to be Q and objective is c + 1/2 xT Q x
+      No assumption is made on symmetry, positive definite etc.
+      No check is made for duplicates or non-triangular if checkSymmetry==0.
+      If 1 checks lower triangular (so off diagonal should be 2*Q)
+      if 2 makes lower triangular and assumes full Q (but adds off diagonals)
+      
+      Arrays should be deleted by delete []
+
+      Returns number of errors, -1 bad file, -2 no Quadratic section, -3 empty section
+      +n then matching errors etc (symmetry forced)
+      -4 - no matching errors but fails triangular test (triangularity forced)
+
+      columnStart is numberColumns+1 long, others numberNonZeros
+    */
+    int readQuadraticMps(const char * filename,
+			 int * &columnStart, int * &column, double * &elements,
+			 int checkSymmetry);
     /// Set file name
     void setFileName(const char * name);
     /// Get file name
@@ -312,6 +473,9 @@ private:
     convertSenseToBound(const char sense, const double right,
 			const double range,
 			double& lower, double& upper) const;
+  /// Deal with filename - +1 if new, 0 if same as before, -1 if error
+  int dealWithFileName(const char * filename,  const char * extension,
+		       FILE * & fp, gzFile  & gzfp); 
   //@}
 
   
@@ -383,6 +547,8 @@ private:
       bool defaultHandler_;
       /// Messages
       CoinMessages messages_;
+      /// Card reader
+      CoinMpsCardReader * cardReader_;
     //@}
   //@}
 
