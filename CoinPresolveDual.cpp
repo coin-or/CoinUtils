@@ -7,6 +7,7 @@
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveDual.hpp"
 #include "CoinMessage.hpp"
+#include "CoinHelperFunctions.hpp"
 //#define PRESOLVE_TIGHTEN_DUALS 1
 //#define PRESOLVE_DEBUG 1
 
@@ -43,10 +44,11 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
 
-  //  double *rowels	= prob->rowels_;
-  //  int *hcol		= prob->hcol_;
-  //  CoinBigIndex *mrstrt		= prob->mrstrt_;
-  //  int *hinrow		= prob->hinrow_;
+  double *rowels	= prob->rowels_;
+  int *hcol		= prob->hcol_;
+  CoinBigIndex *mrstrt		= prob->mrstrt_;
+  int *hinrow		= prob->hinrow_;
+  double *csol	= prob->sol_;
   int nrows		= prob->nrows_;
 
   double *rlo	= prob->rlo_;
@@ -337,6 +339,36 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    break;
 	  } else {
 	    fixdown_cols[nfixdown_cols++] = j;
+	    //if (csol[j]-clo[j]>1.0e-7)
+	    //printf("down %d row %d nincol %d\n",j,hrow[mcstrt[j]],hincol[j]);
+	    // User may have given us feasible solution - move if simple
+	    if (csol[j]-clo[j]>1.0e-7&&hincol[j]==1) {
+	      double value_j = colels[mcstrt[j]];
+	      double distance_j = csol[j]-clo[j];
+	      int row=hrow[mcstrt[j]];
+	      // See if another column can take value
+	      for (CoinBigIndex kk=mrstrt[row];kk<mrstrt[row]+hinrow[row];kk++) {
+		int k = hcol[kk];
+		if (hincol[k]==1&&k!=j) {
+		  double value_k = rowels[kk];
+		  double movement;
+		  if (value_k*value_j>0.0) {
+		    // k needs to increase
+		    double distance_k = cup[k]-csol[k];
+		    movement = CoinMin((distance_j*value_j)/value_k,distance_k);
+		  } else {
+		    // k needs to decrease
+		    double distance_k = clo[k]-csol[k];
+		    movement = CoinMax((distance_j*value_j)/value_k,distance_k);
+		  }
+		  csol[k] += movement;
+		  distance_j -= (movement*value_k)/value_j;
+		  csol[j] -= (movement*value_k)/value_j;
+		  if (distance_j<1.0e-7)
+		    break;
+		}
+	      }
+	    }
 	  }
 	} else if (ddjhi < -ztoldj && nflagu == 0&&!prob->colProhibited2(j)) {
 	  // dj<0 at optimality ==> must be at upper bound
@@ -349,6 +381,36 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    break;
 	  } else {
 	    fixup_cols[nfixup_cols++] = j;
+	    // User may have given us feasible solution - move if simple
+	    //if (cup[j]-csol[j]>1.0e-7)
+	    //printf("up %d row %d nincol %d\n",j,hrow[mcstrt[j]],hincol[j]);
+	    if (cup[j]-csol[j]>1.0e-7&&hincol[j]==1) {
+	      double value_j = colels[mcstrt[j]];
+	      double distance_j = csol[j]-cup[j];
+	      int row=hrow[mcstrt[j]];
+	      // See if another column can take value
+	      for (CoinBigIndex kk=mrstrt[row];kk<mrstrt[row]+hinrow[row];kk++) {
+		int k = hcol[kk];
+		if (hincol[k]==1&&k!=j) {
+		  double value_k = rowels[kk];
+		  double movement;
+		  if (value_k*value_j<0.0) {
+		    // k needs to increase
+		    double distance_k = cup[k]-csol[k];
+		    movement = CoinMin((distance_j*value_j)/value_k,distance_k);
+		  } else {
+		    // k needs to decrease
+		    double distance_k = clo[k]-csol[k];
+		    movement = CoinMax((distance_j*value_j)/value_k,distance_k);
+		  }
+		  csol[k] += movement;
+		  distance_j -= (movement*value_k)/value_j;
+		  csol[j] -= (movement*value_k)/value_j;
+		  if (distance_j>-1.0e-7)
+		    break;
+		}
+	      }
+	    }
 	  }
 	}
       }

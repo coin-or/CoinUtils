@@ -130,12 +130,6 @@ const CoinPresolveAction
 
   double maxmin	= prob->maxmin_ ;
 
-#if 1
-  // not tested yet
-  if (maxmin < 0.0)
-    return (next) ;
-#endif
-
   double *colels	= prob->colels_ ;
   int *hrow		= prob->hrow_ ;
   CoinBigIndex *mcstrt	= prob->mcstrt_ ;
@@ -241,7 +235,10 @@ const CoinPresolveAction
   int isorted = -1 ;
   int tgt = 0 ;
   for (int jj = 1 ;  jj < nlook ; jj++)
-  { if (colsum[jj] != colsum[jj-1]) continue ;
+    { if (colsum[jj] != colsum[jj-1]) {
+      tgt = jj; // Must update before continuing
+      continue ;
+    }
 
     int j2 = sort[jj] ;
     int j1 = sort[tgt] ;
