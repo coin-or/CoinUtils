@@ -9,29 +9,27 @@
 #include <cmath>
 
 //=============================================================================
-
-#if defined(__GNUC__) && defined(_AIX)
-inline int CoinFinite(double d) { return d != DBL_MAX; }
-# define CoinIsnan  isnan
-#endif
-
-//=============================================================================
-
-#if !defined(__GNUC__) && defined(_AIX)
-extern "C" {
-   int isnan(double);
-}
-# define CoinFinite finite
-# define CoinIsnan  isnan
-#endif
-
-//=============================================================================
 #if COIN_BIG_INDEX==0
 typedef int CoinBigIndex;
 #elif COIN_BIG_INDEX==1
 typedef long CoinBigIndex;
 #else
 typedef long long CoinBigIndex;
+#endif
+
+//=============================================================================
+
+#if defined (_AIX)
+#  if defined(__GNUC__)
+      inline int CoinFinite(double d) { return d != DBL_MAX; }
+#     define CoinIsnan  isnan
+#  else
+      extern "C" {
+         int isnan(double);
+      }
+#     define CoinFinite finite
+#     define CoinIsnan  isnan
+#  endif
 #endif
 
 //=============================================================================
@@ -43,6 +41,18 @@ extern "C" {
 }
 # define CoinFinite finite
 # define CoinIsnan  isnan
+#endif
+
+//=============================================================================
+
+#if defined (__hpux)
+#  if defined(__GNUC__)
+      inline int CoinFinite(double d) { return d != DBL_MAX; }
+#     define CoinIsnan  isnan
+#  else
+#     define CoinFinite isfinite
+#     define CoinIsnan  isnan
+#  endif
 #endif
 
 //=============================================================================

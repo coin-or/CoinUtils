@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <string>
+#include <cassert>
 #include "CoinFinite.hpp"
 class CoinPackedMatrix;
 class CoinIndexedVector;
