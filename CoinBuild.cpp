@@ -194,9 +194,9 @@ CoinBuild::addRow(int numberInRow, const int * columns,
  */
 int 
 CoinBuild::row(int whichRow, double & rowLower, double & rowUpper,
-              int * & indices, double * & elements)
+              const int * & indices, const double * & elements) const
 {
-  setCurrentRow(whichRow);
+  setMutableCurrentRow(whichRow);
   return currentRow(rowLower,rowUpper,indices,elements);
 }
 /*  Returns number of elements in current row and information in row
@@ -204,13 +204,13 @@ CoinBuild::row(int whichRow, double & rowLower, double & rowUpper,
 */
 int 
 CoinBuild::currentRow(double & rowLower, double & rowUpper,
-                     int * & indices, double * & elements)
+                     const int * & indices, const double * & elements) const
 {
   buildFormat * row = (buildFormat *) currentRow_;
   if (row) {
     int numberElements = row->numberElements;
     elements = &row->restDouble[0];
-    indices = (int *) (elements+numberElements);
+    indices = (const int *) (elements+numberElements);
     rowLower = row->lower;
     rowUpper=row->upper;
     return numberElements;
@@ -221,6 +221,12 @@ CoinBuild::currentRow(double & rowLower, double & rowUpper,
 // Set current row
 void 
 CoinBuild::setCurrentRow(int whichRow)
+{
+  setMutableCurrentRow(whichRow);
+}
+// Set current row
+void 
+CoinBuild::setMutableCurrentRow(int whichRow) const
 {
   if (whichRow>=0&&whichRow<numberRows_) {
     int nSkip = whichRow-1;
@@ -237,7 +243,6 @@ CoinBuild::setCurrentRow(int whichRow)
     assert (whichRow==row->rowNumber);
     currentRow_ = (double *) row;
   }
-    
 }
 // Returns current row number
 int 

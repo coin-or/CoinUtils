@@ -41,12 +41,12 @@ public:
   /**  Returns number of elements in a row and information in row
    */
   int row(int whichRow, double & rowLower, double & rowUpper,
-          int * & indices, double * & elements);
+          const int * & indices, const double * & elements) const;
   /**  Returns number of elements in current row and information in row
        Used as rows may be stored in a chain
    */
   int currentRow(double & rowLower, double & rowUpper,
-          int * & indices, double * & elements);
+          const int * & indices, const double * & elements) const;
   /// Set current row
   void setCurrentRow(int whichRow);
   /// Returns current row number
@@ -69,6 +69,9 @@ public:
   /// =
    CoinBuild& operator=(const CoinBuild&);
    //@}
+private:
+  /// Set current row
+  void setMutableCurrentRow(int whichRow) const;
    
 private:
   /**@name Data members */
@@ -80,7 +83,7 @@ private:
   /// Current number of elements
   CoinBigIndex numberElements_;
   /// Current row pointer
-  double * currentRow_;
+  mutable double * currentRow_;
   /// First row pointer
   double * firstRow_;
   /// Last row pointer
