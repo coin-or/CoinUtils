@@ -190,10 +190,9 @@ CoinWarmStartBasis::deleteColumns(int number, const int * which)
   }
   int nCharNew  = 4*((numStructural_-numberDeleted+15)>>4);
   char * array = new char[nCharNew];
-  // Make sure okay for zerofault etc
-  array[nCharNew-3]=0;
-  array[nCharNew-2]=0;
-  array[nCharNew-1]=0;
+# ifdef ZEROFAULT
+  memset(array,0,(nCharNew*sizeof(char))) ;
+# endif
   int put=0;
 # ifdef COIN_DEBUG
   int numberBasic=0;
