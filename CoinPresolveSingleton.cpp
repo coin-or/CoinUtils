@@ -180,7 +180,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       rlo[irow] = 0.0;
       rup[irow] = 0.0;
 
-      if (rowstat) {
+      if (rowstat&&sol) {
 	// update solution and basis
 	int basisChoice=0;
 	int numberBasic=0;

@@ -491,7 +491,7 @@ const CoinPresolveAction
 	    clo[icolx] = lo2;
 	    cup[icolx] = up2;
 
-	    if (rowstat) {
+	    if (rowstat&&sol) {
 	      // update solution and basis
               int basisChoice=0;
 	      int numberBasic=0;

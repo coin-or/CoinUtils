@@ -350,7 +350,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    //if (csol[j]-clo[j]>1.0e-7)
 	    //printf("down %d row %d nincol %d\n",j,hrow[mcstrt[j]],hincol[j]);
 	    // User may have given us feasible solution - move if simple
-	    if (csol[j]-clo[j]>1.0e-7&&hincol[j]==1) {
+	    if (csol&&csol[j]-clo[j]>1.0e-7&&hincol[j]==1) {
 	      double value_j = colels[mcstrt[j]];
 	      double distance_j = csol[j]-clo[j];
 	      int row=hrow[mcstrt[j]];
@@ -392,7 +392,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    // User may have given us feasible solution - move if simple
 	    //if (cup[j]-csol[j]>1.0e-7)
 	    //printf("up %d row %d nincol %d\n",j,hrow[mcstrt[j]],hincol[j]);
-	    if (cup[j]-csol[j]>1.0e-7&&hincol[j]==1) {
+	    if (csol&&cup[j]-csol[j]>1.0e-7&&hincol[j]==1) {
 	      double value_j = colels[mcstrt[j]];
 	      double distance_j = csol[j]-cup[j];
 	      int row=hrow[mcstrt[j]];
