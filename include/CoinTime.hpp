@@ -40,6 +40,21 @@ static inline double CoinCpuTime()
 
 //#############################################################################
 
+/**
+ This class implements a timer that also implements a tracing functionality.
+
+ The timer stores the start time of the timer, for how much time it was set to
+ and when does it expire (start + limit = end). Queries can be made that tell
+ whether the timer is expired, is past an absolute time, is past a percentage
+ of the length of the timer. All times are given in seconds, but as double
+ numbers, so there can be fractional values.
+
+ The timer can also be initialized with a stream and a specification whether
+ to write to or read from the stream. In the former case the result of every
+ query is written into the stream, in the latter case timing is not tested at
+ all, rather the supposed result is read out from the stream. This makes it
+ possible to exactly retrace time sensitive program execution.
+*/
 class CoinTimer
 {
 private:
@@ -60,7 +75,9 @@ private:
    }
 
 private:
+   /// When the timer was initialized/reset/restarted
    double start;
+   /// 
    double limit;
    double end;
 #ifdef COIN_COMPILE_WITH_TRACING
@@ -69,12 +86,15 @@ private:
 #endif
 
 public:
+   /// Default constructor creates a timer with no time limit and no tracing
    CoinTimer() :
       start(0), limit(DBL_MAX), end(DBL_MAX)
 #ifdef COIN_COMPILE_WITH_TRACING
       , stream(0), write_stream(true)
 #endif
    {}
+
+   /// Create a timer with the given time limit and with no tracing
    CoinTimer(double lim) :
       start(CoinCpuTime()), limit(lim), end(start+lim)
 #ifdef COIN_COMPILE_WITH_TRACING
@@ -83,25 +103,38 @@ public:
    {}
 
 #ifdef COIN_COMPILE_WITH_TRACING
-   CoinTimer(std::fstream* s, bool w) :
+   /** Create a timer with no time limit and with writing/reading the trace
+       to/from the given stream, depending on the argument \c write. */
+   CoinTimer(std::fstream* s, bool write) :
       start(0), limit(DBL_MAX), end(DBL_MAX),
-      stream(s), write_stream(true) {}
+      stream(s), write_stream(write) {}
+   
+   /** Create a timer with the given time limit and with writing/reading the
+       trace to/from the given stream, depending on the argument \c write. */
    CoinTimer(double lim, std::fstream* s, bool w) :
       start(CoinCpuTime()), limit(lim), end(start+lim),
-      stream(s), write_stream(true) {}
+      stream(s), write_stream(write) {}
 #endif
    
-
+   /// Restart the timer (keeping the same time limit)
    inline void restart() { start=CoinCpuTime(); end=start+limit; }
+   /// An alternate name for \c restart()
    inline void reset() { restart(); }
+   /// Reset (and restart) the timer and change its time limit
    inline void reset(double lim) { limit=lim; restart(); }
 
+   /** Return whether the given percentage of the time limit has elapsed since
+       the timer was started */
    inline bool isPastPercent(double pct) {
       return evaluate(start + limit * pct > CoinCpuTime());
    }
+   /** Return whether the given amount of time has elapsed since the timer was
+       started */
    inline bool isPast(double lim) {
       return evaluate(start + lim > CoinCpuTime());
    }
+   /** Return whether the originally specified time limit has passed since the
+       timer was started */
    inline bool isExpired() {
       return evaluate(end < CoinCpuTime());
    }
