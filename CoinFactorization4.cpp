@@ -100,12 +100,26 @@ CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse) cons
       const double * thisElement = element+start;
       const int * thisIndex = indexRow+start;
       
-      CoinBigIndex j= numberInColumn[i]-1;;
-      for ( ; j >=0; j-- ) {
+      CoinBigIndex j= numberInColumn[i]-1;
+      // As it is densish we should unroll lightly
+      if ((j&1)==0) {
+	// do one
 	int iRow = thisIndex[j];
 	double regionValue = region[iRow];
 	double value = thisElement[j];
 	region[iRow] = regionValue - value * pivotValue;
+	j--;
+      }
+	
+      for ( ; j >0; j-=2 ) {
+	int iRow0 = thisIndex[j];
+	int iRow1 = thisIndex[j-1];
+	double regionValue0 = region[iRow0];
+	double regionValue1 = region[iRow1];
+	double value0 = thisElement[j];
+	double value1 = thisElement[j-1];
+	region[iRow0] = regionValue0 - value0 * pivotValue;
+	region[iRow1] = regionValue1 - value1 * pivotValue;
       }
       region[i] = pivotValue*pivotRegion[i];
       regionIndex[numberNonZero++] = i;
@@ -749,7 +763,7 @@ void
 CoinFactorization::goSparse ( )
 {
   if (!sparseThreshold_&&numberRows_>400) {
-    sparseThreshold_=min((numberRows_-300)/7,1000);
+    sparseThreshold_=min((numberRows_-300)/8,1000);
   }
   //sparseThreshold_=99999;
   // allow for stack, list, next and char map of mark

@@ -432,9 +432,12 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   
     for ( i = 0; i < number; i++ ) {
       int iRow = indexU[i];
+      //if (numberCompressions_==99&&lengthU_==278)
+      //printf("row %d saveFromU %g element %g region %g\n",
+      //       iRow,saveFromU,elementU[i],region[iRow]);
       if ( fabs ( elementU[i] ) > tolerance ) {
 	if ( iRow != realPivotRow ) {
-	  saveFromU = saveFromU - elementU[i] * region[iRow];
+	  saveFromU -= elementU[i] * region[iRow];
 	} else {
 	  saveFromU += elementU[i];
 	}       

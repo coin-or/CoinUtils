@@ -14,9 +14,20 @@
 void
 CoinIndexedVector::clear()
 {
-  int i;
-  for (i=0;i<nElements_;i++) {
-    elements_[indices_[i]]=0.0;
+  if (3*nElements_<capacity_) {
+    int i=0;
+    if ((nElements_&1)!=0) {
+      elements_[indices_[0]]=0.0;
+      i=1;
+    }
+    for (;i<nElements_;i+=2) {
+      int i0 = indices_[i];
+      int i1 = indices_[i+1];
+      elements_[i0]=0.0;
+      elements_[i1]=0.0;
+    }
+  } else {
+    memset(elements_,0,capacity_*sizeof(double));
   }
   nElements_ = 0;
 }

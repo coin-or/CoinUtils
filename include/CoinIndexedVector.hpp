@@ -90,17 +90,17 @@ public:
    /**@name Get methods. */
    //@{
    /// Get the size
-   virtual int getNumElements() const { return nElements_; }
+   inline int getNumElements() const { return nElements_; }
    /// Get indices of elements
-   virtual const int * getIndices() const { return indices_; }
+   inline const int * getIndices() const { return indices_; }
    /// Get element values
    // ** No longer supported virtual const double * getElements() const ;
    /// Get indices of elements
-   int * getIndices() { return indices_; }
+   inline int * getIndices() { return indices_; }
    /** Get the vector as a dense vector. This is normal storage method.
        The user should not not delete [] this.
    */
-   double * denseVector() const { return elements_; }
+   inline double * denseVector() const { return elements_; }
    /** Access the i'th element of the full storage vector.
    */
    double & operator[](int i) const; 
@@ -113,7 +113,7 @@ public:
    /**@name Set methods */
    //@{
    /// Set the size
-   void setNumElements(int value) { nElements_ = value; }
+   inline void setNumElements(int value) { nElements_ = value; }
    /// Reset the vector (as if were just created an empty vector).  This leaves arrays!
    void clear();
    /// Reset the vector (as if were just created an empty vector)
@@ -316,7 +316,7 @@ CoinIndexedVector operator/(
    /** Copy constructor <em>from a PackedVectorBase</em>. */
    CoinIndexedVector(const CoinPackedVectorBase & rhs);
    /** Destructor */
-   virtual ~CoinIndexedVector ();
+   ~CoinIndexedVector ();
    //@}
     
 private:

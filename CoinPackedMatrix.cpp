@@ -508,8 +508,24 @@ CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix& rhs)
    minorDim_ = rhs.majorDim_;
    size_ = rhs.size_;
 
-   if (size_ == 0)
-      return;
+   if (size_ == 0) {
+     // we still need to allocate starts and lengths
+     maxMajorDim_=majorDim_;
+     delete[] start_;
+     delete[] length_;
+     delete[] index_;
+     delete[] element_;
+     start_ = new CoinBigIndex[maxMajorDim_ + 1];
+     length_ = new int[maxMajorDim_];
+     for (i = 0; i < majorDim_; ++i) {
+       start_[i] = 0;
+       length_[i]=0;
+     }
+     start_[majorDim_]=0;
+     index_ = new int[maxSize_];
+     element_ = new double[maxSize_];
+     return;
+   }
 
    // first compute how long each major-dimension vector will be
    // this trickery is needed because MSVC++ is not willing to delete[] a
