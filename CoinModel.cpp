@@ -1295,6 +1295,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix, const double * associat
     start[i+1]=start[i]+length[i];
     length[i]=0;
   }
+  numberElements=0;
   for (i=0;i<numberElements_;i++) {
     int column = elements_[i].column;
     if (column>=0) {
@@ -1309,6 +1310,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix, const double * associat
         }
       }
       if (value) {
+        numberElements++;
         int put=start[column]+length[column];
         row[put]=(int) elements_[i].row;
         element[put]=value;
