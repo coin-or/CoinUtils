@@ -1701,7 +1701,7 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
     int number = regionSparse->getNumElements (  );
     if (btranAverageAfterL_) {
       int newNumber = (int) (number*btranAverageAfterL_);
-      if (newNumber< sparseThreshold_&(numberL_<<2)>newNumber)
+      if (newNumber< sparseThreshold_&&(numberL_<<2)>newNumber)
 	goSparse = 2;
       else if (newNumber< sparseThreshold2_&&(numberL_<<1)>newNumber)
 	goSparse = 1;
