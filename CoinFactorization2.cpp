@@ -349,8 +349,9 @@ CoinFactorization::factorSparse (  )
 	  denseThreshold=0;
 	} else {
 	  status=2;
-	  printf("** Went dense at %d rows %d %g %g\n",leftRows,
-		 totalElements_,full,leftElements);
+	  if ((messageLevel_&4)!=0) 
+	    std::cout<<"      Went dense at "<<leftRows<<" rows "<<
+	      totalElements_<<" "<<full<<" "<<leftElements<<std::endl;
 	  break;
 	}
 #endif

@@ -164,6 +164,10 @@ public:
   inline int numberColumns (  ) const {
     return numberColumns_;
   };
+  /// Total number of elements in factorization
+  inline int numberElements (  ) const {
+    return totalElements_;
+  };
   /// Length of FT vector
   inline int numberForrestTomlin (  ) const {
     return numberInColumn_[numberColumnsExtra_];

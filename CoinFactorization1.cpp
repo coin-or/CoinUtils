@@ -591,7 +591,7 @@ CoinFactorization::getAreas ( int numberOfRows,
     areaFactor_ = 1.0;
   }
   if ( areaFactor_ != 1.0 ) {
-    if ((messageLevel_&1)!=0) 
+    if ((messageLevel_&4)!=0) 
       std::cout<<"Increasing factorization areas by "<<areaFactor_<<std::endl;
     lengthAreaU_ *= (CoinBigIndex) areaFactor_;
     lengthAreaL_ *= (CoinBigIndex) areaFactor_;
@@ -898,8 +898,8 @@ CoinFactorization::factor (  )
   }				/* endswitch */
   //clean up
   if ( !status_ ) {
-    if ( messageLevel_ & 4)
-      std::cout<<"Factorization did "<<numberCompressions_
+    if ( (messageLevel_ & 4)&&numberCompressions_)
+      std::cout<<"        Factorization did "<<numberCompressions_
 	       <<" compressions"<<std::endl;
     if ( numberCompressions_ > 10 ) {
       areaFactor_ *= 1.1;
@@ -907,17 +907,6 @@ CoinFactorization::factor (  )
     numberCompressions_=0;
     cleanup (  );
   }
-#if 0
-  if (!status_) {
-    int n=0;
-    int i;
-    for (i=0;i<numberRows_;i++) {
-      n += numberInColumn_[i];
-    }
-    printf("LU level %d lengthU %d lengthL %d\n",
-	   biasLU_,n,lengthL_);
-  }
-#endif
   return status_;
 }
 
@@ -1372,6 +1361,8 @@ CoinFactorization::cleanup (  )
   //redo nextRow_
   int extraSpace = maximumPivots_;
 
+  // Redo total elements
+  totalElements_=0;
   for ( i = 0; i < numberColumns_; i++ ) {
     int number = numberInColumn_[i];	//always 0?
     int processed = numberInColumnPlus_[i];
@@ -1379,10 +1370,19 @@ CoinFactorization::cleanup (  )
 
     number += processed;
     numberInColumn_[i] = number;
+    totalElements_ += number;
     startColumnU_[i] = start;
     //full list
     numberInColumnPlus_[i] = 0;
   }
+  if ( (messageLevel_ & 2)) {
+    std::cout<<"        length of U "<<totalElements_<<", length of L "<<lengthL_;
+    if (numberDense_)
+      std::cout<<" plus "<<numberDense_*numberDense_<<" from "<<numberDense_<<" dense rows";
+    std::cout<<std::endl;
+  }
+  // and add L and dense
+  totalElements_ += numberDense_*numberDense_+lengthL_;
   int numberU = 0;
 
   pivotColumnBack_ = new int [ maximumRowsExtra_ + 1 ];

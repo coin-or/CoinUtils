@@ -307,10 +307,11 @@ static inline void PRESOLVE_MOVE_LINK(presolvehlink *link, int i, int j)
 // see the note below.
 static inline void check_free_list(int free_list)
 {
-  if (free_list < 0) {
-    printf("RAN OUT OF LINKS!!\n");
-    abort();
-  }
+  assert (free_list>=0);
+  //if (free_list < 0) {
+  //printf("RAN OUT OF LINKS!!\n");
+  //abort();
+  //}
 }
 
 
