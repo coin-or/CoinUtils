@@ -52,6 +52,7 @@ Here is a sample usage:
 */
 template <typename T> class CoinDenseVector {
    //friend void CoinDenseVectorUnitTest<T>();
+   friend void CoinDenseVectorUnitTest(T dummy);
 
 private:
    /**@name Private member data */
@@ -372,7 +373,6 @@ CoinDenseVector<T> operator/(T value, const CoinDenseVector<T>& op1){
     have to be compiled into the library. And that's a gain, because the
     library should be compiled with optimization on, but this method should be
     compiled with debugging. */
-template <typename T> void
-CoinDenseVectorUnitTest();
-
+    template <typename T> void
+    CoinDenseVectorUnitTest(T dummy);
 #endif

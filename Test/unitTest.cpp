@@ -116,11 +116,13 @@ int main (int argc, const char *argv[])
 
   
 // At moment CoinDenseVector is not compiling with MS V C++ V6
-#if 0
+#if 1
   testingMessage( "Testing CoinDenseVector\n" );
-  CoinDenseVectorUnitTest<double>();
-  CoinDenseVectorUnitTest<float>();
+  //CoinDenseVectorUnitTest<int>(0);
+  CoinDenseVectorUnitTest<double>(0.0);
+  CoinDenseVectorUnitTest<float>(0.0f);
 #endif
+
 
   testingMessage( "Testing CoinMpsIO\n" );
   CoinMpsIOUnitTest(mpsDir);

@@ -15,7 +15,7 @@
 
 //--------------------------------------------------------------------------
 template <typename T> void
-CoinDenseVectorUnitTest()
+CoinDenseVectorUnitTest(T dummy)
 {
 
   // Test default constructor
@@ -75,6 +75,6 @@ CoinDenseVectorUnitTest()
 
 }
 
-//template void CoinDenseVectorUnitTest<int>();
-//template void CoinDenseVectorUnitTest<float>();
-//template void CoinDenseVectorUnitTest<double>();
+template void CoinDenseVectorUnitTest<float>(float);
+template void CoinDenseVectorUnitTest<double>(double);
+//template void CoinDenseVectorUnitTest<int>(int);
