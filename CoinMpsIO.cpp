@@ -429,8 +429,10 @@ CoinMpsCardReader::nextField (  )
 		  } else {
 		    nextBlank = next + 8;
 		  }
-		  save = *nextBlank;
-		  *nextBlank = '\0';
+		  if (nextBlank) {
+		    save = *nextBlank;
+		    *nextBlank = '\0';
+		  }
 		} else {
 		  nextBlank = NULL;
 		}
