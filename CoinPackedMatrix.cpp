@@ -63,7 +63,8 @@ CoinTestIndexSet(const int numDel, const int * indDel, const int maxEntry,
 //#############################################################################
 
 void
-CoinPackedMatrix::reserve(const int newMaxMajorDim, const CoinBigIndex newMaxSize)
+CoinPackedMatrix::reserve(const int newMaxMajorDim, const CoinBigIndex newMaxSize,
+			  bool create)
 {
    if (newMaxMajorDim > maxMajorDim_) {
       maxMajorDim_ = newMaxMajorDim;
@@ -74,6 +75,12 @@ CoinPackedMatrix::reserve(const int newMaxMajorDim, const CoinBigIndex newMaxSiz
       if (majorDim_ > 0) {
 	 CoinMemcpyN(oldlength, majorDim_, length_);
 	 CoinMemcpyN(oldstart, majorDim_ + 1, start_);
+      }
+      if (create) {
+	// create empty vectors
+	CoinFillN(length_+majorDim_,maxMajorDim_-majorDim_,0);
+	CoinFillN(start_+majorDim_,maxMajorDim_-majorDim_,0);
+	majorDim_=maxMajorDim_;
       }
       delete[] oldlength;
       delete[] oldstart;
