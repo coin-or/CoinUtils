@@ -24,13 +24,8 @@ typedef long long CoinBigIndex;
 //=============================================================================
 
 #if defined (_AIX)
-#  if defined(__GNUC__)
-      inline int CoinFinite(double d) { return d != DBL_MAX; }
-#     define CoinIsnan  isnan
-#  else
-#     define CoinFinite isfinite
-#     define CoinIsnan  isnan
-#  endif
+# define CoinFinite finite
+# define CoinIsnan  isnan
 #endif
 
 //=============================================================================
