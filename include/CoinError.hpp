@@ -4,6 +4,8 @@
 #define CoinError_H
 
 #include <string>
+#include <iostream>
+#include <cassert>
 //-------------------------------------------------------------------
 //
 // Error class used to throw exceptions
@@ -19,8 +21,10 @@ It contains:
   <ul>
   <li>message text
   <li>name of method throwing exception
-  <li>name of class throwing exception
+  <li>name of class throwing exception or hint
+  <li>line number
   </ul>
+  For asserts method=> file and class=> optional hint
 */
 class CoinError  {
    friend void CoinErrorUnitTest();
@@ -33,14 +37,19 @@ public:
   /**@name Get error attributes */
   //@{
     /// get message text
-    const std::string & message() const 
+    inline const std::string & message() const 
     { return message_; }
-    /// get name of method instantiating error
-    const std::string & methodName() const 
+    /// get name of method instantiating error (or file for assert)
+    inline const std::string & methodName() const 
     { return method_;  }
-    /// get name of class instantiating error
-    const std::string & className() const 
+    /// get name of class instantiating error (or hint for assert)
+    inline const std::string & className() const 
     { return class_;   }
+    /// get line number of assert (-1 if not assert)
+    inline int lineNumber() const 
+    { return lineNumber_;   }
+    /// Just print (for asserts)
+    void print() const;
   //@}
   
     
@@ -51,7 +60,8 @@ public:
       :
       message_(),
       method_(),
-      class_()
+      class_(),
+      lineNumber_(-1)
     {
       // nothing to do here
     }
@@ -64,7 +74,8 @@ public:
       :
       message_(message),
       method_(methodName),
-      class_(className)
+      class_(className),
+      lineNumber_(-1)
     {
       // nothing to do here
     }
@@ -77,31 +88,24 @@ public:
       :
       message_(message),
       method_(methodName),
-      class_(className)
+      class_(className),
+      lineNumber_(-1)
     {
       // nothing to do here
     }
+
+    /// Other alternate Constructor for assert
+    CoinError ( 
+      const char * assertion, 
+      const char * fileName, 
+      const char * hint,
+      int line);
 
     /// Copy constructor 
-    CoinError (const CoinError & source)
-      :
-      message_(source.message_),
-      method_(source.method_),
-      class_(source.class_)
-    {
-      // nothing to do here
-    }
+    CoinError (const CoinError & source);
 
     /// Assignment operator 
-    CoinError & operator=(const CoinError& rhs)
-    {
-      if (this != &rhs) {
-	message_=rhs.message_;
-	method_=rhs.method_;
-	class_=rhs.class_;
-      }
-      return *this;
-    }
+    CoinError & operator=(const CoinError& rhs);
 
     /// Destructor 
     virtual ~CoinError ()
@@ -118,10 +122,36 @@ private:
     std::string message_;
     /// method name
     std::string method_;
-    /// class name
+    /// class name or hint
     std::string class_;
+    /// Line number
+    int lineNumber_;
   //@}
 };
+#ifndef COIN_ASSERT
+# define CoinAssertDebug(expression) assert(expression)
+# define CoinAssertDebugHint(expression,hint) assert(expression)
+# define CoinAssert(expression) assert(expression)
+# define CoinAssertHint(expression,hint) assert(expression)
+#else
+#ifdef NDEBUG
+# define CoinAssertDebug(expression)		(static_cast<void> (0))
+# define CoinAssertDebugHint(expression,hint)		(static_cast<void> (0))
+#else
+# define CoinAssertDebug(expression) \
+  (static_cast<void> ((expression) ? 0 :					      \
+		       ( throw CoinError(__STRING(expression), __FILE__, "",__LINE__))))
+# define CoinAssertDebugHint(expression,hint) \
+  (static_cast<void> ((expression) ? 0 :					      \
+		       ( throw CoinError(__STRING(expression), __FILE__, hint ,__LINE__))))
+#endif
+# define CoinAssert(expression) \
+  (static_cast<void> ((expression) ? 0 :					      \
+		       ( throw CoinError(__STRING(expression), __FILE__, "", __LINE__))))
+# define CoinAssertHint(expression,hint) \
+  (static_cast<void> ((expression) ? 0 :					      \
+		       ( throw CoinError(__STRING(expression), __FILE__, hint , __LINE__))))
+#endif
 
 //#############################################################################
 /** A function that tests the methods in the CoinError class. The

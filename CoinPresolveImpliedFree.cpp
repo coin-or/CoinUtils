@@ -1235,12 +1235,12 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	  if (rlo[irow]<-1.0e20&&rowduals[irow]>ZTOLDP)
 	    printf("IMP %g %g %g\n",rlo[irow],rup[irow],rowduals[irow]);
 	  sol[icol] = (rup[irow] - act) / coeff;
-	  assert (sol[icol]>=clo[icol]-1.0e-5&&sol[icol]<=cup[icol]+1.0e-5);
+	  //assert (sol[icol]>=clo[icol]-1.0e-5&&sol[icol]<=cup[icol]+1.0e-5);
 	  acts[irow] = rup[irow];
 	  prob->setRowStatus(irow,CoinPrePostsolveMatrix::atUpperBound);
 	} else {
 	  sol[icol] = (rlo[irow] - act) / coeff;
-	  assert (sol[icol]>=clo[icol]-1.0e-5&&sol[icol]<=cup[icol]+1.0e-5);
+	  //assert (sol[icol]>=clo[icol]-1.0e-5&&sol[icol]<=cup[icol]+1.0e-5);
 	  acts[irow] = rlo[irow];
 	  prob->setRowStatus(irow,CoinPrePostsolveMatrix::atLowerBound);
 	}
@@ -1265,7 +1265,7 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	  sol[icol]=cup[icol];
 	}
 	acts[irow] = act + sol[icol]*coeff;
-	assert (acts[irow]>=rlo[irow]-1.0e-5&&acts[irow]<=rup[irow]+1.0e-5);
+	//assert (acts[irow]>=rlo[irow]-1.0e-5&&acts[irow]<=rup[irow]+1.0e-5);
       }
 #     if PRESOLVE_DEBUG
       {

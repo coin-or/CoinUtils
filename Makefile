@@ -32,6 +32,7 @@ LIBSRC += CoinFactorization3.cpp
 LIBSRC += CoinFactorization4.cpp
 LIBSRC += CoinIndexedVector.cpp
 LIBSRC += CoinMessage.cpp
+LIBSRC += CoinError.cpp
 LIBSRC += CoinMessageHandler.cpp
 LIBSRC += CoinMpsIO.cpp
 LIBSRC += CoinPackedMatrix.cpp
