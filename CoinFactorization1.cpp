@@ -828,7 +828,8 @@ CoinFactorization::preProcess ( int state,
       lastColumn[maximumColumnsExtra_] = numberColumns - 1;
       nextColumn[maximumColumnsExtra_] = 0;
       lastColumn[0] = maximumColumnsExtra_;
-      nextColumn[numberColumns - 1] = maximumColumnsExtra_;
+      if (numberColumns)
+	nextColumn[numberColumns - 1] = maximumColumnsExtra_;
       startColumn[maximumColumnsExtra_] = numberElements;
     }
   }				/* endswitch */
