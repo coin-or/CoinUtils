@@ -94,11 +94,11 @@ useless_constraint_action::useless_constraint_action(int nactions,
 {}
 useless_constraint_action::~useless_constraint_action() 
 {
-  for (int i=0;i<nactions_;i++) {
-    delete [] actions_[i].rowcols;
-    delete [] actions_[i].rowels;
-  }
-  delete [] actions_;
+  //for (int i=0;i<nactions_;i++) {
+  //delete [] actions_[i].rowcols;
+  //delete [] actions_[i].rowels;
+  //}
+  //delete [] actions_;
 }
 
 const char *useless_constraint_action::name() const
