@@ -181,7 +181,7 @@ CoinWarmStartBasis::deleteColumns(int number, const int * which)
       deleted[j]=1;
     }
   }
-  int nCharNew  = 4*((numStructural_-numberDeleted+3)>>4);
+  int nCharNew  = 4*((numStructural_-numberDeleted+15)>>4);
   char * array = new char[nCharNew];
   int put=0;
   int numberBasic=0;
