@@ -460,11 +460,11 @@ CoinModel::setElement(int i,int j,double value)
     elements_[position].value=value;
   } else {
     int newColumn=0;
-    if (j>=numberColumns_) {
+    if (j>=maximumColumns_) {
       newColumn = j+1;
     }
     int newRow=0;
-    if (i>=numberRows_) {
+    if (i>=maximumRows_) {
       newRow = i+1;
     }
     int newElement=0;

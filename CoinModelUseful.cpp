@@ -399,11 +399,12 @@ CoinModelHash::hashValue(const char * name) const
   int n = 0;
   int j;
   int length =  (int) strlen(name);
+  // may get better spread with unsigned
+  const unsigned char * name2 = (const unsigned char *) name;
   while (length) {
     int length2 = CoinMin( length,lengthMult);
     for ( j = 0; j < length2; ++j ) {
-      int iname = name[j];
-      n += mmult[j] * iname;
+      n += mmult[j] * name2[j];
     }
     name+=length2;
     length-=length2;
@@ -687,25 +688,45 @@ CoinModelHash2::hashValue(int row, int column) const
     262139, 259459, 256889, 254291, 251701, 249133, 246709, 244247,
     241667, 239179, 236609, 233983, 231289, 228859, 226357, 223829
   };
-  char tempChar[8];
-  
-  int n = 0;
-  unsigned int j;
-  int * temp = (int *) tempChar;
-  *temp=row;
-  for ( j = 0; j < sizeof(int); ++j ) {
-    int itemp = tempChar[j];
-    n += mmult[j] * itemp;
+  // Optimizer should take out one side of if
+  if (sizeof(int)==4*sizeof(char)) {
+    unsigned char tempChar[4];
+    
+    unsigned int n = 0;
+    int * temp = (int *) tempChar;
+    *temp=row;
+    n += mmult[0] * tempChar[0];
+    n += mmult[1] * tempChar[1];
+    n += mmult[2] * tempChar[2];
+    n += mmult[3] * tempChar[3];
+    *temp=column;
+    n += mmult[0+8] * tempChar[0];
+    n += mmult[1+8] * tempChar[1];
+    n += mmult[2+8] * tempChar[2];
+    n += mmult[3+8] * tempChar[3];
+    return n % (maximumItems_<<1);
+  } else {
+    // ints are 8
+    unsigned char tempChar[8];
+    
+    int n = 0;
+    unsigned int j;
+    int * temp = (int *) tempChar;
+    *temp=row;
+    for ( j = 0; j < sizeof(int); ++j ) {
+      int itemp = tempChar[j];
+      n += mmult[j] * itemp;
+    }
+    *temp=column;
+    for ( j = 0; j < sizeof(int); ++j ) {
+      int itemp = tempChar[j];
+      n += mmult[j+8] * itemp;
+    }
+    int maxHash = 2 * maximumItems_;
+    int absN = abs(n);
+    int returnValue = absN % maxHash;
+    return returnValue;
   }
-  *temp=column;
-  for ( j = 0; j < sizeof(int); ++j ) {
-    int itemp = tempChar[j];
-    n += mmult[j+8] * itemp;
-  }
-  int maxHash = 2 * maximumItems_;
-  int absN = abs(n);
-  int returnValue = absN % maxHash;
-  return returnValue;
 }
 //#############################################################################
 // Constructors / Destructor / Assignment
