@@ -304,50 +304,7 @@ CoinZeroN(register T* to, const int size)
 #endif
   memset(to,0,size*sizeof(T));
 #else
-   if (size == 0)
-      return;
-
-   if (size < 0)
-      throw CoinError("trying to fill negative number of entries",
-		     "CoinZeroN", "");
-
-#if 1
-   for (register int n = size / 8; n > 0; --n, to += 8) {
-      to[0] = 0;
-      to[1] = 0;
-      to[2] = 0;
-      to[3] = 0;
-      to[4] = 0;
-      to[5] = 0;
-      to[6] = 0;
-      to[7] = 0;
-   }
-   switch (size % 8) {
-    case 7: to[6] = 0;
-    case 6: to[5] = 0;
-    case 5: to[4] = 0;
-    case 4: to[3] = 0;
-    case 3: to[2] = 0;
-    case 2: to[1] = 0;
-    case 1: to[0] = 0;
-    case 0: break;
-   }
-#else
-   // Use Duff's device to fill
-   register int n = (size + 7) / 8;
-   --to;
-   switch (size % 8) {
-     case 0: do{     *++to = 0;
-     case 7:         *++to = 0;
-     case 6:         *++to = 0;
-     case 5:         *++to = 0;
-     case 4:         *++to = 0;
-     case 3:         *++to = 0;
-     case 2:         *++to = 0;
-     case 1:         *++to = 0;
-               }while(--n>0);
-   }
-#endif
+  CoinFillN(to, size, 0);
 #endif
 }
 
@@ -357,9 +314,9 @@ CoinZeroN(register T* to, const int size)
     entries are filled at a time. The array is given by its first and "after
     last" entry. */
 template <class T> inline void
-CoinZero(register T* first, register T* last, const T value)
+CoinZero(register T* first, register T* last)
 {
-   CoinZeroN(first, last - first, value);
+   CoinZeroN(first, last - first);
 }
 
 //#############################################################################
