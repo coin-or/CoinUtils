@@ -8,18 +8,17 @@
 /*! \class remove_fixed_action
     \brief Excise fixed variables from the model.
 
-  Implements the action of removing one or more fixed variables from the
-  model by replacing each variable with its value.
+  Implements the action of removing one or more fixed variables x_j from the
+  model by substituting the value sol_j in each constraint. Specifically,
+  for each constraint i where a_ij != 0, rlo_i and rup_i are adjusted by
+  -a_ij*sol_j and a_ij is set to 0.
 
   There is an implicit assumption that the variable already has the correct
   value. If this isn't true, corrections to row activity may be incorrect.
   If you want to guard against this possibility, consider make_fixed_action.
 
-  If you want to get into grubby detail, in terms of the
-  CoinPrePostSolveMatrix structure, the column is emptied in the column-major
-  representation, and coefficients are excised in the row-major
-  representation, but the matrix is not repacked.
-
+  Actual removal of the column from the matrix is handled by
+  drop_empty_cols_action. Correction of the objective function is done there.
 */
 class remove_fixed_action : public CoinPresolveAction {
  public:

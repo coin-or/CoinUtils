@@ -3,15 +3,33 @@
 
 #ifndef CoinPresolveImpliedFree_H
 #define CoinPresolveInpliedFree_H
+
+/*!
+  \file
+*/
+
 #define	IMPLIED_FREE	9
 
+/*! \class implied_free_action
+    \brief Detect and process implied free variables
+
+  Consider a singleton variable x (<i>i.e.</i>, a variable involved in only
+  one constraint).  Suppose that the bounds on that constraint, combined with
+  the bounds on the other variables involved in the constraint, are such that
+  even the worst case values of the other variables still imply bounds for x
+  which are tighter than the variable's original bounds. Since x can never
+  reach its upper or lower bounds, it is an implied free variable. Both x and
+  the constraint can be deleted from the problem.
+
+  The transform also handles more complicated variations, where x is not a
+  singleton.
+*/
 class implied_free_action : public CoinPresolveAction {
   struct action {
     int row, col;
     double clo, cup;
     double rlo, rup;
     const double *rowels;
-    const int *rowcols;
     const double *costs;
     int ninrow;
   };

@@ -3,13 +3,31 @@
 
 #ifndef CoinPresolveEmpty_H
 #define CoinPresolveEmpty_H
-// Drop all empty rows/cols from the problem.
-// 
-// This should only be done once, after all other presolving actions have
-// been done.  
+
+/*! \file
+
+  Drop/reinsert empty rows/columns.
+*/
 
 const int DROP_ROW = 3;
 const int DROP_COL = 4;
+
+/*! \class drop_empty_cols_action
+    \brief Physically removes empty columns in presolve, and reinserts
+	   empty columns in postsolve.
+
+  Physical removal of rows and columns should be the last activities
+  performed during presolve. Do them exactly once. The row-major matrix
+  is <b>not</b> maintained by this transform.
+
+  To physically drop the columns, CoinPrePostsolveMatrix::mcstrt_ and
+  CoinPrePostsolveMatrix::hincol_ are compressed, along with column bounds,
+  objective, and (if present) the column portions of the solution. This
+  renumbers the columns. drop_empty_cols_action::presolve will reconstruct
+  CoinPresolveMatrix::clink_.
+
+  \todo Confirm correct behaviour with solution in presolve.
+*/
 
 class drop_empty_cols_action : public CoinPresolveAction {
 private:
@@ -49,7 +67,20 @@ private:
 };
 
 
+/*! \class drop_empty_rows_action
+    \brief Physically removes empty rows in presolve, and reinserts
+	   empty rows in postsolve.
 
+  Physical removal of rows and columns should be the last activities
+  performed during presolve. Do them exactly once. The row-major matrix
+  is <b>not</b> maintained by this transform.
+
+  To physically drop the rows, the rows are renumbered, excluding empty
+  rows. This involves rewriting CoinPrePostsolveMatrix::hrow_ and compressing
+  the row bounds and (if present) the row portions of the solution.
+
+  \todo Confirm behaviour when a solution is present in presolve.
+*/
 class drop_empty_rows_action : public CoinPresolveAction {
 private:
   struct action {
