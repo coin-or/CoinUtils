@@ -521,6 +521,8 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
     // row activity doesn't change
     // dj of both variables is the same
     rcosts[icol] = rcosts[icol2];
+    deleteAction(f->colrows,int *);
+    deleteAction(f->colels,double *);
 
 #ifdef DEBUG_PRESOLVE
     const double ztolzb = prob->ztolzb_;
@@ -531,6 +533,7 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
 #endif
   }
   prob->free_list_ = free_list;
+  deleteAction(actions_,action *);
 }
 
 

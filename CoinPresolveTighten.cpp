@@ -380,5 +380,9 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
       prob->setRowStatus(last_corrected,CoinPrePostsolveMatrix::atLowerBound);
       prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic);
     }
+    deleteAction(rows,int *);
+    deleteAction(lbound,double *);
+    deleteAction(ubound,double *);
   }
+  deleteAction(actions_,action *);
 }

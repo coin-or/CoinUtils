@@ -141,8 +141,11 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     // rcosts are unaffected since rowdual is 0
 
     rowacts[irow] = rowact;
+    deleteAction(rowcols,int *);
+    deleteAction(rowels,double *);
   }
   prob->free_list_ = free_list;
+  deleteAction(actions_,action *);
 }
 
 

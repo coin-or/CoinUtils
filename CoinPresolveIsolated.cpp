@@ -167,5 +167,8 @@ void isolated_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   rowacts[irow] = rowact;
 
   prob->free_list_ = free_list;
+  deleteAction(rowcols_,int *);
+  deleteAction(rowels_,double *);
+  deleteAction(costs_,double *);
 }
 
