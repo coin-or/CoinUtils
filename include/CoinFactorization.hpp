@@ -32,9 +32,6 @@ class CoinIndexedVector;
     book-keeping for slacks.  Also I always use FTRAN approach to updating
     even if factorization fairly dense.  All these could improve performance.
 
-    I will know if anyone is interested in developing this if she or he
-    does a PFI update.  I don't know how to :-)
-
     I blame some of the coding peculiarities on the history of the code
     but mostly it is just because I can't do elegant code (or useful
     comments).
@@ -478,7 +475,7 @@ protected:
   /// Updates part of column (FTRANU)
   void updateColumnUDensish ( CoinIndexedVector * regionSparse, 
 			      int * indexIn) const;
-  /// Updates part of column PFI (FTRAN)
+  /// Updates part of column PFI (FTRAN) (after rest)
   void updateColumnPFI ( CoinIndexedVector * regionSparse) const; 
   /// Permutes back at end of updateColumn
   void permuteBack ( CoinIndexedVector * regionSparse, 
