@@ -2246,9 +2246,16 @@ convertDouble(int formatType, double value, char outputValue[20],
 	  }
 	  if (j == put) {
 	    // we need to lose something
-	    // rounding will be wrong but we are talking about stupid numbers
-	    put -= 3; // points to one before e
-	    j -= 2; // points to e
+	    // try taking out blanks
+	    if (outputValue[0]==' ') {
+	      // skip blank
+	      j=1;
+	      put=0;
+	    } else {
+	      // rounding will be wrong but ....
+	      put -= 3; // points to one before e
+	      j -= 2; // points to e
+	    }
 	  }
 	  // copy rest
 	  for (  ; j < 14 ; j++) {
@@ -3246,6 +3253,8 @@ CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
    }
    setMpsData(m, infinity, collb, colub, obj, integrality, rlb, rub,
 	      colnames, rownames);
+   delete [] rlb;
+   delete [] rub;
 }
 
 void
@@ -3267,6 +3276,8 @@ CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
    }
    setMpsData(m, infinity, collb, colub, obj, integrality, rlb, rub,
 	      colnames, rownames);
+   delete [] rlb;
+   delete [] rub;
 }
 
 void
