@@ -11,7 +11,7 @@ LibType := SHARED
 # Select optimization (-O or -g). -O will be automatically bumped up to the 
 # highest level of optimization the compiler supports. If want something in
 # between then specify the exact level you want, e.g., -O1 or -O2
-OptLevel := -g
+#OptLevel := -g
 OptLevel := -O1
 
 # Look at the ${CoinDir}/Makefiles/Makefile.location file, comment in which
@@ -35,12 +35,14 @@ LIBSRC += CoinMessage.cpp
 LIBSRC += CoinMessageHandler.cpp
 LIBSRC += CoinMpsIO.cpp
 LIBSRC += CoinPackedMatrix.cpp
-LIBSRC += CoinDenseVector.cpp
 LIBSRC += CoinPackedVector.cpp
 LIBSRC += CoinPackedVectorBase.cpp
 LIBSRC += CoinShallowPackedVector.cpp
+LIBSRC += CoinDenseVector.cpp
 LIBSRC += CoinWarmStartBasis.cpp
 LIBSRC += CoinWarmStartDual.cpp
+LIBSRC += CoinPostsolveMatrix.cpp
+LIBSRC += CoinPrePostsolveMatrix.cpp
 LIBSRC += CoinPresolveMatrix.cpp
 LIBSRC += CoinPresolveDoubleton.cpp
 LIBSRC += CoinPresolveEmpty.cpp
@@ -51,6 +53,7 @@ LIBSRC += CoinPresolveZeros.cpp
 LIBSRC += CoinPresolveDual.cpp		    
 LIBSRC += CoinPresolveDupcol.cpp		    
 LIBSRC += CoinPresolveForcing.cpp		    
+LIBSRC += CoinPresolveHelperFunctions.cpp	    
 LIBSRC += CoinPresolveImpliedFree.cpp	    
 LIBSRC += CoinPresolveIsolated.cpp	    
 LIBSRC += CoinPresolveSubst.cpp		    
@@ -64,14 +67,24 @@ include ${MakefileDir}/Makefile.location
 ifeq ($(OptLevel),-O2)
 #     CXXFLAGS += -DNDEBUG
 endif
+
+# ZEROFAULT attempts to initialize memory so that runtime memory read/write
+# checks will not stumble over random uninitialised bytes due to gaps in data
+# structures, lazy initialisation, etc. In order for this to be effective for
+# inline functions, you need to enable this in CoinSort.hpp too.
+# DEBUG_PRESOLVE, PRESOLVE_SUMMARY, and PRESOLVE_CONSISTENCY relate to
+# CoinPresolve. See comments in CoinPresolvePsdebug.[cpp,hpp].
+
 ifeq ($(OptLevel),-g)
-     CXXFLAGS += -DZEROFAULT -DCOIN_DEBUG
-#CXXFLAGS += -DPRINT_DEBUG -DDEBUG_PRESOLVE
-#CXXFLAGS +=  -DDEBUG_PRESOLVE
-#CXXFLAGS += -DCOIN_DEBUG
+# CXXFLAGS += -DZEROFAULT
+# CXXFLAGS += -DCOIN_DEBUG
+# CXXFLAGS += -DPRINT_DEBUG
+# CXXFLAGS += -DPRESOLVE_DEBUG=1 -DPRESOLVE_SUMMARY=1
+# CXXFLAGS += -DPRESOLVE_CONSISTENCY=1
 endif
 
-export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir} $(lapackIncDir) $(SbbIncDir) $(OsiIncDir)
+export ExtraIncDir  := ${zlibIncDir}  ${bzlibIncDir} $(lapackIncDir) \
+		       $(SbbIncDir) $(OsiIncDir)
 export ExtraLibDir  := ${zlibLibDir}  ${bzlibLibDir} $(lapackLibDir)
 export ExtraLibName := ${zlibLibName} ${bzlibLibName} $(lapackLibName)
 export ExtraDefine  := ${zlibDefine}  ${bzlibDefine} $(lapackDefine)
