@@ -223,7 +223,7 @@ public:
 	keepZero true */
     void modifyCoefficient(int row, int column, double newElement,
 			   bool keepZero=false);
-	
+
     /** Eliminate all elements in matrix whose 
 	absolute value is less than threshold.
 	The column starts are not affected.  Returns number of elements
@@ -537,6 +537,12 @@ public:
 
    /// Copy constructor 
    CoinPackedMatrix(const CoinPackedMatrix& m);
+
+  /** Subset constructor (without gaps).  Duplicates are allowed
+      and order is as given */
+  CoinPackedMatrix (const CoinPackedMatrix & wholeModel,
+		    int numberRows, const int * whichRows,
+		    int numberColumns, const int * whichColumns);
 
    /// Destructor 
    virtual ~CoinPackedMatrix();    

@@ -77,7 +77,6 @@ public:
   Actually does factorization.
   Arrays passed in have non negative value to say basic.
   If status is okay, basic variables have pivot row - this is only needed
-  if increasingRows_ >1.
   If status is singular, then basic variables have pivot row
   and ones thrown out have -1
   returns 0 -okay, -1 singular, -2 too many in basis, -99 memory */
@@ -91,7 +90,6 @@ public:
   Arrays are copied in.  I could add flag to delete arrays to save a 
   bit of memory.
   If status okay, permutation has pivot rows - this is only needed
-  if increasingRows_ >1 (if not then 0,1,2..
   If status is singular, then basic variables have pivot row
   and ones thrown out have -1
   returns 0 -okay, -1 singular, -99 memory */
@@ -118,7 +116,6 @@ public:
   /** This is part two of factorization
       Arrays belong to factorization and were returned by part 1
       If status okay, permutation has pivot rows - this is only needed
-      if increasingRows_ >1 (if not then 0,1,2..
       If status is singular, then basic variables have pivot row
       and ones thrown out have -1
       returns 0 -okay, -1 singular, -99 memory */
@@ -185,17 +182,15 @@ public:
   /// Allows change of pivot accuracy check 1.0 == none >1.0 relaxed
   inline void relaxAccuracyCheck(double value)
   { relaxCheck_ = value;};
-  /// Whether rows increase after pivoting
-  inline bool increasingRows (  ) const {
-    return increasingRows_ > 1;
-  };
+  /// Whether rows increase after pivoting - dummy
+  inline bool increasingRows (  ) const 
+  { return true; };
   /** 0 - no increasing rows - no nothing (not coded)
       1 - no permutation (i.e. basis order in is pivot order), 
       2 user wants slacks pivoting on own rows,
-      3 user needs to know everything as row are really increasing */
-  inline void increasingRows ( int value  ) {
-    increasingRows_ = value;
-  };
+      3 user needs to know everything as row are really increasing 
+      - OUT so dummy */
+  inline void increasingRows ( int value  ) {};
   /// Level of detail of messages
   inline int messageLevel (  ) const {
     return messageLevel_ ;
@@ -251,22 +246,13 @@ public:
   inline CoinBigIndex lengthAreaL (  ) const {
     return lengthAreaL_;
   };
+  /// Number of compressions done
+  inline CoinBigIndex numberCompressions() const
+  { return numberCompressions_;};
   //@}
 
   /**@name rank one updates which do exist */
   //@{
-
-  /** Replaces one Column in basis,
-      If checkBeforeModifying is true will do all accuracy checks
-      before modifying factorization.  Whether to set this depends on
-      speed considerations.  You could just do this on first iteration
-      after factorization and thereafter re-factorize
-      returns 0=OK, 1=Probably OK, 2=singular, 3=no room */
-  int replaceColumn ( int pivotRow,
-		      double pivotCheck,
-		      int numberElements,
-		      int index[], double array[] ,
-		      bool checkBeforeModifying=false);
 
   /** Replaces one Column to basis,
    returns 0=OK, 1=Probably OK, 2=singular, 3=no room
@@ -279,63 +265,28 @@ public:
 		      int pivotRow,
 		      double pivotCheck ,
 		      bool checkBeforeModifying=false);
-  /// Throws away incoming column (I am not sure really needed)
-  void throwAwayColumn (  );
   //@}
 
   /**@name various uses of factorization (return code number elements) 
    which user may want to know about */
   //@{
-  /** Updates one column (FTRAN) from region2
+  /** Updates one column (FTRAN) from regionSparse2
+      Tries to do FT update
       number returned is negative if no room
-      region1 starts as zero and is zero at end */
-  int updateColumn ( CoinIndexedVector * regionSparse,
-			CoinIndexedVector * regionSparse2,
-			bool FTUpdate = false ) ;
-  /** Updates one column (FTRAN) to/from array 
-      number returned is negative if no room
-      indices contains list of nonzeros and is updated
-      region starts as zero and is zero at end */
-  int updateColumn ( CoinIndexedVector * regionSparse,
-			double array[], //unpacked
-			int index[],
-			int number,
-			bool FTUpdate = false ) ;
-  /** Updates one column (FTRAN) to/from array 
-      number returned is negative if no room
-      ** For large problems you should ALWAYS know where the nonzeros
-      are, so please try and migrate to previous method after you
-      have got code working using this simple method - thank you!
-      (the only exception is if you know input is dense e.g. rhs)
-      region starts as zero and is zero at end */
-  int updateColumn ( CoinIndexedVector * regionSparse,
-			double array[], //unpacked
-			bool FTUpdate = false ) ;
-  /** These two versions has same effect as above with FTUpdate==false
+      regionSparse starts as zero and is zero at end.
+      Note - if regionSparse2 packed on input - will be packed on output
+  */
+  int updateColumnFT ( CoinIndexedVector * regionSparse,
+		       CoinIndexedVector * regionSparse2);
+  /** This version has same effect as above with FTUpdate==false
       so number returned is always >=0 */
   int updateColumn ( CoinIndexedVector * regionSparse,
-			double array[], //unpacked
-			int index[],
-			int number) const;
-  int updateColumn ( CoinIndexedVector * regionSparse,
-			double array[] ) const;
-  /** Updates one column transpose (BTRAN)
-      indices contains list of nonzeros and is updated.
-      returns number of nonzeros */
-  int updateColumnTranspose ( CoinIndexedVector * regionSparse,
-				 double array[], //unpacked
-				 int index[],
-				 int number) const;
-  /** Updates one column transpose (BTRAN)
-      ** For large problems you should ALWAYS know where the nonzeros
-      are, so please try and migrate to previous method after you
-      have got code working using this simple method - thank you!
-      (the only exception is if you know input is dense e.g. dense objective)
-      returns number of nonzeros */
-  int updateColumnTranspose ( CoinIndexedVector * regionSparse,
-				 double array[] ) const;
-  /** Updates one column (BTRAN) from region2
-      region1 starts as zero and is zero at end */
+		     CoinIndexedVector * regionSparse2,
+		     bool noPermute=false) const;
+  /** Updates one column (BTRAN) from regionSparse2
+      regionSparse starts as zero and is zero at end 
+      Note - if regionSparse2 packed on input - will be packed on output
+  */
   int updateColumnTranspose ( CoinIndexedVector * regionSparse,
 			      CoinIndexedVector * regionSparse2) const;
   /** makes a row copy of L for speed and to allow very sparse problems */
@@ -350,21 +301,6 @@ public:
   /**@name various uses of factorization (return code number elements) 
    which user may not want to know about (left over from my LP code) */
   //@{
-  /// Updates one column (FTRAN) already permuted
-  int updateColumn ( CoinIndexedVector * regionSparse,
-			bool FTUpdate = false ) ;
-  /// This version has same effect as above with FTUpdate==false
-  int updateColumn ( CoinIndexedVector * regionSparse) const;
-
-  /// Updates one column transpose (BTRAN) already permuted
-  int updateColumnTranspose ( CoinIndexedVector * regionSparse ) const;
-
-  /** Takes off permutation vector (only needed if increasingRows_>1),
-      zeroes out region2 if wanted. */
-  void unPermuteTranspose ( CoinIndexedVector * regionSparse,
-			    CoinIndexedVector * regionSparse2,
-			    bool erase = true ) const;
-
   /// Get rid of all memory
   inline void clearArrays()
   { gutsOfDestructor();};
@@ -438,6 +374,11 @@ protected:
   bool getColumnSpace ( int iColumn,
 			int extraNeeded );
 
+  /**  getColumnSpaceIterate.  Gets space for one extra R elemnent in Column
+       may have to do compression  (returns true)
+       also moves existing vector */
+  bool getColumnSpaceIterate ( int iColumn, double value,
+			       int iRow);
   /** Gets space for one Row with given length,
   may have to do compression  (returns True if successful),
   also moves existing vector */
@@ -481,35 +422,41 @@ protected:
     lastCount_[index] = -2;
     return;
   };
+  /// Separate out links with same row/column count
+  void separateLinks(int count,bool rowsFirst);
   /// Cleans up at end of factorization
   void cleanup (  );
 
   /// Updates part of column (FTRANL)
-  void updateColumnL ( CoinIndexedVector * region ) const;
+  void updateColumnL ( CoinIndexedVector * region, int * indexIn ) const;
   /// Updates part of column (FTRANL) when densish
-  void updateColumnLDensish ( CoinIndexedVector * region ) const;
+  void updateColumnLDensish ( CoinIndexedVector * region, int * indexIn ) const;
   /// Updates part of column (FTRANL) when sparse
-  void updateColumnLSparse ( CoinIndexedVector * region ) const;
+  void updateColumnLSparse ( CoinIndexedVector * region, int * indexIn ) const;
   /// Updates part of column (FTRANL) when sparsish
-  void updateColumnLSparsish ( CoinIndexedVector * region ) const;
+  void updateColumnLSparsish ( CoinIndexedVector * region, int * indexIn ) const;
 
-  /// Updates part of column (FTRANR)
+  /// Updates part of column (FTRANR) without FT update
   void updateColumnR ( CoinIndexedVector * region ) const;
+  /** Updates part of column (FTRANR) with FT update.
+      Also stores update after L and R */
+  void updateColumnRFT ( CoinIndexedVector * region, int * indexIn );
 
   /// Updates part of column (FTRANU)
-  void updateColumnU ( CoinIndexedVector * region, int * indices,
-			 int numberIn ) const;
+  void updateColumnU ( CoinIndexedVector * region, int * indexIn) const;
 
   /// Updates part of column (FTRANU) when sparse
-  void updateColumnUSparse ( CoinIndexedVector * regionSparse,
-			     int * indices,
-			     int numberIn ) const;
+  void updateColumnUSparse ( CoinIndexedVector * regionSparse, 
+			     int * indexIn) const;
   /// Updates part of column (FTRANU) when sparsish
-  void updateColumnUSparsish ( CoinIndexedVector * regionSparse,
-			     int * indices,
-			     int numberIn ) const;
+  void updateColumnUSparsish ( CoinIndexedVector * regionSparse, 
+			       int * indexIn) const;
   /// Updates part of column (FTRANU)
-  void updateColumnUDensish ( CoinIndexedVector * regionSparse) const;
+  void updateColumnUDensish ( CoinIndexedVector * regionSparse, 
+			      int * indexIn) const;
+  /// Permutes back at end of updateColumn
+  void permuteBack ( CoinIndexedVector * regionSparse, 
+		     CoinIndexedVector * outVector) const;
 
   /** Updates part of column transpose (BTRANU),
       assumes index is sorted i.e. region is correct */
@@ -1094,8 +1041,9 @@ protected:
 
   /** 0 - no increasing rows - no permutations,
    1 - no increasing rows but permutations 
-   2 - increasing rows */
-  int increasingRows_;
+   2 - increasing rows 
+     - taken out as always 2 */
+  //int increasingRows_;
 
   /// Detail in messages
   int messageLevel_;
@@ -1232,7 +1180,7 @@ protected:
   /// Dense threshold
   int denseThreshold_;
 
-  /// Number of compressions doen
+  /// Number of compressions done
   CoinBigIndex numberCompressions_;
 
   /// true if Forrest Tomlin update, false if PFI (dummy)

@@ -2831,9 +2831,14 @@ const char * CoinMpsIO::integerColumns() const
 void 
 CoinMpsIO::copyInIntegerInformation(const char * integerType)
 {
-  if (!integerType_)
-    integerType_ = new char [numberColumns_];
-  memcpy(integerType_,integerType,numberColumns_);
+  if (integerType) {
+    if (!integerType_)
+      integerType_ = new char [numberColumns_];
+    memcpy(integerType_,integerType,numberColumns_);
+  } else {
+    delete [] integerType_;
+    integerType_=NULL;
+  }
 }
 // names - returns NULL if out of range
 const char * CoinMpsIO::rowName(int index) const

@@ -405,7 +405,7 @@ CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
 #endif
   }
 }
-	
+
 //#############################################################################
 /* Eliminate all elements in matrix whose 
    absolute value is less than threshold.
@@ -1701,6 +1701,133 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs) :
 		rhs.element_, rhs.index_, rhs.start_, rhs.length_,
 		rhs.extraMajor_, rhs.extraGap_);
 }
+// Subset constructor (without gaps)
+CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs,
+				    int numberRows, const int * whichRow,
+				    int numberColumns, 
+				    const int * whichColumn) :
+   colOrdered_(true),
+   extraGap_(0.0),
+   extraMajor_(0.0),
+   element_(NULL), 
+   index_(NULL),
+   start_(NULL),
+   length_(NULL),
+   majorDim_(0),
+   minorDim_(0),
+   size_(0),
+   maxMajorDim_(0),
+   maxSize_(0)
+{
+  if (numberRows<=0||numberColumns<=0) {
+    start_ = new CoinBigIndex[1];
+    start_[0] = 0;
+  } else {
+    if (!rhs.colOrdered_) {
+      // just swap lists
+      colOrdered_=false;
+      const int * temp = whichRow;
+      whichRow = whichColumn;
+      whichColumn = temp;
+      int n = numberRows;
+      numberRows = numberColumns;
+      numberColumns = n;
+    }
+    const double * element1 = rhs.element_;
+    const int * index1 = rhs.index_;
+    const CoinBigIndex * start1 = rhs.start_;
+    const int * length1 = rhs.length_;
+
+    majorDim_ = numberColumns;
+    maxMajorDim_ = numberColumns;
+    minorDim_ = numberRows;
+    // Throw exception if rhs empty
+    if (rhs.majorDim_ <= 0 || rhs.minorDim_ <= 0)
+      throw CoinError("empty rhs", "subset constructor", "CoinPackedMatrix");
+    // Array to say if an old row is in new copy
+    int * newRow = new int [rhs.minorDim_];
+    int iRow;
+    for (iRow=0;iRow<rhs.minorDim_;iRow++) 
+      newRow[iRow] = -1;
+    // and array for duplicating rows
+    int * duplicateRow = new int [numberRows];
+    int numberBad=0;
+    for (iRow=0;iRow<numberRows;iRow++) {
+      duplicateRow[iRow] = -1;
+      int kRow = whichRow[iRow];
+      if (kRow>=0  && kRow < rhs.minorDim_) {
+	if (newRow[kRow]<0) {
+	  // first time
+	  newRow[kRow]=iRow;
+	} else {
+	  // duplicate
+	  int lastRow = newRow[kRow];
+	  newRow[kRow]=iRow;
+	  duplicateRow[iRow] = lastRow;
+	}
+      } else {
+	// bad row
+	numberBad++;
+      }
+    }
+
+    if (numberBad)
+      throw CoinError("bad minor entries", 
+		      "subset constructor", "CoinPackedMatrix");
+    // now get size and check columns
+    size_ = 0;
+    int iColumn;
+    numberBad=0;
+    for (iColumn=0;iColumn<numberColumns;iColumn++) {
+      int kColumn = whichColumn[iColumn];
+      if (kColumn>=0  && kColumn <rhs.majorDim_) {
+	CoinBigIndex i;
+	for (i=start1[kColumn];i<start1[kColumn]+length1[kColumn];i++) {
+	  int kRow = index1[i];
+	  kRow = newRow[kRow];
+	  while (kRow>=0) {
+	    size_++;
+	    kRow = duplicateRow[kRow];
+	  }
+	}
+      } else {
+	// bad column
+	numberBad++;
+      }
+    }
+    if (numberBad)
+      throw CoinError("bad major entries", 
+		      "subset constructor", "CoinPackedMatrix");
+    // now create arrays
+    maxSize_=max(1,size_);
+    start_ = new CoinBigIndex [numberColumns+1];
+    length_ = new int [numberColumns];
+    index_ = new int[maxSize_];
+    element_ = new double [maxSize_];
+    // and fill them
+    size_ = 0;
+    start_[0]=0;
+    for (iColumn=0;iColumn<numberColumns;iColumn++) {
+      int kColumn = whichColumn[iColumn];
+      CoinBigIndex i;
+      for (i=start1[kColumn];i<start1[kColumn]+length1[kColumn];i++) {
+	int kRow = index1[i];
+	double value = element1[i];
+	kRow = newRow[kRow];
+	while (kRow>=0) {
+	  index_[size_] = kRow;
+	  element_[size_++] = value;
+	  kRow = duplicateRow[kRow];
+	}
+      }
+      start_[iColumn+1] = size_;
+      length_[iColumn] = size_ - start_[iColumn];
+    }
+    delete [] newRow;
+    delete [] duplicateRow;
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 

@@ -20,6 +20,11 @@
 This stores values unpacked but apart from that is a bit like CoinPackedVector.
 It is designed to be lightweight in normal use.
 
+It now has a "packed" mode when it is even more like CoinPackedVector
+
+Indices array has capacity_ extra chars which are zeroed and can
+be used for any purpose - but must be re-zeroed
+
 Stores vector of indices and associated element values.
 Supports sorting of indices.  
 
@@ -113,7 +118,8 @@ public:
    /**@name Set methods */
    //@{
    /// Set the size
-   inline void setNumElements(int value) { nElements_ = value; }
+   inline void setNumElements(int value) { nElements_ = value;
+   if (!nElements_) packedMode_=false;};
    /// Reset the vector (as if were just created an empty vector).  This leaves arrays!
    void clear();
    /// Reset the vector (as if were just created an empty vector)
@@ -188,6 +194,10 @@ public:
    /** set all small values to zero and return number remaining
       - < tolerance => 0.0 */
    int clean(double tolerance);
+   /// Same but packs down
+   int cleanAndPack(double tolerance);
+   /// Same but packs down and is safe (i.e. if order is odd)
+   int cleanAndPackSafe(double tolerance);
    /// For debug check vector is clear i.e. no elements
    void checkClear();
    /// For debug check vector is clean i.e. elements match indices
@@ -205,6 +215,16 @@ public:
        returns number found.  Only >= tolerance
    */
    int scan(int start, int end, double tolerance);
+   /// These are same but pack down
+   int scanAndPack();
+   int scanAndPack(int start, int end);
+   int scanAndPack(double tolerance);
+   int scanAndPack(int start, int end, double tolerance);
+   /// Create packed array
+   void createPacked(int number, const int * indices, 
+		    const double * elements);
+   /// This is mainly for testing - goes from packed to indexed
+   void expand();
    /// Append a CoinPackedVector to the end
    void append(const CoinPackedVectorBase & caboose);
    /// Append a CoinIndexedVector to the end
@@ -309,6 +329,12 @@ CoinIndexedVector operator/(
        having to reallocate storage.
    */
    int capacity() const { return capacity_; }
+   /// Sets packed mode
+   inline void setPackedMode(bool yesNo)
+   { packedMode_=yesNo;};
+   /// Gets packed mode
+   inline bool packedMode() const
+   { return packedMode_;};
    //@}
 
    /**@name Constructors and destructors */
@@ -358,6 +384,8 @@ private:
    int capacity_;
    ///  Offset to get where new allocated array
    int offset_;
+   /// If true then is operating in packed mode
+   bool packedMode_;
    //@}
 };
 

@@ -4,10 +4,15 @@
 #ifndef CoinHelperFunctions_H
 #define CoinHelperFunctions_H
 
+// Time
+
+#include  <time.h>
 #if defined(_MSC_VER)
 #  include <direct.h>
 #  define getcwd _getcwd
 #else
+#  include <sys/times.h>
+#  include <sys/resource.h>
 #  include <unistd.h>
 #endif
 
@@ -458,5 +463,25 @@ inline char CoinFindDirSeparator()
   return dirsep;
 }
 
+/** This function returns cpu time in seconds since some event - 
+    normally start of program */
+
+inline double CoinCpuTime()
+{
+  double cpu_temp;
+#if defined(_MSC_VER)
+  unsigned int ticksnow;        /* clock_t is same as int */
+  
+  ticksnow = (unsigned int)clock();
+  
+  cpu_temp = (double)((double)ticksnow/CLOCKS_PER_SEC);
+#else
+  struct rusage usage;
+  getrusage(RUSAGE_SELF,&usage);
+  cpu_temp = usage.ru_utime.tv_sec;
+  cpu_temp += 1.0e-6*((double) usage.ru_utime.tv_usec);
+#endif
+  return cpu_temp;
+}
 
 #endif

@@ -28,118 +28,13 @@ typedef unsigned char CoinCheckZero;
 
 //:class CoinFactorization.  Deals with Factorization and Updates
 
-//  updateColumn.  Updates one column (FTRAN) when permuted
-int
-CoinFactorization::updateColumn ( CoinIndexedVector * regionSparse,
-                                bool FTUpdate )
-{
-  double *region = regionSparse->denseVector (  );
-  int *regionIndex = regionSparse->getIndices (  );
-  int numberNonZero = regionSparse->getNumElements (  );
-  
-  if (collectStatistics_) {
-    numberFtranCounts_++;
-    ftranCountInput_ += numberNonZero;
-  }
-    
-  //  ******* L
-  updateColumnL ( regionSparse );
-  if (collectStatistics_) 
-    ftranCountAfterL_ += regionSparse->getNumElements();
-  //permute extra
-  //row bits here
-  updateColumnR ( regionSparse );
-  if (collectStatistics_) 
-    ftranCountAfterR_ += regionSparse->getNumElements();
-  bool noRoom = false;
-  
-  //update counts
-  //save in U
-  //in at end
-  if ( FTUpdate ) {
-    //number may be slightly high because of R permutations
-    numberNonZero = regionSparse->getNumElements (  );
-    int iColumn = numberColumnsExtra_;
-    
-    //getColumnSpace also moves fixed part
-    //getColumnSpace(iColumn,numberNonZero);
-    startColumnU_[iColumn] = startColumnU_[maximumColumnsExtra_];
-    CoinBigIndex start = startColumnU_[iColumn];
-    CoinBigIndex space = lengthAreaU_ - ( start + numberNonZero );
-    
-    if ( space >= 0 ) {
-      int * putIndex = indexRowU_ + start;
-      double * putElement = elementU_ + start;
-      int i,n=numberNonZero;
-      numberNonZero=0;
-      for (i=0;i<n;i++) {
-        int indexValue = regionIndex[i];
-        double value = region[indexValue];
-        if (value) {
-          putIndex[numberNonZero]=indexValue;
-          putElement[numberNonZero++]=value;
-        }
-      }
-      //redo in case packed down
-      numberInColumn_[iColumn] = numberNonZero;
-      startColumnU_[maximumColumnsExtra_] = start + numberNonZero;
-      //  ******* U
-      updateColumnU ( regionSparse, &indexRowU_[start], numberNonZero );
-      startColumnU_[maximumColumnsExtra_] = start + numberNonZero;
-    } else {
-      //no room
-      noRoom = true;
-      //  ******* U
-      updateColumnU ( regionSparse, 0, regionSparse->getNumElements (  ) );
-      startColumnU_[maximumColumnsExtra_] = start + numberNonZero;
-    }       
-  } else {
-    //  ******* U
-    updateColumnU ( regionSparse, 0, regionSparse->getNumElements (  ) );
-  }
-  numberNonZero = regionSparse->getNumElements (  );
-  if (collectStatistics_) 
-    ftranCountAfterU_ += numberNonZero;
-  if ( !noRoom ) {
-    return numberNonZero;
-  } else {
-    return -numberNonZero;
-  }       
-}
-// const version
-int
-CoinFactorization::updateColumn ( CoinIndexedVector * regionSparse) const
-{
-  int numberNonZero;
-  
-  //  ******* L
-  updateColumnL ( regionSparse );
-  //permute extra
-  //row bits here
-  updateColumnR ( regionSparse );
-  
-  //  ******* U
-  updateColumnU ( regionSparse, 0, regionSparse->getNumElements (  ) );
-  numberNonZero = regionSparse->getNumElements (  );
-  return numberNonZero;
-}
-
-//  throwAwayColumn.  Throws away incoming column
-void
-CoinFactorization::throwAwayColumn (  )
-{
-  int iColumn = numberColumnsExtra_;
-  
-  numberInColumn_[iColumn] = 0;
-}
-
 // Updates part of column (FTRANL) when densish
 void 
-CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse )
+CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse ,
+					  int * regionIndex)
   const
 {
   double *region = regionSparse->denseVector (  );
-  int *regionIndex = regionSparse->getIndices (  );
   int number = regionSparse->getNumElements (  );
   int numberNonZero;
   double tolerance = zeroTolerance_;
@@ -148,9 +43,9 @@ CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse )
   int k;
   int i , iPivot;
   
-  CoinBigIndex *startColumn = startColumnL_;
-  int *indexRow = indexRowL_;
-  double *element = elementL_;
+  const CoinBigIndex *startColumn = startColumnL_;
+  const int *indexRow = indexRowL_;
+  const double *element = elementL_;
   int last = baseL_ + numberL_;
   int smallestIndex = numberRowsExtra_;
   // do easy ones
@@ -173,7 +68,7 @@ CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse )
 	int iRow0 = indexRow[j];
 	double result0 = region[iRow0];
 	double value0 = element[j];
-	
+
 	region[iRow0] = result0 - value0 * pivotValue;
       }     
       regionIndex[numberNonZero++] = i;
@@ -185,11 +80,11 @@ CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse )
 } 
 // Updates part of column (FTRANL) when sparsish
 void 
-CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse )
+CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
+					   int * regionIndex)
   const
 {
   double *region = regionSparse->denseVector (  );
-  int *regionIndex = regionSparse->getIndices (  );
   int number = regionSparse->getNumElements (  );
   int numberNonZero;
   double tolerance = zeroTolerance_;
@@ -198,9 +93,9 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse )
   int k;
   int i , iPivot;
   
-  CoinBigIndex *startColumn = startColumnL_;
-  int *indexRow = indexRowL_;
-  double *element = elementL_;
+  const CoinBigIndex *startColumn = startColumnL_;
+  const int *indexRow = indexRowL_;
+  const double *element = elementL_;
   int last = baseL_ + numberL_;
 #ifdef DENSE_CODE2
   if (numberDense_) {
@@ -338,11 +233,11 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse )
 } 
 // Updates part of column (FTRANL) when sparse
 void 
-CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse )
+CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse ,
+					   int * regionIndex)
   const
 {
   double *region = regionSparse->denseVector (  );
-  int *regionIndex = regionSparse->getIndices (  );
   int number = regionSparse->getNumElements (  );
   int numberNonZero;
   double tolerance = zeroTolerance_;
@@ -351,9 +246,9 @@ CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse )
   int j, k;
   int i , iPivot;
   
-  CoinBigIndex *startColumn = startColumnL_;
-  int *indexRow = indexRowL_;
-  double *element = elementL_;
+  const CoinBigIndex *startColumn = startColumnL_;
+  const int *indexRow = indexRowL_;
+  const double *element = elementL_;
   // use sparse_ as temporary area
   // mark known to be zero
   int * stack = sparse_;  /* pivot */
@@ -438,7 +333,8 @@ CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse )
 }
 //  updateColumnL.  Updates part of column (FTRANL)
 void
-CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
+CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse,
+					   int * regionIndex) const
 {
   if (numberL_) {
     int number = regionSparse->getNumElements (  );
@@ -464,13 +360,13 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
     }
     switch (goSparse) {
     case 0: // densish
-      updateColumnLDensish(regionSparse);
+      updateColumnLDensish(regionSparse,regionIndex);
       break;
     case 1: // middling
-      updateColumnLSparsish(regionSparse);
+      updateColumnLSparsish(regionSparse,regionIndex);
       break;
     case 2: // sparse
-      updateColumnLSparse(regionSparse);
+      updateColumnLSparse(regionSparse,regionIndex);
       break;
     }
   }
@@ -480,7 +376,6 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
     int lastSparse = numberRows_-numberDense_;
     int number = regionSparse->getNumElements();
     double *region = regionSparse->denseVector (  );
-    int *regionIndex = regionSparse->getIndices (  );
     int i=0;
     bool doDense=false;
     while (i<number) {
@@ -493,7 +388,6 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
       }
     }
     if (doDense) {
-      regionSparse->setNumElements(number);
       //int iopt=0;
       //dges(denseArea_,&numberDense_,&numberDense_,densePermute_,
       //   &region[lastSparse],&iopt);
@@ -502,7 +396,16 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
       int info;
       dgetrs_(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
 	      densePermute_,region+lastSparse,&numberDense_,&info);
-      regionSparse->scan(lastSparse,numberRows_,1.0e-15);
+      for (i=lastSparse;i<numberRows_;i++) {
+	double value = region[i];
+	if (value) {
+	  if (fabs(value)>=1.0e-15) 
+	    regionIndex[number++] = i;
+	  else
+	    region[i]=0.0;
+	}
+      }
+      regionSparse->setNumElements(number);
     }
   }
 #endif
@@ -547,32 +450,6 @@ int CoinFactorization::checkPivot(double saveFromU,
 	      << " " << saveFromU << std::endl;
 #endif
   } 
-  return status;
-}
-
-//  replaceColumn.  Replaces one Column to basis
-//      returns 0=OK, 1=Probably OK, 2=singular, 3=no room
-
-int               
-CoinFactorization::replaceColumn ( int pivotRow,
-                                 double pivotCheck,
-                                 int numberOfElements,
-				  int indicesRow[], double elements[],
-				  bool checkBeforeModifying)
-{
-  CoinIndexedVector *region = new CoinIndexedVector;
-  region->reserve(numberRowsExtra_ );
-  int status;
-  
-  status =
-    updateColumn ( region, elements, indicesRow, numberOfElements, true );
-  if ( status >= 0 ) {
-    status = replaceColumn ( region, pivotRow, pivotCheck );
-  } else {
-    status = 3;
-  }       
-  delete region;
-  
   return status;
 }
 //  replaceColumn.  Replaces one Column to basis
@@ -630,7 +507,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 
   CoinBigIndex saveEnd = startColumnU_[realPivotRow]
                          + numberInColumn_[realPivotRow];
-  // not necessary at present - but take no cahnces for future
+  // not necessary at present - but take no chances for future
   numberInColumn_[realPivotRow] = 0;
   //get entries in row (pivot not stored)
   CoinBigIndex *startRow = startRowU_;
@@ -849,6 +726,12 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   nextRow_[numberRowsExtra_] = maximumRowsExtra_;
   startRow[numberRowsExtra_] = startRow[maximumRowsExtra_];
   numberInRow_[numberRowsExtra_] = 0;
+  //column in at beginning (as empty)
+  next = nextColumn_[maximumColumnsExtra_];
+  lastColumn_[next] = numberColumnsExtra_;
+  nextColumn_[maximumColumnsExtra_] = numberColumnsExtra_;
+  nextColumn_[numberColumnsExtra_] = next;
+  lastColumn_[numberColumnsExtra_] = maximumColumnsExtra_;
   //check accuracy
   int status = checkPivot(saveFromU,pivotCheck);
 
@@ -888,97 +771,50 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
           << ", basis had " << factorElements_ <<std::endl;
       }
     }       
-  }       
-  regionSparse->clear();
+  }
+  if (numberInColumnPlus_&&status<2) {
+    // we are going to put another copy of R in R
+    double * elementR = elementR_ + lengthAreaR_;
+    int * indexRowR = indexRowR_ + lengthAreaR_;
+    int * startR = startColumnR_+maximumPivots_+1;
+    int pivotRow = numberRowsExtra_-1;
+    for ( i = 0; i < numberNonZero; i++ ) {
+      int iRow = regionIndex[i];
+      assert (pivotRow>iRow);
+      next = nextColumn_[iRow];
+      int space;
+      if (next!=maximumColumnsExtra_)
+	space = startR[next]-startR[iRow];
+      else
+	space = lengthAreaR_-startR[iRow];
+      int numberInR = numberInColumnPlus_[iRow];
+      if (space>numberInR) {
+	// there is space
+	int put=startR[iRow]+numberInR;
+	numberInColumnPlus_[iRow]=numberInR+1;
+	indexRowR[put]=pivotRow;
+	elementR[put]=region[iRow];
+	//add 4 for luck
+	if (next==maximumColumnsExtra_)
+	  startR[maximumColumnsExtra_] = min(put + 4,lengthAreaR_);
+      } else {
+	// no space - do we shuffle?
+	if (!getColumnSpaceIterate(iRow,region[iRow],pivotRow)) {
+	  // printf("Need more space for R\n");
+	  delete [] numberInColumnPlus_;
+	  numberInColumnPlus_=NULL;
+	  regionSparse->clear();
+	  break;
+	}
+      }
+      region[iRow]=0.0;
+    }       
+    regionSparse->setNumElements(0);
+  } else {
+    regionSparse->clear();
+  }
   return status;
 }
-
-//  updateColumnTranspose.  Updates one column transpose (BTRAN)
-int
-CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
-                                         double vector[],
-                                         int index[],
-                                         int number ) const
-{
-  //zero region
-  regionSparse->clear (  );
-  double *region = regionSparse->denseVector (  );
-  int i;
-  
-  //move indices into index array
-  int *regionIndex = regionSparse->getIndices (  );
-  int numberNonZero = number;
-  int j;
-  int iRow;
-  for ( j = 0; j < number; j ++ ) {
-    iRow = index[j];
-    double value = vector[iRow];
-    vector[iRow]=0.0;
-    iRow=pivotColumn_[iRow];
-    region[iRow] = value;
-    regionIndex[j] = iRow;
-  }
-  regionSparse->setNumElements ( numberNonZero );
-  number =  updateColumnTranspose ( regionSparse );
-  for (i=0;i<number;i++) {
-    int iRow=regionIndex[i];
-    double value = region[iRow];
-    region[iRow]=0.0;
-    iRow=permuteBack_[iRow];
-    vector[iRow]=value;
-    index[i]=iRow;
-  }
-  regionSparse->setNumElements(0);
-#ifdef COIN_DEBUG
-  for (i=0;i<numberRowsExtra_;i++) {
-    assert (!region[i]);
-  }
-#endif
-  return number;
-}
-
-//  updateColumnTranspose.  Updates one column transpose (BTRAN)
-int
-CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
-					  double vector[]) const
-{
-  //zero region
-  regionSparse->clear (  );
-  double *region = regionSparse->denseVector (  );
-  int i;
-  
-  //move indices into index array
-  int *regionIndex = regionSparse->getIndices (  );
-  int numberNonZero = 0;
-  int j;
-  int iRow;
-  for ( j = 0; j < numberRows_; j ++ ) {
-    if (vector[j]) {
-      double value = vector[j];
-      vector[j]=0.0;
-      iRow = pivotColumn_[j];
-      region[iRow] = value;
-      regionIndex[numberNonZero++] = iRow;
-    }
-  }
-  regionSparse->setNumElements ( numberNonZero );
-  int number =  updateColumnTranspose ( regionSparse );
-  for (i=0;i<number;i++) {
-    iRow=regionIndex[i];
-    double value = region[iRow];
-    region[iRow]=0.0;
-    iRow=permuteBack_[iRow];
-    vector[iRow]=value;
-  }
-    regionSparse->setNumElements(0);
-#ifdef COIN_DEBUG
-  for (i=0;i<numberRowsExtra_;i++) {
-    assert (!region[i]);
-  }
-#endif
-  return number;
-}
-
 
 //  updateColumnTranspose.  Updates one column transpose (BTRAN)
 int
@@ -993,56 +829,41 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   int * index = regionSparse2->getIndices();
   int number = regionSparse2->getNumElements();
   int i;
+  const int * pivotColumn = pivotColumn_;
   
   //move indices into index array
   int *regionIndex = regionSparse->getIndices (  );
   int numberNonZero = number;
-  int j;
   int iRow;
-  for ( j = 0; j < number; j ++ ) {
-    iRow = index[j];
-    double value = vector[iRow];
-    vector[iRow]=0.0;
-    iRow=pivotColumn_[iRow];
-    region[iRow] = value;
-    regionIndex[j] = iRow;
+  bool packed = regionSparse2->packedMode();
+  if (packed) {
+    for ( i = 0; i < number; i ++ ) {
+      iRow = index[i];
+      double value = vector[i];
+      vector[i]=0.0;
+      iRow=pivotColumn[iRow];
+      region[iRow] = value;
+      regionIndex[i] = iRow;
+    }
+  } else {
+    for ( i = 0; i < number; i ++ ) {
+      iRow = index[i];
+      double value = vector[iRow];
+      vector[iRow]=0.0;
+      iRow=pivotColumn[iRow];
+      region[iRow] = value;
+      regionIndex[i] = iRow;
+    }
   }
   regionSparse->setNumElements ( numberNonZero );
-  number =  updateColumnTranspose ( regionSparse );
-  for (i=0;i<number;i++) {
-    int iRow=regionIndex[i];
-    double value = region[iRow];
-    region[iRow]=0.0;
-    iRow=permuteBack_[iRow];
-    vector[iRow]=value;
-    index[i]=iRow;
-  }
-  regionSparse->setNumElements(0);
-  regionSparse2->setNumElements(number);
-#ifdef COIN_DEBUG
-  for (i=0;i<numberRowsExtra_;i++) {
-    assert (!region[i]);
-  }
-#endif
-  return number;
-}
-
-//  updateColumnTranspose.  Updates one column transpose (BTRAN)
-//assumes index is sorted i.e. region is correct
-int
-CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse ) const
-{
   //  ******* U
   // Apply pivot region - could be combined for speed
   int j;
-  double *region = regionSparse->denseVector (  );
-  int numberNonZero = regionSparse->getNumElements (  );
   double *pivotRegion = pivotRegion_;
-  int *regionIndex = regionSparse->getIndices (  );
   
   if (collectStatistics_) {
     numberBtranCounts_++;
-    btranCountInput_ += numberNonZero;
+    btranCountInput_ += (double) numberNonZero;
   }
 
   int smallestIndex=numberRowsExtra_;
@@ -1053,28 +874,52 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse ) co
   }
   updateColumnTransposeU ( regionSparse,smallestIndex );
   if (collectStatistics_) 
-    btranCountAfterU_ += regionSparse->getNumElements();
+    btranCountAfterU_ += (double) regionSparse->getNumElements();
   //numberNonZero=regionSparse->getNumElements();
   //permute extra
   //row bits here
+  double countBefore = btranCountAfterR_;
   updateColumnTransposeR ( regionSparse );
-#ifdef COIN_DEBUG
+  // Done in updateColumnTransposeR
+  //May have lost counts
   numberNonZero = regionSparse->getNumElements (  );
-  if (numberNonZero<=numberRows_) {
-    for ( j = 0; j < numberNonZero; j++ ) {
-      int iRow = regionIndex[j];
-      if (iRow>=numberRows_) {
-	printf("%d %d\n",j,iRow);
-	abort();
-      }
-    }
-  }
-#endif
   //  ******* L
   updateColumnTransposeL ( regionSparse );
+  // May have lost counts
   if (collectStatistics_) 
-    btranCountAfterL_ += regionSparse->getNumElements();
-  return regionSparse->getNumElements (  );
+    if (numberNonZero<=numberRows_)
+      btranCountAfterL_ += (double) regionSparse->getNumElements();
+    else
+      btranCountAfterL_ += btranCountAfterR_-countBefore;
+  number = regionSparse->getNumElements (  );
+  const int * permuteBack = permuteBack_;
+  if (packed) {
+    for (i=0;i<number;i++) {
+      int iRow=regionIndex[i];
+      double value = region[iRow];
+      region[iRow]=0.0;
+      iRow=permuteBack[iRow];
+      vector[i]=value;
+      index[i]=iRow;
+    }
+  } else {
+    for (i=0;i<number;i++) {
+      int iRow=regionIndex[i];
+      double value = region[iRow];
+      region[iRow]=0.0;
+      iRow=permuteBack[iRow];
+      vector[iRow]=value;
+      index[i]=iRow;
+    }
+  }
+  regionSparse->setNumElements(0);
+  regionSparse2->setNumElements(number);
+#ifdef COIN_DEBUG
+  for (i=0;i<numberRowsExtra_;i++) {
+    assert (!region[i]);
+  }
+#endif
+  return number;
 }
 
 /* Updates part of column transpose (BTRANU) when densish,
@@ -1092,17 +937,17 @@ CoinFactorization::updateColumnTransposeUDensish
   
   int i,j;
   
-  CoinBigIndex *startRow = startRowU_;
+  const CoinBigIndex *startRow = startRowU_;
   
-  CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
-  int *indexColumn = indexColumnU_;
+  const CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
+  const int *indexColumn = indexColumnU_;
   
-  double * element = elementU_;
+  const double * element = elementU_;
   int last = numberU_;
   
   double pivotValue;
   
-  int *numberInRow = numberInRow_;
+  const int *numberInRow = numberInRow_;
   
   numberNonZero = 0;
   for (i=smallestIndex ; i < last; i++ ) {
@@ -1115,7 +960,7 @@ CoinFactorization::updateColumnTransposeUDensish
 	int iRow = indexColumn[j];
 	CoinBigIndex getElement = convertRowToColumn[j];
 	double value = element[getElement];
-	
+
 	region[iRow] -=  value * pivotValue;
       }     
       regionIndex[numberNonZero++] = i;
@@ -1141,17 +986,17 @@ CoinFactorization::updateColumnTransposeUSparsish
   
   int i,j;
   
-  CoinBigIndex *startRow = startRowU_;
+  const CoinBigIndex *startRow = startRowU_;
   
-  CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
-  int *indexColumn = indexColumnU_;
+  const CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
+  const int *indexColumn = indexColumnU_;
   
-  double * element = elementU_;
+  const double * element = elementU_;
   int last = numberU_;
   
   double pivotValue;
   
-  int *numberInRow = numberInRow_;
+  const int *numberInRow = numberInRow_;
   
   // use sparse_ as temporary area
   // mark known to be zero
@@ -1226,7 +1071,7 @@ CoinFactorization::updateColumnTransposeUSparsish
 	int iRow = indexColumn[j];
 	CoinBigIndex getElement = convertRowToColumn[j];
 	double value = element[getElement];
-	
+
 	region[iRow] -=  value * pivotValue;
       }     
       regionIndex[numberNonZero++] = i;
@@ -1256,12 +1101,12 @@ CoinFactorization::updateColumnTransposeUSparse (
   
   int i;
   
-  CoinBigIndex *startRow = startRowU_;
+  const CoinBigIndex *startRow = startRowU_;
   
-  CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
-  int *indexColumn = indexColumnU_;
+  const CoinBigIndex *convertRowToColumn = convertRowToColumnU_;
+  const int *indexColumn = indexColumnU_;
   
-  double * element = elementU_;
+  const double * element = elementU_;
   
   double pivotValue;
   
@@ -1298,40 +1143,63 @@ CoinFactorization::updateColumnTransposeUSparse (
     iPivot=regionIndex[k];
     if(!mark[iPivot]) {
       stack[0]=iPivot;
-      int j=startRow[iPivot]+numberInRow[iPivot]-1;
-      if (j>=startRow[iPivot]) {
-	int kPivot=indexColumn[j];
+      mark[iPivot]=1;
+      int j=startRow[iPivot]+numberInRow[iPivot];
+      if (j>startRow[iPivot]) {
+	int kPivot=indexColumn[--j];
 	/* put back on stack */
-	next[0] =j-1;
+	next[0] =j;
 	/* and new one */
 	if (!mark[kPivot]) {
 	  stack[1]=kPivot;
-	  mark[kPivot]=2;
-	  next[1]=startRow[kPivot]+numberInRow[kPivot]-1;
-	  nStack=2;
-	} else {
+	  mark[kPivot]=1;
+	  next[1]=startRow[kPivot]+numberInRow[kPivot];
 	  nStack=1;
+	} else {
+	  nStack=0;
 	}
-	while (nStack) {
+	while (nStack>=0) {
 	  int kPivot,j;
 	  /* take off stack */
-	  kPivot=stack[--nStack];
+	  kPivot=stack[nStack];
 	  j=next[nStack];
-	  if (j<startRow[kPivot]) {
-	    /* finished so mark */
+	  // Could change to while
+#if 0
+	  if (j==startRow[kPivot]) {
+	    /* finished */
+	    --nStack;
 	    list[nList++]=kPivot;
-	    mark[kPivot]=1;
 	  } else {
-	    kPivot=indexColumn[j];
+	    kPivot=indexColumn[--j];
 	    /* put back on stack */
-	    next[nStack++] --;
+	    next[nStack] =j;
 	    if (!mark[kPivot]) {
 	      /* and new one */
-	      stack[nStack]=kPivot;
-	      mark[kPivot]=2;
-	      next[nStack++]=startRow[kPivot]+numberInRow[kPivot]-1;
+	      stack[++nStack]=kPivot;
+	      mark[kPivot]=1;
+	      next[nStack]=startRow[kPivot]+numberInRow[kPivot];
 	    }
 	  }
+#else
+	  bool finished=true;
+	  while (j!=startRow[kPivot]) {
+	    int jPivot=indexColumn[--j];
+	    if (!mark[jPivot]) {
+	      /* put back on stack */
+	      next[nStack] =j;
+	      /* and new one */
+	      stack[++nStack]=jPivot;
+	      mark[jPivot]=1;
+	      next[nStack]=startRow[jPivot]+numberInRow[jPivot];
+	      finished=false;
+	      break;
+	    }
+	  }
+	  if (finished) {
+	    --nStack;
+	    list[nList++]=kPivot;
+	  }
+#endif
 	}
       } else {
 	// nothing there - just put on list
@@ -1354,7 +1222,7 @@ CoinFactorization::updateColumnTransposeUSparse (
 	int iRow = indexColumn[j];
 	CoinBigIndex getElement = convertRowToColumn[j];
 	double value = element[getElement];
-	
+
 	region[iRow] = region[iRow]
 	  - value * pivotValue;
       }     
@@ -1428,9 +1296,9 @@ CoinFactorization::updateColumnTransposeLDensish
   }
   if ( first >= 0 ) {
     base = baseL_;
-    CoinBigIndex *startColumn = startColumnL_;
-    int *indexRow = indexRowL_;
-    double *element = elementL_;
+    const CoinBigIndex *startColumn = startColumnL_;
+    const int *indexRow = indexRowL_;
+    const double *element = elementL_;
     int last = baseL_ + numberL_;
     
     if ( first >= last ) {
@@ -1483,9 +1351,9 @@ CoinFactorization::updateColumnTransposeLByRow
   int first = -1;
   
   // use row copy of L
-  double * element = elementByRowL_;
-  CoinBigIndex * startRow = startRowL_;
-  int * column = indexColumnL_;
+  const double * element = elementByRowL_;
+  const CoinBigIndex * startRow = startRowL_;
+  const int * column = indexColumnL_;
   int i;
   CoinBigIndex j;
   for (first=numberRows_-1;first>=0;first--) {
@@ -1520,9 +1388,9 @@ CoinFactorization::updateColumnTransposeLSparsish
   double tolerance = zeroTolerance_;
   
   // use row copy of L
-  double * element = elementByRowL_;
-  CoinBigIndex * startRow = startRowL_;
-  int * column = indexColumnL_;
+  const double * element = elementByRowL_;
+  const CoinBigIndex * startRow = startRowL_;
+  const int * column = indexColumnL_;
   int i;
   CoinBigIndex j;
   // use sparse_ as temporary area
@@ -1643,9 +1511,9 @@ CoinFactorization::updateColumnTransposeLSparse
   double tolerance = zeroTolerance_;
   
   // use row copy of L
-  double * element = elementByRowL_;
-  CoinBigIndex * startRow = startRowL_;
-  int * column = indexColumnL_;
+  const double * element = elementByRowL_;
+  const CoinBigIndex * startRow = startRowL_;
+  const int * column = indexColumnL_;
   int i;
   CoinBigIndex j;
   // use sparse_ as temporary area
@@ -1733,6 +1601,8 @@ CoinFactorization::updateColumnTransposeLSparse
 void
 CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) const
 {
+  if (!numberL_&&!numberDense_)
+    return;
   int goSparse;
   // Guess at number at end
   // we may need to rethink on dense
@@ -1740,14 +1610,14 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
     int number = regionSparse->getNumElements (  );
     if (btranAverageAfterL_) {
       int newNumber = (int) (number*btranAverageAfterL_);
-      if (newNumber< sparseThreshold_&&(numberL_<<2)>newNumber)
+      if (newNumber< sparseThreshold_)
 	goSparse = 2;
-      else if (newNumber< sparseThreshold2_&&(numberL_<<1)>newNumber)
+      else if (newNumber< sparseThreshold2_)
 	goSparse = 1;
       else
 	goSparse = 0;
     } else {
-      if (number<sparseThreshold_&&(numberL_<<2)>sparseThreshold_) 
+      if (number<sparseThreshold_) 
 	goSparse = 2;
       else
 	goSparse = 0;
@@ -1794,9 +1664,11 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
       dgetrs_(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
 	     densePermute_,region+lastSparse,&numberDense_,&info);
       //and scan again
-      if (goSparse>0)
+      if (goSparse>0||!numberL_)
 	regionSparse->scan(lastSparse,numberRows_,zeroTolerance_);
     } 
+    if (!numberL_)
+      return;
   } 
 #endif
   switch (goSparse) {
@@ -1844,8 +1716,8 @@ CoinFactorization::getRowSpaceIterate ( int iRow,
 	put++;
       }       
       iRow = nextRow_[iRow];
-      numberCompressions_++;
     }       /* endwhile */
+    numberCompressions_++;
     startRow[maximumRowsExtra_] = put;
     space = lengthAreaU_ - put;
     if ( space < extraNeeded + number + 2 ) {
@@ -1853,8 +1725,7 @@ CoinFactorization::getRowSpaceIterate ( int iRow,
       //if we can allocate bigger then do so and copy
       //if not then return so code can start again
       status_ = -99;
-      return false;
-    }       
+      return false;    }       
   }       
   CoinBigIndex put = startRow[maximumRowsExtra_];
   int next = nextRow_[iRow];
@@ -1882,5 +1753,76 @@ CoinFactorization::getRowSpaceIterate ( int iRow,
   }       /* endwhile */
   //add four for luck
   startRow[maximumRowsExtra_] = put + extraNeeded + 4;
+  return true;
+}
+
+//  getColumnSpaceIterate.  Gets space for one extra R elemnent in Column
+//may have to do compression  (returns true)
+//also moves existing vector
+bool
+CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
+					   int iRow)
+{
+  double * elementR = elementR_ + lengthAreaR_;
+  int * indexRowR = indexRowR_ + lengthAreaR_;
+  int * startR = startColumnR_+maximumPivots_+1;
+  int number = numberInColumnPlus_[iColumn];
+  //see if it can go in at end
+  if (lengthAreaR_-startR[maximumColumnsExtra_]<number+1) {
+    //compression
+    int jColumn = nextColumn_[maximumColumnsExtra_];
+    CoinBigIndex put = 0;
+    while ( jColumn != maximumColumnsExtra_ ) {
+      //move
+      CoinBigIndex get;
+      CoinBigIndex getEnd;
+
+      get = startR[jColumn];
+      getEnd = get + numberInColumnPlus_[jColumn];
+      startR[jColumn] = put;
+      CoinBigIndex i;
+      for ( i = get; i < getEnd; i++ ) {
+	indexRowR[put] = indexRowR[i];
+	elementR[put] = elementR[i];
+	put++;
+      }
+      jColumn = nextColumn_[jColumn];
+    }
+    numberCompressions_++;
+    startR[maximumColumnsExtra_]=put;
+  }
+  // Still may not be room (as iColumn was still in)
+  if (lengthAreaR_-startR[maximumColumnsExtra_]<number+1) 
+    return false;
+
+  int next = nextColumn_[iColumn];
+  int last = lastColumn_[iColumn];
+
+  //out
+  nextColumn_[last] = next;
+  lastColumn_[next] = last;
+
+  CoinBigIndex put = startR[maximumColumnsExtra_];
+  //in at end
+  last = lastColumn_[maximumColumnsExtra_];
+  nextColumn_[last] = iColumn;
+  lastColumn_[maximumColumnsExtra_] = iColumn;
+  lastColumn_[iColumn] = last;
+  nextColumn_[iColumn] = maximumColumnsExtra_;
+  
+  //move
+  CoinBigIndex get = startR[iColumn];
+  startR[iColumn] = put;
+  int i = 0;
+  for (i=0 ; i < number; i ++ ) {
+    elementR[put]= elementR[get];
+    indexRowR[put++] = indexRowR[get++];
+  }
+  //insert
+  elementR[put]=value;
+  indexRowR[put++]=iRow;
+  numberInColumnPlus_[iColumn]++;
+  //add 4 for luck
+  startR[maximumColumnsExtra_] = min(put + 4,lengthAreaR_);
   return true;
 }

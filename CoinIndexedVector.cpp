@@ -14,22 +14,27 @@
 void
 CoinIndexedVector::clear()
 {
-  if (3*nElements_<capacity_) {
-    int i=0;
-    if ((nElements_&1)!=0) {
-      elements_[indices_[0]]=0.0;
-      i=1;
-    }
-    for (;i<nElements_;i+=2) {
-      int i0 = indices_[i];
-      int i1 = indices_[i+1];
-      elements_[i0]=0.0;
-      elements_[i1]=0.0;
+  if (!packedMode_) {
+    if (3*nElements_<capacity_) {
+      int i=0;
+      if ((nElements_&1)!=0) {
+	elements_[indices_[0]]=0.0;
+	i=1;
+      }
+      for (;i<nElements_;i+=2) {
+	int i0 = indices_[i];
+	int i1 = indices_[i+1];
+	elements_[i0]=0.0;
+	elements_[i1]=0.0;
+      }
+    } else {
+      memset(elements_,0,capacity_*sizeof(double));
     }
   } else {
-    memset(elements_,0,capacity_*sizeof(double));
+    memset(elements_,0,nElements_*sizeof(double));
   }
   nElements_ = 0;
+  packedMode_=false;
 }
 
 //#############################################################################
@@ -44,6 +49,7 @@ CoinIndexedVector::empty()
   elements_=NULL;
   nElements_ = 0;
   capacity_=0;
+  packedMode_=false;
 }
 
 //#############################################################################
@@ -53,6 +59,7 @@ CoinIndexedVector::operator=(const CoinIndexedVector & rhs)
 {
   if (this != &rhs) {
     clear();
+    packedMode_=rhs.packedMode_;
     gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
   }
   return *this;
@@ -64,7 +71,8 @@ CoinIndexedVector &
 CoinIndexedVector::operator=(const CoinPackedVectorBase & rhs)
 {
   clear();
-  gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements());
+  gutsOfSetVector(rhs.getNumElements(), 
+			    rhs.getIndices(), rhs.getElements());
   return *this;
 }
 
@@ -91,6 +99,7 @@ CoinIndexedVector::returnVector()
   elements_=NULL;
   nElements_ = 0;
   capacity_=0;
+  packedMode_=false;
 }
 
 //#############################################################################
@@ -213,6 +222,7 @@ CoinIndexedVector::clean( double tolerance )
   int number = nElements_;
   int i;
   nElements_=0;
+  assert(!packedMode_);
   for (i=0;i<number;i++) {
     int indexValue = indices_[i];
     if (fabs(elements_[indexValue])>=tolerance) {
@@ -225,30 +235,50 @@ CoinIndexedVector::clean( double tolerance )
 }
 
 //#############################################################################
-
 // For debug check vector is clear i.e. no elements
 void CoinIndexedVector::checkClear()
 {
   assert(!nElements_);
+  assert(!packedMode_);
   int i;
   for (i=0;i<capacity_;i++) {
     assert(!elements_[i]);
   }
+#ifndef NDEBUG
+  // check mark array zeroed
+  char * mark = (char *) (indices_+capacity_);
+  for (i=0;i<capacity_;i++) {
+    assert(!mark[i]);
+  }
+#endif
 }
 // For debug check vector is clean i.e. elements match indices
 void CoinIndexedVector::checkClean()
 {
-  double * copy = new double[capacity_];
-  CoinDisjointCopyN(elements_,capacity_,copy);
   int i;
-  for (i=0;i<nElements_;i++) {
-    int indexValue = indices_[i];
-    copy[indexValue]=0.0;
+  if (packedMode_) {
+    for (i=0;i<nElements_;i++) 
+      assert(elements_[i]);
+    for (;i<capacity_;i++) 
+      assert(!elements_[i]);
+  } else {
+    double * copy = new double[capacity_];
+    CoinDisjointCopyN(elements_,capacity_,copy);
+    for (i=0;i<nElements_;i++) {
+      int indexValue = indices_[i];
+      copy[indexValue]=0.0;
+    }
+    for (i=0;i<capacity_;i++) 
+      assert(!copy[i]);
+    delete [] copy;
   }
+#ifndef NDEBUG
+  // check mark array zeroed
+  char * mark = (char *) (indices_+capacity_);
   for (i=0;i<capacity_;i++) {
-    assert(!copy[i]);
+    assert(!mark[i]);
   }
-  delete [] copy;
+#endif
 }
 
 //#############################################################################
@@ -410,33 +440,24 @@ CoinIndexedVector::reserve(int n)
     double * delTemp = elements_-offset_;
     
     // allocate new space
-    indices_ = new int [n];
+    int nPlus=(n+3)>>2;
+    assert(sizeof(int)==4*sizeof(char));
+    indices_ = new int [n+nPlus];
+    memset(indices_+n,0,nPlus*sizeof(int));
     // align on 64 byte boundary
     double * temp = new double [n+7];
     offset_ = 0;
-    //if (sizeof (double *) == sizeof (int)) {
 #ifndef __64BIT__
-      int xx = (int) temp;
-      int iBottom = xx & 63;
-      if (iBottom)
-	offset_ = (64-iBottom)>>3;
-      xx = (int) (temp+offset_);
-      iBottom = xx &63;
-      // assert (!iBottom); out as with checkers could be false
+    int xx = (int) temp;
+    int iBottom = xx & 63;
+    if (iBottom)
+      offset_ = (64-iBottom)>>3;
 #else
-      //} else if (sizeof (double *) == sizeof (long)) {
-      long xx = (long) temp;
-      long iBottom = xx & 63;
-      if (iBottom)
-	offset_ = (64-iBottom)>>3;
-      xx = (long) (temp+offset_);
-      iBottom = xx &63;
-      // assert (!iBottom); out as with checkers could be false
+    long xx = (long) temp;
+    long iBottom = xx & 63;
+    if (iBottom)
+      offset_ = (64-iBottom)>>3;
 #endif
-      //} else {
-      //throw CoinError("double * not sizeof(int) or (long)",
-      //		      "reserve", "CoinIndexedVector");
-  //}
     elements_ = temp + offset_;;
     
     // copy data to new space
@@ -464,7 +485,8 @@ indices_(NULL),
 elements_(NULL),
 nElements_(0),
 capacity_(0),
-offset_(0)
+offset_(0),
+packedMode_(false)
 {
 }
 
@@ -476,7 +498,8 @@ CoinIndexedVector::CoinIndexedVector(int size,
   elements_(NULL),
   nElements_(0),
   capacity_(0),
-  offset_(0)
+  offset_(0),
+  packedMode_(false)
 {
   gutsOfSetVector(size, inds, elems);
 }
@@ -489,7 +512,8 @@ indices_(NULL),
 elements_(NULL),
 nElements_(0),
 capacity_(0),
-offset_(0)
+offset_(0),
+packedMode_(false)
 {
 gutsOfSetConstant(size, inds, value);
 }
@@ -501,7 +525,8 @@ indices_(NULL),
 elements_(NULL),
 nElements_(0),
 capacity_(0),
-offset_(0)
+offset_(0),
+packedMode_(false)
 {
   setFull(size, element);
 }
@@ -513,9 +538,11 @@ indices_(NULL),
 elements_(NULL),
 nElements_(0),
 capacity_(0),
-offset_(0)
+offset_(0),
+packedMode_(false)
 {  
-  gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements());
+  gutsOfSetVector(rhs.getNumElements(), 
+			    rhs.getIndices(), rhs.getElements());
 }
 
 //-----------------------------------------------------------------------------
@@ -525,7 +552,8 @@ indices_(NULL),
 elements_(NULL),
 nElements_(0),
 capacity_(0),
-offset_(0)
+offset_(0),
+packedMode_(false)
 {  
   gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
 }
@@ -537,7 +565,8 @@ indices_(NULL),
 elements_(NULL),
 nElements_(0),
 capacity_(0),
-offset_(0)
+offset_(0),
+packedMode_(false)
 {  
   gutsOfSetVector(rhs->capacity_,rhs->nElements_, rhs->indices_, rhs->elements_);
 }
@@ -779,7 +808,7 @@ CoinIndexedVector::gutsOfSetVector(int size,
 {
   if (size<0)
     throw CoinError("negative number of indices", "setVector", "CoinIndexedVector");
-  
+  assert(!packedMode_);  
   // find largest
   int i;
   int maxIndex=-1;
@@ -836,6 +865,7 @@ void
 CoinIndexedVector::gutsOfSetVector(int size, int numberIndices, 
 				   const int * inds, const double * elems)
 {
+  assert(!packedMode_);  
   
   int i;
   reserve(size);
@@ -888,6 +918,7 @@ CoinIndexedVector::gutsOfSetConstant(int size,
 				     const int * inds, double value)
 {
 
+  assert(!packedMode_);  
   if (size<0)
     throw CoinError("negative number of indices", "setConstant", "CoinIndexedVector");
   
@@ -1112,6 +1143,7 @@ CoinIndexedVector::scan()
 int
 CoinIndexedVector::scan(int start, int end)
 {
+  assert(!packedMode_);
   end = min(end,capacity_);
   start = max(start,0);
   int i;
@@ -1134,6 +1166,7 @@ CoinIndexedVector::scan(double tolerance)
 int
 CoinIndexedVector::scan(int start, int end, double tolerance)
 {
+  assert(!packedMode_);
   end = min(end,capacity_);
   start = max(start,0);
   int i;
@@ -1150,5 +1183,161 @@ CoinIndexedVector::scan(int start, int end, double tolerance)
   }
   nElements_ += number;
   return number;
+}
+// These pack down
+int
+CoinIndexedVector::cleanAndPack( double tolerance )
+{
+  int number = nElements_;
+  int i;
+  nElements_=0;
+  assert(!packedMode_);
+  for (i=0;i<number;i++) {
+    int indexValue = indices_[i];
+    double value = elements_[indexValue];
+    elements_[indexValue]=0.0;
+    if (fabs(value)>=tolerance) {
+      elements_[nElements_]=value;
+      indices_[nElements_++]=indexValue;
+    }
+  }
+  packedMode_=true;
+  return nElements_;
+}
+// These pack down
+int
+CoinIndexedVector::cleanAndPackSafe( double tolerance )
+{
+  int number = nElements_;
+  if (number) {
+    int i;
+    nElements_=0;
+    assert(!packedMode_);
+    double * temp=NULL;
+    bool gotMemory;
+    if (number*3<capacity_-3-9999999) {
+      // can find room without new
+      gotMemory=false;
+      // But may need to align on 8 byte boundary
+      char * tempC = (char *) (indices_+number);
+#ifndef __64BIT__
+      int xx = (int) tempC;
+      int iBottom = xx & 7;
+#else
+      long xx = (long) tempC;
+      long iBottom = xx & 7;
+#endif
+      if (iBottom)
+	tempC += 8-iBottom;
+      temp = (double *) tempC;
+      xx = (int) temp;
+      iBottom = xx & 7;
+      assert(!iBottom);
+    } else {
+      // might be better to do complete scan
+      gotMemory=true;
+      temp = new double[number];
+    }
+    for (i=0;i<number;i++) {
+      int indexValue = indices_[i];
+      double value = elements_[indexValue];
+      elements_[indexValue]=0.0;
+      if (fabs(value)>=tolerance) {
+	temp[nElements_]=value;
+	indices_[nElements_++]=indexValue;
+      }
+    }
+    memcpy(elements_,temp,nElements_*sizeof(double));
+    if (gotMemory)
+      delete [] temp;
+    packedMode_=true;
+  }
+  return nElements_;
+}
+// Scan dense region and set up indices
+int
+CoinIndexedVector::scanAndPack()
+{
+  nElements_=0;
+  return scanAndPack(0,capacity_);
+}
+// Scan dense region from start to < end and set up indices
+int
+CoinIndexedVector::scanAndPack(int start, int end)
+{
+  assert(!packedMode_);
+  end = min(end,capacity_);
+  start = max(start,0);
+  int i;
+  int number = 0;
+  int * indices = indices_+nElements_;
+  for (i=start;i<end;i++) {
+    double value = elements_[i];
+    elements_[i]=0.0;
+    if (value) {
+      elements_[number]=value;
+      indices[number++] = i;
+    }
+  }
+  nElements_ += number;
+  packedMode_=true;
+  return number;
+}
+// Scan dense region and set up indices with tolerance
+int
+CoinIndexedVector::scanAndPack(double tolerance)
+{
+  nElements_=0;
+  return scanAndPack(0,capacity_,tolerance);
+}
+// Scan dense region from start to < end and set up indices with tolerance
+int
+CoinIndexedVector::scanAndPack(int start, int end, double tolerance)
+{
+  assert(!packedMode_);
+  end = min(end,capacity_);
+  start = max(start,0);
+  int i;
+  int number = 0;
+  int * indices = indices_+nElements_;
+  for (i=start;i<end;i++) {
+    double value = elements_[i];
+    elements_[i]=0.0;
+    if (fabs(value)>=tolerance) {
+      elements_[number]=value;
+	indices[number++] = i;
+    }
+  }
+  nElements_ += number;
+  packedMode_=true;
+  return number;
+}
+// This is mainly for testing - goes from packed to indexed
+void 
+CoinIndexedVector::expand()
+{
+  if (nElements_&&packedMode_) {
+    double * temp = new double[capacity_];
+    int i;
+    for (i=0;i<nElements_;i++) 
+      temp[indices_[i]]=elements_[i];
+    memset(elements_,0,nElements_*sizeof(double));
+    for (i=0;i<nElements_;i++) {
+      int iRow = indices_[i];
+      elements_[iRow]=temp[iRow];
+    }
+    delete [] temp;
+  }
+  packedMode_=false;
+}
+// Create packed array
+void 
+CoinIndexedVector::createPacked(int number, const int * indices, 
+		    const double * elements)
+{
+  nElements_=number;
+  packedMode_=true;
+  memcpy(indices_,indices,number*sizeof(int));
+  memcpy(elements_,elements,number*sizeof(double));
 }
 

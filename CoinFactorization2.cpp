@@ -52,7 +52,6 @@ CoinFactorization::factorSparse (  )
     if ( numberInColumn_[pivotColumn] == 1 ) {
       CoinBigIndex start = startColumnU_[pivotColumn];
       double value = element[start];
-
       if ( value == slackValue_ && numberInColumnPlus_[pivotColumn] == 0 ) {
 	//treat as slack
 	int iRow = indexRowU_[start];
@@ -70,6 +69,16 @@ CoinFactorization::factorSparse (  )
     }
   }
   numberSlacks_ = numberGoodU_;
+  int *nextCount = nextCount_;
+  int *numberInRow = numberInRow_;
+  int *numberInColumn = numberInColumn_;
+  CoinBigIndex *startRow = startRowU_;
+  CoinBigIndex *startColumn = startColumnU_;
+  double pivotTolerance = pivotTolerance_;
+  int numberTrials = numberTrials_;
+  int numberRows = numberRows_;
+  // Put column singletons first
+  separateLinks(1,false);
   while ( count <= biggerDimension_ ) {
     CoinBigIndex minimumCount = INT_MAX;
     CoinBigIndex minimumCost = INT_MAX;
@@ -84,6 +93,7 @@ CoinFactorization::factorSparse (  )
     int trials = 0;
 
     while ( !stopping ) {
+#if 0
       if ( count == 1 && firstCount_[1] >= 0 ) {
 	//do column singletons first to put more in U
 	while ( look >= 0 ) {
@@ -114,15 +124,7 @@ CoinFactorization::factorSparse (  )
 	  look = firstCount_[1];
 	}
       }
-      int *nextCount = nextCount_;
-      int *numberInRow = numberInRow_;
-      int *numberInColumn = numberInColumn_;
-      CoinBigIndex *startRow = startRowU_;
-      CoinBigIndex *startColumn = startColumnU_;
-      double pivotTolerance = pivotTolerance_;
-      int numberTrials = numberTrials_;
-      int numberRows = numberRows_;
-
+#endif
       while ( look >= 0 ) {
 	if ( look < numberRows_ ) {
 	  int iRow = look;
@@ -334,7 +336,7 @@ CoinFactorization::factorSparse (  )
       double leftElements = totalElements_;
       //if (leftRows==100)
       //printf("at 100 %d elements\n",totalElements_);
-      if (2.0*leftElements>full&&leftRows>denseThreshold_) {
+      if (1.5*leftElements>full&&leftRows>denseThreshold_) {
 	//return to do dense
 	if (status!=0)
 	  break;
@@ -552,4 +554,53 @@ int CoinFactorization::factorDense()
 #endif
 #endif
   return status;
+}
+// Separate out links with same row/column count
+void 
+CoinFactorization::separateLinks(int count,bool rowsFirst)
+{
+  int next = firstCount_[count];
+  int firstRow=-1;
+  int firstColumn=-1;
+  int lastRow=-1;
+  int lastColumn=-1;
+  while(next>=0) {
+    int next2=nextCount_[next];
+    if (next>=numberRows_) {
+      nextCount_[next]=-1;
+      // Column
+      if (firstColumn>=0) {
+	lastCount_[next]=lastColumn;
+	nextCount_[lastColumn]=next;
+      } else {
+	lastCount_[next]= -2 - count;
+	firstColumn=next;
+      }
+      lastColumn=next;
+    } else {
+      // Row
+      if (firstRow>=0) {
+	lastCount_[next]=lastRow;
+	nextCount_[lastRow]=next;
+      } else {
+	lastCount_[next]= -2 - count;
+	firstRow=next;
+      }
+      lastRow=next;
+    }
+    next=next2;
+  }
+  if (rowsFirst&&firstRow>=0) {
+    firstCount_[count]=firstRow;
+    nextCount_[lastRow]=firstColumn;
+    if (firstColumn>=0)
+      lastCount_[firstColumn]=lastRow;
+  } else if (firstRow<0) {
+    firstCount_[count]=firstColumn;
+  } else if (firstColumn>=0) {
+    firstCount_[count]=firstColumn;
+    nextCount_[lastColumn]=firstRow;
+    if (firstRow>=0)
+      lastCount_[firstRow]=lastColumn;
+  } 
 }
