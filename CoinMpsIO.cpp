@@ -4585,8 +4585,8 @@ void CoinMpsIO::releaseRedundantInformation()
   rowsense_=NULL;
   rhs_=NULL;
   rowrange_=NULL;
-  free (hash_[0]);
-  free (hash_[1]);
+  delete [] hash_[0];
+  delete [] hash_[1];
   hash_[0]=0;
   hash_[1]=0;
   delete matrixByRow_;
