@@ -14,8 +14,13 @@
 #if defined (CLP_EXTERN_C)
 #define COIN_EXTERN_C
 #define COIN_NO_SBB
+#define COIN_NO_CBC
 #endif
 #if defined (SBB_EXTERN_C)
+#define COIN_EXTERN_C
+#define COIN_NO_CLP
+#endif
+#if defined (CBC_EXTERN_C)
 #define COIN_EXTERN_C
 #define COIN_NO_CLP
 #endif
@@ -76,10 +81,25 @@ typedef struct {
 #else
 typedef void Sbb_Model;
 #endif
+#if defined (CBC_EXTERN_C)
+// Real typedef for structure
+class Cbc_MessageHandler;
+typedef struct {
+  OsiClpSolverInterface * solver_;
+  CbcModel              * model_;
+  Cbc_MessageHandler    * handler_;
+  char                  * information_;
+} Cbc_Model;
+#else
+typedef void Cbc_Model;
+#endif
 #ifndef COIN_NO_SBB
 /** typedef for user call back.
  The cvec are constructed so don't need to be const*/
 typedef  void (COINLINKAGE_CB *sbb_callback) (Sbb_Model * model,int  msgno, int ndouble,
+                            const double * dvec, int nint, const int * ivec,
+                            int nchar, char ** cvec);
+typedef  void (COINLINKAGE_CB *cbc_callback) (Cbc_Model * model,int  msgno, int ndouble,
                             const double * dvec, int nint, const int * ivec,
                             int nchar, char ** cvec);
 #endif
@@ -93,4 +113,5 @@ typedef long long CoinBigIndex;
 /* just in case used somewhere */
 #undef COIN_NO_CLP
 #undef COIN_NO_SBB
+#undef COIN_NO_CBC
 #endif

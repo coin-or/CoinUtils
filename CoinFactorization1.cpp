@@ -121,7 +121,7 @@ void CoinFactorization::gutsOfDestructor()
   denseArea_=NULL;
   densePermute_=NULL;
   numberDense_=0;
-  //denseThreshold_=0;
+  ////denseThreshold_=0;
   
 }
 // type - 1 bit tolerances etc, 2 rest
