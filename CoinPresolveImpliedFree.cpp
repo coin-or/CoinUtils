@@ -10,6 +10,353 @@
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
+static int testRedundant(CoinPresolveMatrix *prob)
+{
+  prob->pass_++;
+  if (prob->pass_%2!=1)
+    return 0;
+  int numberColumns = prob->ncols_;
+  double * columnLower	= new double[numberColumns];
+  double * columnUpper	= new double[numberColumns];
+  memcpy(columnLower,prob->clo_,numberColumns*sizeof(double));
+  memcpy(columnUpper,prob->cup_,numberColumns*sizeof(double));
+
+  const double *element	= prob->rowels_;
+  const int *column	= prob->hcol_;
+  const CoinBigIndex *rowStart	= prob->mrstrt_;
+  const int *rowLength	= prob->hinrow_;
+  int numberRows	= prob->nrows_;
+
+  double *rowLower	= prob->rlo_;
+  double *rowUpper	= prob->rup_;
+
+  double tolerance = prob->feasibilityTolerance_;
+  int numberChanged=1,iPass=0;
+  double large = 1.0e20; // treat bounds > this as infinite
+#ifndef NDEBUG
+  double large2= 1.0e10*large;
+#endif
+  int numberInfeasible=0;
+  int totalTightened = 0;
+
+  int iRow, iColumn;
+
+  int * markRow = new int[numberRows];
+  for (iRow=0;iRow<numberRows;iRow++)
+    markRow[iRow]=-1;
+#define MAXPASS 10
+
+  // Loop round seeing if we can tighten bounds
+  // Would be faster to have a stack of possible rows
+  // and we put altered rows back on stack
+  int numberCheck=-1;
+  while(numberChanged>numberCheck) {
+
+    numberChanged = 0; // Bounds tightened this pass
+    
+    if (iPass==MAXPASS) break;
+    iPass++;
+    
+    for (iRow = 0; iRow < numberRows; iRow++) {
+
+      if ((rowLower[iRow]>-large||rowUpper[iRow]<large)&&markRow[iRow]<0&&rowLength[iRow]>0) {
+
+	// possible row
+	int infiniteUpper = 0;
+	int infiniteLower = 0;
+	double maximumUp = 0.0;
+	double maximumDown = 0.0;
+	double newBound;
+	CoinBigIndex rStart = rowStart[iRow];
+	CoinBigIndex rEnd = rowStart[iRow]+rowLength[iRow];
+	CoinBigIndex j;
+	// Compute possible lower and upper ranges
+      
+	for (j = rStart; j < rEnd; ++j) {
+	  double value=element[j];
+	  iColumn = column[j];
+	  if (value > 0.0) {
+	    if (columnUpper[iColumn] >= large) {
+	      ++infiniteUpper;
+	    } else {
+	      maximumUp += columnUpper[iColumn] * value;
+	    }
+	    if (columnLower[iColumn] <= -large) {
+	      ++infiniteLower;
+	    } else {
+	      maximumDown += columnLower[iColumn] * value;
+	    }
+	  } else if (value<0.0) {
+	    if (columnUpper[iColumn] >= large) {
+	      ++infiniteLower;
+	    } else {
+	      maximumDown += columnUpper[iColumn] * value;
+	    }
+	    if (columnLower[iColumn] <= -large) {
+	      ++infiniteUpper;
+	    } else {
+	      maximumUp += columnLower[iColumn] * value;
+	    }
+	  }
+	}
+	// Build in a margin of error
+	maximumUp += 1.0e-8*fabs(maximumUp);
+	maximumDown -= 1.0e-8*fabs(maximumDown);
+	double maxUp = maximumUp+infiniteUpper*1.0e31;
+	double maxDown = maximumDown-infiniteLower*1.0e31;
+	if (maxUp <= rowUpper[iRow] + tolerance && 
+	    maxDown >= rowLower[iRow] - tolerance) {
+	  
+	} else {
+	  if (maxUp < rowLower[iRow] -100.0*tolerance ||
+	      maxDown > rowUpper[iRow]+100.0*tolerance) {
+	    // problem is infeasible - exit at once
+	    numberInfeasible++;
+	    prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
+					    prob->messages())
+					      <<iRow
+					      <<rowLower[iRow]
+					      <<rowUpper[iRow]
+					      <<CoinMessageEol;
+	    break;
+	  }
+	  double lower = rowLower[iRow];
+	  double upper = rowUpper[iRow];
+	  for (j = rStart; j < rEnd; ++j) {
+	    double value=element[j];
+	    iColumn = column[j];
+	    double nowLower = columnLower[iColumn];
+	    double nowUpper = columnUpper[iColumn];
+	    if (value > 0.0) {
+	      // positive value
+	      if (lower>-large) {
+		if (!infiniteUpper) {
+		  assert(nowUpper < large2);
+		  newBound = nowUpper + 
+		    (lower - maximumUp) / value;
+		  // relax if original was large
+		  if (fabs(maximumUp)>1.0e8)
+		    newBound -= 1.0e-12*fabs(maximumUp);
+		} else if (infiniteUpper==1&&nowUpper>large) {
+		  newBound = (lower -maximumUp) / value;
+		  // relax if original was large
+		  if (fabs(maximumUp)>1.0e8)
+		    newBound -= 1.0e-12*fabs(maximumUp);
+		} else {
+		  newBound = -COIN_DBL_MAX;
+		}
+		if (newBound > nowLower + 1.0e-12&&newBound>-large) {
+		  // Tighten the lower bound 
+		  columnLower[iColumn] = newBound;
+		  markRow[iRow]=1;
+		  numberChanged++;
+		  // check infeasible (relaxed)
+		  if (nowUpper - newBound < 
+		      -100.0*tolerance) {
+		    numberInfeasible++;
+		  }
+		  // adjust
+		  double now;
+		  if (nowLower<-large) {
+		    now=0.0;
+		    infiniteLower--;
+		  } else {
+		    now = nowLower;
+		  }
+		  maximumDown += (newBound-now) * value;
+		  nowLower = newBound;
+		}
+	      } 
+	      if (upper <large) {
+		if (!infiniteLower) {
+		  assert(nowLower >- large2);
+		  newBound = nowLower + 
+		    (upper - maximumDown) / value;
+		  // relax if original was large
+		  if (fabs(maximumDown)>1.0e8)
+		    newBound += 1.0e-12*fabs(maximumDown);
+		} else if (infiniteLower==1&&nowLower<-large) {
+		  newBound =   (upper - maximumDown) / value;
+		  // relax if original was large
+		  if (fabs(maximumDown)>1.0e8)
+		    newBound += 1.0e-12*fabs(maximumDown);
+		} else {
+		  newBound = COIN_DBL_MAX;
+		}
+		if (newBound < nowUpper - 1.0e-12&&newBound<large) {
+		  // Tighten the upper bound 
+		  columnUpper[iColumn] = newBound;
+		  markRow[iRow]=1;
+		  numberChanged++;
+		  // check infeasible (relaxed)
+		  if (newBound - nowLower < 
+		      -100.0*tolerance) {
+		    numberInfeasible++;
+		  }
+		  // adjust 
+		  double now;
+		  if (nowUpper>large) {
+		    now=0.0;
+		    infiniteUpper--;
+		  } else {
+		    now = nowUpper;
+		  }
+		  maximumUp += (newBound-now) * value;
+		  nowUpper = newBound;
+		}
+	      }
+	    } else {
+	      // negative value
+	      if (lower>-large) {
+		if (!infiniteUpper) {
+		  assert(nowLower < large2);
+		  newBound = nowLower + 
+		    (lower - maximumUp) / value;
+		  // relax if original was large
+		  if (fabs(maximumUp)>1.0e8)
+		    newBound += 1.0e-12*fabs(maximumUp);
+		} else if (infiniteUpper==1&&nowLower<-large) {
+		  newBound = (lower -maximumUp) / value;
+		  // relax if original was large
+		  if (fabs(maximumUp)>1.0e8)
+		    newBound += 1.0e-12*fabs(maximumUp);
+		} else {
+		  newBound = COIN_DBL_MAX;
+		}
+		if (newBound < nowUpper - 1.0e-12&&newBound<large) {
+		  // Tighten the upper bound 
+		  columnUpper[iColumn] = newBound;
+		  markRow[iRow]=1;
+		  numberChanged++;
+		  // check infeasible (relaxed)
+		  if (newBound - nowLower < 
+		      -100.0*tolerance) {
+		    numberInfeasible++;
+		  }
+		  // adjust
+		  double now;
+		  if (nowUpper>large) {
+		    now=0.0;
+		    infiniteLower--;
+		  } else {
+		    now = nowUpper;
+		  }
+		  maximumDown += (newBound-now) * value;
+		  nowUpper = newBound;
+		}
+	      }
+	      if (upper <large) {
+		if (!infiniteLower) {
+		  assert(nowUpper < large2);
+		  newBound = nowUpper + 
+		    (upper - maximumDown) / value;
+		  // relax if original was large
+		  if (fabs(maximumDown)>1.0e8)
+		    newBound -= 1.0e-12*fabs(maximumDown);
+		} else if (infiniteLower==1&&nowUpper>large) {
+		  newBound =   (upper - maximumDown) / value;
+		  // relax if original was large
+		  if (fabs(maximumDown)>1.0e8)
+		    newBound -= 1.0e-12*fabs(maximumDown);
+		} else {
+		  newBound = -COIN_DBL_MAX;
+		}
+		if (newBound > nowLower + 1.0e-12&&newBound>-large) {
+		  // Tighten the lower bound 
+		  columnLower[iColumn] = newBound;
+		  markRow[iRow]=1;
+		  numberChanged++;
+		  // check infeasible (relaxed)
+		  if (nowUpper - newBound < 
+		      -100.0*tolerance) {
+		    numberInfeasible++;
+		  }
+		  // adjust
+		  double now;
+		  if (nowLower<-large) {
+		    now=0.0;
+		    infiniteUpper--;
+		  } else {
+		    now = nowLower;
+		  }
+		  maximumUp += (newBound-now) * value;
+		  nowLower = newBound;
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    }
+    totalTightened += numberChanged;
+    if (iPass==1)
+      numberCheck=numberChanged>>4;
+    if (numberInfeasible) break;
+  }
+  if (!numberInfeasible) {
+    for (iRow = 0; iRow < numberRows; iRow++) {
+      
+      if ((rowLower[iRow]>-large||rowUpper[iRow]<large)&&markRow[iRow]<0&&rowLength[iRow]>0) {
+	
+	// possible row
+	int infiniteUpper = 0;
+	int infiniteLower = 0;
+	double maximumUp = 0.0;
+	double maximumDown = 0.0;
+	CoinBigIndex rStart = rowStart[iRow];
+	CoinBigIndex rEnd = rowStart[iRow]+rowLength[iRow];
+	CoinBigIndex j;
+	// Compute possible lower and upper ranges
+	
+	for (j = rStart; j < rEnd; ++j) {
+	  double value=element[j];
+	  iColumn = column[j];
+	  if (value > 0.0) {
+	    if (columnUpper[iColumn] >= large) {
+	      ++infiniteUpper;
+	    } else {
+	      maximumUp += columnUpper[iColumn] * value;
+	    }
+	    if (columnLower[iColumn] <= -large) {
+	      ++infiniteLower;
+	    } else {
+	      maximumDown += columnLower[iColumn] * value;
+	    }
+	  } else if (value<0.0) {
+	    if (columnUpper[iColumn] >= large) {
+	      ++infiniteLower;
+	    } else {
+	      maximumDown += columnUpper[iColumn] * value;
+	    }
+	    if (columnLower[iColumn] <= -large) {
+	      ++infiniteUpper;
+	    } else {
+	      maximumUp += columnLower[iColumn] * value;
+	    }
+	  }
+	}
+	// Build in a margin of error
+	maximumUp += 1.0e-8*fabs(maximumUp);
+	maximumDown -= 1.0e-8*fabs(maximumDown);
+	double maxUp = maximumUp+infiniteUpper*1.0e31;
+	double maxDown = maximumDown-infiniteLower*1.0e31;
+	if (maxUp <= rowUpper[iRow] + tolerance && 
+	    maxDown >= rowLower[iRow] - tolerance) {
+	  
+	  // Row is redundant - make totally free
+	  rowLower[iRow]=-COIN_DBL_MAX;
+	  rowUpper[iRow]=COIN_DBL_MAX;
+	  prob->addRow(iRow);
+	  
+	}
+      }
+    }
+  }
+  delete [] columnLower;
+  delete [] columnUpper;
+  delete [] markRow;
+    return (numberInfeasible);
+}
 
 // If there is a row with a singleton column such that no matter what
 // the values of the other variables are, the constraint forces the singleton
@@ -73,7 +420,14 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   const char *integerType = prob->integerType_;
 
   const double tol = prob->feasibilityTolerance_;
-
+#if 1  
+  // This needs to be made faster
+  if (testRedundant(prob)) {
+    // infeasible
+    prob->status_|= 1;
+    return (next);
+  }
+#endif
   //  int nbounds = 0;
 
   action *actions	= new action [ncols];
