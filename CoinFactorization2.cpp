@@ -73,7 +73,9 @@ CoinFactorization::factorSparse (  )
       if ( count == 1 && firstCount_[1] >= 0 ) {
 	//do column singletons first to put more in U
 	while ( look >= 0 ) {
-	  if ( look >= numberRows_ ) {
+	  if ( look < numberRows_ ) {
+	    look = nextCount_[look];
+	  } else {
 	    int iColumn = look - numberRows_;
 
 #if COIN_DEBUG
@@ -91,8 +93,6 @@ CoinFactorization::factorSparse (  )
 	    stopping = true;
 	    look = -1;
 	    break;
-	  } else {
-	    look = nextCount_[look];
 	  }
 	}			/* endwhile */
 	if ( !stopping ) {
