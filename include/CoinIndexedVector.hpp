@@ -110,6 +110,9 @@ public:
    /// For very temporary use when user needs to borrow a dense vector
   inline void setDenseVector(double * array)
   { elements_ = array;};
+   /// For very temporary use when user needs to borrow an index vector
+  inline void setIndexVector(int * array)
+  { indices_ = array;};
    /** Access the i'th element of the full storage vector.
    */
    double & operator[](int i) const; 
