@@ -1919,7 +1919,7 @@ convertDouble(int formatType, double value, char outputValue[20],
 	power10 =(int) log10(value);
 	if (power10<9&&power10>-4) {
 	  decimal = min(10,10-power10);
-	  char format[7];
+	  char format[8];
 	  sprintf(format,"%%12.%df",decimal);
 	  sprintf(outputValue,format,value);
 	} else {
@@ -1930,7 +1930,7 @@ convertDouble(int formatType, double value, char outputValue[20],
 	power10 =(int) log10(-value)+1;
 	if (power10<8&&power10>-3) {
 	  decimal = min(9,9-power10);
-	  char format[7];
+	  char format[8];
 	  sprintf(format,"%%12.%df",decimal);
 	  sprintf(outputValue,format,value);
 	} else {
