@@ -513,13 +513,16 @@ protected:
 
   /** Updates part of column transpose (BTRANU),
       assumes index is sorted i.e. region is correct */
-  void updateColumnTransposeU ( CoinIndexedVector * region) const;
+  void updateColumnTransposeU ( CoinIndexedVector * region,
+				int smallestIndex) const;
   /** Updates part of column transpose (BTRANU) when sparsish,
       assumes index is sorted i.e. region is correct */
-  void updateColumnTransposeUSparsish ( CoinIndexedVector * region) const;
+  void updateColumnTransposeUSparsish ( CoinIndexedVector * region,
+					int smallestIndex) const;
   /** Updates part of column transpose (BTRANU) when densish,
       assumes index is sorted i.e. region is correct */
-  void updateColumnTransposeUDensish ( CoinIndexedVector * region) const;
+  void updateColumnTransposeUDensish ( CoinIndexedVector * region,
+				       int smallestIndex) const;
   /** Updates part of column transpose (BTRANU) when sparse,
       assumes index is sorted i.e. region is correct */
   void updateColumnTransposeUSparse ( CoinIndexedVector * region) const;

@@ -888,6 +888,8 @@ CoinFactorization::updateColumnTransposeRSparse
 void
 CoinFactorization::updateColumnTransposeR ( CoinIndexedVector * regionSparse ) const
 {
+  if (numberRowsExtra_==numberRows_)
+    return;
   int numberNonZero = regionSparse->getNumElements (  );
 
   if (numberNonZero) {
