@@ -28,29 +28,29 @@
 
   was stored by rows (with no extra space) in 
   CoinPackedMatrix r then: 
-    r.elements() returns a vector containing: 
+    r.getElements() returns a vector containing: 
       3 1 -2 -1 -1 2 1.1 1 1 2.8 -1.2 5.6 1 1.9 
-    r.indices() returns a vector containing: 
+    r.getIndices() returns a vector containing: 
       0 1  3  4  7 1 2   2 5 3    6   0   4 7 
-    r.vectorStarts() returns a vector containing: 
+    r.getVectorStarts() returns a vector containing: 
       0 5 7 9 11 14 
-    r.size() returns 14. 
-    r.majorDim() returns 5. 
-    r.vectorSize(0) returns 5. 
-    r.vectorSize(1) returns 2. 
-    r.vectorSize(2) returns 2. 
-    r.vectorSize(3) returns 2. 
-    r.vectorSize(4) returns 3. 
+    r.getNumElements() returns 14. 
+    r.getMajorDim() returns 5. 
+    r.getVectorSize(0) returns 5. 
+    r.getVectorSize(1) returns 2. 
+    r.getVectorSize(2) returns 2. 
+    r.getVectorSize(3) returns 2. 
+    r.getVectorSize(4) returns 3. 
  
   If stored by columns (with no extra space) then: 
-    c.elements() returns a vector containing: 
+    c.getElements() returns a vector containing: 
       3 5.6 1 2 1.1 1 -2 2.8 -1 1 1 -1.2 -1 1.9 
-    c.indices() returns a vector containing: 
+    c.getIndices() returns a vector containing: 
       0  4  0 1 1   2  0 3    0 4 2  3    0 4 
-    c.vectorStarts() returns a vector containing: 
+    c.getVectorStarts() returns a vector containing: 
       0 2 4 6 8 10 11 12 14 
-    c.size() returns 14. 
-    c.majorDim() returns 8. 
+    c.getNumElements() returns 14. 
+    c.getMajorDim() returns 8. 
   @endverbatim
 */
 class CoinPackedMatrix  {
