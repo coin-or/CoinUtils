@@ -19,18 +19,21 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinMpsIO.hpp"
-
+void CoinModelUnitTest(const std::string & mpsDir,
+                       const std::string & netlibDir, const std::string & testModel);
 // Function Prototypes. Function definitions is in this file.
 void testingMessage( const char * const msg );
 
 //----------------------------------------------------------------
-// unitTest [-mpsDir=V1] [-netlibDir=V2]
+// unitTest [-mpsDir=V1] [-netlibDir=V2] [-testModel=V3]
 // 
 // where:
 //   -mpsDir: directory containing mps test files
 //       Default value V1="../Mps/Sample"    
 //   -netlibDir: directory containing netlib files
 //       Default value V2="../Mps/Netlib"
+//   -testModel: name of model in netlibdir for testing CoinModel
+//       Default value V3="25fv47.mps"
 //
 // All parameters are optional.
 //----------------------------------------------------------------
@@ -43,8 +46,10 @@ int main (int argc, const char *argv[])
   std::set<std::string> definedKeyWords;
   definedKeyWords.insert("-mpsDir");
   definedKeyWords.insert("-netlibDir");
+  // allow for large named model for CoinModel
+  definedKeyWords.insert("-testModel");
 
-  // Create a map of parmater keys and associated data
+  // Create a map of parameter keys and associated data
   std::map<std::string,std::string> parms;
   for ( i=1; i<argc; i++ ) {
     std::string parm(argv[i]);
@@ -67,12 +72,14 @@ int main (int argc, const char *argv[])
       // Write help text
       std::cerr <<"Undefined parameter \"" <<key <<"\".\n";
       std::cerr <<"Correct usage: \n";
-      std::cerr <<"  unitTest [-mpsDir=V1] [-netlibDir=V2]\n";
+      std::cerr <<"  unitTest [-mpsDir=V1] [-netlibDir=V2] [-testModel=V3]\n";
       std::cerr <<"  where:\n";
       std::cerr <<"    -mpsDir: directory containing mps test files\n";
       std::cerr <<"        Default value V1=\"../Mps/Sample\"\n";
       std::cerr <<"    -netlibDir: directory containing netlib files\n";
       std::cerr <<"        Default value V2=\"../Mps/Netlib\"\n";
+      std::cerr <<"    -testModel: name of model in netlibdir for testing CoinModel\n";
+      std::cerr <<"        Default value V3=\"25fv47.mps\"\n";
       return 1;
     }
     parms[key]=value;
@@ -93,11 +100,21 @@ int main (int argc, const char *argv[])
   else 
     netlibDir = dirsep == '/' ? "../Mps/Netlib/" : "..\\Mps\\Netlib\\";
 
+  // Set directory containing netlib data files.
+  std::string testModel;
+  if (parms.find("-testModel") != parms.end())
+    testModel=parms["-testModel"] ;
+  else 
+    testModel = "25fv47.mps";
+
   // *FIXME* : these tests should be written... 
   //  testingMessage( "Testing CoinHelperFunctions\n" );
   //  CoinHelperFunctionsUnitTest();
   //  testingMessage( "Testing CoinSort\n" );
   //  tripleCompareUnitTest();
+
+  testingMessage( "Testing CoinModel\n" );
+  CoinModelUnitTest(mpsDir,netlibDir,testModel);
 
   testingMessage( "Testing CoinError\n" );
   CoinErrorUnitTest();

@@ -22,6 +22,7 @@ TESTSRC :=
 TESTSRC += CoinDenseVectorTest.cpp
 TESTSRC += CoinIndexedVectorTest.cpp
 TESTSRC += CoinMpsIOTest.cpp
+TESTSRC += CoinModelTest.cpp
 TESTSRC += CoinPackedMatrixTest.cpp
 TESTSRC += CoinPackedVectorTest.cpp
 TESTSRC += CoinShallowPackedVectorTest.cpp
@@ -32,7 +33,9 @@ TESTSRC += unitTest.cpp
 # You should not need to edit below this line.
 ##############################################################################
 
-CXXFLAGS += $(OPTFLAG)
+CXXFLAGS += $(OPTFLAG) 
+# Pick up any include files in Test
+CXXFLAGS += -I.
 ifeq ($(OptLevel),-g)
     CXXFLAGS += -DCOIN_DEBUG
 endif
@@ -58,6 +61,7 @@ LIBS    := ${LibName}
 LDFLAGS := $(addprefix -L,$(LIBDIRS))
 LDFLAGS += $(call ifprefix,$(SHLINKPREFIX),$(LIBDIRS))
 LDFLAGS += $(patsubst lib%,-l%,$(basename $(LIBS)))
+#LDFLAGS += -lefence
 
 ###############################################################################
 
