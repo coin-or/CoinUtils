@@ -387,7 +387,6 @@ public:
   int replaceRow ( CoinBigIndex numberElements,
 		      int indicesColumn[], double elements[] );
   //@}
-
 protected:
 
   /**@name used by factorization */

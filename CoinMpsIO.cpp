@@ -2232,7 +2232,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    for (i=0;i<numberRows_;i++) {
       line = " ";
       if (sense[i]!='R') {
-	 line.push_back(sense[i]);
+	 line.append(1,sense[i]);
       } else {
 	 line.append("L");
       }

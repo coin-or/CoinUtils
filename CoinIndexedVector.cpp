@@ -47,9 +47,7 @@ CoinIndexedVector::operator=(const CoinIndexedVector & rhs)
 {
   if (this != &rhs) {
     clear();
-    gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_,
-      CoinPackedVectorBase::testForDuplicateIndex(),
-      "operator=");
+    gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
   }
   return *this;
 }
@@ -61,9 +59,7 @@ CoinIndexedVector::operator=(const CoinPackedVectorBase & rhs)
 {
   if (this != &rhs) {
     clear();
-    gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements(),
-      CoinPackedVectorBase::testForDuplicateIndex(),
-      "operator= from base");
+    gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements());
   }
   return *this;
 }
@@ -101,11 +97,10 @@ CoinIndexedVector::returnVector()
 //#############################################################################
 
 void
-CoinIndexedVector::setVector(int size, const int * inds, const double * elems,
-                            bool testForDuplicateIndex)
+CoinIndexedVector::setVector(int size, const int * inds, const double * elems)
 {
   clear();
-  gutsOfSetVector(size, inds, elems, testForDuplicateIndex, "setVector");
+  gutsOfSetVector(size, inds, elems);
 }
 //#############################################################################
 
@@ -114,27 +109,24 @@ void
 CoinIndexedVector::setVector(int size, int numberIndices, const int * inds, const double * elems)
 {
   clear();
-  gutsOfSetVector(size, numberIndices, inds, elems, false, "setVector");
+  gutsOfSetVector(size, numberIndices, inds, elems);
 }
 //#############################################################################
 
 void
-CoinIndexedVector::setConstant(int size, const int * inds, double value,
-                              bool testForDuplicateIndex)
+CoinIndexedVector::setConstant(int size, const int * inds, double value)
 {
   clear();
-  gutsOfSetConstant(size, inds, value, testForDuplicateIndex, "setConstant");
+  gutsOfSetConstant(size, inds, value);
 }
 
 //#############################################################################
 
 void
-CoinIndexedVector::setFull(int size, const double * elems,
-                          bool testForDuplicateIndex) 
+CoinIndexedVector::setFull(int size, const double * elems)
 {
   // Clear out any values presently stored
   clear();
-  CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
   // and clear index set
   clearIndexSet();
   
@@ -338,7 +330,7 @@ CoinIndexedVector::append(const CoinPackedVectorBase & caboose)
   clearIndexSet();
   delete [] packedElements_;
   packedElements_=NULL;
-  if (numberDuplicates &&  testForDuplicateIndex())
+  if (numberDuplicates)
     throw CoinError("duplicate index", "append", "CoinIndexedVector");
 }
 
@@ -473,7 +465,7 @@ CoinIndexedVector::reserve(int n)
 
 //#############################################################################
 
-CoinIndexedVector::CoinIndexedVector (bool testForDuplicateIndex) :
+CoinIndexedVector::CoinIndexedVector () :
 CoinPackedVectorBase(),
 indices_(NULL),
 elements_(NULL),
@@ -481,32 +473,28 @@ nElements_(0),
 packedElements_(NULL),
 capacity_(0)
 {
-  // This won't fail, the indexed vector is empty. There can't be duplicate
-  // indices.
-  CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
+  setTestForDuplicateIndex(false);
 }
 
 //-----------------------------------------------------------------------------
 
 CoinIndexedVector::CoinIndexedVector(int size,
-                                   const int * inds, const double * elems,
-                                   bool testForDuplicateIndex) :
-CoinPackedVectorBase(),
-indices_(NULL),
-elements_(NULL),
-nElements_(0),
-packedElements_(NULL),
-capacity_(0)
+				     const int * inds, const double * elems)  :
+  CoinPackedVectorBase(),
+  indices_(NULL),
+  elements_(NULL),
+  nElements_(0),
+  packedElements_(NULL),
+  capacity_(0)
 {
-  gutsOfSetVector(size, inds, elems, testForDuplicateIndex,
-    "constructor for array value");
+  setTestForDuplicateIndex(false);
+  gutsOfSetVector(size, inds, elems);
 }
 
 //-----------------------------------------------------------------------------
 
 CoinIndexedVector::CoinIndexedVector(int size,
-                                   const int * inds, double value,
-                                   bool testForDuplicateIndex) :
+  const int * inds, double value) :
 CoinPackedVectorBase(),
 indices_(NULL),
 elements_(NULL),
@@ -514,14 +502,13 @@ nElements_(0),
 packedElements_(NULL),
 capacity_(0)
 {
-  gutsOfSetConstant(size, inds, value, testForDuplicateIndex,
-    "constructor for constant value");
+  setTestForDuplicateIndex(false);
+gutsOfSetConstant(size, inds, value);
 }
 
 //-----------------------------------------------------------------------------
 
-CoinIndexedVector::CoinIndexedVector(int size, const double * element,
-                                   bool testForDuplicateIndex) :
+CoinIndexedVector::CoinIndexedVector(int size, const double * element) :
 CoinPackedVectorBase(),
 indices_(NULL),
 elements_(NULL),
@@ -529,7 +516,8 @@ nElements_(0),
 packedElements_(NULL),
 capacity_(0)
 {
-  setFull(size, element, testForDuplicateIndex);
+  setTestForDuplicateIndex(false);
+  setFull(size, element);
 }
 
 //-----------------------------------------------------------------------------
@@ -542,8 +530,8 @@ nElements_(0),
 packedElements_(NULL),
 capacity_(0)
 {  
-  gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements(),
-    rhs.testForDuplicateIndex(), "copy constructor from base");
+  setTestForDuplicateIndex(false);
+  gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements());
 }
 
 //-----------------------------------------------------------------------------
@@ -556,8 +544,22 @@ nElements_(0),
 packedElements_(NULL),
 capacity_(0)
 {  
-  gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_,
-    rhs.testForDuplicateIndex(), "copy constructor");
+  setTestForDuplicateIndex(false);
+  gutsOfSetVector(rhs.capacity_,rhs.nElements_, rhs.indices_, rhs.elements_);
+}
+
+//-----------------------------------------------------------------------------
+
+CoinIndexedVector::CoinIndexedVector(const CoinIndexedVector * rhs) :
+CoinPackedVectorBase(),
+indices_(NULL),
+elements_(NULL),
+nElements_(0),
+packedElements_(NULL),
+capacity_(0)
+{  
+  setTestForDuplicateIndex(false);
+  gutsOfSetVector(rhs->capacity_,rhs->nElements_, rhs->indices_, rhs->elements_);
 }
 
 //-----------------------------------------------------------------------------
@@ -811,17 +813,13 @@ CoinIndexedVector::sortDecrElement()
 
 void
 CoinIndexedVector::gutsOfSetVector(int size,
-                                  const int * inds, const double * elems,
-                                  bool testForDuplicateIndex,
-                                  const char * method) 
+				   const int * inds, const double * elems)
 {
-  // we are going to do a faster test for duplicates so test base class when empty
-  CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
   // and clear index set
   clearIndexSet();
   
   if (size<0)
-    throw CoinError("negative number of indices", method, "CoinIndexedVector");
+    throw CoinError("negative number of indices", "setVector", "CoinIndexedVector");
   
   // find largest
   int i;
@@ -829,7 +827,7 @@ CoinIndexedVector::gutsOfSetVector(int size,
   for (i=0;i<size;i++) {
     int indexValue = inds[i];
     if (indexValue<0)
-      throw CoinError("negative index", method, "CoinIndexedVector");
+      throw CoinError("negative index", "setVector", "CoinIndexedVector");
     if (maxIndex<indexValue)
       maxIndex = indexValue;
   }
@@ -869,7 +867,7 @@ CoinIndexedVector::gutsOfSetVector(int size,
       }
     }
   }
-  if (numberDuplicates &&  testForDuplicateIndex)
+  if (numberDuplicates)
     throw CoinError("duplicate index", "setVector", "CoinIndexedVector");
 }
 
@@ -877,19 +875,15 @@ CoinIndexedVector::gutsOfSetVector(int size,
 
 void
 CoinIndexedVector::gutsOfSetVector(int size, int numberIndices, 
-                                  const int * inds, const double * elems,
-                                  bool testForDuplicateIndex,
-                                  const char * method) 
+				   const int * inds, const double * elems)
 {
-  // we are not going to test for duplicates so test base class when empty
-  CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
   // and clear index set
   clearIndexSet();
   
   int i;
   reserve(size);
   if (numberIndices<0)
-    throw CoinError("negative number of indices", method, "CoinIndexedVector");
+    throw CoinError("negative number of indices", "setVector", "CoinIndexedVector");
   nElements_ = 0;
   // elements_ array is all zero
   bool needClean=false;
@@ -897,9 +891,9 @@ CoinIndexedVector::gutsOfSetVector(int size, int numberIndices,
   for (i=0;i<numberIndices;i++) {
     int indexValue=inds[i];
     if (indexValue<0) 
-      throw CoinError("negative index", method, "CoinIndexedVector");
+      throw CoinError("negative index", "setVector", "CoinIndexedVector");
     else if (indexValue>=size) 
-      throw CoinError("too large an index", method, "CoinIndexedVector");
+      throw CoinError("too large an index", "setVector", "CoinIndexedVector");
     if (elements_[indexValue]) {
       numberDuplicates++;
       elements_[indexValue] += elems[indexValue] ;
@@ -926,7 +920,7 @@ CoinIndexedVector::gutsOfSetVector(int size, int numberIndices,
       }
     }
   }
-  if (numberDuplicates &&  testForDuplicateIndex)
+  if (numberDuplicates)
     throw CoinError("duplicate index", "setVector", "CoinIndexedVector");
 }
 
@@ -934,19 +928,14 @@ CoinIndexedVector::gutsOfSetVector(int size, int numberIndices,
 
 void
 CoinIndexedVector::gutsOfSetConstant(int size,
-                                    const int * inds, double value,
-                                    bool testForDuplicateIndex,
-                                    const char * method) 
+				     const int * inds, double value)
 {
 
-  // we are going to do a faster test for duplicates so test base class
-  // when empty
-  CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
   // and clear index set
   clearIndexSet();
   
   if (size<0)
-    throw CoinError("negative number of indices", method, "CoinIndexedVector");
+    throw CoinError("negative number of indices", "setConstant", "CoinIndexedVector");
   
   // find largest
   int i;
@@ -954,7 +943,7 @@ CoinIndexedVector::gutsOfSetConstant(int size,
   for (i=0;i<size;i++) {
     int indexValue = inds[i];
     if (indexValue<0)
-      throw CoinError("negative index", method, "CoinIndexedVector");
+      throw CoinError("negative index", "setConstant", "CoinIndexedVector");
     if (maxIndex<indexValue)
       maxIndex = indexValue;
   }
@@ -995,7 +984,7 @@ CoinIndexedVector::gutsOfSetConstant(int size,
       }
     }
   }
-  if (numberDuplicates &&  testForDuplicateIndex)
+  if (numberDuplicates)
     throw CoinError("duplicate index", "setConstant", "CoinIndexedVector");
 }
 

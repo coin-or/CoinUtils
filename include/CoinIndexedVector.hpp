@@ -25,6 +25,8 @@ Supports sorting of indices.
 
 Does not support negative indices.
 
+Does NOT support testing for duplicates
+
 For a packed vector getElements is fast and [] is very slow.  Here it is other way round
 although getElements is not too bad if used as double * elements = getElements and then used.
 
@@ -133,22 +135,14 @@ public:
    void clear();
    /// Reset the vector (as if were just created an empty vector)
    void empty();
-   /** Assignment operator. <br>
-       <strong>NOTE</strong>: This operator keeps the current
-       <code>testForDuplicateIndex</code> setting, and affter copying the data
-       it acts accordingly. */
+   /** Assignment operator. */
    CoinIndexedVector & operator=(const CoinIndexedVector &);
    /** Assignment operator <em>for a PackedVectorBase</em>. <br>
-       <strong>NOTE</strong>: This operator keeps the current
-       <code>testForDuplicateIndex</code> setting, and affter copying the data
-       it acts accordingly. */
+   <strong>NOTE</strong>: This assumes no duplicates */
    CoinIndexedVector & operator=(const CoinPackedVectorBase & rhs);
 
    /** Borrow ownership of the arguments to this vector.
-       Size is the length of the unpacked elements vector.
-       The last argument indicates whether this vector will have
-       to be tested for duplicate indices.
-   */
+       Size is the length of the unpacked elements vector. */
   void borrowVector(int size, int numberIndices, int* inds, double* elems);
 
    /** Return ownership of the arguments to this vector.
@@ -159,10 +153,8 @@ public:
    /** Set vector numberIndices, indices, and elements.
        NumberIndices is the length of both the indices and elements vectors.
        The indices and elements vectors are copied into this class instance's
-       member data. The last argument specifies whether this vector will have
-       to be checked for duplicate indices whenever that can happen. */
-   void setVector(int numberIndices, const int * inds, const double * elems,
-		  bool testForDuplicateIndex = true) ;
+       member data. Assumed to have no duplicates */
+  void setVector(int numberIndices, const int * inds, const double * elems);
   
    /** Set vector size, indices, and elements.
        Size is the length of the unpacked elements vector.
@@ -171,12 +163,10 @@ public:
    void setVector(int size, int numberIndices, const int * inds, const double * elems);
   
    /** Elements set to have the same scalar value */
-   void setConstant(int size, const int * inds, double elems,
-		    bool testForDuplicateIndex = true);
+  void setConstant(int size, const int * inds, double elems);
   
    /** Indices are not specified and are taken to be 0,1,...,size-1 */
-   void setFull(int size, const double * elems,
-		bool testForDuplicateIndex = true);
+  void setFull(int size, const double * elems);
 
    /** Set an existing element in the indexed vector
        The first argument is the "index" into the elements() array
@@ -307,19 +297,18 @@ CoinIndexedVector operator/(
    /**@name Constructors and destructors */
    //@{
    /** Default constructor */
-   CoinIndexedVector(bool testForDuplicateIndex = true);
+   CoinIndexedVector();
    /** Alternate Constructors - set elements to vector of doubles */
-   CoinIndexedVector(int size, const int * inds, const double * elems,
-		   bool testForDuplicateIndex = true);
+  CoinIndexedVector(int size, const int * inds, const double * elems);
    /** Alternate Constructors - set elements to same scalar value */
-   CoinIndexedVector(int size, const int * inds, double element,
-		   bool testForDuplicateIndex = true);
+  CoinIndexedVector(int size, const int * inds, double element);
    /** Alternate Constructors - construct full storage with indices 0 through
        size-1. */
-   CoinIndexedVector(int size, const double * elements,
-		   bool testForDuplicateIndex = true);
+  CoinIndexedVector(int size, const double * elements);
    /** Copy constructor. */
    CoinIndexedVector(const CoinIndexedVector &);
+   /** Copy constructor.2 */
+   CoinIndexedVector(const CoinIndexedVector *);
    /** Copy constructor <em>from a PackedVectorBase</em>. */
    CoinIndexedVector(const CoinPackedVectorBase & rhs);
    /** Destructor */
@@ -331,18 +320,12 @@ private:
    //@{  
    /// Copy internal date
    void gutsOfSetVector(int size,
-			const int * inds, const double * elems,
-			bool testForDuplicateIndex,
-			const char * method);
+			const int * inds, const double * elems);
    void gutsOfSetVector(int size, int numberIndices,
-			const int * inds, const double * elems,
-			bool testForDuplicateIndex,
-			const char * method);
+			const int * inds, const double * elems);
    ///
    void gutsOfSetConstant(int size,
-			  const int * inds, double value,
-			  bool testForDuplicateIndex,
-			  const char * method);
+			  const int * inds, double value);
    //@}
 
 private:

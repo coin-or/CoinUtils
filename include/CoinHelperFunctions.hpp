@@ -85,7 +85,7 @@ CoinCopy(register const T* first, register const T* last, register T* to)
 template <class T> inline void
 CoinDisjointCopyN(register const T* from, const int size, register T* to)
 {
-#if 1
+#ifndef _MSC_VER
    if (size == 0 || from == to)
       return;
 
