@@ -1127,7 +1127,8 @@ int CoinMpsIO::readMps(const char * filename,  const char * extension)
   free(fileName_);
   if (strcmp(filename,"stdin")&&strcmp(filename,"-")) {
     std::string e(extension);
-    if (f.find('.')<=0&&strlen(extension)) 
+    const size_t dotpos = f.find('.');
+    if (0 <= dotpos && dotpos < f.length() && strlen(extension)) 
       fullname = f + "." + e;
     else
       fullname = f;
