@@ -3220,6 +3220,11 @@ CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
 	      colnames, rownames);
 }
 
+void
+CoinMpsIO::setProblemName (const char *name)
+{ free(problemName_) ;
+  problemName_ = strdup(name) ; }
+
 
 //------------------------------------------------------------------
 // Return true if column is a continuous, binary, ...

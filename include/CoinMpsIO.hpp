@@ -467,6 +467,10 @@ public:
 	May be extended at a later date.
     */
     void copyInIntegerInformation(const char * integerInformation);
+
+    /// Set problem name
+    void setProblemName(const char *name) ;
+
 //@}
 
 /** @name Parameter set/get methods
@@ -561,7 +565,7 @@ public:
 	<ul>
 	  <li> 0: normal precision (default)
 	  <li> 1: extra accuracy
-	  <li> 2: IEEE hex (TODO)
+	  <li> 2: IEEE hex
 	</ul>
 
 	\param numberAcross specifies whether 1 or 2 (default) values should be
