@@ -1281,7 +1281,7 @@ CoinPackedMatrix::deleteMinorVectors(const int numDel,
      size_ = 0;
      // Get rid of as much memory as possible
      memset(length_,0,majorDim_*sizeof(int));
-     memset(start_,0,(majorDim_+1)*sizeof(int));
+     memset(start_,0,(majorDim_+1)*sizeof(CoinBigIndex ));
      delete [] element_;
      element_=NULL;
      delete [] index_;
