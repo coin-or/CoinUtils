@@ -74,6 +74,7 @@ const remove_fixed_action*
   int * rows_action = new int[size];
   actions[nfcols].start=size;
   size=0;
+  
   /*
     Open a loop to excise each column a<j>. The first thing to do is load the
     action entry with the index j, the value of x<j>, and the number of
@@ -124,13 +125,15 @@ const remove_fixed_action*
 
       presolve_delete_from_row(row,j,mrstrt,hinrow,hcol,rowels);
 
-      // mark
-      prob->addRow(row);
-      CoinBigIndex krs = mrstrt[row];
-      CoinBigIndex kre = krs + hinrow[row];
-      for (CoinBigIndex k=krs; k<kre; k++) {
-	int jcol = hcol[k];
-	prob->addCol(jcol);
+      // mark unless already marked
+      if (!prob->rowChanged(row)) {
+	prob->addRow(row);
+	CoinBigIndex krs = mrstrt[row];
+	CoinBigIndex kre = krs + hinrow[row];
+	for (CoinBigIndex k=krs; k<kre; k++) {
+	  int jcol = hcol[k];
+	  prob->addCol(jcol);
+	}
       }
 /*
   Remove the column's link from the linked list of columns, and declare
