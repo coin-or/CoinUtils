@@ -260,6 +260,7 @@ CoinPrePostsolveMatrix::~CoinPrePostsolveMatrix()
   delete[]rlo_;
   delete[]rup_;
   delete[]originalColumn_;
+  delete[]originalRow_;
   delete[]rowduals_;
 
   delete[]rcosts_;

@@ -266,6 +266,7 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
 
   unsigned char *rowstat	= prob->rowstat_;
   double *acts	= prob->acts_;
+  int * originalRow  = prob->originalRow_;
 
   //presolvehlink *rlink = prob->rlink_;
   
@@ -320,6 +321,7 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
 	// move down - we want to preserve order
 	rlo[nrows2]=rlo[i];
 	rup[nrows2]=rup[i];
+	originalRow[nrows2]=i;
 	if (acts) {
 	  acts[nrows2]=acts[i];
 	  rowstat[nrows2]=rowstat[i];

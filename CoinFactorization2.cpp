@@ -7,7 +7,7 @@
 #endif
 
 #include <cassert>
-
+#include <stdio.h>
 #include "CoinFactorization.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"

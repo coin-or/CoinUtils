@@ -191,6 +191,8 @@ class CoinPrePostsolveMatrix {
 
   // Original column numbers
   int * originalColumn_;
+  // Original row numbers
+  int * originalRow_;
 
   const double ztolzb_;
   const double ztoldj_;
