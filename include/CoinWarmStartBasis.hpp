@@ -35,13 +35,17 @@
 class CoinWarmStartBasis : public CoinWarmStart {
 public:
 
-  /** Status codes for variables
+  /*! \brief Enum for status of variables
+
+    Matches CoinPrePostsolveMatrix::Status, without superBasic. Most code that
+    converts between CoinPrePostsolveMatrix::Status and
+    CoinWarmStartBasis::Status will break if this correspondence is broken.
 
     The status vectors are currently packed using two bits per status code,
     four codes per byte. The location of the status information for
     variable \c i is in byte <code>i>>2</code> and occupies bits 0:1
     if <code>i%4 == 0</code>, bits 2:3 if <code>i%4 == 1</code>, etc.
-    The functions getStatus(const char*,int) and
+    The non-member functions getStatus(const char*,int) and
     setStatus(char*,int,CoinWarmStartBasis::Status) are provided to hide
     details of the packing.
   */
@@ -275,8 +279,8 @@ private:
 };
 
 
-/** Get the status of the specified variable in the given status array.
-    \relates CoinWarmStartBasis
+/*! \relates CoinWarmStartBasis
+    \brief Get the status of the specified variable in the given status array.
 */
 
 inline CoinWarmStartBasis::Status getStatus(const char *array, int i)  {
@@ -284,8 +288,8 @@ inline CoinWarmStartBasis::Status getStatus(const char *array, int i)  {
   return static_cast<CoinWarmStartBasis::Status>(st);
 }
 
-/** Set the status of the specified variable in the given status array.
-    \relates CoinWarmStartBasis
+/*! \relates CoinWarmStartBasis
+    \brief Set the status of the specified variable in the given status array.
 */
 
 inline void setStatus(char * array, int i, CoinWarmStartBasis::Status st) {
