@@ -41,6 +41,7 @@ LIBSRC += CoinPackedVector.cpp
 LIBSRC += CoinPackedVectorBase.cpp
 LIBSRC += CoinShallowPackedVector.cpp
 LIBSRC += CoinWarmStartBasis.cpp
+LIBSRC += CoinWarmStartDual.cpp
 LIBSRC += CoinPresolveMatrix.cpp
 LIBSRC += CoinPresolveDoubleton.cpp
 LIBSRC += CoinPresolveEmpty.cpp
