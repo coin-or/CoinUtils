@@ -581,7 +581,7 @@ CoinMessageHandler::operator<< (double doublevalue)
   return *this;
 }
 CoinMessageHandler & 
-CoinMessageHandler::operator<< (CoinBigIndex longvalue)
+CoinMessageHandler::operator<< (long longvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
@@ -604,6 +604,32 @@ CoinMessageHandler::operator<< (CoinBigIndex longvalue)
   }
   return *this;
 }
+#ifdef COIN_BIG_INDEX
+CoinMessageHandler & 
+CoinMessageHandler::operator<< (long long longvalue)
+{
+  if (printStatus_==3)
+    return *this; // not doing this message
+  longValue_[numberIntFields_++] = longvalue;
+  if (printStatus_<2) {
+    if (format_) {
+      //format is at % (but may be changed to null)
+      *format_='%';
+      char * next = nextPerCent(format_+1);
+      // could check
+      if (!printStatus_) {
+	sprintf(messageOut_,format_,longvalue);
+	messageOut_+=strlen(messageOut_);
+      }
+      format_=next;
+    } else {
+      sprintf(messageOut_," %ld",longvalue);
+      messageOut_+=strlen(messageOut_);
+    } 
+  }
+  return *this;
+}
+#endif
 CoinMessageHandler & 
 CoinMessageHandler::operator<< (std::string stringvalue)
 {

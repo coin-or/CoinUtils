@@ -29,7 +29,7 @@ extern "C" {
 #ifndef COIN_BIG_INDEX
 typedef int CoinBigIndex;
 #else
-typedef long long CoinBigIndex;
+typedef long CoinBigIndex;
 #endif
 
 //=============================================================================

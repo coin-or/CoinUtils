@@ -272,7 +272,8 @@ public:
   char * nextPerCent(char * start , const bool initial=false);
   /// Adds into message
   CoinMessageHandler & operator<< (int intvalue);
-  CoinMessageHandler & operator<< (CoinBigIndex longvalue);
+  CoinMessageHandler & operator<< (long longvalue);
+  CoinMessageHandler & operator<< (long long longvalue);
   CoinMessageHandler & operator<< (double doublevalue);
   CoinMessageHandler & operator<< (std::string stringvalue);
   CoinMessageHandler & operator<< (char charvalue);
