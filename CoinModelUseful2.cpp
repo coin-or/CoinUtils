@@ -64,8 +64,9 @@
 #define FNCT 260
 #define NEG 261
 
-
 #include "CoinModel.hpp"
+#include "CoinHelperFunctions.hpp"
+
 
 /* Copy the first part of user declarations.  */
 
@@ -81,7 +82,7 @@ symrec *getsym ( symrec *symtable,char const *);
 #include <cassert>
 int yylex ( symrec * & symtable,const char * line, int * position, char * & symbuf, int & length,
              const double * associated, const CoinModelHash & string,
-            bool & error, double unsetValue);
+            int & error, double unsetValue);
 void yyerror (char const *);
 
 
@@ -443,7 +444,7 @@ do								\
     }								\
   else								\
     { 								\
-      yyerror ("syntax error: cannot back up");\
+      yyerror ("syntax error: cannot back up",error);\
       YYERROR;							\
     }								\
 while (0)
@@ -724,7 +725,7 @@ int yynerrs;
 `----------*/
 
 double yyparse ( symrec *& symtable, const char * line, char * & symbuf, int & length,
-                 const double * associated, const CoinModelHash & string, bool & error,
+                 const double * associated, const CoinModelHash & string, int & error,
                  double unsetValue)
 {
   
@@ -978,7 +979,7 @@ yyreduce:
   switch (yyn)
     {
         case 5:
-    { printf ("\t%.10g\n", yyvsp[-1].val);
+          { //printf ("\t%.10g\n", yyvsp[-1].val);
     return yyvsp[-1].val;}
     break;
 
@@ -1066,6 +1067,7 @@ yyerrlab:
   /* If not already recovering from an error, report this error.  */
   if (!yyerrstatus)
     {
+      error = CoinMax(error,2);
       ++yynerrs;
 #if YYERROR_VERBOSE
       yyn = yypact[yystate];
@@ -1300,7 +1302,8 @@ yyreturn:
      void
      yyerror (char const *s)
      {
-       printf ("%s\n", s);
+       // Put back if needed
+       //printf ("%s\n", s);
      }
      
      struct init
@@ -1317,6 +1320,8 @@ yyreturn:
        {"ln",   log},
        {"exp",  exp},
        {"sqrt", sqrt},
+       {"fabs", fabs},
+       {"abs", fabs},
        {NULL, 0}
      };
      
@@ -1344,12 +1349,20 @@ CoinModel::getDoubleFromString(CoinYacc & info,const char * string)
     init_table ( info.symtable);
     info.unsetValue=unsetValue();
   }
-  bool error=false;
+  int error=0;
   double value = yyparse ( info.symtable, string,info.symbuf,info.length,
                            associated_,string_,error,info.unsetValue);
-  printf("would return %g\n",value);
-  if (error)
+  if (error){
+    // 1 means strings found but unset value
+    // 2 syntax error
+    // 3 string not found
+    if (logLevel_>=1)
+      printf("string %s returns value %g and error-code %d\n",
+             string,value,error);
     value = info.unsetValue;
+  } else if (logLevel_>=2) {
+    printf("%s computes as %g\n",string,value);
+  }
   return value;
 }
 // Frees value memory
@@ -1365,7 +1378,7 @@ CoinModel::freeStringMemory(CoinYacc & info)
      int
      yylex ( symrec *&symtable, const char * line, int * position, char * & symbuf, int & length,
              const double * associated, const CoinModelHash & string,
-             bool & error, double unsetValue)
+             int & error, double unsetValue)
      {
        int c;
        int ipos=*position;
@@ -1441,13 +1454,13 @@ CoinModel::freeStringMemory(CoinYacc & info)
              double value;
              if (find>=0) {
                value = associated[find];
-               printf("symbol %s found with value of %g\n",symbuf,value);
+               //printf("symbol %s found with value of %g\n",symbuf,value);
                if (value==unsetValue)
-                 error=true;
+                 error=CoinMax(error,1);
              } else {
-               printf("unknown symbol %s\n",symbuf);
+               //printf("unknown symbol %s\n",symbuf);
                value=unsetValue;
-               error=true;
+               error=3;
              }
              s = putsym (symtable, symbuf, VAR);
              s->value.var=value;

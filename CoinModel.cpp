@@ -25,6 +25,7 @@ CoinModel::CoinModel ()
     numberQuadraticElements_(0),
     maximumQuadraticElements_(0),
     optimizationDirection_(1.0),
+    objectiveOffset_(0.0),
     rowLower_(NULL),
     rowUpper_(NULL),
     rowType_(NULL),
@@ -41,9 +42,11 @@ CoinModel::CoinModel ()
     sortSize_(0),
     sizeAssociated_(0),
     associated_(NULL),
+    logLevel_(0),
     type_(-1),
     links_(0)
 {
+  problemName_ = strdup("");
 }
 
 //-------------------------------------------------------------------
@@ -59,6 +62,7 @@ CoinModel::CoinModel (const CoinModel & rhs)
     numberQuadraticElements_(rhs.numberQuadraticElements_),
     maximumQuadraticElements_(rhs.maximumQuadraticElements_),
     optimizationDirection_(rhs.optimizationDirection_),
+    objectiveOffset_(rhs.objectiveOffset_),
     rowName_(rhs.rowName_),
     columnName_(rhs.columnName_),
     string_(rhs.string_),
@@ -70,9 +74,11 @@ CoinModel::CoinModel (const CoinModel & rhs)
     quadraticRowList_(rhs.quadraticRowList_),
     quadraticColumnList_(rhs.quadraticColumnList_),
     sizeAssociated_(rhs.sizeAssociated_),
+    logLevel_(rhs.logLevel_),
     type_(rhs.type_),
     links_(rhs.links_)
 {
+  problemName_ = strdup(rhs.problemName_);
   rowLower_ = CoinCopyOfArray(rhs.rowLower_,maximumRows_);
   rowUpper_ = CoinCopyOfArray(rhs.rowUpper_,maximumRows_);
   rowType_ = CoinCopyOfArray(rhs.rowType_,maximumRows_);
@@ -114,6 +120,7 @@ CoinModel::~CoinModel ()
   delete [] sortIndices_;
   delete [] sortElements_;
   delete [] associated_;
+  free(problemName_);
 }
 
 //----------------------------------------------------------------
@@ -137,6 +144,8 @@ CoinModel::operator=(const CoinModel& rhs)
     delete [] sortIndices_;
     delete [] sortElements_;
     delete [] associated_;
+    free(problemName_);
+    problemName_ = strdup(rhs.problemName_);
     numberRows_ = rhs.numberRows_;
     maximumRows_ = rhs.maximumRows_;
     numberColumns_ = rhs.numberColumns_;
@@ -146,6 +155,7 @@ CoinModel::operator=(const CoinModel& rhs)
     numberQuadraticElements_ = rhs.numberQuadraticElements_;
     maximumQuadraticElements_ = rhs.maximumQuadraticElements_;
     optimizationDirection_ = rhs.optimizationDirection_;
+    objectiveOffset_ = rhs.objectiveOffset_;
     sortSize_ = rhs.sortSize_;
     rowName_ = rhs.rowName_;
     columnName_ = rhs.columnName_;
@@ -158,6 +168,7 @@ CoinModel::operator=(const CoinModel& rhs)
     columnList_ = rhs.columnList_;
     sizeAssociated_= rhs.sizeAssociated_;
     type_ = rhs.type_;
+    logLevel_ = rhs.logLevel_;
     links_ = rhs.links_;
     rowLower_ = CoinCopyOfArray(rhs.rowLower_,maximumRows_);
     rowUpper_ = CoinCopyOfArray(rhs.rowUpper_,maximumRows_);
@@ -584,18 +595,21 @@ int
 CoinModel::associateElement(const char * stringValue, double value)
 {
   int position = string_.hash(stringValue);
-  if (position>=0) {
-    if (sizeAssociated_<=position) {
-      int newSize = (3*position)/2+100;
-      double * temp = new double[newSize];
-      memcpy(temp,associated_,sizeAssociated_*sizeof(double));
-      CoinFillN(temp+sizeAssociated_,newSize-sizeAssociated_,unsetValue());
-      delete [] associated_;
-      associated_ = temp;
-      sizeAssociated_=newSize;
-    }
-    associated_[position]=value;
+  if (position<0) {
+    // not there -add
+    position = addString(stringValue);
+    assert (position==string_.numberItems()-1);
   }
+  if (sizeAssociated_<=position) {
+    int newSize = (3*position)/2+100;
+    double * temp = new double[newSize];
+    memcpy(temp,associated_,sizeAssociated_*sizeof(double));
+    CoinFillN(temp+sizeAssociated_,newSize-sizeAssociated_,unsetValue());
+    delete [] associated_;
+    associated_ = temp;
+    sizeAssociated_=newSize;
+  }
+  associated_[position]=value;
   return position;
 }
 /* Sets rowLower (if row does not exist then
@@ -1336,7 +1350,6 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
                         double * & objective, int * & integerType,
                         double * & associated)
 {
-  int numberErrors=0;
   if (sizeAssociated_<string_.numberItems()) {
     int newSize = string_.numberItems();
     double * temp = new double[newSize];
@@ -1347,7 +1360,7 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
     sizeAssociated_=newSize;
   }
   associated = CoinCopyOfArray(associated_,sizeAssociated_);
-  numberErrors += computeAssociated(associated);
+  int numberErrors = computeAssociated(associated);
   // Fill in as much as possible
   rowLower = CoinCopyOfArray( rowLower_,numberRows_);
   rowUpper = CoinCopyOfArray( rowUpper_,numberRows_);
@@ -1358,8 +1371,6 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       double value = associated[position];
       if (value!=unsetValue()) {
         rowLower[iRow]=value;
-      } else {
-        numberErrors++;
       }
     }
     if ((rowType_[iRow]&2)!=0) {
@@ -1368,8 +1379,6 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       double value = associated[position];
       if (value!=unsetValue()) {
         rowUpper[iRow]=value;
-      } else {
-        numberErrors++;
       }
     }
   }
@@ -1384,8 +1393,6 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       double value = associated[position];
       if (value!=unsetValue()) {
         columnLower[iColumn]=value;
-      } else {
-        numberErrors++;
       }
     }
     if ((columnType_[iColumn]&2)!=0) {
@@ -1394,8 +1401,6 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       double value = associated[position];
       if (value!=unsetValue()) {
         columnUpper[iColumn]=value;
-      } else {
-        numberErrors++;
       }
     }
     if ((columnType_[iColumn]&4)!=0) {
@@ -1404,8 +1409,6 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       double value = associated[position];
       if (value!=unsetValue()) {
         objective[iColumn]=value;
-      } else {
-        numberErrors++;
       }
     }
     if ((columnType_[iColumn]&8)!=0) {
@@ -1414,8 +1417,6 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       double value = associated[position];
       if (value!=unsetValue()) {
         integerType[iColumn]=(int) value;
-      } else {
-        numberErrors++;
       }
     }
   }
@@ -1443,7 +1444,7 @@ CoinModel::writeMps(const char *filename, int compression,
                                  objective, integerType,associated);
   }
   CoinPackedMatrix matrix;
-  numberErrors = createPackedMatrix(matrix,associated);
+  createPackedMatrix(matrix,associated);
   char* integrality = new char[numberColumns_];
   bool hasInteger = false;
   for (int i = 0; i < numberColumns_; i++) {
@@ -1477,9 +1478,11 @@ CoinModel::writeMps(const char *filename, int compression,
     delete [] objective;
     delete [] integerType;
     delete [] associated;
-    if (numberErrors)
+    if (numberErrors&&logLevel_>0)
       printf("%d string elements had no values associated with them\n",numberErrors);
   }
+  writer.setObjectiveOffset(objectiveOffset_);
+  writer.setProblemName(problemName_);
   return writer.writeMps(filename, compression, formatType, numberAcross);
 }
 /* Check two models against each other.  Return nonzero if different.
@@ -1493,8 +1496,9 @@ CoinModel::differentModel(CoinModel & other, bool ignoreNames)
   int numberErrors2 = 0;
   int returnCode=0;
   if (numberRows_!=other.numberRows_||numberColumns_!=other.numberColumns_) {
-    printf("** Mismatch on size, this has %d rows, %d columns - other has %d rows, %d columns\n",
-           numberRows_,numberColumns_,other.numberRows_,other.numberColumns_);
+    if (logLevel_>0)
+      printf("** Mismatch on size, this has %d rows, %d columns - other has %d rows, %d columns\n",
+             numberRows_,numberColumns_,other.numberRows_,other.numberColumns_);
     returnCode=1000;
   }
   // Set arrays for normal use
@@ -1524,12 +1528,13 @@ CoinModel::differentModel(CoinModel & other, bool ignoreNames)
                                  objective2, integerType2,associated2);
   }
   CoinPackedMatrix matrix;
-  numberErrors += createPackedMatrix(matrix,associated);
+  createPackedMatrix(matrix,associated);
   CoinPackedMatrix matrix2;
-  numberErrors2 += other.createPackedMatrix(matrix2,associated2);
+  other.createPackedMatrix(matrix2,associated2);
   if (numberErrors||numberErrors2)
-    printf("** Errors when converting strings, %d on this, %d on other\n",
-           numberErrors,numberErrors2);
+    if (logLevel_>0)
+      printf("** Errors when converting strings, %d on this, %d on other\n",
+             numberErrors,numberErrors2);
   CoinRelFltEq tolerance;
   if (numberRows_==other.numberRows_) {
     bool checkNames = !ignoreNames;
@@ -1551,7 +1556,7 @@ CoinModel::differentModel(CoinModel & other, bool ignoreNames)
     }
     int n = numberDifferentL+numberDifferentU+numberDifferentN;
     returnCode+=n;
-    if (n) 
+    if (n&&logLevel_>0)
       printf("Row differences , %d lower, %d upper and %d names\n",
              numberDifferentL,numberDifferentU,numberDifferentN);
   }
@@ -1584,7 +1589,7 @@ CoinModel::differentModel(CoinModel & other, bool ignoreNames)
     int n = numberDifferentL+numberDifferentU+numberDifferentN;
     n+= numberDifferentO+numberDifferentI;
     returnCode+=n;
-    if (n) 
+    if (n&&logLevel_>0)
       printf("Column differences , %d lower, %d upper, %d objective, %d integer and %d names\n",
              numberDifferentL,numberDifferentU,numberDifferentO,
              numberDifferentI,numberDifferentN);
@@ -1594,6 +1599,7 @@ CoinModel::differentModel(CoinModel & other, bool ignoreNames)
       numberElements_==other.numberElements_) {
     if (!matrix.isEquivalent(matrix2,tolerance)) {
       returnCode+=100;
+    if (returnCode&&logLevel_>0)
       printf("Two matrices are not same\n");
     }
   }
@@ -2455,4 +2461,19 @@ CoinModel::createList(int type) const
     }
     links_ |= 2;
   }
+}
+void 
+CoinModel::setLogLevel(int value)
+{
+  if (value>=0&&value<3)
+    logLevel_=value;
+}
+void
+CoinModel::setProblemName (const char *name)
+{ 
+  free(problemName_) ;
+  if (name)
+    problemName_ = strdup(name) ;
+  else
+    problemName_ = strdup("");
 }

@@ -422,6 +422,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
   }
   delete [] dTriple;
   timeIt +=  CoinCpuTime()-time1;
+  model.setLogLevel(1);
   assert (!model.differentModel(baseModel,false));
 }
 //--------------------------------------------------------------------------
@@ -533,6 +534,7 @@ CoinModelUnitTest(const std::string & mpsDir,
       }
     }
     // check equal
+    model.setLogLevel(1);
     assert (!model.differentModel(temp,false));
   }
   // Try creating model with strings
@@ -544,7 +546,9 @@ CoinModelUnitTest(const std::string & mpsDir,
       if (value==-1.0)
         temp.setRowLower(i,"minusOne");
       else if (value==1.0)
-        temp.setRowLower(i,"plusOne");
+        temp.setRowLower(i,"sqrt(plusOne)");
+      else if (value==4.0)
+        temp.setRowLower(i,"abs(4*plusOne)");
       else
         temp.setRowLower(i,value);
     }
@@ -594,9 +598,11 @@ CoinModelUnitTest(const std::string & mpsDir,
     }
     temp.associateElement("minusOne",-1.0);
     temp.associateElement("plusOne",1.0);
+    temp.setProblemName("fromStrings");
     temp.writeMps("string.mps");
     
     // check equal
+    model.setLogLevel(1);
     assert (!model.differentModel(temp,false));
   }
   // Test with various ways of generating

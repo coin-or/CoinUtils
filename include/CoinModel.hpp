@@ -477,6 +477,24 @@ public:
   int row(const char * rowName) const;
   /// Column index from column name (-1 if no names or no match)
   int column(const char * columnName) const;
+  /** Returns the (constant) objective offset
+      This is the RHS entry for the objective row
+  */
+  inline double objectiveOffset() const
+  { return objectiveOffset_;};
+  /// Set objective offset
+  inline void setObjectiveOffset(double value)
+  { objectiveOffset_=value;};
+  /// Get print level 0 - off, 1 - errors, 2 - more
+  inline int logLevel() const
+  { return logLevel_;};
+  /// Set print level 0 - off, 1 - errors, 2 - more
+  void setLogLevel(int value);
+  /// Return the problem name
+  inline const char * getProblemName() const
+  { return problemName_;};
+  /// Set problem name
+  void setProblemName(const char *name) ;
   /// Returns type
   inline int type() const
   { return type_;};
@@ -490,14 +508,42 @@ public:
                    double * & columnLower, double * & columnUpper,
                    double * & objective, int * & integerType,
                    double * & associated);
+  /// Says if strings exist
+  inline bool stringsExist() const
+  { return string_.numberItems()!=0;};
+  /// Returns associated array
+  inline double * associatedArray() const
+  { return associated_;};
+  /// Return rowLower array
+  inline double * rowLowerArray() const
+  { return rowLower_;};
+  /// Return rowUpper array
+  inline double * rowUpperArray() const
+  { return rowUpper_;};
+  /// Return columnLower array
+  inline double * columnLowerArray() const
+  { return columnLower_;};
+  /// Return columnUpper array
+  inline double * columnUpperArray() const
+  { return columnUpper_;};
+  /// Return objective array
+  inline double * objectiveArray() const
+  { return objective_;};
+  /// Return integerType array
+  inline int * integerTypeArray() const
+  { return integerType_;};
+  /// Return row names array
+  inline const CoinModelHash * rowNames() const
+  { return &rowName_;};
+  /// Return column names array
+  inline const CoinModelHash * columnNames() const
+  { return &columnName_;};
    //@}
 
   /**@name Constructors, destructor */
    //@{
    /** Default constructor. */
    CoinModel();
-   /** Constructor with type 0==for addRow, 1== for addColumn. */
-   CoinModel(int type);
    /** Destructor */
    ~CoinModel();
    //@}
@@ -556,6 +602,10 @@ private:
   int maximumQuadraticElements_;
   /// Direction of optimization (1 - minimize, -1 - maximize, 0 - ignore
   double optimizationDirection_;
+  /// Objective offset to be passed on
+  double objectiveOffset_;
+  /// Problem name
+  char * problemName_;
   /// Row lower 
   double * rowLower_;
   /// Row upper 
@@ -616,6 +666,14 @@ private:
   int sizeAssociated_;
   /// Associated values
   double * associated_;
+  /** Print level.
+      I could have gone for full message handling but this should normally
+      be silent and lightweight.  I can always change.
+      0 - no output
+      1 - on errors
+      2 - more detailed
+  */
+  int logLevel_;
   /** Type of build -
       -1 unset,
       0 for row, 
