@@ -34,14 +34,14 @@ static Coin_message us_english[]=
   {COIN_PRESOLVE_ROWINFEAS,502,2,"Problem is infeasible due to row %d, %g %g"},
   {COIN_PRESOLVE_COLUMNBOUNDA,503,2,"Problem looks unbounded above due to column %d, %g %g"},
   {COIN_PRESOLVE_COLUMNBOUNDB,504,2,"Problem looks unbounded below due to column %d, %g %g"},
-  {COIN_PRESOLVE_NONOPTIMAL,505,1,"Problem not optimal, resolve after postsolve"},
+  {COIN_PRESOLVE_NONOPTIMAL,505,1,"Presolved problem not optimal, resolve after postsolve"},
   {COIN_PRESOLVE_STATS,506,1,"Presolve %d (%d) rows, %d (%d) columns and %d (%d) elements"},
   {COIN_PRESOLVE_INFEAS,507,0,"Presolve determined that the problem was infeasible with tolerance of %g"},
   {COIN_PRESOLVE_UNBOUND,508,0,"Presolve thinks problem is unbounded"},
   {COIN_PRESOLVE_INFEASUNBOUND,509,0,"Presolve thinks problem is infeasible AND unbounded???"},
   {COIN_PRESOLVE_INTEGERMODS,510,1,"Presolve is modifying %d integer bounds and re-presolving"},
-  {COIN_PRESOLVE_POSTSOLVE,511,0,"After Postsolve, objective %g, infeasibilities - dual %g (%d), primal %g (%d)"},
-  {COIN_PRESOLVE_NEEDS_CLEANING,512,0,"Presolved model was optimal, full model needs cleaning up"},
+  {COIN_PRESOLVE_POSTSOLVE,511,1,"After Postsolve, objective %g, infeasibilities - dual %g (%d), primal %g (%d)"},
+  {COIN_PRESOLVE_NEEDS_CLEANING,512,1,"Presolved model was optimal, full model needs cleaning up"},
   {COIN_DUMMY_END,999999,0,""}
 };
 // **** aiutami!

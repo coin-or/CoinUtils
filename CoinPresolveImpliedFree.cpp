@@ -232,6 +232,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		int infiniteLower=infiniteDown[row];
 		double maximumUp = maxUp[row];
 		double maximumDown = maxDown[row];
+		// Build in a margin of error
+		maximumUp += 1.0e-8*fabs(maximumUp);
+		maximumDown -= 1.0e-8*fabs(maximumDown);
 		if (value > 0.0) {
 		  // positive value
 		  if (lower>-large) {
@@ -239,8 +242,14 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		      assert(nowUpper < large);
 		      newBound = nowUpper + 
 			(lower - maximumUp) / value;
+		      // relax if original was large
+		      if (fabs(maximumUp)>1.0e8)
+			newBound -= 1.0e-12*fabs(maximumUp);
 		    } else if (infiniteUpper==1&&nowUpper>large) {
 		      newBound = (lower -maximumUp) / value;
+		      // relax if original was large
+		      if (fabs(maximumUp)>1.0e8)
+			newBound -= 1.0e-12*fabs(maximumUp);
 		    } else {
 		      newBound = -COIN_DBL_MAX;
 		    }
@@ -264,8 +273,14 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		      assert(nowLower >- large);
 		      newBound = nowLower + 
 			(upper - maximumDown) / value;
+		      // relax if original was large
+		      if (fabs(maximumDown)>1.0e8)
+			newBound += 1.0e-12*fabs(maximumDown);
 		    } else if (infiniteLower==1&&nowLower<-large) {
 		      newBound =   (upper - maximumDown) / value;
+		      // relax if original was large
+		      if (fabs(maximumDown)>1.0e8)
+			newBound += 1.0e-12*fabs(maximumDown);
 		    } else {
 		      newBound = COIN_DBL_MAX;
 		    }
@@ -291,8 +306,14 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		      assert(nowLower >- large);
 		      newBound = nowLower + 
 			(lower - maximumUp) / value;
+		      // relax if original was large
+		      if (fabs(maximumUp)>1.0e8)
+			newBound += 1.0e-12*fabs(maximumUp);
 		    } else if (infiniteUpper==1&&nowLower<-large) {
 		      newBound = (lower -maximumUp) / value;
+		      // relax if original was large
+		      if (fabs(maximumUp)>1.0e8)
+			newBound += 1.0e-12*fabs(maximumUp);
 		    } else {
 		      newBound = COIN_DBL_MAX;
 		    }
@@ -316,8 +337,14 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		      assert(nowUpper < large);
 		      newBound = nowUpper + 
 			(upper - maximumDown) / value;
+		      // relax if original was large
+		      if (fabs(maximumDown)>1.0e8)
+			newBound -= 1.0e-12*fabs(maximumDown);
 		    } else if (infiniteLower==1&&nowUpper>large) {
 		      newBound =   (upper - maximumDown) / value;
+		      // relax if original was large
+		      if (fabs(maximumDown)>1.0e8)
+			newBound -= 1.0e-12*fabs(maximumDown);
 		    } else {
 		      newBound = -COIN_DBL_MAX;
 		    }
