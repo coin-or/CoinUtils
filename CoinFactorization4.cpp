@@ -1147,9 +1147,14 @@ CoinFactorization::goSparse ( )
   delete []elementByRowL_;
   delete []startRowL_;
   delete []indexColumnL_;
-  elementByRowL_=new double[lengthAreaL_];
   startRowL_=new CoinBigIndex[numberRows_+1];
-  indexColumnL_=new int[lengthAreaL_];
+  if (lengthAreaL_) {
+    elementByRowL_=new double[lengthAreaL_];
+    indexColumnL_=new int[lengthAreaL_];
+  } else {
+    elementByRowL_=NULL;
+    indexColumnL_=NULL;
+  }
   // counts
   memset(startRowL_,0,numberRows_*sizeof(CoinBigIndex));
   int i;

@@ -124,7 +124,7 @@ static double osi_strtod(char * ptr, char ** output)
 //#############################################################################
 // sections
 const static char *section[] = {
-  "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ","QSECTION", " "
+  "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ","QSECTION", "CSECTION", " "
 };
 
 // what is allowed in each section - must line up with COINSectionType
@@ -134,7 +134,7 @@ const static COINMpsType startType[] = {
   COIN_BLANK_COLUMN, COIN_BLANK_COLUMN,
   COIN_UP_BOUND, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
-  COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE
+  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE
 };
 const static COINMpsType endType[] = {
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
@@ -142,7 +142,7 @@ const static COINMpsType endType[] = {
   COIN_S1_COLUMN, COIN_S1_COLUMN,
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
-  COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE
+  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE
 };
 const static int allowedLength[] = {
   0, 0,
@@ -460,13 +460,17 @@ CoinMpsCardReader::nextField (  )
 	      }
 	    }
 	    if ( next == eol_ ) {
-	      // error unless row section
+	      // error unless row section or conic section
 	      position_ = eol_;
 	      value_ = -1.0e100;
-	      if ( section_ != COIN_ROW_SECTION )
+	      if ( section_ != COIN_ROW_SECTION && 
+		   section_!= COIN_CONIC_SECTION)
 		mpsType_ = COIN_UNKNOWN_MPS_TYPE;
+	      else
+		return section_;
 	    } else {
 	      nextBlank = nextBlankOr ( next );
+	      //if (section_==COIN_CONIC_SECTION)
 	    }
 	    if ( section_ != COIN_ROW_SECTION ) {
 	      char save = '?';
@@ -1058,6 +1062,7 @@ int CoinMpsIO::readMps()
     problemName_=strdup(cardReader_->columnName());
   } else if ( cardReader_->whichSection (  ) == COIN_UNKNOWN_SECTION ) {
     handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
+						  <<1
 						 <<fileName_
 						 <<CoinMessageEol;
 #ifdef COIN_USE_ZLIB
@@ -2660,10 +2665,14 @@ void
 CoinMpsIO::setMpsDataColAndRowNames(
 		      char const * const * const colnames,
 		      char const * const * const rownames)
-{  
+{
+  releaseRowNames();
+  releaseColumnNames();
    // If long names free format
    names_[0] = (char **) malloc(numberRows_ * sizeof(char *));
    names_[1] = (char **) malloc (numberColumns_ * sizeof(char *));
+   numberHash_[0]=numberRows_;
+   numberHash_[1]=numberColumns_;
    char** rowNames_ = names_[0];
    char** colNames_ = names_[1];
    int i;
@@ -3223,6 +3232,7 @@ CoinMpsIO::readQuadraticMps(const char * filename,
     return -3;
   } else {
     handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
+						  <<cardReader_->cardNumber()
 						 <<fileName_
 						  <<CoinMessageEol;
     return -2;
@@ -3397,5 +3407,122 @@ CoinMpsIO::readQuadraticMps(const char * filename,
   }
 
   delete [] count;
+  return numberErrors;
+}
+/* Read in a list of cones from the given filename.  
+   If filename is NULL (or same) then continues reading from previous file.
+   If not then the previous file is closed.  Code should be added to
+   general MPS reader to read this if CSECTION
+   
+   No checking is done that in unique cone
+   
+   Arrays should be deleted by delete []
+   
+   Returns number of errors, -1 bad file, -2 no conic section, -3 empty section
+   
+   columnStart is numberCones+1 long, other number of columns in matrix
+*/
+int 
+CoinMpsIO::readConicMps(const char * filename,
+		     int * &columnStart, int * &column, int & numberCones)
+{
+  // Deal with filename - +1 if new, 0 if same as before, -1 if error
+  FILE *fp=NULL;
+  gzFile gzfp=NULL;
+  int returnCode = dealWithFileName(filename,"",fp,gzfp);
+  if (returnCode<0) {
+    return -1;
+  } else if (returnCode>0) {
+    delete cardReader_;
+    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+  }
+
+  cardReader_->readToNextSection();
+
+  // Skip NAME
+  if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) 
+    cardReader_->readToNextSection();
+  numberCones=0;
+
+  // Get arrays
+  columnStart = new int [numberColumns_+1];
+  column = new int [numberColumns_];
+  int numberErrors = 0;
+  columnStart[0]=0;
+  int numberElements=0;
+  startHash(1);
+  
+  //if (cardReader_->whichSection()==COIN_CONIC_SECTION) 
+  //cardReader_->cleanCard(); // skip doing last
+  while ( cardReader_->nextField (  ) == COIN_CONIC_SECTION ) {
+    // should check QUAD
+    // Have to check by hand
+    if (!strncmp(cardReader_->card(),"CSECTION",8)) {
+      if (numberElements==columnStart[numberCones]) {
+	printf("Cone must have at least one column\n");
+	abort();
+      }
+      columnStart[++numberCones]=numberElements;
+      continue;
+    }
+    COINColumnIndex iColumn1;
+    switch ( cardReader_->mpsType (  ) ) {
+    case COIN_BLANK_COLUMN:
+      // get index
+      iColumn1 = findHash ( cardReader_->columnName (  ) , 1 );
+      
+      if ( iColumn1 >= 0 ) {
+	column[numberElements++]=iColumn1;
+      } else {
+	numberErrors++;
+	if ( numberErrors < 100 ) {
+	  handler_->message(COIN_MPS_NOMATCHCOL,messages_)
+	    <<cardReader_->columnName()<<cardReader_->cardNumber()<<cardReader_->card()
+	    <<CoinMessageEol;
+	} else if (numberErrors > 100000) {
+	  handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+	  return numberErrors;
+	}
+      }
+      break;
+    default:
+      numberErrors++;
+      if ( numberErrors < 100 ) {
+	handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						      <<cardReader_->card()
+						      <<CoinMessageEol;
+      } else if (numberErrors > 100000) {
+	handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+	return numberErrors;
+      }
+    }
+  }
+  if ( cardReader_->whichSection (  ) == COIN_ENDATA_SECTION ) {
+    // Error if no cones
+    if (!numberElements) {
+      handler_->message(COIN_MPS_EOF,messages_)<<fileName_
+					       <<CoinMessageEol;
+      delete [] columnStart;
+      delete [] column;
+      columnStart = NULL;
+      column = NULL;
+      return -3;
+    } else {
+      columnStart[++numberCones]=numberElements;
+    }
+  } else {
+    handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
+						  <<cardReader_->cardNumber()
+						 <<fileName_
+						  <<CoinMessageEol;
+    delete [] columnStart;
+    delete [] column;
+    columnStart = NULL;
+    column = NULL;
+    numberCones=0;
+    return -2;
+  }
+
+  stopHash(1);
   return numberErrors;
 }

@@ -36,7 +36,8 @@ typedef int COINRowIndex;
 enum COINSectionType { COIN_NO_SECTION, COIN_NAME_SECTION, COIN_ROW_SECTION,
   COIN_COLUMN_SECTION,
   COIN_RHS_SECTION, COIN_RANGES_SECTION, COIN_BOUNDS_SECTION,
-  COIN_ENDATA_SECTION, COIN_EOF_SECTION, COIN_QUADRATIC_SECTION, COIN_UNKNOWN_SECTION
+  COIN_ENDATA_SECTION, COIN_EOF_SECTION, COIN_QUADRATIC_SECTION, 
+		       COIN_CONIC_SECTION,COIN_UNKNOWN_SECTION
 };
 
 enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
@@ -310,8 +311,9 @@ public:
     int writeMps(const char *filename, int compression = 0,
 		 int formatType = 0, int numberAcross = 2) const;
     /** Read in a quadratic objective from the given filename.  
-      If filename is NULL (or same) then continues reading from previous file.  If
-      not then the previous file is closed.
+      If filename is NULL (or same) then continues reading from previous file.
+      If not then the previous file is closed.  Code should be added to
+      general MPS reader to read this if QSECTION
 
       Data is assumed to be Q and objective is c + 1/2 xT Q x
       No assumption is made on symmetry, positive definite etc.
@@ -330,6 +332,21 @@ public:
     int readQuadraticMps(const char * filename,
 			 int * &columnStart, int * &column, double * &elements,
 			 int checkSymmetry);
+    /** Read in a list of cones from the given filename.  
+      If filename is NULL (or same) then continues reading from previous file.
+      If not then the previous file is closed.  Code should be added to
+      general MPS reader to read this if CSECTION
+
+      No checking is done that in unique cone
+
+      Arrays should be deleted by delete []
+
+      Returns number of errors, -1 bad file, -2 no conic section, -3 empty section
+
+      columnStart is numberCones+1 long, other number of columns in matrix
+    */
+    int readConicMps(const char * filename,
+		     int * &columnStart, int * &column, int & numberCones);
     /// Set file name
     void setFileName(const char * name);
     /// Get file name

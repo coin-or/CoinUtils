@@ -24,7 +24,7 @@ static Coin_message us_english[]=
   {COIN_MPS_NOMATCHROW,3005,0,"No match for row %s at line %d < %s >"},
   {COIN_MPS_NOMATCHCOL,3006,0,"No match for column %s at line %d < %s >"},
   {COIN_MPS_FILE,6001,0,"Unable to open mps input file %s"},
-  {COIN_MPS_BADFILE1,6002,0,"Unknown image %s at line 1 of file %s"},
+  {COIN_MPS_BADFILE1,6002,0,"Unknown image %s at line %d of file %s"},
   {COIN_MPS_BADFILE2,6003,0,"Consider the possibility of a compressed file\
  which zlib is unable to read"},
   {COIN_MPS_EOF,6004,0,"EOF on file %s"},
