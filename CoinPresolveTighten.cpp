@@ -80,8 +80,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 
   double *dcost	= prob->cost_;
 
-  // NEED TO THINK MORE ABOUT INTEGER VARS
-  //  const char *integerType = prob->integerType_;
+  const unsigned char *integerType = prob->integerType_;
 
   int *fixup_cols	= new int[ncols];
   int nfixup_cols	= 0;
@@ -102,6 +101,11 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
   // singleton columns are especially likely to be caught here
   for (iLook=0;iLook<numberLook;iLook++) {
     int j = look[iLook];
+    // clean up integers
+    if (integerType[j]) {
+      clo[j]=ceil(clo[j]-1.0e-12);
+      cup[j]= floor(cup[j]+1.0e-12);
+    }
     if (dcost[j]==0.0) {
       int iflag=0; /* 1 - up is towards feasibility, -1 down is towards */
       int nonFree=0; // Number of non-free rows
