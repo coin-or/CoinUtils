@@ -79,7 +79,7 @@ CoinPackedMatrix::reserve(const int newMaxMajorDim, const CoinBigIndex newMaxSiz
       if (create) {
 	// create empty vectors
 	CoinFillN(length_+majorDim_,maxMajorDim_-majorDim_,0);
-	CoinFillN(start_+majorDim_,maxMajorDim_-majorDim_,0);
+	CoinFillN(start_+majorDim_+1,maxMajorDim_-majorDim_,0);
 	majorDim_=maxMajorDim_;
       }
       delete[] oldlength;
@@ -836,7 +836,7 @@ CoinPackedMatrix::appendMajorVector(const int vecsize,
 {
 #ifdef COIN_DEBUG
   for (int i = 0; i < vecsize; ++i) {
-    if (vecind[i] < 0 || vecind[i] >= minorDim_)
+    if (vecind[i] < 0 )
       throw CoinError("out of range index",
 		     "appendMajorVector", "CoinPackedMatrix");
   }
