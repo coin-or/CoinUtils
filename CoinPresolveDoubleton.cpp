@@ -224,34 +224,22 @@ const CoinPresolveAction
 	fabs(rup[irow] - rlo[irow]) <= ZTOLDP) {
       double rhs = rlo[irow];
       CoinBigIndex krs = mrstrt[irow];
-      CoinBigIndex kre = krs + hinrow[irow];
       int icolx, icoly;
       CoinBigIndex k;
       
-      /* locate first column */
-      for (k=krs; k<kre; k++) {
-	if (hincol[hcol[k]] > 0) {
-	  break;
-	}
+      icolx = hcol[krs];
+      icoly = hcol[krs+1];
+      if (hincol[icolx]<=0||hincol[icoly]<=0) {
+        // should never happen ?
+        //printf("JJF - doubleton column %d has %d entries and %d has %d\n",
+        //     icolx,hincol[icolx],icoly,hincol[icoly]);
+        continue;
       }
-      PRESOLVEASSERT(k<kre);
-      if (fabs(rowels[k]) < ZTOLDP)
+      // check size
+      if (fabs(rowels[krs]) < ZTOLDP || fabs(rowels[krs+1]) < ZTOLDP)
 	continue;
-      icolx = hcol[k];
-      if (prob->colProhibited(icolx))
-	continue;
-      
-      /* locate second column */
-      for (k++; k<kre; k++) {
-	if (hincol[hcol[k]] > 0) {
-	  break;
-	}
-      }
-      PRESOLVEASSERT(k<kre);
-      if (fabs(rowels[k]) < ZTOLDP)
-	continue;
-      icoly = hcol[k];
-      if (prob->colProhibited(icoly))
+      // See if prohibited for any reason
+      if (prob->colProhibited(icolx) || prob->colProhibited(icolx))
 	continue;
       
       // don't bother with fixed variables
