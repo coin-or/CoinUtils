@@ -64,25 +64,25 @@ public:
   void replaceMessage(const char * message);
   /// Sets detail level
   inline void setDetail(int level)
-  {detail_=level;};
+  {detail_=level;}
   /// Gets detail level
   inline int detail() const
-  {return detail_;};
+  {return detail_;}
   /// Returns message
    char * message() const
-  {return message_;};
+  {return message_;}
   //@}
 
    /**@name gets and sets methods */
    //@{
   /// number to print out (also determines severity)
     inline int externalNumber() const
-  {return externalNumber_;};
+  {return externalNumber_;}
     inline void setExternalNumber(int number) 
-  {externalNumber_=number;};
+  {externalNumber_=number;}
   /// Severity
   inline char severity() const
-  {return severity_;};
+  {return severity_;}
   //@}
 
   /**@name member data */
@@ -135,9 +135,9 @@ public:
 		const char * message);
   /** Language.  Need to think about iso codes */
   inline Language language() const
-  {return language_;};
+  {return language_;}
   void setLanguage(Language language)
-  {language_ = language;};
+  {language_ = language;}
   /// Changes detail level for one message
   void setDetailMessage(int newLevel, int messageNumber);
   /// Changes detail level for several messages
@@ -157,6 +157,7 @@ public:
   CoinOneMessage ** message_;
   //@}
 };
+
 // for convenience eol
 enum CoinMessageMarker {
   CoinMessageEol = 0,
@@ -217,39 +218,39 @@ public:
       printf messages in code
   */
   inline int logLevel() const
-          { return logLevel_;};
+          { return logLevel_;}
   void setLogLevel(int value);
   /// Switch on or off prefix
   void setPrefix(bool yesNo);
   /// values in message
   inline double doubleValue(int position) const
-  { return doubleValue_[position];};
+  { return doubleValue_[position];}
   inline int numberDoubleFields() const
-  {return numberDoubleFields_;};
+  {return numberDoubleFields_;}
   inline int intValue(int position) const
-  { return longValue_[position];};
+  { return longValue_[position];}
   inline int numberIntFields() const
-  {return numberIntFields_;};
+  {return numberIntFields_;}
   inline char charValue(int position) const
-  { return charValue_[position];};
+  { return charValue_[position];}
   inline int numberCharFields() const
-  {return numberCharFields_;};
+  {return numberCharFields_;}
   inline std::string stringValue(int position) const
-  { return stringValue_[position];};
+  { return stringValue_[position];}
   inline int numberStringFields() const
-  {return numberStringFields_;};
+  {return numberStringFields_;}
   /// Current message
   inline CoinOneMessage  currentMessage() const
-  {return currentMessage_;};
+  {return currentMessage_;}
   /// Source of current message
   inline std::string currentSource() const
-  {return source_;};
+  {return source_;}
   /// Output buffer
   inline const char * messageBuffer() const
-  {return messageBuffer_;};
+  {return messageBuffer_;}
   /// Highest message number (indicates any errors)
   inline int highestNumber() const
-  {return highestNumber_;};
+  {return highestNumber_;}
   //@}
   
   /**@name Actions to create a message  */
