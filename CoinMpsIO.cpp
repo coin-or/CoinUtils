@@ -2095,7 +2095,7 @@ convertDouble(int formatType, double value, char outputValue[20],
       outputValue[0]= '\0'; // needs no value
     }
   } else {
-    if (fabs(value<1.0e40)) {
+    if (fabs(value)<1.0e40) {
       sprintf(outputValue,"%19g",value);
       // take out blanks
       int i=0;
