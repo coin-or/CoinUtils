@@ -213,10 +213,11 @@ CoinMessages::setDetailMessages(int newLevel, int numberMessages,
   }
 }
 
-// Print message, return 0 normally
+// Clean, print message and check severity, return 0 normally
 int 
-CoinMessageHandler::print() 
+CoinMessageHandler::internalPrint() 
 {
+  int returnCode=0;
   if (messageOut_>messageBuffer_) {
     *messageOut_=0;
     //take off trailing spaces and commas
@@ -228,15 +229,30 @@ CoinMessageHandler::print()
       } else {
 	break;
       } 
-    } 
-    fprintf(fp_,"%s\n",messageBuffer_);
-    if (currentMessage_.severity_=='S') {
-      fprintf(fp_,"Stopping due to previous errors.\n");
-      //Should do walkback
-      abort();
-    } 
+    }
+    // Now do print which can be overridden
+    returnCode=print();
+    // See what to do on error
+    checkSeverity();
   }
+  return returnCode;
+}
+// Print message, return 0 normally
+int 
+CoinMessageHandler::print() 
+{
+  fprintf(fp_,"%s\n",messageBuffer_);
   return 0;
+}
+// Check severity
+void 
+CoinMessageHandler::checkSeverity() 
+{
+  if (currentMessage_.severity_=='S') {
+    fprintf(fp_,"Stopping due to previous errors.\n");
+    //Should do walkback
+    abort();
+  } 
 }
 /* Amount of print out:
    0 - none
@@ -385,7 +401,7 @@ CoinMessageHandler::message(int messageNumber,
 {
   if (messageOut_!=messageBuffer_) {
     // put out last message
-    print();
+    internalPrint();
   }
   numberDoubleFields_=0;
   numberIntFields_=0;
@@ -428,7 +444,7 @@ CoinMessageHandler::message(int externalNumber,const char * source,
 {
   if (messageOut_!=messageBuffer_) {
     // put out last message
-    print();
+    internalPrint();
   }
   numberDoubleFields_=0;
   numberIntFields_=0;
@@ -474,7 +490,7 @@ CoinMessageHandler::finish()
 {
   if (messageOut_!=messageBuffer_) {
     // put out last message
-    print();
+    internalPrint();
   }
   numberDoubleFields_=0;
   numberIntFields_=0;

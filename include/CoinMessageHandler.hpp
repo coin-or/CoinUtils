@@ -187,9 +187,11 @@ public:
    /**@name Virtual methods that the derived classes may provide */
    //@{
   /** Print message, return 0 normally.
-      At present this is the only virtual method
   */
-   virtual int print() ;
+  virtual int print() ;
+  /** Check message severity - if too bad then abort
+  */
+  virtual void checkSeverity() ;
    //@}
 
   /**@name Constructors etc */
@@ -295,7 +297,8 @@ public:
   */
   CoinMessageHandler & message(int externalNumber,const char * header,
 			      const char * msg,char severity);
-  
+  /// To make it easier to split up print into clean, print and check severity
+  int internalPrint();
   //@}
   
 private:

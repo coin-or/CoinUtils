@@ -6,7 +6,7 @@ export MakefileDir := $(CoinDir)/Makefiles
 ##############################################################################
 # Static or shared libraries should be built (STATIC or SHARED)?
 LibType := SHARED
-#LibType := STATIC
+LibType := STATIC
 
 # Select optimization (-O or -g). -O will be automatically bumped up to the 
 # highest level of optimization the compiler supports. If want something in
@@ -31,6 +31,11 @@ LIBSRC += CoinFactorization2.cpp
 LIBSRC += CoinFactorization3.cpp
 LIBSRC += CoinFactorization4.cpp
 LIBSRC += CoinIndexedVector.cpp
+LIBSRC += CoinLongFactorization1.cpp
+LIBSRC += CoinLongFactorization2.cpp
+LIBSRC += CoinLongFactorization3.cpp
+LIBSRC += CoinLongFactorization4.cpp
+LIBSRC += CoinLongIndexedVector.cpp
 LIBSRC += CoinMessage.cpp
 LIBSRC += CoinMessageHandler.cpp
 LIBSRC += CoinMpsIO.cpp
