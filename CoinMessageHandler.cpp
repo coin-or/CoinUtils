@@ -581,7 +581,7 @@ CoinMessageHandler::operator<< (double doublevalue)
   return *this;
 }
 CoinMessageHandler & 
-CoinMessageHandler::operator<< (long longvalue)
+CoinMessageHandler::operator<< (CoinBigIndex longvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message

@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstdio>
 #include <string>
+#include "CoinFinite.hpp"
 
 /** This is a first attempt at a message handler.
 
@@ -271,7 +272,7 @@ public:
   char * nextPerCent(char * start , const bool initial=false);
   /// Adds into message
   CoinMessageHandler & operator<< (int intvalue);
-  CoinMessageHandler & operator<< (long longvalue);
+  CoinMessageHandler & operator<< (CoinBigIndex longvalue);
   CoinMessageHandler & operator<< (double doublevalue);
   CoinMessageHandler & operator<< (std::string stringvalue);
   CoinMessageHandler & operator<< (char charvalue);

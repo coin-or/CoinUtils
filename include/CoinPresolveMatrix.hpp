@@ -566,6 +566,7 @@ void CoinPresolveMatrix::change_bias(double change_amount)
 inline void swap(int &x, int &y) { int temp = x; x = y; y = temp; }
 inline void swap(double &x, double &y) { double temp = x; x = y; y = temp; }
 inline void swap(long &x, long &y) { long temp = x; x = y; y = temp; }
+inline void swap(CoinBigIndex &x, CoinBigIndex &y) { CoinBigIndex temp = x; x = y; y = temp; }
 
 inline void swap(int *&x, int *&y) { int *temp = x; x = y; y = temp; }
 inline void swap(double *&x, double *&y) { double *temp = x; x = y; y = temp; }

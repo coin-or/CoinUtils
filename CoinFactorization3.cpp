@@ -796,7 +796,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 	elementR[put]=region[iRow];
 	//add 4 for luck
 	if (next==maximumColumnsExtra_)
-	  startR[maximumColumnsExtra_] = min(put + 4,lengthAreaR_);
+	  startR[maximumColumnsExtra_] = min((CoinBigIndex) (put + 4) ,lengthAreaR_);
       } else {
 	// no space - do we shuffle?
 	if (!getColumnSpaceIterateR(iRow,region[iRow],pivotRow)) {
@@ -1826,7 +1826,7 @@ CoinFactorization::getColumnSpaceIterateR ( int iColumn, double value,
   indexRowR[put++]=iRow;
   numberInColumnPlus_[iColumn]++;
   //add 4 for luck
-  startR[maximumColumnsExtra_] = min(put + 4,lengthAreaR_);
+  startR[maximumColumnsExtra_] = min((CoinBigIndex) (put + 4) ,lengthAreaR_);
   return true;
 }
 /*  getColumnSpaceIterate.  Gets space for one extra U element in Column
@@ -1963,7 +1963,7 @@ CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
       indexRowU_[put]=iRow;
       numberInColumn_[iColumn]++;
       //add 4 for luck
-      startColumnU_[maximumColumnsExtra_] = min(put + 4,lengthAreaU_);
+      startColumnU_[maximumColumnsExtra_] = min((CoinBigIndex) (put + 4) ,lengthAreaU_);
     } else {
       // no room
       put=-1;
