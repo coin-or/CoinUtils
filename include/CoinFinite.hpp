@@ -28,10 +28,7 @@ typedef long long CoinBigIndex;
       inline int CoinFinite(double d) { return d != DBL_MAX; }
 #     define CoinIsnan  isnan
 #  else
-      extern "C" {
-         int isnan(double);
-      }
-#     define CoinFinite finite
+#     define CoinFinite isfinite
 #     define CoinIsnan  isnan
 #  endif
 #endif
