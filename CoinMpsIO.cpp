@@ -28,6 +28,11 @@
 typedef void* gzFile;
 #endif
 
+// Plus infinity
+#ifndef COIN_DBL_MAX
+#define COIN_DBL_MAX DBL_MAX
+#endif
+
 /// The following lengths are in decreasing order (for 64 bit etc)
 /// Large enough to contain element index
 /// This is already defined as CoinBigIndex
@@ -3056,7 +3061,7 @@ numberRows_(0),
 numberColumns_(0),
 numberElements_(0),
 defaultBound_(1),
-infinity_(DBL_MAX),
+infinity_(COIN_DBL_MAX),
 objectiveOffset_(0.0),
 problemName_(strdup("")),
 objectiveName_(strdup("")),
@@ -3096,7 +3101,7 @@ numberRows_(0),
 numberColumns_(0),
 numberElements_(0),
 defaultBound_(1),
-infinity_(DBL_MAX),
+infinity_(COIN_DBL_MAX),
 objectiveOffset_(0.0),
 problemName_(strdup("")),
 objectiveName_(strdup("")),
