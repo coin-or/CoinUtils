@@ -12,6 +12,12 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
 
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
+#endif
+
+namespace {	// begin unnamed file-local namespace
+
 inline void prepend_elem(int jcol, double coeff, int irow,
 		    CoinBigIndex *mcstrt,
 		    double *colels,
@@ -19,120 +25,14 @@ inline void prepend_elem(int jcol, double coeff, int irow,
 		    int *link, CoinBigIndex *free_listp)
 {
   CoinBigIndex kk = *free_listp;
+  assert(kk >= 0) ;
   *free_listp = link[*free_listp];
-  check_free_list(*free_listp);
-
   link[kk] = mcstrt[jcol];
   mcstrt[jcol] = kk;
   colels[kk] = coeff;
   hrow[kk] = irow;
 }
 
-const char *subst_constraint_action::name() const
-{
-  return ("subst_constraint_action");
-}
-
-void compact_rep(double *elems, int *indices, CoinBigIndex *starts, const int *lengths, int n,
-		 const presolvehlink *link);
-
-
-
-// copy of expand_col; have to rename params
-static void expand_row(CoinBigIndex *mcstrt, 
-		    double *colels,
-		       int *hrow, // int *hcol,
-		       //int *hinrow,
-		       int *hincol,
-		    presolvehlink *clink, int ncols,
-
-		       int icolx
-		       ///, int icoly
-		       )
-{
-  /////CoinBigIndex kcs = mcstrt[icoly];
-  /////CoinBigIndex kce = kcs + hincol[icoly];
-  CoinBigIndex kcsx = mcstrt[icolx];
-  CoinBigIndex kcex = kcsx + hincol[icolx];
-
-  const int maxk = mcstrt[ncols];	// (22)
-
-  // update col rep - need to expand the column, though.
-  int nextcol = clink[icolx].suc;
-
-  // (22)
-  if (kcex + 1 < mcstrt[nextcol] || nextcol == ncols) {
-    if (! (kcex + 1 < mcstrt[nextcol])) {
-      // nextcol==ncols and no space - must compact
-      compact_rep(colels, hrow, mcstrt, hincol, ncols, clink);
-
-      // update vars
-      kcsx = mcstrt[icolx];
-      kcex = kcsx + hincol[icolx];
-
-      if (! (kcex + 1 < mcstrt[nextcol])) {
-	abort();
-      }
-    }
-  } else {
-    // this is not the last col 
-    // fetch last non-empty col (presolve_make_memlists-1)
-    int lastcol = clink[ncols].pre;
-    // (clink[icolx].suc != ncols) ==> (icolx != lastcol)
-
-    // put it directly after the last column 
-    int newkcsx = mcstrt[lastcol] + hincol[lastcol];
-
-    // well, pad it a bit
-    newkcsx += CoinMin(hincol[icolx], 5); // slack
-
-    //printf("EXPAND_ROW:  %d %d %d\n", newkcsx, maxk, icolx);
-
-    if (newkcsx + hincol[icolx] + 1 >= maxk) {
-      compact_rep(colels, hrow, mcstrt, hincol, ncols, clink);
-
-      // update vars
-      kcsx = mcstrt[icolx];
-      kcex = kcsx + hincol[icolx];
-
-      newkcsx = mcstrt[lastcol] + hincol[lastcol];
-
-      if (newkcsx + hincol[icolx] + 1 >= maxk) {
-	abort();
-      }
-      // have to adjust various induction variables
-      ////kcoly = mcstrt[icoly] + (kcoly - kcs);
-      /////kcs = mcstrt[icoly];			// do this for ease of debugging
-      /////kce = mcstrt[icoly] + hincol[icoly];
-	    
-      /////kcolx = mcstrt[icolx] + (kcolx - kcs);	// don't really need to do this
-      kcsx = mcstrt[icolx];
-      kcex = mcstrt[icolx] + hincol[icolx];
-    }
-
-    // move the column - 1:  copy the entries
-    memcpy((void*)&hrow[newkcsx], (void*)&hrow[kcsx], hincol[icolx] * sizeof(int));
-    memcpy((void*)&colels[newkcsx], (void*)&colels[kcsx], hincol[icolx] * sizeof(double));
-
-    // move the column - 2:  update the memory-order linked list
-    PRESOLVE_REMOVE_LINK(clink, icolx);
-    PRESOLVE_INSERT_LINK(clink, icolx, lastcol);
-
-    // move the column - 3:  update loop variables to maintain invariant
-    mcstrt[icolx] = newkcsx;
-    kcsx = newkcsx;
-    kcex = newkcsx + hincol[icolx];
-
-#if 0
-    hincol[icolx]++;
-    kcex = newkcsx + hincol[icolx];
-
-    // move the column - 4:  add the new entry
-    hrow[kcex-1] = row;
-    colels[kcex-1] = colels[kcoly] * coeff_factor;
-#endif
-  }
-}
 
 // add coeff_factor * rowy to rowx
 void add_row(CoinBigIndex *mrstrt, 
@@ -164,11 +64,11 @@ void add_row(CoinBigIndex *mrstrt,
   // "ADD_ROW:",
   //  irowx, irowy, coeff_factor, hinrow[irowx], hinrow[irowy]);
 
-#if	DEBUG_PRESOLVE
+# if PRESOLVE_DEBUG
   printf("%s x=%d y=%d cf=%g nx=%d ycols=(",
 	 "ADD_ROW:",
 	  irowx, irowy, coeff_factor, hinrow[irowx]);
-#endif
+# endif
 
   // adjust row bounds of rowx;
   // analogous to adjusting bounds info of colx in doubleton,
@@ -185,25 +85,26 @@ void add_row(CoinBigIndex *mrstrt,
 
     // (1)
     if (-PRESOLVE_INF < rlo[irowx]) {
-#if	DEBUG_PRESOLVE
+#     if PRESOLVE_DEBUG
       if (rhsy * coeff_factor)
 	printf("ELIM_ROW RLO:  %g -> %g\n",
 	       rlo[irowx],
 	       rlo[irowx] + rhsy * coeff_factor);
-#endif
+#     endif
       rlo[irowx] += rhsy * coeff_factor;
     }
     // (2)
     if (rup[irowx] < PRESOLVE_INF) {
-#if	DEBUG_PRESOLVE
+#     if PRESOLVE_DEBUG
       if (rhsy * coeff_factor)
 	printf("ELIM_ROW RUP:  %g -> %g\n",
 	       rup[irowx],
 	       rup[irowx] + rhsy * coeff_factor);
-#endif
+#     endif
       rup[irowx] += rhsy * coeff_factor;
     }
-    acts[irowx] += rhsy * coeff_factor;
+    if (acts)
+    { acts[irowx] += rhsy * coeff_factor ; }
   }
 
   CoinBigIndex kcolx = krsx;
@@ -218,13 +119,13 @@ void add_row(CoinBigIndex *mrstrt,
 
     // see if row appears in colx
     // do NOT look beyond the original elements of rowx
-    //CoinBigIndex kcolx = presolve_find_row1(jcol, krsx, krex, hcol);
+    //CoinBigIndex kcolx = presolve_find_col1(jcol, krsx, krex, hcol);
     while (kcolx < krex0 && hcol[kcolx] < jcol)
       kcolx++;
 
-#if	DEBUG_PRESOLVE
+#   if PRESOLVE_DEBUG
     printf("%d%s ", jcol, (kcolx < krex0 && hcol[kcolx] == jcol) ? "+" : "");
-#endif
+#   endif
 
     if (kcolx < krex0 && hcol[kcolx] == jcol) {
       // before:  both x and y are in the jcol
@@ -233,12 +134,12 @@ void add_row(CoinBigIndex *mrstrt,
 
       // update row rep - just modify coefficent
       // column y is deleted as a whole at the end of the loop
-#if	DEBUG_PRESOLVE
+#     if PRESOLVE_DEBUG
       printf("CHANGING %g + %g -> %g\n",
 	     rowels[kcolx],
 	     rowels[krowy],
 	     rowels[kcolx] + rowels[krowy] * coeff_factor);
-#endif
+#     endif
       rowels[kcolx] += rowels[krowy] * coeff_factor;
 
       // this is where this element in rowy ended up
@@ -249,7 +150,7 @@ void add_row(CoinBigIndex *mrstrt,
       // after:   only x is in the jcol
       // so: number of elems in col x is one greater, but num elems in jcol remains same
       {
-	expand_row(mrstrt, rowels, hcol, hinrow, rlink, nrows, irowx);
+	presolve_expand_row(mrstrt,rowels,hcol,hinrow,rlink,nrows,irowx) ;
 	// this may force a compaction
 	// this will be called excessively if the rows are packed too tightly
 
@@ -277,9 +178,9 @@ void add_row(CoinBigIndex *mrstrt,
     }
   }
 
-#if	DEBUG_PRESOLVE
+# if PRESOLVE_DEBUG
   printf(")\n");
-#endif
+# endif
 }
 
 
@@ -320,6 +221,14 @@ void copyrep(const int * mrstrt, const int *hcol, const double *rowels,
   }
 }
 
+} // end unnamed file-local namespace
+
+
+const char *subst_constraint_action::name() const
+{
+  return ("subst_constraint_action");
+}
+
 // add -x/y times row y to row x, thus cancelling out one column of rowx;
 // afterwards, that col will be singleton for rowy, so we drop the row.
 //
@@ -327,6 +236,33 @@ void copyrep(const int * mrstrt, const int *hcol, const double *rowels,
 // Instead, it reconstructs it from scratch afterward.
 //
 // This implements the functionality of ekkrdc3.
+
+/*
+  This routine is called only from implied_free_action. There are several
+  oddities and redundancies in the relationship. The two routines need a good
+  grooming.
+
+  try_fill_level limits the allowable number of coefficients in a column
+  under consideration for substitution. There's some sort of hack going on
+  that has the following effect: if try_fill_level comes in as 2, and that
+  seems overly limiting (number of substitutions < 30), try increasing it to
+  3. To trigger a wider examination of columns, this is actually passed back
+  as -3. The next entry of implied_free_action (and then this routine) will
+  override ColsToDo and examine all columns.
+
+  Hence the initial loop triggered when try_fill_level < 0. Other positive
+  values of fill_level will have no effect. A value of -3 will be converted
+  (and passed back out) as +3. Arbitrary negative values of try_fill_level
+  will also trigger the expansion of search and be converted to positive
+  values.
+
+  I would have thought that the columns considered by implied_free_action
+  should also be limited by fill_level, but that's not currently the case.
+  It's hard-wired to consider columns with 1 to 3 coefficients.
+
+  There must be a better way.     -- lh, 040818 --
+*/
+
 const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 					 int *implied_free,
 					const CoinPresolveAction *next,
@@ -356,6 +292,9 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
   const double tol = prob->feasibilityTolerance_;
 
   action *actions	= new action [ncols];
+# ifdef ZEROFAULT
+  CoinZeroN(reinterpret_cast<char *>(actions),ncols*sizeof(action)) ;
+# endif
   int nactions = 0;
 
   int *zerocols	= new int[ncols];
@@ -388,16 +327,23 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
   // and resync at the end of the function.
 
   // DEBUGGING
-  int nsubst = 0;
-#ifdef	DEBUG_PRESOLVEx
+#if	PRESOLVE_DEBUGx
   int maxsubst = atoi(getenv("MAXSUBST"));
 #else
   const int maxsubst = 1000000;
 #endif
 
+  int nsubst = 0;
+
   // This loop does very nearly the same thing as
   // the first loop in implied_free_action::presolve.
-  // We have to do it again in case constraints change while we process them (???).
+  // We have to do it again in case constraints change while we process
+  // them (???).
+/*
+  No --- given the hack with -3 coming in to implied_free_action and overriding
+  ColsToDo, we could have columns in implied_free that aren't in ColsToDo.
+  -- lh, 040818 --
+*/
   int numberLook = prob->numberColsToDo_;
   int iLook;
   int * look = prob->colsToDo_;
@@ -473,7 +419,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	if (fabs(coeff_factor) > 10.0)
 	  all_ok = false;
       }
-#if 0
+#if 0		// block A
       // check fill-in
       if (all_ok && hincol[jcoly] == 3) {
 	// compute fill-in
@@ -522,7 +468,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	  if (! (kcol2 < kre2 && hcol[kcol2] == jcol))
 	    nfill++;
 	}
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
 	printf("FILL:  %d\n", nfill);
 #endif
 
@@ -545,7 +491,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	  nt++;
 #endif
       }
-#endif
+#endif		// end block A
       // probably never happens
       if (all_ok && nzerocols + hinrow[bestrowy_row] >= ncols)
 	all_ok = false;
@@ -631,7 +577,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 
 	// now adjust for the implied free row - COPIED
 	if (nonzero_cost) {
-#if	0&&DEBUG_PRESOLVE
+#if	0&&PRESOLVE_DEBUG
 	  printf("NONZERO SUBST COST:  %d %g\n", jcoly, dcost[jcoly]);
 #endif
 	  double *cost = dcost;
@@ -667,7 +613,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	  cost[jcoly] = 0.0;
 	}
 
-#if	0&&DEBUG_PRESOLVE
+#if	0&&PRESOLVE_DEBUG
 	    if (hincol[jcoly] == 3) {
 	      CoinBigIndex krs = mrstrt[rowy];
 	      CoinBigIndex kre = krs + hinrow[rowy];
@@ -700,7 +646,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 		double coeffx = ap->coeffxs[k];
 		double coeff_factor = -coeffx / coeffy;	// backwards from doubleton
 
-#if	0&&DEBUG_PRESOLVE
+#if	0&&PRESOLVE_DEBUG
 		{
 		  CoinBigIndex krs = mrstrt[rowx];
 		  CoinBigIndex kre = krs + hinrow[rowx];
@@ -762,7 +708,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 		    CoinBigIndex kcs = mcstrt[jcol];
 		    CoinBigIndex kce = kcs + hincol[jcol];
 		    
-		    //double coeff = rowels[presolve_find_row(jcol, krsx, krex, hcol)];
+		    //double coeff = rowels[presolve_find_col(jcol, krsx, krex, hcol)];
 		    if (hcol[krsx + x_to_y[ki]] != jcol)
 		      abort();
 		    double coeff = rowels[krsx + x_to_y[ki]];
@@ -777,7 +723,8 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 		      colels[k2] = coeff;
 		    } else {
 		      // no - make room, then append
-		      expand_row(mcstrt, colels, hrow, hincol, clink, ncols, jcol);
+		      presolve_expand_row(mcstrt,colels,hrow,hincol,
+					  clink,ncols,jcol) ;
 		      kcs = mcstrt[jcol];
 		      kce = kcs + hincol[jcol];
 		      
@@ -794,7 +741,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 		// better if this were first
 		presolve_delete_from_row(rowx, jcoly, mrstrt, hinrow, hcol, rowels);
 #endif
-#if	0&&DEBUG_PRESOLVE
+#if	0&&PRESOLVE_DEBUG
 		{
 		  CoinBigIndex krs = mrstrt[rowx];
 		  CoinBigIndex kre = krs + hinrow[rowx];
@@ -820,7 +767,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	      }
 	    }
 
-#if	0&&DEBUG_PRESOLVE
+#if	0&&PRESOLVE_DEBUG
 	    printf("\n");
 #endif
 
@@ -836,7 +783,9 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 		int jcol = hcol[k];
 
 		// delete rowy from the jcol
-		presolve_delete_from_row(jcol, rowy, mcstrt, hincol, hrow, colels);
+		presolve_delete_from_col(rowy,jcol,mcstrt,hincol,hrow,colels) ;
+		if (hincol[jcol] == 0)
+		{ PRESOLVE_REMOVE_LINK(clink,jcol) ; }
 	      }
 	    }
 	    // delete rowy in row rep
@@ -855,21 +804,20 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	    rlo[rowy] = 0.0;
 	    rup[rowy] = 0.0;
 	    
-#if	0 && DEBUG_PRESOLVE
+#if	0 && PRESOLVE_DEBUG
 	    printf("ROWY COLS:  ");
 	    for (CoinBigIndex k=0; k<save_ninrowy; ++k)
 	      if (rowycols[k] != col) {
 		printf("%d ", rowycols[k]);
-		(void)presolve_find_row(rowycols[k], mrstrt[rowx], mrstrt[rowx]+hinrow[rowx],
+		(void)presolve_find_col(rowycols[k], mrstrt[rowx], mrstrt[rowx]+hinrow[rowx],
 					hcol);
 	      }
 	    printf("\n");
 #endif
-#if 0
-	presolve_links_ok(clink, mcstrt, hincol, ncols);
-	presolve_links_ok(rlink, mrstrt, hinrow, nrows);
-	prob->consistent();
-#endif
+#       if PRESOLVE_CONSISTENCY
+	presolve_links_ok(prob) ;
+	presolve_consistent(prob) ;
+#       endif
       }
       
     }
@@ -879,10 +827,10 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
   if (nactions < 30&&fill_level==2)
     try_fill_level = -3;
   if (nactions) {
-#if	PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY
     printf("NSUBSTS:  %d\n", nactions);
     //printf("NT: %d  NGOOD:  %d FILL_LEVEL:  %d\n", nt, ngood, fill_level);
-#endif
+#   endif
     next = new subst_constraint_action(nactions, copyOfArray(actions,nactions), next);
 
     next = drop_zero_coefficients_action::presolve(prob, zerocols, nzerocols, next);
@@ -919,9 +867,12 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   double *acts	= prob->acts_;
   double *rowduals = prob->rowduals_;
 
+# if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
   char *cdone	= prob->cdone_;
   char *rdone	= prob->rdone_;
-  CoinBigIndex free_list = prob->free_list_;
+# endif
+
+  CoinBigIndex &free_list = prob->free_list_;
 
   //  const double ztoldj	= prob->ztoldj_;
   const double maxmin = prob->maxmin_;
@@ -952,7 +903,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     PRESOLVEASSERT(rdone[jrowy]==DROP_ROW);
 
     // DEBUG CHECK
-#if	0 && DEBUG_PRESOLVE
+#if	0 && PRESOLVE_DEBUG
     {
       double actx = 0.0;
       for (int j=0; j<ncols; ++j)
@@ -1017,7 +968,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
       }
       sol[icol] = sol0 / coeffy;
 
-#ifdef	DEBUG_PRESOLVE
+#     if PRESOLVE_DEBUG
       const double ztolzb	= prob->ztolzb_;
       double *clo	= prob->clo_;
       double *cup	= prob->cup_;
@@ -1026,7 +977,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	     cup[icol] + ztolzb > sol[icol]))
 	printf("NEW SOL OUT-OF-TOL:  %g %g %g\n", clo[icol], 
 	       sol[icol], cup[icol]);
-#endif
+#     endif
     }
 
     // since this row is fixed 
@@ -1053,9 +1004,13 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	if (col != icol)
 	  for (int i = 0; i<nincoly; ++i) {
 	    if (rows[i] != jrowy)
-	      presolve_delete_from_row2(col, rows[i], mcstrt, hincol, hrow, colels, link, &free_list);
+	      presolve_delete_from_col2(rows[i],col,mcstrt,hincol,hrow,colels,
+					link,&free_list) ;
 	  }
       }
+#     if PRESOLVE_CONSISTENCY
+      presolve_check_free_list(prob) ;
+#     endif
 
       // initialize this for loops below
       hincol[icol] = 0;
@@ -1078,16 +1033,16 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	      CoinBigIndex kcolx = presolve_find_row3(jrowx, mcstrt[col], hincol[col], hrow, link);
 
 	      if (kcolx != -1) {
-		PRESOLVEASSERT(presolve_find_row1(col, 0, ninrowy, rowcolsy) == ninrowy);
+		PRESOLVEASSERT(presolve_find_col1(col, 0, ninrowy, rowcolsy) == ninrowy);
 		// overwrite the existing entry
 		colels[kcolx] = rowelsx[k];
 	      } else {
-		PRESOLVEASSERT(presolve_find_row1(col, 0, ninrowy, rowcolsy) < ninrowy);
+		PRESOLVEASSERT(presolve_find_col1(col, 0, ninrowy, rowcolsy) < ninrowy);
 
 		{
 		  CoinBigIndex kk = free_list;
+		  assert(kk >= 0 && kk < prob->bulk0_) ;
 		  free_list = link[free_list];
-		  check_free_list(free_list);
 
 		  link[kk] = mcstrt[col];
 		  mcstrt[col] = kk;
@@ -1100,6 +1055,9 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	  rowcolsx += ninrowx;
 	  rowelsx += ninrowx;
 	}
+#       if PRESOLVE_CONSISTENCY
+        presolve_check_free_list(prob) ;
+#       endif
       }
 
       // finally, add original rowy elements
@@ -1111,6 +1069,9 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	  ++hincol[col];
 	}
       }
+#     if PRESOLVE_CONSISTENCY
+      presolve_check_free_list(prob) ;
+#     endif
     }
 
     // my guess is that the CLAIM in doubleton generalizes to
@@ -1140,9 +1101,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	acty += rowelsy[k] * sol[col];
       }
 
-#if	DEBUG_PRESOLVE
        PRESOLVEASSERT(fabs(acty - acts[jrowy]) < 100*ZTOLDP);
-#endif
 
       // RECOMPUTING
       {
@@ -1160,10 +1119,8 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	      int col = rowcolsx[k];
 	      actx += rowelsx[k] * sol[col];
 	    }
-#if	DEBUG_PRESOLVE
 	    PRESOLVEASSERT(rlo[jrowx] - prob->ztolzb_ <= actx 
 			   && actx <= rup[jrowx] + prob->ztolzb_);
-#endif
 	    acts[jrowx] = actx;
 	  }
 	  rowcolsx += ninrowx;
@@ -1186,11 +1143,13 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     //rowstat[jrowy] = 0;
     prob->setColumnStatus(icol,CoinPrePostsolveMatrix::basic);
 
+#   if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
     cdone[icol] = SUBST_ROW;
     rdone[jrowy] = SUBST_ROW;
+#   endif
   }
 
-  prob->free_list_ = free_list;
+  return ;
 }
 
 
