@@ -421,7 +421,7 @@ CoinIndexedVector::reserve(int n)
 	offset_ = (64-iBottom)>>3;
       xx = (int) (temp+offset_);
       iBottom = xx &63;
-      assert (!iBottom);
+      // assert (!iBottom); out as with checkers could be false
     } else if (sizeof (double *) == sizeof (long)) {
       long xx = (long) temp;
       long iBottom = xx & 63;
@@ -429,7 +429,7 @@ CoinIndexedVector::reserve(int n)
 	offset_ = (64-iBottom)>>3;
       xx = (long) (temp+offset_);
       iBottom = xx &63;
-      assert (!iBottom);
+      // assert (!iBottom); out as with checkers could be false
     } else {
       throw CoinError("double * not sizeof(int) or (long)",
 		      "reserve", "CoinIndexedVector");
@@ -1090,5 +1090,55 @@ CoinIndexedVector::getMinIndex() const
   for (i=0;i<nElements_;i++)
     minIndex = min(minIndex,indices_[i]);
   return minIndex;
+}
+// Scan dense region and set up indices
+int
+CoinIndexedVector::scan()
+{
+  nElements_=0;
+  return scan(0,capacity_);
+}
+// Scan dense region from start to < end and set up indices
+int
+CoinIndexedVector::scan(int start, int end)
+{
+  end = min(end,capacity_);
+  start = max(start,0);
+  int i;
+  int number = 0;
+  int * indices = indices_+nElements_;
+  for (i=start;i<end;i++) 
+    if (elements_[i])
+      indices[number++] = i;
+  nElements_ += number;
+  return number;
+}
+// Scan dense region and set up indices with tolerance
+int
+CoinIndexedVector::scan(double tolerance)
+{
+  nElements_=0;
+  return scan(0,capacity_,tolerance);
+}
+// Scan dense region from start to < end and set up indices with tolerance
+int
+CoinIndexedVector::scan(int start, int end, double tolerance)
+{
+  end = min(end,capacity_);
+  start = max(start,0);
+  int i;
+  int number = 0;
+  int * indices = indices_+nElements_;
+  for (i=start;i<end;i++) {
+    double value = elements_[i];
+    if (value) {
+      if (fabs(value)>=tolerance) 
+	indices[number++] = i;
+      else
+	elements_[i]=0.0;
+    }
+  }
+  nElements_ += number;
+  return number;
 }
 

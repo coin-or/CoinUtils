@@ -192,6 +192,19 @@ public:
    void checkClear();
    /// For debug check vector is clean i.e. elements match indices
    void checkClean();
+   /// Scan dense region and set up indices (returns number found)
+   int scan();
+   /** Scan dense region from start to < end and set up indices
+       returns number found
+   */
+   int scan(int start, int end);
+  /** Scan dense region and set up indices (returns number found).
+      Only ones >= tolerance */
+   int scan(double tolerance);
+   /** Scan dense region from start to < end and set up indices
+       returns number found.  Only >= tolerance
+   */
+   int scan(int start, int end, double tolerance);
    /// Append a CoinPackedVector to the end
    void append(const CoinPackedVectorBase & caboose);
    /// Append a CoinIndexedVector to the end

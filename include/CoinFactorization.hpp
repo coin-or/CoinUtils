@@ -65,6 +65,8 @@ public:
    ~CoinFactorization (  );
   /// Debug show object (shows one representation)
   void show_self (  ) const;
+  /// Debug - sort so can compare
+  void sort (  ) const;
   /// = copy
     CoinFactorization & operator = ( const CoinFactorization & other );
   //@}
@@ -204,6 +206,13 @@ public:
     return maximumPivots_ ;
   };
   void maximumPivots (  int value );
+
+  /// Gets dense threshold
+  inline int denseThreshold() const 
+    { return denseThreshold_;};
+  /// Sets dense threshold
+  inline void setDenseThreshold(int value)
+    { denseThreshold_ = value;};
   /// Pivot tolerance
   inline double pivotTolerance (  ) const {
     return pivotTolerance_ ;
@@ -408,6 +417,9 @@ protected:
   /// Does sparse phase of factorization
   /// return code is <0 error, 0= finished
   int factorSparse (  );
+  /// Does dense phase of factorization
+  /// return code is <0 error, 0= finished
+  int factorDense (  );
 
   /// Pivots when just one other row so faster?
   bool pivotOneOtherRow ( int pivotRow,
@@ -541,7 +553,6 @@ protected:
 
   /// Reset all sparsity etc statistics
   void resetStatistics();
-
 
   /********************************* START LARGE TEMPLATE ********/
 // this should have defines so will work in 64 bit mode
@@ -1206,6 +1217,18 @@ protected:
   /// Start of columns for R
   CoinBigIndex *startColumnR_;
 
+  /// Dense area
+  double  * denseArea_;
+
+  /// Dense permutation
+  int * densePermute_;
+
+  /// Number of dense rows
+  int numberDense_;
+
+  /// Dense threshold
+  int denseThreshold_;
+
   /// Number of compressions doen
   CoinBigIndex numberCompressions_;
 
@@ -1240,6 +1263,9 @@ protected:
   /// Below this use sparse technology - if 0 then no L row copy
   int sparseThreshold_;
 
+  /// And one for "sparsish"
+  int sparseThreshold2_;
+
   /// Start of each row in L
   CoinBigIndex * startRowL_;
 
@@ -1251,7 +1277,6 @@ protected:
 
   /// Sparse regions
   mutable int * sparse_;
-
   //@}
 };
 #endif

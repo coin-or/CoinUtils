@@ -30,9 +30,9 @@ CoinFactorization::updateColumnU ( CoinIndexedVector * regionSparse,
   if (sparseThreshold_>0) {
     if (ftranAverageAfterR_) {
       int newNumber = (int) (numberNonZero*ftranAverageAfterU_);
-      if (newNumber< (sparseThreshold_>>1))
+      if (newNumber< sparseThreshold_)
 	goSparse = 2;
-      else if (newNumber< (sparseThreshold_<<1))
+      else if (newNumber< sparseThreshold2_)
 	goSparse = 1;
       else
 	goSparse = 0;
@@ -669,7 +669,19 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   btranAverageAfterR_=other.btranAverageAfterR_;
   btranAverageAfterL_=other.btranAverageAfterL_; 
   sparseThreshold_=other.sparseThreshold_;
+  sparseThreshold2_=other.sparseThreshold2_;
   CoinBigIndex space = lengthAreaL_ - lengthL_;
+
+  numberDense_ = other.numberDense_;
+  denseThreshold_=other.denseThreshold_;
+  if (numberDense_) {
+    denseArea_ = new double [numberDense_*numberDense_];
+    memcpy(denseArea_,other.denseArea_,
+	   numberDense_*numberDense_*sizeof(double));
+    densePermute_ = new int [numberDense_];
+    memcpy(densePermute_,other.densePermute_,
+	   numberDense_*sizeof(int));
+  }
 
   lengthAreaR_ = space;
   elementR_ = elementL_ + lengthL_;
@@ -885,7 +897,7 @@ CoinFactorization::updateColumnTransposeR ( CoinIndexedVector * regionSparse ) c
       updateColumnTransposeRDensish ( regionSparse );
       // we have lost indices
       // make sure won't try and go sparse again
-      regionSparse->setNumElements (numberRows_);
+      regionSparse->setNumElements (numberRows_+1);
     }
   }
 }
@@ -1101,10 +1113,26 @@ int CoinFactorization::updateColumn ( CoinIndexedVector * regionSparse,
 void
 CoinFactorization::goSparse ( )
 {
-  if (!sparseThreshold_&&numberRows_>400) {
-    sparseThreshold_=min((numberRows_-300)/9,1000);
+  if (ftranAverageAfterL_&&!sparseThreshold_) {
+    if (numberRows_>300) {
+      if (numberRows_<10000) {
+	sparseThreshold_=min((numberRows_-200)/6,500);
+	sparseThreshold2_=sparseThreshold_;
+      } else {
+	sparseThreshold_=min((numberRows_-200)/8,1000);
+	sparseThreshold2_=sparseThreshold_+min((numberRows_-200)/5,1000);
+      }
+      //sparseThreshold2_=sparseThreshold_;
+    } else {
+      sparseThreshold_=0;
+      sparseThreshold2_=0;
+    }
+  } else {
+    if (!sparseThreshold_&&numberRows_>400) {
+      sparseThreshold_=min((numberRows_-300)/9,1000);
+    }
+    sparseThreshold2_=sparseThreshold_;
   }
-  //sparseThreshold_=99999;
   // allow for stack, list, next and char map of mark
   int nRowIndex = (maximumRowsExtra_+sizeof(int)-1)/
     sizeof(char);
@@ -1161,9 +1189,11 @@ CoinFactorization::sparseThreshold ( int value )
 {
   if (value>0&&sparseThreshold_) {
     sparseThreshold_=value;
+    sparseThreshold2_= sparseThreshold_;
   } else if (!value&&sparseThreshold_) {
     // delete copy
     sparseThreshold_=0;
+    sparseThreshold2_= 0;
     delete []elementByRowL_;
     delete []startRowL_;
     delete []indexColumnL_;
@@ -1173,7 +1203,11 @@ CoinFactorization::sparseThreshold ( int value )
     delete []sparse_;
     sparse_=NULL;
   } else if (value>0&&!sparseThreshold_) {
-    sparseThreshold_=value;
+    if (value>1)
+      sparseThreshold_=value;
+    else
+      sparseThreshold_=0;
+    sparseThreshold2_= sparseThreshold_;
     goSparse();
   }
 }

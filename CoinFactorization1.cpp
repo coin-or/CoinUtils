@@ -6,12 +6,10 @@
 #endif
 
 #include <cassert>
-
 #include "CoinFactorization.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
-
 #include <stdio.h>
 //:class CoinFactorization.  Deals with Factorization and Updates
 //  CoinFactorization.  Constructor
@@ -60,7 +58,9 @@ void CoinFactorization::gutsOfDestructor()
   delete [] elementByRowL_ ;
   delete [] startRowL_ ;
   delete [] indexColumnL_ ;
-  delete []sparse_;
+  delete [] sparse_;
+  delete [] denseArea_;
+  delete [] densePermute_;
 
   elementU_ = NULL;
   startRowU_ = NULL;
@@ -118,6 +118,10 @@ void CoinFactorization::gutsOfDestructor()
   numberR_ = 0;
   lengthR_ = 0;
   lengthAreaR_ = 0;
+  denseArea_=NULL;
+  densePermute_=NULL;
+  numberDense_=0;
+  denseThreshold_=0;
   
 }
 // type - 1 bit tolerances etc, 2 rest
@@ -198,7 +202,13 @@ void CoinFactorization::gutsOfInitialize(int type)
     indexColumnL_=NULL;
     // always switch off sparse
     sparseThreshold_=0;
+    sparseThreshold2_= 0;
     sparse_=NULL;
+    denseArea_ = NULL;
+    densePermute_=NULL;
+    numberDense_=0;
+    denseThreshold_=31;
+    denseThreshold_=71;
   }
   if ((type&4)!=0) {
     // we need to get 1 element arrays for any with length n+1 !!
@@ -349,12 +359,10 @@ int CoinFactorization::factorize (
     }
     if (increasingRows_>1) {
       // Set up permutation vector
-      if (increasingRows_<3) {
-	// these arrays start off as copies of permute
-	// (and we could use permute_ instead of pivotColumn (not back though))
-	CoinDisjointCopyN ( permute_, numberRows_ , pivotColumn_  );
-	CoinDisjointCopyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
-      }
+      // these arrays start off as copies of permute
+      // (and we could use permute_ instead of pivotColumn (not back though))
+      CoinDisjointCopyN ( permute_, numberRows_ , pivotColumn_  );
+      CoinDisjointCopyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
     } else {
       // Set up permutation vector
       // (we could use permute_ instead of pivotColumn (not back though))
@@ -424,12 +432,10 @@ int CoinFactorization::factorize (
 	permutation[i]=permuteBack[back[i]];
       }
       // Set up permutation vector
-      if (increasingRows_<3) {
-	// these arrays start off as copies of permute
-	// (and we could use permute_ instead of pivotColumn (not back though))
-	CoinDisjointCopyN ( permute_, numberRows_ , pivotColumn_  );
-	CoinDisjointCopyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
-      }
+      // these arrays start off as copies of permute
+      // (and we could use permute_ instead of pivotColumn (not back though))
+      CoinDisjointCopyN ( permute_, numberRows_ , pivotColumn_  );
+      CoinDisjointCopyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
     } else {
       // Set up permutation vector
       // (we could use permute_ instead of pivotColumn (not back though))
@@ -508,12 +514,10 @@ CoinFactorization::factorizePart2 (int permutation[],int exactNumberElements)
   if (status_ == 0) {
     if (increasingRows_>1) {
       // Set up permutation vector
-      if (increasingRows_<3) {
-	// these arrays start off as copies of permute
-	// (and we could use permute_ instead of pivotColumn (not back though))
-	CoinDisjointCopyN ( permute_, numberRows_ , pivotColumn_  );
-	CoinDisjointCopyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
-      }
+      // these arrays start off as copies of permute
+      // (and we could use permute_ instead of pivotColumn (not back though))
+      CoinDisjointCopyN ( permute_, numberRows_ , pivotColumn_  );
+      CoinDisjointCopyN ( permuteBack_, numberRows_ , pivotColumnBack_  );
     } else {
       // Set up permutation vector
       // (we could use permute_ instead of pivotColumn (not back though))
@@ -554,13 +558,15 @@ CoinFactorization::show_self (  ) const
       << " " << pivotColumnBack_[i]
       << " " << permute_[i]
       << " " << permuteBack_[i]
-      << " " << pivotRowL_[i]
       << " " << pivotColumn_[i]
       << " " << pivotRegion_[i] << std::endl;
   }
   for ( i = 0; i < numberRows_; i++ ) {
     std::cout << "u " << i << " " << numberInColumn_[i] << std::endl;
     int j;
+    CoinSort_2(indexRowU_+startColumnU_[i],
+	       indexRowU_+startColumnU_[i]+numberInColumn_[i],
+	       elementU_+startColumnU_[i]);
     for ( j = startColumnU_[i]; j < startColumnU_[i] + numberInColumn_[i];
 	  j++ ) {
       std::cout << indexRowU_[j] << " " << elementU_[j] << std::endl;
@@ -569,10 +575,31 @@ CoinFactorization::show_self (  ) const
   for ( i = 0; i < numberRows_; i++ ) {
     std::cout << "l " << i << " " << startColumnL_[i + 1] -
       startColumnL_[i] << std::endl;
+    CoinSort_2(indexRowL_+startColumnL_[i],
+	       indexRowL_+startColumnL_[i+1],
+	       elementL_+startColumnL_[i]);
     int j;
     for ( j = startColumnL_[i]; j < startColumnL_[i + 1]; j++ ) {
       std::cout << indexRowL_[j] << " " << elementL_[j] << std::endl;
     }
+  }
+
+}
+//  sort so can compare
+void
+CoinFactorization::sort (  ) const
+{
+  int i;
+
+  for ( i = 0; i < numberRows_; i++ ) {
+    CoinSort_2(indexRowU_+startColumnU_[i],
+	       indexRowU_+startColumnU_[i]+numberInColumn_[i],
+	       elementU_+startColumnU_[i]);
+  }
+  for ( i = 0; i < numberRows_; i++ ) {
+    CoinSort_2(indexRowL_+startColumnL_[i],
+	       indexRowL_+startColumnL_[i+1],
+	       elementL_+startColumnL_[i]);
   }
 
 }
@@ -893,6 +920,11 @@ CoinFactorization::factor (  )
       }
     }
     break;
+    // dense
+  case 2:
+    status_=factorDense();
+    if(!status_) 
+      break;
   default:
     //singular ? or some error
     if ((messageLevel_&1)!=0) 
@@ -1056,6 +1088,7 @@ CoinFactorization::pivotColumnSingleton ( int pivotRow,
 
   pivotRegion_[numberGoodU_] = 1.0 / pivotElement;
   numberInColumn_[pivotColumn] = 0;
+  //totalElements_ --;
   //numberInColumnPlus_[pivotColumn]++;
   //move pivot row in other columns to safe zone
   for ( i = 0; i < numberDoRow; i++ ) {
@@ -1072,13 +1105,13 @@ CoinFactorization::pivotColumnSingleton ( int pivotRow,
 	CoinBigIndex start = startColumnU_[iColumn];
 	CoinBigIndex pivot = start;
 	int iRow = indexRowU_[pivot];
-
 	while ( iRow != pivotRow ) {
 	  pivot++;
 	  iRow = indexRowU_[pivot];
-	}			/* endwhile */
+	}
 #if COIN_DEBUG
 	{
+	  assert (indexRowU_[pivot]==pivotRow);
 	  CoinBigIndex end_debug = startColumnU_[iColumn] +
 
 	    numberInColumn_[iColumn];
@@ -1126,6 +1159,7 @@ CoinFactorization::pivotColumnSingleton ( int pivotRow,
       numberInColumn_[iColumn]--;
       numberInColumnPlus_[iColumn]++;
       startColumnU_[iColumn]++;
+      //totalElements_--;
     }
   }
   //modify linked list for pivots
@@ -1573,7 +1607,7 @@ CoinFactorization::cleanup (  )
   pivotRowL_[numberGoodL_] = numberRows_;	//so loop will be clean
   //can deletepivotRowL_ as not used
   delete []  pivotRowL_ ;
-  pivotRowL_ = 0;
+  pivotRowL_ = NULL;
   startColumnR_ = new CoinBigIndex [ extraSpace + 1 ];
 #ifdef ZEROFAULT
   memset(startColumnR_,'z',(extraSpace + 1)*sizeof(CoinBigIndex));

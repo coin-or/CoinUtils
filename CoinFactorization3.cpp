@@ -14,6 +14,12 @@
 #include "CoinHelperFunctions.hpp"
 #include <stdio.h>
 #include <iostream>
+#if DENSE_CODE==1
+// using simple clapack interface
+extern "C" int dgetrs_(const char *trans, const int *n, const int *nrhs, 
+	const double *a, const int *lda, const int *ipiv, double *b, 
+		       const int * ldb, int *info);
+#endif
 
 // For semi-sparse
 #define BITS_PER_CHECK 8
@@ -194,6 +200,12 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse )
   int *indexRow = indexRowL_;
   double *element = elementL_;
   int last = baseL_ + numberL_;
+#ifdef DENSE_CODE2
+  if (numberDense_) {
+    //can take out last bit of sparse L as empty
+    last = min(last,numberRows_-numberDense_);
+  } 
+#endif
   
   // use sparse_ as temporary area
   // mark known to be zero
@@ -431,14 +443,14 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
     if (sparseThreshold_>0) {
       if (ftranAverageAfterL_) {
 	int newNumber = (int) (number*ftranAverageAfterL_);
-	if (newNumber< (sparseThreshold_>>1)&&(numberL_<<2)>sparseThreshold_)
+	if (newNumber< sparseThreshold_&&(numberL_<<2)>newNumber)
 	  goSparse = 2;
-	else if (newNumber< (sparseThreshold_<<1)&&(numberL_<<1)>sparseThreshold_)
+	else if (newNumber< sparseThreshold2_&&(numberL_<<1)>newNumber)
 	  goSparse = 1;
 	else
 	  goSparse = 0;
       } else {
-	if (number<sparseThreshold_&&(numberL_<<2)>sparseThreshold_) 
+	if (number<sparseThreshold_&&(numberL_<<2)>number) 
 	  goSparse = 2;
 	else
 	  goSparse = 0;
@@ -458,6 +470,38 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse) const
       break;
     }
   }
+#ifdef DENSE_CODE
+  if (numberDense_) {
+    //take off list
+    int lastSparse = numberRows_-numberDense_;
+    int number = regionSparse->getNumElements();
+    double *region = regionSparse->denseVector (  );
+    int *regionIndex = regionSparse->getIndices (  );
+    int i=0;
+    bool doDense=false;
+    while (i<number) {
+      int iRow = regionIndex[i];
+      if (iRow>=lastSparse) {
+	doDense=true;
+	regionIndex[i] = regionIndex[--number];
+      } else {
+	i++;
+      }
+    }
+    if (doDense) {
+      regionSparse->setNumElements(number);
+      //int iopt=0;
+      //dges(denseArea_,&numberDense_,&numberDense_,densePermute_,
+      //   &region[lastSparse],&iopt);
+      char trans = 'N';
+      int ione=1;
+      int info;
+      dgetrs_(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
+	      densePermute_,region+lastSparse,&numberDense_,&info);
+      regionSparse->scan(lastSparse,numberRows_,1.0e-15);
+    }
+  }
+#endif
 }
 
 int CoinFactorization::checkPivot(double saveFromU,
@@ -516,13 +560,8 @@ CoinFactorization::replaceColumn ( int pivotRow,
   region->reserve(numberRowsExtra_ );
   int status;
   
-  if (increasingRows_>2) {
-    status =
-      updateColumn ( region, elements, indicesRow, numberOfElements, true );
-  } else {
-    status =
-      updateColumn ( region, elements, indicesRow, numberOfElements, true );
-  }
+  status =
+    updateColumn ( region, elements, indicesRow, numberOfElements, true );
   if ( status >= 0 ) {
     status = replaceColumn ( region, pivotRow, pivotCheck );
   } else {
@@ -554,11 +593,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   }   
   
   int realPivotRow;
-  if (increasingRows_>2) {
-    realPivotRow = pivotRow;
-  } else {
-    realPivotRow = pivotColumn_[pivotRow];
-  }
+  realPivotRow = pivotColumn_[pivotRow];
   //zeroed out region
   double *region = regionSparse->denseVector (  );
   
@@ -866,43 +901,23 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   int numberNonZero = number;
   int j;
   int iRow;
-  if (increasingRows_ > 2) {
-    for ( j = 0; j < number; j ++ ) {
-      iRow = index[j];
-      double value = vector[iRow];
-      vector[iRow]=0.0;
-      region[iRow] = value;
-      regionIndex[j] = iRow;
-    } 
-  } else {
-    for ( j = 0; j < number; j ++ ) {
-      iRow = index[j];
-      double value = vector[iRow];
-      vector[iRow]=0.0;
-      iRow=pivotColumn_[iRow];
-      region[iRow] = value;
-      regionIndex[j] = iRow;
-    } 
+  for ( j = 0; j < number; j ++ ) {
+    iRow = index[j];
+    double value = vector[iRow];
+    vector[iRow]=0.0;
+    iRow=pivotColumn_[iRow];
+    region[iRow] = value;
+    regionIndex[j] = iRow;
   }
   regionSparse->setNumElements ( numberNonZero );
   number =  updateColumnTranspose ( regionSparse );
-  if (increasingRows_ > 2 ) {
-    for (i=0;i<number;i++) {
-      int iRow=regionIndex[i];
-      double value = region[iRow];
-      region[iRow]=0.0;
-      vector[iRow]=value;
-      index[i]=iRow;
-    }
-  } else {
-    for (i=0;i<number;i++) {
-      int iRow=regionIndex[i];
-      double value = region[iRow];
-      region[iRow]=0.0;
-      iRow=permuteBack_[iRow];
-      vector[iRow]=value;
-      index[i]=iRow;
-    }
+  for (i=0;i<number;i++) {
+    int iRow=regionIndex[i];
+    double value = region[iRow];
+    region[iRow]=0.0;
+    iRow=permuteBack_[iRow];
+    vector[iRow]=value;
+    index[i]=iRow;
   }
   regionSparse->setNumElements(0);
 #ifdef COIN_DEBUG
@@ -928,46 +943,25 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   int numberNonZero = 0;
   int j;
   int iRow;
-  if (increasingRows_ > 2) {
-    for ( j = 0; j < numberRows_; j ++ ) {
-      if (vector[j]) {
-	double value = vector[j];
-	vector[j]=0.0;
-	iRow = j;
-	region[iRow] = value;
-	regionIndex[numberNonZero++] = iRow;
-      }
-    }
-  } else {
-    for ( j = 0; j < numberRows_; j ++ ) {
-      if (vector[j]) {
-	double value = vector[j];
-	vector[j]=0.0;
-	iRow = pivotColumn_[j];
-	region[iRow] = value;
-	regionIndex[numberNonZero++] = iRow;
-      }
+  for ( j = 0; j < numberRows_; j ++ ) {
+    if (vector[j]) {
+      double value = vector[j];
+      vector[j]=0.0;
+      iRow = pivotColumn_[j];
+      region[iRow] = value;
+      regionIndex[numberNonZero++] = iRow;
     }
   }
   regionSparse->setNumElements ( numberNonZero );
   int number =  updateColumnTranspose ( regionSparse );
-  if (increasingRows_ > 2 ) {
-    for (i=0;i<number;i++) {
-      iRow=regionIndex[i];
-      double value = region[iRow];
-      region[iRow]=0.0;
-      vector[iRow]=value;
-    }
-  } else {
-    for (i=0;i<number;i++) {
-      iRow=regionIndex[i];
-      double value = region[iRow];
-      region[iRow]=0.0;
-      iRow=permuteBack_[iRow];
-      vector[iRow]=value;
-    }
+  for (i=0;i<number;i++) {
+    iRow=regionIndex[i];
+    double value = region[iRow];
+    region[iRow]=0.0;
+    iRow=permuteBack_[iRow];
+    vector[iRow]=value;
   }
-  regionSparse->setNumElements(0);
+    regionSparse->setNumElements(0);
 #ifdef COIN_DEBUG
   for (i=0;i<numberRowsExtra_;i++) {
     assert (!region[i]);
@@ -996,29 +990,23 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   int numberNonZero = number;
   int j;
   int iRow;
-  if (increasingRows_ > 2) {
-    abort(); // needs coding
-  } else {
-    for ( j = 0; j < number; j ++ ) {
-      iRow = index[j];
-      double value = vector[iRow];
-      vector[iRow]=0.0;
-      iRow=pivotColumn_[iRow];
-      region[iRow] = value;
-      regionIndex[j] = iRow;
-    } 
+  for ( j = 0; j < number; j ++ ) {
+    iRow = index[j];
+    double value = vector[iRow];
+    vector[iRow]=0.0;
+    iRow=pivotColumn_[iRow];
+    region[iRow] = value;
+    regionIndex[j] = iRow;
   }
   regionSparse->setNumElements ( numberNonZero );
   number =  updateColumnTranspose ( regionSparse );
-  if (increasingRows_ < 3) {
-    for (i=0;i<number;i++) {
-      int iRow=regionIndex[i];
-      double value = region[iRow];
-      region[iRow]=0.0;
-      iRow=permuteBack_[iRow];
-      vector[iRow]=value;
-      index[i]=iRow;
-    }
+  for (i=0;i<number;i++) {
+    int iRow=regionIndex[i];
+    double value = region[iRow];
+    region[iRow]=0.0;
+    iRow=permuteBack_[iRow];
+    vector[iRow]=value;
+    index[i]=iRow;
   }
   regionSparse->setNumElements(0);
   regionSparse2->setNumElements(number);
@@ -1354,9 +1342,9 @@ CoinFactorization::updateColumnTransposeU ( CoinIndexedVector * regionSparse) co
   if (sparseThreshold_>0) {
     if (btranAverageAfterU_) {
       int newNumber = (int) (number*btranAverageAfterU_);
-      if (newNumber< (sparseThreshold_>>1))
+      if (newNumber< sparseThreshold_)
 	goSparse = 2;
-      else if (newNumber< (sparseThreshold_<<1))
+      else if (newNumber< sparseThreshold2_)
 	goSparse = 1;
       else
 	goSparse = 0;
@@ -1708,16 +1696,16 @@ CoinFactorization::updateColumnTransposeLSparse
 void
 CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) const
 {
-  
   int goSparse;
   // Guess at number at end
+  // we may need to rethink on dense
   if (sparseThreshold_>0) {
     int number = regionSparse->getNumElements (  );
     if (btranAverageAfterL_) {
       int newNumber = (int) (number*btranAverageAfterL_);
-      if (newNumber< (sparseThreshold_>>1)&&(numberL_<<2)>sparseThreshold_)
+      if (newNumber< sparseThreshold_&(numberL_<<2)>newNumber)
 	goSparse = 2;
-      else if (newNumber< (sparseThreshold_<<1)&&(numberL_<<1)>sparseThreshold_)
+      else if (newNumber< sparseThreshold2_&&(numberL_<<1)>newNumber)
 	goSparse = 1;
       else
 	goSparse = 0;
@@ -1730,6 +1718,50 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
   } else {
     goSparse=-1;
   }
+#ifdef DENSE_CODE
+  if (numberDense_) {
+    //take off list
+    int lastSparse = numberRows_-numberDense_;
+    int number = regionSparse->getNumElements();
+    double *region = regionSparse->denseVector (  );
+    int *regionIndex = regionSparse->getIndices (  );
+    int i=0;
+    bool doDense=false;
+    if (number<=numberRows_) {
+      while (i<number) {
+	int iRow = regionIndex[i];
+	if (iRow>=lastSparse) {
+	  doDense=true;
+	  regionIndex[i] = regionIndex[--number];
+	} else {
+	  i++;
+	}
+      }
+    } else {
+      for (i=numberRows_-1;i>=lastSparse;i--) {
+	if (region[i]) {
+	  doDense=true;
+	  break;
+	}
+      }
+      if (sparseThreshold_)
+	goSparse=0;
+      else
+	goSparse=-1;
+    }
+    if (doDense) {
+      regionSparse->setNumElements(number);
+      char trans = 'T';
+      int ione=1;
+      int info;
+      dgetrs_(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
+	     densePermute_,region+lastSparse,&numberDense_,&info);
+      //and scan again
+      if (goSparse>0)
+	regionSparse->scan(lastSparse,numberRows_,zeroTolerance_);
+    } 
+  } 
+#endif
   switch (goSparse) {
   case -1: // No row copy
     updateColumnTransposeLDensish(regionSparse);
