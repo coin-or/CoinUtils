@@ -25,7 +25,7 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
   static const double fraction[]=
   {1.0,1.0e-1,1.0e-2,1.0e-3,1.0e-4,1.0e-5,1.0e-6,1.0e-7,1.0e-8,
    1.0e-9,1.0e-10,1.0e-11,1.0e-12,1.0e-13,1.0e-14,1.0e-15,1.0e-16,
-   1.0e-17,1.0e-18,1.0e-19};
+   1.0e-17,1.0e-18,1.0e-19,1.0e-20,1.0e-21,1.0e-22,1.0e-23};
 
   static const double exponent[]=
   {1.0e-9,1.0e-8,1.0e-7,1.0e-6,1.0e-5,1.0e-4,1.0e-3,1.0e-2,1.0e-1,
@@ -63,7 +63,7 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 	// do fraction
 	double value2 = 0.0;
 	int nfrac=0;
-	while (nfrac<20) {
+	while (nfrac<24) {
 	  thisChar = *ptr;
 	  ptr++;
 	  if (thisChar>='0'&&thisChar<='9') {
@@ -73,7 +73,7 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 	    break;
 	  }
 	}
-	if (nfrac<20) {
+	if (nfrac<24) {
 	  value += value2*fraction[nfrac];
 	} else {
 	  thisChar='x'; // force error
@@ -3055,7 +3055,7 @@ convertRowName(int formatType, const char * name, char outputRow[100])
    3 - IEEE hex - not INTEL
 */
 static void
-convertDouble(int formatType, double value, char outputValue[20],
+convertDouble(int formatType, double value, char outputValue[24],
 	      const char * name, char outputRow[100])
 {
   convertRowName(formatType,name,outputRow);
@@ -3112,6 +3112,12 @@ CoinConvertDouble(int formatType, double value, char outputValue[20])
 	char * e = strchr(outputValue,'e');
 	if (!e) {
 	  // no e but better make sure fits in 12
+          if (outputValue[12]!=' '&&outputValue[12]!='\0') {
+            assert (outputValue[0]==' ');
+            int j;
+            for (j=0;j<12;j++) 
+              outputValue[j]=outputValue[j+1];
+          }
 	  outputValue[12]='\0';
 	} else {
 	  // e take out 0s
@@ -3158,11 +3164,12 @@ CoinConvertDouble(int formatType, double value, char outputValue[20])
     outputValue[12]='\0';
   } else if (formatType==1) {
     if (fabs(value)<1.0e40) {
-      sprintf(outputValue,"%.18g",value);
+      memset(outputValue,' ',24);
+      sprintf(outputValue,"%.16g",value);
       // take out blanks
       int i=0;
       int j;
-      for (j=0;j<18;j++) {
+      for (j=0;j<23;j++) {
 	if (outputValue[j]!=' ')
 	  outputValue[i++]=outputValue[j];
       }
@@ -3240,7 +3247,7 @@ writeString(FILE* fp, gzFile gzfp, const char* str)
 static void outputCard(int formatType,int numberFields,
 		       FILE *fp, gzFile gzfp,
 		       std::string head, const char * name,
-		       const char outputValue[2][20],
+		       const char outputValue[2][24],
 		       const char outputRow[2][100])
 {
    // fprintf(fp,"%s",head.c_str());
@@ -3433,7 +3440,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    const CoinBigIndex * starts = matrix->getVectorStarts();
    const int * lengths = matrix->getVectorLengths();
 
-   char outputValue[2][20];
+   char outputValue[2][24];
    char outputRow[2][100];
 
    // Through columns (only put out if elements or objective value)
