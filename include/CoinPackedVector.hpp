@@ -322,32 +322,155 @@ private:
    least one of the arguments has a value listed. At those positions the
    appropriate operation is executed, Otherwise the result of the operation is
    considered 0.<br>
-   <strong>NOTE 2</strong>: Because these methods return an object (they can't
-   return a reference, though they could return a pointer...) they are
-   <em>very</em> inefficient...
+   <strong>NOTE 2</strong>: There are two kind of operators here. One is used
+   like "c = binaryOp(a, b)", the other is used like "binaryOp(c, a, b)", but
+   they are really the same. The first is much more natural to use, but it
+   involves the creation of a temporary object (the function *must* return an
+   object), while the second form puts the result directly into the argument
+   "c". Therefore, depending on the circumstances, the second form can be
+   significantly faster.
  */
 //@{
+template <class BinaryFunction> void
+binaryOp(CoinPackedVector& retVal,
+	 const CoinPackedVectorBase& op1, double value,
+	 BinaryFunction bf)
+{
+   retVal.clear();
+   const int s = op1.getNumElements();
+   if (s > 0) {
+      retVal.reserve(s);
+      const int * inds = op1.getIndices();
+      const double * elems = op1.getElements();
+      for (int i=0; i<s; ++i ) {
+	 retVal.insert(inds[i], bf(value, elems[i]));
+      }
+   }
+}
+
+template <class BinaryFunction> inline void
+binaryOp(CoinPackedVector& retVal,
+	 double value, const CoinPackedVectorBase& op2,
+	 BinaryFunction bf)
+{
+   binaryOp(retVal, op2, value, bf);
+}
+
+template <class BinaryFunction> void
+binaryOp(CoinPackedVector& retVal,
+	 const CoinPackedVectorBase& op1, const CoinPackedVectorBase& op2,
+	 BinaryFunction bf)
+{
+   retVal.clear();
+   const int s1 = op1.getNumElements();
+   const int s2 = op2.getNumElements();
+   if (s1 == 0 || s2 == 0)
+      return;
+
+   retVal.reserve(s1+s2);
+
+   const int * inds1 = op1.getIndices();
+   const double * elems1 = op1.getElements();
+   const int * inds2 = op2.getIndices();
+   const double * elems2 = op2.getElements();
+
+   int i;
+   // loop once for each element in op1
+   for ( i=0; i<s1; ++i ) {
+      const int index = inds1[i];
+      const int pos2 = op2.findIndex(index);
+      const double val = bf(elems1[i], pos2 == -1 ? 0.0 : elems2[pos2]);
+      // if (val != 0.0) // *THINK* : should we put in only nonzeros?
+      retVal.insert(index, val);
+   }
+   // loop once for each element in operand2  
+   for ( i=0; i<s2; ++i ) {
+      const int index = inds2[i];
+      // if index exists in op1, then element was processed in prior loop
+      if ( op1.isExistingIndex(index) )
+	 continue;
+      // Index does not exist in op1, so the element value must be zero
+      const double val = bf(0.0, elems2[i]);
+      // if (val != 0.0) // *THINK* : should we put in only nonzeros?
+      retVal.insert(index, val);
+   }
+}
+
+//-----------------------------------------------------------------------------
+
+template <class BinaryFunction> CoinPackedVector
+binaryOp(const CoinPackedVectorBase& op1, double value,
+	 BinaryFunction bf)
+{
+   CoinPackedVector retVal;
+   retVal.setTestForDuplicateIndex(true);
+   binaryOp(retVal, op1, value, bf);
+   return retVal;
+}
+
+template <class BinaryFunction> CoinPackedVector
+binaryOp(double value, const CoinPackedVectorBase& op2,
+	 BinaryFunction bf)
+{
+   CoinPackedVector retVal;
+   retVal.setTestForDuplicateIndex(true);
+   binaryOp(retVal, op2, value, bf);
+   return retVal;
+}
+
+template <class BinaryFunction> CoinPackedVector
+binaryOp(const CoinPackedVectorBase& op1, const CoinPackedVectorBase& op2,
+	 BinaryFunction bf)
+{
+   CoinPackedVector retVal;
+   retVal.setTestForDuplicateIndex(true);
+   binaryOp(retVal, op1, op2, bf);
+   return retVal;
+}
+
+//-----------------------------------------------------------------------------
 /// Return the sum of two packed vectors
 inline CoinPackedVector operator+(const CoinPackedVectorBase& op1,
-				 const CoinPackedVectorBase& op2)
-{ return op1.binaryOp(op2, std::plus<double>()); }
+				  const CoinPackedVectorBase& op2)
+{
+   CoinPackedVector retVal;
+   retVal.setTestForDuplicateIndex(true);
+   binaryOp(retVal, op1, op2, std::plus<double>());
+   return retVal;
+}
 
 /// Return the difference of two packed vectors
 inline CoinPackedVector operator-(const CoinPackedVectorBase& op1,
 				 const CoinPackedVectorBase& op2)
-{ return op1.binaryOp(op2, std::minus<double>()); }
+{
+   CoinPackedVector retVal;
+   retVal.setTestForDuplicateIndex(true);
+   binaryOp(retVal, op1, op2, std::minus<double>());
+   return retVal;
+}
 
 /// Return the element-wise product of two packed vectors
 inline CoinPackedVector operator*(const CoinPackedVectorBase& op1,
-				 const CoinPackedVectorBase& op2)
-{ return op1.binaryOp(op2, std::multiplies<double>()); }
+				  const CoinPackedVectorBase& op2)
+{
+   CoinPackedVector retVal;
+   retVal.setTestForDuplicateIndex(true);
+   binaryOp(retVal, op1, op2, std::multiplies<double>());
+   return retVal;
+}
 
 /// Return the element-wise ratio of two packed vectors
 inline CoinPackedVector operator/(const CoinPackedVectorBase& op1,
-				 const CoinPackedVectorBase& op2)
-{ return op1.binaryOp(op2, std::divides<double>()); }
+				  const CoinPackedVectorBase& op2)
+{
+   CoinPackedVector retVal;
+   retVal.setTestForDuplicateIndex(true);
+   binaryOp(retVal, op1, op2, std::divides<double>());
+   return retVal;
+}
 //@}
 
+//-----------------------------------------------------------------------------
 
 /**@name Arithmetic operators on packed vector and a constant. <br>
    These functions create a packed vector as a result. That packed vector will
@@ -355,36 +478,78 @@ inline CoinPackedVector operator/(const CoinPackedVectorBase& op1,
    done entry-wise with the given value. */
 //@{
 /// Return the sum of a packed vector and a constant
-inline CoinPackedVector operator+(const CoinPackedVectorBase& op1, double value)
-{ return op1.binaryOp(std::plus<double>(), value); }
+inline CoinPackedVector
+operator+(const CoinPackedVectorBase& op1, double value)
+{
+   CoinPackedVector retVal(op1);
+   retVal += value;
+   return retVal;
+}
 
 /// Return the difference of a packed vector and a constant
-inline CoinPackedVector operator-(const CoinPackedVectorBase& op1, double value)
-{ return op1.binaryOp(std::minus<double>(), value); }
+inline CoinPackedVector
+operator-(const CoinPackedVectorBase& op1, double value)
+{
+   CoinPackedVector retVal(op1);
+   retVal -= value;
+   return retVal;
+}
 
 /// Return the element-wise product of a packed vector and a constant
-inline CoinPackedVector operator*(const CoinPackedVectorBase& op1, double value)
-{ return op1.binaryOp(std::multiplies<double>(), value); }
+inline CoinPackedVector
+operator*(const CoinPackedVectorBase& op1, double value)
+{
+   CoinPackedVector retVal(op1);
+   retVal *= value;
+   return retVal;
+}
 
 /// Return the element-wise ratio of a packed vector and a constant
-inline CoinPackedVector operator/(const CoinPackedVectorBase& op1, double value)
-{ return op1.binaryOp(std::divides<double>(), value); }
+inline CoinPackedVector
+operator/(const CoinPackedVectorBase& op1, double value)
+{
+   CoinPackedVector retVal(op1);
+   retVal /= value;
+   return retVal;
+}
+
+//-----------------------------------------------------------------------------
 
 /// Return the sum of a constant and a packed vector
-inline CoinPackedVector operator+(double value, const CoinPackedVectorBase& op1)
-{ return op1.binaryOp(value, std::plus<double>()); }
+inline CoinPackedVector
+operator+(double value, const CoinPackedVectorBase& op1)
+{
+   CoinPackedVector retVal(op1);
+   retVal += value;
+   return retVal;
+}
 
 /// Return the difference of a constant and a packed vector
-inline CoinPackedVector operator-(double value, const CoinPackedVectorBase& op1)
-{ return op1.binaryOp(value, std::minus<double>()); }
+inline CoinPackedVector
+operator-(double value, const CoinPackedVectorBase& op1)
+{
+   CoinPackedVector retVal(op1);
+   retVal -= value;
+   return retVal;
+}
 
 /// Return the element-wise product of a constant and a packed vector
-inline CoinPackedVector operator*(double value, const CoinPackedVectorBase& op1)
-{ return op1.binaryOp(value, std::multiplies<double>()); }
+inline CoinPackedVector
+operator*(double value, const CoinPackedVectorBase& op1)
+{
+   CoinPackedVector retVal(op1);
+   retVal *= value;
+   return retVal;
+}
 
 /// Return the element-wise ratio of a a constant and packed vector
-inline CoinPackedVector operator/(double value, const CoinPackedVectorBase& op1)
-{ return op1.binaryOp(value, std::divides<double>()); }
+inline CoinPackedVector
+operator/(double value, const CoinPackedVectorBase& op1)
+{
+   CoinPackedVector retVal(op1);
+   retVal /= value;
+   return retVal;
+}
 //@}
 
 //#############################################################################

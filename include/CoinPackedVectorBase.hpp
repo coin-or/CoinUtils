@@ -153,91 +153,23 @@ public:
    //@{
    /// Create the dot product with a full vector
    double dotProduct(const double* dense) const;
+
+   /// Return the 1-norm of the vector
+   double oneNorm() const;
+
    /// Return the square of the 2-norm of the vector
    double normSquare() const;
+
+   /// Return the 2-norm of the vector
+   inline double twoNorm() const { return sqrt(normSquare()); }
+
+   /// Return the infinity-norm of the vector
+   double infNorm() const;
+
    /// Sum elements of vector.
    double sum() const;
-
-   template <class BinaryFunction> CoinPackedVector
-   binaryOp(double value, BinaryFunction bf) const
-   {
-      CoinPackedVector retVal;
-      retVal.setTestForDuplicateIndex(true);
-
-      const int s = getNumElements();
-      if (s > 0) {
-	 retVal.reserve(s);
-	 const int * inds = getIndices();
-	 const double * elems = getElements();
-	 for (int i=0; i<s; ++i ) {
-	    retVal.insert(inds[i], bf(value, elems[i]));
-	 }
-      }
-      return retVal;
-   }
-
-   template <class BinaryFunction> CoinPackedVector
-   binaryOp(BinaryFunction bf, double value) const
-   {
-      CoinPackedVector retVal;
-      retVal.setTestForDuplicateIndex(true);
-
-      const int s = getNumElements();
-      if (s > 0) {
-	 retVal.reserve(s);
-	 const int * inds = getIndices();
-	 const double * elems = getElements();
-	 for (int i=0; i<s; ++i ) {
-	    retVal.insert(inds[i], bf(elems[i], value));
-	 }
-      }
-      return retVal;
-   }
-
-   template <class BinaryFunction> CoinPackedVector
-   binaryOp(const CoinPackedVectorBase& op2, BinaryFunction bf) const
-   {
-      CoinPackedVector retVal;
-      retVal.setTestForDuplicateIndex(true);
-      if (op2.getNumElements() == 0)
-	 return retVal;
-
-      // loop once for each element in *this
-      const int s1 = getNumElements();
-      const int * inds1 = getIndices();
-      const double * elems1 = getElements();
-      const int maxind2 = op2.getMaxIndex();
-      double * full2p = op2.denseVector(maxind2 + 1);
-      const double *full2 = full2p;
-      int i;
-      for ( i=0; i<s1; ++i ) {
-	 const int index = inds1[i];
-	 const double val = bf(elems1[i], index>maxind2 ? 0.0 : full2[index]);
-	 //	 if (val != 0.0) // *THINK* : should we put in only nonzeros?
-	    retVal.insert(index, val);
-      }
-      delete[] full2p;
-
-      const int s2 = op2.getNumElements();
-      const int * inds2 = op2.getIndices();
-      const double * elems2 = op2.getElements();
-
-      // loop once for each element in operand2  
-      for ( i=0; i<s2; ++i ) {
-	 const int index = inds2[i];
-	 // if index exists in *this, then element was processed in prior loop
-	 if ( isExistingIndex(index) )
-	    continue;
-	 // Index does not exist in *this, so the element value must be zero
-	 const double val = bf(0.0, elems2[i]);
-	 //	 if (val != 0.0) // *THINK* : should we put in only nonzeros?
-	    retVal.insert(index, val);
-      }
-
-      return retVal;
-   }
    //@}
-  
+
 protected:
 
    /**@name Constructors, destructor

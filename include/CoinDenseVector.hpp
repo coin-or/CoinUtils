@@ -10,7 +10,7 @@
 
 #include <cassert>
 #include <cmath>
-#define max(a,b)     ( (a) < (b) ? (b) : (a) )
+#include "CoinHelperFunctions.hpp"
 
 /** Dense Vector
 
@@ -116,7 +116,7 @@ public:
    inline T oneNorm() const {
      T norm = 0;
      for (int i=0; i<nElements_; i++)
-       norm += fabs(elements_[i]);
+       norm += CoinAbs(elements_[i]);
      return norm;
    }
    /// 2-norm of vector
@@ -130,7 +130,7 @@ public:
    inline T infNorm() const {
      T norm = 0;
      for (int i=0; i<nElements_; i++)
-       norm = max(norm, fabs(elements_[i]));
+       norm = CoinMax(norm, CoinAbs(elements_[i]));
      return norm;
    }
    /// sum of vector elements
