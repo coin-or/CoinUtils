@@ -304,8 +304,8 @@ const CoinPresolveAction
 	if (integerStatus<0)
 	  continue;
 	if (integerStatus == 2) {
-	  swap(icoly,icolx);
-	  swap(krowy,krowx);
+	  CoinSwap(icoly,icolx);
+	  CoinSwap(krowy,krowx);
 	}
 
 	// HAVE TO JIB WITH ABOVE swapS
@@ -316,8 +316,8 @@ const CoinPresolveAction
 	// on which column is substituted away (this is true of baxter.mps).
 	if (!integerStatus) {
 	  if (fabs(colels[krowy]) < fabs(colels[krowx])) {
-	    swap(icoly,icolx);
-	    swap(krowy,krowx);
+	    CoinSwap(icoly,icolx);
+	    CoinSwap(krowy,krowx);
 	  }
 	}
 

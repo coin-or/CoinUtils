@@ -113,7 +113,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       }
 
       if (coeff < 0.0) {
-	swap(lo, up);
+	CoinSwap(lo, up);
 	lo = -lo;
 	up = -up;
       }

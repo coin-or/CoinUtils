@@ -634,5 +634,8 @@ inline char CoinFindDirSeparator()
   delete[] buf;
   return dirsep;
 }
+/// Swap the arguments.
+template <class T> inline void CoinSwap (T &x, T &y) {T t = x ; x = y ; y = t ; }
+
 
 #endif

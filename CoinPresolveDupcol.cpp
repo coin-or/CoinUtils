@@ -7,6 +7,7 @@
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveDupcol.hpp"
 #include "CoinSort.hpp"
+#include "CoinHelperFunctions.hpp"
 #include "CoinPresolveUseless.hpp"
 #include "CoinMessage.hpp"
 
@@ -309,9 +310,9 @@ const CoinPresolveAction
   able to retain column j1 in the basis and make column j2 nonbasic.)
 */
       if (!(clo2+cup1 <= clo1+cup2))
-      { swap(j1,j2) ;
-	swap(clo1,clo2) ;
-	swap(cup1,cup2) ;
+      { CoinSwap(j1,j2) ;
+	CoinSwap(clo1,clo2) ;
+	CoinSwap(cup1,cup2) ;
 	tgt = jj ; }
 /*
   Create the postsolve action before we start to modify the columns.
@@ -425,10 +426,10 @@ const CoinPresolveAction
   sort[tgt] = j1 will be fixed. Unswapped, we fix column sort[jj] = j2.
 */
       if ((minterm&0x0d) == 0x05 || (minterm&0x13) == 0x02)
-      { swap(j1, j2) ;
-	swap(clo1, clo2) ;
-	swap(cup1, cup2) ;
-	swap(c1, c2) ;
+      { CoinSwap(j1, j2) ;
+	CoinSwap(clo1, clo2) ;
+	CoinSwap(cup1, cup2) ;
+	CoinSwap(c1, c2) ;
 	int tmp1 = minterm&0x18 ;
 	int tmp2 = minterm&0x06 ;
 	int tmp3 = minterm&0x01 ;

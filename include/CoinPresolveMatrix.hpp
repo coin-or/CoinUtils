@@ -1638,9 +1638,6 @@ copyOfArray( const T * array, const int size, T value)
 double *presolve_dupmajor(const double *elems, const int *indices,
 			  int length, CoinBigIndex offset, int tgt = -1);
 
-/// Swap the arguments.
-template <class T> inline void swap (T &x, T &y) {T t = x ; x = y ; y = t ; }
-
 //@}
 
 
