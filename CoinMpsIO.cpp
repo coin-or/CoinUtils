@@ -1720,7 +1720,7 @@ int CoinMpsIO::readMps()
 	    break;
 	  case COIN_MI_BOUND:
 	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
-	      colupper_[icolumn] = 0.0;
+	      colupper_[icolumn] = COIN_DBL_MAX;
 	    } else if ( columnType[icolumn] == COIN_UP_BOUND ) {
 	    } else {
 	      ifError = true;

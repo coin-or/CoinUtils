@@ -304,6 +304,8 @@ public:
   int sparseThreshold ( ) const;
   /**  set sparse threshold */
   void sparseThreshold ( int value );
+  /// Fills weighted row list 
+  void getWeights(int * weights) const;
   //@}
   /// *** Below this user may not want to know about
 
