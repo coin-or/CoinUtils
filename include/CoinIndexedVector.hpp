@@ -201,6 +201,9 @@ public:
    int cleanAndPack(double tolerance);
    /// Same but packs down and is safe (i.e. if order is odd)
    int cleanAndPackSafe(double tolerance);
+  /// Mark as packed
+  inline void setPacked()
+  { packedMode_ = true;};
    /// For debug check vector is clear i.e. no elements
    void checkClear();
    /// For debug check vector is clean i.e. elements match indices

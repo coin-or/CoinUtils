@@ -1233,7 +1233,11 @@ CoinIndexedVector::cleanAndPackSafe( double tolerance )
       if (iBottom)
 	tempC += 8-iBottom;
       temp = (double *) tempC;
+#ifndef __64BIT__
       xx = (int) temp;
+#else
+      xx = (long) temp;
+#endif
       iBottom = xx & 7;
       assert(!iBottom);
     } else {
