@@ -31,7 +31,7 @@
 */
 
 namespace { // begin unnamed file-local namespace
-#if PRESOLVE_DEBUG
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 /*
   Check for duplicate entries in a major vector by walking the vector. For each
   coefficient, use presolve_find_row to search the remainder of the column
@@ -98,7 +98,7 @@ void links_ok (presolvehlink *majlink, int *majstrts, int *majlens, int nmaj)
   for (maj = 0 ; maj < nmaj ; maj++) 
   { if (majlink[maj].pre == NO_LINK)
       break ; }
-  PRESOLVEASSERT(maj < nmaj) ;
+  PRESOLVEASSERT(nmaj == 0 || maj < nmaj) ;
 /*
   The order of the linked list should match the ordering indicated by the
   major vector start & length arrays.
@@ -383,20 +383,50 @@ void presolve_check_free_list (const CoinPostsolveMatrix *obj, bool chkElemCnt)
 
   The routine is specific to CoinPostsolveMatrix because the reduced cost
   calculation requires traversal of (threaded) matrix columns.
+
+  NOTE: This routine holds static variables. It will detect when the problem
+	size changes and reinitialise. If you use presolve debugging over
+	multiple problems and you want to be dead sure of reinitialisation,
+	use the call presolve_check_reduced_costs(0), which will reinitialise
+	and return.
 */
 
 void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 {
 # if PRESOLVE_DEBUG
 
+  static bool warned = false ;
+  static double *warned_rcosts = 0 ;
+  static int allocSize = 0 ;
+  static const CoinPostsolveMatrix *lastObj = 0 ;
+
+/*
+  Is the client asking for reinitialisation only?
+*/
+  if (postObj == 0)
+  { warned = false ;
+    if (warned_rcosts != 0)
+    { delete[] warned_rcosts ;
+      warned_rcosts = 0 ; }
+    allocSize = 0 ;
+    lastObj = 0 ;
+    return ; }
+/*
+  *Should* the client have asked for reinitialisation?
+*/
+  int ncols0 = postObj->ncols0_ ;
+  if (allocSize < ncols0 || postObj != lastObj)
+  { warned = false ;
+    delete[] warned_rcosts ;
+    warned_rcosts = 0 ;
+    allocSize = 0 ;
+    lastObj = postObj ; }
+
   CoinMessageHandler *handler = postObj->handler_ ;
   const CoinMessages &messages = postObj->messages_ ;
 
-  int ncols0 = postObj->ncols0_ ;
   double *rcosts = postObj->rcosts_ ;
 
-  static bool warned = false ;
-  static double *warned_rcosts ;
 /*
   By tracking values in warned_rcosts, we can produce a single message the
   first time a value is determined to be incorrect.
