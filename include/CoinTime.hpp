@@ -12,7 +12,7 @@
 #  pragma warning(disable:4786)
 #else
 // MacOS-X
-#if defined(__MACH__)
+#if defined(__MACH__) || defined (__FreeBSD__)
 #include <sys/time.h>
 #endif
 #include <sys/resource.h>
