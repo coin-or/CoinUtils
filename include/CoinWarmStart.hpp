@@ -6,6 +6,8 @@
 
 //#############################################################################
 
+class CoinWarmStartDiff;
+
 /** Abstract base class for warm start information.
 
     Really nothing can be generalized for warm start information --- all we
@@ -22,6 +24,12 @@ public:
 
   /// `Virtual constructor'
   virtual CoinWarmStart *clone() const = 0 ;
+   
+  virtual CoinWarmStartDiff*
+  generateDiff (const CoinWarmStart *const oldCWS) const ;
+   
+  virtual void
+  applyDiff (const CoinWarmStartDiff *const cwsdDiff) ;
 };
 
 

@@ -141,7 +141,7 @@ public:
   */
 
   virtual CoinWarmStartDiff*
-  CoinWarmStartBasis::generateDiff (const CoinWarmStart *const oldCWS) const ;
+  generateDiff (const CoinWarmStart *const oldCWS) const ;
 
   /*! \brief Apply \p diff to this basis
 
@@ -150,7 +150,7 @@ public:
   */
 
   virtual void
-  CoinWarmStartBasis::applyDiff (const CoinWarmStartDiff *const cwsdDiff) ;
+  applyDiff (const CoinWarmStartDiff *const cwsdDiff) ;
 
 //@}
 

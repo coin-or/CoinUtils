@@ -43,6 +43,12 @@
 
 //-----------------------------------------------------------------------------
 
+#if defined (__hpux)
+#  define CoinSighandler_t_defined
+#endif
+
+//-----------------------------------------------------------------------------
+
 #if defined(__sparc) && defined(__sun)
 #  if defined(__SUNPRO_CC)
 #     include <signal.h>
