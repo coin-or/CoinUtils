@@ -1323,7 +1323,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix, const double * associat
     CoinSort_2(row+put,row+put+length[i],element+put);
   }
   matrix=CoinPackedMatrix(true,numberRows_,numberColumns_,numberElements,
-                          element,row,start,length);
+                          element,row,start,length,0.0,0.0);
   delete [] start;
   delete [] length;
   delete [] row;

@@ -209,6 +209,21 @@ CoinPackedMatrix::appendCols(const int numcols,
 
 //-----------------------------------------------------------------------------
 
+int 
+CoinPackedMatrix::appendCols(const int numcols,
+                             const CoinBigIndex * columnStarts, const int * row,
+                             const double * element, int numberRows)
+{
+  int numberErrors;
+  if (colOrdered_) {
+    numberErrors=appendMajor(numcols, columnStarts, row, element, numberRows);
+  } else {
+    numberErrors=appendMinor(numcols, columnStarts, row, element, numberRows);
+  }
+  return numberErrors;
+}
+//-----------------------------------------------------------------------------
+
 void
 CoinPackedMatrix::appendRow(const CoinPackedVectorBase& vec) throw(CoinError)
 {
@@ -264,6 +279,21 @@ CoinPackedMatrix::appendRows(const int numrows,
   } else {
     appendMajorVectors(numrows, rows);
   }
+}
+//-----------------------------------------------------------------------------
+
+int 
+CoinPackedMatrix::appendRows(const int numrows,
+                             const CoinBigIndex * rowStarts, const int * column,
+                             const double * element, int numberColumns)
+{
+  int numberErrors;
+  if (colOrdered_) {
+    numberErrors=appendMinor(numrows, rowStarts, column, element, numberColumns);
+  } else {
+    numberErrors=appendMajor(numrows, rowStarts, column, element, numberColumns);
+  }
+  return numberErrors;
 }
 
 //#############################################################################
@@ -754,6 +784,8 @@ CoinPackedMatrix::operator=(const CoinPackedMatrix& rhs)
 {
    if (this != &rhs) {
       gutsOfDestructor();
+      extraGap_=rhs.extraGap_;
+      extraMajor_=rhs.extraMajor_;
       gutsOfOpEqual(rhs.colOrdered_,
 		    rhs.minorDim_,  rhs.majorDim_, rhs.size_,
 		    rhs.element_, rhs.index_, rhs.start_, rhs.length_);
@@ -2323,4 +2355,202 @@ CoinPackedMatrix::orderMatrix()
     CoinBigIndex end = start + length_[i];
     CoinSort_2(index_+start,index_+end,element_+start);
   }
+}
+/* Append a set of rows/columns to the end of the matrix. Returns number of errors
+   i.e. if any of the new rows/columns contain an index that's larger than the
+   number of columns-1/rows-1 (if numberOther>0) or duplicates 
+   This version is easy one i.e. adding columns to column ordered */
+int 
+CoinPackedMatrix::appendMajor(const int number,
+                              const CoinBigIndex * starts, const int * index,
+                              const double * element, int numberOther)
+{
+  int i;
+  int numberErrors=0;
+  CoinBigIndex numberElements = starts[number];
+  if (majorDim_ + number > maxMajorDim_ ||
+      getLastStart() + numberElements > maxSize_) {
+    // we got to resize before we add. note that the resizing method
+    // properly fills out start_ and length_ for the major-dimension
+    // vectors to be added!
+    int * length = new int[number];
+    for (i=0;i<number;i++)
+      length[i]=starts[i+1]-starts[i];
+    resizeForAddingMajorVectors(number, length);
+    delete [] length;
+    if (numberOther>0) {
+      char * which = new char[numberOther];
+      memset(which,0,numberOther);
+      for (i = 0; i < number; i++) {
+        CoinBigIndex put = start_[majorDim_+i];
+        CoinBigIndex j;
+        for ( j=starts[i];j<starts[i+1];j++) {
+          int iIndex = index[j];
+          element_[put]=element[j];
+          if (iIndex>=0&&iIndex<numberOther) {
+            if (!which[iIndex])
+              which[iIndex]=1;
+            else
+              numberErrors++;
+          } else {
+            numberErrors++;
+          }
+          index_[put++]=iIndex;
+        }
+        for ( j=starts[i];j<starts[i+1];j++) {
+          int iIndex = index[j];
+          if (iIndex>=0&&iIndex<numberOther) 
+            which[iIndex]=0;
+        }
+      }
+      delete [] which;
+    } else {
+      // easy
+      if (!extraGap_) {
+        // just one copy
+        CoinMemcpyN(index,numberElements,index_+start_[majorDim_]);
+        CoinMemcpyN(element,numberElements,element_+start_[majorDim_]);
+      } else {
+        start_ += majorDim_;
+        for (i = 0; i < number; i++) {
+          int length = starts[i+1]-starts[i];
+          CoinMemcpyN(index + starts[i], length,
+                      index_ + start_[i]);
+          CoinMemcpyN(element + starts[i], length,
+                      element_ + start_[i]);
+        }
+        start_ -= majorDim_;
+      }
+    }
+  } else {
+    if (numberOther>0) {
+      char * which = new char[numberOther];
+      memset(which,0,numberOther);
+      for (i = 0; i < number; i++) {
+        CoinBigIndex put = start_[majorDim_+i];
+        CoinBigIndex j;
+        for ( j=starts[i];j<starts[i+1];j++) {
+          int iIndex = index[j];
+          element_[put]=element[j];
+          if (iIndex>=0&&iIndex<numberOther) {
+            if (!which[iIndex])
+              which[iIndex]=1;
+            else
+              numberErrors++;
+          } else {
+            numberErrors++;
+          }
+          index_[put++]=iIndex;
+        }
+        start_[majorDim_+i+1] = put;
+        length_[i] = put-start_[majorDim_+i];;
+        for ( j=starts[i];j<starts[i+1];j++) {
+          int iIndex = index[j];
+          if (iIndex>=0&&iIndex<numberOther) 
+            which[iIndex]=0;
+        }
+      }
+      delete [] which;
+    } else {
+      // easy
+      if (!extraGap_) {
+        // just one copy
+        CoinMemcpyN(index,numberElements,index_+start_[majorDim_]);
+        CoinMemcpyN(element,numberElements,element_+start_[majorDim_]);
+        start_ += majorDim_;
+        for (i = 0; i < number; i++) {
+          int length = starts[i+1]-starts[i];
+          start_[i+1] = start_[i] + length;
+          length_[majorDim_+i] = length;
+        }
+        start_ -= majorDim_;
+      } else {
+        start_ += majorDim_;
+        for (i = 0; i < number; i++) {
+          int length = starts[i+1]-starts[i];
+          CoinMemcpyN(index + starts[i], length,
+                      index_ + start_[i]);
+          CoinMemcpyN(element + starts[i], length,
+                      element_ + start_[i]);
+          start_[i+1] = start_[i] + length;
+          length_[majorDim_+i] = length;
+        }
+        start_ -= majorDim_;
+      }
+    }
+  }
+  majorDim_ += number;
+  size_ += numberElements;
+  return numberErrors;
+}
+/* Append a set of rows/columns to the end of the matrix. Returns number of errors
+   i.e. if any of the new rows/columns contain an index that's larger than the
+   number of columns-1/rows-1 (if numberOther>0) or duplicates
+   This version is harder one i.e. adding columns to row ordered */
+int 
+CoinPackedMatrix::appendMinor(const int number,
+                              const CoinBigIndex * starts, const int * index,
+                              const double * element, int numberOther)
+{
+  int i;
+  int numberErrors=0;
+  // first compute how many entries will be added to each major-dimension
+  // vector, and if needed, resize the matrix to accommodate all
+  int * addedEntries = new int[majorDim_];
+  CoinZeroN(addedEntries,majorDim_);
+  if (numberOther>0) {
+    numberOther=majorDim_;
+    char * which = new char[numberOther];
+    memset(which,0,numberOther);
+    for (i = 0; i < number; i++) {
+      CoinBigIndex j;
+      for ( j=starts[i];j<starts[i+1];j++) {
+        int iIndex = index[j];
+        if (iIndex>=0&&iIndex<numberOther) {
+          addedEntries[iIndex]++;
+          if (!which[iIndex])
+            which[iIndex]=1;
+          else
+            numberErrors++;
+        } else {
+          numberErrors++;
+        }
+      }
+      for ( j=starts[i];j<starts[i+1];j++) {
+        int iIndex = index[j];
+        if (iIndex>=0&&iIndex<numberOther) 
+          which[iIndex]=0;
+      }
+    }
+    delete [] which;
+  } else {
+    // no checking
+    for (i = 0; i < number; i++) {
+      CoinBigIndex j;
+      for ( j=starts[i];j<starts[i+1];j++) {
+        int iIndex = index[j];
+        addedEntries[iIndex]++;
+      }
+    }
+  }
+  for (i = majorDim_ - 1; i >= 0; i--) {
+    if (start_[i] + length_[i] + addedEntries[i] > start_[i+1])
+      break;
+  }
+  if (i >= 0)
+    resizeForAddingMinorVectors(addedEntries);
+  delete[] addedEntries;
+
+  // now insert the entries of matrix
+  for (i = 0; i < number; i++) {
+    CoinBigIndex j;
+    for ( j=starts[i];j<starts[i+1];j++) {
+      int iIndex = index[j];
+      element_[start_[iIndex] + length_[iIndex]] = element[j];
+      index_[start_[iIndex] + (length_[iIndex]++)] = minorDim_;
+    }
+    ++minorDim_;
+  }
+  size_ += starts[number];
+  return numberErrors;
 }

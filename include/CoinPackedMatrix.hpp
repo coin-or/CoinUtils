@@ -171,6 +171,12 @@ public:
 	fits into the matrix. */
     void appendCols(const int numcols,
 		    const CoinPackedVectorBase * const * cols) throw(CoinError);
+    /** Append a set of columns to the end of the matrix. Returns number of errors
+	i.e. if any of the new columns contain an index that's larger than the
+	number of rows-1 (if numberRows>0) or duplicates (if numberRows>0).  */
+    int appendCols(const int numcols,
+		    const CoinBigIndex * columnStarts, const int * row,
+                   const double * element, int numberRows=-1);
 
   /** Append a row to the end of the matrix. When libosi is compiled with
 	a COIN_DEBUG defined then this method throws an exception if the new
@@ -190,6 +196,12 @@ public:
 	fits into the matrix. */
     void appendRows(const int numrows,
 		    const CoinPackedVectorBase * const * rows) throw(CoinError);
+    /** Append a set of rows to the end of the matrix. Returns number of errors
+	i.e. if any of the new rows contain an index that's larger than the
+	number of columns-1 (if numberColumns>0) or duplicates (if numberColumns>0).  */
+    int appendRows(const int numrows,
+		    const CoinBigIndex * rowStarts, const int * column,
+                   const double * element, int numberColumns=-1);
   
     /** Append the argument to the "right" of the current matrix. Imagine this
         as adding new columns (don't worry about how the matrices are ordered,
@@ -589,6 +601,20 @@ protected:
 		      const CoinBigIndex * start, const int * len);
    void resizeForAddingMajorVectors(const int numVec, const int * lengthVec);
    void resizeForAddingMinorVectors(const int * addedEntries);
+    /** Append a set of rows/columns to the end of the matrix. Returns number of errors
+	i.e. if any of the new rows/columns contain an index that's larger than the
+	number of columns-1/rows-1 (if numberOther>0) or duplicates
+        This version is easy one i.e. adding columns to column ordered */
+    int appendMajor(const int number,
+		    const CoinBigIndex * starts, const int * index,
+                    const double * element, int numberOther=-1);
+    /** Append a set of rows/columns to the end of the matrix. Returns number of errors
+	i.e. if any of the new rows/columns contain an index that's larger than the
+	number of columns-1/rows-1 (if numberOther>0) or duplicates
+        This version is harder one i.e. adding columns to row ordered */
+    int appendMinor(const int number,
+		    const CoinBigIndex * starts, const int * index,
+                    const double * element, int numberOther=-1);
 private:
    inline CoinBigIndex getLastStart() const {
       return majorDim_ == 0 ? 0 : start_[majorDim_];

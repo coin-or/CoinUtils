@@ -11,7 +11,7 @@
 /** 
     In many cases it is natural to build a model by adding one row at a time.  In Coin this
     is inefficient so this class gives some help.  An instance of CoinBuild can be built up
-    more efficiently and then added to the CoinModel in one go.
+    more efficiently and then added to the Clp/OsiModel in one go.
 
     It may be more efficient to have fewer arrays and re-allocate them but this should
     give a large gain over addRow.
