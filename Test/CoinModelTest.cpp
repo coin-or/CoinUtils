@@ -27,7 +27,7 @@
    At end fill in rim at random
 
 */
-void buildRandom(CoinModel & baseModel, double random, double & timeIt)
+void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPass)
 {
   CoinModel model;
   int numberRows = baseModel.numberRows();
@@ -57,7 +57,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt)
   // whether columnRim done
   char columnDone[3]={0,0,0};
   // Save array for deleting elements
-  //CoinModelTriple * dTriple = new CoinModelTriple[numberElements];
+  CoinModelTriple * dTriple = new CoinModelTriple[numberElements];
   numberElements=0;
   double time1 = CoinCpuTime();
   for (int jBlock=0;jBlock<9;jBlock++) {
@@ -313,6 +313,89 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt)
         }
       }
     }
+    // Mess up be deleting some elements
+    if (CoinDrand48()<0.3&&iPass>10) {
+      double random2=CoinDrand48();
+      double randomDelete = 0.2 + 0.5*random2; // fraction to delete
+      if (random2<0.2) {
+        // delete some rows
+        for (int j=lastRow[jRow];j<lastRow[jRow+1];j++) {
+          if (CoinDrand48()<randomDelete) {
+            // save and delete
+            double rowLower = model.rowLower(j);
+            double rowUpper = model.rowUpper(j);
+            char * rowName = CoinStrdup(model.rowName(j));
+            CoinModelLink triple=model.firstInRow(j);
+            while (triple.column()>=0) {
+              int iColumn = triple.column();
+              assert (j==triple.row());
+              dTriple[numberElements].row = j;
+              dTriple[numberElements].column=iColumn;
+              dTriple[numberElements].value = triple.value();
+              numberElements++;
+              triple=model.next(triple);
+            }
+            model.deleteRow(j);
+            if (rowDone[jRow]) {
+              // put back rim
+              model.setRowLower(j,rowLower);
+              model.setRowUpper(j,rowUpper);
+              model.setRowName(j,rowName);
+            }
+            free(rowName);
+          }
+        }
+      } else if (random2<0.4) {
+        // delete some columns
+        for (int j=lastColumn[jColumn];j<lastColumn[jColumn+1];j++) {
+          if (CoinDrand48()<randomDelete) {
+            // save and delete
+            double columnLower = model.columnLower(j);
+            double columnUpper = model.columnUpper(j);
+            double objective = model.objective(j);
+            bool integer = model.isInteger(j)!=0;
+            char * columnName = CoinStrdup(model.columnName(j));
+            CoinModelLink triple=model.firstInColumn(j);
+            while (triple.column()>=0) {
+              int iRow = triple.row();
+              assert (j==triple.column());
+              dTriple[numberElements].column = j;
+              dTriple[numberElements].row=iRow;
+              dTriple[numberElements].value = triple.value();
+              numberElements++;
+              triple=model.next(triple);
+            }
+            model.deleteColumn(j);
+            if (columnDone[jColumn]) {
+              // put back rim
+              model.setColumnLower(j,columnLower);
+              model.setColumnUpper(j,columnUpper);
+              model.setObjective(j,objective);
+              model.setIsInteger(j,integer);
+              model.setColumnName(j,columnName);
+            }
+            free(columnName);
+          }
+        }
+      } else {
+        // delete some elements
+        const CoinModelTriple * elements = baseModel.elements();
+        for (i=0;i<model.numberElements();i++) {
+          int iRow = (int) elements[i].row;
+          int iColumn = elements[i].column;
+          if (iRow>=lastRow[jRow]&&iRow<lastRow[jRow+1]&&
+              iColumn>=lastColumn[jColumn]&&iColumn<lastColumn[jColumn+1]) {
+            if (CoinDrand48()<randomDelete) {
+              dTriple[numberElements].column = iColumn;
+              dTriple[numberElements].row=iRow;
+              dTriple[numberElements].value = elements[i].value;
+              numberElements++;
+              model.deleteElement(iRow,iColumn);
+            }
+          }
+        }
+      }
+    }
   }
   // Do rim if necessary
   for (int k=0;k<3;k++) {
@@ -333,6 +416,11 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt)
       }
     }
   }
+  // Put back any elements
+  for (i=0;i<numberElements;i++) {
+    model(dTriple[i].row,dTriple[i].column,dTriple[i].value);
+  }
+  delete [] dTriple;
   timeIt +=  CoinCpuTime()-time1;
   assert (!model.differentModel(baseModel,false));
 }
@@ -489,7 +577,7 @@ CoinModelUnitTest(const std::string & mpsDir,
       time1 = 0.0;
       int nPass=50;
       for (i=0;i<nPass;i++) {
-        buildRandom(model,CoinDrand48(),time1);
+        buildRandom(model,CoinDrand48(),time1,i);
         printf("pass %d\n",i);
       }
       printf("Time for %d CoinModel passes is %g seconds\n",

@@ -97,10 +97,7 @@ CoinModelHash::CoinModelHash (const CoinModelHash & rhs)
   if (maximumItems_) {
     names_ = new char * [maximumItems_];
     for (int i=0;i<maximumItems_;i++) {
-      if (rhs.names_[i])
-        names_[i]=strdup(rhs.names_[i]);
-      else
-        names_[i]=NULL;
+      names_[i]=CoinStrdup(rhs.names_[i]);
     }
     hash_ = CoinCopyOfArray(rhs.hash_,maximumItems_);
   }
@@ -134,10 +131,7 @@ CoinModelHash::operator=(const CoinModelHash& rhs)
     if (maximumItems_) {
       names_ = new char * [maximumItems_];
       for (int i=0;i<maximumItems_;i++) {
-        if (rhs.names_[i])
-          names_[i]=strdup(rhs.names_[i]);
-        else
-          names_[i]=NULL;
+        names_[i]=CoinStrdup(rhs.names_[i]);
       }
       hash_ = CoinCopyOfArray(rhs.hash_,maximumItems_);
     } else {
@@ -147,12 +141,19 @@ CoinModelHash::operator=(const CoinModelHash& rhs)
   }
   return *this;
 }
+// Set number of items
+void 
+CoinModelHash::setNumberItems(int number)
+{
+  assert (number>=0&&number<=numberItems_);
+  numberItems_=number;
+}
 // Resize hash (also re-hashs)
 void 
-CoinModelHash::resize(int maxItems)
+CoinModelHash::resize(int maxItems,bool forceReHash)
 {
   assert (numberItems_<=maximumItems_);
-  if (maxItems<=maximumItems_)
+  if (maxItems<=maximumItems_&&!forceReHash)
     return;
   int n=maximumItems_;
   maximumItems_=maxItems;
@@ -272,8 +273,12 @@ CoinModelHash::hash(const char * name) const
 	break;
       }
     } else {
-      found = -1;
-      break;
+      int k = hash_[ipos].next;
+      
+      if ( k != -1 )
+        ipos = k;
+      else
+        break;
     }
   }
   return found;
@@ -288,9 +293,8 @@ CoinModelHash::addHash(int index, const char * name)
   assert (!names_[index]);
   names_[index]=strdup(name);
   int ipos = hashValue ( name);
+  numberItems_ = CoinMax(numberItems_,index+1);
   if ( hash_[ipos].index <0 ) {
-    if (hash_[ipos].index==-1)
-      numberItems_++;
     hash_[ipos].index = index;
   } else {
     while ( true ) {
@@ -299,37 +303,39 @@ CoinModelHash::addHash(int index, const char * name)
       if ( j1 == index )
 	break; // duplicate?
       else {
-	char *thisName2 = names_[j1];
-	if ( strcmp ( name, thisName2 ) == 0 ) {
-	  printf ( "** duplicate name %s\n", names_[index] );
-          abort();
-	  break;
-	} else {
-	  int k = hash_[ipos].next;
-
-	  if ( k == -1 ) {
-	    while ( true ) {
-	      ++lastSlot_;
-	      if ( lastSlot_ > numberItems_ ) {
-		printf ( "** too many names\n" );
-                abort();
-		break;
-	      }
-	      if ( hash_[lastSlot_].index <0 ) {
-                if (hash_[lastSlot_].index==-1)
-                  numberItems_++;
-		break;
-	      }
-	    }
-	    hash_[ipos].next = lastSlot_;
-	    hash_[lastSlot_].index = index;
-	    hash_[lastSlot_].next=-1;
-	    break;
-	  } else {
-	    ipos = k;
-	    /* nothing worked - try it again */
-	  }
-	}
+        if (j1>=0) {
+          char *thisName2 = names_[j1];
+          if ( strcmp ( name, thisName2 ) == 0 ) {
+            printf ( "** duplicate name %s\n", names_[index] );
+            abort();
+            break;
+          } else {
+            int k = hash_[ipos].next;
+            
+            if ( k == -1 ) {
+              while ( true ) {
+                ++lastSlot_;
+                if ( lastSlot_ > numberItems_ ) {
+                  printf ( "** too many names\n" );
+                  abort();
+                  break;
+                }
+                if ( hash_[lastSlot_].index <0 ) {
+                  break;
+                }
+              }
+              hash_[ipos].next = lastSlot_;
+              hash_[lastSlot_].index = index;
+              hash_[lastSlot_].next=-1;
+              break;
+            } else {
+              ipos = k;
+            }
+          }
+        } else {
+          //slot available
+          hash_[ipos].index = index;
+        }
       }
     }
   }
@@ -340,34 +346,20 @@ CoinModelHash::deleteHash(int index)
 {
   if (index<numberItems_&&names_[index]) {
     
-    int ilast=-1;
     int ipos = hashValue ( names_[index] );
 
     while ( ipos>=0 ) {
       int j1 = hash_[ipos].index;
       if ( j1!=index) {
-        ilast = ipos;
         ipos = hash_[ipos].next;
       } else {
+        hash_[ipos].index=-1; // available
         break;
       }
     }
     assert (ipos>=0);
     free(names_[index]);
     names_[index]=NULL;
-    if (ilast>=0) {
-      hash_[ilast].next=hash_[ipos].next;
-    } else {
-      int inext = hash_[ipos].next;
-      if (inext>=0) {
-        hash_[ipos].index=hash_[inext].index;
-        hash_[ipos].next=hash_[inext].next;
-        ipos=inext;
-      }        
-    }
-    hash_[ipos].index=-2; // to say re-used
-    hash_[ipos].next=-1;
-    lastSlot_=CoinMin(lastSlot_,ipos-1);
   }
 }
 // Returns name at position (or NULL)
@@ -378,6 +370,22 @@ CoinModelHash::name(int which) const
     return names_[which];
   else
     return NULL;
+}
+// Returns non const name at position (or NULL)
+char * 
+CoinModelHash::getName(int which) const
+{
+  if (which<numberItems_)
+    return names_[which];
+  else
+    return NULL;
+}
+// Sets name at position (does not create)
+void 
+CoinModelHash::setName(int which,char * name ) 
+{
+  if (which<numberItems_)
+    names_[which]=name;
 }
 // Returns a hash value
 int 
@@ -467,12 +475,19 @@ CoinModelHash2::operator=(const CoinModelHash2& rhs)
   }
   return *this;
 }
+// Set number of items
+void 
+CoinModelHash2::setNumberItems(int number)
+{
+  assert (number>=0&&number<=numberItems_);
+  numberItems_=number;
+}
 // Resize hash (also re-hashs)
 void 
-CoinModelHash2::resize(int maxItems, const CoinModelTriple * triples)
+CoinModelHash2::resize(int maxItems, const CoinModelTriple * triples,bool forceReHash)
 {
   assert (numberItems_<=maximumItems_);
-  if (maxItems<=maximumItems_)
+  if (maxItems<=maximumItems_&&!forceReHash)
     return;
   maximumItems_=maxItems;
   delete [] hash_;
@@ -585,8 +600,12 @@ CoinModelHash2::hash(int row, int column, const CoinModelTriple * triples) const
 	break;
       }
     } else {
-      found = -1;
-      break;
+      int k = hash_[ipos].next;
+      
+      if ( k != -1 )
+        ipos = k;
+      else
+        break;
     }
   }
   return found;
@@ -599,48 +618,50 @@ CoinModelHash2::addHash(int index, int row, int column, const CoinModelTriple * 
   if (numberItems_>=maximumItems_) 
     resize(1000+3*numberItems_/2, triples);
   int ipos = hashValue ( row, column);
+  numberItems_ = CoinMax(numberItems_,index+1);
   if ( hash_[ipos].index <0 ) {
-    if (hash_[ipos].index==-1)
-      numberItems_++;
     hash_[ipos].index = index;
   } else {
     while ( true ) {
       int j1 = hash_[ipos].index;
       
-      if ( j1 == index )
+      if ( j1 == index ) {
 	break; // duplicate??
-      else {
-        int row2 = (int) triples[j1].row;
-        int column2 = triples[j1].column;
-        if ( row==row2&&column==column2 ) {
-	  printf ( "** duplicate entry %d %d\n", row, column );
-          abort();
-	  break;
-	} else {
-	  int k = hash_[ipos].next;
-
-	  if ( k ==-1 ) {
-	    while ( true ) {
-	      ++lastSlot_;
-	      if ( lastSlot_ > numberItems_ ) {
-		printf ( "** too many entrys\n" );
-                abort();
-		break;
-	      }
-	      if ( hash_[lastSlot_].index <0 ) {
-                if (hash_[lastSlot_].index==-1)
-                  numberItems_++;
-		break;
-	      }
-	    }
-	    hash_[ipos].next = lastSlot_;
-	    hash_[lastSlot_].index = index;
-	    hash_[lastSlot_].next=-1;
-	    break;
-	  } else {
-	    ipos = k;
-	  }
-	}
+      } else {
+        if (j1 >=0 ) {
+          int row2 = (int) triples[j1].row;
+          int column2 = triples[j1].column;
+          if ( row==row2&&column==column2 ) {
+            printf ( "** duplicate entry %d %d\n", row, column );
+            abort();
+            break;
+          } else {
+            int k = hash_[ipos].next;
+            
+            if ( k ==-1 ) {
+              while ( true ) {
+                ++lastSlot_;
+                if ( lastSlot_ > numberItems_ ) {
+                  printf ( "** too many entrys\n" );
+                  abort();
+                  break;
+                }
+                if ( hash_[lastSlot_].index <0 ) {
+                  break;
+                }
+              }
+              hash_[ipos].next = lastSlot_;
+              hash_[lastSlot_].index = index;
+              hash_[lastSlot_].next=-1;
+              break;
+            } else {
+              ipos = k;
+            }
+          }
+        } else {
+          // slot available
+          hash_[ipos].index = index;
+        }
       }
     }
   }
@@ -651,32 +672,16 @@ CoinModelHash2::deleteHash(int index,int row, int column)
 {
   if (index<numberItems_) {
     
-    int ilast=-1;
     int ipos = hashValue ( row, column );
 
     while ( ipos>=0 ) {
       int j1 = hash_[ipos].index;
       if ( j1!=index) {
-        ilast = ipos;
         ipos = hash_[ipos].next;
       } else {
+        hash_[ipos].index=-1; // available
         break;
       }
-    }
-    if (ipos>=0) {
-      if (ilast>=0) {
-        hash_[ilast].next=hash_[ipos].next;
-      } else {
-        int inext = hash_[ipos].next;
-        if (inext>=0) {
-          hash_[ipos].index=hash_[inext].index;
-          hash_[ipos].next=hash_[inext].next;
-          ipos=inext;
-        }        
-      }
-      hash_[ipos].index=-2; // to say re-used
-      hash_[ipos].next=-1;
-      lastSlot_=CoinMin(lastSlot_,ipos-1);
     }
   }
 }
@@ -899,24 +904,10 @@ CoinModelLinkedList::create(int maxMajor,int maxElements,
         iMinor=(int) triples[i].row;
         iMajor=triples[i].column;
       }
+      assert (iMajor<numberMajor);
       if (first_[iMajor]>=0) {
         // not first
         int j=last_[iMajor];
-#ifndef NDEBUG
-        // make sure in order - I think this will be true
-        int jMajor;
-        int jMinor;
-        if (!type_) {
-          // for rows
-          jMajor=(int) triples[j].row;
-          jMinor=triples[j].column;
-        } else {
-          jMinor=(int) triples[j].row;
-          jMajor=triples[j].column;
-        }
-        assert (iMajor==jMajor);
-        assert (iMinor>jMinor);
-#endif        
         next_[j]=i;
         previous_[i]=j;
       } else {
@@ -949,6 +940,7 @@ CoinModelLinkedList::create(int maxMajor,int maxElements,
       last_[i]=k;
     }
   }
+  numberMajor_=numberMajor;
 }
 /* Adds to list - easy case i.e. add row to row list
    Returns where chain starts
@@ -958,14 +950,6 @@ CoinModelLinkedList::addEasy(int majorIndex, int numberOfElements, const int * i
                              const double * elements, CoinModelTriple * triples,
                              CoinModelHash2 & hash)
 {
-#if 0
-  if (majorIndex>maximumMajor_||numberOfElements+numberElements_>maximumElements_) {
-    int newMajor =  (majorIndex>maximumMajor_) ? (3*majorIndex/2+100) : maximumMajor_;
-    int newElements = (numberOfElements+numberElements_>=maximumElements_) ? (3*numberElements_/2)+1000
-      : maximumElements_;
-    resize(newMajor,newElements);
-  }
-#endif
   assert (majorIndex<maximumMajor_);
   if (numberOfElements+numberElements_>maximumElements_) {
     resize(maximumMajor_,(3*(numberElements_+numberOfElements))/2+1000);
@@ -1068,10 +1052,8 @@ CoinModelLinkedList::addHard(int minorIndex, int numberOfElements, const int * i
       hash.addHash(put,(int) triples[put].row,triples[put].column,triples);
     if (other>=numberMajor_) {
       // Need to fill in null values
-      for (int j=numberMajor_;j<=other;j++) {
-        last_[j]=-1;
-        first_[j]=-1;
-      }
+      fill(numberMajor_,other+1);
+      numberMajor_=other+1;
     }
     int last=last_[other];
     if (last>=0) {
@@ -1121,6 +1103,12 @@ CoinModelLinkedList::addHard(int first, const CoinModelTriple * triples,
       else
         minorIndex=triples[put].row;
     }
+    assert (other<maximumMajor_);
+    if (other>=numberMajor_) {
+      // Need to fill in null values
+      fill (numberMajor_,other+1);
+      numberMajor_=other+1;
+    }
     int last=last_[other];
     if (last>=0) {
       next_[last]=put;
@@ -1134,31 +1122,172 @@ CoinModelLinkedList::addHard(int first, const CoinModelTriple * triples,
   }
 }
 /* Deletes from list - same case i.e. delete row from row list
-   Returns where chain starts
 */
 void 
 CoinModelLinkedList::deleteSame(int which, CoinModelTriple * triples,
                                 CoinModelHash2 & hash)
 {
-  printf("not written yet\n");
-  abort();
+  assert (which>=0);
+  if (which<numberMajor_) {
+    int lastFree=last_[maximumMajor_];
+    int put=first_[which];
+    first_[which]=-1;
+    while (put>=0) {
+      if (hash.numberItems()) {
+        // take out of hash
+        hash.deleteHash(put, (int) triples[put].row,triples[put].column);
+      }
+      triples[put].column=-1;
+      triples[put].value=0.0;
+      if (lastFree>=0) {
+        next_[lastFree]=put;
+      } else {
+        first_[maximumMajor_]=put;
+      }
+      previous_[put]=lastFree;
+      lastFree=put;
+      put=next_[put];
+    }
+    if (lastFree>=0) {
+      next_[lastFree]=-1;
+      last_[maximumMajor_]=lastFree;
+    } else {
+      assert (last_[maximumMajor_]==-1);
+    }
+    last_[which]=-1;
+  }
 }
-/* Deletes from list - hard case i.e. delete row from column list
- */
-void 
-CoinModelLinkedList::deleteOther(int which, CoinModelTriple * triples,
-                                 CoinModelHash2 & hash)
-{
-  printf("not written yet\n");
-  abort();
-}
-/* Deletes from list - hard case i.e. delete row from column list
+/* Deletes from list - other case i.e. delete row from column list
    This is when elements have been deleted from other copy
 */
 void 
 CoinModelLinkedList::updateDeleted(int which, const CoinModelTriple * triples,
-                                 int firstFree, int lastFree,const int * nextOther)
+                                 int firstFree, int lastFree,const int * previousOther)
 {
-  printf("not written yet\n");
-  abort();
+  assert (maximumMajor_);
+  if (lastFree>=0) {
+    // First free should be same
+    if (first_[maximumMajor_]>=0)
+      assert (firstFree==first_[maximumMajor_]);
+    int last = last_[maximumMajor_];
+    first_[maximumMajor_]=firstFree;
+    // Maybe nothing to do
+    if (last_[maximumMajor_]==lastFree)
+      return;
+    last_[maximumMajor_]=lastFree;
+    // Do first (by which I mean last)
+    next_[lastFree]=-1;
+    int previous = previousOther[lastFree];
+    while (previous!=last) {
+      if (previous>=0) {
+        next_[previous]=lastFree;
+      } else {
+        assert (lastFree==firstFree);
+      }
+      previous_[lastFree]=previous;
+      lastFree=previous;
+      previous = previousOther[lastFree];
+    }
+    if (last>=0) {
+      next_[previous]=lastFree;
+    } else {
+      assert (firstFree==lastFree);
+    }
+    previous_[lastFree]=previous;
+  }
+}
+/* Deletes one element from Row list
+ */
+void 
+CoinModelLinkedList::deleteRowOne(int position, CoinModelTriple * triples,
+                                  CoinModelHash2 & hash)
+{
+  int row=triples[position].row;
+  assert (row<numberMajor_);
+  if (hash.numberItems()) {
+    // take out of hash
+    hash.deleteHash(position, (int) triples[position].row,triples[position].column);
+  }
+  int previous = previous_[position];
+  int next = next_[position];
+  // put on free list
+  int lastFree=last_[maximumMajor_];
+  if (lastFree>=0) {
+    next_[lastFree]=position;
+  } else {
+    first_[maximumMajor_]=position;
+    assert (last_[maximumMajor_]==-1);
+  }
+  last_[maximumMajor_]=position;
+  previous_[position]=lastFree;
+  next_[position]=-1;
+  // Now take out of row
+  if (previous>=0) {
+    next_[previous]=next;
+  } else {
+    first_[row]=next;
+  }
+  if (next>=0) {
+    previous_[next]=previous;
+  } else {
+    last_[row]=previous;
+  }
+}
+/* Update column list for one element when
+   one element deleted from row copy
+*/
+void 
+CoinModelLinkedList::updateDeletedOne(int position, const CoinModelTriple * triples)
+{
+  assert (maximumMajor_);
+  int column=triples[position].column;
+  assert (column>=0&&column<numberMajor_);
+  int previous = previous_[position];
+  int next = next_[position];
+  // put on free list
+  int lastFree=last_[maximumMajor_];
+  if (lastFree>=0) {
+    next_[lastFree]=position;
+  } else {
+    first_[maximumMajor_]=position;
+    assert (last_[maximumMajor_]==-1);
+  }
+  last_[maximumMajor_]=position;
+  previous_[position]=lastFree;
+  next_[position]=-1;
+  // Now take out of column
+  if (previous>=0) {
+    next_[previous]=next;
+  } else {
+    first_[column]=next;
+  }
+  if (next>=0) {
+    previous_[next]=previous;
+  } else {
+    last_[column]=previous;
+  }
+}
+// Fills first,last with -1
+void 
+CoinModelLinkedList::fill(int first,int last)
+{
+  for (int i=first;i<last;i++) {
+    first_[i]=-1;
+    last_[i]=-1;
+  }
+}
+/* Puts in free list from other list */
+void 
+CoinModelLinkedList::synchronize(CoinModelLinkedList & other)
+{
+  int first = other.first_[other.maximumMajor_];
+  first_[maximumMajor_]=first;
+  int last = other.last_[other.maximumMajor_];
+  last_[maximumMajor_]=last;
+  int put=first;
+  while (put>=0) {
+    previous_[put]=other.previous_[put];
+    next_[put]=other.next_[put];
+    put = next_[put];
+  }
 }

@@ -66,6 +66,16 @@ public:
   { setElement(i,j,value);};
   /// Sets value for row i and column j 
   void setElement(int i,int j,double value) ;
+  /** Gets sorted row - user must provide enough space 
+      (easiest is allocate number of columns).
+      Returns number of elements
+  */
+  int getRow(int whichRow, int * column, double * element);
+  /** Gets sorted column - user must provide enough space 
+      (easiest is allocate number of rows).
+      Returns number of elements
+  */
+  int getColumn(int whichColumn, int * column, double * element);
   /// Sets quadratic value for column i and j 
   void setQuadraticElement(int i,int j,double value) ;
   /// Sets value for row i and column j as string
@@ -115,6 +125,16 @@ public:
       all columns up to this are defined with default values and no elements)
   */
   void setColumnIsInteger(int whichColumn,bool columnIsInteger); 
+  /** Sets columnObjective (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  inline void setObjective(int whichColumn,double columnObjective) 
+  { setColumnObjective( whichColumn, columnObjective);}; 
+  /** Sets integer (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  inline void setIsInteger(int whichColumn,bool columnIsInteger) 
+  { setColumnIsInteger( whichColumn, columnIsInteger);}; 
   /** Sets columnLower (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
@@ -155,6 +175,10 @@ public:
       will be decremented and true returned.  */
   inline void deleteCol(int whichColumn)
   { deleteColumn(whichColumn);};
+  /// Takes element out of matrix
+  void deleteElement(int row, int column);
+  /// Takes element out of matrix when position known
+  void deleteThisElement(int row, int column,int position);
   /** Packs down all rows i.e. removes empty rows permanently.  Empty rows
       have no elements and feasible bounds. returns number of rows deleted. */
   int packRows();
@@ -234,6 +258,10 @@ public:
       Only valid until next modification. 
       NULL if element does not exist */
   double * pointer (int i,int j) const;
+  /** Returns position in elements for row i column j.
+      Only valid until next modification. 
+      -1 if element does not exist */
+  int position (int i,int j) const;
   
   
   /** Returns first element in given row - index is -1 if none.
@@ -260,10 +288,12 @@ public:
   /** Returns previous element in current row or column - index is -1 if none.
       Index is given by .index and value by .value.
       User could also tell because input.previous would be NULL
+      May not be correct if matrix updated.
   */
   CoinModelLink previous(CoinModelLink & current) const ;
   /** Returns first element in given quadratic column - index is -1 if none.
       Index is given by .index and value by .value
+      May not be correct if matrix updated.
   */
   CoinModelLink firstInQuadraticColumn(int whichColumn) const ;
   /** Returns last element in given quadratic column - index is -1 if none.
@@ -385,6 +415,13 @@ private:
   void fillRows(int which,bool forceCreation,bool fromAddRow=false);
   /// Fill in default column information
   void fillColumns(int which,bool forceCreation,bool fromAddColumn=false);
+  /** Fill in default linked list information (1= row, 2 = column)
+      Marked as const as list is mutable */
+  void fillList(int which, CoinModelLinkedList & list,int type) const ;
+  /** Create a linked list and synchronize free 
+      type 1 for row 2 for column
+      Marked as const as list is mutable */
+  void createList(int type) const;
 private:
   /**@name Data members */
    //@{
@@ -468,7 +505,7 @@ private:
       1 for column,
       2 linked.
   */
-  int type_;
+  mutable int type_;
   /** Links present (could be tested by sizes of objects)
       0 - none,
       1 - row links,
@@ -478,5 +515,4 @@ private:
   mutable int links_;
    //@}
 };
-
 #endif

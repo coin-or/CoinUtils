@@ -137,10 +137,12 @@ public:
   /**@name sizing (just increases) */
   //@{
   /// Resize hash (also re-hashs)
-  void resize(int maxItems);
-  /// Number of items i.e. rows if just row links
+  void resize(int maxItems,bool forceReHash=false);
+  /// Number of items i.e. rows if just row names
   inline int numberItems() const
   { return numberItems_;};
+  /// Set number of items
+  void setNumberItems(int number);
   /// Maximum number of items
   inline int maximumItems() const
   { return maximumItems_;};
@@ -159,6 +161,10 @@ public:
   void deleteHash(int index);
   /// Returns name at position (or NULL)
   const char * name(int which) const;
+  /// Returns non const name at position (or NULL)
+  char * getName(int which) const;
+  /// Sets name at position (does not create)
+  void setName(int which,char * name ) ;
 private:
   /// Returns a hash value
   int hashValue(const char * name) const;
@@ -202,10 +208,12 @@ public:
   /**@name sizing (just increases) */
   //@{
   /// Resize hash (also re-hashs)
-  void resize(int maxItems, const CoinModelTriple * triples);
-  /// Number of items i.e. rows if just row links
+  void resize(int maxItems, const CoinModelTriple * triples,bool forceReHash=false);
+  /// Number of items
   inline int numberItems() const
   { return numberItems_;};
+  /// Set number of items
+  void setNumberItems(int number);
   /// Maximum number of items
   inline int maximumItems() const
   { return maximumItems_;};
@@ -322,15 +330,23 @@ public:
   */
   void deleteSame(int which, CoinModelTriple * triples,
                  CoinModelHash2 & hash);
-  /** Deletes from list - hard case i.e. delete row from column list
-  */
-  void deleteOther(int which, CoinModelTriple * triples,
-                   CoinModelHash2 & hash);
-  /** Deletes from list - hard case i.e. delete row from column list
+  /** Deletes from list - other case i.e. delete row from column list
       This is when elements have been deleted from other copy
   */
   void updateDeleted(int which, const CoinModelTriple * triples,
-                  int firstFree, int lastFree,const int * nextOther);
+                  int firstFree, int lastFree,const int * previousOther);
+  /** Deletes one element from Row list
+  */
+  void deleteRowOne(int position, CoinModelTriple * triples,
+                 CoinModelHash2 & hash);
+  /** Update column list for one element when
+      one element deleted from row copy
+  */
+  void updateDeletedOne(int position, const CoinModelTriple * triples);
+  /// Fills first,last with -1
+  void fill(int first,int last);
+  /** Puts in free list from other list */
+  void synchronize(CoinModelLinkedList & other);
   //@}
 private:
   /**@name Data members */
@@ -355,5 +371,8 @@ private:
   int type_;
   //@}
 };
+/// Returns strdup or NULL if original NULL
+inline char * CoinStrdup(const char * name)
+{ return (name ) ? strdup(name) : NULL;};
 
 #endif
