@@ -44,7 +44,7 @@ typedef int COINRowIndex;
 
 enum COINSectionType { COIN_NO_SECTION, COIN_NAME_SECTION, COIN_ROW_SECTION,
   COIN_COLUMN_SECTION,
-  COIN_RHS_SECTION, COIN_RANGE_SECTION, COIN_BOUND_SECTION,
+  COIN_RHS_SECTION, COIN_RANGES_SECTION, COIN_BOUNDS_SECTION,
   COIN_ENDATA_SECTION, COIN_EOF_SECTION, COIN_UNKNOWN_SECTION
 };
 
@@ -172,7 +172,7 @@ public:
   MpsCardReader ( FILE * fp , CoinMpsIO * reader);
 #ifdef COIN_USE_ZLIB
   /// This one takes gzFile if fp null
-  MpsCardReader ( FILE * fp, gzFile fp, CoinMpsIO * reader );
+  MpsCardReader ( FILE * fp, gzFile gzfp, CoinMpsIO * reader );
 #endif
   /// Destructor
   ~MpsCardReader (  );
@@ -261,7 +261,7 @@ private:
 //#############################################################################
 // sections
 const static char *section[] = {
-  "", "NAME", "ROW", "COLUMN", "RHS", "RANGE", "BOUND", "ENDATA", " "
+  "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " "
 };
 
 // what is allowed in each section - must line up with COINSectionType
@@ -415,7 +415,7 @@ MpsCardReader::MpsCardReader (  FILE * fp , CoinMpsIO * reader)
 }
 #ifdef COIN_USE_ZLIB
 // This one takes gzFile if fp null
-MpsCardReader::MpsCardReader (  FILE * fp , gzFile gzFile, CoinMpsIO * reader)
+MpsCardReader::MpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * reader)
 {
   memset ( card_, 0, MAX_CARD_LENGTH );
   position_ = card_;
@@ -425,7 +425,7 @@ MpsCardReader::MpsCardReader (  FILE * fp , gzFile gzFile, CoinMpsIO * reader)
   memset ( columnName_, 0, MAX_FIELD_LENGTH );
   value_ = 0.0;
   fp_ = fp;
-  gzfp_ = gzFile;
+  gzfp_ = gzfp;
   section_ = COIN_EOF_SECTION;
   cardNumber_ = 0;
   freeFormat_ = false;
@@ -562,8 +562,9 @@ MpsCardReader::nextField (  )
 	  nchar = -1;
 	}
 	mpsType_ = COIN_BLANK_COLUMN;
-	// special coding if RHS or RANGE, not free format and blanks
-	if ( ( section_ != COIN_RHS_SECTION && section_ != COIN_RANGE_SECTION )
+	// special coding if RHS or RANGES, not free format and blanks
+	if ( ( section_ != COIN_RHS_SECTION 
+	       && section_ != COIN_RANGES_SECTION )
 	     || freeFormat_ || strncmp ( card_ + 4, "        ", 8 ) ) {
 	  // if columns section only look for first field if MARKER
 	  if ( section_ == COIN_COLUMN_SECTION
@@ -599,7 +600,7 @@ MpsCardReader::nextField (  )
 	  }
 	  if ( mpsType_ != COIN_UNKNOWN_MPS_TYPE ) {
 	    // special coding if BOUND, not free format and blanks
-	    if ( section_ != COIN_BOUND_SECTION ||
+	    if ( section_ != COIN_BOUNDS_SECTION ||
 		 freeFormat_ || strncmp ( card_ + 4, "        ", 8 ) ) {
 	      char save = '?';
 
@@ -707,7 +708,7 @@ MpsCardReader::nextField (  )
 		// error unless bounds
 		position_ = eol_;
 		value_ = -1.0e100;
-		if ( section_ != COIN_BOUND_SECTION )
+		if ( section_ != COIN_BOUNDS_SECTION )
 		  mpsType_ = COIN_UNKNOWN_MPS_TYPE;
 	      } else {
 		nextBlank = nextBlankOr ( next );
@@ -729,7 +730,7 @@ MpsCardReader::nextField (  )
 	    }
 	  }
 	} else {
-	  //blank name in RHS or RANGE
+	  //blank name in RHS or RANGES
 	  strcpy ( columnName_, "        " );
 	  char save = '?';
 
@@ -1590,20 +1591,20 @@ int CoinMpsIO::readMps()
 	}
       }
     }
-    if ( mpsfile.whichSection (  ) == COIN_RANGE_SECTION ) {
+    if ( mpsfile.whichSection (  ) == COIN_RANGES_SECTION ) {
       memset ( lastColumn, '\0', 200 );
       bool gotRange = false;
       COINRowIndex irow;
 
       // need coding for blank range
-      while ( mpsfile.nextField (  ) == COIN_RANGE_SECTION ) {
+      while ( mpsfile.nextField (  ) == COIN_RANGES_SECTION ) {
 	switch ( mpsfile.mpsType (  ) ) {
 	case COIN_BLANK_COLUMN:
 	  if ( strcmp ( lastColumn, mpsfile.columnName (  ) ) ) {
 
 	    // skip rest if got a range
 	    if ( gotRange ) {
-	      while ( mpsfile.nextField (  ) == COIN_RANGE_SECTION ) {
+	      while ( mpsfile.nextField (  ) == COIN_RANGES_SECTION ) {
 	      }
 	      break;
 	    } else {
@@ -1745,16 +1746,16 @@ int CoinMpsIO::readMps()
     }
     // start hash even if no bound section - to make sure names survive
     startHash ( columnName, numberColumns_ , 1 );
-    if ( mpsfile.whichSection (  ) == COIN_BOUND_SECTION ) {
+    if ( mpsfile.whichSection (  ) == COIN_BOUNDS_SECTION ) {
       memset ( lastColumn, '\0', 200 );
       bool gotBound = false;
 
-      while ( mpsfile.nextField (  ) == COIN_BOUND_SECTION ) {
+      while ( mpsfile.nextField (  ) == COIN_BOUNDS_SECTION ) {
 	if ( strcmp ( lastColumn, mpsfile.columnName (  ) ) ) {
 
 	  // skip rest if got a bound
 	  if ( gotBound ) {
-	    while ( mpsfile.nextField (  ) == COIN_BOUND_SECTION ) {
+	    while ( mpsfile.nextField (  ) == COIN_BOUNDS_SECTION ) {
 	    }
 	    break;
 	  } else {
@@ -2363,8 +2364,8 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    }
 
    if (ifRange) {
-      // RANGE
-      writeString(fp, gzfp, "RANGE\n");
+      // RANGES
+      writeString(fp, gzfp, "RANGES\n");
 
       numberFields = 0;
       for (i=0;i<numberRows_;i++) {
@@ -2829,7 +2830,7 @@ bool CoinMpsIO::isInteger(int columnNumber) const
   const char * intType = integerType_;
   if ( intType==NULL ) return false;
   assert (columnNumber>=0 && columnNumber < numberColumns_);
-  if ( intType[columnNumber]==0 ) return true;
+  if ( intType[columnNumber]!=0 ) return true;
   return false;
 }
 // if integer
