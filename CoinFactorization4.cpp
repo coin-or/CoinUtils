@@ -893,10 +893,14 @@ CoinFactorization::updateColumnTransposeR ( CoinIndexedVector * regionSparse ) c
   if (numberNonZero) {
     if (numberNonZero < (sparseThreshold_<<2)) {
       updateColumnTransposeRSparse ( regionSparse );
+      if (collectStatistics_) 
+	btranCountAfterR_ += regionSparse->getNumElements();
     } else {
       updateColumnTransposeRDensish ( regionSparse );
       // we have lost indices
       // make sure won't try and go sparse again
+      if (collectStatistics_) 
+	btranCountAfterR_ += min((numberNonZero<<1),numberRows_);
       regionSparse->setNumElements (numberRows_+1);
     }
   }

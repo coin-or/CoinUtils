@@ -1047,8 +1047,6 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse ) co
   //permute extra
   //row bits here
   updateColumnTransposeR ( regionSparse );
-  if (collectStatistics_) 
-    btranCountAfterR_ += regionSparse->getNumElements();
   //regionSparse->getNumElements(numberNonZero);
   //  ******* L
   updateColumnTransposeL ( regionSparse );
