@@ -308,6 +308,13 @@ CoinPackedMatrixUnitTest()
           assert( eq(ev[16],  5.6) );
           assert( eq(ev[17],  1.0) );
           assert( eq(ev[18],  1.9) );
+	  
+	  // Test modification of a single element
+	  pmA.modifyCoefficient(2,5,-7.0);
+          assert( eq(ev[11],   -7.0) );
+	  // and back
+	  pmA.modifyCoefficient(2,5,1.0);
+          assert( eq(ev[11],   1.0) );
           
           assert( pm.getVectorStarts() != pmA.getVectorStarts() );
           const CoinBigIndex * mi = pmA.getVectorStarts();
