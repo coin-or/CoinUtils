@@ -195,7 +195,7 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 // sections
 const static char *section[] = {
   "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ","QSECTION", "CSECTION", 
-  "QUADOBJ" , "SOS",
+  "QUADOBJ" , "SOS", "BASIS",
   " "
 };
 
@@ -206,7 +206,8 @@ const static COINMpsType startType[] = {
   COIN_BLANK_COLUMN, COIN_BLANK_COLUMN,
   COIN_UP_BOUND, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
-  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_S1_BOUND, COIN_UNKNOWN_MPS_TYPE
+  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_S1_BOUND, 
+  COIN_BS_BASIS, COIN_UNKNOWN_MPS_TYPE
 };
 const static COINMpsType endType[] = {
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
@@ -214,7 +215,8 @@ const static COINMpsType endType[] = {
   COIN_S1_COLUMN, COIN_S1_COLUMN,
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
-  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE
+  COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_BS_BASIS,
+  COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE
 };
 const static int allowedLength[] = {
   0, 0,
@@ -223,6 +225,7 @@ const static int allowedLength[] = {
   2, 0,
   0, 0,
   0, 0,
+  0, 2,
   0
 };
 
@@ -230,7 +233,8 @@ const static int allowedLength[] = {
 const static char *mpsTypes[] = {
   "N", "E", "L", "G",
   "  ", "S1", "S2", "S3", "  ", "  ", "  ",
-  "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "SC"
+  "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "SC",
+  "X1", "X2", "BS", "XL", "XU", "LL", "UL", "  "
 };
 
 int CoinMpsCardReader::cleanCard()
@@ -304,6 +308,7 @@ CoinMpsCardReader::readToNextSection (  )
     }
     if ( !strncmp ( card_, "NAME", 4 ) ||
 		!strncmp( card_, "TIME", 4 ) ||
+		!strncmp( card_, "BASIS", 5 ) ||
 		!strncmp( card_, "STOCH", 5 ) ) {
       section_ = COIN_NAME_SECTION;
       char *next = card_ + 5;
@@ -340,6 +345,9 @@ CoinMpsCardReader::readToNextSection (  )
 	      assert (x[0]==0);
 	    }
 	  } else if ( strstr ( nextBlank, "FREE" ) ) {
+	    freeFormat_ = true;
+	  } else if ( strstr ( nextBlank, "VALUES" ) ) {
+	    // basis is always free - just use this to communicate back
 	    freeFormat_ = true;
 	  } else if ( strstr ( nextBlank, "IEEE" ) ) {
 	    // see if intel
@@ -640,11 +648,12 @@ CoinMpsCardReader::nextField (  )
 		return section_;
 	      }
 	      if ( next == eol_ ) {
-		// error unless bounds
+		// error unless bounds or basis
 		position_ = eol_;
 		if ( section_ != COIN_BOUNDS_SECTION ) {
+		  if ( section_ != COIN_BASIS_SECTION ) 
+		    mpsType_ = COIN_UNKNOWN_MPS_TYPE;
 		  value_ = -1.0e100;
-		  mpsType_ = COIN_UNKNOWN_MPS_TYPE;
 		} else {
 		  value_ = 0.0;
 		}
@@ -2173,9 +2182,206 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 					    <<CoinMessageEol;
   return numberErrors;
 }
+/* Read a basis in MPS format from the given filename.
+   If VALUES on NAME card and solution not NULL fills in solution
+   status values as for CoinWarmStartBasis (but one per char)
+   
+   Use "stdin" or "-" to read from stdin.
+*/
+int 
+CoinMpsIO::readBasis(const char *filename, const char *extension ,
+		     double * solution, unsigned char * rowStatus, unsigned char * columnStatus,
+		     const std::vector<std::string> & colnames,int numberColumns,
+		     const std::vector<std::string> & rownames, int numberRows)
+{
+  // Deal with filename - +1 if new, 0 if same as before, -1 if error
+  FILE *fp=NULL;
+  gzFile gzfp=NULL;
+  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+  if (returnCode<0) {
+    return -1;
+  } else if (returnCode>0) {
+    delete cardReader_;
+    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+  }
+
+  cardReader_->readToNextSection();
+
+  if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) {
+    // Get whether to use values (passed back by freeFormat)
+    if (!cardReader_->freeFormat())
+      solution = NULL;
+    
+  } else if ( cardReader_->whichSection (  ) == COIN_UNKNOWN_SECTION ) {
+    handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
+						  <<1
+						 <<fileName_
+						 <<CoinMessageEol;
+#ifdef COIN_USE_ZLIB
+    if (!cardReader_->filePointer()) 
+      handler_->message(COIN_MPS_BADFILE2,messages_)<<CoinMessageEol;
+
+#endif
+    return -2;
+  } else if ( cardReader_->whichSection (  ) != COIN_EOF_SECTION ) {
+    return -4;
+  } else {
+    handler_->message(COIN_MPS_EOF,messages_)<<fileName_
+					    <<CoinMessageEol;
+    return -3;
+  }
+  numberRows_=numberRows;
+  numberColumns_=numberColumns;
+  // bas file - always read in free format
+  bool gotNames;
+  if (rownames.size()!=(unsigned int) numberRows_||
+      colnames.size()!=(unsigned int) numberColumns_) {
+    gotNames = false;
+  } else {
+    gotNames=true;
+    numberHash_[0]=numberRows_;
+    numberHash_[1]=numberColumns_;
+    names_[0] = (char **) malloc(numberRows_ * sizeof(char *));
+    names_[1] = (char **) malloc (numberColumns_ * sizeof(char *));
+    const char** rowNames = (const char **) names_[0];
+    const char** columnNames = (const char **) names_[1];
+    int i;
+    for (i = 0; i < numberRows_; ++i) {
+      rowNames[i] = rownames[i].c_str();
+    }
+    for (i = 0; i < numberColumns_; ++i) {
+      columnNames[i] = colnames[i].c_str();
+    }
+    startHash ( (char **) rowNames, numberRows , 0 );
+    startHash ( (char **) columnNames, numberColumns , 1 );
+  }
+  cardReader_->setWhichSection(COIN_BASIS_SECTION);
+  cardReader_->setFreeFormat(true);
+  // below matches CoinWarmStartBasis,
+  const unsigned char basic = 0x01;
+  const unsigned char atLowerBound = 0x03;
+  const unsigned char atUpperBound = 0x02;
+  while ( cardReader_->nextField (  ) == COIN_BASIS_SECTION ) {
+    // Get type and column number
+    int iColumn;
+    if (gotNames) {
+      iColumn = findHash (cardReader_->columnName(),1);
+    } else {
+      // few checks 
+      char check;
+      sscanf(cardReader_->columnName(),"%c%d",&check,&iColumn);
+      assert (check=='C'&&iColumn>=0);
+      if (iColumn>=numberColumns_)
+	iColumn=-1;
+    }
+    if (iColumn>=0) {
+      double value = cardReader_->value (  );
+      if (solution && value>-1.0e50)
+	solution[iColumn]=value;
+      int iRow=-1;
+      switch ( cardReader_->mpsType (  ) ) {
+      case COIN_BS_BASIS:
+	columnStatus[iColumn]=  basic;
+	break;
+      case COIN_XL_BASIS:
+	columnStatus[iColumn]= basic;
+	// get row number
+	if (gotNames) {
+	  iRow = findHash (cardReader_->rowName(),0);
+	} else {
+	  // few checks 
+	  char check;
+	  sscanf(cardReader_->rowName(),"%c%d",&check,&iRow);
+	  assert (check=='R'&&iRow>=0);
+	  if (iRow>=numberRows_)
+	    iRow=-1;
+	}
+	if ( iRow >= 0 ) {
+	  rowStatus[iRow] = atLowerBound;
+	}
+	break;
+      case COIN_XU_BASIS:
+	columnStatus[iColumn]= basic;
+	// get row number
+	if (gotNames) {
+	  iRow = findHash (cardReader_->rowName(),0);
+	} else {
+	  // few checks 
+	  char check;
+	  sscanf(cardReader_->rowName(),"%c%d",&check,&iRow);
+	  assert (check=='R'&&iRow>=0);
+	  if (iRow>=numberRows_)
+	    iRow=-1;
+	}
+	if ( iRow >= 0 ) {
+	  rowStatus[iRow] = atUpperBound;
+	}
+	break;
+      case COIN_LL_BASIS:
+	columnStatus[iColumn]= atLowerBound;
+	break;
+      case COIN_UL_BASIS:
+	columnStatus[iColumn]= atUpperBound;
+	break;
+      default:
+	break;
+      }
+    }
+  }
+  if (gotNames) {
+    stopHash ( 0 );
+    stopHash ( 1 );
+    free(names_[0]);
+    names_[0]=NULL;
+    numberHash_[0]=0;
+    free(names_[1]);
+    names_[1]=NULL;
+    numberHash_[1]=0;
+    free (hash_[0]);
+    free (hash_[1]);
+    hash_[0]=0;
+    hash_[1]=0;
+  }
+  if ( cardReader_->whichSection (  ) != COIN_ENDATA_SECTION) {
+    handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						  <<cardReader_->card()
+						  <<CoinMessageEol;
+    handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+    return -1;
+  } else {
+    return solution ? 1 : 0;
+  }
+}
 
 //------------------------------------------------------------------
 
+// Function to create row name field
+static void
+convertRowName(int formatType, const char * name, char outputRow[100])
+{
+  strcpy(outputRow,name);
+  if (!formatType) {
+    int i;
+    // pad out to 8
+    for (i=0;i<8;i++) {
+      if (outputRow[i]=='\0')
+	break;
+    }
+    for (;i<8;i++) 
+      outputRow[i]=' ';
+    outputRow[8]='\0';
+  } else if (formatType>1&&formatType<8) {
+    int i;
+    // pad out to 8
+    for (i=0;i<8;i++) {
+      if (outputRow[i]=='\0')
+	break;
+    }
+    for (;i<8;i++) 
+      outputRow[i]=' ';
+    outputRow[8]='\0';
+  }
+}
 // Function to return number in most efficient way
 // Also creates row name field
 /* formatType is
@@ -2183,17 +2389,25 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
    1 - extra accuracy
    2 - IEEE hex - INTEL
    3 - IEEE hex - not INTEL
-   4 - normal and free format
-   5 - extra accuracy and free format
-   6 - IEEE hex - INTEL and free format
-   7 - IEEE hex - not INTEL and free format
 */
 static void
 convertDouble(int formatType, double value, char outputValue[20],
 	      const char * name, char outputRow[100])
 {
-  int encoding = formatType&7;
-  if (encoding==0) {
+  convertRowName(formatType,name,outputRow);
+  CoinConvertDouble(formatType&3,value,outputValue);
+}
+// Function to return number in most efficient way
+/* formatType is
+   0 - normal and 8 character names
+   1 - extra accuracy
+   2 - IEEE hex - INTEL
+   3 - IEEE hex - not INTEL
+*/
+void
+CoinConvertDouble(int formatType, double value, char outputValue[20])
+{
+  if (formatType==0) {
     bool stripZeros=true;
     if (fabs(value)<1.0e40) {
       int power10, decimal;
@@ -2263,10 +2477,22 @@ convertDouble(int formatType, double value, char outputValue[20],
 	  }
 	}
       }
+      // overwrite if very very small
+      if (fabs(value)<1.0e-20) 
+	strcpy(outputValue,"0.0");
     } else {
       outputValue[0]= '\0'; // needs no value
     }
-  } else if (encoding==1) {
+    int i;
+    // pad out to 12
+    for (i=0;i<12;i++) {
+      if (outputValue[i]=='\0')
+	break;
+    }
+    for (;i<12;i++) 
+      outputValue[i]=' ';
+    outputValue[12]='\0';
+  } else if (formatType==1) {
     if (fabs(value)<1.0e40) {
       sprintf(outputValue,"%.18g",value);
       // take out blanks
@@ -2288,7 +2514,7 @@ convertDouble(int formatType, double value, char outputValue[20],
     unsigned short shortValue[4];
     memcpy(shortValue,&value,sizeof(double));
     outputValue[12]='\0';
-    if (encoding==2) {
+    if (formatType==2) {
       // INTEL
       char * thisChar = outputValue;
       for (int i=3;i>=0;i--) {
@@ -2332,37 +2558,7 @@ convertDouble(int formatType, double value, char outputValue[20],
       }
     }
   }
-  strcpy(outputRow,name);
-  if (!formatType) {
-    int i;
-    // pad out to 12 and 8
-    for (i=0;i<12;i++) {
-      if (outputValue[i]=='\0')
-	break;
-    }
-    for (;i<12;i++) 
-      outputValue[i]=' ';
-    outputValue[12]='\0';
-    for (i=0;i<8;i++) {
-      if (outputRow[i]=='\0')
-	break;
-    }
-    for (;i<8;i++) 
-      outputRow[i]=' ';
-    outputRow[8]='\0';
-  } else if (formatType>1&&formatType<8) {
-    int i;
-    // pad out to 8
-    for (i=0;i<8;i++) {
-      if (outputRow[i]=='\0')
-	break;
-    }
-    for (;i<8;i++) 
-      outputRow[i]=' ';
-    outputRow[8]='\0';
-  }
 }
-
 static void
 writeString(FILE* fp, gzFile gzfp, const char* str)
 {
@@ -3152,27 +3348,27 @@ CoinMpsIO::setMpsDataColAndRowNames(
    names_[1] = (char **) malloc (numberColumns_ * sizeof(char *));
    numberHash_[0]=numberRows_;
    numberHash_[1]=numberColumns_;
-   char** rowNames_ = names_[0];
-   char** colNames_ = names_[1];
+   char** rowNames = names_[0];
+   char** columnNames = names_[1];
    int i;
    if (rownames) {
      for (i = 0 ; i < numberRows_; ++i) {
-       rowNames_[i] = strdup(rownames[i]);
+       rowNames[i] = strdup(rownames[i]);
      }
    } else {
      for (i = 0; i < numberRows_; ++i) {
-       rowNames_[i] = (char *) malloc (9 * sizeof(char));
-       sprintf(rowNames_[i],"R%7.7d",i);
+       rowNames[i] = (char *) malloc (9 * sizeof(char));
+       sprintf(rowNames[i],"R%7.7d",i);
      }
    }
    if (colnames) {
      for (i = 0 ; i < numberColumns_; ++i) {
-       colNames_[i] = strdup(colnames[i]);
+       columnNames[i] = strdup(colnames[i]);
      }
    } else {
      for (i = 0; i < numberColumns_; ++i) {
-       colNames_[i] = (char *) malloc (9 * sizeof(char));
-       sprintf(colNames_[i],"C%7.7d",i);
+       columnNames[i] = (char *) malloc (9 * sizeof(char));
+       sprintf(columnNames[i],"C%7.7d",i);
      }
    }
 }
@@ -3185,27 +3381,27 @@ CoinMpsIO::setMpsDataColAndRowNames(
    // If long names free format
    names_[0] = (char **) malloc(numberRows_ * sizeof(char *));
    names_[1] = (char **) malloc (numberColumns_ * sizeof(char *));
-   char** rowNames_ = names_[0];
-   char** colNames_ = names_[1];
+   char** rowNames = names_[0];
+   char** columnNames = names_[1];
    int i;
    if (rownames.size()!=0) {
      for (i = 0 ; i < numberRows_; ++i) {
-       rowNames_[i] = strdup(rownames[i].c_str());
+       rowNames[i] = strdup(rownames[i].c_str());
      }
    } else {
      for (i = 0; i < numberRows_; ++i) {
-       rowNames_[i] = (char *) malloc (9 * sizeof(char));
-       sprintf(rowNames_[i],"R%7.7d",i);
+       rowNames[i] = (char *) malloc (9 * sizeof(char));
+       sprintf(rowNames[i],"R%7.7d",i);
      }
    }
    if (colnames.size()!=0) {
      for (i = 0 ; i < numberColumns_; ++i) {
-       colNames_[i] = strdup(colnames[i].c_str());
+       columnNames[i] = strdup(colnames[i].c_str());
      }
    } else {
      for (i = 0; i < numberColumns_; ++i) {
-       colNames_[i] = (char *) malloc (9 * sizeof(char));
-       sprintf(colNames_[i],"C%7.7d",i);
+       columnNames[i] = (char *) malloc (9 * sizeof(char));
+       sprintf(columnNames[i],"C%7.7d",i);
      }
    }
 }

@@ -34,10 +34,11 @@ typedef int COINRowIndex;
 #define MAX_CARD_LENGTH 5*MAX_FIELD_LENGTH+80
 
 enum COINSectionType { COIN_NO_SECTION, COIN_NAME_SECTION, COIN_ROW_SECTION,
-  COIN_COLUMN_SECTION,
-  COIN_RHS_SECTION, COIN_RANGES_SECTION, COIN_BOUNDS_SECTION,
-  COIN_ENDATA_SECTION, COIN_EOF_SECTION, COIN_QUADRATIC_SECTION, 
-		       COIN_CONIC_SECTION,COIN_QUAD_SECTION,COIN_SOS_SECTION, COIN_UNKNOWN_SECTION
+		       COIN_COLUMN_SECTION,
+		       COIN_RHS_SECTION, COIN_RANGES_SECTION, COIN_BOUNDS_SECTION,
+		       COIN_ENDATA_SECTION, COIN_EOF_SECTION, COIN_QUADRATIC_SECTION, 
+		       COIN_CONIC_SECTION,COIN_QUAD_SECTION,COIN_SOS_SECTION, 
+		       COIN_BASIS_SECTION,COIN_UNKNOWN_SECTION
 };
 
 enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
@@ -45,7 +46,9 @@ enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
   COIN_INTORG, COIN_INTEND, COIN_SOSEND, COIN_UNSET_BOUND,
   COIN_UP_BOUND, COIN_FX_BOUND, COIN_LO_BOUND, COIN_FR_BOUND,
   COIN_MI_BOUND, COIN_PL_BOUND, COIN_BV_BOUND, COIN_UI_BOUND,
-		   COIN_SC_BOUND, COIN_S1_BOUND, COIN_S2_BOUND,COIN_UNKNOWN_MPS_TYPE
+		   COIN_SC_BOUND, COIN_S1_BOUND, COIN_S2_BOUND,
+		   COIN_BS_BASIS, COIN_XL_BASIS, COIN_XU_BASIS,
+		   COIN_LL_BASIS, COIN_UL_BASIS, COIN_UNKNOWN_MPS_TYPE
 };
 class CoinMpsIO;
 /// Very simple code for reading MPS data
@@ -78,6 +81,12 @@ public:
   inline void setWhichSection(COINSectionType section  ) {
     section_=section;
   };
+  /// Sees if free format. 
+  inline bool freeFormat() const
+  { return freeFormat_;};
+  /// Sets whether free format.  Mainly for blank RHS etc
+  inline void setFreeFormat(bool yesNo) 
+  { freeFormat_=yesNo;};
   /// Only for first field on card otherwise BLANK_COLUMN
   /// e.g. COIN_E_ROW
   inline COINMpsType mpsType (  ) const {
@@ -547,6 +556,19 @@ public:
     int readMps();
     /// and
     int readMps(int & numberSets, CoinSet **& sets);
+    /** Read a basis in MPS format from the given filename.
+	If VALUES on NAME card and solution not NULL fills in solution
+	status values as for CoinWarmStartBasis (but one per char)
+	-1 file error, 0 normal, 1 has solution values
+
+      Use "stdin" or "-" to read from stdin.
+
+      If sizes of names incorrect - read without names
+    */
+    int readBasis(const char *filename, const char *extension ,
+		  double * solution, unsigned char *rowStatus, unsigned char *columnStatus,
+		  const std::vector<std::string> & colnames,int numberColumns,
+		  const std::vector<std::string> & rownames, int numberRows);
 
     /** Write the problem in MPS format to a file with the given filename.
 
@@ -900,5 +922,14 @@ protected:
     (has 256M core memory!)... */
 void
 CoinMpsIOUnitTest(const std::string & mpsDir);
+// Function to return number in most efficient way
+/* formatType is
+   0 - normal and 8 character names
+   1 - extra accuracy
+   2 - IEEE hex - INTEL
+   3 - IEEE hex - not INTEL
+*/
+void
+CoinConvertDouble(int formatType, double value, char outputValue[20]);
 
 #endif
