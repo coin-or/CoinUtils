@@ -1,485 +1,392 @@
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
-//#define	CHECK_CONSISTENCY	1
-
 #include <stdio.h>
 
 #include <assert.h>
 #include <iostream>
 
 #include "CoinHelperFunctions.hpp"
-
 #include "CoinPresolveMatrix.hpp"
-void CoinPresolveAction::throwCoinError(const char *error,
-				       const char *ps_routine)
-{
-  throw CoinError(error, ps_routine, "CoinPresolve");
-}
 
+/*! \file
 
-  class presolvehlink;
-
-void presolve_make_memlists(CoinBigIndex *starts, int *lengths,
-		       presolvehlink *link,
-		       int n);
-
-/*static*/ void presolve_prefix(const int *starts, int *diffs, int n, int limit);
-
-/*static*/ void presolve_prefix(const CoinBigIndex *starts, int *diffs, int n, int limit)
-{
-  int i;
-
-  for (i=0; i<n; i++) {
-    diffs[i] = starts[i+1] - starts[i];
-  }
-}
-
-// afterward, link[i].pre is the largest index less than i st lengths[i]!=0
-//  (or -1 if all such lengths are 0).
-// link[i].suc is the opposite.
-// That is, it is the same thing as setting link[i].pre = i-1 and link[i].suc = i+1
-// and then deleting all the empty elements.
-// This list is maintained together with hrow/hcol so that as we relocate
-// columns or rows, we can quickly determine what column/row precedes a given
-// column/row in the memory region hrow/hcol.
-// Note that n itself has a pre and a suc.
-void presolve_make_memlists(CoinBigIndex *starts, int *lengths, presolvehlink *link, int n)
-{
-  int i;
-  int pre = NO_LINK;
-  
-  for (i=0; i<n; i++) {
-    if (lengths[i]) {
-      link[i].pre = pre;
-      if (pre != NO_LINK)
-	link[pre].suc = i;
-      pre = i;
-    }
-    else {
-      link[i].pre = NO_LINK;
-      link[i].suc = NO_LINK;
-    }
-  }
-  if (pre != NO_LINK)
-    link[pre].suc = n;
-
-  // (1) Arbitrarily place the last non-empty entry in link[n].pre
-  link[n].pre = pre;
-
-  link[n].suc = NO_LINK;
-}
-
-// This one saves in one go to save [] memory
-double * presolve_duparray(const double * element, const int * index,
-			   int length, int offset)
-{
-  int n;
-  if (sizeof(double)==2*sizeof(int)) 
-    n = (3*length+1)>>1;
-  else
-    n = 2*length;
-  double * dArray = new double [n];
-  int * iArray = (int *) (dArray+length);
-  memcpy(dArray,element+offset,length*sizeof(double));
-  memcpy(iArray,index+offset,length*sizeof(int));
-  return dArray;
-}
-
-
-double *presolve_duparray(const double *d, int n, int n2)
-{
-  double *d1 = new double[n2];
-  memcpy(d1, d, n*sizeof(double));
-  return (d1);
-}
-double *presolve_duparray(const double *d, int n)
-{
-  return presolve_duparray(d, n, n);
-}
-
-int *presolve_duparray(const int *d, int n, int n2)
-{
-  int *d1 = new int[n2];
-  memcpy(d1, d, n*sizeof(int));
-  return (d1);
-}
-int *presolve_duparray(const int *d, int n)
-{
-  return presolve_duparray(d, n, n);
-}
-
-char *presolve_duparray(const char *d, int n, int n2)
-{
-  char *d1 = new char[n2];
-  memcpy(d1, d, n*sizeof(char));
-  return (d1);
-}
-char *presolve_duparray(const char *d, int n)
-{
-  return presolve_duparray(d, n, n);
-}
-
-#if 0
-double *presolve_duparray(const double *d, int n, char **end_mmapp)
-{
-  double *d1 = (double*)*end_mmapp;
-  memcpy(d1, d, n*sizeof(double));
-  *end_mmapp += ALIGN_DOUBLE(n*sizeof(double));
-  return (d1);
-}
-int *presolve_duparray(const int *d, int n, char **end_mmapp)
-{
-  int *d1 = (int*)*end_mmapp;
-  memcpy(d1, d, n*sizeof(int));
-  *end_mmapp += ALIGN_DOUBLE(n*sizeof(int));
-  return (d1);
-}
-
-double *presolve_duparray(const double *d, int n, int n2, char **end_mmapp)
-{
-  double *d1 = (double*)*end_mmapp;
-  memcpy(d1, d, n*sizeof(double));
-  *end_mmapp += ALIGN_DOUBLE(n2*sizeof(double));
-  return (d1);
-}
-int *presolve_duparray(const int *d, int n, int n2, char **end_mmapp)
-{
-  int *d1 = (int*)*end_mmapp;
-  memcpy(d1, d, n*sizeof(int));
-  *end_mmapp += ALIGN_DOUBLE(n2*sizeof(int));
-  return (d1);
-}
-#endif
+  This file contains methods for CoinPresolveMatrix, the object used during
+  presolve transformations.
+*/
 
 /*
-  Find the position (k) of the entry for a given row (row) within the range of
-  entries for a column (kcs, kce). Works equally well for finding the position
-  of the entry for a column within the range of entries for a row.
-
-  Print a tag and abort (DIE) if there's no entry for the specified row.
+  Constructor and destructor for CoinPresolveMatrix.
 */
-int presolve_find_row(int row, CoinBigIndex kcs, CoinBigIndex kce, const int *hrow)
-{
-  CoinBigIndex k;
-  for (k=kcs; k<kce; k++)
-    if (hrow[k] == row)
-      return (k);
-  DIE("FIND_ROW");
-  return (0);
-}
 
 /*
-  As presolve_find_row, but simply return a position one past the end of the
-  row when the entry is not already present.
+  CoinPresolveMatrix constructor
+
+  The constructor does very little, for much the same reasons that the
+  CoinPrePostsolveMatrix constructor does little. Might as well wait until we
+  load a matrix.
+
+  In general, for presolve the allocated size can be equal to the size of the
+  constraint matrix before presolve transforms are applied. (Presolve
+  transforms are assumed to reduce the size of the constraint system.) But we
+  need to keep the *_alloc parameters for compatibility with
+  CoinPrePostsolveMatrix.
 */
-int presolve_find_row1(int row, CoinBigIndex kcs, CoinBigIndex kce, const int *hrow)
-{
-  CoinBigIndex k;
-  for (k=kcs; k<kce; k++)
-    if (hrow[k] == row)
-      return (k);
-  return (kce);
-}
+
+CoinPresolveMatrix::CoinPresolveMatrix
+  (int ncols_alloc, int nrows_alloc, CoinBigIndex nelems_alloc)
+
+  : CoinPrePostsolveMatrix(ncols_alloc,nrows_alloc,nelems_alloc),
+
+    dobias_(0.0),
+    integerType_(0),
+    feasibilityTolerance_(0.0),
+    status_(-1),
+    pass_(0),
+
+    clink_(0),
+    rlink_(0),
+
+    mrstrt_(0),
+    hinrow_(0),
+    rowels_(0),
+    hcol_(0),
+
+    colChanged_(0),
+    colsToDo_(0),
+    numberColsToDo_(0),
+    nextColsToDo_(0),
+    numberNextColsToDo_(0),
+
+    rowChanged_(0),
+    rowsToDo_(0),
+    numberRowsToDo_(0),
+    nextRowsToDo_(0),
+    numberNextRowsToDo_(0),
+    anyProhibited_(0)
+
+{ /* nothing to do here */ 
+
+  return ; }
 
 /*
-  The row does not occupy a contiguous block in hrow. If a<i,p> is in pos'n
-  kp of hrow, the next coefficient a<i,q> will be in pos'n kq = link[kp]. Abort
-  if we don't find it.
+  CoinPresolveMatrix destructor.
 */
-int presolve_find_row2(int irow, CoinBigIndex ks, int nc, const int *hrow, const int *link)
-{
-  for (int i=0; i<nc; ++i) {
-    if (hrow[ks] == irow)
-      return (ks);
-    ks = link[ks];
-  }
-  abort();
-  return -1;
-}
-
-/*
-  As presolve_find_row3, but return -1 if the entry is missing
-*/
-int presolve_find_row3(int irow, CoinBigIndex ks, int nc, const int *hrow, const int *link)
-{
-  for (int i=0; i<nc; ++i) {
-    if (hrow[ks] == irow)
-      return (ks);
-    ks = link[ks];
-  }
-  return (-1);
-}
-
-
-// delete the entry for col from row
-// this keeps the row loosely packed
-void presolve_delete_from_row(int row, int col /* thing to delete */,
-		     const CoinBigIndex *mrstrt,
-		     int *hinrow, int *hcol, double *dels)
-{
-  CoinBigIndex krs = mrstrt[row];
-  CoinBigIndex kre = krs + hinrow[row];
-
-  // find entry for column col, in entries for row
-  CoinBigIndex kcol = presolve_find_row(col, krs, kre, hcol);
-
-  swap(hcol[kcol], hcol[kre-1]);
-  swap(dels[kcol], dels[kre-1]);
-  hinrow[row]--;
-}
-
-
-void presolve_delete_from_row2(int row, int col /* thing to delete */,
-		      CoinBigIndex *mrstrt,
-		     int *hinrow, int *hcol, double *dels, int *link, 
-			       CoinBigIndex *free_listp)
-{
-  CoinBigIndex k = mrstrt[row];
-
-  if (hcol[k] == col) {
-    mrstrt[row] = link[k];
-    link[k] = *free_listp;
-    *free_listp = k;
-    check_free_list(k);
-    hinrow[row]--;
-  } else {
-    int n = hinrow[row] - 1;
-    CoinBigIndex k0 = k;
-    k = link[k];
-    for (int i=0; i<n; ++i) {
-      if (hcol[k] == col) {
-	link[k0] = link[k];
-	link[k] = *free_listp;
-	*free_listp = k;
-	check_free_list(k);
-	hinrow[row]--;
-	return;
-      }
-      k0 = k;
-      k = link[k];
-    }
-    abort();
-  }
-}
-
-
-
-CoinPrePostsolveMatrix::~CoinPrePostsolveMatrix()
-{
-  delete[]mcstrt_;
-  delete[]hrow_;
-  delete[]colels_;
-  delete[]hincol_;
-
-  delete[]cost_;
-  delete[]clo_;
-  delete[]cup_;
-  delete[]rlo_;
-  delete[]rup_;
-  delete[]originalColumn_;
-  delete[]originalRow_;
-  delete[]rowduals_;
-
-  delete[]rcosts_;
-}
-
-// Sets status (non -basic ) using value
-void 
-CoinPrePostsolveMatrix::setRowStatusUsingValue(int iRow)
-{
-  double value = acts_[iRow];
-  double lower = rlo_[iRow];
-  double upper = rup_[iRow];
-  if (lower<-1.0e20&&upper>1.0e20) {
-    setRowStatus(iRow,isFree);
-  } else if (fabs(lower-value)<=ztolzb_) {
-    setRowStatus(iRow,atLowerBound);
-  } else if (fabs(upper-value)<=ztolzb_) {
-    setRowStatus(iRow,atUpperBound);
-  } else {
-    setRowStatus(iRow,superBasic);
-  }
-}
-void 
-CoinPrePostsolveMatrix::setColumnStatusUsingValue(int iColumn)
-{
-  double value = sol_[iColumn];
-  double lower = clo_[iColumn];
-  double upper = cup_[iColumn];
-  if (lower<-1.0e20&&upper>1.0e20) {
-    setColumnStatus(iColumn,isFree);
-  } else if (fabs(lower-value)<=ztolzb_) {
-    setColumnStatus(iColumn,atLowerBound);
-  } else if (fabs(upper-value)<=ztolzb_) {
-    setColumnStatus(iColumn,atUpperBound);
-  } else {
-    setColumnStatus(iColumn,superBasic);
-  }
-}
-
-
-#if	DEBUG_PRESOLVE
-static void matrix_bounds_ok(const double *lo, const double *up, int n)
-{
-  int i;
-  for (i=0; i<n; i++) {
-    PRESOLVEASSERT(lo[i] <= up[i]);
-    PRESOLVEASSERT(lo[i] < PRESOLVE_INF);
-    PRESOLVEASSERT(-PRESOLVE_INF < up[i]);
-  }
-}
-#endif
-
 
 CoinPresolveMatrix::~CoinPresolveMatrix()
-{
-  delete[]clink_;
-  delete[]rlink_;
+
+{ delete[] clink_ ;
+  delete[] rlink_ ;
   
-  delete[]mrstrt_;
-  delete[]hinrow_;
-  delete[]rowels_;
-  delete[]hcol_;
+  delete[] mrstrt_ ;
+  delete[] hinrow_ ;
+  delete[] rowels_ ;
+  delete[] hcol_ ;
 
-  delete[]integerType_;
-  delete[] rowChanged_;
-  delete[] rowsToDo_;
-  delete[] nextRowsToDo_;
-  delete[] colChanged_;
-  delete[] colsToDo_;
-  delete[] nextColsToDo_;
-}
+  delete[] integerType_ ;
+  delete[] rowChanged_ ;
+  delete[] rowsToDo_ ;
+  delete[] nextRowsToDo_ ;
+  delete[] colChanged_ ;
+  delete[] colsToDo_ ;
+  delete[] nextColsToDo_ ;
 
-#if	CHECK_CONSISTENCY
+  return ; }
+
+
 
 /*
- The matrix is represented redundantly in both row-major and column-major
- format, in "loosely packed" format.
- 
- Using row-major for explanation, "packed" format would be as in normal
- OSL: Two vectors with positional correspondence that give the column indices
- and coefficients, and a vector that gives the start of each row in the
- index and coefficient vectors. The length (number of nonzero coefficients)
- of a row i is rowstart[i+1]-rowstart[i].
+  This routine loads a CoinPackedMatrix and proceeds to do the bulk of the
+  initialisation for the PrePostsolve and Presolve objects.
 
- The format used here is "loosely packed" because, at any given time, there
- may be unused entries in the column index and coefficient vectors.  This is so
- that we can quickly delete columns without having to update (repack) the row
- representation. Note that this requires a separate array to specify the
- length of each row.
+  In the CoinPrePostsolveMatrix portion of the object, it initialises the
+  column-major packed matrix representation and the arrays that track the
+  motion of original columns and rows.
 
- matrix_consistent checks whether an entry is in the column-major
- representation iff it is also in the row-major representation, and also that
- their values are the same (if testvals is non-zero). Note that by doing the
- appropriate swaps of column- and row-major data structures in the parameter
- list, we can check row-major iff column-major. 
- (See CoinPresolveMatrix::consistent immediately below. This trick is used in
- several other places.)
+  In the CoinPresolveMatrix portion of the object, it initialises the
+  row-major packed matrix representation, the arrays that assist in matrix
+  storage management, and the arrays that track the rows and columns to be
+  processed.
 
- Original comment:
- ``Note that there may be entries in a row that correspond to empty columns
-   and vice-versa.''
- To which a previous browser had commented ``HUH???''. And I agree. -- lh --
+  Arrays are allocated to the requested size (ncols0_, nrow0_, nelems0_).
+
+  The source matrix must be column ordered; it does not need to be gap-free.
+  Bulk storage in the column-major (hrow_, colels_) and row-major (hcol_,
+  rowels_) matrices is allocated at twice the required size so that we can
+  expand columns and rows as needed. This is almost certainly grossly
+  oversize, but (1) it's efficient, and (2) the utility routines which
+  compact the bulk storage areas have no provision to reallocate.
 */
 
-static void matrix_consistent(const CoinBigIndex *mrstrt, const int *hinrow, const int *hcol,
-			      const CoinBigIndex *mcstrt, const int *hincol, const int *hrow,
-			      const double *rowels,
-			      const double *colels,
-			      int nrows, int testvals,
-			      const char *ROW, const char *COL)
+void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
+
 {
-  for (int irow=0; irow<nrows; irow++) {
-    if (hinrow[irow] > 0) {
-      CoinBigIndex krs = mrstrt[irow];
-      CoinBigIndex kre = krs + hinrow[irow];
+/*
+  Check to make sure the matrix will fit and is column ordered.
+*/
+  if (mtx->isColOrdered() == false)
+  { throw CoinError("source matrix must be column ordered",
+		    "setMatrix","CoinPrePostsolveMatrix") ; }
 
-      for (CoinBigIndex k=krs; k<kre; k++) {
-	int jcol = hcol[k];
-	CoinBigIndex kcs = mcstrt[jcol];
-	CoinBigIndex kce = kcs + hincol[jcol];
+  int numCols = mtx->getNumCols() ;
+  if (numCols > ncols0_)
+  { throw CoinError("source matrix exceeds allocated capacity",
+		    "setMatrix","CoinPrePostsolveMatrix") ; }
+/*
+  Acquire the actual size, but allocate the matrix storage to the
+  requested capacity. The column-major rep is part of the PrePostsolve
+  object, the row-major rep belongs to the Presolve object.
+*/
+  ncols_ = numCols ;
+  nrows_ = mtx->getNumRows() ;
+  nelems_ = mtx->getNumElements() ;
+  bulk0_ = 2*nelems0_ ;
 
-	CoinBigIndex kk = presolve_find_row1(irow, kcs, kce, hrow);
-	if (kk == kce) {
-	  printf("MATRIX INCONSISTENT:  can't find %s %d in %s %d\n",
-		 ROW, irow, COL, jcol);
-	  fflush(stdout);
-	  abort();
-	}
-	if (testvals && colels[kk] != rowels[k]) {
-	  printf("MATRIX INCONSISTENT:  value for %s %d and %s %d\n",
-		 ROW, irow, COL, jcol);
-	  fflush(stdout);
-	  abort();
-	}
-      }
-    }
-  }
-}
-#endif
+  if (mcstrt_ == 0) mcstrt_ = new CoinBigIndex [ncols0_+1] ;
+  if (hincol_ == 0) hincol_ = new int [ncols0_+1] ;
+  if (hrow_ == 0) hrow_ = new int [bulk0_] ;
+  if (colels_ == 0) colels_ = new double [bulk0_] ;
+
+  if (mrstrt_ == 0) mrstrt_ = new CoinBigIndex [nrows0_+1] ;
+  if (hinrow_ == 0) hinrow_ = new int [nrows0_+1] ;
+  if (hcol_ == 0) hcol_ = new int [bulk0_] ;
+  if (rowels_ == 0) rowels_ = new double [bulk0_] ;
+/*
+  Grab the corresponding vectors from the source matrix.
+*/
+  const CoinBigIndex *src_mcstrt = mtx->getVectorStarts() ;
+  const int *src_hincol = mtx->getVectorLengths() ;
+  const double *src_colels = mtx->getElements() ;
+  const int *src_hrow = mtx->getIndices() ;
+/*
+  Bulk copy the column starts and lengths.
+*/
+  CoinMemcpyN(src_mcstrt,mtx->getSizeVectorStarts(),mcstrt_) ;
+  CoinMemcpyN(src_hincol,mtx->getSizeVectorLengths(),hincol_) ;
+/*
+  Copy the coefficients column by column in case there are gaps between
+  the columns in the bulk storage area. The assert is just in case the
+  gaps are *really* big.
+*/
+  assert(src_mcstrt[ncols_] <= bulk0_) ;
+  for (int j = 0 ; j < numCols ; j++)
+  { int lenj = src_hincol[j] ;
+    CoinBigIndex offset = mcstrt_[j] ;
+    CoinMemcpyN(src_colels+offset,lenj,colels_+offset) ;
+    CoinMemcpyN(src_hrow+offset,lenj,hrow_+offset) ; }
+/*
+  Now make a row-major copy. Start by counting the number of coefficients in
+  each row; we can do this directly in hinrow. Given the number of
+  coefficients in a row, we know how to lay out the bulk storage area.
+*/
+  CoinZeroN(hinrow_,nrows0_+1) ;
+  for (int j = 0 ; j < ncols_ ; j++)
+  { int *rowIndices = hrow_+mcstrt_[j] ;
+    int lenj = hincol_[j] ;
+    for (int k = 0 ; k < lenj ; k++)
+    { int i = rowIndices[k] ;
+      hinrow_[i]++ ; } }
+/*
+  Initialize mrstrt[i] to the start of row i+1. As we drop each coefficient
+  and column index into the bulk storage arrays, we'll decrement and store.
+  When we're done, mrstrt[i] will point to the start of row i, as it should.
+*/
+  int totalCoeffs = 0 ;
+  for (int i = 0 ; i < nrows_ ; i++)
+  { totalCoeffs += hinrow_[i] ;
+    mrstrt_[i] = totalCoeffs ; }
+  mrstrt_[nrows_] = totalCoeffs ;
+  for (int j = ncols_-1 ; j >= 0 ; j--)
+  { int lenj = hincol_[j] ;
+    double *colCoeffs = colels_+mcstrt_[j] ;
+    int *rowIndices = hrow_+mcstrt_[j] ;
+    for (int k = 0 ; k < lenj ; k++)
+    { int i = rowIndices[k] ;
+      double aij = colCoeffs[k] ;
+      CoinBigIndex l = --mrstrt_[i] ;
+      rowels_[l] = aij ;
+      hcol_[l] = j ; } }
+/*
+  Now the support structures. The entry for original column j should start
+  out as j; similarly for row i. originalColumn_ and originalRow_ belong to
+  the PrePostsolve object.
+*/
+  if (originalColumn_ == 0) originalColumn_ = new int [ncols0_] ;
+  if (originalRow_ == 0) originalRow_ = new int [nrows0_] ;
+
+  for (int j = 0 ; j < ncols0_ ; j++) 
+    originalColumn_[j] = j ;
+  for (int i = 0 ; i < nrows0_ ; i++) 
+    originalRow_[i] = i ;
+/*
+  We have help to set up the clink_ and rlink_ vectors (aids for matrix bulk
+  storage management). clink_ and rlink_ belong to the Presolve object.  Once
+  this is done, it's safe to set mrstrt_[nrows_] and mcstrt_[ncols_] to the
+  full size of the bulk storage area.
+*/
+  if (clink_ == 0) clink_ = new presolvehlink [ncols0_+1] ;
+  if (rlink_ == 0) rlink_ = new presolvehlink [nrows0_+1] ;
+  presolve_make_memlists(mcstrt_,hincol_,clink_,ncols_) ;
+  presolve_make_memlists(mrstrt_,hinrow_,rlink_,nrows_) ;
+  mcstrt_[ncols_] = bulk0_ ;
+  mrstrt_[nrows_] = bulk0_ ;
+/*
+  No rows or columns have been changed just yet. colChanged_ and rowChanged_
+  belong to the Presolve object.
+*/
+  if (colChanged_ == 0) colChanged_ = new unsigned char [ncols0_] ;
+  CoinZeroN(colChanged_,ncols0_) ;
+  if (rowChanged_ == 0) rowChanged_ = new unsigned char [nrows0_] ;
+  CoinZeroN(rowChanged_,nrows0_) ;
+/*
+  Finally, allocate the various *ToDo arrays. These are used to track the rows
+  and columns which should be processed in a given round of presolve
+  transforms. These belong to the Presolve object. Setting number*ToDo to 0
+  is all the initialization that's required here.
+*/
+  rowsToDo_ = new int [nrows0_] ;
+  numberRowsToDo_ = 0 ;
+  nextRowsToDo_ = new int [nrows0_] ;
+  numberNextRowsToDo_ = 0 ;
+  colsToDo_ = new int [ncols0_] ;
+  numberColsToDo_ = 0 ;
+  nextColsToDo_ = new int [ncols0_] ;
+  numberNextColsToDo_ = 0 ;
+
+  return ; }
 
 
-void CoinPresolveMatrix::consistent(bool testvals)
-{
-#if	CHECK_CONSISTENCY
-  matrix_consistent(mrstrt_, hinrow_, hcol_,
-		    mcstrt_, hincol_, hrow_,
-		    rowels_, colels_,
-		    nrows_, testvals,
-		    "row", "col");
-  matrix_consistent(mcstrt_, hincol_, hrow_,
-		    mrstrt_, hinrow_, hcol_,
-		    colels_, rowels_, 
-		    ncols_, testvals,
-		    "col", "row");
-#endif
-}
+/*
+  These functions set integer type information. The first expects an array with
+  an entry for each variable. The second sets all variables to integer or
+  continuous type.
+*/
 
+void CoinPresolveMatrix::setVariableType (const unsigned char *variableType,
+					 int lenParam)
 
+{ int len ;
 
+  if (lenParam < 0)
+  { len = ncols_ ; }
+  else
+  if (lenParam > ncols0_)
+  { throw CoinError("length exceeds allocated size",
+		    "setIntegerType","CoinPresolveMatrix") ; }
+  else
+  { len = lenParam ; }
 
+  if (integerType_ == 0) integerType_ = new unsigned char [ncols0_] ;
+  CoinCopyN(variableType,len,integerType_) ;
 
+  return ; }
 
+void CoinPresolveMatrix::setVariableType (bool allIntegers, int lenParam)
 
+{ int len ;
 
+  if (lenParam < 0)
+  { len = ncols_ ; }
+  else
+  if (lenParam > ncols0_)
+  { throw CoinError("length exceeds allocated size",
+		    "setIntegerType","CoinPresolveMatrix") ; }
+  else
+  { len = lenParam ; }
 
+  if (integerType_ == 0) integerType_ = new unsigned char [ncols0_] ;
 
+  const unsigned char value = 1 ;
 
-////////////////  POSTSOLVE
+  if (allIntegers == true)
+  { CoinFillN(integerType_,len,value) ; }
+  else
+  { CoinZeroN(integerType_,len) ; }
 
+  return ; }
 
-CoinPostsolveMatrix::~CoinPostsolveMatrix()
-{
-  delete[]link_;
+/*
+  The next pair of routines initialises the [row,col]ToDo lists in preparation
+  for a major pass. All except rows/columns marked as prohibited are added to
+  the lists.
+*/
 
-  delete[]cdone_;
-  delete[]rdone_;
-}
+void CoinPresolveMatrix::initColsToDo ()
+/*
+  Initialize the ToDo lists in preparation for a major iteration of
+  preprocessing. First, cut back the ToDo and NextToDo lists to zero entries.
+  Then place all columns not marked prohibited on the ToDo list.
+*/
 
+{ int j ;
 
-void CoinPostsolveMatrix::check_nbasic()
-{
-  int nbasic = 0;
+  numberNextColsToDo_ = 0 ;
 
-  int i;
-  for (i=0; i<ncols_; i++)
-    if (columnIsBasic(i))
-      nbasic++;
+  if (anyProhibited_ == false)
+  { for (j = 0 ; j < ncols_ ; j++) 
+    { colsToDo_[j] = j ; }
+      numberColsToDo_ = ncols_ ; }
+  else
+  { numberColsToDo_ = 0 ;
+    for (j = 0 ; j < ncols_ ; j++) 
+    if (colProhibited(j) == false)
+    { colsToDo_[numberColsToDo_++] = j ; } }
 
-  for (i=0; i<nrows_; i++)
-    if (rowIsBasic(i))
-      nbasic++;
+  return ; }
 
-  if (nbasic != nrows_) {
-    printf("WRONG NUMBER NBASIC:  is:  %d  should be:  %d\n",
-	   nbasic, nrows_);
-    fflush(stdout);
-  }
-}
+void CoinPresolveMatrix::initRowsToDo ()
+/*
+  Initialize the ToDo lists in preparation for a major iteration of
+  preprocessing. First, cut back the ToDo and NextToDo lists to zero entries.
+  Then place all rows not marked prohibited on the ToDo list.
+*/
 
+{ int i ;
 
+  numberNextRowsToDo_ = 0 ;
 
+  if (anyProhibited_ == false)
+  { for (i = 0 ; i < nrows_ ; i++) 
+    { rowsToDo_[i] = i ; }
+      numberRowsToDo_ = nrows_ ; }
+  else
+  { numberRowsToDo_ = 0 ;
+    for (i = 0 ; i < nrows_ ; i++) 
+    if (rowProhibited(i) == false)
+    { rowsToDo_[numberRowsToDo_++] = i ; } }
 
+  return ; }
 
+int CoinPresolveMatrix::stepColsToDo ()
+/*
+  This routine transfers the contents of NextToDo to ToDo, simultaneously
+  resetting the Changed indicator. It returns the number of columns
+  transfered.
+*/
+{ int k ;
 
+  for (k = 0 ; k < numberNextColsToDo_ ; k++)
+  { int j = nextColsToDo_[k] ;
+    unsetColChanged(j) ;
+    colsToDo_[k] = j ; }
+  numberColsToDo_ = numberNextColsToDo_ ;
+  numberNextColsToDo_ = 0 ;
+
+  return (numberColsToDo_) ; }
+
+int CoinPresolveMatrix::stepRowsToDo ()
+/*
+  This routine transfers the contents of NextToDo to ToDo, simultaneously
+  resetting the Changed indicator. It returns the number of columns
+  transfered.
+*/
+{ int k ;
+
+  for (k = 0 ; k < numberNextRowsToDo_ ; k++)
+  { int i = nextRowsToDo_[k] ;
+    unsetRowChanged(i) ;
+    rowsToDo_[k] = i ; }
+  numberRowsToDo_ = numberNextRowsToDo_ ;
+  numberNextRowsToDo_ = 0 ;
+
+  return (numberRowsToDo_) ; }
