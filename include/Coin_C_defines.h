@@ -11,7 +11,14 @@
 #ifndef COIN_DBL_MAX
 #define COIN_DBL_MAX DBL_MAX
 #endif
-
+#if defined (CLP_EXTERN_C)
+#define COIN_EXTERN_C
+#define COIN_NO_SBB
+#endif
+#if defined (SBB_EXTERN_C)
+#define COIN_EXTERN_C
+#define COIN_NO_CLP
+#endif
 /* We need to allow for Microsoft */
 #ifndef COINLIBAPI
 #if defined (CLPMSDLL)
@@ -38,8 +45,9 @@
 
 #endif
 /** User does not need to see structure of model but C++ code does */
-#if defined (COIN_EXTERN_C)
+#if defined (CLP_EXTERN_C)
 // Real typedef for structure
+class CMessageHandler;
 typedef struct {
   ClpSimplex * model_;
   CMessageHandler * handler_;
@@ -47,14 +55,18 @@ typedef struct {
 #else
 typedef void Clp_Simplex;
 #endif
+
+#ifndef COIN_NO_CLP
 /** typedef for user call back.
  The cvec are constructed so don't need to be const*/
 typedef  void (COINLINKAGE_CB *clp_callback) (Clp_Simplex * model,int  msgno, int ndouble,
                             const double * dvec, int nint, const int * ivec,
                             int nchar, char ** cvec);
+#endif
 /** User does not need to see structure of model but C++ code does */
-#if defined (COIN_EXTERN_C)
+#if defined (SBB_EXTERN_C)
 // Real typedef for structure
+class Sbb_MessageHandler;
 typedef struct {
   OsiClpSolverInterface * solver_;
   SbbModel              * model_;
@@ -64,12 +76,13 @@ typedef struct {
 #else
 typedef void Sbb_Model;
 #endif
+#ifndef COIN_NO_SBB
 /** typedef for user call back.
  The cvec are constructed so don't need to be const*/
-typedef  void (COINLINKAGE_CB *clp_callback) (Sbb_Model * model,int  msgno, int ndouble,
+typedef  void (COINLINKAGE_CB *sbb_callback) (Sbb_Model * model,int  msgno, int ndouble,
                             const double * dvec, int nint, const int * ivec,
                             int nchar, char ** cvec);
-
+#endif
 #if COIN_BIG_INDEX==0
 typedef int CoinBigIndex;
 #elif COIN_BIG_INDEX==1
@@ -77,4 +90,7 @@ typedef long CoinBigIndex;
 #else
 typedef long long CoinBigIndex;
 #endif
+/* just in case used somewhere */
+#undef COIN_NO_CLP
+#undef COIN_NO_SBB
 #endif
