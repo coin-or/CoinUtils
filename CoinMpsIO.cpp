@@ -2052,7 +2052,7 @@ convertDouble(int formatType, double value, char outputValue[20],
 	  sprintf(format,"%%12.%df",decimal);
 	  sprintf(outputValue,format,value);
 	} else {
-	  sprintf(outputValue,"%12.8g",value);
+	  sprintf(outputValue,"%12.7g",value);
 	}
       } else {
 	power10 =(int) log10(-value)+1;
@@ -2062,7 +2062,7 @@ convertDouble(int formatType, double value, char outputValue[20],
 	  sprintf(format,"%%12.%df",decimal);
 	  sprintf(outputValue,format,value);
 	} else {
-	  sprintf(outputValue,"%12.7g",value);
+	  sprintf(outputValue,"%12.6g",value);
 	}
       }
       // take off trailing 0
