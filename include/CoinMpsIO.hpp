@@ -127,10 +127,8 @@ private:
   char columnName_[MAX_FIELD_LENGTH];
   /// File pointer
   FILE *fp_;
-#ifdef COIN_USE_ZLIB
   /// Compressed file object
   gzFile gzfp_;
-#endif
   /// Which section we think we are in
   COINSectionType section_;
   /// Card number

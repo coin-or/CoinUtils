@@ -164,13 +164,14 @@ int CoinMpsCardReader::cleanCard()
   char * getit;
 #ifdef COIN_USE_ZLIB
   if (fp_) {
-#endif
     // normal file
     getit = fgets ( card_, MAX_CARD_LENGTH, fp_ );
-#ifdef COIN_USE_ZLIB
   } else {
     getit = gzgets ( gzfp_, card_, MAX_CARD_LENGTH );
   }
+#else
+  // only normal file
+  getit = fgets ( card_, MAX_CARD_LENGTH, fp_ );
 #endif
   
   if ( getit ) {
@@ -288,9 +289,7 @@ CoinMpsCardReader::CoinMpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * rea
   memset ( columnName_, 0, MAX_FIELD_LENGTH );
   value_ = 0.0;
   fp_ = fp;
-#ifdef COIN_USE_ZLIB
   gzfp_ = gzfp;
-#endif
   section_ = COIN_EOF_SECTION;
   cardNumber_ = 0;
   freeFormat_ = false;
