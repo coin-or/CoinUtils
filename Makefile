@@ -38,6 +38,21 @@ LIBSRC += CoinPackedVector.cpp
 LIBSRC += CoinPackedVectorBase.cpp
 LIBSRC += CoinShallowPackedVector.cpp
 LIBSRC += CoinWarmStartBasis.cpp
+LIBSRC += CoinPresolveMatrix.cpp
+LIBSRC += CoinPresolveDoubleton.cpp
+LIBSRC += CoinPresolveEmpty.cpp
+LIBSRC += CoinPresolveFixed.cpp
+LIBSRC += CoinPresolvePsdebug.cpp
+LIBSRC += CoinPresolveSingleton.cpp
+LIBSRC += CoinPresolveZeros.cpp
+LIBSRC += CoinPresolveDual.cpp		    
+LIBSRC += CoinPresolveDupcol.cpp		    
+LIBSRC += CoinPresolveForcing.cpp		    
+LIBSRC += CoinPresolveImpliedFree.cpp	    
+LIBSRC += CoinPresolveIsolated.cpp	    
+LIBSRC += CoinPresolveSubst.cpp		    
+LIBSRC += CoinPresolveTighten.cpp		    
+LIBSRC += CoinPresolveUseless.cpp             
 
 ##############################################################################
 include ${MakefileDir}/Makefile.coin
