@@ -2100,7 +2100,7 @@ convertDouble(int formatType, double value, char outputValue[20],
 	  sprintf(format,"%%12.%df",decimal);
 	  sprintf(outputValue,format,value);
 	} else {
-	  sprintf(outputValue,"%12.7g",value);
+	  sprintf(outputValue,"%13.7g",value);
 	  stripZeros=false;
 	}
       } else {
@@ -2111,7 +2111,7 @@ convertDouble(int formatType, double value, char outputValue[20],
 	  sprintf(format,"%%12.%df",decimal);
 	  sprintf(outputValue,format,value);
 	} else {
-	  sprintf(outputValue,"%12.6g",value);
+	  sprintf(outputValue,"%13.6g",value);
 	  stripZeros=false;
 	}
       }
@@ -2124,17 +2124,37 @@ convertDouble(int formatType, double value, char outputValue[20],
 	  else
 	    break;
 	}
+      } else {
+	// still need to make sure fits in 12 characters
+	char * e = strchr(outputValue,'e');
+	if (!e) {
+	  // no e but better make sure fits in 12
+	  outputValue[12]='\0';
+	} else {
+	  // e take out 0s
+	  int j= (e-outputValue)+1;
+	  int put = j+1;
+	  assert(outputValue[j]=='-'||outputValue[j]=='+');
+	  for ( j = put ; j < 14 ; j++) {
+	    if (outputValue[j]!='0')
+	      break;
+	  }
+	  // copy rest
+	  for (  ; j < 14 ; j++) {
+	    outputValue[put++] = outputValue[j];
+	  }
+	}
       }
     } else {
       outputValue[0]= '\0'; // needs no value
     }
   } else {
     if (fabs(value)<1.0e40) {
-      sprintf(outputValue,"%19g",value);
+      sprintf(outputValue,"%.18g",value);
       // take out blanks
       int i=0;
       int j;
-      for (j=0;j<19;j++) {
+      for (j=0;j<18;j++) {
 	if (outputValue[j]!=' ')
 	  outputValue[i++]=outputValue[j];
       }
@@ -2339,6 +2359,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 
    bool ifBounds=false;
    double largeValue = infinity_;
+   largeValue = 1.0e30; // safer
 
    const double * columnLower = getColLower();
    const double * columnUpper = getColUpper();

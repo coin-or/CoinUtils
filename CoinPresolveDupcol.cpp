@@ -217,10 +217,10 @@ const CoinPresolveAction *dupcol_action::presolve(CoinPresolveMatrix *prob,
 	    clo1 += clo2;
 	    cup1 += cup2;
 	    if (clo1<-1.0e20) {
-	      clo1=-1.0e31;
+	      clo1=-COIN_DBL_MAX;
 	    }
 	    if (cup1>1.0e20) {
-	      cup1=1.0e31;
+	      cup1=COIN_DBL_MAX;
 	    }
 	    /*dfix=0.0;*/
 	    //itype=26;
