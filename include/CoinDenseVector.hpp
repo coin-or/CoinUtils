@@ -132,7 +132,9 @@ public:
      double norm = 0.;
      for (int i=0; i<nElements_; i++)
        norm += elements_[i] * elements_[i];
-     return std::sqrt(norm);
+     // std namespace removed because it was causing a compile
+     // problem with Microsoft Visual C++
+     return /*std::*/sqrt(norm);
    }
    /// infinity-norm of vector
    inline T infNorm() const {
