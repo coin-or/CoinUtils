@@ -4,35 +4,47 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "CoinHelperFunctions.hpp"
 #include "CoinPresolveMatrix.hpp"
 
 #include "CoinPresolveEmpty.hpp"
 #include "CoinMessage.hpp"
 
+/* \file
 
-const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *prob,
-							int *ecols,
-							int necols,
-							const CoinPresolveAction *next)
+  Routines to remove/reinsert empty columns and rows.
+*/
+
+
+/*
+  Physically remove empty columns, compressing mcstrt and hincol. The major
+  side effect is that columns are renumbered, thus clink_ is no longer valid
+  and must be rebuilt.
+
+  It's necessary to rebuild clink_ in order to do direct conversion of a
+  CoinPresolveMatrix to a CoinPostsolveMatrix by transferring the data arrays.
+  Without clink_, it's impractical to build link_ to match the transferred bulk
+  storage.
+*/
+const CoinPresolveAction
+  *drop_empty_cols_action::presolve (CoinPresolveMatrix *prob,
+				     int *ecols,
+				     int necols,
+				     const CoinPresolveAction *next)
 {
   int ncols		= prob->ncols_;
-  CoinBigIndex *mcstrt		= prob->mcstrt_;
+  CoinBigIndex *mcstrt	= prob->mcstrt_;
   int *hincol		= prob->hincol_;
-  //  int *hcol		= prob->hcol_;
 
-  // We know we are not going to need row copy again
-  //presolvehlink *clink	= prob->clink_;
+  presolvehlink *clink	= prob->clink_;
 
   double *clo		= prob->clo_;
   double *cup		= prob->cup_;
   double *dcost		= prob->cost_;
 
   const double ztoldj	= prob->ztoldj_;
-  //int *mrstrt		= prob->mrstrt_;
-  //int *hinrow		= prob->hinrow_;
-  //int *hrow		= prob->hrow_;
 
-  char * integerType     = prob->integerType_;
+  unsigned char * integerType     = prob->integerType_;
   int * originalColumn  = prob->originalColumn_;
 
   const double maxmin	= prob->maxmin_;
@@ -41,9 +53,9 @@ const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *p
   unsigned char * colstat = prob->colstat_;
 
   action *actions 	= new action[necols];
-  int * colmapping = new int [ncols];
+  int * colmapping = new int [ncols+1];
 
-  memset(colmapping,0,ncols*sizeof(int));
+  CoinZeroN(colmapping,ncols);
   int i;
   for (i=necols-1; i>=0; i--) {
     int jcol = ecols[i];
@@ -91,7 +103,7 @@ const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *p
       }
     }
 
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
     if (e.sol * dcost[jcol]) {
       //printf("\a>>>NON-ZERO COST FOR EMPTY COL %d:  %g\n", jcol, dcost[jcol]);
     }
@@ -119,9 +131,34 @@ const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *p
 
       integerType[ncols2] = integerType[i];
       originalColumn[ncols2] = originalColumn[i];
-      ncols2++;
+      colmapping[i] = ncols2++;
     }
   }
+  mcstrt[ncols2] = mcstrt[ncols] ;
+  colmapping[ncols] = ncols2 ;
+/*
+  Rebuild clink_. At this point, all empty columns are linked out, so the
+  only columns left are columns that are to be saved, hence available in
+  colmapping.  All we need to do is walk clink_ and write the new entries
+  into a new array.
+*/
+
+  { presolvehlink *newclink = new presolvehlink [ncols2+1] ;
+    for (int oldj = ncols ; oldj >= 0 ; oldj = clink[oldj].pre)
+    { presolvehlink &oldlnk = clink[oldj] ;
+      int newj = colmapping[oldj] ;
+      assert(newj >= 0 && newj <= ncols2) ;
+      presolvehlink &newlnk = newclink[newj] ;
+      if (oldlnk.suc >= 0)
+      { newlnk.suc = colmapping[oldlnk.suc] ; }
+      else
+      { newlnk.suc = NO_LINK ; }
+      if (oldlnk.pre >= 0)
+      { newlnk.pre = colmapping[oldlnk.pre] ; }
+      else
+      { newlnk.pre = NO_LINK ; } }
+    delete [] clink ;
+    prob->clink_ = newclink ; }
   
   delete [] colmapping;
   prob->ncols_ = ncols2;
@@ -140,20 +177,33 @@ const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *p
   int i;
   int nempty		= 0;
   int * empty = new int [ncols];
+  CoinBigIndex nelems2 = 0 ;
 
   // count empty cols
   for (i=0; i<ncols; i++)
+  { nelems2 += hincol[i] ;
     if (hincol[i] == 0) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
       if (nempty==0)
 	printf("UNUSED COLS:  ");
+      else
+      if (i < 100 && nempty%25 == 0)
+	printf("\n") ;
+      else
+      if (i >= 100 && i < 1000 && nempty%19 == 0)
+	printf("\n") ;
+      else
+      if (i >= 1000 && nempty%15 == 0)
+	printf("\n") ;
       printf("%d ", i);
 #endif
       empty[nempty++] = i;
     }
+  }
+  prob->nelems_ = nelems2 ;
 
   if (nempty) {
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
       printf("\ndropped %d cols\n", nempty);
 #endif
     next = drop_empty_cols_action::presolve(prob, empty, nempty, next);
@@ -169,7 +219,6 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
   const action *const actions = actions_;
 
   int ncols		= prob->ncols_;
-  //  CoinBigIndex nelems		= prob->nelems_;
 
   CoinBigIndex *mcstrt	= prob->mcstrt_;
   int *hincol	= prob->hincol_;
@@ -187,8 +236,10 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
   int ncols2 = ncols+nactions;
   int * colmapping = new int [ncols2];
 
-  memset(colmapping,0,ncols2*sizeof(int));
+  CoinZeroN(colmapping,ncols2);
+# if PRESOLVE_DEBUG
   char *cdone	= prob->cdone_;
+# endif
   int action_i;
   for (action_i = 0; action_i < nactions; action_i++) {
     const action *e = &actions[action_i];
@@ -210,13 +261,17 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
 
       cost[i] = cost[ncols];
 
-      sol[i] = sol[ncols];
-      
-      rcosts[i] = rcosts[ncols];
-      
+      if (sol)
+	sol[i] = sol[ncols];
+
+      if (rcosts)
+        rcosts[i] = rcosts[ncols];
+
       if (colstat) 
 	colstat[i] = colstat[ncols];
-      cdone[i]   = cdone[ncols];
+#     if PRESOLVE_DEBUG
+      cdone[i] = cdone[ncols];
+#     endif
     }
   }
   assert (!ncols);
@@ -230,14 +285,18 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
     // now recreate jcol
     clo[jcol] = e->clo;
     cup[jcol] = e->cup;
-    sol[jcol] = e->sol;
+    if (sol)
+      sol[jcol] = e->sol;
     cost[jcol] = e->cost;
 
-    rcosts[jcol] = maxmin*cost[jcol];
+    if (rcosts)
+      rcosts[jcol] = maxmin*cost[jcol];
 
     hincol[jcol] = 0;
-
+    mcstrt[jcol] = NO_LINK ;
+# if PRESOLVE_DEBUG
     cdone[jcol] = DROP_COL;
+# endif
     if (colstat) 
       prob->setColumnStatusUsingValue(jcol);
   }
@@ -288,14 +347,23 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
     for (i=0; i<nrows; i++) {
       if (hinrow[i] == 0) {
 	action &e = actions[nactions];
-	nactions++;
 
-#if	DEBUG_PRESOLVE
-	if (nactions==1)
-	  printf("unused rows:  ");
-
+#       if PRESOLVE_DEBUG
+	if (nactions == 0)
+	  printf("UNUSED ROWS:  ");
+	else
+	if (i < 100 && nactions%25 == 0)
+	  printf("\n") ;
+	else
+	if (i >= 100 && i < 1000 && nactions%19 == 0)
+	  printf("\n") ;
+	else
+	if (i >= 1000 && nactions%15 == 0)
+	  printf("\n") ;
 	printf("%d ", i);
-#endif
+#	endif
+
+	nactions++;
 	if (rlo[i] > 0.0 || rup[i] < 0.0) {
 	  if (rlo[i]<=prob->feasibilityTolerance_ &&
 	      rup[i]>=-prob->feasibilityTolerance_) {
@@ -340,7 +408,7 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
 
     prob->nrows_ = nrows2;
 
-#if	DEBUG_PRESOLVE
+#if	PRESOLVE_DEBUG
     if (nactions)
       printf("\ndropped %d rows\n", nactions);
 #endif
@@ -364,16 +432,17 @@ void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
   unsigned char *rowstat	= prob->rowstat_;
   double *rowduals = prob->rowduals_;
   double *acts	= prob->acts_;
+# if PRESOLVE_DEBUG
   char *rdone	= prob->rdone_;
+# endif
 
   int nrows0	= prob->nrows0_;
   int nrows	= prob->nrows_;
 
   int * rowmapping = new int [nrows0];
+  CoinZeroN(rowmapping,nrows0) ;
 
   int i, action_i;
-  for (i=0; i<nrows0; i++)
-    rowmapping[i] = 0;
   
   for (action_i = 0; action_i<nactions; action_i++) {
     const action *e = &actions[action_i];
@@ -392,6 +461,9 @@ void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
       rowduals[i]=rowduals[nrows];
       if (rowstat)
 	rowstat[i] = rowstat[nrows];
+#     if PRESOLVE_DEBUG
+      rdone[i] = rdone[nrows] ;
+#     endif
     }
   }
   assert (!nrows);
@@ -426,10 +498,9 @@ void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
     rowduals[irow] = 0.0;	// ???
     acts[irow] = 0.0;
 
-    // hinrow is not maintained during postsolve
-    //hinrow[irow] = 0;
-
+#   if PRESOLVE_DEBUG
     rdone[irow] = DROP_ROW;
+#   endif
   }
 
   prob->nrows_ = prob->nrows_+nactions;
