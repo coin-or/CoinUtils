@@ -182,6 +182,8 @@ public:
   /// Allows change of pivot accuracy check 1.0 == none >1.0 relaxed
   inline void relaxAccuracyCheck(double value)
   { relaxCheck_ = value;};
+  inline double getAccuracyCheck() const
+  { return relaxCheck_;};
   /// Whether rows increase after pivoting - dummy
   inline bool increasingRows (  ) const 
   { return true; };
@@ -605,7 +607,6 @@ protected:
     CoinBigIndex i;
     for ( i = startColumn; i < endColumn; i++ ) {
       int iRow = indexRowU[i];
-
       if ( iRow != pivotRow ) {
 	indexRowL[l] = iRow;
 	elementL[l] = elementU[i];
@@ -655,6 +656,7 @@ protected:
 #endif
       indexColumnU[where] = indexColumnU[end - 1];
       numberInRow[iRow]--;
+      assert (numberInRow[iRow]>=0);
     }
     for ( i = pivotRowPosition + 1; i < endColumn; i++ ) {
       int iRow = indexRowU[i];
@@ -678,6 +680,7 @@ protected:
 #endif
       indexColumnU[where] = indexColumnU[end - 1];
       numberInRow[iRow]--;
+      assert (numberInRow[iRow]>=0);
     }
   }
   markRow[pivotRow] = largeInteger;
