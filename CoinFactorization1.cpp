@@ -140,8 +140,12 @@ void CoinFactorization::gutsOfInitialize(int type)
     maximumPivots_=200;
     numberTrials_ = 4;
     relaxCheck_=1.0;
+#if DENSE_CODE==1
     denseThreshold_=31;
     denseThreshold_=71;
+#else
+    denseThreshold_=0;
+#endif
     biasLU_=2;
     doForrestTomlin_=true;
   }

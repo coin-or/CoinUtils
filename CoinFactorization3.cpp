@@ -46,7 +46,12 @@ CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse ,
   const CoinBigIndex *startColumn = startColumnL_;
   const int *indexRow = indexRowL_;
   const double *element = elementL_;
-  int last = baseL_ + numberL_;
+  int last = numberRows_;
+  assert ( last == baseL_ + numberL_);
+#if DENSE_CODE==1
+  //can take out last bit of sparse L as empty
+  last -= numberDense_;
+#endif
   int smallestIndex = numberRowsExtra_;
   // do easy ones
   for (k=0;k<number;k++) {
@@ -76,6 +81,15 @@ CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse ,
       region[i] = 0.0;
     }       
   }     
+  // and dense
+  for ( ; i < numberRows_; i++ ) {
+    double pivotValue = region[i];
+    if ( fabs(pivotValue) > tolerance ) {
+      regionIndex[numberNonZero++] = i;
+    } else {
+      region[i] = 0.0;
+    }       
+  }     
   regionSparse->setNumElements ( numberNonZero );
 } 
 // Updates part of column (FTRANL) when sparsish
@@ -96,21 +110,15 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
   const CoinBigIndex *startColumn = startColumnL_;
   const int *indexRow = indexRowL_;
   const double *element = elementL_;
-  int last = baseL_ + numberL_;
-#ifdef DENSE_CODE2
-  if (numberDense_) {
-    //can take out last bit of sparse L as empty
-    last = CoinMin(last,numberRows_-numberDense_);
-  } 
+  int last = numberRows_;
+  assert ( last == baseL_ + numberL_);
+#if DENSE_CODE==1
+  //can take out last bit of sparse L as empty
+  last -= numberDense_;
 #endif
-  
   // use sparse_ as temporary area
   // mark known to be zero
-  int * stack = sparse_;  /* pivot */
-  int * list = stack + maximumRowsExtra_;  /* final list */
-  CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
-  CoinCheckZero * mark = (CoinCheckZero *) (next + maximumRowsExtra_);
-  int nMarked=0;
+  CoinCheckZero * mark = (CoinCheckZero *) (sparse_);
   int smallestIndex = numberRowsExtra_;
   // do easy ones
   for (k=0;k<number;k++) {
@@ -125,7 +133,6 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
 	mark[iWord] |= 1<<iBit;
       } else {
 	mark[iWord] = 1<<iBit;
-	stack[nMarked++]=iWord;
       }
     }
   }
@@ -151,7 +158,6 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
 	  mark[iWord] |= 1<<iBit;
 	} else {
 	  mark[iWord] = 1<<iBit;
-	  stack[nMarked++]=iWord;
 	}
       }     
       regionIndex[numberNonZero++] = i;
@@ -187,7 +193,6 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
 		mark[iWord] |= 1<<iBit;
 	      } else {
 		mark[iWord] = 1<<iBit;
-		stack[nMarked++]=iWord;
 	      }
 	    }     
 	    regionIndex[numberNonZero++] = i;
@@ -212,15 +217,16 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
 	double result = region[iRow];
 	double value = element[j];
 	region[iRow] = result - value * pivotValue;
-	int iWord = iRow>>CHECK_SHIFT;
-	int iBit = iRow-(iWord<<CHECK_SHIFT);
-	if (mark[iWord]) {
-	  mark[iWord] |= 1<<iBit;
-	} else {
-	  mark[iWord] = 1<<iBit;
-	  stack[nMarked++]=iWord;
-	}
       }     
+      regionIndex[numberNonZero++] = i;
+    } else {
+      region[i] = 0.0;
+    }       
+  }
+  // Now dense part
+  for ( ; i < numberRows_; i++ ) {
+    double pivotValue = region[i];
+    if ( fabs(pivotValue) > tolerance ) {
       regionIndex[numberNonZero++] = i;
     } else {
       region[i] = 0.0;
@@ -228,7 +234,8 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
   }
   // zero out ones that might have been skipped
   mark[smallestIndex>>CHECK_SHIFT]=0;
-  mark[kLast]=0;
+  int kkLast = (numberRows_+BITS_PER_CHECK-1)>>CHECK_SHIFT;
+  memset(mark+kLast,0,kkLast-kLast);
   regionSparse->setNumElements ( numberNonZero );
 } 
 // Updates part of column (FTRANL) when sparse
@@ -998,11 +1005,7 @@ CoinFactorization::updateColumnTransposeUSparsish
   
   // use sparse_ as temporary area
   // mark known to be zero
-  int * stack = sparse_;  /* pivot */
-  int * list = stack + maximumRowsExtra_;  /* final list */
-  CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
-  CoinCheckZero * mark = (CoinCheckZero *) (next + maximumRowsExtra_);
-  int nMarked=0;
+  CoinCheckZero * mark = (CoinCheckZero *) (sparse_);
 
   for (i=0;i<numberNonZero;i++) {
     int iPivot=regionIndex[i];
@@ -1012,7 +1015,6 @@ CoinFactorization::updateColumnTransposeUSparsish
       mark[iWord] |= 1<<iBit;
     } else {
       mark[iWord] = 1<<iBit;
-      stack[nMarked++]=iWord;
     }
   }
 
@@ -1045,7 +1047,6 @@ CoinFactorization::updateColumnTransposeUSparsish
 	      mark[iWord] |= 1<<iBit;
 	    } else {
 	      mark[iWord] = 1<<iBit;
-	      stack[nMarked++]=iWord;
 	    }
 	    region[iRow] -=  value * pivotValue;
 	  }     
@@ -1381,12 +1382,7 @@ CoinFactorization::updateColumnTransposeLSparsish
   CoinBigIndex j;
   // use sparse_ as temporary area
   // mark known to be zero
-  int * stack = sparse_;  /* pivot */
-  int * list = stack + maximumRowsExtra_;  /* final list */
-  CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
-  CoinCheckZero * mark = (CoinCheckZero *) (next + maximumRowsExtra_);
-  int nMarked=0;
-#if 1
+  CoinCheckZero * mark = (CoinCheckZero *) (sparse_);
   for (i=0;i<numberNonZero;i++) {
     int iPivot=regionIndex[i];
     int iWord = iPivot>>CHECK_SHIFT;
@@ -1395,7 +1391,6 @@ CoinFactorization::updateColumnTransposeLSparsish
       mark[iWord] |= 1<<iBit;
     } else {
       mark[iWord] = 1<<iBit;
-      stack[nMarked++]=iWord;
     }
   }
   numberNonZero = 0;
@@ -1415,7 +1410,6 @@ CoinFactorization::updateColumnTransposeLSparsish
 	  mark[iWord] |= 1<<iBit;
 	} else {
 	  mark[iWord] = 1<<iBit;
-	  stack[nMarked++]=iWord;
 	}
 	region[iRow] -= pivotValue*value;
       }
@@ -1445,7 +1439,6 @@ CoinFactorization::updateColumnTransposeLSparsish
 	      mark[iWord] |= 1<<iBit;
 	    } else {
 	      mark[iWord] = 1<<iBit;
-	      stack[nMarked++]=iWord;
 	    }
 	    region[iRow] -= pivotValue*value;
 	  }
@@ -1460,26 +1453,6 @@ CoinFactorization::updateColumnTransposeLSparsish
 #ifdef COIN_DEBUG
   for (i=0;i<maximumRowsExtra_;i++) {
     assert (!mark[i]);
-  }
-#endif
-#else
-  for (first=numberRows_-1;first>=0;first--) {
-    if (region[first]) 
-      break;
-  }
-  numberNonZero=0;
-  for (i=first;i>=0;i--) {
-    double pivotValue = region[i];
-    if ( fabs ( pivotValue ) > tolerance ) {
-      regionIndex[numberNonZero++] = i;
-      for (j = startRow[i + 1]-1;j >= startRow[i]; j--) {
-	int iRow = column[j];
-	double value = element[j];
-	region[iRow] -= pivotValue*value;
-      }
-    } else {
-      region[i] = 0.0;
-    }     
   }
 #endif
   //set counts

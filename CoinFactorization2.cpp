@@ -363,7 +363,6 @@ CoinFactorization::factorSparse (  )
           //return to do dense
           if (status!=0)
             break;
-#ifdef DENSE_CODE
           int check=0;
           for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
             if (numberInColumn_[iColumn]) 
@@ -379,7 +378,6 @@ CoinFactorization::factorSparse (  )
                 totalElements_<<" "<<full<<" "<<leftElements<<std::endl;
             break;
           }
-#endif
         }
       }
       // start at 1 again
@@ -399,7 +397,6 @@ CoinFactorization::factorSparse (  )
 int CoinFactorization::factorDense()
 {
   int status=0;
-#ifdef DENSE_CODE
   numberDense_=numberRows_-numberGoodU_;
   if (sizeof(CoinBigIndex)==4&&numberDense_>=2<<15) {
     abort();
@@ -433,7 +430,6 @@ int CoinFactorization::factorDense()
   //take out of U
   double * column = denseArea_;
   int rowsDone=0;
-  //#define NEWSTYLE
   for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
     if (numberInColumn_[iColumn]) {
       //move
@@ -458,7 +454,7 @@ int CoinFactorization::factorDense()
     } 
   } 
   assert(numberGoodU_==numberRows_);
-#ifndef NEWSTYLE
+#ifdef DENSE_CODE
   numberGoodL_=numberRows_;
   //now factorize
   //dgef(denseArea_,&numberDense_,&numberDense_,densePermute_);
@@ -560,13 +556,13 @@ int CoinFactorization::factorDense()
       for (jDense=iDense+1;jDense<numberDense_;jDense++) {
 	double value = element2[iDense];
 	for (iRow=iDense+1;iRow<numberDense_;iRow++) {
-	  double oldValue=element2[iRow];
+	  //double oldValue=element2[iRow];
 	  element2[iRow] -= value*element[iRow];
-	  if (oldValue&&!element2[iRow]) {
-	    printf("Updated element for column %d, row %d old %g",
-		   pivotColumn_[base+jDense],densePermute_[iRow],oldValue);
-	    printf(" new %g\n",element2[iRow]);
-	  }
+	  //if (oldValue&&!element2[iRow]) {
+          //printf("Updated element for column %d, row %d old %g",
+          //   pivotColumn_[base+jDense],densePermute_[iRow],oldValue);
+          //printf(" new %g\n",element2[iRow]);
+	  //}
 	}
 	element2 += numberDense_;
       }
@@ -582,7 +578,6 @@ int CoinFactorization::factorDense()
   delete [] densePermute_;
   densePermute_ = NULL;
   numberDense_=0;
-#endif
 #endif
   return status;
 }
