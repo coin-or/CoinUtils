@@ -141,7 +141,9 @@ public:
   {language_ = language;}
   /// Changes detail level for one message
   void setDetailMessage(int newLevel, int messageNumber);
-  /// Changes detail level for several messages
+  /** Changes detail level for several messages,
+      if numberMessages>=10000 or messageNumbers NULL does for all
+  */
   void setDetailMessages(int newLevel, int numberMessages,
 			 int * messageNumbers);
   //@}
@@ -211,6 +213,9 @@ public:
   //@}
    /**@name gets and sets methods */
    //@{
+  /// get detail level of a message
+  inline int detail(int messageNumber, const CoinMessages &normalMessage) const
+  { return normalMessage.message_[messageNumber]->detail();};
   /** Amount of print out:
       0 - none
       1 - minimal

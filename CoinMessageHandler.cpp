@@ -187,7 +187,7 @@ CoinMessages::setDetailMessages(int newLevel, int numberMessages,
 			       int * messageNumbers)
 {
   int i;
-  if (numberMessages<3) {
+  if (numberMessages<3&&messageNumbers) {
     // do one by one
     int j;
     for (j=0;j<numberMessages;j++) {
@@ -199,7 +199,7 @@ CoinMessages::setDetailMessages(int newLevel, int numberMessages,
 	}
       }
     }
-  } else {
+  } else if (numberMessages<10000&&messageNumbers) {
     // do backward mapping
     int backward[10000];
     for (i=0;i<10000;i++) 
@@ -210,6 +210,11 @@ CoinMessages::setDetailMessages(int newLevel, int numberMessages,
       int iback = backward[messageNumbers[i]];
       if (iback>=0)
 	message_[iback]->setDetail(newLevel);
+    }
+  } else {
+    // do all (except for dummy end)
+    for (i=0;i<numberMessages_-1;i++) {
+      message_[i]->setDetail(newLevel);
     }
   }
 }
