@@ -863,7 +863,7 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   int smallestIndex=numberRowsExtra_;
   for ( j = 0; j < numberNonZero; j++ ) {
     int iRow = regionIndex[j];
-    smallestIndex = min (smallestIndex,iRow);
+    smallestIndex = CoinMin(smallestIndex,iRow);
     region[iRow] *= pivotRegion[iRow];
   }
   updateColumnTransposeU ( regionSparse,smallestIndex );
