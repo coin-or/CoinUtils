@@ -39,6 +39,8 @@ CoinModel::CoinModel ()
     sortIndices_(NULL),
     sortElements_(NULL),
     sortSize_(0),
+    sizeAssociated_(0),
+    associated_(NULL),
     type_(-1),
     links_(0)
 {
@@ -67,6 +69,7 @@ CoinModel::CoinModel (const CoinModel & rhs)
     sortSize_(rhs.sortSize_),
     quadraticRowList_(rhs.quadraticRowList_),
     quadraticColumnList_(rhs.quadraticColumnList_),
+    sizeAssociated_(rhs.sizeAssociated_),
     type_(rhs.type_),
     links_(rhs.links_)
 {
@@ -80,6 +83,7 @@ CoinModel::CoinModel (const CoinModel & rhs)
   columnType_ = CoinCopyOfArray(rhs.columnType_,maximumColumns_);
   sortIndices_ = CoinCopyOfArray(rhs.sortIndices_,sortSize_);
   sortElements_ = CoinCopyOfArray(rhs.sortElements_,sortSize_);
+  associated_ = CoinCopyOfArray(rhs.associated_,sizeAssociated_);
   if (type_==0) {
     start_ = CoinCopyOfArray(rhs.start_,maximumRows_+1);
   } else if (type_==1) {
@@ -109,6 +113,7 @@ CoinModel::~CoinModel ()
   delete [] quadraticElements_;
   delete [] sortIndices_;
   delete [] sortElements_;
+  delete [] associated_;
 }
 
 //----------------------------------------------------------------
@@ -131,6 +136,7 @@ CoinModel::operator=(const CoinModel& rhs)
     delete [] quadraticElements_;
     delete [] sortIndices_;
     delete [] sortElements_;
+    delete [] associated_;
     numberRows_ = rhs.numberRows_;
     maximumRows_ = rhs.maximumRows_;
     numberColumns_ = rhs.numberColumns_;
@@ -150,6 +156,7 @@ CoinModel::operator=(const CoinModel& rhs)
     quadraticColumnList_ = rhs.quadraticColumnList_;
     quadraticRowList_ = rhs.quadraticRowList_;
     columnList_ = rhs.columnList_;
+    sizeAssociated_= rhs.sizeAssociated_;
     type_ = rhs.type_;
     links_ = rhs.links_;
     rowLower_ = CoinCopyOfArray(rhs.rowLower_,maximumRows_);
@@ -171,6 +178,7 @@ CoinModel::operator=(const CoinModel& rhs)
     quadraticElements_ = CoinCopyOfArray(rhs.quadraticElements_,maximumQuadraticElements_);
     sortIndices_ = CoinCopyOfArray(rhs.sortIndices_,sortSize_);
     sortElements_ = CoinCopyOfArray(rhs.sortElements_,sortSize_);
+    associated_ = CoinCopyOfArray(rhs.associated_,sizeAssociated_);
   }
   return *this;
 }
@@ -450,6 +458,7 @@ CoinModel::setElement(int i,int j,double value)
   int position = hashElements_.hash(i,j,elements_);
   if (position>=0) {
     elements_[position].value=value;
+    elements_[position].string=0;
   } else {
     int newColumn=0;
     if (j>=maximumColumns_) {
@@ -503,17 +512,89 @@ CoinModel::setQuadraticElement(int i,int j,double value)
 void 
 CoinModel::setElement(int i,int j,const char * value) 
 {
-  printf("not written yet\n");
-  abort();
-  return;
+  double dummyValue=1.0;
+  if (type_==-1) {
+    // initial
+    type_=0;
+    resize(100,100,1000);
+    createList(2);
+  } else if (!links_) {
+    if (type_==0||type_==2) {
+      createList(1);
+    } else if(type_==1) {
+      createList(2);
+    }
+  }
+  if (!hashElements_.maximumItems()) {
+    hashElements_.resize(maximumElements_,elements_);
+  }
+  int position = hashElements_.hash(i,j,elements_);
+  if (position>=0) {
+    int iValue = addString(value);
+    elements_[position].value=iValue;
+    elements_[position].string=1;
+  } else {
+    int newColumn=0;
+    if (j>=maximumColumns_) {
+      newColumn = j+1;
+    }
+    int newRow=0;
+    if (i>=maximumRows_) {
+      newRow = i+1;
+    }
+    int newElement=0;
+    if (numberElements_==maximumElements_) {
+      newElement = (3*numberElements_/2) + 1000;
+    }
+    if (newRow||newColumn||newElement) {
+      if (newColumn) 
+        newColumn = (3*newColumn)/2+100;
+      if (newRow) 
+        newRow = (3*newRow)/2+100;
+      resize(newRow,newColumn,newElement);
+    }
+    // If columns extended - take care of that
+    fillColumns(j,false);
+    // If rows extended - take care of that
+    fillRows(i,false);
+    // treat as addRow unless only columnList_ exists
+    if ((links_&1)!=0) {
+      int first = rowList_.addEasy(i,1,&j,&dummyValue,elements_,hashElements_);
+      if (links_==3)
+        columnList_.addHard(first,elements_,rowList_.firstFree(),rowList_.lastFree(),
+                            rowList_.next());
+      numberElements_=CoinMax(numberElements_,rowList_.numberElements());
+      if (links_==3)
+        assert (columnList_.numberElements()==rowList_.numberElements());
+    } else if (links_==2) {
+      columnList_.addHard(i,1,&j,&dummyValue,elements_,hashElements_);
+      numberElements_=CoinMax(numberElements_,columnList_.numberElements());
+    }
+    numberRows_=CoinMax(numberRows_,i+1);;
+    numberColumns_=CoinMax(numberColumns_,j+1);;
+    int position = hashElements_.hash(i,j,elements_);
+    assert (position>=0);
+    int iValue = addString(value);
+    elements_[position].value=iValue;
+    elements_[position].string=1;
+  }
 }
 // Associates a string with a value.  Returns string id (or -1 if does not exist)
 int 
 CoinModel::associateElement(const char * stringValue, double value)
 {
-  printf("not written yet\n");
-  abort();
-  return 0;
+  int position = string_.hash(stringValue);
+  if (position>=0) {
+    if (sizeAssociated_<=position) {
+      int newSize = (3*position)/2+100;
+      double * temp = new double[newSize];
+      memcpy(temp,associated_,sizeAssociated_*sizeof(double));
+      CoinFillN(temp+sizeAssociated_,newSize-sizeAssociated_,unsetValue());
+      sizeAssociated_=newSize;
+    }
+    associated_[position]=value;
+  }
+  return position;
 }
 /* Sets rowLower (if row does not exist then
    all rows up to this are defined with default values and no elements)
@@ -525,6 +606,7 @@ CoinModel::setRowLower(int whichRow,double rowLower)
   // make sure enough room and fill
   fillRows(whichRow,true);
   rowLower_[whichRow]=rowLower;
+  rowType_[whichRow] &= ~1;
 }
 /* Sets rowUpper (if row does not exist then
    all rows up to this are defined with default values and no elements)
@@ -536,6 +618,7 @@ CoinModel::setRowUpper(int whichRow,double rowUpper)
   // make sure enough room and fill
   fillRows(whichRow,true);
   rowUpper_[whichRow]=rowUpper;
+  rowType_[whichRow] &= ~2;
 }
 /* Sets rowLower and rowUpper (if row does not exist then
    all rows up to this are defined with default values and no elements)
@@ -548,6 +631,7 @@ CoinModel::setRowBounds(int whichRow,double rowLower,double rowUpper)
   fillRows(whichRow,true);
   rowLower_[whichRow]=rowLower;
   rowUpper_[whichRow]=rowUpper;
+  rowType_[whichRow] &= ~3;
 }
 /* Sets name (if row does not exist then
    all rows up to this are defined with default values and no elements)
@@ -574,6 +658,7 @@ CoinModel::setColumnLower(int whichColumn,double columnLower)
   // make sure enough room and fill
   fillColumns(whichColumn,true);
   columnLower_[whichColumn]=columnLower;
+  columnType_[whichColumn] &= ~1;
 }
 /* Sets columnUpper (if column does not exist then
    all columns up to this are defined with default values and no elements)
@@ -585,6 +670,7 @@ CoinModel::setColumnUpper(int whichColumn,double columnUpper)
   // make sure enough room and fill
   fillColumns(whichColumn,true);
   columnUpper_[whichColumn]=columnUpper;
+  columnType_[whichColumn] &= ~2;
 }
 /* Sets columnLower and columnUpper (if column does not exist then
    all columns up to this are defined with default values and no elements)
@@ -597,6 +683,7 @@ CoinModel::setColumnBounds(int whichColumn,double columnLower,double columnUpper
   fillColumns(whichColumn,true);
   columnLower_[whichColumn]=columnLower;
   columnUpper_[whichColumn]=columnUpper;
+  columnType_[whichColumn] &= ~3;
 }
 /* Sets columnObjective (if column does not exist then
    all columns up to this are defined with default values and no elements)
@@ -608,6 +695,7 @@ CoinModel::setColumnObjective(int whichColumn,double columnObjective)
   // make sure enough room and fill
   fillColumns(whichColumn,true);
   objective_[whichColumn]=columnObjective;
+  columnType_[whichColumn] &= ~4;
 }
 /* Sets name (if column does not exist then
    all columns up to this are defined with default values and no elements)
@@ -634,6 +722,226 @@ CoinModel::setColumnIsInteger(int whichColumn,bool columnIsInteger)
   // make sure enough room and fill
   fillColumns(whichColumn,true);
   integerType_[whichColumn]=(columnIsInteger) ? 1 : 0;
+  columnType_[whichColumn] &= ~8;
+}
+// Adds one string, returns index
+int 
+CoinModel::addString(const char * string)
+{
+  int position = string_.hash(string);
+  if (position<0) {
+    position = string_.numberItems();
+    string_.addHash(position,string);
+  }
+  return position;
+}
+/* Sets rowLower (if row does not exist then
+   all rows up to this are defined with default values and no elements)
+*/
+void 
+CoinModel::setRowLower(int whichRow,const char * rowLower) 
+{
+  assert (whichRow>=0);
+  // make sure enough room and fill
+  fillRows(whichRow,true);
+  if (rowLower) {
+    int value = addString(rowLower);
+    rowLower_[whichRow]=value;
+    rowType_[whichRow] |= 1; 
+  } else {
+    rowLower_[whichRow]=-COIN_DBL_MAX;
+  }
+}
+/* Sets rowUpper (if row does not exist then
+   all rows up to this are defined with default values and no elements)
+*/
+void 
+CoinModel::setRowUpper(int whichRow,const char * rowUpper) 
+{
+  assert (whichRow>=0);
+  // make sure enough room and fill
+  fillRows(whichRow,true);
+  if (rowUpper) {
+    int value = addString(rowUpper);
+    rowUpper_[whichRow]=value;
+    rowType_[whichRow] |= 2; 
+  } else {
+    rowUpper_[whichRow]=COIN_DBL_MAX;
+  }
+}
+/* Sets columnLower (if column does not exist then
+   all columns up to this are defined with default values and no elements)
+*/
+void 
+CoinModel::setColumnLower(int whichColumn,const char * columnLower) 
+{
+  assert (whichColumn>=0);
+  // make sure enough room and fill
+  fillColumns(whichColumn,true);
+  if (columnLower) {
+    int value = addString(columnLower);
+    columnLower_[whichColumn]=value;
+    columnType_[whichColumn] |= 1; 
+  } else {
+    columnLower_[whichColumn]=0.0;
+  }
+}
+/* Sets columnUpper (if column does not exist then
+   all columns up to this are defined with default values and no elements)
+*/
+void 
+CoinModel::setColumnUpper(int whichColumn,const char * columnUpper) 
+{
+  assert (whichColumn>=0);
+  // make sure enough room and fill
+  fillColumns(whichColumn,true);
+  if (columnUpper) {
+    int value = addString(columnUpper);
+    columnUpper_[whichColumn]=value;
+    columnType_[whichColumn] |= 2; 
+  } else {
+    columnUpper_[whichColumn]=COIN_DBL_MAX;
+  }
+}
+/* Sets columnObjective (if column does not exist then
+   all columns up to this are defined with default values and no elements)
+*/
+void 
+CoinModel::setColumnObjective(int whichColumn,const char * columnObjective) 
+{
+  assert (whichColumn>=0);
+  // make sure enough room and fill
+  fillColumns(whichColumn,true);
+  if (columnObjective) {
+    int value = addString(columnObjective);
+    objective_[whichColumn]=value;
+    columnType_[whichColumn] |= 4; 
+  } else {
+    objective_[whichColumn]=0.0;
+  }
+}
+/* Sets integer (if column does not exist then
+   all columns up to this are defined with default values and no elements)
+*/
+void 
+CoinModel::setColumnIsInteger(int whichColumn,const char * columnIsInteger) 
+{
+  assert (whichColumn>=0);
+  // make sure enough room and fill
+  fillColumns(whichColumn,true);
+  if (columnIsInteger) {
+    int value = addString(columnIsInteger);
+    integerType_[whichColumn]=value;
+    columnType_[whichColumn] |= 8; 
+  } else {
+    integerType_[whichColumn]=0;
+  }
+}
+//static const char * minusInfinity="-infinity";
+//static const char * plusInfinity="+infinity";
+//static const char * zero="0.0";
+static const char * numeric="Numeric";
+/* Gets rowLower (if row does not exist then -COIN_DBL_MAX)
+ */
+const char *  
+CoinModel::getRowLowerAsString(int whichRow) const  
+{
+  assert (whichRow>=0);
+  if (whichRow<numberRows_&&rowLower_) {
+    if ((rowType_[whichRow]&1)!=0) {
+      int position = (int) rowLower_[whichRow];
+      return string_.name(position);
+    } else {
+      return numeric;
+    }
+  } else {
+    return numeric;
+  }
+}
+/* Gets rowUpper (if row does not exist then +COIN_DBL_MAX)
+ */
+const char *  
+CoinModel::getRowUpperAsString(int whichRow) const  
+{
+  assert (whichRow>=0);
+  if (whichRow<numberRows_&&rowUpper_) {
+    if ((rowType_[whichRow]&2)!=0) {
+      int position = (int) rowUpper_[whichRow];
+      return string_.name(position);
+    } else {
+      return numeric;
+    }
+  } else {
+    return numeric;
+  }
+}
+/* Gets columnLower (if column does not exist then 0.0)
+ */
+const char *  
+CoinModel::getColumnLowerAsString(int whichColumn) const  
+{
+  assert (whichColumn>=0);
+  if (whichColumn<numberColumns_&&columnLower_) {
+    if ((columnType_[whichColumn]&1)!=0) {
+      int position = (int) columnLower_[whichColumn];
+      return string_.name(position);
+    } else {
+      return numeric;
+    }
+  } else {
+    return numeric;
+  }
+}
+/* Gets columnUpper (if column does not exist then COIN_DBL_MAX)
+ */
+const char *  
+CoinModel::getColumnUpperAsString(int whichColumn) const  
+{
+  assert (whichColumn>=0);
+  if (whichColumn<numberColumns_&&columnUpper_) {
+    if ((columnType_[whichColumn]&2)!=0) {
+      int position = (int) columnUpper_[whichColumn];
+      return string_.name(position);
+    } else {
+      return numeric;
+    }
+  } else {
+    return numeric;
+  }
+}
+/* Gets columnObjective (if column does not exist then 0.0)
+ */
+const char *  
+CoinModel::getColumnObjectiveAsString(int whichColumn) const  
+{
+  assert (whichColumn>=0);
+  if (whichColumn<numberColumns_&&objective_) {
+    if ((columnType_[whichColumn]&4)!=0) {
+      int position = (int) objective_[whichColumn];
+      return string_.name(position);
+    } else {
+      return numeric;
+    }
+  } else {
+    return numeric;
+  }
+}
+/* Gets if integer (if column does not exist then false)
+ */
+const char * 
+CoinModel::getColumnIsIntegerAsString(int whichColumn) const  
+{
+  assert (whichColumn>=0);
+  if (whichColumn<numberColumns_&&integerType_) {
+    if ((columnType_[whichColumn]&8)!=0) {
+      int position = integerType_[whichColumn];
+      return string_.name(position);
+    } else {
+      return numeric;
+    }
+  } else {
+    return numeric;
+  }
 }
 /* Deletes all entries in row and bounds.*/
 void
@@ -943,12 +1251,9 @@ CoinModel::pack()
   // For now do slowly (obvious overheads)
   return packRows()+packColumns();
 }
-
-/* Write the problem in MPS format to a file with the given filename.
- */
+// Creates a packed matrix - return snumber of errors
 int 
-CoinModel::writeMps(const char *filename, int compression,
-                    int formatType , int numberAcross ) 
+CoinModel::createPackedMatrix(CoinPackedMatrix & matrix)
 {
   // Set to say all parts
   type_=2;
@@ -986,16 +1291,34 @@ CoinModel::writeMps(const char *filename, int compression,
     int put = start[i];
     CoinSort_2(row+put,row+put+length[i],element+put);
   }
-  CoinPackedMatrix matrix(true,numberRows_,numberColumns_,numberElements,
+  matrix=CoinPackedMatrix(true,numberRows_,numberColumns_,numberElements,
                           element,row,start,length);
   delete [] start;
   delete [] length;
   delete [] row;
   delete [] element;
+  return 0;
+}
+
+/* Write the problem in MPS format to a file with the given filename.
+ */
+int 
+CoinModel::writeMps(const char *filename, int compression,
+                    int formatType , int numberAcross ) 
+{
+  CoinPackedMatrix matrix;
+  createPackedMatrix(matrix);
+  // Set arrays for normal use
+  double * rowLower = rowLower_;
+  double * rowUpper = rowUpper_;
+  double * columnLower = columnLower_;
+  double * columnUpper = columnUpper_;
+  double * objective = objective_;
+  int * integerType = integerType_;
   char* integrality = new char[numberColumns_];
   bool hasInteger = false;
-  for (i = 0; i < numberColumns_; i++) {
-    if (integerType_[i]) {
+  for (int i = 0; i < numberColumns_; i++) {
+    if (integerType[i]) {
       integrality[i] = 1;
       hasInteger = true;
     } else {
@@ -1012,11 +1335,19 @@ CoinModel::writeMps(const char *filename, int compression,
   if (columnName_.numberItems())
     columnNames=columnName_.names();
   writer.setMpsData(matrix, COIN_DBL_MAX,
-                    columnLower_, columnUpper_,
-                    objective_, hasInteger ? integrality : 0,
-		     rowLower_, rowUpper_,
+                    columnLower, columnUpper,
+                    objective, hasInteger ? integrality : 0,
+		     rowLower, rowUpper,
 		     columnNames,rowNames);
   delete[] integrality;
+  if (rowLower!=rowLower_) {
+    delete [] rowLower;
+    delete [] rowUpper;
+    delete [] columnLower;
+    delete [] columnUpper;
+    delete [] objective;
+    delete [] integerType;
+  }
   return writer.writeMps(filename, compression, formatType, numberAcross);
 }
 /* Check two models against each other.  Return nonzero if different.
@@ -1026,12 +1357,10 @@ CoinModel::writeMps(const char *filename, int compression,
 int 
 CoinModel::differentModel(CoinModel & other, bool ignoreNames)
 {
-  // Set to say all parts
-  type_=2;
-  resize(numberRows_,numberColumns_,numberElements_);
-  // and other one
-  other.type_=2;
-  other.resize(other.numberRows_,other.numberColumns_,other.numberElements_);
+  CoinPackedMatrix matrix;
+  createPackedMatrix(matrix);
+  CoinPackedMatrix matrix2;
+  other.createPackedMatrix(matrix2);
   int returnCode=0;
   if (numberRows_!=other.numberRows_||numberColumns_!=other.numberColumns_) {
     printf("** Mismatch on size, this has %d rows, %d columns - other has %d rows, %d columns\n",
@@ -1100,75 +1429,6 @@ CoinModel::differentModel(CoinModel & other, bool ignoreNames)
   if (numberRows_==other.numberRows_&&
       numberColumns_==other.numberColumns_&&
       numberElements_==other.numberElements_) {
-    // Do counts for CoinPackedMatrix
-    int * length = new int[numberColumns_];
-    CoinZeroN(length,numberColumns_);
-    int i;
-    int numberElements=0;
-    for (i=0;i<numberElements_;i++) {
-      int column = elements_[i].column;
-      if (column>=0) {
-        length[column]++;
-        numberElements++;
-      }
-    }
-    CoinBigIndex * start = new int[numberColumns_+1];
-    int * row = new int[numberElements];
-    double * element = new double[numberElements];
-    start[0]=0;
-    for (i=0;i<numberColumns_;i++) {
-      start[i+1]=start[i]+length[i];
-      length[i]=0;
-    }
-    for (i=0;i<numberElements_;i++) {
-      int column = elements_[i].column;
-      if (column>=0&&elements_[i].value) {
-        int put=start[column]+length[column];
-        row[put]=(int) elements_[i].row;
-        element[put]=elements_[i].value;
-        length[column]++;
-      }
-    }
-    for (i=0;i<numberColumns_;i++) {
-      int put = start[i];
-      CoinSort_2(row+put,row+put+length[i],element+put);
-    }
-    CoinPackedMatrix matrix(true,numberRows_,numberColumns_,numberElements,
-                            element,row,start,length);
-    // and for second
-    CoinZeroN(length,numberColumns_);
-    numberElements=0;
-    for (i=0;i<numberElements_;i++) {
-      int column = other.elements_[i].column;
-      if (column>=0) {
-        length[column]++;
-        numberElements++;
-      }
-    }
-    start[0]=0;
-    for (i=0;i<numberColumns_;i++) {
-      start[i+1]=start[i]+length[i];
-      length[i]=0;
-    }
-    for (i=0;i<numberElements_;i++) {
-      int column = other.elements_[i].column;
-      if (column>=0&&other.elements_[i].value) {
-        int put=start[column]+length[column];
-        row[put]=(int) other.elements_[i].row;
-        element[put]=other.elements_[i].value;
-        length[column]++;
-      }
-    }
-    for (i=0;i<numberColumns_;i++) {
-      int put = start[i];
-      CoinSort_2(row+put,row+put+length[i],element+put);
-    }
-    CoinPackedMatrix matrix2(true,numberRows_,numberColumns_,numberElements,
-                            element,row,start,length);
-    delete [] start;
-    delete [] length;
-    delete [] row;
-    delete [] element;
     if (!matrix.isEquivalent(matrix2,tolerance)) {
       returnCode+=100;
       printf("Two matrices are not same\n");
@@ -1191,6 +1451,26 @@ CoinModel::getElement(int i,int j) const
     return 0.0;
   }
 }
+// Returns value for row rowName and column columnName
+double 
+CoinModel::getElement(const char * rowName,const char * columnName) const
+{
+  if (!hashElements_.numberItems()) {
+    hashElements_.resize(maximumElements_,elements_);
+  }
+  int i=rowName_.hash(rowName);
+  int j=columnName_.hash(columnName);
+  int position;
+  if (i>=0&&j>=0)
+    position = hashElements_.hash(i,j,elements_);
+  else
+    position=-1;
+  if (position>=0) {
+    return elements_[position].value;
+  } else {
+    return 0.0;
+  }
+}
 // Returns quadratic value for columns i and j
 double 
 CoinModel::getQuadraticElement(int i,int j) const
@@ -1203,9 +1483,21 @@ CoinModel::getQuadraticElement(int i,int j) const
 const char * 
 CoinModel::getElementAsString(int i,int j) const
 {
-  printf("not written yet\n");
-  abort();
-  return NULL;
+  if (!hashElements_.numberItems()) {
+    hashElements_.resize(maximumElements_,elements_);
+  }
+  int position = hashElements_.hash(i,j,elements_);
+  if (position>=0) {
+    if (elements_[position].string) {
+      int iString =  (int) elements_[position].value;
+      assert (iString>=0&&iString<string_.numberItems());
+      return string_.name(iString);
+    } else {
+      return numeric;
+    }
+  } else {
+    return NULL;
+  }
 }
 /* Returns position of element for row i column j.
    Only valid until next modification. 

@@ -4,6 +4,7 @@
 #define CoinModel_H
 
 #include "CoinModelUseful.hpp"
+#include "CoinPackedMatrix.hpp"
 
 /** 
     This is a simple minded model which is stored in a format which makes
@@ -165,6 +166,40 @@ public:
   */
   inline void setColIsInteger(int whichColumn,bool columnIsInteger) 
   { setColumnIsInteger( whichColumn, columnIsInteger);}; 
+  /** Sets rowLower (if row does not exist then
+      all rows up to this are defined with default values and no elements)
+  */
+  void setRowLower(int whichRow,const char * rowLower); 
+  /** Sets rowUpper (if row does not exist then
+      all rows up to this are defined with default values and no elements)
+  */
+  void setRowUpper(int whichRow,const char * rowUpper); 
+  /** Sets columnLower (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  void setColumnLower(int whichColumn,const char * columnLower); 
+  /** Sets columnUpper (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  void setColumnUpper(int whichColumn,const char * columnUpper); 
+  /** Sets columnObjective (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  void setColumnObjective(int whichColumn,const char * columnObjective); 
+  /** Sets integer (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  void setColumnIsInteger(int whichColumn,const char * columnIsInteger); 
+  /** Sets columnObjective (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  inline void setObjective(int whichColumn,const char * columnObjective) 
+  { setColumnObjective( whichColumn, columnObjective);}; 
+  /** Sets integer (if column does not exist then
+      all columns up to this are defined with default values and no elements)
+  */
+  inline void setIsInteger(int whichColumn,const char * columnIsInteger) 
+  { setColumnIsInteger( whichColumn, columnIsInteger);}; 
   /** Deletes all entries in row and bounds.  Will be ignored by
       writeMps etc and will be packed down if asked for. */
   void deleteRow(int whichRow);
@@ -250,9 +285,17 @@ public:
   { return getElement(i,j);};
   /// Returns value for row i and column j
   double getElement(int i,int j) const;
+  /// Returns value for row rowName and column columnName
+  inline double operator() (const char * rowName,const char * columnName) const
+  { return getElement(rowName,columnName);};
+  /// Returns value for row rowName and column columnName
+  double getElement(const char * rowName,const char * columnName) const;
   /// Returns quadratic value for columns i and j
   double getQuadraticElement(int i,int j) const;
-  /// Returns value for row i and column j as string
+  /** Returns value for row i and column j as string.
+      Returns NULL if does not exist.
+      Returns "Numeric" if not a string
+  */
   const char * getElementAsString(int i,int j) const;
   /** Returns pointer to element for row i column j.
       Only valid until next modification. 
@@ -382,6 +425,54 @@ public:
   */
   inline bool getColIsInteger(int whichColumn) const
   { return getColumnIsInteger(whichColumn);};
+  /** Gets rowLower (if row does not exist then -COIN_DBL_MAX)
+  */
+  const char *  getRowLowerAsString(int whichRow) const ; 
+  /** Gets rowUpper (if row does not exist then +COIN_DBL_MAX)
+  */
+  const char *  getRowUpperAsString(int whichRow) const ; 
+  inline const char *  rowLowerAsString(int whichRow) const
+  { return getRowLowerAsString(whichRow);};
+  /** Gets rowUpper (if row does not exist then COIN_DBL_MAX)
+  */
+  inline const char *  rowUpperAsString(int whichRow) const
+  { return getRowUpperAsString(whichRow) ;};
+  /** Gets columnLower (if column does not exist then 0.0)
+  */
+  const char *  getColumnLowerAsString(int whichColumn) const ; 
+  /** Gets columnUpper (if column does not exist then COIN_DBL_MAX)
+  */
+  const char *  getColumnUpperAsString(int whichColumn) const ; 
+  /** Gets columnObjective (if column does not exist then 0.0)
+  */
+  const char *  getColumnObjectiveAsString(int whichColumn) const ; 
+  /** Gets if integer (if column does not exist then false)
+  */
+  const char * getColumnIsIntegerAsString(int whichColumn) const ; 
+  /** Gets columnLower (if column does not exist then 0.0)
+  */
+  inline const char *  columnLowerAsString(int whichColumn) const
+  { return getColumnLowerAsString(whichColumn);};
+  /** Gets columnUpper (if column does not exist then COIN_DBL_MAX)
+  */
+  inline const char *  columnUpperAsString(int whichColumn) const
+  { return getColumnUpperAsString(whichColumn) ;};
+  /** Gets columnObjective (if column does not exist then 0.0)
+  */
+  inline const char *  columnObjectiveAsString(int whichColumn) const
+  { return getColumnObjectiveAsString(whichColumn);};
+  /** Gets columnObjective (if column does not exist then 0.0)
+  */
+  inline const char *  objectiveAsString(int whichColumn) const
+  { return getColumnObjectiveAsString(whichColumn);};
+  /** Gets if integer (if column does not exist then false)
+  */
+  inline const char * columnIsIntegerAsString(int whichColumn) const
+  { return getColumnIsIntegerAsString(whichColumn);};
+  /** Gets if integer (if column does not exist then false)
+  */
+  inline const char * isIntegerAsString(int whichColumn) const
+  { return getColumnIsIntegerAsString(whichColumn);};
   /// Row index from row name (-1 if no names or no match)
   int row(const char * rowName) const;
   /// Column index from column name (-1 if no names or no match)
@@ -389,6 +480,11 @@ public:
   /// Returns type
   inline int type() const
   { return type_;};
+  /// returns unset value
+  inline double unsetValue() const
+  { return -1.23456787654321e-97;};
+  /// Creates a packed matrix - return snumber of errors
+  int createPackedMatrix(CoinPackedMatrix & matrix);
    //@}
 
   /**@name Constructors, destructor */
@@ -422,6 +518,9 @@ private:
       type 1 for row 2 for column
       Marked as const as list is mutable */
   void createList(int type) const;
+  /// Adds one string, returns index
+  int addString(const char * string);
+  
 private:
   /**@name Data members */
    //@{
@@ -499,6 +598,10 @@ private:
   mutable CoinModelLinkedList quadraticRowList_;
   /// Linked list for quadratic columns
   mutable CoinModelLinkedList quadraticColumnList_;
+  /// Size of associated values
+  int sizeAssociated_;
+  /// Associated values
+  double * associated_;
   /** Type of build -
       -1 unset,
       0 for row, 
