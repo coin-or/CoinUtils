@@ -34,6 +34,7 @@ LIBSRC += CoinMessage.cpp
 LIBSRC += CoinMessageHandler.cpp
 LIBSRC += CoinMpsIO.cpp
 LIBSRC += CoinPackedMatrix.cpp
+LIBSRC += CoinDenseVector.cpp
 LIBSRC += CoinPackedVector.cpp
 LIBSRC += CoinPackedVectorBase.cpp
 LIBSRC += CoinShallowPackedVector.cpp
