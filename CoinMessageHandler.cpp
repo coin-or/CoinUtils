@@ -18,7 +18,8 @@ CoinOneMessage::CoinOneMessage()
 /* Destructor */
 CoinOneMessage::~CoinOneMessage()
 {
-  free(message_);
+  if (message_)
+    free(message_);
 }
 /* The copy constructor */
 CoinOneMessage::CoinOneMessage(const CoinOneMessage & rhs)
@@ -37,7 +38,8 @@ CoinOneMessage::operator=(const CoinOneMessage & rhs)
 {
   if (this != &rhs) {
     externalNumber_=rhs.externalNumber_;
-    free(message_);
+    if (message_)
+      free(message_);
     if (rhs.message_)
       message_=strdup(rhs.message_);
     else
@@ -67,7 +69,8 @@ CoinOneMessage::CoinOneMessage(int externalNumber, char detail,
 void 
 CoinOneMessage::replaceMessage( const char * message)
 {
-  free(message_);
+  if (message_)
+    free(message_);
   message_=strdup(message);
 }
 
