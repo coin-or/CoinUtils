@@ -84,7 +84,7 @@ public:
    /** Assignment operator */
    CoinDenseVector & operator=(const CoinDenseVector &);
    /** Member of array operator */
-   T operator[](int index) const;
+   T & operator[](int index) const;
 
    /** Set vector size, and elements.
        Size is the length of the elements vector.

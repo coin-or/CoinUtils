@@ -193,14 +193,15 @@ CoinDenseVector<T>::gutsOfSetConstant(int size, T value)
 
 //#############################################################################
 /** Access the i'th element of the dense vector.  */
-template <typename T> T
+template <typename T> T &
 CoinDenseVector<T>::operator[](int index) const
 {
   assert(index >= 0 && index < nElements_);
-  return elements_[index];
+  T *where = elements_ + index;
+  return *where;
 }
 //#############################################################################
 
-template class CoinDenseVector<int>;
+// template class CoinDenseVector<int>; This works but causes warning messages
 template class CoinDenseVector<float>;
 template class CoinDenseVector<double>;
