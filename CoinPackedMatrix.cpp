@@ -341,8 +341,8 @@ CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
   }
   if (majorIndex >= 0 && majorIndex < majorDim_) {
     if (minorIndex >= 0 && minorIndex < minorDim_) {
-      int j;
-      int end=start_[majorIndex]+length_[majorIndex];;
+      CoinBigIndex j;
+      CoinBigIndex end=start_[majorIndex]+length_[majorIndex];;
       for (j=start_[majorIndex];j<end;j++) {
 	if (minorIndex==index_[j]) {
 	  // replacement
@@ -377,7 +377,7 @@ CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
 	   // So where to insert? We're just going to assume that the entries
 	   // in the major vector are in increasing order, so we'll insert the
 	   // new entry to the last place we can
-	   const int start = start_[majorIndex];
+	   const CoinBigIndex start = start_[majorIndex];
 	   end = start_[majorIndex]+length_[majorIndex]; // recalculate end
 	   for (j = end - 1; j >= start; --j) {
 	      if (element_[j] <= newElement)
@@ -530,7 +530,7 @@ CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
 
    colOrdered_ = matrix.colOrdered_;
    maxMajorDim_ = int(numMajor * (1+extraMajor_) + 1);
-   maxSize_ = int(nzcnt * (1+extraMajor_) * (1+extraGap_) + 100);
+   maxSize_ = (CoinBigIndex) (nzcnt * (1+extraMajor_) * (1+extraGap_) + 100);
    length_ = new int[maxMajorDim_];
    start_ = new CoinBigIndex[maxMajorDim_+1];
    index_ = new int[maxSize_];
