@@ -357,31 +357,33 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   indexRowR_ = indexRowL_ + lengthL_;
   //now copy everything
   //assuming numberRowsExtra==numberColumnsExtra
-  CoinDisjointCopyN ( other.startRowU_, numberRowsExtra_ + 1, startRowU_ );
-  CoinDisjointCopyN ( other.numberInRow_, numberRowsExtra_ + 1, numberInRow_ );
-  CoinDisjointCopyN ( other.nextRow_, numberRowsExtra_ + 1, nextRow_ );
-  CoinDisjointCopyN ( other.lastRow_, numberRowsExtra_ + 1, lastRow_ );
-  CoinDisjointCopyN ( other.pivotRegion_, numberRowsExtra_ + 1, pivotRegion_ );
-  CoinDisjointCopyN ( other.permuteBack_, numberRowsExtra_ + 1, permuteBack_ );
-  CoinDisjointCopyN ( other.permute_, numberRowsExtra_ + 1, permute_ );
-  CoinDisjointCopyN ( other.pivotColumnBack_, numberRowsExtra_ + 1, pivotColumnBack_ );
-  CoinDisjointCopyN ( other.startColumnU_, numberRowsExtra_ + 1, startColumnU_ );
-  CoinDisjointCopyN ( other.numberInColumn_, numberRowsExtra_ + 1, numberInColumn_ );
-  CoinDisjointCopyN ( other.pivotColumn_, numberRowsExtra_ + 1, pivotColumn_ );
-  CoinDisjointCopyN ( other.nextColumn_, numberRowsExtra_ + 1, nextColumn_ );
-  CoinDisjointCopyN ( other.lastColumn_, numberRowsExtra_ + 1, lastColumn_ );
-  CoinDisjointCopyN ( other.startColumnR_ , numberRowsExtra_ - numberColumns_ + 1,
-	    startColumnR_ );  
+  if (numberRowsExtra_) {
+    CoinDisjointCopyN ( other.startRowU_, numberRowsExtra_ + 1, startRowU_ );
+    CoinDisjointCopyN ( other.numberInRow_, numberRowsExtra_ + 1, numberInRow_ );
+    CoinDisjointCopyN ( other.nextRow_, numberRowsExtra_ + 1, nextRow_ );
+    CoinDisjointCopyN ( other.lastRow_, numberRowsExtra_ + 1, lastRow_ );
+    CoinDisjointCopyN ( other.pivotRegion_, numberRowsExtra_ + 1, pivotRegion_ );
+    CoinDisjointCopyN ( other.permuteBack_, numberRowsExtra_ + 1, permuteBack_ );
+    CoinDisjointCopyN ( other.permute_, numberRowsExtra_ + 1, permute_ );
+    CoinDisjointCopyN ( other.pivotColumnBack_, numberRowsExtra_ + 1, pivotColumnBack_ );
+    CoinDisjointCopyN ( other.startColumnU_, numberRowsExtra_ + 1, startColumnU_ );
+    CoinDisjointCopyN ( other.numberInColumn_, numberRowsExtra_ + 1, numberInColumn_ );
+    CoinDisjointCopyN ( other.pivotColumn_, numberRowsExtra_ + 1, pivotColumn_ );
+    CoinDisjointCopyN ( other.nextColumn_, numberRowsExtra_ + 1, nextColumn_ );
+    CoinDisjointCopyN ( other.lastColumn_, numberRowsExtra_ + 1, lastColumn_ );
+    CoinDisjointCopyN ( other.startColumnR_ , numberRowsExtra_ - numberColumns_ + 1,
+			startColumnR_ );  
+    //extra one at end
+    startColumnU_[maximumColumnsExtra_] =
+      other.startColumnU_[maximumColumnsExtra_];
+    nextColumn_[maximumColumnsExtra_] = other.nextColumn_[maximumColumnsExtra_];
+    lastColumn_[maximumColumnsExtra_] = other.lastColumn_[maximumColumnsExtra_];
+    startRowU_[maximumRowsExtra_] = other.startRowU_[maximumRowsExtra_];
+    nextRow_[maximumRowsExtra_] = other.nextRow_[maximumRowsExtra_];
+    lastRow_[maximumRowsExtra_] = other.lastRow_[maximumRowsExtra_];
+  }
   CoinDisjointCopyN ( other.elementR_, lengthR_, elementR_ );
   CoinDisjointCopyN ( other.indexRowR_, lengthR_, indexRowR_ );
-  //extra one at end
-  startColumnU_[maximumColumnsExtra_] =
-    other.startColumnU_[maximumColumnsExtra_];
-  nextColumn_[maximumColumnsExtra_] = other.nextColumn_[maximumColumnsExtra_];
-  lastColumn_[maximumColumnsExtra_] = other.lastColumn_[maximumColumnsExtra_];
-  startRowU_[maximumRowsExtra_] = other.startRowU_[maximumRowsExtra_];
-  nextRow_[maximumRowsExtra_] = other.nextRow_[maximumRowsExtra_];
-  lastRow_[maximumRowsExtra_] = other.lastRow_[maximumRowsExtra_];
   //row and column copies of U
   int iRow;
   for ( iRow = 0; iRow < numberRowsExtra_; iRow++ ) {
@@ -397,11 +399,11 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
     numberIn = numberInColumn_[iRow];
     CoinDisjointCopyN ( other.indexRowU_ + start, numberIn, indexRowU_ + start );
     CoinDisjointCopyN ( other.elementU_ + start, numberIn, elementU_ + start );
+    CoinDisjointCopyN ( other.startColumnL_, numberRows_ + 1, startColumnL_ );
   }
   // L is contiguous
   CoinDisjointCopyN ( other.elementL_, lengthL_, elementL_ );
   CoinDisjointCopyN ( other.indexRowL_, lengthL_, indexRowL_ );
-  CoinDisjointCopyN ( other.startColumnL_, numberRows_ + 1, startColumnL_ );
   if (other.sparseThreshold_) {
     goSparse();
   }

@@ -95,6 +95,31 @@ void CoinFactorization::gutsOfDestructor()
   startRowL_ = NULL;
   indexColumnL_ = NULL;
   sparse_= NULL;
+  numberCompressions_ = 0;
+  biggerDimension_ = 0;
+  numberRows_ = 0;
+  numberRowsExtra_ = 0;
+  maximumRowsExtra_ = 0;
+  numberColumns_ = 0;
+  numberColumnsExtra_ = 0;
+  maximumColumnsExtra_ = 0;
+  numberGoodU_ = 0;
+  numberGoodL_ = 0;
+  totalElements_ = 0;
+  factorElements_ = 0;
+  status_ = 0;
+  numberSlacks_ = 0;
+  numberU_ = 0;
+  lengthU_ = 0;
+  lengthAreaU_ = 0;
+  numberL_ = 0;
+  baseL_ = 0;
+  lengthL_ = 0;
+  lengthAreaL_ = 0;
+  numberR_ = 0;
+  lengthR_ = 0;
+  lengthAreaR_ = 0;
+  
 }
 // type - 1 bit tolerances etc, 2 rest
 void CoinFactorization::gutsOfInitialize(int type)
