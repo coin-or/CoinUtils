@@ -429,7 +429,7 @@ private:
       2 - column links,
       3 - both
   */
-  int links_;
+  mutable int links_;
    //@}
 };
 

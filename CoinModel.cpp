@@ -385,6 +385,11 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
     columnName_.addHash(numberColumns_,name);
   columnLower_[numberColumns_]=columnLower;
   columnUpper_[numberColumns_]=columnUpper;
+  objective_[numberColumns_]=objectiveValue;
+  if (isInteger)
+    integerType_[numberColumns_]=1;
+  else
+    integerType_[numberColumns_]=0;
   // If rows extended - take care of that
   fillRows(newRow,false);
   if (type_==1) {
@@ -433,8 +438,20 @@ CoinModel::setElement(int i,int j,double value)
                     numberRows_,numberColumns_,0,
                     numberElements_,elements_);
     links_ |= 1;
+  } else if (!links_) {
+    if (type_==0||type_==2) {
+      rowList_.create(maximumRows_,maximumElements_,
+                      numberRows_,numberColumns_,0,
+                      numberElements_,elements_);
+      links_ |= 1;
+    } else if(type_==1) {
+      columnList_.create(maximumColumns_,maximumElements_,
+                         numberColumns_,numberRows_,1,
+                         numberElements_,elements_);
+      links_ |= 2;
+    }
   }
-  if (!hashElements_.numberItems()) {
+  if (!hashElements_.maximumItems()) {
     hashElements_.resize(maximumElements_,elements_);
   }
   int position = hashElements_.hash(i,j,elements_);
@@ -751,9 +768,15 @@ CoinModel::writeMps(const char *filename, int compression,
 double 
 CoinModel::getElement(int i,int j) const
 {
-  printf("not written yet\n");
-  abort();
-  return 0.0;
+  if (!hashElements_.numberItems()) {
+    hashElements_.resize(maximumElements_,elements_);
+  }
+  int position = hashElements_.hash(i,j,elements_);
+  if (position>=0) {
+    return elements_[position].value;
+  } else {
+    return 0.0;
+  }
 }
 // Returns quadratic value for columns i and j
 double 
@@ -808,6 +831,7 @@ CoinModel::firstInRow(int whichRow) const
         assert (!rowList_.numberMajor());
         rowList_.create(maximumRows_,maximumElements_,numberRows_,numberColumns_,0,
                         numberElements_,elements_);
+        links_ |= 1;
       }
       int position = rowList_.first(whichRow);
       if (position>=0) {
@@ -845,6 +869,7 @@ CoinModel::lastInRow(int whichRow) const
         assert (!rowList_.numberMajor());
         rowList_.create(maximumRows_,maximumElements_,numberRows_,numberColumns_,0,
                         numberElements_,elements_);
+        links_ |= 1;
       }
       int position = rowList_.last(whichRow);
       if (position>=0) {
@@ -880,8 +905,9 @@ CoinModel::firstInColumn(int whichColumn) const
       if ((links_&2)==0) {
         // Create list
         assert (!columnList_.numberMajor());
-        columnList_.create(maximumColumns_,maximumElements_,numberColumns_,numberRows_,0,
+        columnList_.create(maximumColumns_,maximumElements_,numberColumns_,numberRows_,1,
                         numberElements_,elements_);
+        links_ |= 2;
       }
       int position = columnList_.first(whichColumn);
       if (position>=0) {
@@ -917,8 +943,9 @@ CoinModel::lastInColumn(int whichColumn) const
       if ((links_&2)==0) {
         // Create list
         assert (!columnList_.numberMajor());
-        columnList_.create(maximumColumns_,maximumElements_,numberColumns_,numberRows_,0,
+        columnList_.create(maximumColumns_,maximumElements_,numberColumns_,numberRows_,1,
                         numberElements_,elements_);
+        links_ |= 2;
       }
       int position = columnList_.last(whichColumn);
       if (position>=0) {
@@ -1034,6 +1061,7 @@ CoinModel::previous(CoinModelLink & current) const
           // signal end
           link.setPosition(-1);
           link.setColumn(-1);
+          link.setRow(-1);
           link.setValue(0.0);
         }
       } else {
@@ -1048,6 +1076,7 @@ CoinModel::previous(CoinModelLink & current) const
           // signal end
           link.setPosition(-1);
           link.setColumn(-1);
+          link.setRow(-1);
           link.setValue(0.0);
         }
       }
@@ -1066,6 +1095,7 @@ CoinModel::previous(CoinModelLink & current) const
           // signal end
           link.setPosition(-1);
           link.setColumn(-1);
+          link.setRow(-1);
           link.setValue(0.0);
         }
       } else {
@@ -1080,6 +1110,7 @@ CoinModel::previous(CoinModelLink & current) const
           // signal end
           link.setPosition(-1);
           link.setColumn(-1);
+          link.setRow(-1);
           link.setValue(0.0);
         }
       }
