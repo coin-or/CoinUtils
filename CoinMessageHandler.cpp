@@ -317,7 +317,7 @@ CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler& rhs)
     doubleValue_[i]=rhs.doubleValue_[i];
   numberIntFields_ = rhs.numberIntFields_;
   for (i=0;i<numberIntFields_;i++) 
-    intValue_[i]=rhs.intValue_[i];
+    longValue_[i]=rhs.longValue_[i];
   numberCharFields_ = rhs.numberCharFields_;
   for (i=0;i<numberCharFields_;i++) 
     charValue_[i]=rhs.charValue_[i];
@@ -349,7 +349,7 @@ CoinMessageHandler::operator=(const CoinMessageHandler& rhs)
       doubleValue_[i]=rhs.doubleValue_[i];
     numberIntFields_ = rhs.numberIntFields_;
     for (i=0;i<numberIntFields_;i++) 
-      intValue_[i]=rhs.intValue_[i];
+      longValue_[i]=rhs.longValue_[i];
     numberCharFields_ = rhs.numberCharFields_;
     for (i=0;i<numberCharFields_;i++) 
       charValue_[i]=rhs.charValue_[i];
@@ -536,7 +536,7 @@ CoinMessageHandler::operator<< (int intvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  intValue_[numberIntFields_++] = intvalue;
+  longValue_[numberIntFields_++] = intvalue;
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but may be changed to null)
@@ -580,6 +580,30 @@ CoinMessageHandler::operator<< (double doublevalue)
   return *this;
 }
 CoinMessageHandler & 
+CoinMessageHandler::operator<< (long longvalue)
+{
+  if (printStatus_==3)
+    return *this; // not doing this message
+  longValue_[numberIntFields_++] = longvalue;
+  if (printStatus_<2) {
+    if (format_) {
+      //format is at % (but may be changed to null)
+      *format_='%';
+      char * next = nextPerCent(format_+1);
+      // could check
+      if (!printStatus_) {
+	sprintf(messageOut_,format_,longvalue);
+	messageOut_+=strlen(messageOut_);
+      }
+      format_=next;
+    } else {
+      sprintf(messageOut_," %d",longvalue);
+      messageOut_+=strlen(messageOut_);
+    } 
+  }
+  return *this;
+}
+CoinMessageHandler & 
 CoinMessageHandler::operator<< (std::string stringvalue)
 {
   if (printStatus_==3)
@@ -608,7 +632,7 @@ CoinMessageHandler::operator<< (char charvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  intValue_[numberCharFields_++] = charvalue;
+  longValue_[numberCharFields_++] = charvalue;
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but changed to 0)

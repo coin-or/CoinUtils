@@ -70,9 +70,10 @@ CoinPackedMatrixUnitTest()
     assert( lhs.getSizeVectorLengths()==0 );
     assert( mCopy.getSizeVectorLengths()==0 );
     
-    assert( m.getVectorStarts()==NULL );
-    assert( lhs.getVectorStarts()==NULL );
-    assert( mCopy.getVectorStarts()==NULL );
+    // out as empty matrix still has one start
+    //assert( m.getVectorStarts()==NULL );
+    //assert( lhs.getVectorStarts()==NULL );
+    //assert( mCopy.getVectorStarts()==NULL );
     
     assert( m.getVectorLengths()==NULL );
     assert( lhs.getVectorLengths()==NULL );
@@ -110,7 +111,7 @@ CoinPackedMatrixUnitTest()
       const int numels=14;
       const double elemBase[numels]={3., 5.6, 1., 2., 1.1, 1., -2., 2.8, -1., 1., 1., -1.2, -1., 1.9};
       const int indBase[numels]={0,4,0,1,1,2,0,3,0,4,2,3,0,4};
-      const int startsBase[major+1]={0,2,4,6,8,10,11,12,14};
+      const CoinBigIndex startsBase[major+1]={0,2,4,6,8,10,11,12,14};
       const int lenBase[major]={2,2,2,2,2,1,1,2};
 #else
       // By rows
@@ -119,12 +120,12 @@ CoinPackedMatrixUnitTest()
       const int numels=14;
       const double elemBase[numels]={3., 1., -2., -1., -1., 2., 1.1, 1., 1., 2.8, -1.2, 5.6, 1., 1.9 };
       const int indBase[numels]={0,1,3,4,7,1,2,2,5,3,6,0,4,7};
-      const int startsBase[major+1]={0,5,7,9,11,14};
+      const CoinBigIndex startsBase[major+1]={0,5,7,9,11,14};
       const int lenBase[major]={5,2,2,2,3};
 #endif
       double * elem = new double[numels];
       int * ind = new int[numels];
-      int * starts = new int[major+1];
+      CoinBigIndex * starts = new CoinBigIndex[major+1];
       int * lens = new int[major];
       std::copy(elemBase,elemBase+numels,elem);
       std::copy(indBase,indBase+numels,ind);
@@ -169,7 +170,7 @@ CoinPackedMatrixUnitTest()
       assert( eq(ev[17],  1.0) );
       assert( eq(ev[18],  1.9) );
       
-      const int * mi = pm.getVectorStarts();
+      const CoinBigIndex * mi = pm.getVectorStarts();
       assert( mi[0]==0 );
       assert( mi[1]==7 );
       assert( mi[2]==10 );
@@ -237,7 +238,7 @@ CoinPackedMatrixUnitTest()
         assert( eq(ev[18],  1.9) );
         
         assert( pm.getVectorStarts() != pmC.getVectorStarts() );
-        const int * mi = pmC.getVectorStarts();
+        const CoinBigIndex * mi = pmC.getVectorStarts();
         assert( mi[0]==0 );
         assert( mi[1]==7 );
         assert( mi[2]==10 );
@@ -309,7 +310,7 @@ CoinPackedMatrixUnitTest()
           assert( eq(ev[18],  1.9) );
           
           assert( pm.getVectorStarts() != pmA.getVectorStarts() );
-          const int * mi = pmA.getVectorStarts();
+          const CoinBigIndex * mi = pmA.getVectorStarts();
           assert( mi[0]==0 );
           assert( mi[1]==7 );
           assert( mi[2]==10 );
@@ -372,7 +373,7 @@ CoinPackedMatrixUnitTest()
     assert( eq(ev[17],  1.0) );
     assert( eq(ev[18],  1.9) );
     
-    const int * mi = globalP->getVectorStarts();
+    const CoinBigIndex * mi = globalP->getVectorStarts();
     assert( mi[0]==0 );
     assert( mi[1]==7 );
     assert( mi[2]==10 );

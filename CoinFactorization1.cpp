@@ -251,7 +251,7 @@ int CoinFactorization::factorize (
   if (areaFactor)
     areaFactor_ = areaFactor;
   const int * row = matrix.getIndices();
-  const int * columnStart = matrix.getVectorStarts();
+  const CoinBigIndex * columnStart = matrix.getVectorStarts();
   const int * columnLength = matrix.getVectorLengths(); 
   const double * element = matrix.getElements();
   int numberRows=matrix.getNumRows();

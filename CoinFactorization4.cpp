@@ -764,7 +764,7 @@ CoinFactorization::goSparse ( )
   startRowL_=new CoinBigIndex[numberRows_+1];
   indexColumnL_=new int[lengthAreaL_];
   // counts
-  CoinFillN(startRowL_,numberRows_,0);
+  memset(startRowL_,0,numberRows_*sizeof(CoinBigIndex));
   int i;
   for (i=baseL_;i<baseL_+numberL_;i++) {
     CoinBigIndex j;

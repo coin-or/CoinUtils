@@ -226,7 +226,7 @@ public:
   inline int numberDoubleFields() const
   {return numberDoubleFields_;};
   inline int intValue(int position) const
-  { return intValue_[position];};
+  { return longValue_[position];};
   inline int numberIntFields() const
   {return numberIntFields_;};
   inline char charValue(int position) const
@@ -263,6 +263,7 @@ public:
   char * nextPerCent(char * start , const bool initial=false);
   /// Adds into message
   CoinMessageHandler & operator<< (int intvalue);
+  CoinMessageHandler & operator<< (long longvalue);
   CoinMessageHandler & operator<< (double doublevalue);
   CoinMessageHandler & operator<< (std::string stringvalue);
   CoinMessageHandler & operator<< (char charvalue);
@@ -288,7 +289,7 @@ private:
   //@{
   /// values in message
   double doubleValue_[10];
-  int intValue_[10];
+  long longValue_[10];
   char charValue_[10];
   std::string stringValue_[10];
   /// Log level

@@ -30,8 +30,7 @@ typedef void* gzFile;
 
 /// The following lengths are in decreasing order (for 64 bit etc)
 /// Large enough to contain element index
-typedef int COINElementIndex;
-
+/// This is already defined as CoinBigIndex
 /// Large enough to contain column index
 typedef int COINColumnIndex;
 
@@ -211,7 +210,7 @@ public:
     return card_;
   };
   /// Returns card number
-  inline COINElementIndex cardNumber (  ) const {
+  inline CoinBigIndex cardNumber (  ) const {
     return cardNumber_;
   };
   //@}
@@ -244,7 +243,7 @@ private:
   /// Which section we think we are in
   COINSectionType section_;
   /// Card number
-  COINElementIndex cardNumber_;
+  CoinBigIndex cardNumber_;
   /// Whether free format.  Just for blank RHS etc
   bool freeFormat_;
   /// If all names <= 8 characters then allow embedded blanks
@@ -1208,7 +1207,7 @@ int CoinMpsIO::readMps()
 					    <<CoinMessageEol;
     return -3;
   }
-  COINElementIndex *start;
+  CoinBigIndex *start;
   COINRowIndex *row;
   double *element;
   objectiveOffset_ = 0.0;
@@ -1308,20 +1307,20 @@ int CoinMpsIO::readMps()
 
     startHash ( rowName, numberRows_ + 1 + numberOtherFreeRows , 0 );
     COINColumnIndex maxColumns = 1000 + numberRows_ / 5;
-    COINElementIndex maxElements = 5000 + numberRows_ / 2;
+    CoinBigIndex maxElements = 5000 + numberRows_ / 2;
     COINMpsType *columnType = ( COINMpsType * )
       malloc ( maxColumns * sizeof ( COINMpsType ) );
     char **columnName = ( char ** ) malloc ( maxColumns * sizeof ( char * ) );
 
     objective_ = ( double * ) malloc ( maxColumns * sizeof ( double ) );
-    start = ( COINElementIndex * )
-      malloc ( ( maxColumns + 1 ) * sizeof ( COINElementIndex ) );
+    start = ( CoinBigIndex * )
+      malloc ( ( maxColumns + 1 ) * sizeof ( CoinBigIndex ) );
     row = ( COINRowIndex * )
       malloc ( maxElements * sizeof ( COINRowIndex ) );
     element =
       ( double * ) malloc ( maxElements * sizeof ( double ) );
     // for duplicates
-    COINElementIndex *rowUsed = new COINElementIndex[numberRows_];
+    CoinBigIndex *rowUsed = new CoinBigIndex[numberRows_];
 
     for (i=0;i<numberRows_;i++) {
       rowUsed[i]=-1;
@@ -1346,8 +1345,8 @@ int CoinMpsIO::readMps()
 	  // reset old column and take out tiny
 	  if ( numberColumns_ ) {
 	    objUsed = false;
-	    COINElementIndex i;
-	    COINElementIndex k = start[column];
+	    CoinBigIndex i;
+	    CoinBigIndex k = start[column];
 
 	    for ( i = k; i < numberElements_; i++ ) {
 	      COINRowIndex irow = row[i];
@@ -1370,9 +1369,9 @@ int CoinMpsIO::readMps()
 
 	    objective_ = ( double * )
 	      realloc ( objective_, maxColumns * sizeof ( double ) );
-	    start = ( COINElementIndex * )
+	    start = ( CoinBigIndex * )
 	      realloc ( start,
-			( maxColumns + 1 ) * sizeof ( COINElementIndex ) );
+			( maxColumns + 1 ) * sizeof ( CoinBigIndex ) );
 	  }
 	  if ( !inIntegerSet ) {
 	    columnType[column] = COIN_UNSET_BOUND;
@@ -1492,8 +1491,8 @@ int CoinMpsIO::readMps()
       ( char ** ) realloc ( columnName, numberColumns_ * sizeof ( char * ) );
     objective_ = ( double * )
       realloc ( objective_, numberColumns_ * sizeof ( double ) );
-    start = ( COINElementIndex * )
-      realloc ( start, ( numberColumns_ + 1 ) * sizeof ( COINElementIndex ) );
+    start = ( CoinBigIndex * )
+      realloc ( start, ( numberColumns_ + 1 ) * sizeof ( CoinBigIndex ) );
     row = ( COINRowIndex * )
       realloc ( row, numberElements_ * sizeof ( COINRowIndex ) );
     element = ( double * )
@@ -1954,8 +1953,9 @@ int CoinMpsIO::readMps()
     assert ( mpsfile.whichSection (  ) == COIN_ENDATA_SECTION );
   } else {
     // This is very simple format - what should we use?
-    fscanf ( fp, "%d %d %d\n", &numberRows_, &numberColumns_, &numberElements_ );
     COINColumnIndex i;
+    fscanf ( fp, "%d %d %d\n", &numberRows_, &numberColumns_, &i);
+    numberElements_  = i; // done this way in case numberElements_ long
 
     rowlower_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
     rowupper_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
@@ -1968,8 +1968,8 @@ int CoinMpsIO::readMps()
     collower_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
     colupper_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
     objective_= ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
-    start = ( COINElementIndex *) malloc ((numberColumns_ + 1) *
-					sizeof (COINElementIndex) );
+    start = ( CoinBigIndex *) malloc ((numberColumns_ + 1) *
+					sizeof (CoinBigIndex) );
     row = ( COINRowIndex * ) malloc (numberElements_ * sizeof (COINRowIndex));
     element = ( double * ) malloc (numberElements_ * sizeof (double) );
 
@@ -2254,7 +2254,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    const CoinPackedMatrix * matrix = getMatrixByCol();
    const double * elements = matrix->getElements();
    const int * rows = matrix->getIndices();
-   const int * starts = matrix->getVectorStarts();
+   const CoinBigIndex * starts = matrix->getVectorStarts();
    const int * lengths = matrix->getVectorLengths();
 
    char outputValue[2][20];

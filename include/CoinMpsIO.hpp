@@ -331,7 +331,7 @@ private:
      char **names_[2];
      int numberRows_;
      int numberColumns_;
-     int numberElements_;
+     CoinBigIndex numberElements_;
      /// Upper bound when no bounds for integers
      int defaultBound_; 
      double infinity_;

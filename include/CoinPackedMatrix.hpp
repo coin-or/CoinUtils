@@ -53,10 +53,16 @@
     c.majorDim() returns 8. 
   </pre>
 */
+#ifndef COIN_BIG_INDEX
+typedef int CoinBigIndex;
+#else
+typedef long CoinBigIndex;
+#endif
 class CoinPackedMatrix  {
    friend void CoinPackedMatrixUnitTest();
 
 public:
+
 
   //---------------------------------------------------------------------------
   /**@name Query members */
@@ -67,14 +73,14 @@ public:
     double getExtraMajor() const { return extraMajor_; }
 
     /** Reserve sufficient space for appending majorordered vectors. */
-    void reserve(const int newMaxMajorDim, const int newMaxSize);
+    void reserve(const int newMaxMajorDim, const CoinBigIndex newMaxSize);
     /** Clear the data, but do not free any arrays */
     void clear();
 
     /** Whether the packed matrix is column major ordered or not. */
     bool isColOrdered() const { return colOrdered_; }
     /** Number of entries in the packed matrix. */
-    int getNumElements() const { return size_; }
+    CoinBigIndex getNumElements() const { return size_; }
     /** Number of columns. */
     int getNumCols() const { return colOrdered_ ? majorDim_ : minorDim_; }
     /** Number of rows. */
@@ -98,21 +104,21 @@ public:
     int getSizeVectorLengths() const { return majorDim_; }
     /** The positions where the major-dimension vectors start in elements and
         indices. */
-    const int * getVectorStarts() const { return start_; }
+    const CoinBigIndex * getVectorStarts() const { return start_; }
     /** The lengths of the major-dimension vectors. */
     const int * getVectorLengths() const { return length_; }
 
 
     /** The position of the first element in the i'th major-dimension vector.
      */
-    int getVectorFirst(const int i) const throw(CoinError) {
+    CoinBigIndex getVectorFirst(const int i) const throw(CoinError) {
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vectorFirst", "CoinPackedMatrix");
       return start_[i];
     }
     /** The position of the last element (well, one entry <em>past</em> the
         last) in the i'th major-dimension vector. */
-    int getVectorLast(const int i) const throw(CoinError) {
+    CoinBigIndex getVectorLast(const int i) const throw(CoinError) {
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vectorLast", "CoinPackedMatrix");
       return start_[i] + length_[i];
@@ -247,9 +253,9 @@ public:
         then the matrix is assumed to have no gaps in it and <code>len</code>
         will be created accordingly. */
     void copyOf(const bool colordered,
- 	       const int minor, const int major, const int numels,
+ 	       const int minor, const int major, const CoinBigIndex numels,
  	       const double * elem, const int * ind,
- 	       const int * start, const int * len,
+ 	       const CoinBigIndex * start, const int * len,
  	       const double extraMajor=0.0, const double extraGap=0.0);
     /** Reverse copy method. This method makes an exact replica of the
         argument, but the major ordering reversed. The extra space parameters
@@ -264,10 +270,11 @@ public:
         arrays will be deleted by <code>delete[]</code>. Hence one should use
         this method ONLY if all array swere allocated by <code>new[]</code>! */
     void assignMatrix(const bool colordered,
- 		     const int minor, const int major, const int numels,
+ 		     const int minor, const int major, 
+		      const CoinBigIndex numels,
  		     double *& elem, int *& ind,
- 		     int *& start, int *& len,
- 		     const int maxmajor = -1, const int maxsize = -1);
+ 		     CoinBigIndex *& start, int *& len,
+ 		     const int maxmajor = -1, const CoinBigIndex maxsize = -1);
  
  
  
@@ -490,15 +497,15 @@ public:
 		   const double extraMajor, const double extraGap);
 
    CoinPackedMatrix(const bool colordered,
-		   const int minor, const int major, const int numels,
+		   const int minor, const int major, const CoinBigIndex numels,
 		   const double * elem, const int * ind,
-		   const int * start, const int * len,
+		   const CoinBigIndex * start, const int * len,
 		   const double extraMajor, const double extraGap);
 
    CoinPackedMatrix(const bool colordered,
-		   const int minor, const int major, const int numels,
+		   const int minor, const int major, const CoinBigIndex numels,
 		   const double * elem, const int * ind,
-		   const int * start, const int * len);
+		   const CoinBigIndex * start, const int * len);
 
    /** Create packed matrix from ordered triples.
        If colordered is true then the created matrix will be column ordered.
@@ -514,7 +521,7 @@ public:
      const int * rowIndices, 
      const int * colIndices, 
      const double * elements, 
-     int numels ); 
+     CoinBigIndex numels ); 
 
    /// Copy constructor 
    CoinPackedMatrix(const CoinPackedMatrix& m);
@@ -527,18 +534,18 @@ public:
 protected:
    void gutsOfDestructor();
    void gutsOfCopyOf(const bool colordered,
-		     const int minor, const int major, const int numels,
+		     const int minor, const int major, const CoinBigIndex numels,
 		     const double * elem, const int * ind,
-		     const int * start, const int * len,
+		     const CoinBigIndex * start, const int * len,
 		     const double extraMajor=0.0, const double extraGap=0.0);
    void gutsOfOpEqual(const bool colordered,
-		      const int minor, const int major, const int numels,
+		      const int minor, const int major, const CoinBigIndex numels,
 		      const double * elem, const int * ind,
-		      const int * start, const int * len);
+		      const CoinBigIndex * start, const int * len);
    void resizeForAddingMajorVectors(const int numVec, const int * lengthVec);
    void resizeForAddingMinorVectors(const int * addedEntries);
 private:
-   inline int getLastStart() const {
+   inline CoinBigIndex getLastStart() const {
       return majorDim_ == 0 ? 0 : start_[majorDim_];
    }
 
@@ -566,7 +573,7 @@ protected:
        between major-dimension vectors are undefined. */
    int     *index_;
    /** Starting positions of major-dimension vectors. */
-   int     *start_;
+   CoinBigIndex     *start_;
    /** Lengths of major-dimension vectors. */
    int     *length_;
 
@@ -575,12 +582,12 @@ protected:
    /// size of other dimension
    int minorDim_;
    /// the number of nonzero entries
-   int size_;
+   CoinBigIndex size_;
 
    /// max space allocated for major-dimension
    int maxMajorDim_;
    /// max space allocated for entries
-   int maxSize_;
+   CoinBigIndex maxSize_;
    //@}
 };
 
