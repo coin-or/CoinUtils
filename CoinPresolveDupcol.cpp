@@ -10,7 +10,7 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinPresolveUseless.hpp"
 #include "CoinMessage.hpp"
-
+//#define PRESOLVE_DEBUG 1
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"
 #endif
@@ -184,6 +184,8 @@ const CoinPresolveAction
   double *clo	= prob->clo_ ;
   double *cup	= prob->cup_ ;
   double *sol	= prob->sol_ ;
+  double *rlo	= prob->rlo_ ;
+  double *rup	= prob->rup_ ;
 
   double *rowels	= prob->rowels_ ;
   int *hcol		= prob->hcol_ ;
@@ -290,8 +292,82 @@ const CoinPresolveAction
     double cup2 = cup[j2] ;
     double c1 = dcost[j1]*maxmin ;
     double c2 = dcost[j2]*maxmin ;
-
     PRESOLVEASSERT(!(clo1 == cup1 || clo2 == cup2)) ;
+    // Get reasonable bounds on sum of two variables
+    double lowerBound=-COIN_DBL_MAX;
+    double upperBound=COIN_DBL_MAX;
+    // For now only if lower bounds are zero
+    if (!clo1&&!clo2) {
+      for (k=kcs;k<kce;k++) {
+        int iRow = hrow[k];
+        bool posinf = false;
+        bool neginf = false;
+        double maxup = 0.0;
+        double maxdown = 0.0;
+        
+        // compute sum of all bounds except for j1,j2
+        CoinBigIndex kk;
+        CoinBigIndex kre = mrstrt[iRow]+hinrow[iRow];
+        double value1=0.0;
+        for (kk=mrstrt[iRow]; kk<kre; kk++) {
+          int col = hcol[kk];
+          if (col == j1||col==j2) {
+            value1=rowels[kk];
+            continue;
+          }
+          double coeff = rowels[kk];
+          double lb = clo[col];
+          double ub = cup[col];
+          
+          if (coeff > 0.0) {
+            if (PRESOLVE_INF <= ub) {
+              posinf = true;
+              if (neginf)
+                break;	// pointless
+            } else {
+              maxup += ub * coeff;
+            }
+            if (lb <= -PRESOLVE_INF) {
+              neginf = true;
+              if (posinf)
+                break;	// pointless
+            } else {
+              maxdown += lb * coeff;
+            }
+          } else {
+            if (PRESOLVE_INF <= ub) {
+              neginf = true;
+              if (posinf)
+                break;	// pointless
+            } else {
+              maxdown += ub * coeff;
+            }
+            if (lb <= -PRESOLVE_INF) {
+              posinf = true;
+              if (neginf)
+                break;	// pointless
+            } else {
+              maxup += lb * coeff;
+            }
+          }
+        }
+        
+        if (kk==kre) {
+          assert (value1);
+          if (value1>1.0e-5) {
+            if (!neginf&&rup[iRow]<1.0e10)
+              upperBound = CoinMin(upperBound,(rup[iRow]-maxdown)/value1);
+            if (!posinf&&rlo[iRow]>-1.0e10)
+              lowerBound = CoinMax(lowerBound,(rlo[iRow]-maxup)/value1);
+          } else if (value1<-1.0e-5) {
+            if (!neginf&&rup[iRow]<1.0e10)
+              lowerBound = CoinMax(lowerBound,(rup[iRow]-maxdown)/value1);
+            if (!posinf&&rlo[iRow]>-1.0e10)
+              upperBound = CoinMin(upperBound,(rlo[iRow]-maxup)/value1);
+          }
+        }
+      }
+    }
 /*
   There are two main cases: The objective coefficients are equal or unequal.
 
@@ -397,11 +473,21 @@ const CoinPresolveAction
     else
     { int minterm = 0 ;
       bool swapped = false ;
+#if PRESOLVE_DEBUG
+      printf("bounds %g %g\n",lowerBound,upperBound);
+#endif
       if (c2 > c1) minterm |= 1<<0 ;
       if (cup2 >= PRESOLVE_INF) minterm |= 1<<1 ;
       if (clo2 <= -PRESOLVE_INF) minterm |= 1<<2 ;
       if (cup1 >= PRESOLVE_INF) minterm |= 1<<3 ;
       if (clo1 <= -PRESOLVE_INF) minterm |= 1<<4 ;
+      // for now be careful - just one special case
+      if (!clo1&&!clo2) {
+        if (c2 > c1 && cup1 >= upperBound)
+          minterm |= 1<<3;
+        else if (c2 < c1 && cup2 >= upperBound)
+          minterm |= 1<<1;
+      }
 /*
   The most common case in a well-formed system should be no inference. We're
   looking for x00x1 (case G) and 0xx00 (case H). This is where we have the

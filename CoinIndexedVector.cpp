@@ -10,6 +10,7 @@
 
 #include "CoinHelperFunctions.hpp"
 #include "CoinIndexedVector.hpp"
+#include "CoinTypes.hpp"
 //#############################################################################
 
 void

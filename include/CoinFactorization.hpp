@@ -548,8 +548,8 @@ protected:
   template <class T>  bool
   pivot ( int pivotRow,
 	  int pivotColumn,
-	  int pivotRowPosition,
-	  int pivotColumnPosition,
+	  CoinBigIndex pivotRowPosition,
+	  CoinBigIndex pivotColumnPosition,
 	  double work[],
 	  unsigned int workArea2[],
 	  int increment,
@@ -580,32 +580,24 @@ protected:
   CoinBigIndex endRow = startRow + numberInPivotRow + 1;
 
   if ( pivotColumnPosition < 0 ) {
-    CoinBigIndex i;
-    for ( i = startRow; i < endRow; i++ ) {
-      int iColumn = indexColumnU[i];
-
+    for ( pivotColumnPosition = startRow; pivotColumnPosition < endRow; pivotColumnPosition++ ) {
+      int iColumn = indexColumnU[pivotColumnPosition];
       if ( iColumn != pivotColumn ) {
-	saveColumn[put] = iColumn;
-	put++;
+	saveColumn[put++] = iColumn;
       } else {
-	pivotColumnPosition = i;
+        break;
       }
     }
   } else {
-    CoinBigIndex i;
-
-    for ( i = startRow; i < pivotColumnPosition; i++ ) {
-      int iColumn = indexColumnU[i];
-
-      saveColumn[put] = iColumn;
-      put++;
+    for (CoinBigIndex i = startRow ; i < pivotColumnPosition ; i++ ) {
+      saveColumn[put++] = indexColumnU[i];
     }
-    for ( i = pivotColumnPosition + 1; i < endRow; i++ ) {
-      int iColumn = indexColumnU[i];
-
-      saveColumn[put] = iColumn;
-      put++;
-    }
+  }
+  assert (pivotColumnPosition<endRow);
+  assert (indexColumnU[pivotColumnPosition]==pivotColumn);
+  pivotColumnPosition++;
+  for ( ; pivotColumnPosition < endRow; pivotColumnPosition++ ) {
+    saveColumn[put++] = indexColumnU[pivotColumnPosition];
   }
   //take out this bit of indexColumnU
   int next = nextRow[pivotRow];
@@ -633,12 +625,11 @@ protected:
   startColumnL_[numberGoodL_] = l + numberInPivotColumn;
   lengthL_ += numberInPivotColumn;
   if ( pivotRowPosition < 0 ) {
-    CoinBigIndex i;
-    for ( i = startColumn; i < endColumn; i++ ) {
-      int iRow = indexRowU[i];
+    for ( pivotRowPosition = startColumn; pivotRowPosition < endColumn; pivotRowPosition++ ) {
+      int iRow = indexRowU[pivotRowPosition];
       if ( iRow != pivotRow ) {
 	indexRowL[l] = iRow;
-	elementL[l] = elementU[i];
+	elementL[l] = elementU[pivotRowPosition];
 	markRow[iRow] = l - lSave;
 	l++;
 	//take out of row list
@@ -657,7 +648,7 @@ protected:
 	indexColumnU[where] = indexColumnU[end - 1];
 	numberInRow[iRow]--;
       } else {
-	pivotRowPosition = i;
+	break;
       }
     }
   } else {
@@ -687,37 +678,40 @@ protected:
       numberInRow[iRow]--;
       assert (numberInRow[iRow]>=0);
     }
-    for ( i = pivotRowPosition + 1; i < endColumn; i++ ) {
-      int iRow = indexRowU[i];
-
-      markRow[iRow] = l - lSave;
-      indexRowL[l] = iRow;
-      elementL[l] = elementU[i];
-      l++;
-      //take out of row list
-      CoinBigIndex start = startRowU[iRow];
-      CoinBigIndex end = start + numberInRow[iRow];
-      CoinBigIndex where = start;
-
-      while ( indexColumnU[where] != pivotColumn ) {
-	where++;
-      }				/* endwhile */
-#if DEBUG_COIN
-      if ( where >= end ) {
-	abort (  );
-      }
-#endif
-      indexColumnU[where] = indexColumnU[end - 1];
-      numberInRow[iRow]--;
-      assert (numberInRow[iRow]>=0);
-    }
   }
-  markRow[pivotRow] = largeInteger;
-  //compress pivot column (move pivot to front including saved)
+  assert (pivotRowPosition<endColumn);
+  assert (indexRowU[pivotRowPosition]==pivotRow);
   double pivotElement = elementU[pivotRowPosition];
   double pivotMultiplier = 1.0 / pivotElement;
 
   pivotRegion_[numberGoodU_] = pivotMultiplier;
+  pivotRowPosition++;
+  for ( ; pivotRowPosition < endColumn; pivotRowPosition++ ) {
+    int iRow = indexRowU[pivotRowPosition];
+    
+    markRow[iRow] = l - lSave;
+    indexRowL[l] = iRow;
+    elementL[l] = elementU[pivotRowPosition];
+    l++;
+    //take out of row list
+    CoinBigIndex start = startRowU[iRow];
+    CoinBigIndex end = start + numberInRow[iRow];
+    CoinBigIndex where = start;
+    
+    while ( indexColumnU[where] != pivotColumn ) {
+      where++;
+    }				/* endwhile */
+#if DEBUG_COIN
+    if ( where >= end ) {
+      abort (  );
+    }
+#endif
+    indexColumnU[where] = indexColumnU[end - 1];
+    numberInRow[iRow]--;
+    assert (numberInRow[iRow]>=0);
+  }
+  markRow[pivotRow] = largeInteger;
+  //compress pivot column (move pivot to front including saved)
   numberInColumn[pivotColumn] = 0;
   //use end of L for temporary space
   int *indexL = &indexRowL[lSave];
@@ -727,7 +721,7 @@ protected:
   int j;
 
   for ( j = 0; j < numberInPivotColumn; j++ ) {
-    multipliersL[j] = pivotMultiplier * multipliersL[j];
+    multipliersL[j] *= pivotMultiplier;
   }
   //zero out fill
   CoinBigIndex iErase;

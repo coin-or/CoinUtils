@@ -2562,10 +2562,14 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
             next--;
           }
           cardReader_->setPosition(next);
-          int returnCode=cardReader_->nextGmsField(1);
+#ifdef NDEBUG
+          cardReader_->nextGmsField(1);
+#else
+          int returnCode = cardReader_->nextGmsField(1);
+          assert (!returnCode);
+#endif
           next = strchr(next,';');
           cardReader_->setPosition(next+1);
-          assert (!returnCode);
           strcpy(objName,cardReader_->columnName());
           char * semi = strchr(objName,';');
           if (semi)
@@ -2718,8 +2722,10 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     assert (dot); 
     *dot='\0';
     assert (*(dot+1)=='.');
+#ifndef NDEBUG
     int iRow = findHash(rowName,0);
     assert (i==iRow);
+#endif
     returnCode=0;
     while(!returnCode) {
       returnCode = cardReader_->nextGmsField(3);
@@ -2760,9 +2766,12 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     }
     rowType[i]=type;
     // and skip ;
+#ifdef NDEBUG
+    cardReader_->nextGmsField(5);
+#else
     returnCode = cardReader_->nextGmsField(5);
     assert (!returnCode);
-    
+#endif
   }
   // Now non default bounds
   while (true) {
