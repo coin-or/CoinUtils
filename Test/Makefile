@@ -19,6 +19,7 @@ Define  := ${CoinDefine} ${zlibDefine} ${bzlibDefine}
 
 TESTSRC :=
 
+TESTSRC += CoinDenseVectorTest.cpp
 TESTSRC += CoinIndexedVectorTest.cpp
 TESTSRC += CoinMpsIOTest.cpp
 TESTSRC += CoinPackedMatrixTest.cpp
