@@ -318,6 +318,7 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   lastColumn_ = new int [ other.maximumColumnsExtra_ + 1 ];
   numberTrials_ = other.numberTrials_;
   biggerDimension_ = other.biggerDimension_;
+  relaxCheck_ = other.relaxCheck_;
   numberSlacks_ = other.numberSlacks_;
   numberU_ = other.numberU_;
   lengthU_ = other.lengthU_;

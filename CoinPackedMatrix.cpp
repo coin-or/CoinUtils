@@ -132,14 +132,6 @@ CoinPackedMatrix::setDimensions(int newnumrows, int newnumcols)
     minorDim_ = newnumcols;
     numplus = newnumrows - numrows;
   }
-#if 0
-  if (numplus > 0) {
-    int * lengths = new int[numplus];
-    CoinFillN(lengths, numplus, 1);
-    resizeForAddingMajorVectors(numplus, lengths);
-    delete[] lengths;
-  }
-#else
   if (numplus > 0) {
     int* lengths = new int[numplus];
     CoinFillN(lengths, numplus, 0); //1 in the original version
@@ -147,7 +139,6 @@ CoinPackedMatrix::setDimensions(int newnumrows, int newnumcols)
     delete[] lengths;
     majorDim_ += numplus; //forgot to change majorDim_
   }
-#endif
 
 }
 
@@ -1145,9 +1136,30 @@ CoinPackedMatrix::deleteMinorVectors(const int numDel,
       newindexPtr[i] = k++;
     }
   }
-
   // Now crawl through the matrix
   const int * newindex = newindexPtr;
+#ifdef TAKEOUT
+  int mcount[400];
+  memset(mcount,0,400*sizeof(int));
+  for (i = 0; i < majorDim_; ++i) {
+    int * index = index_ + start_[i];
+    double * elem = element_ + start_[i];
+    const int length_i = length_[i];
+    for (j = 0, k = 0; j < length_i; ++j) {
+      mcount[index[j]]++;
+    }
+  }
+  for (i=0;i<minorDim_;i++) {
+    if (mcount[i]==10||mcount[i]==15) {
+      if (newindex[i]>=0)
+	printf("Keeping original row %d (new %d) with count of %d\n",
+	       i,newindex[i],mcount[i]);
+      else
+	printf("deleting row %d with count of %d\n",
+	       i,mcount[i]);
+    }
+  }
+#endif
   int deleted = 0;
   for (i = 0; i < majorDim_; ++i) {
     int * index = index_ + start_[i];

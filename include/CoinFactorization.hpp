@@ -180,6 +180,9 @@ public:
   inline void areaFactor ( double value ) {
     areaFactor_=value;
   };
+  /// Allows change of pivot accuracy check 1.0 == none >1.0 relaxed
+  inline void relaxAccuracyCheck(double value)
+  { relaxCheck_ = value;};
   /// Whether rows increase after pivoting
   inline bool increasingRows (  ) const {
     return increasingRows_ > 1;
@@ -1003,6 +1006,8 @@ protected:
   double slackValue_;
   /// How much to multiply areas by
   double areaFactor_;
+  /// Relax check on accuracy in replaceColumn
+  double relaxCheck_;
   /// Number of Rows in factorization
   int numberRows_;
   /// Number of Rows after iterating

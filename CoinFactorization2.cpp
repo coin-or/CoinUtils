@@ -14,7 +14,6 @@
 int
 CoinFactorization::factorSparse (  )
 {
-  int status = 0;
   int *indexRow = indexRowU_;
   int *indexColumn = indexColumnU_;
   double *element = elementU_;
@@ -307,5 +306,5 @@ CoinFactorization::factorSparse (  )
   }				/* endwhile */
   delete []  workArea ;
   delete [] workArea2 ;
-  return status;
+  return 0;
 }

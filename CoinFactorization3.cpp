@@ -254,6 +254,7 @@ int CoinFactorization::checkPivot(double saveFromU,
     } else {
       checkTolerance = 1.0e-10;
     }       
+    checkTolerance *= relaxCheck_;
     if ( fabs ( 1.0 - fabs ( saveFromU / oldPivot ) ) < checkTolerance ) {
       status = 0;
     } else {

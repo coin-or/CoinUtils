@@ -134,6 +134,7 @@ void CoinFactorization::gutsOfInitialize(int type)
     messageLevel_=0;
     maximumPivots_=200;
     numberTrials_ = 1;
+    relaxCheck_=1.0;
   }
   if ((type&2)!=0) {
     numberCompressions_ = 0;
