@@ -398,7 +398,8 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	  // if its row is an equality constraint...
 	  if (hinrow[row] > 1 &&	// don't bother with singleton rows
 	      
-	      fabs(rlo[row] - rup[row]) < tol) {
+	      fabs(rlo[row] - rup[row]) < tol &&
+	      !prob->rowUsed(row)) {
 	    // both column bounds implied by the constraint bounds
 	    
 	    // we want coeffy to be smaller than x, BACKWARDS from in doubleton
@@ -526,6 +527,8 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 	for (k=kcs; k<kce; ++k) {
 	  int irow = hrow[k];
 	  ntotels += hinrow[irow];
+	  // mark row as contaminated
+	  prob->setRowUsed(irow);
 	}
 
 	{
@@ -822,6 +825,10 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
       
     }
   }
+
+  // Clear row used flags
+  for (int iRow=0;iRow<nrows;iRow++)
+    prob->unsetRowUsed(iRow);
 
   // general idea - only do doubletons until there are almost none left
   if (nactions < 30&&fill_level==2)

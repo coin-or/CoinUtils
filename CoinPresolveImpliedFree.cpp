@@ -534,13 +534,22 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   int * look2 = NULL;
   // if gone from 2 to 3 look at all
   // why does this loop not check for prohibited columns? -- lh, 040818 --
+  // changed 040923
   if (fill_level<0) {
     look2 = new int[ncols];
     look=look2;
-    for (iLook=0;iLook<ncols;iLook++) 
-      look[iLook]=iLook;
-    numberLook=ncols;
- }
+    if (!prob->anyProhibited()) {
+      for (iLook=0;iLook<ncols;iLook++) 
+	look[iLook]=iLook;
+      numberLook=ncols;
+    } else {
+      // some prohibited
+      numberLook=0;
+      for (iLook=0;iLook<ncols;iLook++) 
+	if (!prob->colProhibited(iLook))
+	  look[numberLook++]=iLook;
+    }
+  }
 
   for (iLook=0;iLook<numberLook;iLook++) {
     int j=look[iLook];
