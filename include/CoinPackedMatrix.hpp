@@ -211,6 +211,12 @@ public:
         The index is between 0 and major dimension of matrix */
     void replaceVector(const int index,
 		       const int numReplace, const double * newElements);
+    /** Eliminate all elements in matrix whose 
+	absolute value is less than threshold.
+	The column starts are not affected.  Returns number of elements
+	eliminated.  Elements eliminated are at end of each vector
+    */
+    int compress(double threshold);
   //@}
 
   //---------------------------------------------------------------------------

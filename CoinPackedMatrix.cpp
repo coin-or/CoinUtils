@@ -330,6 +330,45 @@ CoinPackedMatrix::replaceVector(const int index,
   }
 }
 //#############################################################################
+/* Eliminate all elements in matrix whose 
+   absolute value is less than threshold.
+   The column starts are not affected.  Returns number of elements
+   eliminated.  Elements eliminated are at end of each vector
+*/
+int 
+CoinPackedMatrix::compress(double threshold)
+{
+  int numberEliminated =0;
+  // space for eliminated
+  int * eliminatedIndex = new int[minorDim_];
+  double * eliminatedElement = new double[minorDim_];
+  int i;
+  for (i=0;i<majorDim_;i++) {
+    int length = length_[i];
+    int k=start_[i];
+    int kbad=0;
+    int j;
+    for (j=start_[i];j<start_[i]+length;j++) {
+      if (fabs(element_[j])>=threshold) {
+	element_[k]=element_[j];
+	index_[k++]=index_[j];
+      } else {
+	eliminatedElement[kbad]=element_[j];
+	eliminatedIndex[kbad++]=index_[j];
+      }
+    }
+    if (kbad) {
+      numberEliminated += kbad;
+      length_[i] = k-start_[i];
+      memcpy(index_+k,eliminatedIndex,kbad*sizeof(int));
+      memcpy(element_+k,eliminatedElement,kbad*sizeof(double));
+    }
+  }
+  delete [] eliminatedIndex;
+  delete [] eliminatedElement;
+  return numberEliminated;
+}
+//#############################################################################
 
 void
 CoinPackedMatrix::removeGaps()
