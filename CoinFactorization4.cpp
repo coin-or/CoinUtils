@@ -10,6 +10,7 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include <cassert>
+#include <cstdio>
 
 // For semi-sparse
 #define BITS_PER_CHECK 8
