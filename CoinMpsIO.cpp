@@ -1095,7 +1095,35 @@ int CoinMpsIO::readMps()
 
     //get ROWS
     cardReader_->nextField (  ) ;
-    assert ( cardReader_->whichSection (  ) == COIN_ROW_SECTION );
+    // Fudge for what ever code has OBJSENSE
+    if (!strncmp(cardReader_->card(),"OBJSENSE",8)) {
+      cardReader_->nextField();
+      int i;
+      const char * thisCard = cardReader_->card();
+      int direction = 0;
+      for (i=0;i<20;i++) {
+	if (thisCard[i]!=' ') {
+	  if (!strncmp(thisCard+i,"MAX",3))
+	    direction=-1;
+	  else if (!strncmp(thisCard+i,"MIN",3))
+	    direction=1;
+	  break;
+	}
+      }
+      if (!direction)
+	printf("No MAX/MIN found after OBJSENSE\n");
+      else 
+	printf("%s found after OBJSENSE - Coin ignores\n",
+	       (direction>0 ? "MIN" : "MAX"));
+      cardReader_->nextField();
+    }
+    if ( cardReader_->whichSection (  ) != COIN_ROW_SECTION ) {
+      handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						    <<cardReader_->card()
+						    <<CoinMessageEol;
+      handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+      return numberErrors;
+    }
     //use malloc etc as I don't know how to do realloc in C++
     numberRows_ = 0;
     numberColumns_ = 0;
@@ -1162,7 +1190,13 @@ int CoinMpsIO::readMps()
 	}
       }
     }
-    assert ( cardReader_->whichSection (  ) == COIN_COLUMN_SECTION );
+    if ( cardReader_->whichSection (  ) != COIN_COLUMN_SECTION ) {
+      handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						    <<cardReader_->card()
+						    <<CoinMessageEol;
+      handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+      return numberErrors;
+    }
     assert ( gotNrow );
     rowType =
       ( COINMpsType * ) realloc ( rowType,
@@ -1356,7 +1390,13 @@ int CoinMpsIO::readMps()
     }
     start[numberColumns_] = numberElements_;
     delete[]rowUsed;
-    assert ( cardReader_->whichSection (  ) == COIN_RHS_SECTION );
+    if ( cardReader_->whichSection (  ) != COIN_RHS_SECTION ) {
+      handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						    <<cardReader_->card()
+						    <<CoinMessageEol;
+      handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+      return numberErrors;
+    }
     columnType =
       ( COINMpsType * ) realloc ( columnType,
 				 numberColumns_ * sizeof ( COINMpsType ) );
@@ -1838,7 +1878,13 @@ int CoinMpsIO::readMps()
       }
     }
     free ( columnType );
-    assert ( cardReader_->whichSection (  ) == COIN_ENDATA_SECTION );
+    if ( cardReader_->whichSection (  ) != COIN_ENDATA_SECTION ) {
+      handler_->message(COIN_MPS_BADIMAGE,messages_)<<cardReader_->cardNumber()
+						    <<cardReader_->card()
+						    <<CoinMessageEol;
+      handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+      return numberErrors;
+    }
   } else {
     // This is very simple format - what should we use?
     COINColumnIndex i;
@@ -1913,7 +1959,7 @@ convertDouble(int formatType, double value, char outputValue[20],
   assert (formatType!=2);
   if ((formatType&3)==0) {
     bool stripZeros=true;
-    if (value<1.0e20) {
+    if (value<1.0e30) {
       int power10, decimal;
       if (value>=0.0) {
 	power10 =(int) log10(value);
@@ -1952,7 +1998,7 @@ convertDouble(int formatType, double value, char outputValue[20],
       outputValue[0]= '\0'; // needs no value
     }
   } else {
-    if (value<1.0e20) {
+    if (value<1.0e30) {
       sprintf(outputValue,"%19g",value);
       // take out blanks
       int i=0;
@@ -2226,7 +2272,8 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 break;
       case 'R':
 	 value=rowUpper[i];
-	 ifRange=true;
+	 if (rowLower[i]>-1.0e30&&rowUpper[i]-rowLower[i]<1.0e30)
+	   ifRange=true;
 	 break;
       case 'L':
 	 value=rowUpper[i];
@@ -2272,19 +2319,21 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       for (i=0;i<numberRows_;i++) {
 	 if (sense[i]=='R') {
 	    double value =rowUpper[i]-rowLower[i];
-	    convertDouble(formatType,value,
-			  outputValue[numberFields],
-			  rowNames[i],
-			  outputRow[numberFields]);
-	    numberFields++;
-	    if (numberFields==numberAcross) {
-	       // put out card
-	       outputCard(formatType, numberFields,
-			  fp, gzfp, "    ",
-			  "RANGE",
-			  outputValue,
-			  outputRow);
-	       numberFields=0;
+	    if (value<1.0e30) {
+	      convertDouble(formatType,value,
+			    outputValue[numberFields],
+			    rowNames[i],
+			    outputRow[numberFields]);
+	      numberFields++;
+	      if (numberFields==numberAcross) {
+		// put out card
+		outputCard(formatType, numberFields,
+			   fp, gzfp, "    ",
+			   "RANGE",
+			   outputValue,
+			   outputRow);
+		numberFields=0;
+	      }
 	    }
 	 }
       }
