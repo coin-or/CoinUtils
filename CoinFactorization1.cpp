@@ -591,7 +591,7 @@ CoinFactorization::getAreas ( int numberOfRows,
     areaFactor_ = 1.0;
   }
   if ( areaFactor_ != 1.0 ) {
-    if ((messageLevel_&4)!=0) 
+    if ((messageLevel_&16)!=0) 
       std::cout<<"Increasing factorization areas by "<<areaFactor_<<std::endl;
     lengthAreaU_ *= (CoinBigIndex) areaFactor_;
     lengthAreaL_ *= (CoinBigIndex) areaFactor_;
@@ -878,7 +878,7 @@ CoinFactorization::factor (  )
 	for ( i = 0; i < numberColumns_; i++ ) {
 	  pivotColumn_[i] = lastColumn_[i];
 	}
-	if ((messageLevel_&1)!=0) 
+	if ((messageLevel_&4)!=0) 
 	  std::cout <<"Factorization has "<<numberRows_-k
 		    <<" singularities"<<std::endl;
 	status_ = -1;
@@ -892,13 +892,13 @@ CoinFactorization::factor (  )
       break;
   default:
     //singular ? or some error
-    if ((messageLevel_&1)!=0) 
+    if ((messageLevel_&4)!=0) 
       std::cout << "Error " << status_ << std::endl;
     break;
   }				/* endswitch */
   //clean up
   if ( !status_ ) {
-    if ( (messageLevel_ & 4)&&numberCompressions_)
+    if ( (messageLevel_ & 16)&&numberCompressions_)
       std::cout<<"        Factorization did "<<numberCompressions_
 	       <<" compressions"<<std::endl;
     if ( numberCompressions_ > 10 ) {
@@ -939,7 +939,7 @@ CoinFactorization::pivotRowSingleton ( int pivotRow,
 
   if ( l + numberDoColumn > lengthAreaL_ ) {
     //need more memory
-    if ((messageLevel_&1)!=0) 
+    if ((messageLevel_&4)!=0) 
       std::cout << "more memory needed in middle of invert" << std::endl;
     return false;
   }
@@ -1375,7 +1375,7 @@ CoinFactorization::cleanup (  )
     //full list
     numberInColumnPlus_[i] = 0;
   }
-  if ( (messageLevel_ & 2)) {
+  if ( (messageLevel_ & 8)) {
     std::cout<<"        length of U "<<totalElements_<<", length of L "<<lengthL_;
     if (numberDense_)
       std::cout<<" plus "<<numberDense_*numberDense_<<" from "<<numberDense_<<" dense rows";
@@ -1633,7 +1633,7 @@ CoinFactorization::cleanup (  )
     lengthAreaR_ = space;
     elementR_ = elementL_ + lengthL_;
     indexRowR_ = indexRowL_ + lengthL_;
-    if ((messageLevel_&1))
+    if ((messageLevel_&4))
       std::cout<<"Factorization may need some increasing area space"
 	       <<std::endl;
     if ( areaFactor_ ) {
@@ -1734,7 +1734,7 @@ CoinFactorization::pivotOneOtherRow ( int pivotRow,
 
   if ( l + 1 > lengthAreaL_ ) {
     //need more memory
-    if ((messageLevel_&1)!=0) 
+    if ((messageLevel_&4)!=0) 
       std::cout << "more memory needed in middle of invert" << std::endl;
     return false;
   }
