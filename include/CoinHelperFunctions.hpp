@@ -11,6 +11,7 @@
 #endif
 
 #include "CoinError.hpp"
+#include "CoinFinite.hpp"
 //#############################################################################
 
 /** This helper function copies an array to another location using Duff's
