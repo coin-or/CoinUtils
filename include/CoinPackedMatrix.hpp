@@ -67,9 +67,10 @@ public:
     /** Return the current setting of the extra major. */
     double getExtraMajor() const { return extraMajor_; }
 
-    /** Reserve sufficient space for appending majorordered vectors. 
-	If create true then empty columns are created (for column generation) */
-    void reserve(const int newMaxMajorDim, const CoinBigIndex newMaxSize,bool create=false);
+    /** Reserve sufficient space for appending major-ordered vectors. 
+	If create is true, empty columns are created (for column generation) */
+    void reserve(const int newMaxMajorDim, const CoinBigIndex newMaxSize,
+		 bool create=false);
     /** Clear the data, but do not free any arrays */
     void clear();
 
