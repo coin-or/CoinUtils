@@ -1961,7 +1961,7 @@ convertDouble(int formatType, double value, char outputValue[20],
   assert (formatType!=2);
   if ((formatType&3)==0) {
     bool stripZeros=true;
-    if (value<1.0e30) {
+    if (fabs(value)<1.0e40) {
       int power10, decimal;
       if (value>=0.0) {
 	power10 =(int) log10(value);
@@ -2176,14 +2176,29 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 
    // Rows section
    // Sense array
-   const char * sense = getRowSense();
+   // But massage if looks odd
+   char * sense = new char [numberRows_];
+   memcpy( sense , getRowSense(), numberRows_);
+   const double * rowLower = getRowLower();
+   const double * rowUpper = getRowUpper();
+
   
    for (i=0;i<numberRows_;i++) {
       line = " ";
       if (sense[i]!='R') {
 	 line.append(1,sense[i]);
       } else {
-	 line.append("L");
+	if (rowLower[i]>-1.0e30) {
+	  if(rowUpper[i]<1.0e30) {
+	    line.append("L");
+	  } else {
+	    sense[i]='G';
+	    line.append(1,sense[i]);
+	  }
+	} else {
+	  sense[i]='L';
+	  line.append(1,sense[i]);
+	}
       }
       line.append("  ");
       line.append(rowNames[i]);
@@ -2262,9 +2277,6 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    // RHS
    writeString(fp, gzfp, "RHS\n");
 
-   const double * rowLower = getRowLower();
-   const double * rowUpper = getRowUpper();
-
    int numberFields = 0;
    for (i=0;i<numberRows_;i++) {
       double value;
@@ -2274,8 +2286,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 break;
       case 'R':
 	 value=rowUpper[i];
-	 if (rowLower[i]>-1.0e30&&rowUpper[i]-rowLower[i]<1.0e30)
-	   ifRange=true;
+	 ifRange=true;
 	 break;
       case 'L':
 	 value=rowUpper[i];
@@ -2348,7 +2359,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 		    outputRow);
       }
    }
-
+   delete [] sense;
    if (ifBounds) {
       // BOUNDS
       writeString(fp, gzfp, "BOUNDS\n");
