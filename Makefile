@@ -71,6 +71,8 @@ include ${MakefileDir}/Makefile.coin
 include ${MakefileDir}/Makefile.location
 ifneq ($(filter COIN_libGlpk,$(CoinLibsDefined)),)
 # We will allow for use of GMPL
+# Note - you should use a dynamic glpk library not a static one
+# so you may need to modify Makefile.location to make .so
 CXXFLAGS += -DCOIN_USE_GMPL
 endif
 ifeq ($(OptLevel),-O2)
