@@ -31,6 +31,7 @@
 */
 
 namespace { // begin unnamed file-local namespace
+  //#define PRESOLVE_CONSISTENCY 1
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 /*
   Check for duplicate entries in a major vector by walking the vector. For each

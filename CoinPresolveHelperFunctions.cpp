@@ -298,7 +298,7 @@ CoinBigIndex presolve_find_minor (int tgt, CoinBigIndex ks,
       return (k) ; }
   DIE("FIND_MINOR") ;
 
-  return (0) ; }
+  abort () ; return -1; }
 
 /*
   As presolve_find_minor, but return a position one past the end of
@@ -329,7 +329,7 @@ CoinBigIndex presolve_find_minor2 (int tgt, CoinBigIndex ks,
     ks = majlinks[ks] ; }
   DIE("FIND_MINOR2") ;
 
-  return (0) ; }
+  abort () ; return -1; }
 
 /*
   As presolve_find_minor2, but return -1 if the entry is missing

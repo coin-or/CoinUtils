@@ -256,6 +256,10 @@ public:
   inline CoinBigIndex lengthAreaL (  ) const {
     return lengthAreaL_;
   };
+  /// Returns number in R area
+  inline CoinBigIndex numberElementsR (  ) const {
+    return lengthR_;
+  };
   /// Number of compressions done
   inline CoinBigIndex numberCompressions() const
   { return numberCompressions_;};

@@ -67,8 +67,7 @@ bool elim_doubleton (const char *msg,
 		     double bounds_factor,
 		     int row0, int icolx, int icoly)
 
-{ CoinBigIndex kcsy = mcstrt[icoly];
-  CoinBigIndex kcey = kcsy + hincol[icoly];
+{
   CoinBigIndex kcsx = mcstrt[icolx];
   CoinBigIndex kcex = kcsx + hincol[icolx];
 
@@ -82,8 +81,11 @@ bool elim_doubleton (const char *msg,
 
   The initial assert checks that we're properly updating column x.
 */
-  for (CoinBigIndex kcoly = kcsy ; kcoly < kcey ; kcoly++)
+  CoinBigIndex base = mcstrt[icoly];
+  int numberInY = hincol[icoly];
+  for (int kwhere = 0 ; kwhere < numberInY ; kwhere++)
   { PRESOLVEASSERT(kcex == kcsx+hincol[icolx]) ;
+  CoinBigIndex kcoly = base+kwhere;
 /*
   Look for coeff[row,x], then update accordingly.
 */
@@ -118,6 +120,8 @@ bool elim_doubleton (const char *msg,
 	  
       kcsx = mcstrt[icolx] ;
       kcex = mcstrt[icolx]+hincol[icolx] ;
+      // recompute y as well
+      base = mcstrt[icoly];
 
       hrow[kcex] = row ;
       colels[kcex] = delta ;
