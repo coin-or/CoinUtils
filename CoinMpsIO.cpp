@@ -16,7 +16,6 @@
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
 
-
 //#############################################################################
 // type - 0 normal, 1 INTEL IEEE, 2 other IEEE
 double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type) 
@@ -240,18 +239,8 @@ const static char *mpsTypes[] = {
 int CoinMpsCardReader::cleanCard()
 {
   char * getit;
-#ifdef COIN_USE_ZLIB
-  if (fp_) {
-    // normal file
-    getit = fgets ( card_, MAX_CARD_LENGTH, fp_ );
-  } else {
-    getit = gzgets ( gzfp_, card_, MAX_CARD_LENGTH );
-  }
-#else
-  // only normal file
-  getit = fgets ( card_, MAX_CARD_LENGTH, fp_ );
-#endif
-  
+  getit = input_->gets ( card_, MAX_CARD_LENGTH);
+
   if ( getit ) {
     cardNumber_++;
     unsigned char * lastNonBlank = (unsigned char *) card_-1;
@@ -387,8 +376,9 @@ CoinMpsCardReader::readToNextSection (  )
   }
   return section_;
 }
-// This one takes gzFile if fp null
-CoinMpsCardReader::CoinMpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * reader)
+
+CoinMpsCardReader::CoinMpsCardReader (  CoinFileInput *input, 
+					CoinMpsIO * reader)
 {
   memset ( card_, 0, MAX_CARD_LENGTH );
   position_ = card_;
@@ -397,8 +387,7 @@ CoinMpsCardReader::CoinMpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * rea
   memset ( rowName_, 0, MAX_FIELD_LENGTH );
   memset ( columnName_, 0, MAX_FIELD_LENGTH );
   value_ = 0.0;
-  fp_ = fp;
-  gzfp_ = gzfp;
+  input_ = input;
   section_ = COIN_EOF_SECTION;
   cardNumber_ = 0;
   freeFormat_ = false;
@@ -411,14 +400,7 @@ CoinMpsCardReader::CoinMpsCardReader (  FILE * fp , gzFile gzfp, CoinMpsIO * rea
 //  ~CoinMpsCardReader.  Destructor
 CoinMpsCardReader::~CoinMpsCardReader (  )
 {
-#ifdef COIN_USE_ZLIB
-  if (!fp_) {
-    // no fp_ so must be compressed read
-    gzclose(gzfp_);
-  }
-#endif
-  if (fp_)
-    fclose ( fp_ );
+  delete input_;
 }
 
 void
@@ -1329,14 +1311,35 @@ const bool CoinMpsIO::fileReadable() const
     return true;
   }
 }
+// Test if given file exists and readable
+bool fileCoinReadable(const char * fileName)
+{
+  // I am opening it to make sure not odd
+  FILE *fp;
+  if (strcmp(fileName,"stdin")) {
+    fp = fopen ( fileName, "r" );
+  } else {
+    fp = stdin;
+  }
+  if (!fp) {
+    return false;
+  } else {
+    fclose(fp);
+    return true;
+  }
+}
 // Deal with filename - +1 if new, 0 if same as before, -1 if error
 int
 CoinMpsIO::dealWithFileName(const char * filename,  const char * extension,
-		       FILE * & fp, gzFile  & gzfp)
+		       CoinFileInput * & input)
 {
-  fp=NULL;
+  if (input != 0) {
+    delete input;
+    input = 0;
+  }
+
   int goodFile=0;
-  gzfp=NULL;
+
   if (!fileName_||(filename!=NULL&&strcmp(filename,fileName_))) {
     if (filename==NULL) {
       handler_->message(COIN_MPS_FILE,messages_)<<"NULL"
@@ -1381,31 +1384,39 @@ CoinMpsIO::dealWithFileName(const char * filename,  const char * extension,
       free(fileName_);
       fileName_=strdup(newName);    
       if (strcmp(fileName_,"stdin")) {
+
+	// be clever with extensions here
+	std::string fname = fileName_;
+	bool readable;
+        readable = fileCoinReadable(fname.c_str());
 #ifdef COIN_USE_ZLIB
-	int length=strlen(fileName_);
-	if (!strcmp(fileName_+length-3,".gz")) {
-	  gzfp = gzopen(fileName_,"rb");
-	  fp = NULL;
-	  goodFile = (gzfp!=NULL);
-	} else {
-#endif
-	  fp = fopen ( fileName_, "r" );
-	  if (fp!=NULL)
-	    goodFile=1;
-#ifdef COIN_USE_ZLIB
-	  if (goodFile<0) {
-	    std::string fname(fileName_);
+	if (!readable)
+	  {
+	    fname = fileName_;
 	    fname += ".gz";
-	    gzfp = gzopen(fname.c_str(),"rb");
-	    printf("%s\n", fname.c_str());
-	    if (gzfp!=NULL)
-	      goodFile=1;
+            readable = fileCoinReadable(fname.c_str());
 	  }
-	}
 #endif
+#ifdef COIN_USE_BZLIB
+	if (!readable)
+	  {
+	    fname = fileName_;
+	    fname += ".bz2";
+            readable = fileCoinReadable(fname.c_str());
+	  }
+#endif
+
+	if (!readable)
+	  goodFile = -1;
+	else
+	  {
+	    input = CoinFileInput::create (fname);
+	    goodFile = 1;
+	  }
       } else {
-	fp = stdin;
-	goodFile = 1;
+        // only plain file at present
+        input = CoinFileInput::create ("stdin");
+        goodFile = 1;
       }
     }
   } else {
@@ -1446,14 +1457,14 @@ int CoinMpsIO::getDefaultBound() const
 int CoinMpsIO::readMps(const char * filename,  const char * extension)
 {
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
-  FILE *fp=NULL;
-  gzFile gzfp=NULL;
-  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+
+  CoinFileInput *input = 0;
+  int returnCode = dealWithFileName(filename,extension,input);
   if (returnCode<0) {
     return -1;
   } else if (returnCode>0) {
     delete cardReader_;
-    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+    cardReader_ = new CoinMpsCardReader ( input, this);
   }
   if (!extension||(strcmp(extension,"gms")&&!strstr(filename,".gms"))) {
     return readMps();
@@ -1471,14 +1482,13 @@ int CoinMpsIO::readMps(const char * filename,  const char * extension,
 		       int & numberSets,CoinSet ** &sets)
 {
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
-  FILE *fp=NULL;
-  gzFile gzfp=NULL;
-  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+  CoinFileInput *input = 0;
+  int returnCode = dealWithFileName(filename,extension,input);
   if (returnCode<0) {
     return -1;
   } else if (returnCode>0) {
     delete cardReader_;
-    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+    cardReader_ = new CoinMpsCardReader ( input, this);
   }
   return readMps(numberSets,sets);
 }
@@ -1507,12 +1517,13 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
     handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
 						  <<1
 						 <<fileName_
-						 <<CoinMessageEol;
-#ifdef COIN_USE_ZLIB
-    if (!cardReader_->filePointer()) 
-      handler_->message(COIN_MPS_BADFILE2,messages_)<<CoinMessageEol;
+						  <<CoinMessageEol;
 
-#endif
+    if (cardReader_->fileInput()->getReadType()!="plain") 
+      handler_->message(COIN_MPS_BADFILE2,messages_)
+        <<cardReader_->fileInput()->getReadType()
+        <<CoinMessageEol;
+
     return -2;
   } else if ( cardReader_->whichSection (  ) != COIN_EOF_SECTION ) {
     // save name of section
@@ -2422,8 +2433,16 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
   } else {
     // This is very simple format - what should we use?
     COINColumnIndex i;
-    FILE * fp = cardReader_->filePointer();
-    fscanf ( fp, "%d %d %d\n", &numberRows_, &numberColumns_, &i);
+    
+    /* old: 
+       FILE * fp = cardReader_->filePointer();
+       fscanf ( fp, "%d %d %d\n", &numberRows_, &numberColumns_, &i);
+    */
+    // new:
+    char buffer[1000];
+    cardReader_->fileInput ()->gets (buffer, 1000);
+    sscanf (buffer, "%d %d %d\n", &numberRows_, &numberColumns_, &i);
+
     numberElements_  = i; // done this way in case numberElements_ long
 
     rowlower_ = ( double * ) malloc ( numberRows_ * sizeof ( double ) );
@@ -2431,7 +2450,11 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
     for ( i = 0; i < numberRows_; i++ ) {
       int j;
 
-      fscanf ( fp, "%d %lg %lg\n", &j, &rowlower_[i], &rowupper_[i] );
+      // old: fscanf ( fp, "%d %lg %lg\n", &j, &rowlower_[i], &rowupper_[i] );
+      // new:
+      cardReader_->fileInput ()->gets (buffer, 1000);
+      sscanf (buffer, "%d %lg %lg\n", &j, &rowlower_[i], &rowupper_[i] );
+
       assert ( i == j );
     }
     collower_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
@@ -2448,12 +2471,27 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
       int j;
       int n;
 
-      fscanf ( fp, "%d %d %lg %lg %lg\n", &j, &n, &collower_[i], &colupper_[i],
-	       &objective_[i] );
+      /* old:
+	 fscanf ( fp, "%d %d %lg %lg %lg\n", &j, &n, 
+	          &collower_[i], &colupper_[i],
+	          &objective_[i] );
+      */
+      // new: 
+      cardReader_->fileInput ()->gets (buffer, 1000);
+      sscanf (buffer, "%d %d %lg %lg %lg\n", &j, &n, 
+	      &collower_[i], &colupper_[i], &objective_[i] );
+
       assert ( i == j );
       for ( j = 0; j < n; j++ ) {
-	fscanf ( fp, "       %d %lg\n", &row[numberElements_],
+	/* old:
+	   fscanf ( fp, "       %d %lg\n", &row[numberElements_],
 		 &element[numberElements_] );
+	*/
+	// new: 
+	cardReader_->fileInput ()->gets (buffer, 1000);
+	sscanf (buffer, "       %d %lg\n", &row[numberElements_],
+		 &element[numberElements_] );
+
 	numberElements_++;
       }
       start[i + 1] = numberElements_;
@@ -2687,14 +2725,13 @@ int CoinMpsIO::readGms(const char * filename,  const char * extension,bool conve
 {
   convertObjective_=convertObjective;
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
-  FILE *fp=NULL;
-  gzFile gzfp=NULL;
-  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+  CoinFileInput *input = 0;
+  int returnCode = dealWithFileName(filename,extension,input);
   if (returnCode<0) {
     return -1;
   } else if (returnCode>0) {
     delete cardReader_;
-    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+    cardReader_ = new CoinMpsCardReader ( input, this);
   }
   int numberSets=0;
   CoinSet ** sets=NULL;
@@ -2708,14 +2745,13 @@ int CoinMpsIO::readGms(const char * filename,  const char * extension,
 		       int & numberSets,CoinSet ** &sets)
 {
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
-  FILE *fp=NULL;
-  gzFile gzfp=NULL;
-  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+  CoinFileInput *input = 0;
+  int returnCode = dealWithFileName(filename,extension,input);
   if (returnCode<0) {
     return -1;
   } else if (returnCode>0) {
     delete cardReader_;
-    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+    cardReader_ = new CoinMpsCardReader ( input, this);
   }
   return readGms(numberSets,sets);
 }
@@ -3096,14 +3132,13 @@ CoinMpsIO::readBasis(const char *filename, const char *extension ,
 		     const std::vector<std::string> & rownames, int numberRows)
 {
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
-  FILE *fp=NULL;
-  gzFile gzfp=NULL;
-  int returnCode = dealWithFileName(filename,extension,fp,gzfp);
+  CoinFileInput *input = 0;
+  int returnCode = dealWithFileName(filename,extension,input);
   if (returnCode<0) {
     return -1;
   } else if (returnCode>0) {
     delete cardReader_;
-    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+    cardReader_ = new CoinMpsCardReader ( input, this);
   }
 
   cardReader_->readToNextSection();
@@ -3118,11 +3153,11 @@ CoinMpsIO::readBasis(const char *filename, const char *extension ,
 						  <<1
 						 <<fileName_
 						 <<CoinMessageEol;
-#ifdef COIN_USE_ZLIB
-    if (!cardReader_->filePointer()) 
-      handler_->message(COIN_MPS_BADFILE2,messages_)<<CoinMessageEol;
+    if (cardReader_->fileInput()->getReadType()!="plain") 
+      handler_->message(COIN_MPS_BADFILE2,messages_)
+        <<cardReader_->fileInput()->getReadType()
+        <<CoinMessageEol;
 
-#endif
     return -2;
   } else if ( cardReader_->whichSection (  ) != COIN_EOF_SECTION ) {
     return -4;
@@ -3478,21 +3513,16 @@ CoinConvertDouble(int section, int formatType, double value, char outputValue[20
   }
 }
 static void
-writeString(FILE* fp, gzFile gzfp, const char* str)
+writeString(CoinFileOutput *output, const char* str)
 {
-   if (fp) {
-      fprintf(fp, "%s", str);
+   if (output != 0) {
+      output->puts (str);
    }
-#ifdef COIN_USE_ZLIB
-   if (gzfp) {
-      gzprintf(gzfp, "%s", str);
-   }
-#endif
 }
 
 // Put out card image
 static void outputCard(int formatType,int numberFields,
-		       FILE *fp, gzFile gzfp,
+		       CoinFileOutput *output,
 		       std::string head, const char * name,
 		       const char outputValue[2][24],
 		       const char outputRow[2][100])
@@ -3537,7 +3567,7 @@ static void outputCard(int formatType,int numberFields,
    
    // fprintf(fp,"\n");
    line += "\n";
-   writeString(fp, gzfp, line.c_str());
+   writeString(output, line.c_str());
 }
 
 int
@@ -3552,32 +3582,26 @@ CoinMpsIO::writeMps(const char *filename, int compression,
   formatType=CoinMin(2,formatType);
   
    std::string line = filename;
-   FILE * fp = NULL;
-   gzFile gzfp = NULL;
+   CoinFileOutput *output = 0;
    switch (compression) {
    case 1:
-#ifdef COIN_USE_ZLIB
-      {
-	 if (strcmp(line.c_str() +(line.size()-3), ".gz") != 0) {
-	    line += ".gz";
-	 }
-	 gzfp = gzopen(line.c_str(), "wb");
-	 if (gzfp) {
-	    break;
-	 }
-      }
-#endif
-      fp = fopen(filename,"w");
-      if (!fp)
-	 return -1;
-      break;
+     if (strcmp(line.c_str() +(line.size()-3), ".gz") != 0) {
+       line += ".gz";
+     }
+     output = CoinFileOutput::create (line, CoinFileOutput::COMPRESS_GZIP);
+     break;
 
-   case 2: /* bzip2: to be implemented */
+   case 2:
+     if (strcmp(line.c_str() +(line.size()-4), ".bz2") != 0) {
+       line += ".bz2";
+     }
+     output = CoinFileOutput::create (line, CoinFileOutput::COMPRESS_BZIP2);
+     break;
+
    case 0:
-      fp = fopen(filename,"w");
-      if (!fp)
-	 return -1;
-      break;
+   default:
+     output = CoinFileOutput::create (line, CoinFileOutput::COMPRESS_NONE);
+     break;
    }
 
    const char * const * const rowNames = names_[0];
@@ -3638,7 +3662,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    }
    // finish off name and do ROWS card and objective 
    line.append("\nROWS\n N  OBJROW\n");
-   writeString(fp, gzfp, line.c_str());
+   writeString(output, line.c_str());
 
    // Rows section
    // Sense array
@@ -3668,11 +3692,11 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       line.append("  ");
       line.append(rowNames[i]);
       line.append("\n");
-      writeString(fp, gzfp, line.c_str());
+      writeString(output, line.c_str());
    }
 
    // COLUMNS card
-   writeString(fp, gzfp, "COLUMNS\n");
+   writeString(output, "COLUMNS\n");
 
    bool ifBounds=false;
    double largeValue = infinity_;
@@ -3705,7 +3729,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 if (numberFields==numberAcross) {
 	    // put out card
 	    outputCard(formatType, numberFields,
-		       fp, gzfp, "    ",
+		       output, "    ",
 		       columnNames[i],
 		       outputValue,
 		       outputRow);
@@ -3721,7 +3745,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	    if (numberFields==numberAcross) {
 	       // put out card
 	       outputCard(formatType, numberFields,
-			  fp, gzfp, "    ",
+			  output, "    ",
 			  columnNames[i],
 			  outputValue,
 			  outputRow);
@@ -3731,7 +3755,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 if (numberFields) {
 	    // put out card
 	    outputCard(formatType, numberFields,
-		       fp, gzfp, "    ",
+		       output, "    ",
 		       columnNames[i],
 		       outputValue,
 		       outputRow);
@@ -3741,7 +3765,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 
    bool ifRange=false;
    // RHS
-   writeString(fp, gzfp, "RHS\n");
+   writeString(output, "RHS\n");
 
    int numberFields = 0;
    // If there is any offset - then do that
@@ -3754,7 +3778,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
      if (numberFields==numberAcross) {
        // put out card
        outputCard(formatType, numberFields,
-		  fp, gzfp, "    ",
+		  output, "    ",
 		  "RHS",
 		  outputValue,
 		  outputRow);
@@ -3790,7 +3814,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 if (numberFields==numberAcross) {
 	    // put out card
 	    outputCard(formatType, numberFields,
-		       fp, gzfp, "    ",
+		       output, "    ",
 		       "RHS",
 		       outputValue,
 		       outputRow);
@@ -3801,7 +3825,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    if (numberFields) {
       // put out card
       outputCard(formatType, numberFields,
-		 fp, gzfp, "    ",
+		 output, "    ",
 		 "RHS",
 		 outputValue,
 		 outputRow);
@@ -3809,7 +3833,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 
    if (ifRange) {
       // RANGES
-      writeString(fp, gzfp, "RANGES\n");
+      writeString(output, "RANGES\n");
 
       numberFields = 0;
       for (i=0;i<numberRows_;i++) {
@@ -3824,7 +3848,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	      if (numberFields==numberAcross) {
 		// put out card
 		outputCard(formatType, numberFields,
-			   fp, gzfp, "    ",
+			   output, "    ",
 			   "RANGE",
 			   outputValue,
 			   outputRow);
@@ -3836,7 +3860,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       if (numberFields) {
 	 // put out card
 	 outputCard(formatType, numberFields,
-		    fp, gzfp, "    ",
+		    output, "    ",
 		    "RANGE",
 		    outputValue,
 		    outputRow);
@@ -3845,7 +3869,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    delete [] sense;
    if (ifBounds) {
       // BOUNDS
-      writeString(fp, gzfp, "BOUNDS\n");
+      writeString(output, "BOUNDS\n");
 
       for (i=0;i<numberColumns_;i++) {
 	 if (objective[i]||lengths[i]) {
@@ -3921,7 +3945,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 				outputRow[0]);
 		  // put out card
 		  outputCard(formatType, 1,
-			     fp, gzfp, header[j],
+			     output, header[j],
 			     "BOUND",
 			     outputValue,
 			     outputRow);
@@ -3934,7 +3958,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    // do any quadratic part
    if (quadratic) {
 
-     writeString(fp, gzfp, "QUADOBJ\n");
+     writeString(output, "QUADOBJ\n");
 
      const int * columnQuadratic = quadratic->getIndices();
      const CoinBigIndex * columnQuadraticStart = quadratic->getVectorStarts();
@@ -3954,7 +3978,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	 if (numberFields==numberAcross) {
 	   // put out card
 	   outputCard(formatType, numberFields,
-		      fp, gzfp, "    ",
+		      output, "    ",
 		      columnNames[iColumn],
 		      outputValue,
 		      outputRow);
@@ -3964,7 +3988,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
        if (numberFields) {
 	 // put out card
 	 outputCard(formatType, numberFields,
-		    fp, gzfp, "    ",
+		    output, "    ",
 		    columnNames[iColumn],
 		    outputValue,
 		    outputRow);
@@ -3974,17 +3998,9 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 
    // and finish
 
-   writeString(fp, gzfp, "ENDATA\n");
+   writeString(output, "ENDATA\n");
 
-   if (fp) {
-      fclose(fp);
-   }
-#ifdef COIN_USE_ZLIB
-   if (gzfp) {
-      gzclose(gzfp);
-   }
-#endif
-
+   delete output;
    return 0;
 }
    
@@ -4576,7 +4592,7 @@ colupper_(NULL),
 objective_(NULL),
 objectiveOffset_(0.0),
 integerType_(NULL),
-fileName_(strdup("stdin")),
+fileName_(strdup("????")),
 defaultBound_(1),
 infinity_(COIN_DBL_MAX),
 defaultHandler_(true),
@@ -4618,7 +4634,7 @@ colupper_(NULL),
 objective_(NULL),
 objectiveOffset_(0.0),
 integerType_(NULL),
-fileName_(strdup("stdin")),
+fileName_(strdup("????")),
 defaultBound_(1),
 infinity_(COIN_DBL_MAX),
 defaultHandler_(true),
@@ -4828,14 +4844,13 @@ CoinMpsIO::readQuadraticMps(const char * filename,
 			    int checkSymmetry)
 {
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
-  FILE *fp=NULL;
-  gzFile gzfp=NULL;
-  int returnCode = dealWithFileName(filename,"",fp,gzfp);
+  CoinFileInput *input = 0;
+  int returnCode = dealWithFileName(filename,"",input);
   if (returnCode<0) {
     return -1;
   } else if (returnCode>0) {
     delete cardReader_;
-    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+    cardReader_ = new CoinMpsCardReader ( input, this);
   }
   // See if QUADOBJ just found
   if (!filename&&cardReader_->whichSection (  ) == COIN_QUAD_SECTION ) {
@@ -5052,14 +5067,13 @@ CoinMpsIO::readConicMps(const char * filename,
 		     int * &columnStart, int * &column, int & numberCones)
 {
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
-  FILE *fp=NULL;
-  gzFile gzfp=NULL;
-  int returnCode = dealWithFileName(filename,"",fp,gzfp);
+  CoinFileInput *input = 0;
+  int returnCode = dealWithFileName(filename,"",input);
   if (returnCode<0) {
     return -1;
   } else if (returnCode>0) {
     delete cardReader_;
-    cardReader_ = new CoinMpsCardReader ( fp , gzfp, this);
+    cardReader_ = new CoinMpsCardReader ( input, this);
   }
 
   cardReader_->readToNextSection();

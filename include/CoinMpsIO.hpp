@@ -8,12 +8,7 @@
 
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessageHandler.hpp"
-#ifdef COIN_USE_ZLIB
-#include "zlib.h"
-#else
-/* just to make the code much nicer (no need for so many ifdefs */
-typedef void* gzFile;
-#endif
+#include "CoinFileIO.hpp"
 
 // Plus infinity
 #ifndef COIN_DBL_MAX
@@ -60,7 +55,7 @@ public:
   //@{
   /// Constructor expects file to be open 
   /// This one takes gzFile if fp null
-  CoinMpsCardReader ( FILE * fp, gzFile gzfp, CoinMpsIO * reader );
+  CoinMpsCardReader ( CoinFileInput *input, CoinMpsIO * reader );
 
   /// Destructor
   ~CoinMpsCardReader (  );
@@ -138,9 +133,9 @@ public:
   inline CoinBigIndex cardNumber (  ) const {
     return cardNumber_;
   };
-  /// Returns file pointer
-  inline FILE * filePointer (  ) const {
-    return fp_;
+  /// Returns file input
+  inline CoinFileInput * fileInput (  ) const {
+    return input_;
   };
   //@}
 
@@ -163,10 +158,8 @@ protected:
   char rowName_[MAX_FIELD_LENGTH];
   /// Current column name
   char columnName_[MAX_FIELD_LENGTH];
-  /// File pointer
-  FILE *fp_;
-  /// Compressed file object
-  gzFile gzfp_;
+  /// File input
+  CoinFileInput *input_;
   /// Which section we think we are in
   COINSectionType section_;
   /// Card number
@@ -837,7 +830,7 @@ protected:
   */
 
   int dealWithFileName(const char * filename,  const char * extension,
-		       FILE * & fp, gzFile  & gzfp); 
+		       CoinFileInput * &input); 
   //@}
 
   
