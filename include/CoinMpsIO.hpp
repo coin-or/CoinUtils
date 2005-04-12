@@ -543,9 +543,6 @@ public:
     /// Get the current file name for the CoinMpsIO object
     const char * getFileName() const;
 
-    /// Test if a file with the currrent file name exists and is readable
-    const bool fileReadable() const;
-
     /** Read a problem in MPS format from the given filename.
 
       Use "stdin" or "-" to read from stdin.

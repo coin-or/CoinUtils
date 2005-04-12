@@ -1294,40 +1294,6 @@ const char * CoinMpsIO::getFileName() const
 {
   return fileName_;
 }
-// Test if current file exists and readable
-const bool CoinMpsIO::fileReadable() const
-{
-  // I am opening it to make sure not odd
-  FILE *fp;
-  if (strcmp(fileName_,"stdin")) {
-    fp = fopen ( fileName_, "r" );
-  } else {
-    fp = stdin;
-  }
-  if (!fp) {
-    return false;
-  } else {
-    fclose(fp);
-    return true;
-  }
-}
-// Test if given file exists and readable
-bool fileCoinReadable(const char * fileName)
-{
-  // I am opening it to make sure not odd
-  FILE *fp;
-  if (strcmp(fileName,"stdin")) {
-    fp = fopen ( fileName, "r" );
-  } else {
-    fp = stdin;
-  }
-  if (!fp) {
-    return false;
-  } else {
-    fclose(fp);
-    return true;
-  }
-}
 // Deal with filename - +1 if new, 0 if same as before, -1 if error
 int
 CoinMpsIO::dealWithFileName(const char * filename,  const char * extension,
@@ -1387,25 +1353,7 @@ CoinMpsIO::dealWithFileName(const char * filename,  const char * extension,
 
 	// be clever with extensions here
 	std::string fname = fileName_;
-	bool readable;
-        readable = fileCoinReadable(fname.c_str());
-#ifdef COIN_USE_ZLIB
-	if (!readable)
-	  {
-	    fname = fileName_;
-	    fname += ".gz";
-            readable = fileCoinReadable(fname.c_str());
-	  }
-#endif
-#ifdef COIN_USE_BZLIB
-	if (!readable)
-	  {
-	    fname = fileName_;
-	    fname += ".bz2";
-            readable = fileCoinReadable(fname.c_str());
-	  }
-#endif
-
+	bool readable = fileCoinReadable(fname);
 	if (!readable)
 	  goodFile = -1;
 	else

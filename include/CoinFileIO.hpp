@@ -125,5 +125,8 @@ public:
     return puts (s.c_str ());
   } 
 };
-
+/* Tests if file readable and may change name to add 
+   compression extension.  Here to get ZLIB etc in one place
+*/
+bool fileCoinReadable(std::string & name);
 #endif

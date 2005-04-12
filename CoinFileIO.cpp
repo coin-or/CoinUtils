@@ -566,4 +566,41 @@ bool CoinFileOutput::puts (const char *s)
 
   return write (s, len) == len;
 }
+/* Tests if file readable and may change name to add 
+   compression extension.  Here to get ZLIB etc in one place
+*/
+bool fileCoinReadable(std::string & fileName)
+{
+  // I am opening it to make sure not odd
+  FILE *fp;
+  if (strcmp(fileName.c_str(),"stdin")) {
+    fp = fopen ( fileName.c_str(), "r" );
+  } else {
+    fp = stdin;
+  }
+#ifdef COIN_USE_ZLIB
+  if (!fp) {
+    std::string fname = fileName;
+    fname += ".gz";
+    fp = fopen ( fname.c_str(), "r" );
+    if (fp)
+      fileName=fname;
+  }
+#endif
+#ifdef COIN_USE_BZLIB
+  if (!fp) {
+    std::string fname = fileName;
+    fname += ".bz2";
+    fp = fopen ( fname.c_str(), "r" );
+    if (fp)
+      fileName=fname;
+  }
+#endif
+  if (!fp) {
+    return false;
+  } else {
+    fclose(fp);
+    return true;
+  }
+}
 
