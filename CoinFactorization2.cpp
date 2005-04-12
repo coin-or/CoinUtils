@@ -412,7 +412,7 @@ int CoinFactorization::factorDense()
     lastRow_[i]=0;
   int * indexRow = indexRowU_;
   double * element = elementU_;
-  for (int i=0;i<numberGoodU_;i++) {
+  for ( i=0;i<numberGoodU_;i++) {
     int iRow=pivotRowL_[i];
     lastRow_[iRow]=-1;
   } 
