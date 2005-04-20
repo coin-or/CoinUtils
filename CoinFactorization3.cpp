@@ -116,9 +116,9 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
   //can take out last bit of sparse L as empty
   last -= numberDense_;
 #endif
-  // use sparse_ as temporary area
   // mark known to be zero
-  CoinCheckZero * mark = (CoinCheckZero *) (sparse_);
+  int nInBig = sizeof(CoinBigIndex)/sizeof(int);
+  CoinCheckZero * mark = (CoinCheckZero *) (sparse_+(2+nInBig)*maximumRowsExtra_);
   int smallestIndex = numberRowsExtra_;
   // do easy ones
   for (k=0;k<number;k++) {
@@ -1003,9 +1003,9 @@ CoinFactorization::updateColumnTransposeUSparsish
   
   const int *numberInRow = numberInRow_;
   
-  // use sparse_ as temporary area
   // mark known to be zero
-  CoinCheckZero * mark = (CoinCheckZero *) (sparse_);
+  int nInBig = sizeof(CoinBigIndex)/sizeof(int);
+  CoinCheckZero * mark = (CoinCheckZero *) (sparse_+(2+nInBig)*maximumRowsExtra_);
 
   for (i=0;i<numberNonZero;i++) {
     int iPivot=regionIndex[i];
@@ -1380,9 +1380,9 @@ CoinFactorization::updateColumnTransposeLSparsish
   const int * column = indexColumnL_;
   int i;
   CoinBigIndex j;
-  // use sparse_ as temporary area
   // mark known to be zero
-  CoinCheckZero * mark = (CoinCheckZero *) (sparse_);
+  int nInBig = sizeof(CoinBigIndex)/sizeof(int);
+  CoinCheckZero * mark = (CoinCheckZero *) (sparse_+(2+nInBig)*maximumRowsExtra_);
   for (i=0;i<numberNonZero;i++) {
     int iPivot=regionIndex[i];
     int iWord = iPivot>>CHECK_SHIFT;
