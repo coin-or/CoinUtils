@@ -1118,7 +1118,10 @@ hash ( const char *name, int maxsiz, int length )
   }
   return ( abs ( n ) % maxsiz );	/* integer abs */
 }
-
+// Define below if you are reading a Cnnnnnn file 
+// Will not do row names (for electricfence)
+//#define NONAMES
+#ifndef NONAMES
 //  startHash.  Creates hash list for names
 void
 CoinMpsIO::startHash ( char **names, const COINColumnIndex number , int section )
@@ -1261,7 +1264,36 @@ CoinMpsIO::findHash ( const char *name , int section ) const
   }
   return found;
 }
+#else
+// Version when we know images are C/Rnnnnnn
+//  startHash.  Creates hash list for names
+void
+CoinMpsIO::startHash ( char **names, const COINColumnIndex number , int section )
+{
+  numberHash_[section] = number;
+  names_[section] = names;
+}
+void
+CoinMpsIO::startHash ( int section ) const
+{
+}
 
+//  stopHash.  Deletes hash storage
+void
+CoinMpsIO::stopHash ( int section )
+{
+}
+
+//  findHash.  -1 not found
+COINColumnIndex
+CoinMpsIO::findHash ( const char *name , int section ) const
+{
+  COINColumnIndex found = atoi(name+1);
+  if (!strcmp(name,"OBJROW"))
+    found = numberHash_[section]-1;
+  return found;
+}
+#endif
 //------------------------------------------------------------------
 // Get value for infinity
 //------------------------------------------------------------------
@@ -1490,7 +1522,6 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 
   int numberErrors = 0;
   int i;
-
   if ( ifmps ) {
     // mps file - always read in free format
     bool gotNrow = false;
@@ -1577,7 +1608,9 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    ( char ** ) realloc ( rowName, maxRows * sizeof ( char * ) );
 	}
 	rowType[numberRows_] = cardReader_->mpsType (  );
+#ifndef NONAMES
 	rowName[numberRows_] = strdup ( cardReader_->columnName (  ) );
+#endif
 	numberRows_++;
 	break;
       default:
@@ -1613,11 +1646,15 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 			    ( numberRows_ + 1 +
 
 			      numberOtherFreeRows ) * sizeof ( char * ) );
+#ifndef NONAMES
     rowName[numberRows_] = strdup(objectiveName_);
     memcpy ( rowName + numberRows_ + 1, freeRowName,
 	     numberOtherFreeRows * sizeof ( char * ) );
     // now we can get rid of this array
     free(freeRowName);
+#else
+    memset(rowName,0,(numberRows_+1)*sizeof(char **));
+#endif
 
     startHash ( rowName, numberRows_ + 1 + numberOtherFreeRows , 0 );
     COINColumnIndex maxColumns = 1000 + numberRows_ / 5;
@@ -1693,7 +1730,11 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    columnType[column] = COIN_INTORG;
 	    numberIntegers++;
 	  }
+#ifndef NONAMES
 	  columnName[column] = strdup ( cardReader_->columnName (  ) );
+#else
+          columnName[column]=NULL;
+#endif
 	  strcpy ( lastColumn, cardReader_->columnName (  ) );
 	  objective_[column] = 0.0;
 	  start[column] = numberElements_;
@@ -3528,8 +3569,21 @@ CoinMpsIO::writeMps(const char *filename, int compression,
   numberAcross=CoinMin(2,numberAcross);
   formatType=CoinMax(0,formatType);
   formatType=CoinMin(2,formatType);
-  
-   std::string line = filename;
+  int possibleCompression=0;
+#ifdef COIN_USE_ZLIB
+  possibleCompression =1;
+#endif
+#ifdef COIN_USE_BZLIB
+  possibleCompression += 2;
+#endif
+  if ((compression&possibleCompression)==0) {
+    // switch to other if possible
+    if (compression&&possibleCompression)
+      compression = 3-compression;
+    else
+      compression=0;
+  }
+  std::string line = filename;
    CoinFileOutput *output = 0;
    switch (compression) {
    case 1:
@@ -4248,6 +4302,7 @@ CoinMpsIO::setMpsDataColAndRowNames(
        sprintf(rowNames[i],"R%7.7d",i);
      }
    }
+#ifndef NONAMES
    if (colnames) {
      for (i = 0 ; i < numberColumns_; ++i) {
        if (colnames[i]) {
@@ -4263,6 +4318,18 @@ CoinMpsIO::setMpsDataColAndRowNames(
        sprintf(columnNames[i],"C%7.7d",i);
      }
    }
+#else
+   const double * objective = getObjCoefficients();
+   const CoinPackedMatrix * matrix = getMatrixByCol();
+   const int * lengths = matrix->getVectorLengths();
+   int k=0;
+   for (i = 0 ; i < numberColumns_; ++i) {
+     columnNames[i] = (char *) malloc (9 * sizeof(char));
+     sprintf(columnNames[i],"C%7.7d",k);
+     if (objective[i]||lengths[i])
+       k++;
+     }
+#endif
 }
 
 void
