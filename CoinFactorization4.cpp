@@ -664,9 +664,9 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
     start = startColumnU_[iRow];
     numberIn = numberInColumn_[iRow];
     CoinMemcpyN ( other.indexRowU_ + start, numberIn, indexRowU_ + start );
-    CoinMemcpyN ( other.startColumnL_, numberRows_ + 1, startColumnL_ );
   }
   // L is contiguous
+  CoinMemcpyN ( other.startColumnL_, numberRows_ + 1, startColumnL_ );
   CoinMemcpyN ( other.elementL_, lengthL_, elementL_ );
   CoinMemcpyN ( other.indexRowL_, lengthL_, indexRowL_ );
   if (other.sparseThreshold_) {
