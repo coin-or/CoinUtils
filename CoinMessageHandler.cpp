@@ -174,7 +174,8 @@ void
 CoinMessages::setDetailMessage(int newLevel, int messageNumber)
 {
   int i;
-  for (i=0;i<numberMessages_;i++) {
+  // Last message is null (corresponds to DUMMY)
+  for (i=0;i<numberMessages_-1;i++) {
     if (message_[i]->externalNumber()==messageNumber) {
       message_[i]->setDetail(newLevel);
       break;
