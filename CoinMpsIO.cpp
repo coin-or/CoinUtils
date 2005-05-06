@@ -1414,7 +1414,7 @@ double CoinMpsIO::objectiveOffset() const
 {
   return objectiveOffset_;
 }
-#define MAX_INTEGER 1000000
+#define MAX_INTEGER 1.0e30
 // Sets default upper bound for integer variables
 void CoinMpsIO::setDefaultBound(int value)
 {
@@ -2180,6 +2180,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    } else {
 	      ifError = true;
 	    }
+            if (value>1.0e25)
+              value=infinity_;
 	    colupper_[icolumn] = value;
 	    columnType[icolumn] = COIN_UP_BOUND;
 	    break;
@@ -2197,6 +2199,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    } else {
 	      ifError = true;
 	    }
+            if (value<-1.0e25)
+              value=-infinity_;
 	    collower_[icolumn] = value;
 	    columnType[icolumn] = COIN_LO_BOUND;
 	    break;
@@ -2274,7 +2278,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	       }
 	    } else {
 	       if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
-	       } else if ( columnType[icolumn] == COIN_LO_BOUND ) {
+	       } else if ( columnType[icolumn] == COIN_LO_BOUND ||
+                           columnType[icolumn] == COIN_MI_BOUND ) {
 		  if ( value < collower_[icolumn] ) {
 		     ifError = true;
 		  } else if ( value < collower_[icolumn] + tinyElement ) {
@@ -2285,6 +2290,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	       }
 	    }
 #endif
+            if (value>1.0e25)
+              value=infinity_;
 	    colupper_[icolumn] = value;
 	    columnType[icolumn] = COIN_UI_BOUND;
 	    if ( !integerType_[icolumn] ) {
@@ -2401,7 +2408,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 
       for ( icolumn = 0; icolumn < numberColumns_; icolumn++ ) {
 	if ( integerType_[icolumn] ) {
-	  assert ( collower_[icolumn] >= -MAX_INTEGER );
+	  collower_[icolumn] = CoinMax( collower_[icolumn] , -MAX_INTEGER );
 	  // if 0 infinity make 0-1 ???
 	  if ( columnType[icolumn] == COIN_UNSET_BOUND ) 
 	    colupper_[icolumn] = defaultBound_;
@@ -2611,7 +2618,7 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
         element[numberElements_++]=el[i];
       }
       if (keepNames) {
-        strcpy(name,mpl_get_col_name(gmpl,iRow+1));
+        strcpy(name,mpl_get_row_name(gmpl,iRow+1));
         // could look at name?
         names[kRow]=strdup(name);
       }
@@ -2673,7 +2680,9 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
     if (columnType==MPL_INT) {
       integerType_[iColumn]=1;
       numberIntegers++;
-      assert ( collower_[iColumn] >= -MAX_INTEGER );
+      //assert ( collower_[iColumn] >= -MAX_INTEGER );
+      if ( collower_[iColumn] < -MAX_INTEGER ) 
+        collower_[iColumn] = -MAX_INTEGER;
       if ( colupper_[iColumn] > MAX_INTEGER ) 
         colupper_[iColumn] = MAX_INTEGER;
     } else if (columnType==MPL_BIN) {
@@ -3077,7 +3086,9 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     COINColumnIndex iColumn;
     for ( iColumn = 0; iColumn < numberColumns_; iColumn++ ) {
       if ( integerType_[iColumn] ) {
-        assert ( collower_[iColumn] >= -MAX_INTEGER );
+        //assert ( collower_[iColumn] >= -MAX_INTEGER );
+        if ( collower_[iColumn] < -MAX_INTEGER ) 
+          collower_[iColumn] = -MAX_INTEGER;
         if ( colupper_[iColumn] > MAX_INTEGER ) 
           colupper_[iColumn] = MAX_INTEGER;
       }
@@ -3881,22 +3892,28 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 	      double upperValue = columnUpper[i];
 	      if (isInteger(i)) {
 		// Old argument - what are correct ranges for integer variables
-		lowerValue = CoinMax(lowerValue,(double) -INT_MAX);
-		upperValue = CoinMin(upperValue,(double) INT_MAX);
+		lowerValue = CoinMax(lowerValue,(double) -MAX_INTEGER);
+		upperValue = CoinMin(upperValue,(double) MAX_INTEGER);
 	      }
 	       int numberFields=1;
 	       std::string header[2];
 	       double value[2];
 	       if (lowerValue<=-largeValue) {
 		  // FR or MI
-		  if (upperValue>=largeValue) {
+		  if (upperValue>=largeValue&&!isInteger(i)) {
 		     header[0]=" FR ";
 		     value[0] = largeValue;
 		  } else {
 		     header[0]=" MI ";
-		     value[0] = largeValue;
-		     header[1]=" UP ";
-		     value[1] = upperValue;
+		     value[0] = -largeValue;
+                     if (!isInteger(i))
+                       header[1]=" UP ";
+                     else
+                       header[1]=" UI ";
+                     if (upperValue<largeValue) 
+                       value[1] = upperValue;
+                     else
+                       value[1] = largeValue;
 		     numberFields=2;
 		  }
 	       } else if (fabs(upperValue-lowerValue)<1.0e-8) {
@@ -3911,7 +3928,10 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 		     if (isInteger(i)) {
 			// Integer variable so UI
 			header[1]=" UI ";
-			value[1] = upperValue;
+                        if (upperValue<largeValue) 
+                          value[1] = upperValue;
+                        else
+                          value[1] = largeValue;
 			numberFields=2;
 		     } else if (upperValue<largeValue) {
 			// UP
@@ -3929,7 +3949,10 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 			} else {
 			   // UI
 			   header[0]=" UI ";
-			   value[0] = upperValue;
+                           if (upperValue<largeValue) 
+                             value[0] = upperValue;
+                           else
+                             value[0] = largeValue;
 			}
 		     } else {
 			// UP

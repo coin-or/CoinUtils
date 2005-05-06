@@ -1601,7 +1601,7 @@ void
 CoinFactorization::goSparse ( )
 {
   if (!sparseThreshold_) {
-    if (numberRows_>200) {
+    if (numberRows_>500) {
       if (numberRows_<10000) {
 	sparseThreshold_=CoinMin(numberRows_/6,500);
 	sparseThreshold2_=sparseThreshold_;
@@ -1621,6 +1621,8 @@ CoinFactorization::goSparse ( )
     }
     sparseThreshold2_=sparseThreshold_;
   }
+  if (!sparseThreshold_)
+    return;
   // allow for stack, list, next and char map of mark
   int nRowIndex = (maximumRowsExtra_+sizeof(int)-1)/
     sizeof(char);

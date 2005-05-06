@@ -215,7 +215,7 @@ const CoinPresolveAction
   double *acts	= prob->acts_;
   double * sol = prob->sol_;
 
-
+  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
 # if PRESOLVE_CONSISTENCY
   presolve_consistent(prob) ;
   presolve_links_ok(prob) ;
@@ -460,7 +460,7 @@ const CoinPresolveAction
 	    double lo2 = CoinMax(clo[icolx], lo1);
 	    double up2 = CoinMin(cup[icolx], up1);
 	    if (lo2 > up2) {
-	      if (lo2 <= up2 + prob->feasibilityTolerance_) {
+	      if (lo2 <= up2 + prob->feasibilityTolerance_||fixInfeasibility) {
 		// If close to integer then go there
 		double nearest = floor(lo2+0.5);
 		if (fabs(nearest-lo2)<2.0*prob->feasibilityTolerance_) {
@@ -816,7 +816,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   in front of coefficients we've already processed.
 */
 	CoinBigIndex k = free_list;
-	assert(k >= 0 && k <= prob->bulk0_) ;
+	assert(k >= 0 && k < prob->bulk0_) ;
 	free_list = link[free_list];
 	hrow[k] = iRow;
 	colels[k] = yValue;
@@ -839,7 +839,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	double yValue = coeffy;
 
 	CoinBigIndex k = free_list;
-	assert(k >= 0 && k <= prob->bulk0_) ;
+	assert(k >= 0 && k < prob->bulk0_) ;
 	free_list = link[free_list];
 	hrow[k] = irow;
 	colels[k] = yValue;
@@ -907,7 +907,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	    djx -= rowduals[iRow] * xValue;
 	  numberInColumn++;
 	  CoinBigIndex k = free_list;
-	  assert(k >= 0 && k <= prob->bulk0_) ;
+	  assert(k >= 0 && k < prob->bulk0_) ;
 	  free_list = link[free_list];
 	  hrow[k] = iRow;
 	  PRESOLVEASSERT(rdone[hrow[k]] || hrow[k] == irow);
@@ -977,7 +977,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	double xValue = f->colel[i];
 	//printf("x %d %d %g\n",i,indx[i],f->colel[i]);
 	CoinBigIndex k = free_list;
-	assert(k >= 0 && k <= prob->bulk0_) ;
+	assert(k >= 0 && k < prob->bulk0_) ;
 	free_list = link[free_list];
 	hrow[k] = iRow;
 	colels[k] = xValue;
@@ -1003,7 +1003,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
       {
 	double xValue = coeffx;
 	CoinBigIndex k = free_list;
-	assert(k >= 0 && k <= prob->bulk0_) ;
+	assert(k >= 0 && k < prob->bulk0_) ;
 	free_list = link[free_list];
 	hrow[k] = irow;
 	colels[k] = xValue;
@@ -1037,7 +1037,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	if (fabs(yValue)>=1.0e-12) {
 	  n++;
 	  CoinBigIndex k = free_list;
-	  assert(k >= 0 && k <= prob->bulk0_) ;
+	  assert(k >= 0 && k < prob->bulk0_) ;
 	  free_list = link[free_list];
 	  hrow[k] = iRow;
 	  colels[k] = yValue;

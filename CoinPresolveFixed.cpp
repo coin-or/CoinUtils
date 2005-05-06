@@ -275,7 +275,7 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
       
       // pop free_list
       CoinBigIndex k = free_list;
-      assert(k >= 0 && k <= prob->bulk0_) ;
+      assert(k >= 0 && k < prob->bulk0_) ;
       free_list = link[free_list];
       // restore
       hrow[k] = row;

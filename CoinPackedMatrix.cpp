@@ -581,7 +581,6 @@ CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
    throw(CoinError)
 {
    int i;
-
    int* sortedIndPtr = CoinTestIndexSet(numMajor, indMajor, matrix.majorDim_,
 				       "submatrixOf");
    const int * sortedInd = sortedIndPtr == 0 ? indMajor : sortedIndPtr;
@@ -611,6 +610,45 @@ CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
    }
 
    delete[] sortedIndPtr;
+}
+
+//#############################################################################
+
+void
+CoinPackedMatrix::submatrixOfWithDuplicates(const CoinPackedMatrix& matrix,
+			     const int numMajor, const int * indMajor)
+   throw(CoinError)
+{
+   int i;
+   // we should allow duplicates - can be useful
+   for (i=0; i<numMajor;i++) {
+     if (indMajor[i]<0||indMajor[i]>=matrix.majorDim_)
+       throw CoinError("bad index", "submatrixOfWithDuplicates", "CoinPackedMatrix");
+   }
+   gutsOfDestructor();
+
+   // Count how many nonzeros there'll be
+   CoinBigIndex nzcnt = 0;
+   const int* length = matrix.getVectorLengths();
+   for (i = 0; i < numMajor; ++i) {
+      nzcnt += length[indMajor[i]];
+   }
+
+   colOrdered_ = matrix.colOrdered_;
+   maxMajorDim_ = int(numMajor * (1+extraMajor_) + 1);
+   maxSize_ = (CoinBigIndex) (nzcnt * (1+extraMajor_) * (1+extraGap_) + 100);
+   length_ = new int[maxMajorDim_];
+   start_ = new CoinBigIndex[maxMajorDim_+1];
+   index_ = new int[maxSize_];
+   element_ = new double[maxSize_];
+   majorDim_ = 0;
+   minorDim_ = matrix.minorDim_;
+   size_ = 0;
+
+   for (i = 0; i < numMajor; ++i) {
+      appendMajorVector(matrix.getVector(indMajor[i]));
+   }
+
 }
 
 //#############################################################################

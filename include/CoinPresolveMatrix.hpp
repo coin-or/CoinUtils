@@ -34,7 +34,7 @@
   OSL had a fixed zero tolerance; we still use that here.
 */
 const double ZTOLDP      = 1e-12;
-
+//#define PRESOLVE_DEBUG 1
 // Debugging macros/functions
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
@@ -52,7 +52,7 @@ inline void DIE(const char *s)	{ std::cout<<s; abort(); }
 
 #else
 
-#define PRESOLVEASSERT(x)
+#define PRESOLVEASSERT(x) 
 #define	PRESOLVE_STMT(s)
 
 inline void DIE(const char *s)	{}
@@ -261,7 +261,8 @@ class CoinPrePostsolveMatrix
   CoinPrePostsolveMatrix(const ClpSimplex * si,
 			int ncols_,
 			int nrows_,
-			CoinBigIndex nelems_);
+			CoinBigIndex nelems_,
+                         double bulkRatio);
 
   /// Destructor
   ~CoinPrePostsolveMatrix();
@@ -524,6 +525,8 @@ class CoinPrePostsolveMatrix
     2*nelems0_.
   */
   CoinBigIndex bulk0_ ;
+  /// Ratio of bulk0- to nelems0_
+  double bulkRatio_;
   //@}
 
   /*! \name Problem representation
@@ -786,7 +789,8 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
 		    int nrows,
 		    CoinBigIndex nelems,
 		 bool doStatus,
-		 double nonLinearVariable);
+		 double nonLinearVariable,
+                     double bulkRatio);
 
   /*! \brief Update the model held by a Clp OSI */
   void update_model(ClpSimplex * si,
@@ -1004,6 +1008,15 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   inline void setPass (int pass = 0)
   { pass_ = pass ; }
 
+  /*! \brief Maximum substitution level
+
+    Used to control the execution of subst from implied_free
+  */
+  int maxSubstLevel_;
+  /// Set Maximum substitution level (normally 3)
+  inline void setMaximumSubstitutionLevel (int level)
+  { maxSubstLevel_ = level ; }
+
 
   /*! \name Row and column processing status
 
@@ -1057,6 +1070,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   int numberNextRowsToDo_;
   /** Presolve options
       1 set if allow duplicate column tests for integer variables
+      2 set to allow code to try and fix infeasibilities
   */
   int presolveOptions_;
   /*! Flag to say if any rows or columns are marked as prohibited

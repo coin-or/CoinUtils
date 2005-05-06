@@ -350,6 +350,23 @@ CoinFactorization::factorSparse (  )
 #if COIN_DEBUG==2
       checkConsistency (  );
 #endif
+#if 0
+      // Even if no dense code may be better to use naive dense
+      if (!denseThreshold_&&totalElements_>1000) {
+        int leftRows=numberRows_-numberGoodU_;
+        double full = leftRows;
+        full *= full;
+        assert (full>=0.0);
+        double leftElements = totalElements_;
+        double ratio;
+        if (leftRows>2000)
+          ratio=4.0;
+        else 
+          ratio=3.0;
+        if (ratio*leftElements>full) 
+          denseThreshold=1;
+      }
+#endif
       if (denseThreshold) {
         // see whether to go dense 
         int leftRows=numberRows_-numberGoodU_;
@@ -359,7 +376,16 @@ CoinFactorization::factorSparse (  )
         double leftElements = totalElements_;
         //if (leftRows==100)
         //printf("at 100 %d elements\n",totalElements_);
-        if ((1.5*leftElements>full&&leftRows>denseThreshold_)) {
+        double ratio;
+        if (leftRows>2000)
+          ratio=4.0;
+        else if (leftRows>800)
+          ratio=3.0;
+        else if (leftRows>256)
+          ratio=2.0;
+        else
+          ratio=1.5;
+        if ((ratio*leftElements>full&&leftRows>denseThreshold_)) {
           //return to do dense
           if (status!=0)
             break;
@@ -368,7 +394,7 @@ CoinFactorization::factorSparse (  )
             if (numberInColumn_[iColumn]) 
               check++;
           }
-          if (check!=leftRows) {
+          if (check!=leftRows&&denseThreshold_) {
             printf("** mismatch %d columns left, %d rows\n",check,leftRows);
             denseThreshold=0;
           } else {
@@ -376,6 +402,8 @@ CoinFactorization::factorSparse (  )
             if ((messageLevel_&4)!=0) 
               std::cout<<"      Went dense at "<<leftRows<<" rows "<<
                 totalElements_<<" "<<full<<" "<<leftElements<<std::endl;
+            if (!denseThreshold_)
+              denseThreshold_=-check; // say how many
             break;
           }
         }
@@ -401,7 +429,11 @@ int CoinFactorization::factorDense()
   if (sizeof(CoinBigIndex)==4&&numberDense_>=2<<15) {
     abort();
   } 
-  CoinBigIndex full = numberDense_*numberDense_;
+  CoinBigIndex full;
+  if (denseThreshold_>0) 
+    full = numberDense_*numberDense_;
+  else
+    full = - denseThreshold_*numberDense_;
   totalElements_=full;
   denseArea_= new double [full];
   memset(denseArea_,0,full*sizeof(double));
@@ -453,25 +485,30 @@ int CoinFactorization::factorDense()
       numberGoodU_++;
     } 
   } 
-  assert(numberGoodU_==numberRows_);
 #ifdef DENSE_CODE
-  numberGoodL_=numberRows_;
-  //now factorize
-  //dgef(denseArea_,&numberDense_,&numberDense_,densePermute_);
-  int info;
-  dgetrf_(&numberDense_,&numberDense_,denseArea_,&numberDense_,densePermute_,
-	 &info);
-  // need to check size of pivots
-  if(info)
-    status = -1;
-#else
+  if (denseThreshold_>0) {
+    assert(numberGoodU_==numberRows_);
+    numberGoodL_=numberRows_;
+    //now factorize
+    //dgef(denseArea_,&numberDense_,&numberDense_,densePermute_);
+    int info;
+    dgetrf_(&numberDense_,&numberDense_,denseArea_,&numberDense_,densePermute_,
+            &info);
+    // need to check size of pivots
+    if(info)
+      status = -1;
+    return status;
+  } 
+#endif
   numberGoodU_ = numberRows_-numberDense_;
   int base = numberGoodU_;
   int iDense;
+  int numberToDo=-denseThreshold_;
+  denseThreshold_=0;
   double tolerance = zeroTolerance_;
   tolerance = 1.0e-30;
   // make sure we have enough space in L and U
-  for (iDense=0;iDense<numberDense_;iDense++) {
+  for (iDense=0;iDense<numberToDo;iDense++) {
     //how much space have we got
     int iColumn = pivotColumn_[base+iDense];
     int next = nextColumn_[iColumn];
@@ -489,12 +526,19 @@ int CoinFactorization::factorDense()
     // set so further moves will work
     numberInColumn_[iColumn]=numberInPivotColumn;
   }
+  // Fill in ?
+  for (int iColumn=numberGoodU_+numberToDo;iColumn<numberRows_;iColumn++) {
+    pivotRowL_[iColumn]=iColumn;
+    startColumnL_[iColumn+1]=endL;
+    pivotRegion_[iColumn]=1.0;
+  } 
   if ( lengthL_ + full*0.5 > lengthAreaL_ ) {
     //need more memory
-    std::cout << "more memory needed in middle of invert" << std::endl;
+    if ((messageLevel_&4)!=0) 
+      std::cout << "more memory needed in middle of invert" << std::endl;
     return -99;
   }
-  for (iDense=0;iDense<numberDense_;iDense++) {
+  for (iDense=0;iDense<numberToDo;iDense++) {
     int iRow;
     int jDense;
     int pivotRow=-1;
@@ -553,7 +597,7 @@ int CoinFactorization::factorDense()
       startColumnU_[iColumn]=start;
       // update other columns
       double * element2 = element+numberDense_;
-      for (jDense=iDense+1;jDense<numberDense_;jDense++) {
+      for (jDense=iDense+1;jDense<numberToDo;jDense++) {
 	double value = element2[iDense];
 	for (iRow=iDense+1;iRow<numberDense_;iRow++) {
 	  //double oldValue=element2[iRow];
@@ -578,7 +622,6 @@ int CoinFactorization::factorDense()
   delete [] densePermute_;
   densePermute_ = NULL;
   numberDense_=0;
-#endif
   return status;
 }
 // Separate out links with same row/column count

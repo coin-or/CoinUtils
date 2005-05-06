@@ -48,7 +48,6 @@ CoinPrePostsolveMatrix::CoinPrePostsolveMatrix
     ncols0_(ncols_alloc),
     nrows0_(nrows_alloc),
     nelems0_(nelems_alloc),
-    bulk0_(2*nelems_alloc),
 
     mcstrt_(0),
     hincol_(0),
@@ -83,6 +82,7 @@ CoinPrePostsolveMatrix::CoinPrePostsolveMatrix
 
 { handler_ = new CoinMessageHandler() ;
   defaultHandler_ = true ;
+  bulk0_ = (CoinBigIndex) (bulkRatio_*nelems_alloc);
 
   return ; }
 

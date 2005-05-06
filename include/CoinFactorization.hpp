@@ -182,6 +182,8 @@ public:
   inline void areaFactor ( double value ) {
     areaFactor_=value;
   };
+  /// Returns areaFactor but adjusted for dense
+  double adjustedAreaFactor() const;
   /// Allows change of pivot accuracy check 1.0 == none >1.0 relaxed
   inline void relaxAccuracyCheck(double value)
   { relaxCheck_ = value;};
@@ -239,6 +241,10 @@ public:
 
   /**@name some simple stuff */
   //@{
+
+  /// Returns number of dense rows
+  inline int numberDense() const
+  { return numberDense_;};
 
   /// Returns number in U area
   inline CoinBigIndex numberElementsU (  ) const {

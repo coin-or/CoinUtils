@@ -1755,6 +1755,19 @@ CoinFactorization::cleanup (  )
   }
   numberR_ = 0;
 }
+// Returns areaFactor but adjusted for dense
+double 
+CoinFactorization::adjustedAreaFactor() const
+{
+  double factor = areaFactor_;
+  if (numberDense_&&areaFactor_>1.0) {
+    double dense = numberDense_;
+    dense *= dense;
+    double withoutDense = totalElements_ - dense +1.0;
+    factor *= 1.0 +dense/withoutDense;
+  }
+  return factor;
+}
 
 //  checkConsistency.  Checks that row and column copies look OK
 void

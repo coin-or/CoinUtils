@@ -62,6 +62,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
       markRow[iRow]=1;
   }
 #define MAXPASS 10
+  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
 
   // Loop round seeing if we can tighten bounds
   // Would be faster to have a stack of possible rows
@@ -128,15 +129,19 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 	} else {
 	  if (maxUp < rowLower[iRow] -100.0*tolerance ||
 	      maxDown > rowUpper[iRow]+100.0*tolerance) {
-	    // problem is infeasible - exit at once
-	    numberInfeasible++;
-	    prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
-					    prob->messages())
-					      <<iRow
-					      <<rowLower[iRow]
-					      <<rowUpper[iRow]
-					      <<CoinMessageEol;
-	    break;
+            if(!fixInfeasibility) {
+              // problem is infeasible - exit at once
+              numberInfeasible++;
+              prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
+                                              prob->messages())
+                                                <<iRow
+                                                <<rowLower[iRow]
+                                                <<rowUpper[iRow]
+                                                <<CoinMessageEol;
+              break;
+            } else {
+              continue;
+            }
 	  }
 	  double lower = rowLower[iRow];
 	  double upper = rowUpper[iRow];
@@ -517,6 +522,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   CoinZeroN(reinterpret_cast<char *>(actions),ncols*sizeof(action)) ;
 # endif
   int nactions = 0;
+  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
 
   int *implied_free = new int[ncols];
   int i;
@@ -561,12 +567,13 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	  look[numberLook++]=iLook;
     }
   }
-
+  int maxLook = CoinAbs(fill_level);
+  if (maxLook==2)
+    maxLook=3;
   for (iLook=0;iLook<numberLook;iLook++) {
     int j=look[iLook];
-    if ((hincol[j]  <= 3) && !integerType[j]) {
+    if ((hincol[j]  <= maxLook) && !integerType[j]) {
       if (hincol[j]>1) {
-	// extend to > 3 later
 	CoinBigIndex kcs = mcstrt[j];
 	CoinBigIndex kce = kcs + hincol[j];
 	bool possible = false;
@@ -641,7 +648,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		  // Row is redundant 
 		  infiniteUp[row]=-3;
 
-		} else if (maxUpx < rlo[row] -tol ) {
+		} else if (maxUpx < rlo[row] -tol &&!fixInfeasibility) {
 		  /* there is an upper bound and it can't be reached */
 		  prob->status_|= 1;
 		  prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
@@ -652,7 +659,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 						    <<CoinMessageEol;
 		  infiniteUp[row]=-3;
 		  break;
-		} else if ( maxDownx > rup[row]+tol) {
+		} else if ( maxDownx > rup[row]+tol&&!fixInfeasibility) {
 		  /* there is a lower bound and it can't be reached */
 		  prob->status_|= 1;
 		  prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
@@ -866,7 +873,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 			 j, rlo[row], rup[row], &ilow, &iup);
 	  
 	  
-	  if (maxup < PRESOLVE_INF && maxup + tol < rlo[row]) {
+	  if (maxup < PRESOLVE_INF && maxup + tol < rlo[row]&&!fixInfeasibility) {
 	    /* there is an upper bound and it can't be reached */
 	    prob->status_|= 1;
 	    prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
@@ -876,7 +883,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 					      <<rup[row]
 					      <<CoinMessageEol;
 	    break;
-	  } else if (-PRESOLVE_INF < maxdown && rup[row] < maxdown - tol) {
+	  } else if (-PRESOLVE_INF < maxdown && rup[row] < maxdown - tol&&!fixInfeasibility) {
 	    /* there is a lower bound and it can't be reached */
 	    prob->status_|= 1;
 	    prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,

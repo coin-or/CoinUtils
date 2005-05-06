@@ -226,6 +226,7 @@ const CoinPresolveAction
   int numberLook = prob->numberRowsToDo_;
   int iLook;
   int * look = prob->rowsToDo_;
+  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
 /*
   Open a loop to scan the constraints of interest. There must be variables
   left in the row.
@@ -244,7 +245,7 @@ const CoinPresolveAction
       implied_row_bounds(rowels, clo, cup, hcol, krs, kre,
 			 &maxup, &maxdown);
 
-      if (maxup < PRESOLVE_INF && maxup + inftol < rlo[irow]) {
+      if (maxup < PRESOLVE_INF && maxup + inftol < rlo[irow]&&!fixInfeasibility) {
 	/* there is an upper bound and it can't be reached */
 	prob->status_|= 1;
 	prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
@@ -254,7 +255,7 @@ const CoinPresolveAction
 					       <<rup[irow]
 					       <<CoinMessageEol;
 	break;
-      } else if (-PRESOLVE_INF < maxdown && rup[irow] < maxdown - inftol) {
+      } else if (-PRESOLVE_INF < maxdown && rup[irow] < maxdown - inftol&&!fixInfeasibility) {
 	/* there is a lower bound and it can't be reached */
 	prob->status_|= 1;
 	prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
@@ -626,7 +627,7 @@ static void implied_bounds1(CoinPresolveMatrix * prob, const double *rowels,
     const bool maxup_finite = PRESOLVEFINITE(maxup);
     const bool maxdown_finite = PRESOLVEFINITE(maxdown);
 
-    if (ub_inf_index == -1 && maxup_finite && maxup + tol < rlo[irow]) {
+    if (ub_inf_index == -1 && maxup_finite && maxup + tol < rlo[irow]&&!fixInfeasibility) {
       /* infeasible */
 	prob->status_|= 1;
 	prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
@@ -636,7 +637,7 @@ static void implied_bounds1(CoinPresolveMatrix * prob, const double *rowels,
 					       <<rup[irow]
 					       <<CoinMessageEol;
 	break;
-    } else if (lb_inf_index == -1 && maxdown_finite && rup[irow] < maxdown - tol) {
+    } else if (lb_inf_index == -1 && maxdown_finite && rup[irow] < maxdown - tol&&!fixInfeasibility) {
       /* infeasible */
 	prob->status_|= 1;
 	prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,

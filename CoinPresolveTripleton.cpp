@@ -915,9 +915,8 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
       if (prob->columnIsBasic(jcolx) ||
 	  (fabs(clo[jcolx] - sol[jcolx]) < ztolzb && rcosts[jcolx] >= -ztoldj) ||
 	  (fabs(cup[jcolx] - sol[jcolx]) < ztolzb && rcosts[jcolx] <= ztoldj) ||
-	  prob->columnIsBasic(jcolx) ||
-	  (fabs(clo[jcolx] - sol[jcolx]) < ztolzb && rcosts[jcolx] >= -ztoldj) ||
-	  (fabs(cup[jcolx] - sol[jcolx]) < ztolzb && rcosts[jcolx] <= ztoldj)) {
+	  (prob->getColumnStatus(jcolx) ==CoinPrePostsolveMatrix::isFree&&
+           fabs(rcosts[jcolx] <= ztoldj))) {
 	// colx or y is fine as it is - make coly basic
 	
 	prob->setColumnStatus(jcoly,CoinPrePostsolveMatrix::basic);
@@ -941,8 +940,9 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	rowduals[irow] = djx / coeffx;
 	rcosts[jcolx] = 0.0;
 	// change rowduals[jcolx] enough to cancel out rcosts[jcolx]
-	rowduals[irow] = djz / coeffz;
-	rcosts[jcolz] = 0.0;
+	//rowduals[irow] = djz / coeffz;
+	//rcosts[jcolz] = 0.0;
+	rcosts[jcolz] = djz - rowduals[irow] * coeffz;
 	rcosts[jcoly] = djy - rowduals[irow] * coeffy;
       }
     } else {

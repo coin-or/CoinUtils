@@ -97,6 +97,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
   int numberLook = prob->numberColsToDo_;
   int iLook;
   int * look = prob->colsToDo_;
+  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
 
   // singleton columns are especially likely to be caught here
   for (iLook=0;iLook<numberLook;iLook++) {
@@ -105,7 +106,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
     if (integerType[j]) {
       clo[j] = ceil(clo[j]-1.0e-12);
       cup[j] = floor(cup[j]+1.0e-12);
-      if (clo[j]>cup[j]) {
+      if (clo[j]>cup[j]&&!fixInfeasibility) {
         // infeasible
 	prob->status_|= 1;
 	prob->messageHandler()->message(COIN_PRESOLVE_COLINFEAS,
@@ -397,16 +398,16 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
 	
 	acts[irow] += correction * coeff;
       }
+      // if the col happens to get pushed to its bound,
+      // we may as well leave it non-basic.
+      if (fabs(sol[jcol] - clo[jcol]) > ZTOLDP &&
+          fabs(sol[jcol] - cup[jcol]) > ZTOLDP) {
+        
+        prob->setRowStatus(last_corrected,CoinPrePostsolveMatrix::atLowerBound);
+        prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic);
+      }
     }
 
-    // if the col happens to get pushed to its bound,
-    // we may as well leave it non-basic.
-    if (fabs(sol[jcol] - clo[jcol]) > ZTOLDP &&
-	fabs(sol[jcol] - cup[jcol]) > ZTOLDP) {
-
-      prob->setRowStatus(last_corrected,CoinPrePostsolveMatrix::atLowerBound);
-      prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic);
-    }
     deleteAction(rows,int *);
     deleteAction(lbound,double *);
     deleteAction(ubound,double *);

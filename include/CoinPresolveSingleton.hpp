@@ -4,6 +4,7 @@
 #ifndef CoinPresolveSingleton_H
 #define CoinPresolveSingleton_H
 #define	SLACK_DOUBLETON	2
+#define	SLACK_SINGLETON	8
 
 /*!
   \file
@@ -60,5 +61,50 @@ class slack_doubleton_action : public CoinPresolveAction {
 
 
   ~slack_doubleton_action() { deleteAction(actions_,action*); }
+};
+/*! \class slack_singleton_action
+    \brief For variables with one entry
+
+    If we have a variable with one entry and no cost then we can
+    transform the row from E to G etc.
+    If there is a row objective region then we may be able to do
+    this even with a cost.
+*/
+class slack_singleton_action : public CoinPresolveAction {
+  struct action {
+    double clo;
+    double cup;
+
+    double rlo;
+    double rup;
+
+    double coeff;
+
+    int col;
+    int row;
+  };
+
+  const int nactions_;
+  const action *const actions_;
+
+  slack_singleton_action(int nactions,
+			 const action *actions,
+			 const CoinPresolveAction *next) :
+    CoinPresolveAction(next),
+    nactions_(nactions),
+    actions_(actions)
+{}
+
+ public:
+  const char *name() const { return ("slack_singleton_action"); }
+
+  static const CoinPresolveAction *presolve(CoinPresolveMatrix *prob,
+                                            const CoinPresolveAction *next,
+                                            double * rowObjective);
+
+  void postsolve(CoinPostsolveMatrix *prob) const;
+
+
+  ~slack_singleton_action() { deleteAction(actions_,action*); }
 };
 #endif

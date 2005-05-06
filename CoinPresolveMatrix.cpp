@@ -43,7 +43,6 @@ CoinPresolveMatrix::CoinPresolveMatrix
     rlink_(0),
 
     dobias_(0.0),
-
     mrstrt_(0),
     hinrow_(0),
     rowels_(0),
@@ -56,7 +55,7 @@ CoinPresolveMatrix::CoinPresolveMatrix
     feasibilityTolerance_(0.0),
     status_(-1),
     pass_(0),
-
+    maxSubstLevel_(3),
     colChanged_(0),
     colsToDo_(0),
     numberColsToDo_(0),
@@ -146,7 +145,7 @@ void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
   ncols_ = numCols ;
   nrows_ = mtx->getNumRows() ;
   nelems_ = mtx->getNumElements() ;
-  bulk0_ = 2*nelems0_ ;
+  bulk0_ = (CoinBigIndex) (bulkRatio_*nelems0_) ;
 
   if (mcstrt_ == 0) mcstrt_ = new CoinBigIndex [ncols0_+1] ;
   if (hincol_ == 0) hincol_ = new int [ncols0_+1] ;

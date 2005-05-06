@@ -54,6 +54,7 @@ const CoinPresolveAction
 
   action *actions 	= new action[necols];
   int * colmapping = new int [ncols+1];
+  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
 
   CoinZeroN(colmapping,ncols);
   int i;
@@ -69,7 +70,7 @@ const CoinPresolveAction
     if (integerType[jcol]) {
       e.clo = ceil(e.clo-1.0e-9);
       e.cup = floor(e.cup+1.0e-9);
-      if (e.clo>e.cup) {
+      if (e.clo>e.cup&&!fixInfeasibility) {
         // infeasible
 	prob->status_|= 1;
 	prob->messageHandler()->message(COIN_PRESOLVE_COLINFEAS,
@@ -343,6 +344,7 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
   int * originalRow  = prob->originalRow_;
 
   //presolvehlink *rlink = prob->rlink_;
+  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
   
 
   int i;
@@ -381,7 +383,7 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
 	nactions++;
 	if (rlo[i] > 0.0 || rup[i] < 0.0) {
 	  if (rlo[i]<=prob->feasibilityTolerance_ &&
-	      rup[i]>=-prob->feasibilityTolerance_) {
+	      rup[i]>=-prob->feasibilityTolerance_||fixInfeasibility) {
 	    rlo[i]=0.0;
 	    rup[i]=0.0;
 	  } else {
@@ -458,7 +460,6 @@ void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
   CoinZeroN(rowmapping,nrows0) ;
 
   int i, action_i;
-  
   for (action_i = 0; action_i<nactions; action_i++) {
     const action *e = &actions[action_i];
     int hole = e->row;

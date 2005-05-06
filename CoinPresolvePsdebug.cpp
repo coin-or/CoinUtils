@@ -32,6 +32,7 @@
 
 namespace { // begin unnamed file-local namespace
   //#define PRESOLVE_CONSISTENCY 1
+  //#define PRESOLVE_DEBUG 1
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 /*
   Check for duplicate entries in a major vector by walking the vector. For each
@@ -47,11 +48,11 @@ void no_majvec_dups (const char *majdones, const CoinBigIndex *majstrts,
     { CoinBigIndex ks = majstrts[maj] ;
       CoinBigIndex ke = ks+majlens[maj] ;
       for (CoinBigIndex k = ks ; k < ke ; k++)
-      { int min = minndxs[k] ;
+      { 
 /*
   Assert we fell off the end of the column without finding the entry. 
 */
-	PRESOLVEASSERT(presolve_find_minor1(min,k+1,
+	PRESOLVEASSERT(presolve_find_minor1(minndxs[k],k+1,
 					    ke,minndxs) == ke) ; } } }
   return ; }
 
@@ -423,8 +424,6 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
     allocSize = 0 ;
     lastObj = postObj ; }
 
-  CoinMessageHandler *handler = postObj->handler_ ;
-  const CoinMessages &messages = postObj->messages_ ;
 
   double *rcosts = postObj->rcosts_ ;
 
@@ -434,8 +433,8 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 */
   if (!warned)
   { warned = true ;
-    handler->message(COIN_PRESOLDBG_FIRSTCHECK,messages)
-      << "reduced cost" << CoinMessageEol ;
+    std::cout
+      << "reduced cost" << std::endl ;
     warned_rcosts = new double[ncols0] ;
     CoinZeroN(warned_rcosts,ncols0) ; }
 
@@ -445,8 +444,6 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
   int *hincol = postObj->hincol_ ;
   CoinBigIndex *link = postObj->link_ ;
 
-  unsigned char *colstat = postObj->colstat_ ;
-
   double *clo = postObj->clo_ ;
   double *cup = postObj->cup_ ;
 
@@ -455,7 +452,7 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
   double *sol = postObj->sol_ ;
 
   char *cdone = postObj->cdone_ ;
-  char *rdone = postObj->rdone_ ;
+  //char *rdone = postObj->rdone_ ;
 
   const double ztoldj = postObj->ztoldj_ ;
   const double ztolzb = postObj->ztolzb_ ;
@@ -464,7 +461,7 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 
   double maxmin = postObj->maxmin_ ;
   std::string strMaxmin((maxmin < 0)?"max":"min") ;
-
+  int checkCol=-1;
 /*
   Scan all columns, but only check the ones that are marked as having been
   postprocessed.
@@ -481,15 +478,21 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
       CoinBigIndex k = mcstrt[j] ;
       int len = hincol[j] ;
       double chkdj = postObj->maxmin_*dcost[j] ;
-
+      if (j==checkCol)
+        printf("dj for %d is %g - cost is %g\n",
+               j,dj,chkdj);
       for (ndx = 0 ; ndx < len ; ndx++)
       { int row = hrow[k] ;
-	PRESOLVEASSERT(rdone[row] != 0) ;
+	PRESOLVEASSERT(postObj->rdone_[row] != 0) ;
 	chkdj -= rowduals[row]*colels[k] ;
+        if (j==checkCol)
+          printf("row %d coeff %g dual %g => dj %g\n",
+                 row,colels[k],rowduals[row],chkdj);
+
 	k = link[k] ; }
       if (fabs(dj-chkdj) > ztoldj && wrndj != dj)
-      { handler->message(COIN_PRESOLDBG_RCOSTACC,messages)
-	    << j << dj << chkdj << fabs(dj-chkdj) << CoinMessageEol ; } }
+      { std::cout
+        << j <<" "<< dj<<" " << chkdj<<" " << fabs(dj-chkdj) << std::endl ; } }
 /*
   Check the stored reduced cost for consistency with the variable's status.
   The cases are
@@ -508,22 +511,23 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 
       if (postObj->columnIsBasic(j))
       { if (fabs(dj) > ztoldj && wrndj != dj)
-	{ handler->message(COIN_PRESOLDBG_RCOSTSTAT,messages)
-	      << j << dj << statjstr << strMaxmin << CoinMessageEol ; } }
+	{ std::cout
+	      << j <<" "<< dj <<" "<< statjstr <<" "<< strMaxmin << std::endl ; } }
       else
       if (fabs(xj-uj) < ztolzb && fabs(xj-lj) > ztolzb)
-      { if (maxmin*dj >= ztoldj && wrndj != dj)
-	{ handler->message(COIN_PRESOLDBG_RCOSTSTAT,messages)
-	      << j << dj << statjstr << strMaxmin << CoinMessageEol ; } }
+      { if (dj >= ztoldj && wrndj != dj)
+	{ std::cout
+	      << j <<" "<< dj <<" "<< statjstr <<" "<< strMaxmin << std::endl ; } }
       else
       if (fabs(xj-lj) < ztolzb && fabs(xj-uj) > ztolzb)
-      { if (maxmin*dj <= -ztoldj && wrndj != dj)
-	{ handler->message(COIN_PRESOLDBG_RCOSTSTAT,messages)
-	      << j << dj << statjstr << strMaxmin << CoinMessageEol ; } }
+      { if (dj <= -ztoldj && wrndj != dj)
+	{ std::cout
+	      << j <<" "<< dj <<" "<< statjstr <<" "<< strMaxmin << std::endl ; } }
       else
       if (fabs(xj-lj) > ztolzb && fabs(xj-uj) > ztolzb)
-      { handler->message(COIN_PRESOLDBG_STATSB,messages)
-	  << j << statjstr << dj << lj << xj << uj << CoinMessageEol ; }
+      { if (fabs(dj) > ztoldj && wrndj != dj)
+        { std::cout
+	  << j <<" "<< statjstr <<" "<< dj <<" "<< lj <<" "<< xj <<" "<< uj << std::endl ; } }
     }
 
     warned_rcosts[j] = rcosts[j] ; }
@@ -546,8 +550,6 @@ void presolve_check_duals (const CoinPostsolveMatrix *postObj)
 {
 # if PRESOLVE_DEBUG
 
-  CoinMessageHandler *handler = postObj->handler_ ;
-  const CoinMessages &messages = postObj->messages_ ;
 
   int nrows0 = postObj->nrows0_ ;
 
@@ -588,19 +590,19 @@ void presolve_check_duals (const CoinPostsolveMatrix *postObj)
 
 
     if (fabs(lhsi-li) < ztolzb)
-    { if (maxmin*yi < -ztoldj)
-      { handler->message(COIN_PRESOLDBG_DUALSTAT,messages)
-	    << i << yi << statistr << strMaxmin << CoinMessageEol ; } }
+    { if (yi < -ztoldj)
+      { std::cout
+	    << i <<" "<< yi <<" "<< statistr <<" "<< strMaxmin << std::endl ; } }
     else
     if (fabs(lhsi-ui) < ztolzb)
-    { if (maxmin*yi > ztoldj)
-      { handler->message(COIN_PRESOLDBG_DUALSTAT,messages)
-	    << i << yi << statistr << strMaxmin << CoinMessageEol ; } }
+    { if (yi > ztoldj)
+      { std::cout
+	    << i <<" "<< yi <<" "<< statistr <<" "<< strMaxmin << std::endl ; } }
     else
     if (li < lhsi && lhsi < ui)
     { if (fabs(yi) > ztoldj)
-      { handler->message(COIN_PRESOLDBG_DUALSTAT,messages)
-	    << i << yi << statistr << strMaxmin << CoinMessageEol ; } } }
+      { std::cout
+	    << i <<" "<< yi <<" "<< statistr <<" "<< strMaxmin << std::endl ; } } }
 # endif
   return ; }
 
@@ -734,6 +736,7 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
     * Check for accuracy (acts == rsol)
     * Check for feasibility (rsol within row bounds)
 */
+  tol *=1.0e3;
   if (chkRowAct)
   { for (int i = 0 ; i < m ; ++i)
     { if (hinrow[i])
@@ -867,6 +870,7 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
   for CoinPresolveMatrix).  For each row,
     * Check for bogus values (NaN, infinity)
 */
+  tol *= 1.0e4;
   if (chkRowAct)
   { for (int i = 0 ; i < m ; ++i)
     { double lhsi = acts[i] ;
@@ -911,18 +915,35 @@ void presolve_check_nbasic (const CoinPostsolveMatrix *postObj)
   char *rdone = postObj->rdone_ ;
 
   int nbasic = 0 ;
+  int ncdone = 0;
+  int nrdone = 0;
+  int ncb = 0;
+  int nrb = 0;
 
   for (int j = 0 ; j < ncols0 ; j++)
-  { if (cdone[j] != 0 && postObj->columnIsBasic(j))
-      nbasic++ ; }
+  { 
+    if (cdone[j] != 0 && postObj->columnIsBasic(j))
+      nbasic++ ;
+    if (cdone[j])
+      ncdone++;
+    if (postObj->columnIsBasic(j))
+      ncb++;
+  }
 
   for (int i = 0 ; i < nrows0 ; i++)
-  { if (rdone[i] && postObj->rowIsBasic(i))
-      nbasic++ ; }
+  {
+    if (rdone[i] && postObj->rowIsBasic(i))
+      nbasic++ ;
+    if (rdone[i])
+      nrdone++;
+    if (postObj->rowIsBasic(i))
+      nrb++;
+  }
 
   if (nbasic != postObj->nrows_)
   { printf("WRONG NUMBER NBASIC:  is:  %d  should be:  %d\n",
 	   nbasic, postObj->nrows_) ;
+  printf("cdone %d, cb %d, rdone %d, rb %d\n",ncdone,ncb,nrdone,nrb);
     fflush(stdout) ; }
 # endif
   return ; }

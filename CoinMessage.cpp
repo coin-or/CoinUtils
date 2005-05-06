@@ -26,7 +26,7 @@ static Coin_message us_english[]=
   {COIN_MPS_FILE,6001,0,"Unable to open mps input file %s"},
   {COIN_MPS_BADFILE1,6002,0,"Unknown image %s at line %d of file %s"},
   {COIN_MPS_BADFILE2,6003,0,"Consider the possibility of a compressed file\
- which zlib is unable to read"},
+ which %s is unable to read"},
   {COIN_MPS_EOF,6004,0,"EOF on file %s"},
   {COIN_MPS_RETURNING,6005,0,"Returning as too many errors"},
   {COIN_SOLVER_MPS,8,1,"%s read with %d errors"},

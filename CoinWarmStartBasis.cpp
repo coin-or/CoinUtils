@@ -178,7 +178,6 @@ CoinWarmStartBasis::deleteRows(int number, const int * which)
     std::cout<<numberNotBasic<<" non basic artificials deleted"<<std::endl;
 # endif
 }
-
 // Deletes columns
 void 
 CoinWarmStartBasis::deleteColumns(int number, const int * which)

@@ -256,8 +256,14 @@ public:
  
     /** Extract a submatrix from matrix. Those major-dimension vectors of
 	the matrix comprise the submatrix whose indices are given in the
-	arguments. */
+	arguments. Does not allow duplicates. */
     void submatrixOf(const CoinPackedMatrix& matrix,
+		     const int numMajor, const int * indMajor)
+       throw(CoinError);
+    /** Extract a submatrix from matrix. Those major-dimension vectors of
+	the matrix comprise the submatrix whose indices are given in the
+	arguments. Allows duplicates and keeps order. */
+    void submatrixOfWithDuplicates(const CoinPackedMatrix& matrix,
 		     const int numMajor, const int * indMajor)
        throw(CoinError);
 #if 0

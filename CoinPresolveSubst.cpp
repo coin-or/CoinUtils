@@ -5,12 +5,14 @@
 
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveEmpty.hpp"	// for DROP_COL/DROP_ROW
+#include "CoinPresolvePsdebug.hpp"	
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveZeros.hpp"
 #include "CoinPresolveSubst.hpp"
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
+#include "CoinError.hpp"
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"
@@ -33,9 +35,8 @@ inline void prepend_elem(int jcol, double coeff, int irow,
   hrow[kk] = irow;
 }
 
-
 // add coeff_factor * rowy to rowx
-void add_row(CoinBigIndex *mrstrt, 
+static bool add_row(CoinBigIndex *mrstrt, 
 	     double *rlo, double * acts, double *rup,
 	     double *rowels,
 	     int *hcol,
@@ -150,7 +151,9 @@ void add_row(CoinBigIndex *mrstrt,
       // after:   only x is in the jcol
       // so: number of elems in col x is one greater, but num elems in jcol remains same
       {
-	presolve_expand_row(mrstrt,rowels,hcol,hinrow,rlink,nrows,irowx) ;
+	bool outOfSpace=presolve_expand_row(mrstrt,rowels,hcol,hinrow,rlink,nrows,irowx) ;
+        if (outOfSpace)
+          return true;
 	// this may force a compaction
 	// this will be called excessively if the rows are packed too tightly
 
@@ -164,7 +167,6 @@ void add_row(CoinBigIndex *mrstrt,
 	krsx = mrstrt[irowx];
 	krex = mrstrt[irowx] + hinrow[irowx];
       }
-
       // this is where this element in rowy ended up
       x_to_y[x_to_y_i++] = krex - krsx;
 
@@ -181,6 +183,7 @@ void add_row(CoinBigIndex *mrstrt,
 # if PRESOLVE_DEBUG
   printf(")\n");
 # endif
+  return false;
 }
 
 
@@ -685,7 +688,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 		// add (coeff_factor * <rowy>) to rowx
 		// does not affect rowy
 		// may introduce (or cancel) elements in rowx
-		add_row(mrstrt,
+		bool outOfSpace = add_row(mrstrt,
 			rlo, acts, rup,
 			rowels, hcol,
 			hinrow,
@@ -693,6 +696,9 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 			coeff_factor,
 			rowx, rowy,
 			x_to_y);
+                if (outOfSpace)
+                  throwCoinError("out of memory",
+                                 "CoinImpliedFree::presolve");
 
 		// update col rep of rowx from row rep:
 		// for every col in rowy, copy the elem for that col in rowx
@@ -726,8 +732,13 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 		      colels[k2] = coeff;
 		    } else {
 		      // no - make room, then append
-		      presolve_expand_row(mcstrt,colels,hrow,hincol,
+		      bool outOfSpace=presolve_expand_row(mcstrt,colels,hrow,hincol,
 					  clink,ncols,jcol) ;
+                      if (outOfSpace)
+                        throwCoinError("out of memory",
+                                       "CoinImpliedFree::presolve");
+                      krsx = mrstrt[rowx];
+                      krs = mrstrt[rowy];
 		      kcs = mcstrt[jcol];
 		      kce = kcs + hincol[jcol];
 		      
@@ -829,10 +840,9 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
   // Clear row used flags
   for (int iRow=0;iRow<nrows;iRow++)
     prob->unsetRowUsed(iRow);
-
   // general idea - only do doubletons until there are almost none left
-  if (nactions < 30&&fill_level==2)
-    try_fill_level = -3;
+  if (nactions < 30&&fill_level<prob->maxSubstLevel_)
+    try_fill_level = -fill_level-1;
   if (nactions) {
 #   if PRESOLVE_SUMMARY
     printf("NSUBSTS:  %d\n", nactions);

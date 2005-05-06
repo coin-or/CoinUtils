@@ -620,6 +620,7 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
   int *link		= prob->link_;
 
   double *rcosts	= prob->rcosts_;
+  double tolerance = prob->ztolzb_;
 
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
     int icol  = f->ithis;	// was fixed
@@ -638,55 +639,37 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
 #   endif
     hincol[icol] = hincol[icol2]; // right?
 
-    int nfinite = ((fabs(f->thislo) < PRESOLVE_INF) +
-		   (fabs(f->thisup) < PRESOLVE_INF) +
-		   (fabs(f->lastlo) < PRESOLVE_INF) +
-		   (fabs(f->lastup) < PRESOLVE_INF));
-
-    if (nfinite > 1) {
-       //      double l_j = f->thislo;
-      double u_j = f->thisup;
-      double l_k = f->lastlo;
-      double u_k = f->lastup;
-      double x_k_sol = sol[icol2];
-
+    double l_j = f->thislo;
+    double u_j = f->thisup;
+    double l_k = f->lastlo;
+    double u_k = f->lastup;
+    double x_k_sol = sol[icol2];
+    if (l_j>-PRESOLVE_INF&& x_k_sol-l_j>=l_k-tolerance&&x_k_sol-l_j<=u_k+tolerance) {
+      // j at lb, leave k
+      prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atLowerBound);
+      sol[icol] = l_j;
+      sol[icol2] = x_k_sol - sol[icol];
+    } else if (u_j<PRESOLVE_INF&& x_k_sol-u_j>=l_k-tolerance&&x_k_sol-u_j<=u_k+tolerance) {
+      // j at ub, leave k
+      prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atUpperBound);
+      sol[icol] = u_j;
+      sol[icol2] = x_k_sol - sol[icol];
+    } else if (l_k>-PRESOLVE_INF&& x_k_sol-l_k>=l_j-tolerance&&x_k_sol-l_k<=u_j+tolerance) {
+      // k at lb make j basic
       prob->setColumnStatus(icol,prob->getColumnStatus(icol2));
-      if (x_k_sol <= l_k + u_j) {
-	sol[icol2] = l_k;
-	sol[icol] = x_k_sol - l_k;
-	prob->setColumnStatus(icol2,CoinPrePostsolveMatrix::atLowerBound);
-      } else {
-	sol[icol2] = u_k;
-	sol[icol] = x_k_sol - u_k;
-	prob->setColumnStatus(icol2,CoinPrePostsolveMatrix::atUpperBound) ;
-      }
-    } else if (nfinite == 1) {
-      double x_k_sol = sol[icol2];
-
-      if (fabs(f->thislo) < PRESOLVE_INF) {
-	prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atLowerBound);
-	sol[icol] = f->thislo;
-	sol[icol2] = x_k_sol - sol[icol];
-      } else if (fabs(f->thisup) < PRESOLVE_INF) {
-	prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atUpperBound);
-	sol[icol] = f->thisup;
-	sol[icol2] = x_k_sol - sol[icol];
-      } else if (fabs(f->lastlo) < PRESOLVE_INF) {
-	prob->setColumnStatus(icol,prob->getColumnStatus(icol2));
-	prob->setColumnStatus(icol2,CoinPrePostsolveMatrix::atLowerBound);
-	sol[icol2] = f->lastlo;
-	sol[icol] = x_k_sol - sol[icol2];
-      } else {
-	// (fabs(f->lastup) < PRESOLVE_INF)
-	prob->setColumnStatus(icol,prob->getColumnStatus(icol2));
-	prob->setColumnStatus(icol2,CoinPrePostsolveMatrix::atUpperBound);
-	sol[icol2] = f->lastup;
-	sol[icol] = x_k_sol - sol[icol2];
-      }
+      sol[icol2] = l_k;
+      sol[icol] = x_k_sol - l_k;
+      prob->setColumnStatus(icol2,CoinPrePostsolveMatrix::atLowerBound);
+    } else if (u_k<PRESOLVE_INF&& x_k_sol-u_k>=l_j-tolerance&&x_k_sol-u_k<=u_j+tolerance) {
+      // k at ub make j basic
+      prob->setColumnStatus(icol,prob->getColumnStatus(icol2));
+      sol[icol2] = u_k;
+      sol[icol] = x_k_sol - u_k;
+      prob->setColumnStatus(icol2,CoinPrePostsolveMatrix::atUpperBound);
     } else {
       // both free!  superbasic time
       sol[icol] = 0.0;	// doesn't matter
-      prob->setColumnStatus(icol2,CoinPrePostsolveMatrix::isFree);
+      prob->setColumnStatus(icol,CoinPrePostsolveMatrix::isFree);
     }
 
     // row activity doesn't change
@@ -770,6 +753,7 @@ const CoinPresolveAction
   double *rup	= prob->rup_;
 
   int nuseless_rows = 0;
+  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
 
   double dval = workrow[0];
   for (int jj = 1; jj < nlook; jj++) {
@@ -811,7 +795,7 @@ const CoinPresolveAction
 	      printf("overlapping duplicate row %g %g, %g %g\n",
 		     rlo1,rup1,rlo2,rup2);
 #	      endif
-	      if (rup1<rlo2) {
+	      if (rup1<rlo2&&!fixInfeasibility) {
 		// infeasible
 		prob->status_|= 1;
 		// wrong message - correct if works
@@ -838,7 +822,7 @@ const CoinPresolveAction
 	      printf("overlapping duplicate row %g %g, %g %g\n",
 		     rlo1,rup1,rlo2,rup2);
 #	      endif
-	      if (rup2<rlo1) {
+	      if (rup2<rlo1&&!fixInfeasibility) {
 		// infeasible
 		prob->status_|= 1;
 		// wrong message - correct if works
