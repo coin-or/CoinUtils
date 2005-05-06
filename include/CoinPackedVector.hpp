@@ -535,7 +535,11 @@ inline CoinPackedVector
 operator-(double value, const CoinPackedVectorBase& op1)
 {
    CoinPackedVector retVal(op1);
-   retVal -= value;
+   const int size = retVal.getNumElements();
+   double* elems = retVal.getElements();
+   for (int i = 0; i < size; ++i) {
+      elems[i] = value - elems[i];
+   }
    return retVal;
 }
 
@@ -553,7 +557,11 @@ inline CoinPackedVector
 operator/(double value, const CoinPackedVectorBase& op1)
 {
    CoinPackedVector retVal(op1);
-   retVal /= value;
+   const int size = retVal.getNumElements();
+   double* elems = retVal.getElements();
+   for (int i = 0; i < size; ++i) {
+      elems[i] = value / elems[i];
+   }
    return retVal;
 }
 //@}
