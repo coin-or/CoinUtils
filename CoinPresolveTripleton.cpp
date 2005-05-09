@@ -916,7 +916,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  (fabs(clo[jcolx] - sol[jcolx]) < ztolzb && rcosts[jcolx] >= -ztoldj) ||
 	  (fabs(cup[jcolx] - sol[jcolx]) < ztolzb && rcosts[jcolx] <= ztoldj) ||
 	  (prob->getColumnStatus(jcolx) ==CoinPrePostsolveMatrix::isFree&&
-           fabs(rcosts[jcolx] <= ztoldj))) {
+           fabs(rcosts[jcolx]) <= ztoldj)) {
 	// colx or y is fine as it is - make coly basic
 	
 	prob->setColumnStatus(jcoly,CoinPrePostsolveMatrix::basic);
