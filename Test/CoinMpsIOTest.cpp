@@ -30,7 +30,7 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
     assert( m.matrixByRow_==NULL );
     assert( m.matrixByColumn_==NULL );
     assert( m.integerType_==NULL);
-    assert( !strcmp( m.getFileName() , "stdin"));
+    assert( !strcmp( m.getFileName() , "????"));
     assert( !strcmp( m.getProblemName() , ""));
     assert( !strcmp( m.objectiveName_ , ""));
     assert( !strcmp( m.rhsName_ , ""));
