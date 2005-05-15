@@ -650,7 +650,7 @@ CoinModelUnitTest(const std::string & mpsDir,
       // Test
       CoinSeedRandom(11111);
       time1 = 0.0;
-      int nPass=5000;
+      int nPass=50;
       for (i=0;i<nPass;i++) {
         double random = CoinDrand48();
         int iSeed = (int) (random*1000000);
