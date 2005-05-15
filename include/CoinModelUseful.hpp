@@ -354,12 +354,12 @@ public:
   /** Deletes from list - same case i.e. delete row from row list
   */
   void deleteSame(int which, CoinModelTriple * triples,
-                 CoinModelHash2 & hash);
+                 CoinModelHash2 & hash, bool zapTriples);
   /** Deletes from list - other case i.e. delete row from column list
       This is when elements have been deleted from other copy
   */
-  void updateDeleted(int which, const CoinModelTriple * triples,
-                  int firstFree, int lastFree,const int * previousOther);
+  void updateDeleted(int which, CoinModelTriple * triples,
+                     CoinModelLinkedList & otherList);
   /** Deletes one element from Row list
   */
   void deleteRowOne(int position, CoinModelTriple * triples,
@@ -372,6 +372,8 @@ public:
   void fill(int first,int last);
   /** Puts in free list from other list */
   void synchronize(CoinModelLinkedList & other);
+  /// Checks that links are consistent
+  void validateLinks(const CoinModelTriple * triples) const;
   //@}
 private:
   /**@name Data members */

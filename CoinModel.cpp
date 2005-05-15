@@ -983,11 +983,10 @@ CoinModel::deleteRow(int whichRow)
     } 
     assert (links_);
     // row links guaranteed to exist
-    rowList_.deleteSame(whichRow,elements_,hashElements_);
+    rowList_.deleteSame(whichRow,elements_,hashElements_,(links_!=3));
     // Just need to set first and last and take out
     if (links_==3)
-      columnList_.updateDeleted(whichRow,elements_,rowList_.firstFree(),rowList_.lastFree(),
-                                rowList_.previous());
+      columnList_.updateDeleted(whichRow,elements_,rowList_);
   }
 }
 /* Deletes all entries in column and bounds.*/
@@ -1016,20 +1015,20 @@ CoinModel::deleteColumn(int whichColumn)
     } 
     assert (links_);
     // column links guaranteed to exist
-    columnList_.deleteSame(whichColumn,elements_,hashElements_);
+    columnList_.deleteSame(whichColumn,elements_,hashElements_,(links_!=3));
     // Just need to set first and last and take out
     if (links_==3)
-      rowList_.updateDeleted(whichColumn,elements_,columnList_.firstFree(),columnList_.lastFree(),
-                                columnList_.previous());
+      rowList_.updateDeleted(whichColumn,elements_,columnList_);
   }
 }
 // Takes element out of matrix
-void 
+int
 CoinModel::deleteElement(int row, int column)
 {
   int iPos = position(row,column);
   if (iPos>=0)
     deleteThisElement(row,column,iPos);
+  return iPos;
 }
 // Takes element out of matrix when position known
 void 
@@ -1797,7 +1796,7 @@ int
 CoinModel::position (int i,int j) const
 {
   if (!hashElements_.numberItems()) {
-    hashElements_.resize(maximumElements_,elements_);
+    hashElements_.resize(maximumElements_,elements_,true);
   }
   return hashElements_.hash(i,j,elements_);
 }
@@ -2580,4 +2579,17 @@ CoinModel::setProblemName (const char *name)
     problemName_ = strdup(name) ;
   else
     problemName_ = strdup("");
+}
+// Checks that links are consistent
+void 
+CoinModel::validateLinks() const
+{
+  if ((links_&1)) {
+    // validate row links
+    rowList_.validateLinks(elements_);
+  }
+  if ((links_&2)) {
+    // validate column links
+    columnList_.validateLinks(elements_);
+  }
 }

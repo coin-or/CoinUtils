@@ -489,10 +489,12 @@ CoinModelHash2::resize(int maxItems, const CoinModelTriple * triples,bool forceR
   assert (numberItems_<=maximumItems_);
   if (maxItems<=maximumItems_&&!forceReHash)
     return;
-  maximumItems_=maxItems;
-  delete [] hash_;
+  if (maxItems>maximumItems_) {
+    maximumItems_=maxItems;
+    delete [] hash_;
+    hash_ = new CoinModelHashLink [2*maximumItems_];
+  }
   int maxHash = 2 * maximumItems_;
-  hash_ = new CoinModelHashLink [maxHash];
   int ipos;
   int i;
   for ( i = 0; i < maxHash; i++ ) {
@@ -615,10 +617,11 @@ void
 CoinModelHash2::addHash(int index, int row, int column, const CoinModelTriple * triples)
 {
   // resize if necessary
-  if (numberItems_>=maximumItems_) 
-    resize(1000+3*numberItems_/2, triples);
+  if (numberItems_>=maximumItems_||index+1>=maximumItems_) 
+    resize(CoinMax(1000+3*numberItems_/2,index+1), triples);
   int ipos = hashValue ( row, column);
   numberItems_ = CoinMax(numberItems_,index+1);
+  assert (numberItems_<=maximumItems_);
   if ( hash_[ipos].index <0 ) {
     hash_[ipos].index = index;
   } else {
@@ -1125,7 +1128,7 @@ CoinModelLinkedList::addHard(int first, const CoinModelTriple * triples,
 */
 void 
 CoinModelLinkedList::deleteSame(int which, CoinModelTriple * triples,
-                                CoinModelHash2 & hash)
+                                CoinModelHash2 & hash, bool zapTriples)
 {
   assert (which>=0);
   if (which<numberMajor_) {
@@ -1137,8 +1140,10 @@ CoinModelLinkedList::deleteSame(int which, CoinModelTriple * triples,
         // take out of hash
         hash.deleteHash(put, (int) triples[put].row,triples[put].column);
       }
-      triples[put].column=-1;
-      triples[put].value=0.0;
+      if (zapTriples) {
+        triples[put].column=-1;
+        triples[put].value=0.0;
+      }
       if (lastFree>=0) {
         next_[lastFree]=put;
       } else {
@@ -1161,9 +1166,12 @@ CoinModelLinkedList::deleteSame(int which, CoinModelTriple * triples,
    This is when elements have been deleted from other copy
 */
 void 
-CoinModelLinkedList::updateDeleted(int which, const CoinModelTriple * triples,
-                                 int firstFree, int lastFree,const int * previousOther)
+CoinModelLinkedList::updateDeleted(int which, CoinModelTriple * triples,
+                                   CoinModelLinkedList & otherList)
 {
+  int firstFree = otherList.firstFree();
+  int lastFree = otherList.lastFree();
+  const int * previousOther = otherList.previous();
   assert (maximumMajor_);
   if (lastFree>=0) {
     // First free should be same
@@ -1175,11 +1183,94 @@ CoinModelLinkedList::updateDeleted(int which, const CoinModelTriple * triples,
     if (last_[maximumMajor_]==lastFree)
       return;
     last_[maximumMajor_]=lastFree;
+    int iMajor;
+    if (!type_) {
+      // for rows
+      iMajor=(int) triples[lastFree].row;
+    } else {
+      iMajor=triples[lastFree].column;
+    }
+    if (first_[iMajor]>=0) {
+      // take out
+      int previousThis = previous_[lastFree];
+      int nextThis = next_[lastFree];
+      if (previousThis>=0&&previousThis!=last) {
+        next_[previousThis]=nextThis;
+        int iTest;
+        if (!type_) {
+          // for rows
+          iTest=(int) triples[previousThis].row;
+        } else {
+          iTest=triples[previousThis].column;
+        }
+        assert (triples[previousThis].column>=0);
+        assert (iTest==iMajor);
+      } else {
+        first_[iMajor]=nextThis;
+      }
+      if (nextThis>=0) {
+        previous_[nextThis]=previousThis;
+        int iTest;
+        if (!type_) {
+          // for rows
+          iTest=(int) triples[nextThis].row;
+        } else {
+          iTest=triples[nextThis].column;
+        }
+        assert (triples[nextThis].column>=0);
+        assert (iTest==iMajor);
+      } else {
+        last_[iMajor]=previousThis;
+      }
+    }
+    triples[lastFree].column=-1;
+    triples[lastFree].value=0.0;
     // Do first (by which I mean last)
     next_[lastFree]=-1;
     int previous = previousOther[lastFree];
     while (previous!=last) {
       if (previous>=0) {
+        if (!type_) {
+          // for rows
+          iMajor=(int) triples[previous].row;
+        } else {
+          iMajor=triples[previous].column;
+        }
+        if (first_[iMajor]>=0) {
+          // take out
+          int previousThis = previous_[previous];
+          int nextThis = next_[previous];
+          if (previousThis>=0&&previousThis!=last) {
+            next_[previousThis]=nextThis;
+            int iTest;
+            if (!type_) {
+              // for rows
+              iTest=(int) triples[previousThis].row;
+            } else {
+              iTest=triples[previousThis].column;
+            }
+            assert (triples[previousThis].column>=0);
+            assert (iTest==iMajor);
+          } else {
+            first_[iMajor]=nextThis;
+          }
+          if (nextThis>=0) {
+            previous_[nextThis]=previousThis;
+            int iTest;
+            if (!type_) {
+              // for rows
+              iTest=(int) triples[nextThis].row;
+            } else {
+              iTest=triples[nextThis].column;
+            }
+            assert (triples[nextThis].column>=0);
+            assert (iTest==iMajor);
+          } else {
+            last_[iMajor]=previousThis;
+          }
+        }
+        triples[previous].column=-1;
+        triples[previous].value=0.0;
         next_[previous]=lastFree;
       } else {
         assert (lastFree==firstFree);
@@ -1290,4 +1381,43 @@ CoinModelLinkedList::synchronize(CoinModelLinkedList & other)
     next_[put]=other.next_[put];
     put = next_[put];
   }
+}
+// Checks that links are consistent
+void 
+CoinModelLinkedList::validateLinks(const CoinModelTriple * triples) const
+{
+  char * mark = new char[maximumElements_];
+  memset(mark,0,maximumElements_);
+  int lastElement=-1;
+  int i;
+  for ( i=0;i<numberMajor_;i++) {
+    int position = first_[i];
+    int lastPosition=-1;
+    while (position>=0) {
+      int iMajor;
+      int iMinor;
+      if (position!=first_[i])
+        assert (next_[previous_[position]]==position);
+      if (!type_) {
+        // for rows
+        iMajor=(int) triples[position].row;
+        iMinor=triples[position].column;
+      } else {
+        iMinor=(int) triples[position].row;
+        iMajor=triples[position].column;
+      }
+      assert (triples[position].column>=0);
+      mark[position]=1;
+      lastElement = CoinMax(lastElement,position);
+      assert (i==iMajor);
+      lastPosition=position;
+      position = next_[position];
+    }
+    assert (lastPosition==last_[i]);
+  }
+  for (i=0;i<=lastElement;i++) {
+    if (!mark[i])
+      assert(triples[i].column==-1);
+  }
+  delete [] mark;
 }

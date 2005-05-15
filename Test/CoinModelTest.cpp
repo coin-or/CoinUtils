@@ -317,9 +317,11 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
     if (CoinDrand48()<0.3&&iPass>10) {
       double random2=CoinDrand48();
       double randomDelete = 0.2 + 0.5*random2; // fraction to delete
+      //model.validateLinks();
       if (random2<0.2) {
         // delete some rows
         for (int j=lastRow[jRow];j<lastRow[jRow+1];j++) {
+          //model.validateLinks();
           if (CoinDrand48()<randomDelete) {
             // save and delete
             double rowLower = model.rowLower(j);
@@ -348,6 +350,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
       } else if (random2<0.4) {
         // delete some columns
         for (int j=lastColumn[jColumn];j<lastColumn[jColumn+1];j++) {
+          //model.validateLinks();
           if (CoinDrand48()<randomDelete) {
             // save and delete
             double columnLower = model.columnLower(j);
@@ -379,6 +382,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
         }
       } else {
         // delete some elements
+        //model.validateLinks();
         const CoinModelTriple * elements = baseModel.elements();
         for (i=0;i<model.numberElements();i++) {
           int iRow = (int) elements[i].row;
@@ -389,8 +393,9 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
               dTriple[numberElements].column = iColumn;
               dTriple[numberElements].row=iRow;
               dTriple[numberElements].value = elements[i].value;
-              numberElements++;
-              model.deleteElement(iRow,iColumn);
+              int position = model.deleteElement(iRow,iColumn);
+              if (position>=0)
+                numberElements++;
             }
           }
         }
@@ -645,10 +650,15 @@ CoinModelUnitTest(const std::string & mpsDir,
       // Test
       CoinSeedRandom(11111);
       time1 = 0.0;
-      int nPass=50;
+      int nPass=5000;
       for (i=0;i<nPass;i++) {
+        double random = CoinDrand48();
+        int iSeed = (int) (random*1000000);
+        //iSeed = 776151;
+        CoinSeedRandom(iSeed);
+        printf("before pass %d with seed of %d\n",i,iSeed);
         buildRandom(model,CoinDrand48(),time1,i);
-        printf("pass %d\n",i);
+        model.validateLinks();
       }
       printf("Time for %d CoinModel passes is %g seconds\n",
              nPass,time1);

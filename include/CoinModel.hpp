@@ -220,8 +220,8 @@ public:
       will be decremented and true returned.  */
   inline void deleteCol(int whichColumn)
   { deleteColumn(whichColumn);};
-  /// Takes element out of matrix
-  void deleteElement(int row, int column);
+  /// Takes element out of matrix - returning position (<0 if not there);
+  int deleteElement(int row, int column);
   /// Takes element out of matrix when position known
   void deleteThisElement(int row, int column,int position);
   /** Packs down all rows i.e. removes empty rows permanently.  Empty rows
@@ -576,6 +576,12 @@ public:
    CoinModel(const CoinModel&);
   /// =
    CoinModel& operator=(const CoinModel&);
+   //@}
+
+   /**@name For debug */
+   //@{
+  /// Checks that links are consistent
+  void validateLinks() const;
    //@}
 private:
   /// Resize
