@@ -146,6 +146,16 @@ const CoinPresolveAction
   int ncols		= prob->ncols_ ;
   int nrows		= prob->nrows_ ;
 
+  double *clo	= prob->clo_ ;
+  double *cup	= prob->cup_ ;
+  double *sol	= prob->sol_ ;
+  double *rlo	= prob->rlo_ ;
+  double *rup	= prob->rup_ ;
+
+  // If all coefficients positive do more simply
+  bool allPositive=true;
+  double * rhs = new double[nrows];
+  memcpy(rhs,rup,nrows*sizeof(double));  
 /*
   Scan the columns for candidates, and write the indices into sort. We're not
   interested in columns that are empty, prohibited, or integral.
@@ -157,8 +167,26 @@ const CoinPresolveAction
   bool allowIntegers = ( prob->presolveOptions_&1)!=0;
   int *sort = new int[ncols] ;
   int nlook = 0 ;
-  for (int j = 0 ; j < ncols ; j++)
-  { if (hincol[j] == 0) continue ;
+  for (int j = 0 ; j < ncols ; j++) {
+    if (hincol[j] == 0) continue ;
+    // check all positive and adjust rhs
+    if (allPositive) {
+      double lower = clo[j];
+      if (lower<cup[j]) {
+        for (int k=mcstrt[j];k<mcstrt[j]+hincol[j];k++) {
+          double value=colels[k];
+          if (value<0.0)
+            allPositive=false;
+          else
+            rhs[hrow[k]] -= lower*value;
+        }
+      } else {
+        for (int k=mcstrt[j];k<mcstrt[j]+hincol[j];k++) {
+          double value=colels[k];
+          rhs[hrow[k]] -= lower*value;
+        }
+      }
+    }
     if (prob->colProhibited2(j)) continue ;
     if (prob->isInteger(j)&&!allowIntegers) continue ;
     sort[nlook++] = j ; }
@@ -182,12 +210,6 @@ const CoinPresolveAction
   to record the results.
 */
   presolvehlink *clink	= prob->clink_ ;
-
-  double *clo	= prob->clo_ ;
-  double *cup	= prob->cup_ ;
-  double *sol	= prob->sol_ ;
-  double *rlo	= prob->rlo_ ;
-  double *rup	= prob->rup_ ;
 
   double *rowels	= prob->rowels_ ;
   int *hcol		= prob->hcol_ ;
@@ -300,73 +322,83 @@ const CoinPresolveAction
     double upperBound=COIN_DBL_MAX;
     // For now only if lower bounds are zero
     if (!clo1&&!clo2) {
-      for (k=kcs;k<kce;k++) {
-        int iRow = hrow[k];
-        bool posinf = false;
-        bool neginf = false;
-        double maxup = 0.0;
-        double maxdown = 0.0;
-        
-        // compute sum of all bounds except for j1,j2
-        CoinBigIndex kk;
-        CoinBigIndex kre = mrstrt[iRow]+hinrow[iRow];
-        double value1=0.0;
-        for (kk=mrstrt[iRow]; kk<kre; kk++) {
-          int col = hcol[kk];
-          if (col == j1||col==j2) {
-            value1=rowels[kk];
-            continue;
-          }
-          double coeff = rowels[kk];
-          double lb = clo[col];
-          double ub = cup[col];
+      if (!allPositive) {
+        for (k=kcs;k<kce;k++) {
+          int iRow = hrow[k];
+          bool posinf = false;
+          bool neginf = false;
+          double maxup = 0.0;
+          double maxdown = 0.0;
           
-          if (coeff > 0.0) {
-            if (PRESOLVE_INF <= ub) {
-              posinf = true;
-              if (neginf)
-                break;	// pointless
-            } else {
-              maxup += ub * coeff;
+          // compute sum of all bounds except for j1,j2
+          CoinBigIndex kk;
+          CoinBigIndex kre = mrstrt[iRow]+hinrow[iRow];
+          double value1=0.0;
+          for (kk=mrstrt[iRow]; kk<kre; kk++) {
+            int col = hcol[kk];
+            if (col == j1||col==j2) {
+              value1=rowels[kk];
+              continue;
             }
-            if (lb <= -PRESOLVE_INF) {
-              neginf = true;
-              if (posinf)
-                break;	// pointless
+            double coeff = rowels[kk];
+            double lb = clo[col];
+            double ub = cup[col];
+            
+            if (coeff > 0.0) {
+              if (PRESOLVE_INF <= ub) {
+                posinf = true;
+                if (neginf)
+                  break;	// pointless
+              } else {
+                maxup += ub * coeff;
+              }
+              if (lb <= -PRESOLVE_INF) {
+                neginf = true;
+                if (posinf)
+                  break;	// pointless
+              } else {
+                maxdown += lb * coeff;
+              }
             } else {
-              maxdown += lb * coeff;
+              if (PRESOLVE_INF <= ub) {
+                neginf = true;
+                if (posinf)
+                  break;	// pointless
+              } else {
+                maxdown += ub * coeff;
+              }
+              if (lb <= -PRESOLVE_INF) {
+                posinf = true;
+                if (neginf)
+                  break;	// pointless
+              } else {
+                maxup += lb * coeff;
+              }
             }
-          } else {
-            if (PRESOLVE_INF <= ub) {
-              neginf = true;
-              if (posinf)
-                break;	// pointless
-            } else {
-              maxdown += ub * coeff;
-            }
-            if (lb <= -PRESOLVE_INF) {
-              posinf = true;
-              if (neginf)
-                break;	// pointless
-            } else {
-              maxup += lb * coeff;
+          }
+          
+          if (kk==kre) {
+            assert (value1);
+            if (value1>1.0e-5) {
+              if (!neginf&&rup[iRow]<1.0e10)
+                upperBound = CoinMin(upperBound,(rup[iRow]-maxdown)/value1);
+              if (!posinf&&rlo[iRow]>-1.0e10)
+                lowerBound = CoinMax(lowerBound,(rlo[iRow]-maxup)/value1);
+            } else if (value1<-1.0e-5) {
+              if (!neginf&&rup[iRow]<1.0e10)
+                lowerBound = CoinMax(lowerBound,(rup[iRow]-maxdown)/value1);
+              if (!posinf&&rlo[iRow]>-1.0e10)
+                upperBound = CoinMin(upperBound,(rlo[iRow]-maxup)/value1);
             }
           }
         }
-        
-        if (kk==kre) {
-          assert (value1);
-          if (value1>1.0e-5) {
-            if (!neginf&&rup[iRow]<1.0e10)
-              upperBound = CoinMin(upperBound,(rup[iRow]-maxdown)/value1);
-            if (!posinf&&rlo[iRow]>-1.0e10)
-              lowerBound = CoinMax(lowerBound,(rlo[iRow]-maxup)/value1);
-          } else if (value1<-1.0e-5) {
-            if (!neginf&&rup[iRow]<1.0e10)
-              lowerBound = CoinMax(lowerBound,(rup[iRow]-maxdown)/value1);
-            if (!posinf&&rlo[iRow]>-1.0e10)
-              upperBound = CoinMin(upperBound,(rlo[iRow]-maxup)/value1);
-          }
+      } else {
+        // can do faster
+        lowerBound=0.0;
+        for (k=kcs;k<kce;k++) {
+          int iRow = hrow[k];
+          double value=colels[k];
+          upperBound = CoinMin(upperBound,rhs[iRow]/value);
         }
       }
     }

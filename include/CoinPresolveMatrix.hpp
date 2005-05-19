@@ -1545,6 +1545,10 @@ inline CoinBigIndex presolve_find_row3(int row, CoinBigIndex kcs, int collen,
 void presolve_delete_from_major(int majndx, int minndx,
 				const CoinBigIndex *majstrts,
 				int *majlens, int *minndxs, double *els) ;
+// Delete all marked from major (and zero marked)
+void presolve_delete_many_from_major(int majndx, char * marked,
+				const CoinBigIndex *majstrts,
+				int *majlens, int *minndxs, double *els) ;
 
 /*! \relates CoinPrePostsolveMatrix
     \brief Delete the entry for row \p row from column \p col in a

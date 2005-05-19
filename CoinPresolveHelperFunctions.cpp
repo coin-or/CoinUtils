@@ -370,6 +370,27 @@ void presolve_delete_from_major (int majndx, int minndx,
   majlens[majndx]-- ;
   
   return ; }
+// Delete all marked and zero marked
+void presolve_delete_many_from_major (int majndx, char * marked,
+				 const CoinBigIndex *majstrts,
+				 int *majlens, int *minndxs, double *els)
+
+{ 
+  CoinBigIndex ks = majstrts[majndx] ;
+  CoinBigIndex ke = ks + majlens[majndx] ;
+  CoinBigIndex put=ks;
+  for (CoinBigIndex k=ks;k<ke;k++) {
+    int iMinor = minndxs[k];
+    if (!marked[iMinor]) {
+      minndxs[put]=iMinor;
+      els[put++]=els[k];
+    } else {
+      marked[iMinor]=0;
+    }
+  } 
+  majlens[majndx] = put-ks ;
+  return ;
+}
 
 
 /*

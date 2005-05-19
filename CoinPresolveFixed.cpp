@@ -6,6 +6,7 @@
 
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveFixed.hpp"
+#include "CoinHelperFunctions.hpp"
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"
@@ -85,6 +86,10 @@ const remove_fixed_action*
   double * els_action = new double[estsize];
   int * rows_action = new int[estsize];
   int actsize=0;
+  // faster to do all deletes in row copy at once
+  int nrows		= prob->nrows_;
+  CoinBigIndex * rstrt = new int[nrows+1];
+  CoinZeroN(rstrt,nrows);
 /*
   Open a loop to excise each column a<j>. The first thing to do is load the
   action entry with the index j, the value of x<j>, and the number of
@@ -121,6 +126,7 @@ const remove_fixed_action*
       double coeff = colels[k];
      
       els_action[actsize]=coeff;
+      rstrt[row]++; // increase counts
       rows_action[actsize++]=row;
 
       // Avoid reducing finite infinity.
@@ -131,7 +137,8 @@ const remove_fixed_action*
       if (sol) {
 	acts[row] -= solj*coeff;
       }
-
+#define TRY2
+#ifndef TRY2
       presolve_delete_from_row(row,j,mrstrt,hinrow,hcol,rowels);
       if (hinrow[row] == 0)
       { PRESOLVE_REMOVE_LINK(rlink,row) ; }
@@ -146,6 +153,7 @@ const remove_fixed_action*
 	  prob->addCol(jcol);
 	}
       }
+#endif
     }
 /*
   Remove the column's link from the linked list of columns, and declare
@@ -165,7 +173,69 @@ const remove_fixed_action*
   { printf(", overalloc %d",estsize-actsize) ; }
   printf("\n") ;
 # endif
-
+  // Now get columns by row
+  int * column = new int[actsize];
+  int nel=0;
+  int iRow;
+  for (iRow=0;iRow<nrows;iRow++) {
+    int n=rstrt[iRow];
+    rstrt[iRow]=nel;
+    nel += n;
+  }
+  rstrt[nrows]=nel;
+  for (ckc = 0 ; ckc < nfcols ; ckc++) {
+    int kcs = actions[ckc].start;
+    int j=actions[ckc].col;
+    int kce;
+    if (ckc<nfcols-1)
+      kce = actions[ckc+1].start;
+    else
+      kce = actsize;
+    for (int k=kcs;k<kce;k++) {
+      int iRow = rows_action[k];
+      CoinBigIndex put = rstrt[iRow];
+      rstrt[iRow]++;
+      column[put]=j;
+    }
+  }
+  // Now do rows
+  int ncols		= prob->ncols_;
+  char * mark = new char[ncols];
+  memset(mark,0,ncols);
+  // rstrts are now one out i.e. rstrt[0] is end of row 0
+  nel=0;
+#ifdef TRY2
+  for (iRow=0;iRow<nrows;iRow++) {
+    int k;
+    for (k=nel;k<rstrt[iRow];k++) {
+      mark[column[k]]=1;
+    }
+    presolve_delete_many_from_major(iRow,mark,mrstrt,hinrow,hcol,rowels);
+#ifndef NDEBUG
+    for (k=nel;k<rstrt[iRow];k++) {
+      assert(mark[column[k]]==0);
+    }
+#endif
+    if (hinrow[iRow] == 0)
+      {
+        PRESOLVE_REMOVE_LINK(rlink,iRow) ;
+      }
+    // mark unless already marked
+    if (!prob->rowChanged(iRow)) {
+      prob->addRow(iRow);
+      CoinBigIndex krs = mrstrt[iRow];
+      CoinBigIndex kre = krs + hinrow[iRow];
+      for (CoinBigIndex k=krs; k<kre; k++) {
+        int jcol = hcol[k];
+        prob->addCol(jcol);
+      }
+    }
+    nel=rstrt[iRow];
+  }
+#endif
+  delete [] mark;
+  delete [] column;
+  delete [] rstrt;
 /*
   Create the postsolve object, link it at the head of the list of postsolve
   objects, and return a pointer.
