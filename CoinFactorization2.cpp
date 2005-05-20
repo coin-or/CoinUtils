@@ -462,7 +462,8 @@ int CoinFactorization::factorDense()
   //take out of U
   double * column = denseArea_;
   int rowsDone=0;
-  for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
+  int iColumn=0;
+  for (iColumn=0;iColumn<numberColumns_;iColumn++) {
     if (numberInColumn_[iColumn]) {
       //move
       CoinBigIndex start = startColumnU_[iColumn];
@@ -510,7 +511,7 @@ int CoinFactorization::factorDense()
   // make sure we have enough space in L and U
   for (iDense=0;iDense<numberToDo;iDense++) {
     //how much space have we got
-    int iColumn = pivotColumn_[base+iDense];
+    iColumn = pivotColumn_[base+iDense];
     int next = nextColumn_[iColumn];
     int numberInPivotColumn = iDense;
     CoinBigIndex space = startColumnU_[next] 
@@ -527,7 +528,7 @@ int CoinFactorization::factorDense()
     numberInColumn_[iColumn]=numberInPivotColumn;
   }
   // Fill in ?
-  for (int iColumn=numberGoodU_+numberToDo;iColumn<numberRows_;iColumn++) {
+  for (iColumn=numberGoodU_+numberToDo;iColumn<numberRows_;iColumn++) {
     pivotRowL_[iColumn]=iColumn;
     startColumnL_[iColumn+1]=endL;
     pivotRegion_[iColumn]=1.0;
@@ -551,7 +552,7 @@ int CoinFactorization::factorDense()
       }
     }
     if ( pivotRow >= 0 ) {
-      int iColumn = pivotColumn_[base+iDense];
+      iColumn = pivotColumn_[base+iDense];
       double pivotElement=element[pivotRow];
       // get original row
       int originalRow = densePermute_[pivotRow];
