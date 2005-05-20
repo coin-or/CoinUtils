@@ -86,19 +86,19 @@ CoinIndexedVector::copy(const CoinIndexedVector & rhs, double multiplier)
       for (int i=0;i<rhs.nElements_;i++) {
         int index = rhs.indices_[i];
         double value = rhs.elements_[index]*multiplier;
-        if (fabs(value)>=COIN_INDEXED_TINY_ELEMENT) {
-          elements_[index]=value;
-          indices_[nElements_++]=index;
-        }
+        if (fabs(value)<COIN_INDEXED_TINY_ELEMENT) 
+          value = COIN_INDEXED_REALLY_TINY_ELEMENT;
+        elements_[index]=value;
+        indices_[nElements_++]=index;
       }
     } else {
       for (int i=0;i<rhs.nElements_;i++) {
         int index = rhs.indices_[i];
         double value = rhs.elements_[i]*multiplier;
-        if (fabs(value)>=COIN_INDEXED_TINY_ELEMENT) {
-          elements_[nElements_]=value;
-          indices_[nElements_++]=index;
-        }
+        if (fabs(value)<COIN_INDEXED_TINY_ELEMENT) 
+          value = COIN_INDEXED_REALLY_TINY_ELEMENT;
+        elements_[nElements_]=value;
+        indices_[nElements_++]=index;
       }
     }
   } else {
