@@ -192,6 +192,7 @@ const CoinPresolveAction
     sort[nlook++] = j ; }
   if (nlook == 0)
   { delete[] sort ;
+  delete [] rhs;
     return (next) ; }
 /*
   Prep: add the coefficients of each candidate column. To reduce false
@@ -604,6 +605,7 @@ const CoinPresolveAction
   delete[] rowmul ;
   delete[] colsum ;
   delete[] sort ;
+  delete [] rhs;
 
 # if PRESOLVE_SUMMARY || PRESOLVE_DEBUG
   if (nactions+nfixed_down+nfixed_up > 0)
