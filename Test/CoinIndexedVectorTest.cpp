@@ -392,7 +392,8 @@ CoinIndexedVectorUnitTest()
     assert( v2.getNumElements()==2 );
 
     // Get rid of all
-    assert(v2.clean(10.0)==0);
+    int numberRemaining = v2.clean(10.0);
+    assert(numberRemaining==0);
     v2.checkClear();
     
   }
