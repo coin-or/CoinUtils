@@ -260,21 +260,25 @@ public:
    */
    int capacity() const { return capacity_; }
    //@}
-
+#ifndef COIN_NOTEST_DUPLICATE
+#define COIN_DEFAULT_VALUE_FOR_DUPLICATE true
+#else
+#define COIN_DEFAULT_VALUE_FOR_DUPLICATE false
+#endif
    /**@name Constructors and destructors */
    //@{
    /** Default constructor */
-   CoinPackedVector(bool testForDuplicateIndex = true);
+   CoinPackedVector(bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
    /** Alternate Constructors - set elements to vector of doubles */
    CoinPackedVector(int size, const int * inds, const double * elems,
-		   bool testForDuplicateIndex = true);
+		   bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
    /** Alternate Constructors - set elements to same scalar value */
    CoinPackedVector(int size, const int * inds, double element,
-		   bool testForDuplicateIndex = true);
+		   bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
    /** Alternate Constructors - construct full storage with indices 0 through
        size-1. */
    CoinPackedVector(int size, const double * elements,
-		   bool testForDuplicateIndex = true);
+		   bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
    /** Copy constructor. */
    CoinPackedVector(const CoinPackedVector &);
    /** Copy constructor <em>from a PackedVectorBase</em>. */
