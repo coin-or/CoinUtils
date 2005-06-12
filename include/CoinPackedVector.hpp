@@ -480,6 +480,60 @@ inline CoinPackedVector operator/(const CoinPackedVectorBase& op1,
 }
 //@}
 
+/// Returns the dot product of two CoinPackedVector objects whose elements are
+/// doubles.  Use this version if the vectors are *not* guaranteed to be sorted.
+inline double sparseDotProduct(const CoinPackedVectorBase& op1,
+                        const CoinPackedVectorBase& op2){
+  int len, i;
+  double acc = 0.0;
+  CoinPackedVector retVal;
+
+  CoinPackedVector retval = op1*op2;
+  len = retval.getNumElements();
+  double * CParray = retval.getElements();
+
+  for(i = 0; i < len; i++){
+    acc += CParray[i];
+  }
+return acc;
+}
+
+
+/// Returns the dot product of two sorted CoinPackedVector objects.
+///  The vectors should be sorted in ascending order of indices.
+inline double sortedSparseDotProduct(const CoinPackedVectorBase& op1,
+                        const CoinPackedVectorBase& op2){
+  int i, j, len1, len2;
+  double acc = 0.0;
+
+  const double* v1val = op1.getElements();
+  const double* v2val = op2.getElements();
+  const int* v1ind = op1.getIndices();
+  const int* v2ind = op2.getIndices();
+
+  len1 = op1.getNumElements();
+  len2 = op2.getNumElements();
+
+  i = 0;
+  j = 0;
+
+  while(i < len1 && j < len2){
+    if(v1ind[i] == v2ind[j]){
+      acc += v1val[i] * v2val[j];
+      i++;
+      j++;
+   }
+    else if(v2ind[j] < v1ind[i]){
+      j++;
+    }
+    else{
+      i++;
+    } // end if-else-elseif
+  } // end while
+  return acc;
+ }
+
+
 //-----------------------------------------------------------------------------
 
 /**@name Arithmetic operators on packed vector and a constant. <br>

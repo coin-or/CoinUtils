@@ -2330,6 +2330,34 @@ CoinPackedMatrix::dumpMatrix(const char* fname) const
     fclose(out);
   }
 }
+void
+CoinPackedMatrix::printMatrixElement(const int row_val, const int col_val) const
+{
+int major_index, minor_index;
+if (isColOrdered())
+  {
+  major_index = col_val;
+  minor_index = row_val;
+  }
+else
+  {
+  major_index = row_val;
+  minor_index = col_val;
+  }
+if (getMajorDim() > major_index)
+  std::cout << "Major index out of range: " << major_index << " vs. " << getMajorDim() << "\n";
+CoinBigIndex curr_point = start_[major_index];
+CoinBigIndex stop_point = curr_point + length_[major_index];
+while (curr_point < stop_point)
+  {
+  if (index_[curr_point] == minor_index)
+    {
+      std::cout << element_[curr_point];
+    return;
+    }
+  }
+ std::cout << 0.0;
+}
 bool 
 CoinPackedMatrix::isEquivalent2(const CoinPackedMatrix& rhs) const
 {

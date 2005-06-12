@@ -117,6 +117,8 @@ public:
    CoinShallowPackedVector(const CoinShallowPackedVector &);
    /** Destructor. */
    ~CoinShallowPackedVector() {}
+   /// Print vector information.
+   void print();
    //@}
 
 private:

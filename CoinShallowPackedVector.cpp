@@ -163,3 +163,18 @@ CoinShallowPackedVector::CoinShallowPackedVector(const
 		     "CoinShallowPackedVector");
    }
 }
+
+//-------------------------------------------------------------------
+// Print
+//-------------------------------------------------------------------
+void CoinShallowPackedVector::print()
+{
+for (int i=0; i < nElements_; i++)
+  {
+  std::cout << indices_[i] << ":" << elements_[i];
+  if (i < nElements_-1)
+    std::cout << ", ";
+  }
+ std::cout << std::endl;
+}
+

@@ -376,6 +376,9 @@ public:
       /** Dump the matrix on stdout. When in dire straits this method can
 	  help. */
       void dumpMatrix(const char* fname = NULL) const;
+
+      /// Print a single matrix element.
+      void printMatrixElement(const int row_val, const int col_val) const;
     //@}
 
     //-------------------------------------------------------------------------
