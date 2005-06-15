@@ -136,6 +136,17 @@ public:
   				    element_ + start_[i],
   				    false);
     }
+    /** Returns an array containing major indices.  The array is
+	  getNumElements long and if getVectorStarts() is 0,2,5 then
+	  the array would start 0,0,1,1,1,2...
+	  This method is provided to go back from a packed format
+	  to a triple format.  It returns NULL if there are gaps in
+	  matrix so user should use removeGaps() if there are any gaps.
+	  It does this as this array has to match getElements() and 
+	  getIndices() and because it makes no sense otherwise.
+	  The returned array is allocated with <code>new int[]</code>,
+	  free it with  <code>delete[]</code>. */
+    int * getMajorIndices() const;
   //@}
 
   //---------------------------------------------------------------------------

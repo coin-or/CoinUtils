@@ -945,6 +945,26 @@ CoinPackedMatrix::countOrthoLength() const
 }
 
 //#############################################################################
+/* Returns an array containing major indices.  The array is
+    getNumElements long and if getVectorStarts() is 0,2,5 then
+    the array would start 0,0,1,1,1,2...
+    This method is provided to go back from a packed format
+    to a triple format.
+    The returned array is allocated with <code>new int[]</code>,
+    free it with  <code>delete[]</code>. */
+int * 
+CoinPackedMatrix::getMajorIndices() const
+{
+  // Check valid
+  if (!majorDim_||start_[majorDim_]!=size_)
+    return NULL;
+  int * array = new int [size_];
+  for (int i=0;i<majorDim_;i++) {
+    for (CoinBigIndex k=start_[i];k<start_[i+1];k++)
+      array[k]=i;
+  }
+  return array;
+}
 //#############################################################################
 
 void
