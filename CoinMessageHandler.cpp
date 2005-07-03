@@ -82,6 +82,7 @@ CoinMessages::CoinMessages(int numberMessages)
   numberMessages_=numberMessages;
   language_=us_en;
   strcpy(source_,"Unk");
+  class_=1;
   if (numberMessages_) {
     message_ = new CoinOneMessage * [numberMessages_];
     int i;
@@ -105,6 +106,7 @@ CoinMessages::CoinMessages(const CoinMessages & rhs)
   numberMessages_=rhs.numberMessages_;
   language_=rhs.language_;
   strcpy(source_,rhs.source_);
+  class_=rhs.class_;
   if (numberMessages_) {
     message_ = new CoinOneMessage * [numberMessages_];
     int i;
@@ -124,6 +126,7 @@ CoinMessages::operator=(const CoinMessages & rhs)
   if (this != &rhs) {
     language_=rhs.language_;
     strcpy(source_,rhs.source_);
+    class_=rhs.class_;
     int i;
     for (i=0;i<numberMessages_;i++)
 	delete message_[i];
@@ -277,6 +280,14 @@ CoinMessageHandler::setLogLevel(int value)
     logLevel_=value;
 }
 void 
+CoinMessageHandler::setLogLevel(int which,int value)
+{
+  if (which>=0&&which<COIN_NUM_LOG) {
+    if (value>=-1)
+      logLevel_=value;
+  }
+}
+void 
 CoinMessageHandler::setPrefix(bool value)
 {
   if (value)
@@ -304,6 +315,8 @@ CoinMessageHandler::CoinMessageHandler() :
   highestNumber_(-1),
   fp_(stdout)
 {
+  for (int i=0;i<COIN_NUM_LOG;i++)
+    logLevels_[i]=1;
   messageBuffer_[0]='\0';
   messageOut_ = messageBuffer_;
   source_="Unk";
@@ -323,6 +336,8 @@ CoinMessageHandler::CoinMessageHandler(FILE * fp) :
   highestNumber_(-1),
   fp_(fp)
 {
+  for (int i=0;i<COIN_NUM_LOG;i++)
+    logLevels_[i]=1;
   messageBuffer_[0]='\0';
   messageOut_ = messageBuffer_;
   source_="Unk";
@@ -339,6 +354,8 @@ CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler& rhs)
   currentMessage_=rhs.currentMessage_;
   internalNumber_=rhs.internalNumber_;
   int i;
+  for ( i=0;i<COIN_NUM_LOG;i++)
+    logLevels_[i]=rhs.logLevels_[i];
   numberDoubleFields_ = rhs.numberDoubleFields_;
   for (i=0;i<numberDoubleFields_;i++) 
     doubleValue_[i]=rhs.doubleValue_[i];
@@ -371,6 +388,8 @@ CoinMessageHandler::operator=(const CoinMessageHandler& rhs)
     currentMessage_=rhs.currentMessage_;
     internalNumber_=rhs.internalNumber_;
     int i;
+    for ( i=0;i<COIN_NUM_LOG;i++)
+      logLevels_[i]=rhs.logLevels_[i];
     numberDoubleFields_ = rhs.numberDoubleFields_;
     for (i=0;i<numberDoubleFields_;i++) 
       doubleValue_[i]=rhs.doubleValue_[i];

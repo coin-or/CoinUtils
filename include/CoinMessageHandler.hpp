@@ -146,6 +146,9 @@ public:
   */
   void setDetailMessages(int newLevel, int numberMessages,
 			 int * messageNumbers);
+  /// Returns class
+  inline int getClass() const
+  { return class_;};
   //@}
 
   /**@name member data */
@@ -156,6 +159,8 @@ public:
   Language language_;
   /// Source e.g. Clp
   char source_[5];
+  /// Class - see later on before CoinMessageHandler
+  int class_;
   /// Messages
   CoinOneMessage ** message_;
   //@}
@@ -228,6 +233,9 @@ public:
   inline int logLevel() const
           { return logLevel_;}
   void setLogLevel(int value);
+  inline int logLevel(int which) const
+  { return logLevels_[which];}
+  void setLogLevel(int which, int value);
   /// Switch on or off prefix
   void setPrefix(bool yesNo);
   bool  prefix() const;
@@ -305,7 +313,14 @@ public:
   /// To make it easier to split up print into clean, print and check severity
   int internalPrint();
   //@}
-  
+  /** Log levels will be by type and will then use type
+      give in CoinMessage class
+      0 - Branch and bound code or similar
+      1 - Solver
+      2 - Stuff in Coin directory
+      3 - Cut generators
+  */
+#define COIN_NUM_LOG 4
 private:
   /**@name Private member data */
   //@{
@@ -316,6 +331,8 @@ private:
   std::string stringValue_[10];
   /// Log level
   int logLevel_;
+  /// Log levels
+  int logLevels_[COIN_NUM_LOG];
   /// Whether we want prefix (may get more subtle so is int)
   int prefix_;
   /// Current message

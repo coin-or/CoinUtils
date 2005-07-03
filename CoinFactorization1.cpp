@@ -288,6 +288,9 @@ int CoinFactorization::factorize (
   // maybe for speed will be better to leave as many regions as possible
   gutsOfDestructor();
   gutsOfInitialize(2);
+  // ? is this correct
+  //if (biasLU_==2)
+  //biasLU_=3;
   if (areaFactor)
     areaFactor_ = areaFactor;
   const int * row = matrix.getIndices();

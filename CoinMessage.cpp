@@ -69,6 +69,7 @@ CoinMessage::CoinMessage(Language language) :
 {
   language_=language;
   strcpy(source_,"Coin");
+  class_= 2; // Coin
   Coin_message * message = us_english;
 
   while (message->internalNumber!=COIN_DUMMY_END) {
