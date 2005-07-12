@@ -1529,31 +1529,32 @@ CoinLpIO::print() const {
   matrixByRow_->dumpMatrix();  
   
   printf("rowlower_:\n");
-  for(int i=0; i<numberRows_; i++) {
+  int i;
+  for( i=0; i<numberRows_; i++) {
     printf("%.5f ", rowlower_[i]);
   }
   printf("\n");
 
   printf("rowupper_:\n");
-  for(int i=0; i<numberRows_; i++) {
+  for( i=0; i<numberRows_; i++) {
     printf("%.5f ", rowupper_[i]);
   }
   printf("\n");
   
   printf("collower_:\n");
-  for(int i=0; i<numberColumns_; i++) {
+  for( i=0; i<numberColumns_; i++) {
     printf("%.5f ", collower_[i]);
   }
   printf("\n");
 
   printf("colupper_:\n");
-  for(int i=0; i<numberColumns_; i++) {
+  for( i=0; i<numberColumns_; i++) {
     printf("%.5f ", colupper_[i]);
   }
   printf("\n");
   
   printf("objective_:\n");
-  for(int i=0; i<numberColumns_; i++) {
+  for( i=0; i<numberColumns_; i++) {
     printf("%.5f ", objective_[i]);
   }
   printf("\n");
