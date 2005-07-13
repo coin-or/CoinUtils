@@ -1561,7 +1561,7 @@ CoinLpIO::print() const {
   
   if(integerType_ != NULL) {
     printf("integerType_:\n");
-    for(int i=0; i<numberColumns_; i++) {
+    for(i=0; i<numberColumns_; i++) {
       printf("%c ", integerType_[i]);
     }
   }
