@@ -198,8 +198,6 @@ private:
 		       ( throw CoinError(__STRING(expression), "", hint , __FILE__,__LINE__))))
 #endif
 ******************************************************************************/
-#   endif
-
 #   if  (__GNUC_PREREQ (2, 6))
 #      define CoinAssert(expression) { 					\
           if (!(expression)) {						\
@@ -248,6 +246,8 @@ private:
 #endif
 ******************************************************************************/
 #endif
+#   endif
+
 
 //#############################################################################
 /** A function that tests the methods in the CoinError class. The
