@@ -243,6 +243,10 @@ public:
 	keepZero true */
     void modifyCoefficient(int row, int column, double newElement,
 			   bool keepZero=false);
+    /** Return one element of packed matrix.
+        This works for either ordering
+	If it is not present will return 0.0 */
+  double getCoefficient(int row, int column) const;
 
     /** Eliminate all elements in matrix whose 
 	absolute value is less than threshold.

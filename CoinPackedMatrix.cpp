@@ -463,6 +463,45 @@ CoinPackedMatrix::modifyCoefficient(int row, int column, double newElement,
 #endif
   }
 }
+/* Return one element of packed matrix.
+   This works for either ordering
+   If it is not present will return 0.0 */
+double 
+CoinPackedMatrix::getCoefficient(int row, int column) const
+{
+  int minorIndex,majorIndex;
+  if (colOrdered_) {
+    majorIndex=column;
+    minorIndex=row;
+  } else {
+    minorIndex=column;
+    majorIndex=row;
+  }
+  double value=0.0;
+  if (majorIndex >= 0 && majorIndex < majorDim_) {
+    if (minorIndex >= 0 && minorIndex < minorDim_) {
+      CoinBigIndex j;
+      CoinBigIndex end=start_[majorIndex]+length_[majorIndex];;
+      for (j=start_[majorIndex];j<end;j++) {
+	if (minorIndex==index_[j]) {
+          value = element_[j];
+          break;
+	}
+      }
+    } else {
+#ifdef COIN_DEBUG
+      throw CoinError("bad minor index", "modifyCoefficient",
+		      "CoinPackedMatrix");
+#endif
+    }
+  } else {
+#ifdef COIN_DEBUG
+    throw CoinError("bad major index", "modifyCoefficient",
+		    "CoinPackedMatrix");
+#endif
+  }
+  return value;
+}
 
 //#############################################################################
 /* Eliminate all elements in matrix whose 

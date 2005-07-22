@@ -8,7 +8,9 @@
 
 #include "CoinHelperFunctions.hpp"
 #include "CoinPresolveMatrix.hpp"
+#ifndef SLIM_CLP
 #include "CoinWarmStartBasis.hpp"
+#endif
 
 /*! \file
   This file contains methods for CoinPrePostsolveMatrix, the foundation class
@@ -123,7 +125,7 @@ CoinPrePostsolveMatrix::~CoinPrePostsolveMatrix()
 }
 
 
-
+#ifndef SLIM_CLP
 /*
   Methods to set the miscellaneous parameters: max/min, objective offset, and
   tolerances.
@@ -514,4 +516,4 @@ const char *CoinPrePostsolveMatrix::rowStatusString (int j) const
     { return ("SB") ; }
     default:
     { return ("INVALID") ; } } }
-
+#endif
