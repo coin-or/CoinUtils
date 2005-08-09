@@ -3273,8 +3273,8 @@ CoinMpsIO::readBasis(const char *filename, const char *extension ,
     free(names_[1]);
     names_[1]=NULL;
     numberHash_[1]=0;
-    free (hash_[0]);
-    free (hash_[1]);
+    delete[] hash_[0];
+    delete[] hash_[1];
     hash_[0]=0;
     hash_[1]=0;
   }
