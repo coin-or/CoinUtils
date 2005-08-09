@@ -14,11 +14,34 @@
 
 namespace {	// begin unnamed file-local namespace
 
+// Sees how many zeros there are
+static int count_col_zeros (int ncheckcols, const int * checkcols,
+                            const CoinBigIndex *mcstrt, double *colels, int *hrow,
+                            int *hincol)
+{
+  int nactions = 0;
+  int i;
+
+  for (i=0; i<ncheckcols; i++) {
+    int col = checkcols[i];
+    CoinBigIndex kcs = mcstrt[col];
+    CoinBigIndex kce = mcstrt[col] + hincol[col];
+    CoinBigIndex k;
+
+    for (k=kcs; k<kce; ++k) {
+      if (fabs(colels[k]) < ZTOLDP) {
+	nactions++;
+      }
+    }
+  }
+  return (nactions);
+}
+
 // searches the cols in checkcols for zero entries.
 // creates a dropped_zero entry for each one; doesn't check for out-of-memory.
 // returns number of zeros found.
 
-int drop_col_zeros (int ncheckcols, int *checkcols,
+static int drop_col_zeros (int ncheckcols, int *checkcols,
 		    const CoinBigIndex *mcstrt, double *colels, int *hrow,
 		    int *hincol, presolvehlink *clink,
 		    dropped_zero *actions)
@@ -71,7 +94,7 @@ int drop_col_zeros (int ncheckcols, int *checkcols,
 
 // very similar to col, but without the buffer and reads zeros
 
-void drop_row_zeros(int nzeros, const dropped_zero *zeros,
+static void drop_row_zeros(int nzeros, const dropped_zero *zeros,
 		    const CoinBigIndex *mrstrt, double *rowels, int *hcol,
 		    int *hinrow, presolvehlink *rlink)
 {
@@ -111,20 +134,18 @@ const CoinPresolveAction
   int *hincol		= prob->hincol_;
   presolvehlink *clink	= prob->clink_ ;
   presolvehlink *rlink	= prob->rlink_ ;
-  int ncols		= prob->ncols_;
-  int nrows		= prob->nrows_;
-
+ 
   //  int i;
-  dropped_zero * zeros = new dropped_zero[ncols+nrows];
-
-  int nzeros = drop_col_zeros(ncheckcols,checkcols,
-			      mcstrt,colels,hrow,hincol,clink,
-			      zeros);
-
+  int nzeros = count_col_zeros(ncheckcols,checkcols,
+                               mcstrt,colels,hrow,hincol);
   if (nzeros == 0) {
-    delete [] zeros;
     return (next);
   } else {
+    dropped_zero * zeros = new dropped_zero[nzeros];
+
+    drop_col_zeros(ncheckcols,checkcols,
+                   mcstrt,colels,hrow,hincol,clink,
+                   zeros);
     double *rowels	= prob->rowels_;
     int *hcol		= prob->hcol_;
     CoinBigIndex *mrstrt		= prob->mrstrt_;
