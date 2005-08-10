@@ -143,7 +143,7 @@ const CoinPresolveAction
   } else {
     dropped_zero * zeros = new dropped_zero[nzeros];
 
-    drop_col_zeros(ncheckcols,checkcols,
+    nzeros=drop_col_zeros(ncheckcols,checkcols,
                    mcstrt,colels,hrow,hincol,clink,
                    zeros);
     double *rowels	= prob->rowels_;

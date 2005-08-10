@@ -14,7 +14,9 @@
 
 #include "CoinSort.hpp"
 #include "CoinHelperFunctions.hpp"
+#ifndef CLP_NO_VECTOR
 #include "CoinPackedVectorBase.hpp"
+#endif
 #include "CoinPackedMatrix.hpp"
 #include <stdio.h>
 
@@ -171,7 +173,7 @@ CoinPackedMatrix::setExtraMajor(const double newMajor) throw(CoinError)
 }
 
 //#############################################################################
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::appendCol(const CoinPackedVectorBase& vec) throw(CoinError)
 {
@@ -180,7 +182,7 @@ CoinPackedMatrix::appendCol(const CoinPackedVectorBase& vec) throw(CoinError)
    else
       appendMinorVector(vec);
 }
-
+#endif
 //-----------------------------------------------------------------------------
 
 void
@@ -195,7 +197,7 @@ CoinPackedMatrix::appendCol(const int vecsize,
 }
 
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::appendCols(const int numcols,
 			    const CoinPackedVectorBase * const * cols)
@@ -206,7 +208,7 @@ CoinPackedMatrix::appendCols(const int numcols,
    else
       appendMinorVectors(numcols, cols);
 }
-
+#endif
 //-----------------------------------------------------------------------------
 
 int 
@@ -223,7 +225,7 @@ CoinPackedMatrix::appendCols(const int numcols,
   return numberErrors;
 }
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::appendRow(const CoinPackedVectorBase& vec) throw(CoinError)
 {
@@ -232,7 +234,7 @@ CoinPackedMatrix::appendRow(const CoinPackedVectorBase& vec) throw(CoinError)
    else
       appendMajorVector(vec);
 }
-
+#endif
 //-----------------------------------------------------------------------------
 
 void
@@ -247,7 +249,7 @@ CoinPackedMatrix::appendRow(const int vecsize,
 }
 
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::appendRows(const int numrows,
 			    const CoinPackedVectorBase * const * rows)
@@ -280,6 +282,7 @@ CoinPackedMatrix::appendRows(const int numrows,
     appendMajorVectors(numrows, rows);
   }
 }
+#endif
 //-----------------------------------------------------------------------------
 
 int 
@@ -643,10 +646,17 @@ CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
    majorDim_ = 0;
    minorDim_ = matrix.minorDim_;
    size_ = 0;
-
+#ifdef CLP_NO_VECTOR
+   for (i = 0; i < numMajor; ++i) {
+     int j = sortedInd[i];
+     CoinBigIndex start = matrix.start_[j];
+     appendMajorVector(matrix.length_[j],matrix.index_+start,matrix.element_+start);
+   }
+#else
    for (i = 0; i < numMajor; ++i) {
       appendMajorVector(matrix.getVector(sortedInd[i]));
    }
+#endif
 
    delete[] sortedIndPtr;
 }
@@ -683,10 +693,17 @@ CoinPackedMatrix::submatrixOfWithDuplicates(const CoinPackedMatrix& matrix,
    majorDim_ = 0;
    minorDim_ = matrix.minorDim_;
    size_ = 0;
-
+#ifdef CLP_NO_VECTOR
+   for (i = 0; i < numMajor; ++i) {
+     int j = indMajor[i];
+     CoinBigIndex start = matrix.start_[j];
+     appendMajorVector(matrix.length_[j],matrix.index_+start,matrix.element_+start);
+   }
+#else
    for (i = 0; i < numMajor; ++i) {
       appendMajorVector(matrix.getVector(indMajor[i]));
    }
+#endif
 
 }
 
@@ -922,7 +939,7 @@ CoinPackedMatrix::times(const double * x, double * y) const
 }
 
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::times(const CoinPackedVectorBase& x, double * y) const 
 {
@@ -931,7 +948,7 @@ CoinPackedMatrix::times(const CoinPackedVectorBase& x, double * y) const
    else
       timesMinor(x, y);
 }
-
+#endif
 //-----------------------------------------------------------------------------
 
 void
@@ -944,7 +961,7 @@ CoinPackedMatrix::transposeTimes(const double * x, double * y) const
 }
 
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::transposeTimes(const CoinPackedVectorBase& x, double * y) const
 {
@@ -953,7 +970,7 @@ CoinPackedMatrix::transposeTimes(const CoinPackedVectorBase& x, double * y) cons
    else
       timesMajor(x, y);
 }
-
+#endif
 //#############################################################################
 //#############################################################################
 
@@ -1058,7 +1075,7 @@ CoinPackedMatrix::appendMajorVector(const int vecsize,
 }
 
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::appendMajorVector(const CoinPackedVectorBase& vec)
    throw(CoinError)
@@ -1066,7 +1083,6 @@ CoinPackedMatrix::appendMajorVector(const CoinPackedVectorBase& vec)
    appendMajorVector(vec.getNumElements(),
 		     vec.getIndices(), vec.getElements());
 }
-
 //-----------------------------------------------------------------------------
 
 void
@@ -1082,6 +1098,7 @@ CoinPackedMatrix::appendMajorVectors(const int numvecs,
   for (i = 0; i < numvecs; ++i)
     appendMajorVector(*vecs[i]);
 }
+#endif
 
 //#############################################################################
 
@@ -1140,7 +1157,7 @@ CoinPackedMatrix::appendMinorVector(const int vecsize,
 }
 
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::appendMinorVector(const CoinPackedVectorBase& vec)
    throw(CoinError)
@@ -1198,6 +1215,7 @@ CoinPackedMatrix::appendMinorVectors(const int numvecs,
     size_ += vecsize;
   }
 }
+#endif
 
 //#############################################################################
 //#############################################################################
@@ -1560,7 +1578,7 @@ CoinPackedMatrix::timesMajor(const double * x, double * y) const
 }
 
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::timesMajor(const CoinPackedVectorBase& x, double * y) const 
 {
@@ -1575,7 +1593,7 @@ CoinPackedMatrix::timesMajor(const CoinPackedVectorBase& x, double * y) const
       }
    }
 }
-
+#endif
 //-----------------------------------------------------------------------------
 
 void
@@ -1592,7 +1610,7 @@ CoinPackedMatrix::timesMinor(const double * x, double * y) const
 }
 
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::timesMinor(const CoinPackedVectorBase& x, double * y) const 
 {
@@ -1605,7 +1623,7 @@ CoinPackedMatrix::timesMinor(const CoinPackedVectorBase& x, double * y) const
       y[i] = y_i;
    }
 }
-
+#endif
 //#############################################################################
 //#############################################################################
 
@@ -2417,6 +2435,7 @@ while (curr_point < stop_point)
   }
  std::cout << 0.0;
 }
+#ifndef CLP_NO_VECTOR
 bool 
 CoinPackedMatrix::isEquivalent2(const CoinPackedMatrix& rhs) const
 {
@@ -2471,6 +2490,55 @@ CoinPackedMatrix::isEquivalent2(const CoinPackedMatrix& rhs) const
   }
   return true;
 }
+#else
+/* Equivalence.
+   Two matrices are equivalent if they are both by rows or both by columns,
+   they have the same dimensions, and each vector is equivalent. 
+   In this method the FloatEqual function operator can be specified. 
+*/
+bool 
+CoinPackedMatrix::isEquivalent(const CoinPackedMatrix& rhs, const CoinRelFltEq& eq) const
+{
+  // Both must be column order or both row ordered and must be of same size
+  if ((isColOrdered() ^ rhs.isColOrdered()) ||
+      (getNumCols() != rhs.getNumCols()) ||
+      (getNumRows() != rhs.getNumRows()) ||
+      (getNumElements() != rhs.getNumElements()))
+    return false;
+  
+  const int major = getMajorDim();
+  const int minor = getMinorDim();
+  double * values = new double[minor];
+  memset(values,0,minor*sizeof(double));
+  bool same=true;
+  for (int i = 0; i < major; ++i) {
+    int length = length_[i];
+    if (length!=rhs.length_[i]) {
+      same=false;
+      break;
+    } else {
+      CoinBigIndex j;
+      for ( j = start_[i]; j < start_[i] + length; ++j) {
+        int index = index_[j];
+        values[index]=element_[j];
+      }
+      for ( j = rhs.start_[i]; j < rhs.start_[i] + length; ++j) {
+        int index = index_[j];
+        double oldValue = values[index];
+        values[index]=0.0;
+        if (!eq(oldValue,rhs.element_[j])) {
+          same=false;
+          break;
+        }
+      }
+      if (!same)
+        break;
+    }
+  }
+  delete [] values;
+  return same;
+}
+#endif
 /* Sort all columns so indices are increasing.in each column */
 void 
 CoinPackedMatrix::orderMatrix()
@@ -2621,9 +2689,10 @@ CoinPackedMatrix::appendMinor(const int number,
   int numberErrors=0;
   // first compute how many entries will be added to each major-dimension
   // vector, and if needed, resize the matrix to accommodate all
-  int * addedEntries = new int[majorDim_];
-  CoinZeroN(addedEntries,majorDim_);
+  int * addedEntries = NULL;
   if (numberOther>0) {
+    addedEntries = new int[majorDim_];
+    CoinZeroN(addedEntries,majorDim_);
     numberOther=majorDim_;
     char * which = new char[numberOther];
     memset(which,0,numberOther);
@@ -2649,6 +2718,22 @@ CoinPackedMatrix::appendMinor(const int number,
     }
     delete [] which;
   } else {
+    int largest = majorDim_-1;
+    for (i = 0; i < number; i++) {
+      CoinBigIndex j;
+      for ( j=starts[i];j<starts[i+1];j++) {
+        int iIndex = index[j];
+        largest = CoinMax(largest,iIndex);
+      }
+    }
+    if (largest+1>majorDim_) {
+      if (isColOrdered())
+        setDimensions(-1,largest+1);
+      else 
+        setDimensions(largest+1,-1);
+    }
+    addedEntries = new int[majorDim_];
+    CoinZeroN(addedEntries,majorDim_);
     // no checking
     for (i = 0; i < number; i++) {
       CoinBigIndex j;

@@ -9,8 +9,9 @@
 #endif
 
 #include <map>
-
+#ifndef CLP_NO_VECTOR
 #include "CoinPackedVectorBase.hpp"
+#endif
 #include "CoinSort.hpp"
 #include <cassert>
 
@@ -139,9 +140,11 @@ public:
    void empty();
    /** Assignment operator. */
    CoinIndexedVector & operator=(const CoinIndexedVector &);
+#ifndef CLP_NO_VECTOR
    /** Assignment operator from a CoinPackedVectorBase. <br>
    <strong>NOTE</strong>: This assumes no duplicates */
    CoinIndexedVector & operator=(const CoinPackedVectorBase & rhs);
+#endif
    /** Copy the contents of one vector into another.  If multiplier is 1
        It is the equivalent of = but if vectors are same size does
        not re-allocate memory just clears and copies */
@@ -246,8 +249,10 @@ public:
 		    const double * elements);
    /// This is mainly for testing - goes from packed to indexed
    void expand();
+#ifndef CLP_NO_VECTOR
    /// Append a CoinPackedVector to the end
    void append(const CoinPackedVectorBase & caboose);
+#endif
    /// Append a CoinIndexedVector to the end
    void append(const CoinIndexedVector & caboose);
 
@@ -273,11 +278,13 @@ public:
 
    /**@name Comparison operators on two indexed vectors */
    //@{
+#ifndef CLP_NO_VECTOR
    /** Equal. Returns true if vectors have same length and corresponding
        element of each vector is equal. */
    bool operator==(const CoinPackedVectorBase & rhs) const;
    /// Not equal
    bool operator!=(const CoinPackedVectorBase & rhs) const;
+#endif
    /** Equal. Returns true if vectors have same length and corresponding
        element of each vector is equal. */
    bool operator==(const CoinIndexedVector & rhs) const;
@@ -388,8 +395,10 @@ void operator/=(const CoinIndexedVector& op2);
    CoinIndexedVector(const CoinIndexedVector &);
    /** Copy constructor.2 */
    CoinIndexedVector(const CoinIndexedVector *);
+#ifndef CLP_NO_VECTOR
    /** Copy constructor <em>from a PackedVectorBase</em>. */
    CoinIndexedVector(const CoinPackedVectorBase & rhs);
+#endif
    /** Destructor */
    ~CoinIndexedVector ();
    //@}

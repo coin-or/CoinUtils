@@ -629,7 +629,7 @@ protected:
 
   if ( l + numberInPivotColumn > lengthAreaL_ ) {
     //need more memory
-    std::cout << "more memory needed in middle of invert" << std::endl;
+    printf("more memory needed in middle of invert\n");
     return false;
   }
   //l+=currentAreaL_->elementByColumn-elementL;

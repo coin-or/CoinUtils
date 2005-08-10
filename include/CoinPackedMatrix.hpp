@@ -4,8 +4,13 @@
 #define CoinPackedMatrix_H
 
 #include "CoinError.hpp"
+#ifndef CLP_NO_VECTOR
 #include "CoinPackedVectorBase.hpp"
 #include "CoinShallowPackedVector.hpp"
+#else
+#include "CoinFinite.hpp"
+#include "CoinFloatEqual.hpp"
+#endif
 
 /** Sparse Matrix Base Class
 
@@ -126,7 +131,7 @@ public:
 	throw CoinError("bad index", "vectorSize", "CoinPackedMatrix");
       return length_[i];
     }
-  
+#ifndef CLP_NO_VECTOR  
     /** Return the i'th vector in matrix. */
     const CoinShallowPackedVector getVector(int i) const throw(CoinError) {
       if (i < 0 || i >= majorDim_)
@@ -136,6 +141,7 @@ public:
   				    element_ + start_[i],
   				    false);
     }
+#endif
     /** Returns an array containing major indices.  The array is
 	  getNumElements long and if getVectorStarts() is 0,2,5 then
 	  the array would start 0,0,1,1,1,2...
@@ -163,18 +169,20 @@ public:
     void setExtraGap(const double newGap) throw(CoinError);
     /** Set the extra major to be allocated to the specified value. */
     void setExtraMajor(const double newMajor) throw(CoinError);
-
+#ifndef CLP_NO_VECTOR
     /** Append a column to the end of the matrix. When libosi is compiled with
 	a COIN_DEBUG defined then this method throws an exception if the new
 	column contains an index that's larger than the number of rows (-1).
 	Otherwise the method assumes that every index fits into the matrix. */
     void appendCol(const CoinPackedVectorBase& vec) throw(CoinError);
+#endif
     /** Append a column to the end of the matrix. When libosi is compiled with
 	a COIN_DEBUG defined then this method throws an exception if the new
 	column contains an index that's larger than the number of rows (-1).
 	Otherwise the method assumes that every index fits into the matrix. */
     void appendCol(const int vecsize,
   		  const int *vecind, const double *vecelem) throw(CoinError);
+#ifndef CLP_NO_VECTOR
     /** Append a set of columns to the end of the matrix. When libosi is
 	compiled with a COIN_DEBUG defined then this method throws an exception
 	if any of the new columns contain an index that's larger than the
@@ -182,24 +190,27 @@ public:
 	fits into the matrix. */
     void appendCols(const int numcols,
 		    const CoinPackedVectorBase * const * cols) throw(CoinError);
+#endif
     /** Append a set of columns to the end of the matrix. Returns number of errors
 	i.e. if any of the new columns contain an index that's larger than the
 	number of rows-1 (if numberRows>0) or duplicates (if numberRows>0).  */
     int appendCols(const int numcols,
 		    const CoinBigIndex * columnStarts, const int * row,
                    const double * element, int numberRows=-1);
-
+#ifndef CLP_NO_VECTOR
   /** Append a row to the end of the matrix. When libosi is compiled with
 	a COIN_DEBUG defined then this method throws an exception if the new
 	row contains an index that's larger than the number of columns (-1).
 	Otherwise the method assumes that every index fits into the matrix. */
     void appendRow(const CoinPackedVectorBase& vec) throw(CoinError);
+#endif
     /** Append a row to the end of the matrix. When libosi is compiled with
 	a COIN_DEBUG defined then this method throws an exception if the new
 	row contains an index that's larger than the number of columns (-1).
 	Otherwise the method assumes that every index fits into the matrix. */
     void appendRow(const int vecsize,
   		  const int *vecind, const double *vecelem) throw(CoinError);
+#ifndef CLP_NO_VECTOR
     /** Append a set of rows to the end of the matrix. When libosi is
 	compiled with a COIN_DEBUG defined then this method throws an exception
 	if any of the new rows contain an index that's larger than the
@@ -207,6 +218,7 @@ public:
 	fits into the matrix. */
     void appendRows(const int numrows,
 		    const CoinPackedVectorBase * const * rows) throw(CoinError);
+#endif
     /** Append a set of rows to the end of the matrix. Returns number of errors
 	i.e. if any of the new rows contain an index that's larger than the
 	number of columns-1 (if numberColumns>0) or duplicates (if numberColumns>0).  */
@@ -348,16 +360,20 @@ public:
         @pre <code>x</code> must be of size <code>numColumns()</code>
         @pre <code>y</code> must be of size <code>numRows()</code> */
     void times(const double * x, double * y) const;
+#ifndef CLP_NO_VECTOR
     /** Return <code>A * x</code> in <code>y</code>. Same as the previous
         method, just <code>x</code> is given in the form of a packed vector. */
     void times(const CoinPackedVectorBase& x, double * y) const;
+#endif
     /** Return <code>x * A</code> in <code>y</code>.
         @pre <code>x</code> must be of size <code>numRows()</code>
         @pre <code>y</code> must be of size <code>numColumns()</code> */
     void transposeTimes(const double * x, double * y) const;
+#ifndef CLP_NO_VECTOR
     /** Return <code>x * A</code> in <code>y</code>. Same as the previous
         method, just <code>x</code> is given in the form of a packed vector. */
     void transposeTimes(const CoinPackedVectorBase& x, double * y) const;
+#endif
   //@}
 
   //---------------------------------------------------------------------------
@@ -403,11 +419,14 @@ public:
        that's larger than the minor (major) dimension (-1). Otherwise the
        methods assume that every index fits into the matrix. */
     //@{
+#ifndef CLP_NO_VECTOR
       /** Append a major-dimension vector to the end of the matrix. */
       void appendMajorVector(const CoinPackedVectorBase& vec) throw(CoinError);
+#endif
       /** Append a major-dimension vector to the end of the matrix. */
       void appendMajorVector(const int vecsize, const int *vecind,
 			     const double *vecelem) throw(CoinError);
+#ifndef CLP_NO_VECTOR
       /** Append several major-dimensonvectors to the end of the matrix */
       void appendMajorVectors(const int numvecs,
 			      const CoinPackedVectorBase * const * vecs)
@@ -415,13 +434,16 @@ public:
 
       /** Append a minor-dimension vector to the end of the matrix. */
       void appendMinorVector(const CoinPackedVectorBase& vec) throw(CoinError);
+#endif
       /** Append a minor-dimension vector to the end of the matrix. */
       void appendMinorVector(const int vecsize, const int *vecind,
 			     const double *vecelem) throw(CoinError);
+#ifndef CLP_NO_VECTOR
       /** Append several minor-dimensonvectors to the end of the matrix */
       void appendMinorVectors(const int numvecs,
 			      const CoinPackedVectorBase * const * vecs)
 	throw(CoinError);
+#endif
     //@}
 
     //-------------------------------------------------------------------------
@@ -482,25 +504,30 @@ public:
 	  @pre <code>x</code> must be of size <code>majorDim()</code>
 	  @pre <code>y</code> must be of size <code>minorDim()</code> */
       void timesMajor(const double * x, double * y) const;
+#ifndef CLP_NO_VECTOR
       /** Return <code>A * x</code> (multiplied from the "right" direction) in
 	  <code>y</code>. Same as the previous method, just <code>x</code> is
 	  given in the form of a packed vector. */
       void timesMajor(const CoinPackedVectorBase& x, double * y) const;
+#endif
       /** Return <code>A * x</code> (multiplied from the "right" direction) in
 	  <code>y</code>.
 	  @pre <code>x</code> must be of size <code>minorDim()</code>
 	  @pre <code>y</code> must be of size <code>majorDim()</code> */
       void timesMinor(const double * x, double * y) const;
+#ifndef CLP_NO_VECTOR
       /** Return <code>A * x</code> (multiplied from the "right" direction) in
 	  <code>y</code>. Same as the previous method, just <code>x</code> is
 	  given in the form of a packed vector. */
       void timesMinor(const CoinPackedVectorBase& x, double * y) const;
+#endif
       //@}
    //@}
 
    //--------------------------------------------------------------------------
    /**@name Logical Operations. */
    //@{
+#ifndef CLP_NO_VECTOR
    /** Equivalence.
        Two matrices are equivalent if they are both by rows or both by columns,
        they have the same dimensions, and each vector is equivalent. 
@@ -525,12 +552,20 @@ public:
       return true;
    }
    
+  bool isEquivalent2(const CoinPackedMatrix& rhs) const;
+#else
+   /** Equivalence.
+       Two matrices are equivalent if they are both by rows or both by columns,
+       they have the same dimensions, and each vector is equivalent. 
+       In this method the CoinRelFltEq operator is used. 
+   */
+  bool isEquivalent(const CoinPackedMatrix& rhs, const CoinRelFltEq & eq) const;
+#endif
    ///The default equivalence test is that the entries are relatively equal.
    bool isEquivalent(const CoinPackedMatrix& rhs) const
    {
       return isEquivalent(rhs,  CoinRelFltEq());
    }
-  bool isEquivalent2(const CoinPackedMatrix& rhs) const;
    //@}
 
    //--------------------------------------------------------------------------

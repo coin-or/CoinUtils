@@ -432,7 +432,7 @@ CoinWarmStartBasis *CoinPrePostsolveMatrix::getStatus ()
     wsb->setArtifStatus(i,stati) ; }
   
   return (wsb) ; }
-
+#endif
 /*
   Set the status of a non-basic artificial variable based on the
   variable's value and bounds.
@@ -474,6 +474,7 @@ void CoinPrePostsolveMatrix::setColumnStatusUsingValue(int iColumn)
     setColumnStatus(iColumn,superBasic);
   }
 }
+#ifndef SLIM_CLP
 
 
 /*

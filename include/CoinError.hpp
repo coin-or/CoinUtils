@@ -138,11 +138,6 @@ private:
     int lineNumber_;
   //@}
 };
-# ifdef __GNU__
-#      if  (__GNUC_PREREQ (2, 6)) && COIN_NOT_CYGWIN
-#define COIN_NEW_WAY
-#endif
-#endif
 #ifndef COIN_ASSERT
 #   define CoinAssertDebug(expression) assert(expression)
 #   define CoinAssertDebugHint(expression,hint) assert(expression)
@@ -157,7 +152,7 @@ private:
 #      define CoinAssertDebugHint(expression,hint)	(static_cast<void> (0))
        ***********************************************************************/
 #   else
-#      ifdef COIN_NEW_WAY
+#      if  (__GNUC_PREREQ (2, 6))
 #         define CoinAssertDebug(expression) { 				   \
              if (!(expression)) {					   \
                 throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, \
@@ -171,12 +166,21 @@ private:
              }								   \
           }
 #      else
-#   define CoinAssertDebug(expression) assert(expression)
-#   define CoinAssertDebugHint(expression,hint) assert(expression)
+#         define CoinAssertDebug(expression) {				   \
+             if (!(expression)) {					   \
+                throw CoinError(__STRING(expression), "",		   \
+                                "", __FILE__,__LINE__);			   \
+             }								   \
+          }
+#         define CoinAssertDebugHint(expression,hint) {			   \
+             if (!(expression)) {					   \
+                throw CoinError(__STRING(expression), "",		   \
+                                hint, __FILE__,__LINE__);		   \
+             }								   \
+          }
 #      endif
-# endif
 /**************************** LL: FIXME: I think the code above is just as good
-#      ifdef COIN_NEW_WAY
+#if  (__GNUC_PREREQ (2, 6))
 # define CoinAssertDebug(expression) \
   (static_cast<void> ((expression) ? 0 :					      \
 		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, "",\
@@ -194,15 +198,7 @@ private:
 		       ( throw CoinError(__STRING(expression), "", hint , __FILE__,__LINE__))))
 #endif
 ******************************************************************************/
-#   ifdef NDEBUG
-#      define CoinAssert(expression)		{}
-#      define CoinAssertHint(expression,hint)	{}
-       /********************* LL: FIXME: I think the code above is just as good
-#      define CoinAssert(expression)		(static_cast<void> (0))
-#      define CoinAssertHint(expression,hint)	(static_cast<void> (0))
-       ***********************************************************************/
-#   else
-#      ifdef COIN_NEW_WAY
+#   if  (__GNUC_PREREQ (2, 6))
 #      define CoinAssert(expression) { 					\
           if (!(expression)) {						\
              throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, \
@@ -216,13 +212,22 @@ private:
           }								\
        }
 #   else
-#   define CoinAssert(expression) assert(expression)
-#   define CoinAssertHint(expression,hint) assert(expression)
+#      define CoinAssert(expression) {					\
+          if (!(expression)) {						\
+             throw CoinError(__STRING(expression), "",			\
+                             "", __FILE__,__LINE__);			\
+          }								\
+       }
+#      define CoinAssertHint(expression,hint) {				\
+          if (!(expression)) {						\
+             throw CoinError(__STRING(expression), "",			\
+                             hint, __FILE__,__LINE__);			\
+          }								\
+       }
 #   endif
-#endif
 
 /**************************** LL: FIXME: I think the code above is just as good
-#      ifdef COIN_NEW_WAY
+#if  (__GNUC_PREREQ (2, 6))
 # define CoinAssert(expression) \
   (static_cast<void> ((expression) ? 0 :					      \
 		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, "",\
@@ -241,6 +246,7 @@ private:
 #endif
 ******************************************************************************/
 #endif
+#   endif
 
 
 //#############################################################################

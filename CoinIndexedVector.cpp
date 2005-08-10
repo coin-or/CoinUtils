@@ -109,7 +109,7 @@ CoinIndexedVector::copy(const CoinIndexedVector & rhs, double multiplier)
 }
 
 //#############################################################################
-
+#ifndef CLP_NO_VECTOR
 CoinIndexedVector &
 CoinIndexedVector::operator=(const CoinPackedVectorBase & rhs)
 {
@@ -119,7 +119,7 @@ CoinIndexedVector::operator=(const CoinPackedVectorBase & rhs)
 			    rhs.getIndices(), rhs.getElements());
   return *this;
 }
-
+#endif
 //#############################################################################
 
 void
@@ -351,7 +351,7 @@ void CoinIndexedVector::checkClean()
 }
 
 //#############################################################################
-
+#ifndef CLP_NO_VECTOR
 void
 CoinIndexedVector::append(const CoinPackedVectorBase & caboose) 
 {
@@ -402,7 +402,7 @@ CoinIndexedVector::append(const CoinPackedVectorBase & caboose)
   if (numberDuplicates)
     throw CoinError("duplicate index", "append", "CoinIndexedVector");
 }
-
+#endif
 //#############################################################################
 
 void
@@ -630,7 +630,7 @@ packedMode_(false)
 }
 
 //-----------------------------------------------------------------------------
-
+#ifndef CLP_NO_VECTOR
 CoinIndexedVector::CoinIndexedVector(const CoinPackedVectorBase & rhs) :
 indices_(NULL),
 elements_(NULL),
@@ -642,7 +642,7 @@ packedMode_(false)
   gutsOfSetVector(rhs.getNumElements(), 
 			    rhs.getIndices(), rhs.getElements());
 }
-
+#endif
 //-----------------------------------------------------------------------------
 
 CoinIndexedVector::CoinIndexedVector(const CoinIndexedVector & rhs) :
@@ -1188,7 +1188,7 @@ CoinIndexedVector::append(const CoinIndexedVector & caboose)
   if (numberDuplicates)
     throw CoinError("duplicate index", "append", "CoinIndexedVector");
 }
-
+#ifndef CLP_NO_VECTOR
 /* Equal. Returns true if vectors have same length and corresponding
    element of each vector is equal. */
 bool 
@@ -1232,6 +1232,7 @@ CoinIndexedVector::operator!=(const CoinPackedVectorBase & rhs) const
   }
   return okay;
 }
+#endif
 /* Equal. Returns true if vectors have same length and corresponding
    element of each vector is equal. */
 bool 
