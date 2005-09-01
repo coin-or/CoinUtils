@@ -912,7 +912,10 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  hrow[k] = iRow;
 	  PRESOLVEASSERT(rdone[hrow[k]] || hrow[k] == irow);
 	  colels[k] = xValue;
-	  link[last] = k;
+	  if (last!=NO_LINK)
+            link[last] = k;
+          else
+            mcstrt[jcolx]=k;
 	  last = k;
 	}
       }
