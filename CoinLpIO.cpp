@@ -1,4 +1,4 @@
-// Last edit: 3/7/05
+// Last edit: 9/1/05
 //
 // Name:     CoinLpIO.cpp; Support for Lp files
 // Author:   Francois Margot
@@ -1268,7 +1268,7 @@ CoinLpIO::readLp(const char *filename)
 	if(is_free(buff)) {
 	  collow[icol] = -lp_inf;
 	  colup[icol] = lp_inf;
-          fscanf(fp, "%s", buff);
+	  fscanf(fp, "%s", buff);
 	}
        	else {
 	  read_sense2 = is_sense(buff);
@@ -1527,34 +1527,34 @@ CoinLpIO::print() const {
 
   printf("matrixByRows_:\n");
   matrixByRow_->dumpMatrix();  
-  
-  printf("rowlower_:\n");
+
   int i;
-  for( i=0; i<numberRows_; i++) {
+  printf("rowlower_:\n");
+  for(i=0; i<numberRows_; i++) {
     printf("%.5f ", rowlower_[i]);
   }
   printf("\n");
 
   printf("rowupper_:\n");
-  for( i=0; i<numberRows_; i++) {
+  for(i=0; i<numberRows_; i++) {
     printf("%.5f ", rowupper_[i]);
   }
   printf("\n");
   
   printf("collower_:\n");
-  for( i=0; i<numberColumns_; i++) {
+  for(i=0; i<numberColumns_; i++) {
     printf("%.5f ", collower_[i]);
   }
   printf("\n");
 
   printf("colupper_:\n");
-  for( i=0; i<numberColumns_; i++) {
+  for(i=0; i<numberColumns_; i++) {
     printf("%.5f ", colupper_[i]);
   }
   printf("\n");
   
   printf("objective_:\n");
-  for( i=0; i<numberColumns_; i++) {
+  for(i=0; i<numberColumns_; i++) {
     printf("%.5f ", objective_[i]);
   }
   printf("\n");
@@ -1674,7 +1674,16 @@ CoinLpIO::startHash(char const * const * const names,
 	break;
       }
       else {
-	if (strcmp(thisName, names[j1]) == 0) {
+
+#ifdef LPIO_DEBUG
+	if(j1 > i) {
+	  printf("### ERROR: CoinLpIO::startHash(): j1: %d  i: %d\n",
+		 j1, i);
+	  exit(1);
+	}
+#endif
+
+	if (strcmp(thisName, hashNames[j1]) == 0) {
 
 	  // thisName already entered
 
