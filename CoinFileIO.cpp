@@ -6,6 +6,7 @@
 #include "CoinFileIO.hpp"
 
 #include "CoinError.hpp"
+#include "CoinHelperFunctions.hpp"
 
 #include <vector>
 #include <cstring>
@@ -571,6 +572,34 @@ bool CoinFileOutput::puts (const char *s)
 */
 bool fileCoinReadable(std::string & fileName)
 {
+  const char dirsep =  CoinFindDirSeparator();
+  std::string directory = (dirsep == '/' ? "./" : ".\\");
+  std::string field = fileName;
+  bool absolutePath;
+  if (dirsep=='/') {
+    // non Windows (or cygwin)
+    absolutePath=(field[0]=='/');
+  } else {
+    //Windows (non cycgwin)
+    absolutePath=(field[0]=='\\');
+    // but allow for :
+    if (strchr(field.c_str(),':'))
+      absolutePath=true;
+  }
+  if (absolutePath) {
+    // nothing to do
+  } else if (field[0]=='~') {
+    char * environ = getenv("HOME");
+    if (environ) {
+      std::string home(environ);
+      field=field.erase(0,1);
+      fileName = home+field;
+    } else {
+      fileName=field;
+    }
+  } else {
+    fileName = directory+field;
+  }
   // I am opening it to make sure not odd
   FILE *fp;
   if (strcmp(fileName.c_str(),"stdin")) {

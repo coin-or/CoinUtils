@@ -127,6 +127,7 @@ public:
 };
 /* Tests if file readable and may change name to add 
    compression extension.  Here to get ZLIB etc in one place
+   Extended so it knows about directories on various platforms
 */
 bool fileCoinReadable(std::string & name);
 #endif
