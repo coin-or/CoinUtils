@@ -37,6 +37,7 @@ CoinIndexedVector::clear()
   }
   nElements_ = 0;
   packedMode_=false;
+  //checkClear();
 }
 
 //#############################################################################

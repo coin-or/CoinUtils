@@ -1124,6 +1124,11 @@ CoinLpIO::readLp(const char *filename)
   double lp_inf = getInfinity();
 
   FILE *fp = fopen(filename, "r");
+  if(!fp) {
+    printf("### ERROR: CoinLpIO:  Unable to open file %s for reading\n",filename);
+    exit(1);
+  }
+  
   char buff[256];
 
   int objsense, cnt_coeff = 0, cnt_row = 0, cnt_obj = 0;
