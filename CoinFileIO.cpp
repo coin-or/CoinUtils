@@ -589,9 +589,9 @@ bool fileCoinReadable(std::string & fileName)
   if (absolutePath) {
     // nothing to do
   } else if (field[0]=='~') {
-    char * environ = getenv("HOME");
-    if (environ) {
-      std::string home(environ);
+    char * home_dir = getenv("HOME");
+    if (home_dir) {
+      std::string home(home_dir);
       field=field.erase(0,1);
       fileName = home+field;
     } else {
