@@ -250,18 +250,22 @@ public:
   void setLpDataRowAndColNames(char const * const * const rownames,
 			       char const * const * const colnames);
 
-  /// Write the data in Lp format in the file with name filename.
-  /// Coefficients with value less than epsilon away from an integer value
-  /// are written as integers..
-  /// Write at most numberAcross coefficients on a line.
-  /// Write non integer numbers with decimals digits after the decimal point.
+  /** Write the data in Lp format in the file with name filename.
+      Coefficients with value less than epsilon away from an integer value
+      are written as integers..
+      Write at most numberAcross coefficients on a line.
+      Write non integer numbers with decimals digits after the decimal point.
+      If changeNameOnRange then a ranged constraint will be two constraints
+      and second will have _low appended to name */
   int writeLp(const char *filename, 
 	      double epsilon, 
 	      int numberAcross,
-	      int decimals);
+	      int decimals,
+              bool changeNameOnRange=false) ;
 
   /// Write the data in Lp format in the file with name filename.
-  int writeLp(const char *filename) const;
+  int writeLp(const char *filename,
+              bool changeNameOnRange=false) const;
 
   /// Read the data in Lp format from the file with name filename, using
   /// the given value for epsilon.

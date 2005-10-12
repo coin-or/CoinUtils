@@ -495,17 +495,19 @@ CoinLpIO::out_coeff(FILE *fp, const double v, const int print_1) const {
 /************************************************************************/
 int
 CoinLpIO::writeLp(const char *filename, const double epsilon,
-		  const int numberAcross, const int decimals) {
+		  const int numberAcross, const int decimals,
+                  bool changeNameOnRange) {
 
   setEpsilon(epsilon);
   setNumberAcross(numberAcross);
   setDecimals(decimals);
-  return writeLp(filename);
+  return writeLp(filename,changeNameOnRange);
 }
 
 /************************************************************************/
 int
-CoinLpIO::writeLp(const char *filename) const
+CoinLpIO::writeLp(const char *filename,
+                  bool changeNameOnRange) const
 {
    FILE *fp = NULL;
    double lp_eps = getEpsilon();
@@ -624,8 +626,10 @@ CoinLpIO::writeLp(const char *filename) const
 	 if(rowlower_[i] > -lp_inf) {
 
 	   cnt_print = 0;
-
-	   fprintf(fp, "%s:", rowNames[i]);
+           if (!changeNameOnRange)
+             fprintf(fp, "%s:", rowNames[i]);
+           else
+             fprintf(fp, "%s_low:", rowNames[i]);
 	   cnt_out_rows++;
 	   
 	   for(j=matrixByRow_->getVectorFirst(i); 
