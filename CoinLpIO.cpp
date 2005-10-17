@@ -1,9 +1,9 @@
-// Last edit: 9/1/05
+// Last edit: 15/10/05
 //
 // Name:     CoinLpIO.cpp; Support for Lp files
 // Author:   Francois Margot
-//           GSIA, Carnegie Mellon University, Pittsburgh, PA
-//           email: fmargot@andrew.cmu.edu
+//           Tepper School of Business
+//           Carnegie Mellon University, Pittsburgh, PA 15213
 // Date:     12/28/03
 //-----------------------------------------------------------------------------
 // Copyright (C) 2003, Francois Margot, International Business Machines
@@ -746,7 +746,7 @@ CoinLpIO::writeLp(const char *filename,
 int 
 CoinLpIO::find_obj(FILE *fp) const {
 
-  char buff[256];
+  char buff[1024];
 
   fscanf(fp, "%s\n", buff);
 
@@ -855,7 +855,7 @@ CoinLpIO::read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt,
 			 char **obj_name) const {
 
   double mult;
-  char buff[256], loc_name[256], *start;
+  char buff[1024], loc_name[1024], *start;
   int read_st = 0;
 
   fscanf(fp, "%s", buff);
@@ -932,7 +932,7 @@ CoinLpIO::read_monom_row(FILE *fp, char *start_str,
 			 int cnt_coeff) const {
 
   double mult;
-  char buff[256], loc_name[256], *start;
+  char buff[1024], loc_name[1024], *start;
   int read_sense = -1;
 
   sprintf(buff, start_str);
@@ -1032,7 +1032,7 @@ CoinLpIO::read_row(FILE *fp, char *buff,
 		   int *cnt_row, double inf) const {
 
   int read_sense = -1;
-  char start_str[256];
+  char start_str[1024];
   
   sprintf(start_str, buff);
 
@@ -1133,7 +1133,7 @@ CoinLpIO::readLp(const char *filename)
     exit(1);
   }
   
-  char buff[256];
+  char buff[1024];
 
   int objsense, cnt_coeff = 0, cnt_row = 0, cnt_obj = 0;
   char *objName = NULL;

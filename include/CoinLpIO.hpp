@@ -1,4 +1,4 @@
-// Last edit: 3/7/05
+// Last edit: 10/15/05
 //
 // Name:     CoinLpIO.hpp; Support for Lp files
 // Author:   Francois Margot
@@ -58,6 +58,9 @@ Notes: <UL>
       the last bound is the one taken into account. The bounds for a
       binary variable are set to 0/1 only if this bound is stronger than 
       the bound obtained from the Bounds section. 
+ <LI> Each row or column name should not have more than 100 characters.
+ <LI> Numbers larger than DBL_MAX (or larger than 1e+400) in the input file
+      might crash the code.
 </UL>
 */
 class CoinLpIO {
@@ -239,6 +242,8 @@ public:
   /// Set it from the coefficient matrix m, the lower bounds
   ///  collb,  the upper bounds colub, objective function obj_coeff, 
   /// integrality vector integrality, lower/upper bounds on the constraints.
+  /// Numbers larger than DBL_MAX (or larger than 1e+400) 
+  /// might crash the code.
   void setLpDataWithoutRowAndColNames(
 			      const CoinPackedMatrix& m,
 			      const double* collb, const double* colub,
@@ -252,11 +257,15 @@ public:
 
   /** Write the data in Lp format in the file with name filename.
       Coefficients with value less than epsilon away from an integer value
-      are written as integers..
+      are written as integers.
       Write at most numberAcross coefficients on a line.
       Write non integer numbers with decimals digits after the decimal point.
-      If changeNameOnRange then a ranged constraint will be two constraints
-      and second will have _low appended to name */
+      Ranged constraints are written as two constraints, both with the
+      name (if any) of the original ranged constraint unless
+      changeNameOnRange = true. In the latter case, the name for 
+      the lower bound constraint is the original name with 
+      "_low" as suffix.
+  */
   int writeLp(const char *filename, 
 	      double epsilon, 
 	      int numberAcross,
