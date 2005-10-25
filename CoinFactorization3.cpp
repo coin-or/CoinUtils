@@ -1596,6 +1596,9 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
       for (i=numberRows_-1;i>=lastSparse;i--) {
 	if (region[i]) {
 	  doDense=true;
+          // numbers are all wrong - do a scan
+          regionSparse->setNumElements(0);
+          regionSparse->scan(0,lastSparse,zeroTolerance_);
 	  break;
 	}
       }

@@ -1601,7 +1601,7 @@ void
 CoinFactorization::goSparse ( )
 {
   if (!sparseThreshold_) {
-    if (numberRows_>500) {
+    if (numberRows_>300) {
       if (numberRows_<10000) {
 	sparseThreshold_=CoinMin(numberRows_/6,500);
 	sparseThreshold2_=sparseThreshold_;
