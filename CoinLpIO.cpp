@@ -331,7 +331,7 @@ double CoinLpIO::getEpsilon() const
 }
 
 /************************************************************************/
-void CoinLpIO::setEpsilon(double value) 
+void CoinLpIO::setEpsilon(const double value) 
 {
   if (value < 0.1) {
     epsilon_ = value;
@@ -349,7 +349,7 @@ int CoinLpIO::getNumberAcross() const
 }
 
 /************************************************************************/
-void CoinLpIO::setNumberAcross(int value) 
+void CoinLpIO::setNumberAcross(const int value) 
 {
   if (value > 0) {
     numberAcross_ = value;
@@ -367,7 +367,7 @@ int CoinLpIO::getDecimals() const
 }
 
 /************************************************************************/
-void CoinLpIO::setDecimals(int value) 
+void CoinLpIO::setDecimals(const int value) 
 {
   if (value > 0) {
     decimals_ = value;

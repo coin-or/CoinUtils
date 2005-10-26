@@ -267,9 +267,9 @@ public:
       "_low" as suffix.
   */
   int writeLp(const char *filename, 
-	      double epsilon, 
-	      int numberAcross,
-	      int decimals,
+	      const double epsilon, 
+	      const int numberAcross,
+	      const int decimals,
               bool changeNameOnRange=false) ;
 
   /// Write the data in Lp format in the file with name filename.
