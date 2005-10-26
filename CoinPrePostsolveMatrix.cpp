@@ -50,6 +50,7 @@ CoinPrePostsolveMatrix::CoinPrePostsolveMatrix
     ncols0_(ncols_alloc),
     nrows0_(nrows_alloc),
     nelems0_(nelems_alloc),
+    bulkRatio_(2.0),
 
     mcstrt_(0),
     hincol_(0),
