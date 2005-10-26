@@ -163,4 +163,6 @@ class make_fixed_action : public CoinPresolveAction {
 
 const CoinPresolveAction *make_fixed(CoinPresolveMatrix *prob,
 				    const CoinPresolveAction *next);
+/// Transfers costs
+void transferCosts(CoinPresolveMatrix * prob);
 #endif

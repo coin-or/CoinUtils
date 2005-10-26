@@ -614,5 +614,98 @@ const CoinPresolveAction *make_fixed (CoinPresolveMatrix *prob,
 
   delete[]fcols ;
   return (next) ; }
+// Transfers costs
+void 
+transferCosts(CoinPresolveMatrix * prob)
+{
+  double *colels	= prob->colels_;
+  int *hrow		= prob->hrow_;
+  CoinBigIndex *mcstrt	= prob->mcstrt_;
+  int *hincol		= prob->hincol_;
+
+  double *rowels	= prob->rowels_;
+  int *hcol		= prob->hcol_;
+  CoinBigIndex *mrstrt	= prob->mrstrt_;
+  int *hinrow		= prob->hinrow_;
+
+  double *rlo	= prob->rlo_;
+  double *rup	= prob->rup_;
+  double *clo	= prob->clo_;
+  double *cup	= prob->cup_;
+  int ncols = prob->ncols_;
+  double *dcost	= prob->cost_;
+  unsigned char * integerType = prob->integerType_;
+  double bias = prob->dobias_;
+  int icol;
+  int numberIntegers=0;
+  for (icol=0;icol<ncols;icol++) {
+    if (integerType[icol])
+      numberIntegers++;
+  }
+  int nchanged=0;
+  for (icol=0;icol<ncols;icol++) {
+    if (dcost[icol]&&hincol[icol]==1&&cup[icol]>clo[icol]) {
+      int irow=hrow[mcstrt[icol]];
+      if (rlo[irow]==rup[irow]) {
+        // transfer costs so can be made slack
+        double ratio = dcost[icol]/colels[mcstrt[icol]];
+        bias += rlo[irow]*ratio;
+        for (CoinBigIndex j=mrstrt[irow];j<mrstrt[irow]+hinrow[irow];j++) {
+          int jcol = hcol[j];
+          double value = rowels[j];
+          dcost[jcol] -= ratio*value;
+        }
+        dcost[icol]=0.0;
+        nchanged++;
+      }
+    }
+  }
+  if (nchanged)
+    printf("%d singleton columns have transferred costs\n",nchanged);
+  if (numberIntegers) {
+    int changed=-1;
+    while (changed) {
+      changed=0;
+      for (icol=0;icol<ncols;icol++) {
+        if (dcost[icol]&&cup[icol]>clo[icol]) {
+          for (CoinBigIndex k=mcstrt[icol];k<mcstrt[icol]+hincol[icol];k++) {
+            int irow=hrow[k];
+            if (rlo[irow]==rup[irow]) {
+              // See if can give more integer variables costs
+              CoinBigIndex j;
+              int nNow = integerType[icol] ? 1 : 0;
+              int nThen=0;
+              for (j=mrstrt[irow];j<mrstrt[irow]+hinrow[irow];j++) {
+                int jcol = hcol[j];
+                if (!dcost[jcol]&&integerType[jcol])
+                  nThen++;
+              }
+              if (nThen>nNow) {
+                // transfer costs so can be made slack
+                double ratio = dcost[icol]/colels[mcstrt[icol]];
+                bias += rlo[irow]*ratio;
+                for (j=mrstrt[irow];j<mrstrt[irow]+hinrow[irow];j++) {
+                  int jcol = hcol[j];
+                  double value = rowels[j];
+                  dcost[jcol] -= ratio*value;
+                }
+                dcost[icol]=0.0;
+                changed++;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (changed) {
+        nchanged+=changed;
+        printf("%d changed this pass\n",changed);
+      }
+    }
+  }
+  if (bias!=prob->dobias_)
+    printf("new bias %g\n",bias);
+  prob->dobias_ = bias;
+}
 
 

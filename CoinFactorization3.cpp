@@ -825,17 +825,16 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   double *region = regionSparse->denseVector (  );
   double * vector = regionSparse2->denseVector();
   int * index = regionSparse2->getIndices();
-  int number = regionSparse2->getNumElements();
+  int numberNonZero = regionSparse2->getNumElements();
   int i;
   const int * pivotColumn = pivotColumn_;
   
   //move indices into index array
   int *regionIndex = regionSparse->getIndices (  );
-  int numberNonZero = number;
   int iRow;
   bool packed = regionSparse2->packedMode();
   if (packed) {
-    for ( i = 0; i < number; i ++ ) {
+    for ( i = 0; i < numberNonZero; i ++ ) {
       iRow = index[i];
       double value = vector[i];
       iRow=pivotColumn[iRow];
@@ -844,7 +843,7 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
       regionIndex[i] = iRow;
     }
   } else {
-    for ( i = 0; i < number; i ++ ) {
+    for ( i = 0; i < numberNonZero; i ++ ) {
       iRow = index[i];
       double value = vector[iRow];
       vector[iRow]=0.0;
@@ -877,27 +876,18 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   updateColumnTransposeU ( regionSparse,smallestIndex );
   if (collectStatistics_) 
     btranCountAfterU_ += (double) regionSparse->getNumElements();
-  //numberNonZero=regionSparse->getNumElements();
   //permute extra
   //row bits here
-  double countBefore = btranCountAfterR_;
   updateColumnTransposeR ( regionSparse );
-  // Done in updateColumnTransposeR
-  //May have lost counts
-  numberNonZero = regionSparse->getNumElements (  );
   //  ******* L
   updateColumnTransposeL ( regionSparse );
-  // May have lost counts
+  numberNonZero = regionSparse->getNumElements (  );
   if (collectStatistics_) 
-    if (numberNonZero<=numberRows_)
-      btranCountAfterL_ += (double) regionSparse->getNumElements();
-    else
-      btranCountAfterL_ += btranCountAfterR_-countBefore;
-  int oldNumber = regionSparse->getNumElements (  );
+    btranCountAfterL_ += (double) numberNonZero;
   const int * permuteBack = pivotColumnBack_;
-  number=0;
+  int number=0;
   if (packed) {
-    for (i=0;i<oldNumber;i++) {
+    for (i=0;i<numberNonZero;i++) {
       int iRow=regionIndex[i];
       double value = region[iRow];
       region[iRow]=0.0;
@@ -908,7 +898,7 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
       }
     }
   } else {
-    for (i=0;i<oldNumber;i++) {
+    for (i=0;i<numberNonZero;i++) {
       int iRow=regionIndex[i];
       double value = region[iRow];
       region[iRow]=0.0;
@@ -1599,6 +1589,7 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
           // numbers are all wrong - do a scan
           regionSparse->setNumElements(0);
           regionSparse->scan(0,lastSparse,zeroTolerance_);
+          number=regionSparse->getNumElements();
 	  break;
 	}
       }
