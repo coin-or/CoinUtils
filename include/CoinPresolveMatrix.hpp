@@ -1071,6 +1071,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /** Presolve options
       1 set if allow duplicate column tests for integer variables
       2 set to allow code to try and fix infeasibilities
+      4 set to inhibit x+y+z=1 mods
   */
   int presolveOptions_;
   /*! Flag to say if any rows or columns are marked as prohibited

@@ -501,6 +501,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   presolvehlink *clink = prob->clink_;
 
   const unsigned char *integerType = prob->integerType_;
+  bool stopSomeStuff = (prob->presolveOptions()&4)!=0;
 
   const double tol = prob->feasibilityTolerance_;
 #if 1  
@@ -572,7 +573,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
     maxLook=3;
   for (iLook=0;iLook<numberLook;iLook++) {
     int j=look[iLook];
-    if ((hincol[j]  <= maxLook) && !integerType[j]) {
+    if ((hincol[j]  <= maxLook)) {
       if (hincol[j]>1) {
 	CoinBigIndex kcs = mcstrt[j];
 	CoinBigIndex kce = kcs + hincol[j];
@@ -847,11 +848,37 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	      }
 	    }
 	    if (krow>=0) {
-	      implied_free[j] = krow;
-	      // And say row no good for further use
-	      infiniteUp[krow]=-3;
-	      //printf("column %d implied free by row %d hincol %d hinrow %d\n",
-	      //     j,krow,hincol[j],hinrow[krow]);
+              bool goodRow=true;
+              if (integerType[j]) {
+                // can only accept if good looking row
+                if (fabs(rlo[krow]-floor(rlo[krow]+0.5))<tol) {
+                  CoinBigIndex krs = mrstrt[krow];
+                  CoinBigIndex kre = krs + hinrow[krow];
+                  CoinBigIndex kk;
+                  bool allOnes=true;
+                  for (kk = krs; kk < kre; ++kk) {
+                    double value=rowels[kk];
+                    if (value!=1.0)
+                      allOnes=false;
+                    int iColumn = hcol[kk];
+                    if (!integerType[iColumn]||fabs(value-floor(value+0.5))>tol) {
+                      goodRow=false;
+                      break;
+                    }
+                  }
+                  if (rlo[krow]==1.0&&hinrow[krow]>=5&&stopSomeStuff&&allOnes)
+                    goodRow=false; // may spoil SOS 
+                } else {
+                  goodRow=false;
+                }
+              }
+              if (goodRow) {
+                implied_free[j] = krow;
+                // And say row no good for further use
+                infiniteUp[krow]=-3;
+                //printf("column %d implied free by row %d hincol %d hinrow %d\n",
+                //     j,krow,hincol[j],hinrow[krow]);
+              }
 	    }
 	  }
 	}
