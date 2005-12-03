@@ -223,6 +223,18 @@ CoinMessages::setDetailMessages(int newLevel, int numberMessages,
   }
 }
 
+// Changes detail level for all messages >= low and < high
+void 
+CoinMessages::setDetailMessages(int newLevel, int low, int high)
+{
+  // do all (except for dummy end) if in range
+  for (int i=0;i<numberMessages_-1;i++) {
+    int iNumber = message_[i]->externalNumber();
+    if (iNumber>=low&&iNumber<high)
+      message_[i]->setDetail(newLevel);
+  }
+}
+
 // Clean, print message and check severity, return 0 normally
 int 
 CoinMessageHandler::internalPrint() 

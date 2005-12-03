@@ -146,6 +146,8 @@ public:
   */
   void setDetailMessages(int newLevel, int numberMessages,
 			 int * messageNumbers);
+  /// Changes detail level for all messages >= low and < high
+  void setDetailMessages(int newLevel, int low, int high);
   /// Returns class
   inline int getClass() const
   { return class_;};
