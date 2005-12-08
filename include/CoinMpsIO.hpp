@@ -736,6 +736,8 @@ public:
 
   /// Return the messages
   CoinMessages messages() {return messages_;};
+  /// Return the messages pointer
+  CoinMessages * messagesPointer() {return & messages_;};
 //@}
 
 
