@@ -27,7 +27,7 @@ typedef int COINRowIndex;
 // We are allowing free format - but there is a limit!
 // User can override by using CXXFLAGS += -DCOIN_MAX_FIELD_LENGTH=nnn
 #ifndef COIN_MAX_FIELD_LENGTH
-#define COIN_MAX_FIELD_LENGTH 100
+#define COIN_MAX_FIELD_LENGTH 160
 #endif
 #define MAX_CARD_LENGTH 5*COIN_MAX_FIELD_LENGTH+80
 
