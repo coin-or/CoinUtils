@@ -384,8 +384,8 @@ CoinMpsCardReader::CoinMpsCardReader (  CoinFileInput *input,
   position_ = card_;
   eol_ = card_;
   mpsType_ = COIN_UNKNOWN_MPS_TYPE;
-  memset ( rowName_, 0, MAX_FIELD_LENGTH );
-  memset ( columnName_, 0, MAX_FIELD_LENGTH );
+  memset ( rowName_, 0, COIN_MAX_FIELD_LENGTH );
+  memset ( columnName_, 0, COIN_MAX_FIELD_LENGTH );
   value_ = 0.0;
   input_ = input;
   section_ = COIN_EOF_SECTION;
@@ -2761,7 +2761,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
   numberElements_ = 0;
   bool gotName=false;
   bool minimize=false;
-  char objName[MAX_FIELD_LENGTH];
+  char objName[COIN_MAX_FIELD_LENGTH];
   int decodeType=-1;
   while(!gotName) {
     if (cardReader_->nextGmsField(0)<0) {
@@ -2987,7 +2987,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     assert (!returnCode);
     char * next = cardReader_->getPosition();
     assert (*next==' ');
-    char rowName[MAX_FIELD_LENGTH];
+    char rowName[COIN_MAX_FIELD_LENGTH];
     strcpy(rowName,cardReader_->columnName());
     char * dot = strchr(rowName,'.');
     assert (dot); 

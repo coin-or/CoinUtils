@@ -25,8 +25,11 @@ typedef int COINColumnIndex;
 typedef int COINRowIndex;
 
 // We are allowing free format - but there is a limit!
-#define MAX_FIELD_LENGTH 100
-#define MAX_CARD_LENGTH 5*MAX_FIELD_LENGTH+80
+// User can override by using CXXFLAGS += -DCOIN_MAX_FIELD_LENGTH=nnn
+#ifndef COIN_MAX_FIELD_LENGTH
+#define COIN_MAX_FIELD_LENGTH 100
+#endif
+#define MAX_CARD_LENGTH 5*COIN_MAX_FIELD_LENGTH+80
 
 enum COINSectionType { COIN_NO_SECTION, COIN_NAME_SECTION, COIN_ROW_SECTION,
 		       COIN_COLUMN_SECTION,
@@ -155,9 +158,9 @@ protected:
   /// Current COINMpsType
   COINMpsType mpsType_;
   /// Current row name
-  char rowName_[MAX_FIELD_LENGTH];
+  char rowName_[COIN_MAX_FIELD_LENGTH];
   /// Current column name
-  char columnName_[MAX_FIELD_LENGTH];
+  char columnName_[COIN_MAX_FIELD_LENGTH];
   /// File input
   CoinFileInput *input_;
   /// Which section we think we are in
