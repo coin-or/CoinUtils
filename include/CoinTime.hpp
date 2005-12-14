@@ -15,7 +15,9 @@
 #if defined(__MACH__) || defined (__FreeBSD__)
 #include <sys/time.h>
 #endif
+#if !defined(__MSVCRT__)
 #include <sys/resource.h>
+#endif
 #endif
 
 //#############################################################################
@@ -23,7 +25,7 @@
 static inline double CoinCpuTime()
 {
   double cpu_temp;
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__MSVCRT__)
   unsigned int ticksnow;        /* clock_t is same as int */
   
   ticksnow = (unsigned int)clock();
