@@ -283,6 +283,13 @@ public:
   /// Read the data in Lp format from the file with name filename.
   void readLp(const char *filename);
 
+  /// Read the data in Lp format from the file stream.
+  void readLp(FILE *fp);
+
+  /// Read the data in Lp format from the file stream, using
+  /// the given value for epsilon.
+  void readLp(FILE *fp, const double epsilon);
+
   /// Dump the data. Low level method for debugging.
   void print() const;
   //@}

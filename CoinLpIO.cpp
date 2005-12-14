@@ -1121,18 +1121,34 @@ CoinLpIO::readLp(const char *filename, const double epsilon)
 void
 CoinLpIO::readLp(const char *filename)
 {
+	FILE *fp = fopen(filename, "r");
+	if(!fp) {
+		printf("### ERROR: CoinLpIO:  Unable to open file %s for reading\n",
+			   filename);
+		exit(1);
+	}
+	readLp(fp);
+	fclose(fp);
+}
+
+/*************************************************************************/
+void
+CoinLpIO::readLp(FILE* fp, const double epsilon)
+{
+  setEpsilon(epsilon);
+  readLp(fp);
+}
+
+/*************************************************************************/
+void
+CoinLpIO::readLp(FILE* fp)
+{
 
   int maxrow = 1000;
   int maxcoeff = 40000;
   double lp_eps = getEpsilon();
   double lp_inf = getInfinity();
 
-  FILE *fp = fopen(filename, "r");
-  if(!fp) {
-    printf("### ERROR: CoinLpIO:  Unable to open file %s for reading\n",filename);
-    exit(1);
-  }
-  
   char buff[1024];
 
   int objsense, cnt_coeff = 0, cnt_row = 0, cnt_obj = 0;
@@ -1438,8 +1454,6 @@ variable: %s read_sense1: %d  read_sense2: %d\n", buff, read_sense1, read_sense2
 #ifdef LPIO_DEBUG
   printf("CoinLpIO::readLp(): Done with reading the Lp file %s\n", filename);
 #endif
-
-  fclose(fp);
 
   int *ind = (int *) malloc ((maxcoeff+1) * sizeof(int));
 
