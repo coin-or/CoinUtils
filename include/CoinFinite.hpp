@@ -84,6 +84,10 @@ using std::max;
 # define CoinFinite finite
 # define CoinIsnan  isnan
 #endif
+#if defined(__MINGW32__)
+# define CoinFinite _finite
+# define CoinIsnan  _isnan
+#endif
 
 #if defined(__MINGW32__)
 # define CoinFinite _finite
