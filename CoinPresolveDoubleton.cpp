@@ -632,6 +632,7 @@ const CoinPresolveAction
   return (next);
 }
 
+static int xxxxxx=0;
 
 /*
   Reintroduce the column (y) and doubleton row (irow) removed in presolve.
@@ -681,7 +682,6 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   const double ztoldj	= prob->ztoldj_;
 
   int nrows = prob->nrows_;
-
   // Arrays to rebuild the unsaved column.
   int * index1 = new int[nrows];
   double * element1 = new double[nrows];
@@ -960,9 +960,11 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	}
 	k = link[k];
       }
-      iRow = hrow[k];
-      index1[nX++]=iRow;
-      element1[iRow]=multiplier*colels[k];
+      if (colels[k]) {
+        iRow = hrow[k];
+        index1[nX++]=iRow;
+        element1[iRow]=multiplier*colels[k];
+      }
 /*
   Replace column x with the the original column x held in the doubleton
   action. We first move column x to the free list, then thread a column with
