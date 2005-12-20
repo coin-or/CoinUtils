@@ -1309,7 +1309,7 @@ CoinPackedMatrix::majorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
    throw(CoinError)
 {
    if (minorDim_ != matrix.majorDim_) {
-      throw CoinError("dimension mismatch", "rightAppendOrthoOrdered",
+      throw CoinError("dimension mismatch", "majorAppendOrthoOrdered",
 		     "CoinPackedMatrix");
       }
    if (matrix.majorDim_ == 0)
@@ -1327,7 +1327,7 @@ CoinPackedMatrix::majorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
    } else {
      const double extra_gap = extraGap_;
      start_ += majorDim_;
-     for (i = 0; i < matrix.minorDim_ - 1; ++i) {
+     for (i = 0; i < matrix.minorDim_ ; ++i) {
        start_[i+1] = start_[i] + CoinLengthWithExtra(orthoLength[i], extra_gap);
      }
      start_ -= majorDim_;
@@ -1357,6 +1357,10 @@ CoinPackedMatrix::majorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
    
    length_ -= majorDim_;
    start_ -= majorDim_;
+
+   // We need to update majorDim_ and size_.  We can just add in from matrix
+   majorDim_ += matrix.minorDim_;
+   size_ += matrix.size_;
 
    delete[] orthoLengthPtr;
 }
