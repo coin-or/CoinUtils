@@ -235,7 +235,7 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
   // zero out ones that might have been skipped
   mark[smallestIndex>>CHECK_SHIFT]=0;
   int kkLast = (numberRows_+BITS_PER_CHECK-1)>>CHECK_SHIFT;
-  memset(mark+kLast,0,kkLast-kLast);
+  CoinZeroN(mark+kLast,kkLast-kLast);
   regionSparse->setNumElements ( numberNonZero );
 } 
 // Updates part of column (FTRANL) when sparse

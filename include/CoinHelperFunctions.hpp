@@ -175,6 +175,23 @@ CoinCopyOfArray( const T * array, const int size, T value)
 }
 
 
+/*! \brief Return an array of length \p size filled with input from \p array,
+	   or filled with zero if \p array is null
+*/
+
+template <class T> inline T*
+CoinCopyOfArrayOrZero( const T * array , const int size)
+{
+  T * arrayNew = new T[size];
+  if (array) {
+    memcpy(arrayNew,array,size*sizeof(T));
+  } else {
+    memset(arrayNew,0,size*sizeof(T));
+  }
+  return arrayNew;
+}
+
+
 //-----------------------------------------------------------------------------
 
 /** This helper function copies an array to another location. The two arrays
@@ -347,7 +364,6 @@ CoinZeroN(register T* to, const int size)
    if (size < 0)
       throw CoinError("trying to fill negative number of entries",
                    "CoinZeroN", "");
-
 #if 1
    for (register int n = size / 8; n > 0; --n, to += 8) {
       to[0] = 0;
@@ -386,6 +402,32 @@ CoinZeroN(register T* to, const int size)
    }
 #endif
 #endif
+}
+/// This Debug helper function checks an array is all zero
+inline void
+CoinCheckDoubleZero(double * to, const int size)
+{
+  int n=0;
+  for (int j=0;j<size;j++) {
+    if (to[j]) 
+      n++;
+  }
+  if (n) {
+     printf("array of length %d should be zero has %d nonzero\n",size,n);
+  }
+}
+/// This Debug helper function checks an array is all zero
+inline void
+CoinCheckIntZero(int * to, const int size)
+{
+  int n=0;
+  for (int j=0;j<size;j++) {
+    if (to[j]) 
+      n++;
+  }
+  if (n) {
+     printf("array of length %d should be zero has %d nonzero\n",size,n);
+  }
 }
 
 //-----------------------------------------------------------------------------

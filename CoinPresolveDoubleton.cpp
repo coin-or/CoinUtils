@@ -632,8 +632,6 @@ const CoinPresolveAction
   return (next);
 }
 
-static int xxxxxx=0;
-
 /*
   Reintroduce the column (y) and doubleton row (irow) removed in presolve.
   Correct the other column (x) involved in the doubleton, update the solution,

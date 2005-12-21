@@ -30,10 +30,10 @@ CoinIndexedVector::clear()
 	elements_[i1]=0.0;
       }
     } else {
-      memset(elements_,0,capacity_*sizeof(double));
+      CoinZeroN(elements_,capacity_);
     }
   } else {
-    memset(elements_,0,nElements_*sizeof(double));
+    CoinZeroN(elements_,nElements_);
   }
   nElements_ = 0;
   packedMode_=false;
@@ -536,7 +536,7 @@ CoinIndexedVector::reserve(int n)
     else
       nPlus=(n+7)>>4;
     indices_ = new int [n+nPlus];
-    memset(indices_+n,0,nPlus*sizeof(int));
+    CoinZeroN(indices_+n,nPlus);
     // align on 64 byte boundary
     double * temp = new double [n+7];
     offset_ = 0;
@@ -907,7 +907,7 @@ CoinIndexedVector::sortDecrIndex()
 { 
   // Should replace with std sort
   double * elements = new double [nElements_];
-  memset (elements,0,nElements_*sizeof(double));
+  CoinZeroN (elements,nElements_);
   CoinSort_2(indices_, indices_ + nElements_, elements,
 	     CoinFirstGreater_2<int, double>());
   delete [] elements;
@@ -1407,7 +1407,7 @@ CoinIndexedVector::cleanAndPackSafe( double tolerance )
 	indices_[nElements_++]=indexValue;
       }
     }
-    memcpy(elements_,temp,nElements_*sizeof(double));
+    CoinMemcpyN(temp,nElements_,elements_);
     if (gotMemory)
       delete [] temp;
     packedMode_=true;
@@ -1481,7 +1481,7 @@ CoinIndexedVector::expand()
     int i;
     for (i=0;i<nElements_;i++) 
       temp[indices_[i]]=elements_[i];
-    memset(elements_,0,nElements_*sizeof(double));
+    CoinZeroN(elements_,nElements_);
     for (i=0;i<nElements_;i++) {
       int iRow = indices_[i];
       elements_[iRow]=temp[iRow];
@@ -1497,8 +1497,8 @@ CoinIndexedVector::createPacked(int number, const int * indices,
 {
   nElements_=number;
   packedMode_=true;
-  memcpy(indices_,indices,number*sizeof(int));
-  memcpy(elements_,elements,number*sizeof(double));
+  CoinMemcpyN(indices,number,indices_);
+  CoinMemcpyN(elements,number,elements_);
 }
 //  Print out
 void 

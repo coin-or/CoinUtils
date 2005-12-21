@@ -395,7 +395,7 @@ CoinFactorization::factorSparse (  )
               check++;
           }
           if (check!=leftRows&&denseThreshold_) {
-            printf("** mismatch %d columns left, %d rows\n",check,leftRows);
+            //printf("** mismatch %d columns left, %d rows\n",check,leftRows);
             denseThreshold=0;
           } else {
             status=2;
@@ -436,7 +436,7 @@ int CoinFactorization::factorDense()
     full = - denseThreshold_*numberDense_;
   totalElements_=full;
   denseArea_= new double [full];
-  memset(denseArea_,0,full*sizeof(double));
+  CoinZeroN(denseArea_,full);
   densePermute_= new int [numberDense_];
   //mark row lookup using lastRow
   int i;

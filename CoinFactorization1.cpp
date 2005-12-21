@@ -866,7 +866,7 @@ CoinFactorization::preProcess ( int state,
 	  //numberInRow[iRow]=-1; already that
 	}
       }
-      CoinZeroN ( numberInColumnPlus_, maximumColumnsExtra_ + 1 );
+      //CoinZeroN ( numberInColumnPlus_, maximumColumnsExtra_ + 1 );
       for ( iColumn = 0; iColumn < numberColumns; iColumn++ ) {
 	int number = numberInColumn[iColumn];
 
@@ -1730,7 +1730,7 @@ CoinFactorization::cleanup (  )
     startColumnR_ = new CoinBigIndex 
       [ extraSpace + 1 + maximumColumnsExtra_ + 1 ];
     CoinBigIndex * startR = startColumnR_ + extraSpace+1;
-    memset (startR,0,(maximumColumnsExtra_+1)*sizeof(CoinBigIndex));
+    CoinZeroN (startR,(maximumColumnsExtra_+1));
   } else {
     startColumnR_ = new CoinBigIndex [ extraSpace + 1 ];
   }

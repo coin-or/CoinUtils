@@ -599,11 +599,11 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   denseThreshold_=other.denseThreshold_;
   if (numberDense_) {
     denseArea_ = new double [numberDense_*numberDense_];
-    memcpy(denseArea_,other.denseArea_,
-	   numberDense_*numberDense_*sizeof(double));
+    CoinMemcpyN(other.denseArea_,
+	   numberDense_*numberDense_,denseArea_);
     densePermute_ = new int [numberDense_];
-    memcpy(densePermute_,other.densePermute_,
-	   numberDense_*sizeof(int));
+    CoinMemcpyN(other.densePermute_,
+	   numberDense_,densePermute_);
   }
 
   lengthAreaR_ = space;
@@ -1631,7 +1631,8 @@ CoinFactorization::goSparse ( )
   assert (nInBig>=1);
   sparse_ = new int [ (2+nInBig)*maximumRowsExtra_ + nRowIndex ];
   // zero out mark
-  memset(sparse_+(2+nInBig)*maximumRowsExtra_,0,maximumRowsExtra_*sizeof(char));
+  memset(sparse_+(2+nInBig)*maximumRowsExtra_,
+         0,maximumRowsExtra_*sizeof(char));
   delete []elementByRowL_;
   delete []startRowL_;
   delete []indexColumnL_;
@@ -1644,7 +1645,7 @@ CoinFactorization::goSparse ( )
     indexColumnL_=NULL;
   }
   // counts
-  memset(startRowL_,0,numberRows_*sizeof(CoinBigIndex));
+  CoinZeroN(startRowL_,numberRows_);
   int i;
   for (i=baseL_;i<baseL_+numberL_;i++) {
     CoinBigIndex j;
@@ -1781,7 +1782,7 @@ CoinFactorization::replaceRow ( int whichRow, int numberInRow,
   CoinBigIndex start = startRowU_[whichRow];
   if (numberNow&&numberNow<100) {
     int ind[100];
-    memcpy(ind,indexColumnU_+start,numberNow*sizeof(int));
+    CoinMemcpyN(indexColumnU_+start,numberNow,ind);
     int i;
     for (i=0;i<numberInRow;i++) {
       int jColumn=indicesColumn[i];
