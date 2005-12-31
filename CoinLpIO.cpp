@@ -1,4 +1,4 @@
-// Last edit: 15/10/05
+// Last edit: 12/29/05
 //
 // Name:     CoinLpIO.cpp; Support for Lp files
 // Author:   Francois Margot
@@ -583,6 +583,14 @@ CoinLpIO::writeLp(const char *filename,
      }
    }
  
+   if((cnt_print > 0) && (objectiveOffset_ > lp_eps)) {
+     fprintf(fp, " +");
+   }
+   if(fabs(objectiveOffset_) > lp_eps) {
+     out_coeff(fp, objectiveOffset_, 1);
+     cnt_print++;
+   }
+ 
    if(cnt_print % numberAcross != 0) {
      fprintf(fp, "\n");
    }
@@ -852,7 +860,7 @@ CoinLpIO::is_free(char *buff) const {
 /*************************************************************************/
 int 
 CoinLpIO::read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt, 
-			 char **obj_name) const {
+						 char **obj_name) {
 
   double mult;
   char buff[1024], loc_name[1024], *start;
@@ -911,6 +919,17 @@ CoinLpIO::read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt,
   else {
     coeff[*cnt] = 1;
     strcpy(loc_name, start);
+  }
+
+  read_st = is_subject_to(loc_name);
+  if(read_st > 0) {
+    setObjectiveOffset(mult * coeff[*cnt]);
+
+#ifdef LPIO_DEBUG
+  printf("read_monom_obj: objectiveOffset: %lf\n", objectiveOffset_);
+#endif
+
+    return(read_st);
   }
 
   coeff[*cnt] *= mult;

@@ -1,4 +1,4 @@
-// Last edit: 10/15/05
+// Last edit: 12/28/05
 //
 // Name:     CoinLpIO.hpp; Support for Lp files
 // Author:   Francois Margot
@@ -20,7 +20,7 @@ typedef int COINColumnIndex;
  Lp file format: 
 
  Min<BR>
-  obj: x0 + x1 + 3 x2 - 4.5 xyr <BR>
+  obj: x0 + x1 + 3 x2 - 4.5 xyr + 1 <BR>
  s.t. <BR>
  cons1: x0 - x2 - 2.3 x4 <= 4.2 <BR>
  c2: x1 + x2 >= 1 <BR>
@@ -52,6 +52,8 @@ Notes: <UL>
  <LI> Max, Maximize, Minimize are also allowed for the objective sense.
  <LI> "S.T." or "ST.", "ST", "Subject To" or "subject to" are also 
       allowed. 
+ <LI> At most one constant term may appear in the objective function; it must
+      appear last. 
  <LI> Default bounds are 0 for lower bound and +infinity for upper bound.
  <LI> Free variables get lower bound -infinity and upper bound +infinity.
  <LI> If a variable appears in the Bounds section more than once,
@@ -443,7 +445,7 @@ protected:
   /// Read a monomial of the objective function..
   /// Return 1 if "subject to" or one of its variants has been read.
   int read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt, 
-		     char **obj_name) const;
+		     char **obj_name);
 
   /// Read a monomial of a constraint.
   /// Return a positive number if the sense of the inequality has been 
