@@ -757,4 +757,17 @@ CoinFromFile( T* &array, int size, FILE * fp,int & newSize)
   }
   return returnCode;
 }
+
+//#############################################################################
+
+/// Cube Root
+inline double CoinCbrt(double x)
+{
+#if defined(_MSC_VER) 
+  return pow(x,(1./3.));
+#else
+  return cbrt(x);
+#endif
+}
+
 #endif
