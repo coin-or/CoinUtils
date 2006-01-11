@@ -788,6 +788,7 @@ const CoinPresolveAction
 
   int nuseless_rows = 0;
   bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
+  double tolerance = prob->feasibilityTolerance_;
 
   double dval = workrow[0];
   for (int jj = 1; jj < nlook; jj++) {
@@ -829,7 +830,7 @@ const CoinPresolveAction
 	      printf("overlapping duplicate row %g %g, %g %g\n",
 		     rlo1,rup1,rlo2,rup2);
 #	      endif
-	      if (rup1<rlo2&&!fixInfeasibility) {
+	      if (rup1<rlo2-tolerance&&!fixInfeasibility) {
 		// infeasible
 		prob->status_|= 1;
 		// wrong message - correct if works
@@ -856,7 +857,7 @@ const CoinPresolveAction
 	      printf("overlapping duplicate row %g %g, %g %g\n",
 		     rlo1,rup1,rlo2,rup2);
 #	      endif
-	      if (rup2<rlo1&&!fixInfeasibility) {
+	      if (rup2<rlo1-tolerance&&!fixInfeasibility) {
 		// infeasible
 		prob->status_|= 1;
 		// wrong message - correct if works
