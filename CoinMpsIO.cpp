@@ -4284,7 +4284,7 @@ CoinMpsIO::setMpsDataWithoutRowAndColNames(
     integerType_ = (char *) malloc (numberColumns_ * sizeof(char));
     std::copy(integrality, integrality + numberColumns_, integerType_);
   } else {
-    integerType_ = 0;
+    integerType_ = NULL;
   }
     
   problemName_ = strdup("");
@@ -4499,10 +4499,10 @@ CoinMpsIO::copyInIntegerInformation(const char * integerType)
 {
   if (integerType) {
     if (!integerType_)
-      integerType_ = new char [numberColumns_];
+      integerType_ = (char *) malloc (numberColumns_ * sizeof(char));
     memcpy(integerType_,integerType,numberColumns_);
   } else {
-    delete [] integerType_;
+    free(integerType_);
     integerType_=NULL;
   }
 }
