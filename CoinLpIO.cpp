@@ -450,6 +450,15 @@ void CoinLpIO::setLpDataRowAndColNames(char const * const * const rownames,
   if(rownames != NULL) {
     stopHash(0);
     startHash(rownames, numberRows_, 0);
+    if(numberHash_[0] != numberRows_) {
+      printf("### WARNING: CoinLpIO::setLpDataRowAndColNames(): non distinct row names\n");
+      // We don't normally use row names as hash so put back
+      stopHash(0);
+      names_[0] = (char **) malloc(numberRows_ * sizeof(char *));
+      char ** names = names_[0];
+      for (int i=0;i<numberRows_;i++)
+      names[i]=strdup(rownames[i]);
+    }
   }
 
   if(colnames != NULL) {
@@ -1242,6 +1251,12 @@ CoinLpIO::readLp(FILE* fp)
 
   if(numberHash_[0] != cnt_row) {
     printf("### WARNING: CoinLpIO::readLP(): non distinct row names\n");
+    // We don't normally use row names as hash so put back
+    stopHash(0);
+    names_[0] = (char **) malloc(cnt_row * sizeof(char *));
+    char ** names = names_[0];
+    for (int i=0;i<cnt_row;i++)
+      names[i]=strdup(rowNames[i]);
   }
 
   COINColumnIndex icol;
