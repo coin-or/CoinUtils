@@ -620,7 +620,7 @@ public:
 		   const double * elem, const int * ind,
 		   const CoinBigIndex * start, const int * len);
 
-   /** Create packed matrix from ordered triples.
+   /** Create packed matrix from triples.
        If colordered is true then the created matrix will be column ordered.
        Duplicate matrix elements are allowed. The created matrix will have 
        the sum of the duplicates. <br>
