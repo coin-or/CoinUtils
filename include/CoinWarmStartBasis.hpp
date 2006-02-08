@@ -362,6 +362,10 @@ class CoinWarmStartBasisDiff : public CoinWarmStartDiff
   */
   CoinWarmStartBasisDiff (const CoinWarmStartBasisDiff &cwsbd) ;
 
+  /*! \brief Standard constructor */
+  CoinWarmStartBasisDiff (int sze, const unsigned int *const diffNdxs,
+			  const unsigned int *const diffVals) ;
+  
   private:
 
   friend CoinWarmStartDiff*
@@ -369,10 +373,6 @@ class CoinWarmStartBasisDiff : public CoinWarmStartDiff
   friend void
     CoinWarmStartBasis::applyDiff(const CoinWarmStartDiff *const diff) ;
 
-  /*! \brief Standard constructor */
-  CoinWarmStartBasisDiff (int sze, const unsigned int *const diffNdxs,
-			  const unsigned int *const diffVals) ;
-  
   /*! \brief Number of entries (and allocated capacity), in units of \c int. */
   int sze_ ;
 
