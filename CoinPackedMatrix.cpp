@@ -2640,7 +2640,7 @@ CoinPackedMatrix::appendMajor(const int number,
           index_[put++]=iIndex;
         }
         start_[majorDim_+i+1] = put;
-        length_[i] = put-start_[majorDim_+i];;
+        length_[majorDim_+i] = put-start_[majorDim_+i];;
         for ( j=starts[i];j<starts[i+1];j++) {
           int iIndex = index[j];
           if (iIndex>=0&&iIndex<numberOther) 
