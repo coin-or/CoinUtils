@@ -73,6 +73,7 @@ CoinPackedMatrix::reserve(const int newMaxMajorDim, const CoinBigIndex newMaxSiz
       CoinBigIndex * oldstart = start_;
       length_ = new int[newMaxMajorDim];
       start_ = new CoinBigIndex[newMaxMajorDim+1];
+      start_[0]=0;
       if (majorDim_ > 0) {
 	 CoinMemcpyN(oldlength, majorDim_, length_);
 	 CoinMemcpyN(oldstart, majorDim_ + 1, start_);
@@ -641,6 +642,7 @@ CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
    maxSize_ = (CoinBigIndex) (nzcnt * (1+extraMajor_) * (1+extraGap_) + 100);
    length_ = new int[maxMajorDim_];
    start_ = new CoinBigIndex[maxMajorDim_+1];
+   start_[0]=0;
    index_ = new int[maxSize_];
    element_ = new double[maxSize_];
    majorDim_ = 0;
@@ -688,6 +690,7 @@ CoinPackedMatrix::submatrixOfWithDuplicates(const CoinPackedMatrix& matrix,
    maxSize_ = (CoinBigIndex) (nzcnt * (1+extraMajor_) * (1+extraGap_) + 100);
    length_ = new int[maxMajorDim_];
    start_ = new CoinBigIndex[maxMajorDim_+1];
+   start_[0]=0;
    index_ = new int[maxSize_];
    element_ = new double[maxSize_];
    majorDim_ = 0;
@@ -2125,6 +2128,7 @@ CoinPackedMatrix::gutsOfCopyOf(const bool colordered,
      }
      delete [] start_;
      start_ = new CoinBigIndex[maxMajorDim_+1];
+     start_[0]=0;
      CoinMemcpyN(start, major+1, start_);
    } else {
      // empty but be safe
@@ -2132,6 +2136,7 @@ CoinPackedMatrix::gutsOfCopyOf(const bool colordered,
      length_ = NULL;
      delete [] start_;
      start_ = new CoinBigIndex[1];
+     start_[0]=0;
    }
 
    maxSize_ = maxMajorDim_ > 0 ? start_[major] : 0;
