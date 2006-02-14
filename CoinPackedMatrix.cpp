@@ -2608,21 +2608,34 @@ CoinPackedMatrix::appendMajor(const int number,
       delete [] which;
     } else {
       // easy
+      int lastMinor=-1;
       if (!extraGap_) {
         // just one copy
-        CoinMemcpyN(index,numberElements,index_+start_[majorDim_]);
+        int * index2 = index_+start_[majorDim_];
+        for (CoinBigIndex j=0;j<numberElements;j++) {
+          int iIndex = index[j];
+          index2[j] = iIndex;
+          lastMinor = CoinMax(lastMinor,iIndex);
+        }
         CoinMemcpyN(element,numberElements,element_+start_[majorDim_]);
       } else {
         start_ += majorDim_;
         for (i = 0; i < number; i++) {
           int length = starts[i+1]-starts[i];
-          CoinMemcpyN(index + starts[i], length,
-                      index_ + start_[i]);
+          int * index2 = index_+start_[i];
+          const int * index1 = index+starts[i];
+          for (CoinBigIndex j=0;j<length;j++) {
+            int iIndex = index1[j];
+            index2[j] = iIndex;
+            lastMinor = CoinMax(lastMinor,iIndex);
+          }
           CoinMemcpyN(element + starts[i], length,
                       element_ + start_[i]);
         }
         start_ -= majorDim_;
       }
+      // update minorDim if necessary
+      minorDim_ = CoinMax(minorDim_,lastMinor+1);
     }
   } else {
     if (numberOther>0) {
@@ -2655,9 +2668,16 @@ CoinPackedMatrix::appendMajor(const int number,
       delete [] which;
     } else {
       // easy
+      int lastMinor=-1;
       if (!extraGap_) {
         // just one copy
-        CoinMemcpyN(index,numberElements,index_+start_[majorDim_]);
+        // just one copy
+        int * index2 = index_+start_[majorDim_];
+        for (CoinBigIndex j=0;j<numberElements;j++) {
+          int iIndex = index[j];
+          index2[j] = iIndex;
+          lastMinor = CoinMax(lastMinor,iIndex);
+        }
         CoinMemcpyN(element,numberElements,element_+start_[majorDim_]);
         start_ += majorDim_;
         for (i = 0; i < number; i++) {
@@ -2670,8 +2690,13 @@ CoinPackedMatrix::appendMajor(const int number,
         start_ += majorDim_;
         for (i = 0; i < number; i++) {
           int length = starts[i+1]-starts[i];
-          CoinMemcpyN(index + starts[i], length,
-                      index_ + start_[i]);
+          int * index2 = index_+start_[i];
+          const int * index1 = index+starts[i];
+          for (CoinBigIndex j=0;j<length;j++) {
+            int iIndex = index1[j];
+            index2[j] = iIndex;
+            lastMinor = CoinMax(lastMinor,iIndex);
+          }
           CoinMemcpyN(element + starts[i], length,
                       element_ + start_[i]);
           start_[i+1] = start_[i] + length;
@@ -2679,6 +2704,8 @@ CoinPackedMatrix::appendMajor(const int number,
         }
         start_ -= majorDim_;
       }
+      // update minorDim if necessary
+      minorDim_ = CoinMax(minorDim_,lastMinor+1);
     }
   }
   majorDim_ += number;
