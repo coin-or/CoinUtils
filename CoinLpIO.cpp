@@ -367,7 +367,7 @@ double CoinLpIO::getInfinity() const
 }
 
 /************************************************************************/
-void CoinLpIO::setInfinity(double value) 
+void CoinLpIO::setInfinity(const double value) 
 {
   if (value >= 1.020) {
     infinity_ = value;
