@@ -3569,6 +3569,72 @@ static void outputCard(int formatType,int numberFields,
    line += "\n";
    writeString(output, line.c_str());
 }
+static int
+makeUniqueNames(char ** names,int number,char first)
+{
+  int largest=-1;
+  int i;
+  for (i=0;i<number;i++) {
+    char * name = names[i];
+    if (name[0]==first&&strlen(name)==8) {
+      // check number
+      int n=0;
+      for (int j=1;j<8;j++) {
+        char num = name[j];
+        if (num>='0'&&num<='9') {
+          n *= 10;
+          n += num-'0';
+        } else {
+          n=-1;
+          break;
+        }
+      }
+      if (n>=0)
+        largest = CoinMax(largest,n);
+    }
+  }
+  largest ++;
+  if (largest>0) {
+    // check
+    char * used = new char[largest];
+    memset(used,0,largest);
+    int nDup=0;
+    for (i=0;i<number;i++) {
+      char * name = names[i];
+      if (name[0]==first&&strlen(name)==8) {
+        // check number
+        int n=0;
+        for (int j=1;j<8;j++) {
+          char num = name[j];
+          if (num>='0'&&num<='9') {
+            n *= 10;
+            n += num-'0';
+          } else {
+            n=-1;
+            break;
+          }
+        }
+        if (n>=0) {
+          if (!used[n]) {
+            used[n]=1;
+          } else {
+            // duplicate
+            nDup++;
+            free(names[i]);
+            char newName[9];
+            sprintf(newName,"%c%7.7d",first,largest);
+            names[i] = strdup(newName);
+            largest++;
+          }
+        }
+      }
+    }
+    delete []used;
+    return nDup;
+  } else {
+    return 0;
+  }
+}
 
 int
 CoinMpsIO::writeMps(const char *filename, int compression,
@@ -3622,6 +3688,16 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    int i;
    unsigned int length = 8;
    bool freeFormat = (formatType==1);
+   // Check names for uniqueness if default
+   int nChanged;
+   nChanged=makeUniqueNames(names_[0],numberRows_,'R');
+   if (nChanged)
+     handler_->message(COIN_MPS_CHANGED,messages_)<<"row"<<nChanged
+                                                  <<CoinMessageEol;
+   nChanged=makeUniqueNames(names_[1],numberColumns_,'C');
+   if (nChanged)
+     handler_->message(COIN_MPS_CHANGED,messages_)<<"column"<<nChanged
+                                                  <<CoinMessageEol;
    for (i = 0 ; i < numberRows_; ++i) {
       if (strlen(rowNames[i]) > length) {
 	 length = strlen(rowNames[i]);
