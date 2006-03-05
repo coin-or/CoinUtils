@@ -23,6 +23,13 @@ typedef long long CoinBigIndex;
 
 //=============================================================================
 
+#if defined (BLUE_GENE_XLC)
+# define CoinFinite finite
+# define CoinIsnan  isnan
+#endif
+
+//=============================================================================
+
 #if defined (_AIX)
 # define CoinFinite finite
 # define CoinIsnan  isnan
