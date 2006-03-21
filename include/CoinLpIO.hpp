@@ -313,7 +313,7 @@ public:
       setLpDataWithoutRowAndColNames() has been called, since access
       to the indices of all the ranged constraints is required.
   */
-  int CoinLpIO::are_invalid_names(char const * const *vnames, 
+  int are_invalid_names(char const * const *vnames, 
 				  const int card_vnames,
 				  const bool check_ranged) const;
   
