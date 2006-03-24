@@ -4,7 +4,7 @@
 #ifndef _CoinTime_hpp
 #define _CoinTime_hpp
 
-# Uncomment the next three lines for thorough memory initialisation.
+// Uncomment the next three lines for thorough memory initialisation.
 // #ifndef ZEROFAULT
 // # define ZEROFAULT
 // #endif
