@@ -4,6 +4,11 @@
 #ifndef _CoinTime_hpp
 #define _CoinTime_hpp
 
+# Uncomment the next three lines for thorough memory initialisation.
+// #ifndef ZEROFAULT
+// # define ZEROFAULT
+// #endif
+
 //#############################################################################
 
 #include <ctime>
@@ -33,6 +38,10 @@ static inline double CoinCpuTime()
   cpu_temp = (double)((double)ticksnow/CLOCKS_PER_SEC);
 #else
   struct rusage usage;
+# ifdef ZEROFAULT
+  usage.ru_utime.tv_sec = 0 ;
+  usage.ru_utime.tv_usec = 0 ;
+# endif
   getrusage(RUSAGE_SELF,&usage);
   cpu_temp = usage.ru_utime.tv_sec;
   cpu_temp += 1.0e-6*((double) usage.ru_utime.tv_usec);
