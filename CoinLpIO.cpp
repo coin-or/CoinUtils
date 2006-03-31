@@ -20,6 +20,28 @@ using namespace std;
 //#define LPIO_DEBUG
 
 /************************************************************************/
+
+static inline int CoinStrNCaseCmp(const char* s0, const char* s1,
+								  const size_t len)
+{
+	for (size_t i = 0; i < len; ++i) {
+		if (s0[i] == 0) {
+			return s1[i] == 0 ? 0 : -1;
+		}
+		if (s1[i] == 0) {
+			return 1;
+		}
+		const int c0 = tolower(s0[i]);
+		const int c1 = tolower(s1[i]);
+		if (c0 < c1)
+			return -1;
+		if (c0 > c1)
+			return 1;
+	}
+	return 0;
+}
+
+/************************************************************************/
 CoinLpIO::CoinLpIO() :
   problemName_(strdup("")),
   numberRows_(0),
@@ -941,10 +963,10 @@ CoinLpIO::find_obj(FILE *fp) const {
   sprintf(buff, "aa");
   unsigned lbuff = strlen(buff);
 
-  while(((lbuff != 8) || (strncasecmp(buff, "minimize", 8) != 0)) &&
-	((lbuff != 3) || (strncasecmp(buff, "min", 3) != 0)) &&
-	((lbuff != 8) || (strncasecmp(buff, "maximize", 8) != 0)) &&
-	((lbuff != 3) || (strncasecmp(buff, "max", 3) != 0))) {
+  while(((lbuff != 8) || (CoinStrNCaseCmp(buff, "minimize", 8) != 0)) &&
+	((lbuff != 3) || (CoinStrNCaseCmp(buff, "min", 3) != 0)) &&
+	((lbuff != 8) || (CoinStrNCaseCmp(buff, "maximize", 8) != 0)) &&
+	((lbuff != 3) || (CoinStrNCaseCmp(buff, "max", 3) != 0))) {
 
     scan_next(buff, fp);
     lbuff = strlen(buff);
@@ -955,8 +977,8 @@ CoinLpIO::find_obj(FILE *fp) const {
     }
   }
 
-  if(((lbuff == 8) && (strncasecmp(buff, "minimize", 8) == 0)) ||
-     ((lbuff == 3) && (strncasecmp(buff, "min", 3) == 0))) {
+  if(((lbuff == 8) && (CoinStrNCaseCmp(buff, "minimize", 8) == 0)) ||
+     ((lbuff == 3) && (CoinStrNCaseCmp(buff, "min", 3) == 0))) {
     return(1);
   }
   return(-1);
@@ -968,12 +990,12 @@ CoinLpIO::is_subject_to(const char *buff) const {
 
   unsigned lbuff = strlen(buff);
 
-  if(((lbuff == 4) && (strncasecmp(buff, "s.t.", 4) == 0)) ||
-     ((lbuff == 3) && (strncasecmp(buff, "st.", 3) == 0)) ||
-     ((lbuff == 2) && (strncasecmp(buff, "st", 2) == 0))) {
+  if(((lbuff == 4) && (CoinStrNCaseCmp(buff, "s.t.", 4) == 0)) ||
+     ((lbuff == 3) && (CoinStrNCaseCmp(buff, "st.", 3) == 0)) ||
+     ((lbuff == 2) && (CoinStrNCaseCmp(buff, "st", 2) == 0))) {
     return(1);
   }
-  if((lbuff == 7) && (strncasecmp(buff, "subject", 7) == 0)) {
+  if((lbuff == 7) && (CoinStrNCaseCmp(buff, "subject", 7) == 0)) {
     return(2);
   }
   return(0);
@@ -1023,7 +1045,7 @@ CoinLpIO::is_free(const char *buff) const {
 
   unsigned lbuff = strlen(buff);
 
-  if((lbuff == 4) && (strncasecmp(buff, "free", 4) == 0)) {
+  if((lbuff == 4) && (CoinStrNCaseCmp(buff, "free", 4) == 0)) {
     return(1);
   }
   return(0);
@@ -1400,27 +1422,27 @@ CoinLpIO::is_keyword(const char *buff) const {
 
   unsigned lbuff = strlen(buff);
 
-  if(((lbuff == 5) && (strncasecmp(buff, "bound", 5) == 0)) ||
-     ((lbuff == 6) && (strncasecmp(buff, "bounds", 6) == 0))) {
+  if(((lbuff == 5) && (CoinStrNCaseCmp(buff, "bound", 5) == 0)) ||
+     ((lbuff == 6) && (CoinStrNCaseCmp(buff, "bounds", 6) == 0))) {
     return(1);
   }
 
-  if(((lbuff == 7) && (strncasecmp(buff, "integer", 7) == 0)) ||
-     ((lbuff == 8) && (strncasecmp(buff, "integers", 8) == 0))) {
+  if(((lbuff == 7) && (CoinStrNCaseCmp(buff, "integer", 7) == 0)) ||
+     ((lbuff == 8) && (CoinStrNCaseCmp(buff, "integers", 8) == 0))) {
     return(2);
   }
   
-  if(((lbuff == 7) && (strncasecmp(buff, "general", 7) == 0)) ||
-     ((lbuff == 8) && (strncasecmp(buff, "generals", 8) == 0))) {
+  if(((lbuff == 7) && (CoinStrNCaseCmp(buff, "general", 7) == 0)) ||
+     ((lbuff == 8) && (CoinStrNCaseCmp(buff, "generals", 8) == 0))) {
     return(2);
   }
 
-  if(((lbuff == 6) && (strncasecmp(buff, "binary", 6) == 0)) ||
-     ((lbuff == 8) && (strncasecmp(buff, "binaries", 8) == 0))) {
+  if(((lbuff == 6) && (CoinStrNCaseCmp(buff, "binary", 6) == 0)) ||
+     ((lbuff == 8) && (CoinStrNCaseCmp(buff, "binaries", 8) == 0))) {
     return(3);
   }
   
-  if((lbuff == 3) && (strncasecmp(buff, "end", 3) == 0)) {
+  if((lbuff == 3) && (CoinStrNCaseCmp(buff, "end", 3) == 0)) {
     return(4);
   }
 
@@ -1502,7 +1524,7 @@ CoinLpIO::readLp(FILE* fp)
     fscanf(fp, "%s", buff);
     unsigned lbuff = strlen(buff);
 
-    if((lbuff != 2) || (strncasecmp(buff, "to", 2) != 0)) {
+    if((lbuff != 2) || (CoinStrNCaseCmp(buff, "to", 2) != 0)) {
       printf("### ERROR: CoinLpIO::readLp(): Can not locate keyword 'Subject To'\n");
       exit(1);
     }
