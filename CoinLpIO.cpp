@@ -9,7 +9,8 @@
 // Copyright (C) 2003, Francois Margot, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
-#include <float.h>
+#include <cfloat>
+#include <cctype>
 #include <cassert>
 
 #include "CoinPackedMatrix.hpp"
