@@ -3179,8 +3179,8 @@ CoinMpsIO::readBasis(const char *filename, const char *extension ,
     numberHash_[1]=numberColumns_;
     names_[0] = (char **) malloc(numberRows_ * sizeof(char *));
     names_[1] = (char **) malloc (numberColumns_ * sizeof(char *));
-    const char** rowNames = (const char **) names_[0];
-    const char** columnNames = (const char **) names_[1];
+    const char** rowNames = const_cast<const char **>(names_[0]);
+    const char** columnNames = const_cast<const char **>(names_[1]);
     int i;
     for (i = 0; i < numberRows_; ++i) {
       rowNames[i] = rownames[i].c_str();
@@ -3188,8 +3188,8 @@ CoinMpsIO::readBasis(const char *filename, const char *extension ,
     for (i = 0; i < numberColumns_; ++i) {
       columnNames[i] = colnames[i].c_str();
     }
-    startHash ( (char **) rowNames, numberRows , 0 );
-    startHash ( (char **) columnNames, numberColumns , 1 );
+    startHash ( const_cast<char **>(rowNames), numberRows , 0 );
+    startHash ( const_cast<char **>(columnNames), numberColumns , 1 );
   }
   cardReader_->setWhichSection(COIN_BASIS_SECTION);
   cardReader_->setFreeFormat(true);
