@@ -78,7 +78,7 @@ public:
   
     A fast test for an all-slack basis.
   */
-  int numberBasicStructurals();
+  int numberBasicStructurals() const ;
 
   /// Return the status of the specified structural variable.
   inline Status getStructStatus(int i) const {
@@ -162,10 +162,21 @@ public:
 /*! \name Methods to modify the warm start object */
 //@{
 
-  /// Set basis capacity; existing basis is discarded.
+  /*! \brief Set basis capacity; existing basis is discarded.
+
+    After execution of this routine, the warm start object does not describe
+    a valid basis: all structural and artificial variables have status isFree.
+  */
   virtual void setSize(int ns, int na) ;
 
-  /// Set basis capacity; existing basis is maintained.
+  /*! \brief Set basis capacity; existing basis is maintained.
+
+    After execution of this routine, the warm start object describes a valid
+    basis: the status of new structural variables (added columns) is set to
+    nonbasic at lower bound, and the status of new artificial variables
+    (added rows) is set to basic. (The basis can be invalid if new structural
+    variables do not have a finite lower bound.)
+  */
   virtual void resize (int newNumberRows, int newNumberColumns);
 
   /** \brief Delete a set of rows from the basis

@@ -256,7 +256,7 @@ CoinWarmStartBasis::~CoinWarmStartBasis()
 }
 // Returns number of basic structurals
 int
-CoinWarmStartBasis::numberBasicStructurals()
+CoinWarmStartBasis::numberBasicStructurals() const
 {
   int i ;
   int numberBasic=0;
@@ -267,7 +267,6 @@ CoinWarmStartBasis::numberBasicStructurals()
   }
   return numberBasic;
 }
-
 
 /*
   Generate a diff that'll convert oldCWS into the basis pointed to by this.
