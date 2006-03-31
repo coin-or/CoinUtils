@@ -10,6 +10,7 @@
 #  include <unistd.h>
 #endif
 
+#include <cstdio>
 #include "CoinError.hpp"
 #include "CoinFinite.hpp"
 //#############################################################################

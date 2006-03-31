@@ -10,6 +10,7 @@
 // Copyright (C) 2003, Francois Margot, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
+#include <cstdio>
 
 class CoinPackedMatrix;
 
