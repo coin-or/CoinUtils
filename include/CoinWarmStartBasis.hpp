@@ -182,16 +182,33 @@ public:
   /** \brief Delete a set of rows from the basis
 
     \warning
+    This routine assumes that the set of indices to be deleted is sorted in
+    ascending order and contains no duplicates. Use deleteRows() if this is
+    not the case.
+
+    \warning
     The resulting basis is guaranteed valid only if all deleted
     constraints are slack (hence the associated logicals are basic).
-
 
     Removal of a tight constraint with a nonbasic logical implies that
     some basic variable must be made nonbasic. This correction is left to
     the client.
   */
 
-  virtual void deleteRows(int number, const int * which);
+  virtual void compressRows (int tgtCnt, const int *tgts) ;
+
+  /** \brief Delete a set of rows from the basis
+
+    \warning
+    The resulting basis is guaranteed valid only if all deleted
+    constraints are slack (hence the associated logicals are basic).
+
+    Removal of a tight constraint with a nonbasic logical implies that
+    some basic variable must be made nonbasic. This correction is left to
+    the client.
+  */
+
+  virtual void deleteRows(int rawTgtCnt, const int *rawTgts) ;
 
   /** \brief Delete a set of columns from the basis
 
@@ -271,8 +288,8 @@ public:
 
 //@}
 
-private:
-  /** \name Private data members
+protected:
+  /** \name Protected data members
 
     \sa CoinWarmStartBasis::Status for a description of the packing used in
     the status arrays.
@@ -368,7 +385,7 @@ class CoinWarmStartBasisDiff : public CoinWarmStartDiff
     polymorphism.
 
     This is protected (rather than private) so that derived classes can
-    see it when the make <i>their</i> copy constructor protected or
+    see it when they make <i>their</i> copy constructor protected or
     private.
   */
   CoinWarmStartBasisDiff (const CoinWarmStartBasisDiff &cwsbd) ;
