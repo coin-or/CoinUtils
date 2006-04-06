@@ -134,6 +134,93 @@ CoinWarmStartBasis::resize (int newNumberRows, int newNumberColumns)
     numStructural_ = newNumberColumns;
   }
 }
+
+/*
+  compressRows takes an ascending list of target indices without duplicates
+  and removes them, compressing the artificialStatus_ array in place. It will
+  fail spectacularly if the indices are not sorted. Use deleteRows if you
+  need to preprocess the target indices to satisfy the conditions.
+*/
+void CoinWarmStartBasis::compressRows (int tgtCnt, const int *tgts)
+{ if (tgtCnt <= 0) return ;
+
+  int i,keep,t,tgt,blkStart,blkEnd ;
+  Status stati ;
+
+# ifdef COIN_DEBUG
+/*
+  If we're debugging, scan to see if we're deleting nonbasic artificials.
+  (In other words, are we deleting tight constraints?) Easiest to just do this
+  up front as opposed to integrating it with the loops below.
+*/
+  int nbCnt = 0 ;
+  for (t = 0 ; t < tgtCnt ; t++)
+  { i = tgts[t] ;
+    stati = getStatus(artificialStatus_,i) ;
+    if (status != CoinWarmStartBasis::basic)
+    { nbCnt++ ; } }
+  if (nbCnt > 0)
+  { std::cout << nbCnt << " nonbasic artificials deleted." << std::endl ; }
+# endif
+
+/*
+  Preserve all entries before the first target. Skip across consecutive
+  target indices to establish the start of the first block to be retained.
+*/
+  keep = tgts[0] ;
+  for (t = 0 ; t < tgtCnt-1 && tgts[t]+1 == tgts[t+1] ; t++) ;
+  blkStart = tgts[t]+1 ;
+/*
+  Outer loop works through the indices to be deleted. Inner loop copies runs
+  of indices to keep.
+*/
+  while (t < tgtCnt-1)
+  { blkEnd = tgts[t+1]-1 ;
+    for (i = blkStart ; i <= blkEnd ; i++)
+    { stati = getStatus(artificialStatus_,i) ;
+      setStatus(artificialStatus_,keep++,stati) ; }
+    for (t++ ; t < tgtCnt-1 && tgts[t]+1 == tgts[t+1] ; t++) ;
+    blkStart = tgts[t]+1 ; }
+/*
+  Finish off by copying from last deleted index to end of status array.
+*/
+  for (i = blkStart ; i < numArtificial_ ; i++)
+  { stati = getStatus(artificialStatus_,i) ;
+    setStatus(artificialStatus_,keep++,stati) ; }
+
+  numArtificial_ -= tgtCnt ;
+
+  return ; }
+
+#define CWSB_NEW_DELETE
+#ifdef CWSB_NEW_DELETE
+/*
+  deleteRows takes an unordered list of target indices with duplicates and
+  removes them from the basis. The strategy is to preprocesses the list into
+  an ascending list without duplicates, suitable for compressRows.
+*/
+void 
+CoinWarmStartBasis::deleteRows (int rawTgtCnt, const int *rawTgts)
+{ if (rawTgtCnt <= 0) return ;
+
+  int *tgts = new int[rawTgtCnt] ;
+  memcpy(tgts,rawTgts,rawTgtCnt*sizeof(int)) ;
+  int *first = &tgts[0] ;
+  int *last = &tgts[rawTgtCnt] ;
+  int *endUnique ;
+  std::sort(first,last) ;
+  endUnique = std::unique(first,last) ;
+  int tgtCnt = endUnique-first ;
+  compressRows(tgtCnt,tgts) ;
+  delete [] tgts ;
+
+  return  ; }
+
+#else
+/*
+  Original model. Keep around until it's clear new version is cross-platform
+  safe.
+*/
 // Deletes rows
 void 
 CoinWarmStartBasis::deleteRows(int number, const int * which)
@@ -178,6 +265,7 @@ CoinWarmStartBasis::deleteRows(int number, const int * which)
     std::cout<<numberNotBasic<<" non basic artificials deleted"<<std::endl;
 # endif
 }
+#endif
 // Deletes columns
 void 
 CoinWarmStartBasis::deleteColumns(int number, const int * which)
