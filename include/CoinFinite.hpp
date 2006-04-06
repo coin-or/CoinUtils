@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cfloat>
 
 //=============================================================================
 #if COIN_BIG_INDEX==0
