@@ -144,7 +144,7 @@ CoinWarmStartBasis::resize (int newNumberRows, int newNumberColumns)
 void CoinWarmStartBasis::compressRows (int tgtCnt, const int *tgts)
 { if (tgtCnt <= 0) return ;
 
-  int i,keep,t,tgt,blkStart,blkEnd ;
+  int i,keep,t,blkStart,blkEnd ;
   Status stati ;
 
 # ifdef COIN_DEBUG
