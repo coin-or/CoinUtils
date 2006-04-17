@@ -1409,7 +1409,7 @@ inline bool presolve_expand_col(CoinBigIndex *mcstrt, double *colels,
 				int *hrow, int *hincol,
 				presolvehlink *clink, int ncols, int colx)
 { return presolve_expand_major(mcstrt,colels,
-			       hrow,hincol,clink,ncols,colx) ; } ;
+			       hrow,hincol,clink,ncols,colx) ; }
 
 /*! \relates CoinPrePostsolveMatrix
     \brief Make sure a row (rowx) in a row-major matrix has room for one
@@ -1420,7 +1420,7 @@ inline bool presolve_expand_row(CoinBigIndex *mrstrt, double *rowels,
 				int *hcol, int *hinrow,
 				presolvehlink *rlink, int nrows, int rowx)
 { return presolve_expand_major(mrstrt,rowels,
-			       hcol,hinrow,rlink,nrows,rowx) ; } ;
+			       hcol,hinrow,rlink,nrows,rowx) ; }
 
 
 /*! \relates CoinPrePostsolveMatrix
