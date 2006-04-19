@@ -515,7 +515,29 @@ CoinMpsCardReader::nextField (  )
 	      } else {
 		nextBlank = nextBlankOr ( next );
 	      }
-	    }
+	    } else if (section_ == COIN_BOUNDS_SECTION) {
+              // should have been something - but just fix LI problem
+              // set to something illegal
+              if (card_[0]==' '&&card_[3]==' '&&(card_[1]!=' '||card_[2]!=' ')) {
+                mpsType_ = COIN_S3_COLUMN;
+                //we know all we need so we can skip over
+                next = nextBlank;
+                while ( next != eol_ ) {
+                  if ( *next == ' ' || *next == '\t' ) {
+                    next++;
+                  } else {
+                    break;
+                  }
+                }
+                if ( next == eol_ ) {
+                  // error
+                  position_ = eol_;
+                  mpsType_ = COIN_UNKNOWN_MPS_TYPE;
+                } else {
+                  nextBlank = nextBlankOr ( next );
+                }
+              }
+            }
 	  }
 	  if ( mpsType_ != COIN_UNKNOWN_MPS_TYPE ) {
 	    // special coding if BOUND, not free format and blanks
