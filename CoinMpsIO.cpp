@@ -232,7 +232,7 @@ const static int allowedLength[] = {
 const static char *mpsTypes[] = {
   "N", "E", "L", "G",
   "  ", "S1", "S2", "S3", "  ", "  ", "  ",
-  "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "SC",
+  "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "LI", "SC",
   "X1", "X2", "BS", "XL", "XU", "LL", "UL", "  "
 };
 
@@ -2316,6 +2316,29 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
               value=infinity_;
 	    colupper_[icolumn] = value;
 	    columnType[icolumn] = COIN_UI_BOUND;
+	    if ( !integerType_[icolumn] ) {
+	      numberIntegers++;
+	      integerType_[icolumn] = 1;
+	    }
+	    break;
+	  case COIN_LI_BOUND:
+	    if ( value == -1.0e100 )
+	      ifError = true;
+	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
+	    } else if ( columnType[icolumn] == COIN_UP_BOUND ||
+			columnType[icolumn] == COIN_UI_BOUND ) {
+	      if ( value > colupper_[icolumn] ) {
+		ifError = true;
+	      } else if ( value > colupper_[icolumn] - tinyElement ) {
+		value = colupper_[icolumn];
+	      }
+	    } else {
+	      ifError = true;
+	    }
+            if (value<-1.0e25)
+              value=-infinity_;
+	    collower_[icolumn] = value;
+	    columnType[icolumn] = COIN_LI_BOUND;
 	    if ( !integerType_[icolumn] ) {
 	      numberIntegers++;
 	      integerType_[icolumn] = 1;
