@@ -142,9 +142,17 @@ CoinWarmStartBasis::resize (int newNumberRows, int newNumberColumns)
   need to preprocess the target indices to satisfy the conditions.
 */
 void CoinWarmStartBasis::compressRows (int tgtCnt, const int *tgts)
-{ if (tgtCnt <= 0) return ;
-
+{ 
   int i,keep,t,blkStart,blkEnd ;
+  // basis may be null or smaller than members of list
+  for (t = 0 ; t < tgtCnt ; t++) {
+    if (tgts[t]>=numArtificial_) {
+      // get rid of bad ones
+      tgtCnt = t;
+      break;
+    }
+  }
+  if (tgtCnt <= 0) return ;
   Status stati ;
 
 # ifdef COIN_DEBUG
