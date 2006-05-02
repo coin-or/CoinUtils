@@ -319,6 +319,10 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
   const double ztolzb	= prob->ztolzb_;
 
   action * actions = new action [nrows];
+# ifdef ZEROFAULT
+  // initialise alignment padding bytes
+  memset(actions,0,nrows*sizeof(action)) ;
+# endif
   int nactions = 0;
 
   int *zeros	= new int[ncols];

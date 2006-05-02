@@ -810,6 +810,10 @@ CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix& rhs)
       delete[] element_;
       index_ = new int[maxSize_];
       element_ = new double[maxSize_];
+#     ifdef ZEROFAULT
+      memset(index_,0,(maxSize_*sizeof(int))) ;
+      memset(element_,0,(maxSize_*sizeof(double))) ;
+#     endif
    }
 
    // now insert the entries of matrix

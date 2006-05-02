@@ -2255,15 +2255,24 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       double * tempArray;
       tempArray = new double[maximumRows];
       memcpy(tempArray,rowLower_,numberRows_*sizeof(double));
+#     ifdef ZEROFAULT
+      memset(tempArray+numberRows_,0,(maximumRows-numberRows_)*sizeof(double)) ;
+#     endif
       delete [] rowLower_;
       rowLower_=tempArray;
       tempArray = new double[maximumRows];
       memcpy(tempArray,rowUpper_,numberRows_*sizeof(double));
+#     ifdef ZEROFAULT
+      memset(tempArray+numberRows_,0,(maximumRows-numberRows_)*sizeof(double)) ;
+#     endif
       delete [] rowUpper_;
       rowUpper_=tempArray;
       int * tempArray2;
       tempArray2 = new int[maximumRows];
       memcpy(tempArray2,rowType_,numberRows_*sizeof(int));
+#     ifdef ZEROFAULT
+      memset(tempArray2+numberRows_,0,(maximumRows-numberRows_)*sizeof(int)) ;
+#     endif
       delete [] rowType_;
       rowType_=tempArray2;
       // resize hash
@@ -2276,6 +2285,9 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       if (type_==0) {
         int * tempArray2;
         tempArray2 = new int[maximumRows+1];
+#	ifdef ZEROFAULT
+	memset(tempArray2,0,(maximumRows+1)*sizeof(int)) ;
+#	endif
         if (start_) {
           memcpy(tempArray2,start_,(numberRows_+1)*sizeof(int));
           delete [] start_;
@@ -2301,23 +2313,43 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       double * tempArray;
       tempArray = new double[maximumColumns];
       memcpy(tempArray,columnLower_,numberColumns_*sizeof(double));
+#     ifdef ZEROFAULT
+      memset(tempArray+numberColumns_,0,
+	     (maximumColumns-numberColumns_)*sizeof(double)) ;
+#     endif
       delete [] columnLower_;
       columnLower_=tempArray;
       tempArray = new double[maximumColumns];
       memcpy(tempArray,columnUpper_,numberColumns_*sizeof(double));
+#     ifdef ZEROFAULT
+      memset(tempArray+numberColumns_,0,
+	     (maximumColumns-numberColumns_)*sizeof(double)) ;
+#     endif
       delete [] columnUpper_;
       columnUpper_=tempArray;
       tempArray = new double[maximumColumns];
       memcpy(tempArray,objective_,numberColumns_*sizeof(double));
+#     ifdef ZEROFAULT
+      memset(tempArray+numberColumns_,0,
+	     (maximumColumns-numberColumns_)*sizeof(double)) ;
+#     endif
       delete [] objective_;
       objective_=tempArray;
       int * tempArray2;
       tempArray2 = new int[maximumColumns];
       memcpy(tempArray2,columnType_,numberColumns_*sizeof(int));
+#     ifdef ZEROFAULT
+      memset(tempArray2+numberColumns_,0,
+	     (maximumColumns-numberColumns_)*sizeof(int)) ;
+#     endif
       delete [] columnType_;
       columnType_=tempArray2;
       tempArray2 = new int[maximumColumns];
       memcpy(tempArray2,integerType_,numberColumns_*sizeof(int));
+#     ifdef ZEROFAULT
+      memset(tempArray2+numberColumns_,0,
+	     (maximumColumns-numberColumns_)*sizeof(int)) ;
+#     endif
       delete [] integerType_;
       integerType_=tempArray2;
       // resize hash
@@ -2330,6 +2362,9 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       if (type_==1) {
         int * tempArray2;
         tempArray2 = new int[maximumColumns+1];
+#       ifdef ZEROFAULT
+        memset(tempArray2,0,(maximumColumns+1)*sizeof(int)) ;
+#       endif
         if (start_) {
           memcpy(tempArray2,start_,(numberColumns_+1)*sizeof(int));
           delete [] start_;
@@ -2350,6 +2385,10 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
   if (maximumElements>maximumElements_) {
     CoinModelTriple * tempArray = new CoinModelTriple[maximumElements];
     memcpy(tempArray,elements_,numberElements_*sizeof(CoinModelTriple));
+#   ifdef ZEROFAULT
+    memset(tempArray+numberElements_,0,
+	     (maximumElements-numberElements_)*sizeof(CoinModelTriple)) ;
+#   endif
     delete [] elements_;
     elements_=tempArray;
     if (hashElements_.numberItems())
