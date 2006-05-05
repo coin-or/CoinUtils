@@ -1,1 +1,4 @@
 * text=auto !eol
+CoinBase/configure.ac -text
+CoinBase/inc/coinbase_addlibs.txt.in -text
+CoinBase/inc/config_coin.h.in -text
