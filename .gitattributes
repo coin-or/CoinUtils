@@ -2,6 +2,7 @@
 CoinBase/coinbase_addlibs.txt.in -text
 CoinBase/configure -text
 CoinBase/configure.ac -text
+CoinBase/inc/config_coinbase.h.in -text
 /Externals -text
 /config.guess -text
 /config.sub -text
