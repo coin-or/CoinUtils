@@ -5,6 +5,8 @@
 #  pragma warning(disable:4786)
 #endif
 
+#include "config_coinbase.h"
+
 #include <cassert>
 #include <cmath>
 #include <cfloat>
@@ -2554,7 +2556,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 					    <<CoinMessageEol;
   return numberErrors;
 }
-#ifdef COIN_USE_GMPL
+#ifdef COIN_HAS_GMPL
 extern "C" {
 #include "glpmpl.h"
 }
@@ -2565,7 +2567,7 @@ extern "C" {
 int 
 CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
 {
-#ifdef COIN_USE_GMPL
+#ifdef COIN_HAS_GMPL
   int returnCode;
   gutsOfDestructor();
   // initialize
@@ -3692,10 +3694,10 @@ CoinMpsIO::writeMps(const char *filename, int compression,
   formatType=CoinMax(0,formatType);
   formatType=CoinMin(2,formatType);
   int possibleCompression=0;
-#ifdef COIN_USE_ZLIB
+#ifdef COIN_HAS_ZLIB
   possibleCompression =1;
 #endif
-#ifdef COIN_USE_BZLIB
+#ifdef COIN_HAS_BZLIB
   possibleCompression += 2;
 #endif
   if ((compression&possibleCompression)==0) {

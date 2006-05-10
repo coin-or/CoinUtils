@@ -91,14 +91,14 @@ int main (int argc, const char *argv[])
   if (parms.find("-mpsDir") != parms.end())
     mpsDir=parms["-mpsDir"] + dirsep;
   else 
-    mpsDir = dirsep == '/' ? "../Mps/Sample/" : "..\\Mps\\Sample\\";
+    mpsDir = dirsep == '/' ? "../../Data/Sample/" : "..\\..\\Data\\Sample\\";
  
   // Set directory containing netlib data files.
   std::string netlibDir;
   if (parms.find("-netlibDir") != parms.end())
     netlibDir=parms["-netlibDir"] + dirsep;
   else 
-    netlibDir = dirsep == '/' ? "../Mps/Netlib/" : "..\\Mps\\Netlib\\";
+    netlibDir = dirsep == '/' ? "../../Data/Netlib/" : "..\\..\\Mps\\Netlib\\";
 
   // Set directory containing netlib data files.
   std::string testModel;

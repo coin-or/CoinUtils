@@ -5,6 +5,7 @@
 #  pragma warning(disable:4786)
 #endif
 
+#include "config_coinbase.h"
 #include <cassert>
 
 #include "CoinWarmStartBasis.hpp"
@@ -165,7 +166,7 @@ void CoinWarmStartBasis::compressRows (int tgtCnt, const int *tgts)
   for (t = 0 ; t < tgtCnt ; t++)
   { i = tgts[t] ;
     stati = getStatus(artificialStatus_,i) ;
-    if (status != CoinWarmStartBasis::basic)
+    if (stati != CoinWarmStartBasis::basic)
     { nbCnt++ ; } }
   if (nbCnt > 0)
   { std::cout << nbCnt << " nonbasic artificials deleted." << std::endl ; }

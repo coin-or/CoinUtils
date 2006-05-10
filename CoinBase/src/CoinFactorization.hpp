@@ -1285,7 +1285,7 @@ protected:
   //@}
 };
 // Dense coding
-#ifdef COIN_USE_DENSE
+#ifdef COIN_HAS_DENSE
 #define DENSE_CODE 1
 #endif
 #endif
