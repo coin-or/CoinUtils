@@ -164,4 +164,4 @@ nodist_include_HEADERS = ../inc/$(CONFIG_DIST)
 
 CLEANFILES = bla.tmp
 
-DISTCLEANFILES = $(CONFIG_DIST)
+DISTCLEANFILES = ../inc/$(CONFIG_DIST)

@@ -370,7 +370,7 @@ CONFIG_DIST = CoinBaseConfig.hpp
 CONFIG_H = config_coinbase.h
 nodist_include_HEADERS = ../inc/$(CONFIG_DIST)
 CLEANFILES = bla.tmp
-DISTCLEANFILES = $(CONFIG_DIST)
+DISTCLEANFILES = ../inc/$(CONFIG_DIST)
 all: all-am
 
 .SUFFIXES:
