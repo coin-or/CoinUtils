@@ -1,4 +1,4 @@
-/* inc/config_coinbase.h.in.  Generated from configure.ac by autoheader.  */
+/* inc/config_coinutils.h.in.  Generated from configure.ac by autoheader.  */
 
 /* If defined, debug sanity checks are performed during runtime */
 #undef COIN_DEBUG
@@ -6,8 +6,8 @@
 /* Define to 1 if bzlib is available */
 #undef COIN_HAS_BZLIB
 
-/* Define to 1 if the CoinBase package is used */
-#undef COIN_HAS_COINBASE
+/* Define to 1 if the CoinUtils package is used */
+#undef COIN_HAS_COINUTILS
 
 /* Define to 1 if zlib is available */
 #undef COIN_HAS_ZLIB
