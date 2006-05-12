@@ -23,7 +23,7 @@ SUBDIRS = $(subdirs)
 ########################################################################
 
 test:
-	cd CoinBase; make test
+	cd CoinUtils; make test
 
 unitTest: test
 

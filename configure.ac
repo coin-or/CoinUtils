@@ -12,7 +12,7 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([CoinBase],[0.1],[coin-base@lists.coin-or.org])
+AC_INIT([CoinUtils],[0.1],[coin-utils@lists.coin-or.org])
 
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.
@@ -37,7 +37,7 @@ AC_COIN_INIT_AUTOMAKE
 #                  Check which subprojects are there                        #
 #############################################################################
 
-AC_COIN_MAIN_SUBDIRS(CoinBase)
+AC_COIN_MAIN_SUBDIRS(CoinUtils)
 AC_COIN_MAIN_SUBDIRS(Data/Netlib)
 AC_COIN_MAIN_SUBDIRS(Data/Sample)
 
@@ -53,4 +53,4 @@ AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
 # ...and tell the user, that the configuration finished
-AC_MSG_NOTICE([CoinBase main configuration successful])
+AC_MSG_NOTICE([CoinUtils main configuration successful])
