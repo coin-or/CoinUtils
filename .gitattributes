@@ -1,5 +1,5 @@
 * text=auto !eol
-CoinUtils/coinbase_addlibs.txt.in -text
+CoinUtils/coinutils_addlibs.txt.in -text
 CoinUtils/configure -text
 CoinUtils/configure.ac -text
 CoinUtils/inc/config_coinbase.h.in -text

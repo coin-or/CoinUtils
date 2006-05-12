@@ -26,7 +26,7 @@ unitTest_SOURCES = \
 	unitTest.cpp
 
 # List libraries of COIN projects
-unitTest_LDADD = $(COINBASEOBJDIR)/src/libCoinBase.la
+unitTest_LDADD = $(COINUTILSOBJDIR)/src/libCoinUtils.la
 
 # List additional libraries
 LIBS += $(ADDLIBS)
@@ -34,7 +34,7 @@ LIBS += $(ADDLIBS)
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
 CXXFLAGS += \
-        -I`$(CYGPATH_W) $(COINBASESRCDIR)/src`
+        -I`$(CYGPATH_W) $(COINUTILSSRCDIR)/src`
 
 test: unitTest
 	./unitTest

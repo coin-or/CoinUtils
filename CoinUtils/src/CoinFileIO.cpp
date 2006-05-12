@@ -4,7 +4,7 @@
 #  pragma warning(disable:4786)
 #endif
 
-#include "CoinBaseConfig.hpp"
+#include "CoinUtilsConfig.hpp"
 #include "CoinFileIO.hpp"
 
 #include "CoinError.hpp"

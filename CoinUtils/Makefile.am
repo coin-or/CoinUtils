@@ -51,7 +51,7 @@ distclean-local:
 #                  Installation of the addlibs file                    #
 ########################################################################
 
-addlibsfile = coinbase_addlibs.txt
+addlibsfile = coinutils_addlibs.txt
 
 install-exec-local:
 	$(install_sh_DATA) $(addlibsfile) $(DESTDIR)$(libdir)/$(addlibsfile)

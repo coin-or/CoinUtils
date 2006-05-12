@@ -9,15 +9,15 @@
 AUTOMAKE_OPTIONS = foreign
 
 ########################################################################
-#                             libCoinBase                              #
+#                             libCoinUtils                             #
 ########################################################################
 
 # Name of the library compiled in this directory.  We want it to be installed
 # in the 'lib' directory
-lib_LTLIBRARIES = libCoinBase.la
+lib_LTLIBRARIES = libCoinUtils.la
 
 # List all source files for this library, including headers
-libCoinBase_la_SOURCES = \
+libCoinUtils_la_SOURCES = \
 	Coin_C_defines.h \
 	CoinBuild.cpp CoinBuild.hpp \
 	CoinDenseVector.cpp CoinDenseVector.hpp \
@@ -74,7 +74,7 @@ libCoinBase_la_SOURCES = \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp
 
 # This is for libtool (on Windows)
-libCoinBase_la_LDFLAGS = -no-undefined
+libCoinUtils_la_LDFLAGS = -no-undefined
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
@@ -139,9 +139,9 @@ include_HEADERS = \
 ########################################################################
 
 # You should only need to adapt the following three lines
-CONFIG_DIST = CoinBaseConfig.hpp
-CONFIG_H = config_coinbase.h
-$(libCoinBase_la_OBJECTS): ../inc/$(CONFIG_DIST)
+CONFIG_DIST = CoinUtilsConfig.hpp
+CONFIG_H = config_coinutils.h
+$(libCoinUtils_la_OBJECTS): ../inc/$(CONFIG_DIST)
 
 nodist_include_HEADERS = ../inc/$(CONFIG_DIST)
 

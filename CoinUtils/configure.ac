@@ -58,7 +58,7 @@ AC_COIN_INIT_AUTO_TOOLS
 #                              COIN components                              #
 #############################################################################
 
-AC_COIN_HAS_PROJECT(CoinBase)
+AC_COIN_HAS_PROJECT(CoinUtils)
 
 #############################################################################
 #                             Other dependencies                            #
@@ -76,13 +76,13 @@ AC_COIN_CHECK_BZLIB
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  test/Makefile
-		 coinbase_addlibs.txt])
+		 coinutils_addlibs.txt])
 
 # Here put the location and name of the configuration header file
-AC_CONFIG_HEADER([inc/config_coinbase.h])
+AC_CONFIG_HEADER([inc/config_coinutils.h])
 
 # Finally, we let configure write all the output...
 AC_OUTPUT
 
 # ...and tell the user, that the configuration finished
-AC_MSG_NOTICE([CoinBase configuration successful])
+AC_MSG_NOTICE([CoinUtils configuration successful])

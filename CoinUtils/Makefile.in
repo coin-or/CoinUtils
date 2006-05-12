@@ -50,8 +50,8 @@ DIST_COMMON = $(am__configure_deps) $(srcdir)/../config.guess \
 	$(srcdir)/../config.sub $(srcdir)/../install-sh \
 	$(srcdir)/../ltmain.sh $(srcdir)/../missing \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/coinbase_addlibs.txt.in $(top_srcdir)/configure \
-	$(top_srcdir)/inc/config_coinbase.h.in AUTHORS
+	$(srcdir)/coinutils_addlibs.txt.in $(top_srcdir)/configure \
+	$(top_srcdir)/inc/config_coinutils.h.in AUTHORS
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -61,8 +61,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/inc/config_coinbase.h
-CONFIG_CLEAN_FILES = coinbase_addlibs.txt
+CONFIG_HEADER = $(top_builddir)/inc/config_coinutils.h
+CONFIG_CLEAN_FILES = coinutils_addlibs.txt
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -102,12 +102,12 @@ BUILDTOOLSDIR = @BUILDTOOLSDIR@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
-COINBASEOBJDIR = @COINBASEOBJDIR@
-COINBASESRCDIR = @COINBASESRCDIR@
+COINUTILSOBJDIR = @COINUTILSOBJDIR@
+COINUTILSSRCDIR = @COINUTILSSRCDIR@
 COIN_DEBUG_FALSE = @COIN_DEBUG_FALSE@
 COIN_DEBUG_TRUE = @COIN_DEBUG_TRUE@
-COIN_HAS_COINBASE_FALSE = @COIN_HAS_COINBASE_FALSE@
-COIN_HAS_COINBASE_TRUE = @COIN_HAS_COINBASE_TRUE@
+COIN_HAS_COINUTILS_FALSE = @COIN_HAS_COINUTILS_FALSE@
+COIN_HAS_COINUTILS_TRUE = @COIN_HAS_COINUTILS_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -223,7 +223,7 @@ EXTRA_DIST =
 ########################################################################
 #                  Installation of the addlibs file                    #
 ########################################################################
-addlibsfile = coinbase_addlibs.txt
+addlibsfile = coinutils_addlibs.txt
 all: all-recursive
 
 .SUFFIXES:
@@ -261,23 +261,23 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 
-inc/config_coinbase.h: inc/stamp-h1
+inc/config_coinutils.h: inc/stamp-h1
 	@if test ! -f $@; then \
 	  rm -f inc/stamp-h1; \
 	  $(MAKE) inc/stamp-h1; \
 	else :; fi
 
-inc/stamp-h1: $(top_srcdir)/inc/config_coinbase.h.in $(top_builddir)/config.status
+inc/stamp-h1: $(top_srcdir)/inc/config_coinutils.h.in $(top_builddir)/config.status
 	@rm -f inc/stamp-h1
-	cd $(top_builddir) && $(SHELL) ./config.status inc/config_coinbase.h
-$(top_srcdir)/inc/config_coinbase.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
+	cd $(top_builddir) && $(SHELL) ./config.status inc/config_coinutils.h
+$(top_srcdir)/inc/config_coinutils.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
 	cd $(top_srcdir) && $(AUTOHEADER)
 	rm -f inc/stamp-h1
 	touch $@
 
 distclean-hdr:
-	-rm -f inc/config_coinbase.h inc/stamp-h1
-coinbase_addlibs.txt: $(top_builddir)/config.status $(srcdir)/coinbase_addlibs.txt.in
+	-rm -f inc/config_coinutils.h inc/stamp-h1
+coinutils_addlibs.txt: $(top_builddir)/config.status $(srcdir)/coinutils_addlibs.txt.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 
 mostlyclean-libtool:
