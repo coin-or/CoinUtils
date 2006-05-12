@@ -19534,7 +19534,7 @@ _ACEOF
 
   COINBASESRCDIR=`cd $srcdir/$coin_has_coinbase; pwd`
 
-  COINBASEOBJDIR=`cd $coin_has_coinbase; pwd`
+  COINBASEOBJDIR=`pwd`/$coin_has_coinbase
 fi
 
   # Define the Makefile conditional
