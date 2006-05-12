@@ -5,6 +5,8 @@
 #  pragma warning(disable:4786)
 #endif
 
+#include "CoinBaseConfig.hpp"
+
 #include <cassert>
 #include "CoinFactorization.hpp"
 #include "CoinIndexedVector.hpp"

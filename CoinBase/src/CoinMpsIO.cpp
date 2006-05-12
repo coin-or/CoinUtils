@@ -5,7 +5,7 @@
 #  pragma warning(disable:4786)
 #endif
 
-#include "config_coinbase.h"
+#include "CoinBaseConfig.hpp"
 
 #include <cassert>
 #include <cmath>
