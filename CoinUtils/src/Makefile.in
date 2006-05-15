@@ -304,7 +304,7 @@ libCoinUtils_la_SOURCES = \
 
 
 # This is for libtool (on Windows)
-libCoinUtils_la_LDFLAGS = -no-undefined
+libCoinUtils_la_LDFLAGS = # -no-undefined
 
 ########################################################################
 #                Headers that need to be installed                     #

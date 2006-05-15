@@ -74,7 +74,7 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp
 
 # This is for libtool (on Windows)
-libCoinUtils_la_LDFLAGS = -no-undefined
+libCoinUtils_la_LDFLAGS = # -no-undefined
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
