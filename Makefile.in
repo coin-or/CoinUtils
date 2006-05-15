@@ -164,6 +164,13 @@ EXTRA_DIST = $(am__append_1)
 # subdirs is set by configure as the list of all subdirectories to recurse
 # into
 SUBDIRS = $(subdirs)
+
+########################################################################
+#                         Maintainer Stuff                             #
+########################################################################
+
+# Files that are generated and should be cleaned with make distclean
+DISTCLEANFILES = 
 all: all-recursive
 
 .SUFFIXES:
@@ -501,6 +508,7 @@ clean-generic:
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -632,10 +640,6 @@ unitTests: tests
 
 @HAVE_EXTERNALS_TRUE@@MAINTAINER_MODE_TRUE@clean-externals-stamp:
 @HAVE_EXTERNALS_TRUE@@MAINTAINER_MODE_TRUE@	rm -f .Externals-stamp
-
-########################################################################
-#                         Maintainer Stuff                             #
-########################################################################
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
