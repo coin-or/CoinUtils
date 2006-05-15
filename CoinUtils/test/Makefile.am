@@ -36,8 +36,10 @@ LIBS += $(ADDLIBS)
 CXXFLAGS += \
         -I`$(CYGPATH_W) $(COINUTILSSRCDIR)/src`
 
-test: unitTest
-	./unitTest
+test: unitTest$(EXEEXT)
+	./unitTest$(EXEEXT)
+
+.PHONY: test
 
 ########################################################################
 #                          Cleaning stuff                              #

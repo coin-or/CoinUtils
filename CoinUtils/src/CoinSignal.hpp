@@ -34,6 +34,13 @@
 
 //-----------------------------------------------------------------------------
 
+#if defined(__MINGW32__) && defined(__GNUC__)
+   typedef typeof(SIG_DFL) CoinSighandler_t;
+#  define CoinSighandler_t_defined
+#endif
+
+//-----------------------------------------------------------------------------
+
 #if defined(__FreeBSD__) && defined(__GNUC__)
    typedef typeof(SIG_DFL) CoinSighandler_t;
 #  define CoinSighandler_t_defined
