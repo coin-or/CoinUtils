@@ -80,6 +80,10 @@ libCoinUtils_la_LDFLAGS = # -no-undefined
 # "cygpath" stuff is necessary to compile with native compilers on Windows
 CXXFLAGS +=
 
+# This line is necessary to allow VPATH compilation with MS compilers
+# on Cygwin
+DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
+
 ########################################################################
 #                Headers that need to be installed                     #
 ########################################################################

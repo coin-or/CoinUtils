@@ -61,7 +61,6 @@ am_unitTest_OBJECTS = CoinDenseVectorTest.$(OBJEXT) \
 	CoinShallowPackedVectorTest.$(OBJEXT) unitTest.$(OBJEXT)
 unitTest_OBJECTS = $(am_unitTest_OBJECTS)
 unitTest_DEPENDENCIES = $(COINUTILSOBJDIR)/src/libCoinUtils.la
-DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/inc
 depcomp = $(SHELL) $(top_srcdir)/../depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -100,6 +99,8 @@ COIN_DEBUG_FALSE = @COIN_DEBUG_FALSE@
 COIN_DEBUG_TRUE = @COIN_DEBUG_TRUE@
 COIN_HAS_COINUTILS_FALSE = @COIN_HAS_COINUTILS_FALSE@
 COIN_HAS_COINUTILS_TRUE = @COIN_HAS_COINUTILS_TRUE@
+COIN_HAS_ZLIB_FALSE = @COIN_HAS_ZLIB_FALSE@
+COIN_HAS_ZLIB_TRUE = @COIN_HAS_ZLIB_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -218,6 +219,10 @@ unitTest_SOURCES = \
 
 # List libraries of COIN projects
 unitTest_LDADD = $(COINUTILSOBJDIR)/src/libCoinUtils.la
+
+# This line is necessary to allow VPATH compilation with MS compilers
+# on Cygwin
+DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 
 ########################################################################
 #                          Cleaning stuff                              #
@@ -488,6 +493,7 @@ uninstall-am: uninstall-info-am
 
 
 test: unitTest$(EXEEXT)
+	cd ../../Data/Netlib; make uncompress
 	./unitTest$(EXEEXT)
 
 .PHONY: test

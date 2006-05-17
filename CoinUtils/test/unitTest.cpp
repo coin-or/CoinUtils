@@ -29,9 +29,9 @@ void testingMessage( const char * const msg );
 // 
 // where:
 //   -mpsDir: directory containing mps test files
-//       Default value V1="../Mps/Sample"    
+//       Default value V1="../../Data/Sample"    
 //   -netlibDir: directory containing netlib files
-//       Default value V2="../Mps/Netlib"
+//       Default value V2="../../Data/Netlib"
 //   -testModel: name of model in netlibdir for testing CoinModel
 //       Default value V3="25fv47.mps"
 //
@@ -75,9 +75,9 @@ int main (int argc, const char *argv[])
       std::cerr <<"  unitTest [-mpsDir=V1] [-netlibDir=V2] [-testModel=V3]\n";
       std::cerr <<"  where:\n";
       std::cerr <<"    -mpsDir: directory containing mps test files\n";
-      std::cerr <<"        Default value V1=\"../Mps/Sample\"\n";
+      std::cerr <<"        Default value V1=\"../../Data/Sample\"\n";
       std::cerr <<"    -netlibDir: directory containing netlib files\n";
-      std::cerr <<"        Default value V2=\"../Mps/Netlib\"\n";
+      std::cerr <<"        Default value V2=\"../../Data/Netlib\"\n";
       std::cerr <<"    -testModel: name of model in netlibdir for testing CoinModel\n";
       std::cerr <<"        Default value V3=\"25fv47.mps\"\n";
       return 1;
@@ -98,7 +98,7 @@ int main (int argc, const char *argv[])
   if (parms.find("-netlibDir") != parms.end())
     netlibDir=parms["-netlibDir"] + dirsep;
   else 
-    netlibDir = dirsep == '/' ? "../../Data/Netlib/" : "..\\..\\Mps\\Netlib\\";
+    netlibDir = dirsep == '/' ? "../../Data/Netlib/" : "..\\..\\Data\\Netlib\\";
 
   // Set directory containing netlib data files.
   std::string testModel;

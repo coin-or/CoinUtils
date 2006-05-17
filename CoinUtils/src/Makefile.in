@@ -84,7 +84,6 @@ am_libCoinUtils_la_OBJECTS = CoinBuild.lo CoinDenseVector.lo \
 	CoinPresolveZeros.lo CoinShallowPackedVector.lo \
 	CoinWarmStartBasis.lo CoinWarmStartDual.lo
 libCoinUtils_la_OBJECTS = $(am_libCoinUtils_la_OBJECTS)
-DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/inc
 depcomp = $(SHELL) $(top_srcdir)/../depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -134,6 +133,8 @@ COIN_DEBUG_FALSE = @COIN_DEBUG_FALSE@
 COIN_DEBUG_TRUE = @COIN_DEBUG_TRUE@
 COIN_HAS_COINUTILS_FALSE = @COIN_HAS_COINUTILS_FALSE@
 COIN_HAS_COINUTILS_TRUE = @COIN_HAS_COINUTILS_TRUE@
+COIN_HAS_ZLIB_FALSE = @COIN_HAS_ZLIB_FALSE@
+COIN_HAS_ZLIB_TRUE = @COIN_HAS_ZLIB_TRUE@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -305,6 +306,10 @@ libCoinUtils_la_SOURCES = \
 
 # This is for libtool (on Windows)
 libCoinUtils_la_LDFLAGS = # -no-undefined
+
+# This line is necessary to allow VPATH compilation with MS compilers
+# on Cygwin
+DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 
 ########################################################################
 #                Headers that need to be installed                     #
