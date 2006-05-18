@@ -6,7 +6,7 @@
 #  pragma warning(disable:4786)
 #endif
 
-#include "CoinUtilsConfig.hpp"
+#include "CoinUtilsConfig.h"
 
 #include "CoinFactorization.hpp"
 #include "CoinIndexedVector.hpp"

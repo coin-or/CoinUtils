@@ -91,6 +91,7 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 # Here list all the header files that are required by a user of the library,
 # and that therefore should be installed in 'install'
 include_HEADERS = \
+	../inc/config_coinutils.h \
 	Coin_C_defines.h \
 	CoinBuild.hpp \
 	CoinDenseVector.hpp \
@@ -138,34 +139,19 @@ include_HEADERS = \
 	CoinWarmStartBasis.hpp \
 	CoinWarmStartDual.hpp
 
-########################################################################
-#     Generating the configure header that is to be distributed        #
-########################################################################
+#############################################################################
+# Create the Config.h file that always defines HAVE_CONFIG_H and install it #
+#############################################################################
 
-# You should only need to adapt the following three lines
-CONFIG_DIST = CoinUtilsConfig.hpp
-CONFIG_H = config_coinutils.h
-$(libCoinUtils_la_OBJECTS): ../inc/$(CONFIG_DIST)
+# You only need to adapt the following line
+ConfigHeader = CoinUtilsConfig.h
 
-nodist_include_HEADERS = ../inc/$(CONFIG_DIST)
+install-exec-local:
+	echo "#ifndef HAVE_CONFIG_H" >bla
+	echo "#define HAVE_CONFIG_H" >>bla
+	echo "#endif" >> bla
+	cat $(srcdir)/$(ConfigHeader) >> bla
+	$(install_sh_DATA) bla $(DESTDIR)$(includedir)/$(ConfigHeader)
 
-../inc/$(CONFIG_DIST): ../inc/$(CONFIG_H)
-	echo "/** Required defines from $(CONFIG_H) */" >bla.tmp
-	echo "#ifndef __$(CONFIG_DIST)__" | sed -e 's/\./_/g' >>bla.tmp
-	echo "#define __$(CONFIG_DIST)__" | sed -e 's/\./_/g' >>bla.tmp
-	$(EGREP) 'COIN_' $< >>bla.tmp
-	echo "#endif" >>bla.tmp
-	if test -r ../inc/$(CONFIG_DIST); then \
-	  if diff ../inc/$(CONFIG_DIST) bla.tmp >/dev/null 2>&1 ; then \
-	    rm -f bla.tmp; \
-	  else \
-	    rm -f ../inc/$(CONFIG_DIST); \
-	    mv bla.tmp ../inc/$(CONFIG_DIST); \
-	  fi; \
-	else \
-	  mv bla.tmp ../inc/$(CONFIG_DIST); \
-	fi
-
-CLEANFILES = bla.tmp
-
-DISTCLEANFILES = ../inc/$(CONFIG_DIST)
+uninstall-local:
+	rm -f $(DESTDIR)$(includedir)/$(ConfigHeader)
