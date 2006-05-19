@@ -71,7 +71,7 @@ enum COIN_Message
     preloads the standard Coin messages.
 */
 
-class CoinMessage : public CoinMessages {
+class __declspec(dllexport) CoinMessage : public CoinMessages {
 
 public:
 
