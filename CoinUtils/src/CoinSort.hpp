@@ -5,7 +5,7 @@
 
 #include <functional>
 #include <new>
-#include <CoinDistance.hpp>
+#include "CoinDistance.hpp"
 #include "CoinFinite.hpp"
 
 // Uncomment the next three lines to get thorough initialisation of memory.
