@@ -58,7 +58,7 @@
     c.getMajorDim() returns 8. 
   @endverbatim
 */
-class __declspec(dllexport) CoinPackedMatrix  {
+class CoinPackedMatrix  {
    friend void CoinPackedMatrixUnitTest();
 
 public:
