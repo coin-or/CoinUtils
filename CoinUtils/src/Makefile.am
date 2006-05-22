@@ -18,6 +18,7 @@ lib_LTLIBRARIES = libCoinUtils.la
 
 # List all source files for this library, including headers
 libCoinUtils_la_SOURCES = \
+	CoinUtilsConfig.h \
 	Coin_C_defines.h \
 	CoinBuild.cpp CoinBuild.hpp \
 	CoinDenseVector.cpp CoinDenseVector.hpp \
