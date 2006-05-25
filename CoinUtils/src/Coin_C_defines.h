@@ -51,7 +51,7 @@
 #endif
 /** User does not need to see structure of model but C++ code does */
 #if defined (CLP_EXTERN_C)
-// Real typedef for structure
+/* Real typedef for structure */
 class CMessageHandler;
 typedef struct {
   ClpSimplex * model_;
@@ -70,7 +70,7 @@ typedef  void (COINLINKAGE_CB *clp_callback) (Clp_Simplex * model,int  msgno, in
 #endif
 /** User does not need to see structure of model but C++ code does */
 #if defined (SBB_EXTERN_C)
-// Real typedef for structure
+/* Real typedef for structure */
 class Sbb_MessageHandler;
 typedef struct {
   OsiClpSolverInterface * solver_;
@@ -82,7 +82,7 @@ typedef struct {
 typedef void Sbb_Model;
 #endif
 #if defined (CBC_EXTERN_C)
-// Real typedef for structure
+/* Real typedef for structure */
 class Cbc_MessageHandler;
 typedef struct {
   OsiClpSolverInterface * solver_;
