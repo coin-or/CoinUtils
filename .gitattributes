@@ -2,6 +2,7 @@
 CoinUtils/coinutils_addlibs.txt.in -text
 CoinUtils/configure -text
 CoinUtils/configure.ac -text
+CoinUtils/doc/doxygen.conf -text
 CoinUtils/inc/config_coinutils.h.in -text
 /Externals -text
 /config.guess -text
