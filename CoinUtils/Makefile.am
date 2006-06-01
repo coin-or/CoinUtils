@@ -28,8 +28,7 @@ endif
 
 # Here we need include all files that are not mentioned in other Makefiles
 
-EXTRA_DIST = \
-	doc/doxygen.conf
+EXTRA_DIST =
 
 ########################################################################
 #                           Extra Targets                              #
@@ -40,16 +39,13 @@ test: all
 
 unitTest: test
 
-doc:
-	cd $(srcdir); doxygen doc/doxygen.conf
-
 clean-local:
 	if test -r test/Makefile; then cd test; make clean; fi
 
 distclean-local:
 	if test -r test/Makefile; then cd test; make distclean; fi
 
-.PHONY: test unitTest doc
+.PHONY: test unitTest
 
 ########################################################################
 #                  Installation of the addlibs file                    #

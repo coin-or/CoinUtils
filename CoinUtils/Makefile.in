@@ -235,7 +235,7 @@ SUBDIRS = src $(am__append_1)
 ########################################################################
 
 # Here we need include all files that are not mentioned in other Makefiles
-EXTRA_DIST = doc/doxygen.conf $(am__append_2)
+EXTRA_DIST = $(am__append_2)
 
 ########################################################################
 #                  Installation of the addlibs file                    #
@@ -449,7 +449,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/.. $(distdir)/../BuildTools $(distdir)/doc $(distdir)/inc
+	$(mkdir_p) $(distdir)/. $(distdir)/.. $(distdir)/../BuildTools $(distdir)/inc
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -697,16 +697,13 @@ test: all
 
 unitTest: test
 
-doc:
-	cd $(srcdir); doxygen doc/doxygen.conf
-
 clean-local:
 	if test -r test/Makefile; then cd test; make clean; fi
 
 distclean-local:
 	if test -r test/Makefile; then cd test; make distclean; fi
 
-.PHONY: test unitTest doc
+.PHONY: test unitTest
 
 install-exec-local:
 	$(install_sh_DATA) $(addlibsfile) $(DESTDIR)$(libdir)/$(addlibsfile)
