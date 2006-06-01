@@ -108,10 +108,7 @@ CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEFS = @CXXDEFS@
 CXXDEPMODE = @CXXDEPMODE@
-
-# Here list all include flags, relative to this "srcdir" directory.  This
-# "cygpath" stuff is necessary to compile with native compilers on Cygwin
-CXXFLAGS = @CXXFLAGS@ -I`$(CYGPATH_W) $(COINUTILSSRCDIR)/src`
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
@@ -221,6 +218,12 @@ unitTest_SOURCES = \
 
 # List libraries of COIN projects
 unitTest_LDADD = $(COINUTILSOBJDIR)/src/libCoinUtils.la
+
+# Here list all include flags, relative to this "srcdir" directory.  This
+# "cygpath" stuff is necessary to compile with native compilers on Cygwin
+AM_CPPFLAGS = \
+        -I`$(CYGPATH_W) $(COINUTILSSRCDIR)/src`
+
 
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin

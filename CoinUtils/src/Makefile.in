@@ -140,9 +140,6 @@ CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEFS = @CXXDEFS@
 CXXDEPMODE = @CXXDEPMODE@
-
-# Here list all include flags, relative to this "srcdir" directory.  This
-# "cygpath" stuff is necessary to compile with native compilers on Windows
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
@@ -307,6 +304,10 @@ libCoinUtils_la_SOURCES = \
 
 # This is for libtool (on Windows)
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
+
+# Here list all include flags, relative to this "srcdir" directory.  This
+# "cygpath" stuff is necessary to compile with native compilers on Windows
+AM_CPPFLAGS = 
 
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin

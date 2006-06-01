@@ -33,7 +33,7 @@ LIBS += $(ADDLIBS)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
-CXXFLAGS += \
+AM_CPPFLAGS = \
         -I`$(CYGPATH_W) $(COINUTILSSRCDIR)/src`
 
 # This line is necessary to allow VPATH compilation with MS compilers
