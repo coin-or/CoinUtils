@@ -9,7 +9,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 ########################################################################
-#                         unitTest for Coin                            #
+#                      unitTest for CoinUtils                          #
 ########################################################################
 
 noinst_PROGRAMS = unitTest
