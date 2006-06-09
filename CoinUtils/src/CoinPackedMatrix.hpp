@@ -113,27 +113,27 @@ public:
 
     /** The position of the first element in the i'th major-dimension vector.
      */
-    CoinBigIndex getVectorFirst(const int i) const throw(CoinError) {
+    CoinBigIndex getVectorFirst(const int i) const {
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vectorFirst", "CoinPackedMatrix");
       return start_[i];
     }
     /** The position of the last element (well, one entry <em>past</em> the
         last) in the i'th major-dimension vector. */
-    CoinBigIndex getVectorLast(const int i) const throw(CoinError) {
+    CoinBigIndex getVectorLast(const int i) const {
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vectorLast", "CoinPackedMatrix");
       return start_[i] + length_[i];
     }
     /** The length of i'th vector. */
-    int getVectorSize(const int i) const throw(CoinError) {
+    inline int getVectorSize(const int i) const {
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vectorSize", "CoinPackedMatrix");
       return length_[i];
     }
 #ifndef CLP_NO_VECTOR  
     /** Return the i'th vector in matrix. */
-    const CoinShallowPackedVector getVector(int i) const throw(CoinError) {
+    const CoinShallowPackedVector getVector(int i) const {
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vector", "CoinPackedMatrix");
       return CoinShallowPackedVector(length_[i],
@@ -163,25 +163,25 @@ public:
 	means that that dimension doesn't change. Otherwise the new dimensions
 	MUST be at least as large as the current ones otherwise an exception
 	is thrown. */
-    void setDimensions(int numrows, int numcols) throw(CoinError);
+    void setDimensions(int numrows, int numcols);
    
     /** Set the extra gap to be allocated to the specified value. */
-    void setExtraGap(const double newGap) throw(CoinError);
+    void setExtraGap(const double newGap);
     /** Set the extra major to be allocated to the specified value. */
-    void setExtraMajor(const double newMajor) throw(CoinError);
+    void setExtraMajor(const double newMajor);
 #ifndef CLP_NO_VECTOR
     /** Append a column to the end of the matrix. When libosi is compiled with
 	a COIN_DEBUG defined then this method throws an exception if the new
 	column contains an index that's larger than the number of rows (-1).
 	Otherwise the method assumes that every index fits into the matrix. */
-    void appendCol(const CoinPackedVectorBase& vec) throw(CoinError);
+    void appendCol(const CoinPackedVectorBase& vec);
 #endif
     /** Append a column to the end of the matrix. When libosi is compiled with
 	a COIN_DEBUG defined then this method throws an exception if the new
 	column contains an index that's larger than the number of rows (-1).
 	Otherwise the method assumes that every index fits into the matrix. */
     void appendCol(const int vecsize,
-  		  const int *vecind, const double *vecelem) throw(CoinError);
+  		  const int *vecind, const double *vecelem);
 #ifndef CLP_NO_VECTOR
     /** Append a set of columns to the end of the matrix. When libosi is
 	compiled with a COIN_DEBUG defined then this method throws an exception
@@ -189,7 +189,7 @@ public:
 	number of rows (-1). Otherwise the method assumes that every index
 	fits into the matrix. */
     void appendCols(const int numcols,
-		    const CoinPackedVectorBase * const * cols) throw(CoinError);
+		    const CoinPackedVectorBase * const * cols);
 #endif
     /** Append a set of columns to the end of the matrix. Returns number of errors
 	i.e. if any of the new columns contain an index that's larger than the
@@ -202,14 +202,14 @@ public:
 	a COIN_DEBUG defined then this method throws an exception if the new
 	row contains an index that's larger than the number of columns (-1).
 	Otherwise the method assumes that every index fits into the matrix. */
-    void appendRow(const CoinPackedVectorBase& vec) throw(CoinError);
+    void appendRow(const CoinPackedVectorBase& vec);
 #endif
     /** Append a row to the end of the matrix. When libosi is compiled with
 	a COIN_DEBUG defined then this method throws an exception if the new
 	row contains an index that's larger than the number of columns (-1).
 	Otherwise the method assumes that every index fits into the matrix. */
     void appendRow(const int vecsize,
-  		  const int *vecind, const double *vecelem) throw(CoinError);
+  		  const int *vecind, const double *vecelem);
 #ifndef CLP_NO_VECTOR
     /** Append a set of rows to the end of the matrix. When libosi is
 	compiled with a COIN_DEBUG defined then this method throws an exception
@@ -217,7 +217,7 @@ public:
 	number of columns (-1). Otherwise the method assumes that every index
 	fits into the matrix. */
     void appendRows(const int numrows,
-		    const CoinPackedVectorBase * const * rows) throw(CoinError);
+		    const CoinPackedVectorBase * const * rows);
 #endif
     /** Append a set of rows to the end of the matrix. Returns number of errors
 	i.e. if any of the new rows contain an index that's larger than the
@@ -230,14 +230,12 @@ public:
         as adding new columns (don't worry about how the matrices are ordered,
         that is taken care of). An exception is thrown if the number of rows
         is different in the matrices. */
-    void rightAppendPackedMatrix(const CoinPackedMatrix& matrix)
-      throw(CoinError);
+    void rightAppendPackedMatrix(const CoinPackedMatrix& matrix);
     /** Append the argument to the "bottom" of the current matrix. Imagine this
         as adding new rows (don't worry about how the matrices are ordered,
         that is taken care of). An exception is thrown if the number of columns
         is different in the matrices. */
-    void bottomAppendPackedMatrix(const CoinPackedMatrix& matrix)
-      throw(CoinError);
+    void bottomAppendPackedMatrix(const CoinPackedMatrix& matrix);
   
     /** Delete the columns whose indices are listed in <code>indDel</code>. */
     void deleteCols(const int numDel, const int * indDel);
@@ -285,21 +283,19 @@ public:
 	the matrix comprise the submatrix whose indices are given in the
 	arguments. Does not allow duplicates. */
     void submatrixOf(const CoinPackedMatrix& matrix,
-		     const int numMajor, const int * indMajor)
-       throw(CoinError);
+		     const int numMajor, const int * indMajor);
     /** Extract a submatrix from matrix. Those major-dimension vectors of
 	the matrix comprise the submatrix whose indices are given in the
 	arguments. Allows duplicates and keeps order. */
     void submatrixOfWithDuplicates(const CoinPackedMatrix& matrix,
-		     const int numMajor, const int * indMajor)
-       throw(CoinError);
+		     const int numMajor, const int * indMajor);
 #if 0
     /** Extract a submatrix from matrix. Those major/minor-dimension vectors of
 	the matrix comprise the submatrix whose indices are given in the
 	arguments. */
     void submatrixOf(const CoinPackedMatrix& matrix,
 		     const int numMajor, const int * indMajor,
-		     const int numMinor, const int * indMinor) throw(CoinError);
+		     const int numMinor, const int * indMinor);
 #endif
 
     /** Copy method. This method makes an exact replica of the argument,
@@ -421,28 +417,26 @@ public:
     //@{
 #ifndef CLP_NO_VECTOR
       /** Append a major-dimension vector to the end of the matrix. */
-      void appendMajorVector(const CoinPackedVectorBase& vec) throw(CoinError);
+      void appendMajorVector(const CoinPackedVectorBase& vec);
 #endif
       /** Append a major-dimension vector to the end of the matrix. */
       void appendMajorVector(const int vecsize, const int *vecind,
-			     const double *vecelem) throw(CoinError);
+			     const double *vecelem);
 #ifndef CLP_NO_VECTOR
       /** Append several major-dimensonvectors to the end of the matrix */
       void appendMajorVectors(const int numvecs,
-			      const CoinPackedVectorBase * const * vecs)
-	throw(CoinError);
+			      const CoinPackedVectorBase * const * vecs);
 
       /** Append a minor-dimension vector to the end of the matrix. */
-      void appendMinorVector(const CoinPackedVectorBase& vec) throw(CoinError);
+      void appendMinorVector(const CoinPackedVectorBase& vec);
 #endif
       /** Append a minor-dimension vector to the end of the matrix. */
       void appendMinorVector(const int vecsize, const int *vecind,
-			     const double *vecelem) throw(CoinError);
+			     const double *vecelem);
 #ifndef CLP_NO_VECTOR
       /** Append several minor-dimensonvectors to the end of the matrix */
       void appendMinorVectors(const int numvecs,
-			      const CoinPackedVectorBase * const * vecs)
-	throw(CoinError);
+			      const CoinPackedVectorBase * const * vecs);
 #endif
     //@}
 
@@ -459,28 +453,24 @@ public:
 	  @pre <code>minorDim_ == matrix.minorDim_</code> <br>
 	  This method throws an exception if the minor dimensions are not the
 	  same. */
-      void majorAppendSameOrdered(const CoinPackedMatrix& matrix)
-	 throw(CoinError);
+      void majorAppendSameOrdered(const CoinPackedMatrix& matrix);
       /** Append the columns of the argument to the bottom end of this matrix.
 	  @pre <code>majorDim_ == matrix.majorDim_</code> <br>
 	  This method throws an exception if the major dimensions are not the
 	  same. */
-      void minorAppendSameOrdered(const CoinPackedMatrix& matrix)
-	 throw(CoinError);
+      void minorAppendSameOrdered(const CoinPackedMatrix& matrix);
       /** Append the rows of the argument to the right end of this matrix.
 	  @pre <code>minorDim_ == matrix.majorDim_</code> <br>
 	  This method throws an exception if the minor dimension of the
 	  current matrix is not the same as the major dimension of the
 	  argument matrix. */
-      void majorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
-	 throw(CoinError);
+      void majorAppendOrthoOrdered(const CoinPackedMatrix& matrix);
       /** Append the rows of the argument to the bottom end of this matrix.
 	  @pre <code>majorDim_ == matrix.minorDim_</code> <br>
 	  This method throws an exception if the major dimension of the
 	  current matrix is not the same as the minor dimension of the
 	  argument matrix. */
-      void minorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
-	 throw(CoinError);
+      void minorAppendOrthoOrdered(const CoinPackedMatrix& matrix);
       //@}
 
       //-----------------------------------------------------------------------
@@ -488,12 +478,10 @@ public:
       //@{
       /** Delete the major-dimension vectors whose indices are listed in
 	  <code>indDel</code>. */
-      void deleteMajorVectors(const int numDel,
-			      const int * indDel) throw(CoinError);
+      void deleteMajorVectors(const int numDel, const int * indDel);
       /** Delete the minor-dimension vectors whose indices are listed in
 	  <code>indDel</code>. */
-      void deleteMinorVectors(const int numDel,
-			      const int * indDel) throw(CoinError);
+      void deleteMinorVectors(const int numDel, const int * indDel);
       //@}
 
       //-----------------------------------------------------------------------

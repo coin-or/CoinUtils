@@ -137,8 +137,8 @@ CoinPackedVectorUnitTest()
 	  incr=false;
     assert( incr );
 
-  } 
-  
+  }
+
 
   {
     CoinPackedVector r;
@@ -925,5 +925,121 @@ CoinPackedVectorUnitTest()
     assert( r == rT );
   }
 #endif
+
+/*
+  Repeat various tests, using the constructor that takes ownership of the
+  vectors.
+*/
+  { const int neo = ne;
+    int *inxo = new int[neo];
+    double *elo = new double[neo];
+
+    for (i = 0 ; i < neo ; i++) inxo[i] = inx[i] ;
+    for (i = 0 ; i < neo ; i++) elo[i] = el[i] ;
+
+    CoinPackedVector r(neo,neo,inxo,elo);
+    assert( inxo == NULL ) ;
+    assert( elo == NULL ) ;
+    
+    // Test getting elements with int* & float* vectors
+    assert( r.getNumElements()==ne );
+    for ( i=0; i<ne; i++ ) {
+      assert( r.getIndices()[i]  == inx[i] );
+      assert( r.getOriginalPosition()[i]  == i );
+      assert( r.getElements()[i] == el[i]  );
+    }
+    assert ( r.getMaxIndex()==7 );
+    assert ( r.getMinIndex()==1 );
+    
+    // Test setting/getting elements with indices out of order  
+    const int ne2 = 5;
+    int inx2[ne2] = { 2, 4, 8, 14, 3 };
+    double el2[ne2] = { 2.2, 4.4, 6.6, 8.8, 3.3 };
+ 
+    r.setVector(ne2,inx2,el2);
+    
+    assert( r.getNumElements()==ne2 );    
+    
+    assert( r.getIndices()[0]==inx2[0] );
+    assert( r.getOriginalPosition()[0]==0 );
+    assert( r.getElements()[0]==el2[0] );
+    
+    assert( r.getIndices()[1]==inx2[1] );
+    assert( r.getOriginalPosition()[1]==1 );
+    assert( r.getElements()[1]==el2[1] );
+    
+    assert( r.getIndices()[2]==inx2[2] );
+    assert( r.getOriginalPosition()[2]==2 );
+    assert( r.getElements()[2]==el2[2] );
+    
+    assert( r.getIndices()[3]==inx2[3] );
+    assert( r.getOriginalPosition()[3]==3 );
+    assert( r.getElements()[3]==el2[3] );
+    
+    assert( r.getIndices()[4]==inx2[4] );
+    assert( r.getOriginalPosition()[4]==4 );
+    assert( r.getElements()[4]==el2[4] );
+    
+    assert ( r.getMaxIndex()==14 );
+    assert ( r.getMinIndex()==2 );
+    assert ( r.getMaxIndex()==14 );
+    assert ( r.getMinIndex()==2 );
+    {
+      bool errorThrown = false;
+      try {
+        r.duplicateIndex();
+      }
+      catch (CoinError e) {
+        errorThrown = true;
+      }
+      assert( !errorThrown );
+    }
+
+    CoinPackedVector r1(ne2,inx2,el2);
+    assert( r == r1 );   
+    
+    // Test operator[] where index is duplicated 
+    // Causes exception to be thrown
+    {
+      const int ne3 = 4;
+      int inx3[ne3] = { 2, 4, 2, 3 };
+      double el3[ne3] = { 2.2, 4.4, 8.8, 6.6 };
+      bool errorThrown = false;
+      try {
+	 r.setVector(ne3,inx3,el3);
+      }
+      catch (CoinError e) {
+	 errorThrown = true;
+      }
+      assert( errorThrown );
+
+      errorThrown = false;
+      try {
+	 r.duplicateIndex();
+      }
+      catch (CoinError e) {
+	 errorThrown = true;
+      }
+      assert( errorThrown );
+    } 
+
+
+
+    // Test sorting by increasing elements
+    r.setVector(ne2,inx2,el2);
+    bool incr=true;
+    for ( i=1; i<ne2; i++ )
+       if ( r.getElements()[i-1]>r.getElements()[i] )
+	  incr=false;
+    assert( !incr );
+    r.sortIncrElement();
+    incr = true;
+    for ( i=1; i<ne2; i++ )
+       if ( r.getElements()[i-1]>r.getElements()[i] )
+	  incr=false;
+    assert( incr );
+
+  } 
+
 }
 

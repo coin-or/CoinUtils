@@ -165,11 +165,11 @@ public:
        member data. The last argument specifies whether this vector will have
        to be checked for duplicate indices whenever that can happen. */
    void setVector(int size, const int * inds, const double * elems,
-		  bool testForDuplicateIndex = true) throw(CoinError);
+		  bool testForDuplicateIndex = true);
   
    /** Elements set to have the same scalar value */
    void setConstant(int size, const int * inds, double elems,
-		    bool testForDuplicateIndex = true) throw(CoinError);
+		    bool testForDuplicateIndex = true);
   
    /** Indices are not specified and are taken to be 0,1,...,size-1 */
    void setFull(int size, const double * elems,
@@ -183,19 +183,19 @@ public:
    /** Set an existing element in the packed vector
        The first argument is the "index" into the elements() array
    */
-   void setElement(int index, double element) throw(CoinError);
+   void setElement(int index, double element);
 
    /// Insert an element into the vector
-   void insert(int index, double element) throw(CoinError);
+   void insert(int index, double element);
    /// Append a CoinPackedVector to the end
-   void append(const CoinPackedVectorBase & caboose) throw(CoinError);
+   void append(const CoinPackedVectorBase & caboose);
 
    /// Swap values in positions i and j of indices and elements
-   void swap(int i, int j) throw(CoinError); 
+   void swap(int i, int j); 
 
    /** Resize the packed vector to be the first newSize elements.
        Problem with truncate: what happens with origIndices_ ??? */
-   void truncate(int newSize) throw(CoinError); 
+   void truncate(int newSize); 
    //@}
 
    /**@name Arithmetic operators. */
@@ -269,10 +269,20 @@ public:
    //@{
    /** Default constructor */
    CoinPackedVector(bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
-   /** Alternate Constructors - set elements to vector of doubles */
+   /** \brief Alternate Constructors - set elements to vector of doubles
+   
+       This constructor copies the vectors provided as parameters.
+   */
    CoinPackedVector(int size, const int * inds, const double * elems,
 		   bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
-   /** Alternate Constructors - set elements to same scalar value */
+   /** \brief Alternate Constructors - set elements to vector of doubles
+
+       This constructor takes ownership of the vectors passed as parameters.
+       \p inds and \p elems will be NULL on return.
+   */
+   CoinPackedVector(int capacity, int size, int *&inds, double *&elems,
+		    bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
+/** Alternate Constructors - set elements to same scalar value */
    CoinPackedVector(int size, const int * inds, double element,
 		   bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
    /** Alternate Constructors - construct full storage with indices 0 through

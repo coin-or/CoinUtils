@@ -245,15 +245,42 @@ int CoinMpsCardReader::cleanCard()
 
   if ( getit ) {
     cardNumber_++;
+    bool tabs=false;
     unsigned char * lastNonBlank = (unsigned char *) card_-1;
     unsigned char * image = (unsigned char *) card_;
     while ( *image != '\0' ) {
       if ( *image != '\t' && *image < ' ' ) {
 	break;
+      } else if (*image == '\t') {
+        tabs=true;
       } else if ( *image != '\t' && *image != ' ') {
 	lastNonBlank = image;
       }
       image++;
+    if (tabs&&section_ == COIN_BOUNDS_SECTION&&!freeFormat_&&eightChar_) {
+      int length=lastNonBlank+1-(unsigned char *)card_;
+      assert (length<81);
+      memcpy(card_+82,card_,length);
+      int pos[]={1,4,14,24,1000};
+      int put=0;
+      int tab=0;
+      for (int i=0;i<length;i++) {
+        char look = card_[i+82];
+        if (look!='\t') {
+          card_[put++]=look;
+        } else {
+          // count on to next
+          for (;tab<5;tab++) {
+            if (put<pos[tab]) {
+              while (put<pos[tab])
+                card_[put++]= ' ';
+              break;
+            }
+          }
+        }
+      }
+      card_[put++]='\0';
+    }
     }
     *(lastNonBlank+1)='\0';
     return 0;
