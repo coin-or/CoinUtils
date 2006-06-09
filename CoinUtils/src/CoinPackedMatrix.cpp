@@ -119,6 +119,7 @@ CoinPackedMatrix::clear()
 
 void
 CoinPackedMatrix::setDimensions(int newnumrows, int newnumcols)
+  throw(CoinError)
 {
   const int numrows = getNumRows();
   if (newnumrows < 0)
@@ -155,7 +156,7 @@ CoinPackedMatrix::setDimensions(int newnumrows, int newnumcols)
 //-----------------------------------------------------------------------------
 
 void
-CoinPackedMatrix::setExtraGap(const double newGap)
+CoinPackedMatrix::setExtraGap(const double newGap) throw(CoinError)
 {
    if (newGap < 0)
       throw CoinError("negative new extra gap",
@@ -166,7 +167,7 @@ CoinPackedMatrix::setExtraGap(const double newGap)
 //-----------------------------------------------------------------------------
 
 void
-CoinPackedMatrix::setExtraMajor(const double newMajor)
+CoinPackedMatrix::setExtraMajor(const double newMajor) throw(CoinError)
 {
    if (newMajor < 0)
       throw CoinError("negative new extra major",
@@ -177,7 +178,7 @@ CoinPackedMatrix::setExtraMajor(const double newMajor)
 //#############################################################################
 #ifndef CLP_NO_VECTOR
 void
-CoinPackedMatrix::appendCol(const CoinPackedVectorBase& vec)
+CoinPackedMatrix::appendCol(const CoinPackedVectorBase& vec) throw(CoinError)
 {
    if (colOrdered_)
       appendMajorVector(vec);
@@ -190,7 +191,7 @@ CoinPackedMatrix::appendCol(const CoinPackedVectorBase& vec)
 void
 CoinPackedMatrix::appendCol(const int vecsize,
 			   const int *vecind,
-			   const double *vecelem)
+			   const double *vecelem) throw(CoinError)
 {
    if (colOrdered_)
       appendMajorVector(vecsize, vecind, vecelem);
@@ -203,6 +204,7 @@ CoinPackedMatrix::appendCol(const int vecsize,
 void
 CoinPackedMatrix::appendCols(const int numcols,
 			    const CoinPackedVectorBase * const * cols)
+  throw(CoinError)
 {
    if (colOrdered_)
       appendMajorVectors(numcols, cols);
@@ -228,7 +230,7 @@ CoinPackedMatrix::appendCols(const int numcols,
 //-----------------------------------------------------------------------------
 #ifndef CLP_NO_VECTOR
 void
-CoinPackedMatrix::appendRow(const CoinPackedVectorBase& vec)
+CoinPackedMatrix::appendRow(const CoinPackedVectorBase& vec) throw(CoinError)
 {
    if (colOrdered_)
       appendMinorVector(vec);
@@ -241,7 +243,7 @@ CoinPackedMatrix::appendRow(const CoinPackedVectorBase& vec)
 void
 CoinPackedMatrix::appendRow(const int vecsize,
 			   const int *vecind,
-			   const double *vecelem)
+			   const double *vecelem) throw(CoinError)
 {
    if (colOrdered_)
       appendMinorVector(vecsize, vecind, vecelem);
@@ -254,6 +256,7 @@ CoinPackedMatrix::appendRow(const int vecsize,
 void
 CoinPackedMatrix::appendRows(const int numrows,
 			    const CoinPackedVectorBase * const * rows)
+  throw(CoinError)
 {
   if (colOrdered_) {
     // make sure enough columns
@@ -303,6 +306,7 @@ CoinPackedMatrix::appendRows(const int numrows,
 
 void
 CoinPackedMatrix::rightAppendPackedMatrix(const CoinPackedMatrix& matrix)
+  throw(CoinError)
 {
    if (colOrdered_) {
       if (matrix.colOrdered_) {
@@ -323,6 +327,7 @@ CoinPackedMatrix::rightAppendPackedMatrix(const CoinPackedMatrix& matrix)
 
 void
 CoinPackedMatrix::bottomAppendPackedMatrix(const CoinPackedMatrix& matrix)
+  throw(CoinError)
 {
    if (colOrdered_) {
       if (matrix.colOrdered_) {
@@ -613,6 +618,7 @@ CoinPackedMatrix::removeGaps()
 void
 CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
 			     const int numMajor, const int * indMajor)
+   throw(CoinError)
 {
    int i;
    int* sortedIndPtr = CoinTestIndexSet(numMajor, indMajor, matrix.majorDim_,
@@ -659,6 +665,7 @@ CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
 void
 CoinPackedMatrix::submatrixOfWithDuplicates(const CoinPackedMatrix& matrix,
 			     const int numMajor, const int * indMajor)
+   throw(CoinError)
 {
    int i;
    // we should allow duplicates - can be useful
@@ -1024,6 +1031,7 @@ void
 CoinPackedMatrix::appendMajorVector(const int vecsize,
 				   const int *vecind,
 				   const double *vecelem)
+   throw(CoinError)
 {
 #ifdef COIN_DEBUG
   for (int i = 0; i < vecsize; ++i) {
@@ -1074,6 +1082,7 @@ CoinPackedMatrix::appendMajorVector(const int vecsize,
 #ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::appendMajorVector(const CoinPackedVectorBase& vec)
+   throw(CoinError)
 {
    appendMajorVector(vec.getNumElements(),
 		     vec.getIndices(), vec.getElements());
@@ -1083,6 +1092,7 @@ CoinPackedMatrix::appendMajorVector(const CoinPackedVectorBase& vec)
 void
 CoinPackedMatrix::appendMajorVectors(const int numvecs,
 				    const CoinPackedVectorBase * const * vecs)
+   throw(CoinError)
 {
   int i;
   CoinBigIndex nz = 0;
@@ -1100,6 +1110,7 @@ void
 CoinPackedMatrix::appendMinorVector(const int vecsize,
 				   const int *vecind,
 				   const double *vecelem)
+   throw(CoinError)
 {
   int i;
 #ifdef COIN_DEBUG
@@ -1153,6 +1164,7 @@ CoinPackedMatrix::appendMinorVector(const int vecsize,
 #ifndef CLP_NO_VECTOR
 void
 CoinPackedMatrix::appendMinorVector(const CoinPackedVectorBase& vec)
+   throw(CoinError)
 {
    appendMinorVector(vec.getNumElements(),
 		     vec.getIndices(), vec.getElements());
@@ -1163,6 +1175,7 @@ CoinPackedMatrix::appendMinorVector(const CoinPackedVectorBase& vec)
 void
 CoinPackedMatrix::appendMinorVectors(const int numvecs,
 				    const CoinPackedVectorBase * const * vecs)
+   throw(CoinError)
 {
   if (numvecs == 0)
     return;
@@ -1213,6 +1226,7 @@ CoinPackedMatrix::appendMinorVectors(const int numvecs,
 
 void
 CoinPackedMatrix::majorAppendSameOrdered(const CoinPackedMatrix& matrix)
+   throw(CoinError)
 {
    if (minorDim_ != matrix.minorDim_) {
       throw CoinError("dimension mismatch", "rightAppendSameOrdered",
@@ -1260,6 +1274,7 @@ CoinPackedMatrix::majorAppendSameOrdered(const CoinPackedMatrix& matrix)
    
 void
 CoinPackedMatrix::minorAppendSameOrdered(const CoinPackedMatrix& matrix)
+   throw(CoinError)
 {
    if (majorDim_ != matrix.majorDim_) {
       throw CoinError("dimension mismatch", "bottomAppendSameOrdered",
@@ -1295,6 +1310,7 @@ CoinPackedMatrix::minorAppendSameOrdered(const CoinPackedMatrix& matrix)
    
 void
 CoinPackedMatrix::majorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
+   throw(CoinError)
 {
    if (minorDim_ != matrix.majorDim_) {
       throw CoinError("dimension mismatch", "majorAppendOrthoOrdered",
@@ -1357,6 +1373,7 @@ CoinPackedMatrix::majorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
    
 void
 CoinPackedMatrix::minorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
+   throw(CoinError)
 {
    if (majorDim_ != matrix.minorDim_) {
       throw CoinError("dimension mismatch", "bottomAppendOrthoOrdered",
@@ -1398,7 +1415,7 @@ CoinPackedMatrix::minorAppendOrthoOrdered(const CoinPackedMatrix& matrix)
 
 void
 CoinPackedMatrix::deleteMajorVectors(const int numDel,
-				    const int * indDel)
+				    const int * indDel) throw(CoinError)
 {
    int *sortedDelPtr = CoinTestIndexSet(numDel, indDel, majorDim_,
 				       "deleteMajorVectors");
@@ -1467,7 +1484,7 @@ CoinPackedMatrix::deleteMajorVectors(const int numDel,
 
 void
 CoinPackedMatrix::deleteMinorVectors(const int numDel,
-				    const int * indDel)
+				    const int * indDel) throw(CoinError)
 {
    if (numDel == minorDim_) {
      // everything is deleted

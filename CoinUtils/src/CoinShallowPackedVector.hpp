@@ -93,7 +93,7 @@ public:
    CoinShallowPackedVector& operator=(const CoinPackedVectorBase & x);
    /** just like the explicit constructor */
    void setVector(int size, const int * indices, const double * elements,
-		  bool testForDuplicateIndex = true);
+		  bool testForDuplicateIndex = true) throw(CoinError);
    //@}
 
    /**@name Methods to create, set and destroy */

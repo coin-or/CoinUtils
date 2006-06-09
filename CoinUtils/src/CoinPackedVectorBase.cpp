@@ -14,7 +14,7 @@
 //#############################################################################
 
 double *
-CoinPackedVectorBase::denseVector(int denseSize) const
+CoinPackedVectorBase::denseVector(int denseSize) const throw(CoinError)
 {
    if (getMaxIndex() >= denseSize)
       throw CoinError("Dense vector size is less than max index",
@@ -33,7 +33,7 @@ CoinPackedVectorBase::denseVector(int denseSize) const
 //-----------------------------------------------------------------------------
 
 double
-CoinPackedVectorBase::operator[](int i) const
+CoinPackedVectorBase::operator[](int i) const throw (CoinError)
 {
    if (! testedDuplicateIndex_)
       duplicateIndex("operator[]", "CoinPackedVectorBase");
@@ -99,7 +99,8 @@ CoinPackedVectorBase::getMinIndex() const
 
 void
 CoinPackedVectorBase::duplicateIndex(const char* methodName,
-				    const char * className) const
+				    const char * className)
+   const throw(CoinError)
 {
    if (testForDuplicateIndex())
       indexSet(methodName, className);
@@ -245,7 +246,7 @@ CoinPackedVectorBase::findMaxMinIndices() const
 
 std::set<int> *
 CoinPackedVectorBase::indexSet(const char* methodName,
-			      const char * className) const
+			      const char * className) const throw(CoinError)
 {
    testedDuplicateIndex_ = true;
    if ( indexSetPtr_ == NULL ) {

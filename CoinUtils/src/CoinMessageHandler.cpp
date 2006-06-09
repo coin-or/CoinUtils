@@ -542,11 +542,7 @@ CoinMessageHandler::finish()
   return 0;
 }
 /* Gets position of next field in format
-   If we're scanning the initial portion of the string (prior to the first
-   `%' code) the prefix will be copied to the output buffer. Normally, the
-   text from the current position up to and including a % code is is processed
-   by the relevant operator<< method.
-*/
+   if initial then copies until first % */
 char * 
 CoinMessageHandler::nextPerCent(char * start , const bool initial)
 {
@@ -555,13 +551,13 @@ CoinMessageHandler::nextPerCent(char * start , const bool initial)
     while (!foundNext) {
       char * nextPerCent = strchr(start,'%');
       if (nextPerCent) {
-	if (initial&&!printStatus_) {
-	  int numberToCopy=nextPerCent-start;
-	  strncpy(messageOut_,start,numberToCopy);
-	  messageOut_+=numberToCopy;
-	} 
 	// %? is skipped over as it is just a separator
 	if (nextPerCent[1]!='?') {
+	  if (initial&&!printStatus_) {
+	    int numberToCopy=nextPerCent-start;
+	    strncpy(messageOut_,start,numberToCopy);
+	    messageOut_+=numberToCopy;
+	  } 
 	  start=nextPerCent;
 	  if (start[1]!='%') {
 	    foundNext=true;

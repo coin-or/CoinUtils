@@ -832,7 +832,7 @@ CoinModelLinkedList::resize(int maxMajor,int maxElements)
     if (maximumMajor_) {
       memcpy(first,first_,maximumMajor_*sizeof(int));
 #     ifdef ZEROFAULT
-      memset(first+maximumMajor_,0,(maxMajor-maximumMajor_)*sizeof(int)) ;
+      memset(first+maximumMajor_,0,(maximumMajor_-maxMajor)*sizeof(int)) ;
 #     endif
       free = first_[maximumMajor_];
       first[maximumMajor_]=-1;
@@ -846,7 +846,7 @@ CoinModelLinkedList::resize(int maxMajor,int maxElements)
     if (maximumMajor_) {
       memcpy(last,last_,maximumMajor_*sizeof(int));
 #     ifdef ZEROFAULT
-      memset(last+maximumMajor_,0,(maxMajor-maximumMajor_)*sizeof(int)) ;
+      memset(last+maximumMajor_,0,(maximumMajor_-maxMajor)*sizeof(int)) ;
 #     endif
       free = last_[maximumMajor_];
       last[maximumMajor_]=-1;
