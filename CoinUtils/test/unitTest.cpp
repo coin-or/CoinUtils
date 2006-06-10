@@ -19,6 +19,7 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinMpsIO.hpp"
+#include "CoinMessageHandler.hpp"
 void CoinModelUnitTest(const std::string & mpsDir,
                        const std::string & netlibDir, const std::string & testModel);
 // Function Prototypes. Function definitions is in this file.
@@ -131,7 +132,6 @@ int main (int argc, const char *argv[])
   testingMessage( "Testing CoinPackedMatrix\n" );
   CoinPackedMatrixUnitTest();
 
-  
 // At moment CoinDenseVector is not compiling with MS V C++ V6
 #if 1
   testingMessage( "Testing CoinDenseVector\n" );
@@ -140,9 +140,11 @@ int main (int argc, const char *argv[])
   CoinDenseVectorUnitTest<float>(0.0f);
 #endif
 
-
   testingMessage( "Testing CoinMpsIO\n" );
   CoinMpsIOUnitTest(mpsDir);
+
+  testingMessage( "Testing CoinMessageHandler\n" );
+  CoinMessageHandlerUnitTest() ;
 
   testingMessage( "All tests completed successfully\n" );
   return 0;

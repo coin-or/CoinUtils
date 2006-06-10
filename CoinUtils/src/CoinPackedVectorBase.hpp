@@ -44,12 +44,21 @@ public:
        better run time performance.
       */
    //@{
-   /** Set to the argument value whether to test for duplicate indices in the
-       vector whenever they can occur. */
+   /** \brief Set to the argument value whether to test for duplicate indices
+	      in the vector whenever they can occur.
+       
+       Calling this method with \p test set to true will trigger an immediate
+       check for duplicate indices.
+   */
    void setTestForDuplicateIndex(bool test) const;
-   /** Set to the argument value whether to test for duplicate indices in the
-       vector whenever they can occur BUT we know that here there are no 
-       duplicate indices. */
+   /** \brief Set to the argument value whether to test for duplicate indices
+	      in the vector whenever they can occur BUT we know that right
+	      now the vector has no duplicate indices.
+
+       Calling this method with \p test set to true will <em>not</em> trigger
+       an immediate check for duplicate indices; instead, it's assumed that
+       the result of the test will be true.
+   */
    void setTestForDuplicateIndexWhenTrue(bool test) const;
    /** Returns true if the vector should be tested for duplicate indices when
        they can occur. */
@@ -63,7 +72,7 @@ public:
        <strong>NOTE</strong>: The user needs to <code>delete[]</code> this
        pointer after it's not needed anymore.
    */
-   double * denseVector(int denseSize) const throw(CoinError);
+   double * denseVector(int denseSize) const;
    /** Access the i'th element of the full storage vector.
        If the i'th is not stored, then zero is returned. The initial use of
        this method has some computational and storage overhead associated with
@@ -71,7 +80,7 @@ public:
        <strong>NOTE</strong>: This is <em>very</em> expensive. It is probably
        much better to use <code>denseVector()</code>.
    */
-   double operator[](int i) const throw(CoinError); 
+   double operator[](int i) const; 
    //@}
 
    /**@name Index methods */
@@ -83,7 +92,7 @@ public:
 
    /// Throw an exception if there are duplicate indices
    void duplicateIndex(const char* methodName = NULL,
-		       const char * className = NULL)  const throw(CoinError);
+		       const char * className = NULL) const;
 
    /** Return true if the i'th element of the full storage vector exists in
        the packed storage vector.*/
@@ -112,7 +121,6 @@ public:
    */
    template <class FloatEqual> bool
    isEquivalent(const CoinPackedVectorBase& rhs, const FloatEqual& eq) const
-      throw(CoinError)
    {
       if (getNumElements() != rhs.getNumElements())
 	 return false;
@@ -212,8 +220,7 @@ protected:
 
    /// Return indexSetPtr_ (create it if necessary).
    std::set<int> * indexSet(const char* methodName = NULL,
-			    const char * className = NULL) const
-      throw(CoinError);
+			    const char * className = NULL) const;
 
    /// Delete the indexSet
    void clearIndexSet() const;

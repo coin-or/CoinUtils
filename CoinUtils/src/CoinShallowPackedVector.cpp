@@ -69,7 +69,6 @@ void
 CoinShallowPackedVector::setVector(int size,
 				  const int * inds, const double * elems,
 				  bool testForDuplicateIndex)
-   throw(CoinError)
 {
    indices_ = inds;
    elements_ = elems;

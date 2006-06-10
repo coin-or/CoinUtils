@@ -1254,7 +1254,7 @@ CoinLpIO::read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt,
     setObjectiveOffset(mult * coeff[*cnt]);
 
 #ifdef LPIO_DEBUG
-  printf("read_monom_obj: objectiveOffset: %lf\n", objectiveOffset_);
+  printf("read_monom_obj: objectiveOffset: %f\n", objectiveOffset_);
 #endif
 
     return(read_st);
@@ -1264,7 +1264,7 @@ CoinLpIO::read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt,
   name[*cnt] = strdup(loc_name);
 
 #ifdef LPIO_DEBUG
-  printf("read_monom_obj: (%lf)  (%s)\n", coeff[*cnt], name[*cnt]);
+  printf("read_monom_obj: (%f)  (%s)\n", coeff[*cnt], name[*cnt]);
 #endif
 
   (*cnt)++;
@@ -1325,7 +1325,7 @@ CoinLpIO::read_monom_row(FILE *fp, char *start_str,
   name[cnt_coeff] = strdup(loc_name);
 
 #ifdef LPIO_DEBUG
-  printf("CoinLpIO: read_monom_row: (%lf)  (%s)\n", 
+  printf("CoinLpIO: read_monom_row: (%f)  (%s)\n", 
 	 coeff[cnt_coeff], name[cnt_coeff]);
 #endif  
   return(read_sense);
