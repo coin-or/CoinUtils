@@ -18,6 +18,7 @@ unitTest_SOURCES = \
 	CoinDenseVectorTest.cpp \
 	CoinErrorTest.cpp \
 	CoinIndexedVectorTest.cpp \
+	CoinMessageHandlerTest.cpp \
 	CoinModelTest.cpp \
 	CoinMpsIOTest.cpp \
 	CoinPackedMatrixTest.cpp \

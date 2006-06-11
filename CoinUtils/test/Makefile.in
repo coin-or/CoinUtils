@@ -56,8 +56,9 @@ CONFIG_CLEAN_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
 am_unitTest_OBJECTS = CoinDenseVectorTest.$(OBJEXT) \
 	CoinErrorTest.$(OBJEXT) CoinIndexedVectorTest.$(OBJEXT) \
-	CoinModelTest.$(OBJEXT) CoinMpsIOTest.$(OBJEXT) \
-	CoinPackedMatrixTest.$(OBJEXT) CoinPackedVectorTest.$(OBJEXT) \
+	CoinMessageHandlerTest.$(OBJEXT) CoinModelTest.$(OBJEXT) \
+	CoinMpsIOTest.$(OBJEXT) CoinPackedMatrixTest.$(OBJEXT) \
+	CoinPackedVectorTest.$(OBJEXT) \
 	CoinShallowPackedVectorTest.$(OBJEXT) unitTest.$(OBJEXT)
 unitTest_OBJECTS = $(am_unitTest_OBJECTS)
 unitTest_DEPENDENCIES = $(COINUTILSOBJDIR)/src/libCoinUtils.la
@@ -212,6 +213,7 @@ unitTest_SOURCES = \
 	CoinDenseVectorTest.cpp \
 	CoinErrorTest.cpp \
 	CoinIndexedVectorTest.cpp \
+	CoinMessageHandlerTest.cpp \
 	CoinModelTest.cpp \
 	CoinMpsIOTest.cpp \
 	CoinPackedMatrixTest.cpp \
@@ -295,6 +297,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseVectorTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinErrorTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinIndexedVectorTest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinMessageHandlerTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinModelTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinMpsIOTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPackedMatrixTest.Po@am__quote@
