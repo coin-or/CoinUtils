@@ -3,6 +3,7 @@ CoinUtils/coinutils_addlibs.txt.in -text
 CoinUtils/configure -text
 CoinUtils/configure.ac -text
 CoinUtils/inc/config_coinutils.h.in -text
+CoinUtils/test/CoinMessageHandlerTest.cpp -text
 /INSTALL -text
 /config.guess -text
 /config.sub -text
