@@ -2,6 +2,7 @@
 // Corporation and others.  All Rights Reserved.
 
 
+#include "CoinPragma.hpp"
 
 #include <cmath>
 #include <cassert>
@@ -10,8 +11,6 @@
 #include <cstdio>
 #include <iostream>
 
-
-#include "CoinPragma.hpp"
 
 #include "CoinHelperFunctions.hpp"
 
