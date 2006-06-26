@@ -811,7 +811,8 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
 		    int nrows,
 		    CoinBigIndex nelems,
 		 bool doStatus,
-		 double nonLinearVariable);
+		 double nonLinearVariable,
+                     const char * prohibited);
 
   /*! \brief Update the model held by a generic OSI */
   void update_model(OsiSolverInterface * si,
