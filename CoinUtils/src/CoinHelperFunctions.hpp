@@ -30,7 +30,7 @@ CoinCopyN(register const T* from, const int size, register T* to)
       throw CoinError("trying to copy negative number of entries",
 		     "CoinCopyN", "");
 
-   const int dist = to - from;
+   const long dist = to - from;
    register int n = (size + 7) / 8;
    if (dist > 0) {
       register const T* downfrom = from + size;
@@ -97,7 +97,7 @@ CoinDisjointCopyN(register const T* from, const int size, register T* to)
       throw CoinError("trying to copy negative number of entries",
 		     "CoinDisjointCopyN", "");
 
-   const int dist = to - from;
+   const long dist = to - from;
    if (-size < dist && dist < size)
       throw CoinError("overlapping arrays", "CoinDisjointCopyN", "");
 
@@ -214,7 +214,7 @@ CoinMemcpyN(register const T* from, const int size, register T* to)
     throw CoinError("trying to copy negative number of entries",
 		    "CoinMemcpyN", "");
   
-  const int dist = to - from;
+  const long dist = to - from;
   if (-size < dist && dist < size)
     throw CoinError("overlapping arrays", "CoinMemcpyN", "");
 #endif
@@ -227,7 +227,7 @@ CoinMemcpyN(register const T* from, const int size, register T* to)
       throw CoinError("trying to copy negative number of entries",
 		     "CoinMemcpyN", "");
 
-   const int dist = to - from;
+   const long dist = to - from;
    if (-size < dist && dist < size)
       throw CoinError("overlapping arrays", "CoinMemcpyN", "");
 
