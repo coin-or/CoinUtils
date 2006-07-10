@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 
+#include "CoinUtilsConfig.h"
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessageHandler.hpp"
 #include "CoinFileIO.hpp"
