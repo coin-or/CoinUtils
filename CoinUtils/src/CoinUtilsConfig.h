@@ -42,8 +42,11 @@
 /*    These are only in effect in a setting that doesn't use configure     */
 /***************************************************************************/
 
-/* If defined, debug sanity checks are performed during runtime */
-/* #define COIN_DEBUG 1 */
+/* Define to the debug sanity check level (0 is no test) */
+#define COIN_COINUTILS_CHECKLEVEL 0
+
+/* Define to the debug verbosity level (0 is no output) */
+#define COIN_COINUTILS_VERBOSITY 0
 
 /* Define to 1 if bzlib is available */
 /* #define COIN_HAS_BZLIB */
