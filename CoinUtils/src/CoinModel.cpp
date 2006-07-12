@@ -537,6 +537,8 @@ CoinModel::setElement(int i,int j,const char * value)
     }
   }
   if (!hashElements_.maximumItems()) {
+    // set up number of items
+    hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_);
   }
   int position = hashElements_.hash(i,j,elements_);
