@@ -1606,7 +1606,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
-      return numberErrors;
+      return numberErrors+100000;
     }
     //use malloc etc as I don't know how to do realloc in C++
     numberRows_ = 0;
@@ -1681,7 +1681,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
-      return numberErrors;
+      return numberErrors+100000;
     }
     //assert ( gotNrow );
     if (numberRows_)
@@ -1893,7 +1893,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
-      return numberErrors;
+      return numberErrors+100000;
     }
     if (numberColumns_) {
       columnType =
@@ -2498,7 +2498,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
-      return numberErrors+1000;
+      return numberErrors+100000;
     }
   } else {
     // This is very simple format - what should we use?
