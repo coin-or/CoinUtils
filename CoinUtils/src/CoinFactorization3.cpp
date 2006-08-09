@@ -22,7 +22,6 @@ extern "C" int dgetrs_(const char *trans, const int *n, const int *nrhs,
 	const double *a, const int *lda, const int *ipiv, double *b, 
 		       const int * ldb, int *info);
 #endif
-
 // For semi-sparse
 #define BITS_PER_CHECK 8
 #define CHECK_SHIFT 3
@@ -731,8 +730,8 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   nextColumn_[maximumColumnsExtra_] = numberColumnsExtra_;
   nextColumn_[numberColumnsExtra_] = next;
   lastColumn_[numberColumnsExtra_] = maximumColumnsExtra_;
-  //check accuracy
-  int status = checkPivot(saveFromU,pivotCheck);
+  //check accuracy - but not if already checked (optimization problem)
+  int status =  (checkBeforeModifying) ? 0 : checkPivot(saveFromU,pivotCheck);
 
   if (status!=2) {
   
@@ -1132,33 +1131,30 @@ CoinFactorization::updateColumnTransposeUSparse (
   nList=0;
   for (k=0;k<numberNonZero;k++) {
     int kPivot=regionIndex[k];
-    if(!mark[kPivot]) {
-      stack[0]=kPivot;
-      CoinBigIndex j=startRow[kPivot]+numberInRow[kPivot]-1;
-      nStack=0;
-      while (nStack>=0) {
-	/* take off stack */
+    stack[0]=kPivot;
+    CoinBigIndex j=startRow[kPivot]+numberInRow[kPivot]-1;
+    next[0]=j;
+    nStack=1;
+    while (nStack) {
+      /* take off stack */
+      kPivot=stack[--nStack];
+      if (mark[kPivot]!=1) {
+	j=next[nStack];
 	if (j>=startRow[kPivot]) {
-	  int jPivot=indexColumn[j--];
+	  kPivot=indexColumn[j--];
 	  /* put back on stack */
-	  next[nStack] =j;
-	  if (!mark[jPivot]) {
+	  next[nStack++] =j;
+	  if (!mark[kPivot]) {
 	    /* and new one */
-	    kPivot=jPivot;
 	    j=startRow[kPivot]+numberInRow[kPivot]-1;
-	    stack[++nStack]=kPivot;
-	    mark[kPivot]=1;
-	    next[nStack]=j;
+	    stack[nStack]=kPivot;
+	    mark[kPivot]=2;
+	    next[nStack++]=j;
 	  }
 	} else {
 	  // finished
 	  list[nList++]=kPivot;
 	  mark[kPivot]=1;
-	  --nStack;
-	  if (nStack>=0) {
-	    kPivot=stack[nStack];
-	    j=next[nStack];
-	  }
 	}
       }
     }
@@ -1177,9 +1173,7 @@ CoinFactorization::updateColumnTransposeUSparse (
 	int iRow = indexColumn[j];
 	CoinBigIndex getElement = convertRowToColumn[j];
 	double value = element[getElement];
-
-	region[iRow] = region[iRow]
-	  - value * pivotValue;
+	region[iRow] -= value * pivotValue;
       }     
       regionIndex[numberNonZero++] = iPivot;
     } else {
