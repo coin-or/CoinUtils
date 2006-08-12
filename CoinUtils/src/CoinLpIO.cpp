@@ -13,6 +13,7 @@
 #include <cctype>
 #include <cassert>
 
+#include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinLpIO.hpp"
 
@@ -22,27 +23,6 @@ using namespace std;
 
 /************************************************************************/
 
-static inline int CoinStrNCaseCmp(const char* s0, const char* s1,
-								  const size_t len)
-{
-	for (size_t i = 0; i < len; ++i) {
-		if (s0[i] == 0) {
-			return s1[i] == 0 ? 0 : -1;
-		}
-		if (s1[i] == 0) {
-			return 1;
-		}
-		const int c0 = tolower(s0[i]);
-		const int c1 = tolower(s1[i]);
-		if (c0 < c1)
-			return -1;
-		if (c0 > c1)
-			return 1;
-	}
-	return 0;
-}
-
-/************************************************************************/
 CoinLpIO::CoinLpIO() :
   problemName_(strdup("")),
   numberRows_(0),
