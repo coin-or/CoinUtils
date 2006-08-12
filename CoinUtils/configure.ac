@@ -62,6 +62,8 @@ AC_COIN_HAS_PROJECT(CoinUtils)
 #                             Other dependencies                            #
 #############################################################################
 
+AC_COIN_HAS_USER_LIBRARY([Gmpl],[GMPL],[glpmpl.h],[mpl_initialize])
+
 AC_COIN_CHECK_GNU_ZLIB
 AC_COIN_CHECK_GNU_BZLIB
 
