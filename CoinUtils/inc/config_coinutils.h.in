@@ -12,6 +12,9 @@
 /* Define to 1 if the CoinUtils package is used */
 #undef COIN_HAS_COINUTILS
 
+/* Define to 1 if the Gmpl package is used */
+#undef COIN_HAS_GMPL
+
 /* Define to 1 if zlib is available */
 #undef COIN_HAS_ZLIB
 
