@@ -89,6 +89,7 @@ using std::max;
 //=============================================================================
 
 #if defined(__CYGWIN32__)
+# include <ieeefp.h>
 # define CoinFinite finite
 # define CoinIsnan  isnan
 #endif
