@@ -52,6 +52,160 @@ AC_COIN_PROG_CXX
 # Initialize automake and libtool
 AC_COIN_INIT_AUTO_TOOLS
 
+############################################################################
+#                   Stuff that we need for finite and isnan                #
+############################################################################
+
+AC_LANG_PUSH(C++)
+
+################
+# Header Files #
+################
+AC_COIN_CHECK_CXX_CHEADER(math)
+AC_COIN_CHECK_CXX_CHEADER(float)
+case $build in
+  *-cygwin*) ;;
+  *) AC_COIN_CHECK_CXX_CHEADER([ieeefp]) ;;
+esac
+
+###################
+# Function finite #
+###################
+MY_C_FINITE=
+AC_CHECK_DECL([finite],[MY_C_FINITE=finite],,[
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif])
+if test -z "$MY_C_FINITE"; then
+  AC_CHECK_DECL([_finite],[MY_C_FINITE=_finite],,[
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif])
+  if test -z "$MY_C_FINITE"; then
+    AC_CHECK_DECL([isfinite],[MY_C_FINITE=isfinite],,[
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif])
+  fi
+fi
+if test -z "$MY_C_FINITE"; then
+  AC_MSG_WARN(Cannot find C-function for checking Inf. Check will test whether the value is different from DBL_MAX)
+else
+  AC_DEFINE_UNQUOTED([MY_C_FINITE],[$MY_C_FINITE],
+                     [Define to be the name of C-function for Inf check])
+fi
+
+###################
+# Function isnan #
+###################
+MY_C_ISNAN=
+AC_CHECK_DECL([isnan],[MY_C_ISNAN=isnan],,[
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif])
+if test -z "$MY_C_ISNAN"; then
+  AC_CHECK_DECL([_isnan],[MY_C_ISNAN=_isnan],,[
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif])
+fi
+if test -z "$MY_C_ISNAN"; then
+  AC_MSG_WARN(Cannot find C-function for checking NaN. Check will return false)
+else
+  AC_DEFINE_UNQUOTED([MY_C_ISNAN],[$MY_C_ISNAN],
+                     [Define to be the name of C-function for NaN check])
+fi
+
 #############################################################################
 #                              COIN components                              #
 #############################################################################
