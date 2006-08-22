@@ -53,8 +53,8 @@ typedef long long CoinBigIndex;
 //=============================================================================
 
 #if defined(_MSC_VER)
-# define CoinIsnan   _isnan
-# define CoinFinite  _finite
+//  # define CoinIsnan   _isnan
+//  # define CoinFinite  _finite
 // Turn off compiler warning about long names
 #  pragma warning(disable:4786)
 #if !defined(min)
@@ -74,7 +74,8 @@ using std::max;
 inline bool CoinFinite(double val)
 {
 #ifdef MY_C_FINITE
-    return static_cast<bool>(MY_C_FINITE(val));
+//    return static_cast<bool>(MY_C_FINITE(val));
+    return MY_C_FINITE(val)!=0;
 #else
     return val != DBL_MAX && val != -DBL_MAX;
 #endif
@@ -89,7 +90,8 @@ inline bool CoinFinite(double val)
 inline bool CoinIsnan(double val)
 {
 #ifdef MY_C_ISNAN
-    return static_cast<bool>(MY_C_ISNAN(val));
+//    return static_cast<bool>(MY_C_ISNAN(val));
+    return MY_C_ISNAN(val)!=0;
 #else
     return false;
 #endif
