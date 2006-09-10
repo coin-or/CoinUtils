@@ -80,10 +80,6 @@ inline bool CoinFinite(double val)
     return val != DBL_MAX && val != -DBL_MAX;
 #endif
 }
-#if defined (_AIX)
-# define CoinFinite finite
-# define CoinIsnan  isnan
-#endif
 
 //=============================================================================
 
