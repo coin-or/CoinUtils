@@ -5,7 +5,6 @@
 // Turn off compiler warning about long names
 #  pragma warning(disable:4786)
 #endif
-
 #include "CoinUtilsConfig.h"
 
 #include "CoinFactorization.hpp"
@@ -13,12 +12,11 @@
 #include "CoinHelperFunctions.hpp"
 #include <cassert>
 #include <cstdio>
-
+#include "CoinSort.hpp"
 // For semi-sparse
 #define BITS_PER_CHECK 8
 #define CHECK_SHIFT 3
 typedef unsigned char CoinCheckZero;
-
 
 //  updateColumnU.  Updates part of column (FTRANU)
 void
@@ -174,7 +172,9 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
   nList = 0;
   for (i=0;i<numberNonZero;i++) {
     int kPivot=indexIn[i];
+#if 0
     if(!mark[kPivot]) {
+      mark[kPivot]=1;
       stack[0]=kPivot;
       CoinBigIndex j=startColumn[kPivot]+numberInColumn[kPivot]-1;
       nStack=0;
@@ -186,11 +186,24 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
 	  next[nStack] =j;
 	  if (!mark[jPivot]) {
 	    /* and new one */
-	    kPivot=jPivot;
-	    j = startColumn[kPivot]+numberInColumn[kPivot]-1;
-	    stack[++nStack]=kPivot;
-	    mark[kPivot]=1;
-	    next[nStack]=j;
+	    int numberIn = numberInColumn[jPivot];
+	    mark[jPivot]=1;
+	    if (numberIn) {
+	      kPivot=jPivot;
+	      j = startColumn[kPivot]+numberIn-1;
+	      stack[++nStack]=kPivot;
+	      next[nStack]=j;
+	    } else {
+	      // can do immediately
+	      /* finished so mark */
+	      if (jPivot>=numberSlacks_) {
+		list[nList++]=jPivot;
+	      } else {
+		// slack - put at end
+		--put;
+		*put=jPivot;
+	      }
+	    }
 	  }
 	} else {
 	  /* finished so mark */
@@ -202,7 +215,6 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
 	    --put;
 	    *put=kPivot;
 	  }
-	  mark[kPivot]=1;
 	  --nStack;
 	  if (nStack>=0) {
 	    kPivot=stack[nStack];
@@ -211,7 +223,78 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
 	}
       }
     }
+#else
+    stack[0]=kPivot;
+    CoinBigIndex j=startColumn[kPivot]+numberInColumn[kPivot]-1;
+    nStack=1;
+    next[0]=j;
+    while (nStack) {
+      /* take off stack */
+      kPivot=stack[--nStack];
+      if (mark[kPivot]!=1) {
+	j=next[nStack];
+	if (j>=startColumn[kPivot]) {
+	  kPivot=indexRow[j--];
+	  /* put back on stack */
+	  next[nStack++] =j;
+	  if (!mark[kPivot]) {
+	    /* and new one */
+	    int numberIn = numberInColumn[kPivot];
+	    if (numberIn) {
+	      j = startColumn[kPivot]+numberIn-1;
+	      stack[nStack]=kPivot;
+	      mark[kPivot]=2;
+	      next[nStack++]=j;
+	    } else {
+	      // can do immediately
+	      /* finished so mark */
+	      mark[kPivot]=1;
+	      if (kPivot>=numberSlacks_) {
+		list[nList++]=kPivot;
+	      } else {
+		// slack - put at end
+		--put;
+		*put=kPivot;
+	      }
+	    }
+	  }
+	} else {
+	  /* finished so mark */
+	  mark[kPivot]=1;
+	  if (kPivot>=numberSlacks_) {
+	    list[nList++]=kPivot;
+	  } else {
+	    // slack - put at end
+	    assert (!numberInColumn[kPivot]);
+	    --put;
+	    *put=kPivot;
+	  }
+	}
+      }
+    }
+#endif
   }
+#if 0
+  {
+    std::sort(list,list+nList);
+    int i;
+    int last;
+    last =-1;
+    for (i=0;i<nList;i++) {
+      int k = list[i];
+      assert (k>last);
+      last=k;
+    }
+    std::sort(put,putLast);
+    int n = putLast-put;
+    last =-1;
+    for (i=0;i<n;i++) {
+      int k = put[i];
+      assert (k>last);
+      last=k;
+    }
+  }
+#endif
   numberNonZero=0;
   for (i=nList-1;i>=0;i--) {
     iPivot = list[i];
@@ -1460,7 +1543,29 @@ int CoinFactorization::updateColumnFT ( CoinIndexedVector * regionSparse,
   }
     
   //  ******* L
+#if 0
+  {
+    double *region = regionSparse->denseVector (  );
+    //int *regionIndex = regionSparse->getIndices (  );
+    int numberNonZero = regionSparse->getNumElements (  );
+    for (int i=0;i<numberNonZero;i++) {
+      int iRow = regionIndex[i];
+      assert (region[iRow]);
+    }
+  }
+#endif
   updateColumnL ( regionSparse, regionIndex );
+#if 0
+  {
+    double *region = regionSparse->denseVector (  );
+    //int *regionIndex = regionSparse->getIndices (  );
+    int numberNonZero = regionSparse->getNumElements (  );
+    for (int i=0;i<numberNonZero;i++) {
+      int iRow = regionIndex[i];
+      assert (region[iRow]);
+    }
+  }
+#endif
   if (collectStatistics_) 
     ftranCountAfterL_ += (double) regionSparse->getNumElements();
   //permute extra
@@ -1606,10 +1711,9 @@ CoinFactorization::goSparse ( )
     if (numberRows_>300) {
       if (numberRows_<10000) {
 	sparseThreshold_=CoinMin(numberRows_/6,500);
-	sparseThreshold2_=sparseThreshold_;
+	//sparseThreshold2_=sparseThreshold_;
       } else {
-	sparseThreshold_=CoinMin(numberRows_/8,1000);
-	sparseThreshold2_=sparseThreshold_+CoinMin((numberRows_-200)/5,2000);
+	sparseThreshold_=1000;
 	//sparseThreshold2_=sparseThreshold_;
       }
       sparseThreshold2_=numberRows_>>2;
