@@ -402,6 +402,9 @@ const CoinPresolveAction
           upperBound = CoinMin(upperBound,rhs[iRow]/value);
         }
       }
+    } else {
+      // Not sure what to do so give up
+      continue;
     }
 /*
   There are two main cases: The objective coefficients are equal or unequal.
