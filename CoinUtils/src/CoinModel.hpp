@@ -566,6 +566,9 @@ public:
    //@{
    /** Default constructor. */
    CoinModel();
+    /** Read a problem in MPS or GAMS format from the given filename.
+    */
+    CoinModel(const char *fileName, bool allowStrings=false);
    /** Destructor */
    ~CoinModel();
    //@}

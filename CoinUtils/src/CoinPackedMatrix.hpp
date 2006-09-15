@@ -276,8 +276,9 @@ public:
   //---------------------------------------------------------------------------
   /**@name Methods that reorganize the whole matrix */
   //@{
-    /** Remove the gaps from the matrix if there were any */
-    void removeGaps();
+    /** Remove the gaps from the matrix if there were any
+	Can also remove small elements fabs() <= removeValue*/
+    void removeGaps(double removeValue=-1.0);
  
     /** Extract a submatrix from matrix. Those major-dimension vectors of
 	the matrix comprise the submatrix whose indices are given in the

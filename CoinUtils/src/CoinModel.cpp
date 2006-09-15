@@ -48,6 +48,133 @@ CoinModel::CoinModel ()
 {
   problemName_ = strdup("");
 }
+/* Read a problem in MPS or GAMS format from the given filename.
+ */
+CoinModel::CoinModel(const char *fileName, bool allowStrings)
+ :  numberRows_(0),
+    maximumRows_(0),
+    numberColumns_(0),
+    maximumColumns_(0),
+    numberElements_(0),
+    maximumElements_(0),
+    numberQuadraticElements_(0),
+    maximumQuadraticElements_(0),
+    optimizationDirection_(1.0),
+    objectiveOffset_(0.0),
+    rowLower_(NULL),
+    rowUpper_(NULL),
+    rowType_(NULL),
+    objective_(NULL),
+    columnLower_(NULL),
+    columnUpper_(NULL),
+    integerType_(NULL),
+    columnType_(NULL),
+    start_(NULL),
+    elements_(NULL),
+    quadraticElements_(NULL),
+    sortIndices_(NULL),
+    sortElements_(NULL),
+    sortSize_(0),
+    sizeAssociated_(0),
+    associated_(NULL),
+    logLevel_(0),
+    type_(-1),
+    links_(0)
+{
+  problemName_ = strdup("");
+  int status=0;
+  if (!strcmp(fileName,"-")||!strcmp(fileName,"stdin")) {
+    // stdin
+  } else {
+    std::string name=fileName;
+    bool readable = fileCoinReadable(name);
+    if (!readable) {
+      std::cerr<<"Unable to open file "
+	       <<fileName<<std::endl;
+      status = -1;
+    }
+  }
+  CoinMpsIO m;
+  m.setAllowStringElements(allowStrings);
+  if (!status) {
+    try {
+      status=m.readMps(fileName,"");
+    }
+    catch (CoinError e) {
+      e.print();
+      status=-1;
+    }
+  }
+  if (!status) {
+    // set problem name
+    free(problemName_);
+    problemName_=strdup(m.getProblemName());
+    objectiveOffset_ = m.objectiveOffset();
+    // build model
+    int numberRows = m.getNumRows();
+    int numberColumns = m.getNumCols();
+    
+    // Build by row from scratch
+    CoinPackedMatrix matrixByRow = * m.getMatrixByRow();
+    const double * element = matrixByRow.getElements();
+    const int * column = matrixByRow.getIndices();
+    const CoinBigIndex * rowStart = matrixByRow.getVectorStarts();
+    const int * rowLength = matrixByRow.getVectorLengths();
+    const double * rowLower = m.getRowLower();
+    const double * rowUpper = m.getRowUpper();
+    const double * columnLower = m.getColLower();
+    const double * columnUpper = m.getColUpper();
+    const double * objective = m.getObjCoefficients();
+    int i;
+    for (i=0;i<numberRows;i++) {
+      addRow(rowLength[i],column+rowStart[i],
+	     element+rowStart[i],rowLower[i],rowUpper[i],m.rowName(i));
+    }
+    // Now do column part
+    for (i=0;i<numberColumns;i++) {
+      setColumnBounds(i,columnLower[i],columnUpper[i]);
+      setColumnObjective(i,objective[i]);
+      if (m.isInteger(i))
+	setColumnIsInteger(i,true);;
+    }
+    // do names
+    int iRow;
+    for (iRow=0;iRow<numberRows_;iRow++) {
+      const char * name = m.rowName(iRow);
+      setRowName(iRow,name);
+    }
+    
+    int iColumn;
+    for (iColumn=0;iColumn<numberColumns_;iColumn++) {
+      const char * name = m.columnName(iColumn);
+      setColumnName(iColumn,name);
+    }
+    if (m.numberStringElements()) {
+      // add in 
+      int numberElements = m.numberStringElements();
+      for (int i=0;i<numberElements;i++) {
+	const char * line = m.stringElement(i);
+	int iRow;
+	int iColumn;
+	sscanf(line,"%d,%d,",&iRow,&iColumn);
+	assert (iRow>=0&&iRow<=numberRows_+2);
+	assert (iColumn>=0&&iColumn<=numberColumns_);
+	const char * pos = strchr(line,',');
+	assert (pos);
+	pos = strchr(pos+1,',');
+	assert (pos);
+	pos++;
+	if (iRow<numberRows_&&iColumn<numberColumns_) {
+	  // element
+	  setElement(iRow,iColumn,pos);
+	} else {
+	  fprintf(stderr,"code CoinModel strings for rim\n");
+	  abort();
+	}
+      }
+    }
+  }
+}
 
 //-------------------------------------------------------------------
 // Copy constructor 
@@ -272,8 +399,13 @@ CoinModel::addRow(int numberInRow, const int * columns,
   // If rows extended - take care of that
   fillRows(numberRows_,false,true);
   // Do name
-  if (name)
+  if (name) {
     rowName_.addHash(numberRows_,name);
+  } else {
+    char name[9];
+    sprintf(name,"r%7.7d",numberRows_);
+    rowName_.addHash(numberRows_,name);
+  }
   rowLower_[numberRows_]=rowLower;
   rowUpper_[numberRows_]=rowUpper;
   // If columns extended - take care of that
@@ -398,8 +530,13 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
   // If columns extended - take care of that
   fillColumns(numberColumns_,false,true);
   // Do name
-  if (name)
+  if (name) {
     columnName_.addHash(numberColumns_,name);
+  } else {
+    char name[9];
+    sprintf(name,"c%7.7d",numberColumns_);
+    columnName_.addHash(numberColumns_,name);
+  }
   columnLower_[numberColumns_]=columnLower;
   columnUpper_[numberColumns_]=columnUpper;
   objective_[numberColumns_]=objectiveValue;
@@ -1142,10 +1279,12 @@ CoinModel::packRows()
     }
     if ((links_&1)!=0) {
       rowList_ = CoinModelLinkedList();
+      links_ &= ~1;
       createList(1);
     }
     if ((links_&2)!=0) {
       columnList_ = CoinModelLinkedList();
+      links_ &= ~2;
       createList(2);
     }
   }
@@ -1248,10 +1387,12 @@ CoinModel::packColumns()
     }
     if ((links_&1)!=0) {
       rowList_ = CoinModelLinkedList();
+      links_ &= ~1;
       createList(1);
     }
     if ((links_&2)!=0) {
       columnList_ = CoinModelLinkedList();
+      links_ &= ~2;
       createList(2);
     }
   }

@@ -587,24 +587,45 @@ CoinPackedMatrix::eliminateDuplicates(double threshold)
 //#############################################################################
 
 void
-CoinPackedMatrix::removeGaps()
+CoinPackedMatrix::removeGaps(double removeValue)
 {
-  if (extraGap_) {
-    for (int i = 1; i < majorDim_; ++i) {
-      const CoinBigIndex si = start_[i];
-      const int li = length_[i];
-      start_[i] = start_[i-1] + length_[i-1];
-      CoinCopy(index_ + si, index_ + (si + li), index_ + start_[i]);
-      CoinCopy(element_ + si, element_ + (si + li), element_ + start_[i]);
-    }
-    start_[majorDim_] = size_;
-  } else {
+  if (removeValue<0.0) {
+    if (extraGap_) {
+      for (int i = 1; i < majorDim_; ++i) {
+	const CoinBigIndex si = start_[i];
+	const int li = length_[i];
+	start_[i] = start_[i-1] + length_[i-1];
+	CoinCopy(index_ + si, index_ + (si + li), index_ + start_[i]);
+	CoinCopy(element_ + si, element_ + (si + li), element_ + start_[i]);
+      }
+      start_[majorDim_] = size_;
+    } else {
 #ifndef NDEBUG
-    for (int i = 1; i < majorDim_; ++i) {
-      assert (start_[i] == start_[i-1] + length_[i-1]);
-    }
-    assert(start_[majorDim_] == size_);
+      for (int i = 1; i < majorDim_; ++i) {
+	assert (start_[i] == start_[i-1] + length_[i-1]);
+      }
+      assert(start_[majorDim_] == size_);
 #endif
+    }
+  } else {
+    CoinBigIndex put=0;
+    assert (!start_[0]);
+    CoinBigIndex start = 0;
+    for (int i = 0; i < majorDim_; ++i) {
+      const CoinBigIndex si = start;
+      start = start_[i+1];
+      const int li = length_[i];
+      for (CoinBigIndex j = si;j<si+li;j++) {
+	double value = element_[j];
+	if (fabs(value)>removeValue) {
+	  index_[put]=index_[j];
+	  element_[put++]=value;
+	}
+      }
+      length_[i]=put-start_[i];
+      start_[i+1] = put;
+    }
+    size_ = put;
   }
 }
 
