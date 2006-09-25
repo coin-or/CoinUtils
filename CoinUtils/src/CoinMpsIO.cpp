@@ -2569,6 +2569,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	memcpy(sets,setsA,numberSets*sizeof(CoinSet **));
       }
       delete [] setsA;
+      delete [] which;
+      delete [] weights;
     }
     stopHash ( 1 );
     // clean up integers
