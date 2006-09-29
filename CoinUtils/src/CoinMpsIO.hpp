@@ -15,7 +15,7 @@
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessageHandler.hpp"
 #include "CoinFileIO.hpp"
-
+class CoinModel;
 // Plus infinity
 #ifndef COIN_DBL_MAX
 #define COIN_DBL_MAX DBL_MAX
@@ -738,6 +738,8 @@ public:
     /// Set whether to move objective from matrix
     inline void setConvertObjective(bool trueFalse)
     { convertObjective_=trueFalse;};
+  /// copies in strings from a CoinModel - returns number
+  int copyStringElements(const CoinModel * model);
   //@}
 
 /** @name Constructors and destructors */
@@ -875,6 +877,8 @@ protected:
       iColumn==nc is rhs (can't cope with ranges at present)
   */
   void addString(int iRow,int iColumn, const char * value);
+  /// Decode string
+  void decodeString(int iString, int & iRow, int & iColumn, const char * & value) const;
   //@}
 
   

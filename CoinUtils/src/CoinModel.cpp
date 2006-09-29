@@ -1673,7 +1673,7 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
  */
 int 
 CoinModel::writeMps(const char *filename, int compression,
-                    int formatType , int numberAcross ) 
+                    int formatType , int numberAcross , bool keepStrings) 
 {
   int numberErrors = 0;
   // Set arrays for normal use
@@ -1724,11 +1724,15 @@ CoinModel::writeMps(const char *filename, int compression,
     delete [] objective;
     delete [] integerType;
     delete [] associated;
-    if (numberErrors&&logLevel_>0)
+    if (numberErrors&&logLevel_>0&&!keepStrings)
       printf("%d string elements had no values associated with them\n",numberErrors);
   }
   writer.setObjectiveOffset(objectiveOffset_);
   writer.setProblemName(problemName_);
+  if (keepStrings&&string_.numberItems()) {
+    // load up strings - sorted by column and row
+    writer.copyStringElements(this);
+  }
   return writer.writeMps(filename, compression, formatType, numberAcross);
 }
 /* Check two models against each other.  Return nonzero if different.

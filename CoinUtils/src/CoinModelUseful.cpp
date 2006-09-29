@@ -96,7 +96,7 @@ CoinModelHash::CoinModelHash (const CoinModelHash & rhs)
     for (int i=0;i<maximumItems_;i++) {
       names_[i]=CoinStrdup(rhs.names_[i]);
     }
-    hash_ = CoinCopyOfArray(rhs.hash_,maximumItems_);
+    hash_ = CoinCopyOfArray(rhs.hash_,4*maximumItems_);
   }
 }
 
@@ -130,7 +130,7 @@ CoinModelHash::operator=(const CoinModelHash& rhs)
       for (int i=0;i<maximumItems_;i++) {
         names_[i]=CoinStrdup(rhs.names_[i]);
       }
-      hash_ = CoinCopyOfArray(rhs.hash_,maximumItems_);
+      hash_ = CoinCopyOfArray(rhs.hash_,4*maximumItems_);
     } else {
       names_ = NULL;
       hash_ = NULL;
@@ -239,6 +239,17 @@ CoinModelHash::resize(int maxItems,bool forceReHash)
   }
   
 }
+// validate
+void 
+CoinModelHash::validateHash() const
+{
+  for (int i = 0; i < numberItems_; ++i ) {
+    if (names_[i]) {
+      int ipos = hash( names_[i]);
+      assert (ipos>=0);
+    }
+  }
+}
 // Returns index or -1
 int 
 CoinModelHash::hash(const char * name) const
@@ -317,7 +328,7 @@ CoinModelHash::addHash(int index, const char * name)
                   abort();
                   break;
                 }
-                if ( hash_[lastSlot_].index <0 ) {
+                if ( hash_[lastSlot_].index <0 && hash_[lastSlot_].next<0) {
                   break;
                 }
               }
@@ -441,7 +452,7 @@ CoinModelHash2::CoinModelHash2 (const CoinModelHash2 & rhs)
     lastSlot_(rhs.lastSlot_)
 {
   if (maximumItems_) {
-    hash_ = CoinCopyOfArray(rhs.hash_,maximumItems_);
+    hash_ = CoinCopyOfArray(rhs.hash_,4*maximumItems_);
   }
 }
 
@@ -465,7 +476,7 @@ CoinModelHash2::operator=(const CoinModelHash2& rhs)
     maximumItems_ = rhs.maximumItems_;
     lastSlot_ = rhs.lastSlot_;
     if (maximumItems_) {
-      hash_ = CoinCopyOfArray(rhs.hash_,maximumItems_);
+      hash_ = CoinCopyOfArray(rhs.hash_,4*maximumItems_);
     } else {
       hash_ = NULL;
     }
@@ -489,9 +500,9 @@ CoinModelHash2::resize(int maxItems, const CoinModelTriple * triples,bool forceR
   if (maxItems>maximumItems_) {
     maximumItems_=maxItems;
     delete [] hash_;
-    hash_ = new CoinModelHashLink [2*maximumItems_];
+    hash_ = new CoinModelHashLink [4*maximumItems_];
   }
-  int maxHash = 2 * maximumItems_;
+  int maxHash = 4 * maximumItems_;
   int ipos;
   int i;
   for ( i = 0; i < maxHash; i++ ) {
@@ -727,7 +738,7 @@ CoinModelHash2::hashValue(int row, int column) const
       int itemp = tempChar[j];
       n += mmult[j+8] * itemp;
     }
-    int maxHash = 2 * maximumItems_;
+    int maxHash = 4 * maximumItems_;
     int absN = abs(n);
     int returnValue = absN % maxHash;
     return returnValue;

@@ -266,7 +266,7 @@ public:
   not const as may change model e.g. fill in default bounds
   */
   int writeMps(const char *filename, int compression = 0,
-               int formatType = 0, int numberAcross = 2) ;
+               int formatType = 0, int numberAcross = 2, bool keepStrings=false) ;
   
   /** Check two models against each other.  Return nonzero if different.
       Ignore names if that set.
@@ -608,6 +608,7 @@ private:
   double getDoubleFromString(CoinYacc & info, const char * string);
   /// Frees value memory
   void freeStringMemory(CoinYacc & info);
+public:
   /// Fills in all associated - returning number of errors
   int computeAssociated(double * associated);
   
@@ -721,4 +722,8 @@ private:
   mutable int links_;
    //@}
 };
+/// Just function of single variable x
+double getFunctionValueFromString(const char * string, const char * x, double xValue);
+/// faster version
+double getDoubleFromString(CoinYacc & info, const char * string, const char * x, double xValue);
 #endif

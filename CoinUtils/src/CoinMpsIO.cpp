@@ -17,6 +17,7 @@
 #include "CoinMpsIO.hpp"
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
+#include "CoinModel.hpp"
 
 //#############################################################################
 // type - 0 normal, 1 INTEL IEEE, 2 other IEEE
@@ -3844,6 +3845,12 @@ makeUniqueNames(char ** names,int number,char first)
     return 0;
   }
 }
+static void
+strcpyeq(char * output, const char * input)
+{
+  output[0]='=';
+  strcpy(output+1,input);
+}
 
 int
 CoinMpsIO::writeMps(const char *filename, int compression,
@@ -3926,7 +3933,10 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       freeFormat = true;
       formatType += 8;
    }
-
+   if (numberStringElements_) {
+     freeFormat=true;
+     numberAcross=1;
+   }
    
    // NAME card
 
@@ -4012,55 +4022,111 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 
    char outputValue[2][24];
    char outputRow[2][100];
+   // strings
+   int nextRowString=numberRows_+10;
+   int nextColumnString=numberColumns_+10;
+   int whichString=0;
+   const char * nextString=NULL;
+   // mark string rows
+   char * stringRow = new char[numberRows_+1];
+   memset(stringRow,0,numberRows_+1);
+   if (numberStringElements_) {
+     decodeString(whichString,nextRowString,nextColumnString,nextString);
+   }
 
    // Through columns (only put out if elements or objective value)
    for (i=0;i<numberColumns_;i++) {
-      if (objective[i]||lengths[i]) {
-	 // see if bound will be needed
-	 if (columnLower[i]||columnUpper[i]<largeValue||isInteger(i))
-	    ifBounds=true;
-	 int numberFields=0;
-	 if (objective[i]) {
-	    convertDouble(0,formatType,objective[i],outputValue[0],
-			  "OBJROW",outputRow[0]);
-	    numberFields=1;
+     if (i==nextColumnString) {
+       // set up
+       int k=whichString;
+       int iColumn=nextColumnString;
+       int iRow=nextRowString;
+       const char * dummy;
+       while (iColumn==nextColumnString) {
+	 stringRow[iRow]=1;
+	 k++;
+	 decodeString(k,iRow,iColumn,dummy);
+       }
+     }
+     if (objective[i]||lengths[i]||i==nextColumnString) {
+       // see if bound will be needed
+       if (columnLower[i]||columnUpper[i]<largeValue||isInteger(i))
+	 ifBounds=true;
+       int numberFields=0;
+       if (objective[i]) {
+	 convertDouble(0,formatType,objective[i],outputValue[0],
+		       "OBJROW",outputRow[0]);
+	 numberFields=1;
+	 if (stringRow[numberRows_]) {
+	   assert (objective[i]==STRING_VALUE);
+	   assert (nextColumnString==i&&nextRowString==numberRows_);
+	   strcpyeq(outputValue[0],nextString);
+	   stringRow[numberRows_]=0;
+	   decodeString(++whichString,nextRowString,nextColumnString,nextString);
 	 }
-	 if (numberFields==numberAcross) {
-	    // put out card
-	    outputCard(formatType, numberFields,
-		       output, "    ",
-		       columnNames[i],
-		       outputValue,
-		       outputRow);
-	    numberFields=0;
+       }
+       if (numberFields==numberAcross) {
+	 // put out card
+	 outputCard(formatType, numberFields,
+		    output, "    ",
+		    columnNames[i],
+		    outputValue,
+		    outputRow);
+	 numberFields=0;
+       }
+       int j;
+       for (j=0;j<lengths[i];j++) {
+	 int jRow = rows[starts[i]+j];
+	 double value = elements[starts[i]+j];
+	 if (value&&!stringRow[jRow]) {
+	   convertDouble(0,formatType,value,
+			 outputValue[numberFields],
+			 rowNames[jRow],
+			 outputRow[numberFields]);
+	   numberFields++;
+	   if (numberFields==numberAcross) {
+	     // put out card
+	     outputCard(formatType, numberFields,
+			output, "    ",
+			columnNames[i],
+			outputValue,
+			outputRow);
+	     numberFields=0;
+	   }
 	 }
-	 int j;
-	 for (j=0;j<lengths[i];j++) {
-	    convertDouble(0,formatType,elements[starts[i]+j],
-			  outputValue[numberFields],
-			  rowNames[rows[starts[i]+j]],
-			  outputRow[numberFields]);
-	    numberFields++;
-	    if (numberFields==numberAcross) {
-	       // put out card
-	       outputCard(formatType, numberFields,
-			  output, "    ",
-			  columnNames[i],
-			  outputValue,
-			  outputRow);
-	       numberFields=0;
-	    }
-	 }
-	 if (numberFields) {
-	    // put out card
-	    outputCard(formatType, numberFields,
-		       output, "    ",
-		       columnNames[i],
-		       outputValue,
-		       outputRow);
-	 }
-      }
+       }
+       if (numberFields) {
+	 // put out card
+	 outputCard(formatType, numberFields,
+		    output, "    ",
+		    columnNames[i],
+		    outputValue,
+		    outputRow);
+       }
+     }
+     // end see if any strings
+     if (i==nextColumnString) {
+       int iColumn=nextColumnString;
+       int iRow=nextRowString;
+       while (iColumn==nextColumnString) {
+	 double value = 1.0;
+	 convertDouble(0,formatType,value,
+		       outputValue[0],
+		       rowNames[nextRowString],
+		       outputRow[0]);
+	 strcpyeq(outputValue[0],nextString);
+	 // put out card
+	 outputCard(formatType, 1,
+		    output, "    ",
+		    columnNames[i],
+		    outputValue,
+		    outputRow);
+	 stringRow[iRow]=0;
+	 decodeString(++whichString,nextRowString,nextColumnString,nextString);
+       }
+     }
    }
+   delete [] stringRow;
 
    bool ifRange=false;
    // RHS
@@ -4109,6 +4175,10 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 		       outputValue[numberFields],
 		       rowNames[i],
 		       outputRow[numberFields]);
+	 if (i==nextRowString&&nextColumnString>=numberColumns_) {
+	   strcpyeq(outputValue[0],nextString);
+	   decodeString(++whichString,nextRowString,nextColumnString,nextString);
+	 }
 	 numberFields++;
 	 if (numberFields==numberAcross) {
 	    // put out card
@@ -4171,6 +4241,67 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       writeString(output, "BOUNDS\n");
 
       for (i=0;i<numberColumns_;i++) {
+	if (i==nextColumnString) {
+	  // just lo and up
+	  if (columnLower[i]==STRING_VALUE) {
+	    assert (nextRowString==numberRows_+1);
+	    convertDouble(2,formatType,1.0,
+			  outputValue[0],
+			  columnNames[i],
+			  outputRow[0]);
+	    strcpyeq(outputValue[0],nextString);
+	    decodeString(++whichString,nextRowString,nextColumnString,nextString);
+	    if (i==nextColumnString) {
+	      assert (columnUpper[i]==STRING_VALUE);
+	      assert (nextRowString==numberRows_+2);
+	      if (!strcmp(nextString,outputValue[0])) {
+		// put out card FX
+		outputCard(formatType, 1,
+			   output, " FX ",
+			   "BOUND",
+			   outputValue,
+			   outputRow);
+	      } else {
+		// put out card LO
+		outputCard(formatType, 1,
+			   output, " LO ",
+			   "BOUND",
+			   outputValue,
+			   outputRow);
+		// put out card UP
+		strcpyeq(outputValue[0],nextString);
+		outputCard(formatType, 1,
+			   output, " UP ",
+			   "BOUND",
+			   outputValue,
+			   outputRow);
+	      }
+	      decodeString(++whichString,nextRowString,nextColumnString,nextString);
+	    } else {
+	      // just LO
+	      // put out card LO
+	      outputCard(formatType, 1,
+			 output, " LO ",
+			 "BOUND",
+			 outputValue,
+			 outputRow);
+	    }
+	  } else if (columnUpper[i]==STRING_VALUE) {
+	    assert (nextRowString==numberRows_+2);
+	    convertDouble(2,formatType,1.0,
+			  outputValue[0],
+			  columnNames[i],
+			  outputRow[0]);
+	    strcpyeq(outputValue[0],nextString);
+	    outputCard(formatType, 1,
+		       output, " UP ",
+		       "BOUND",
+		       outputValue,
+		       outputRow);
+	    decodeString(++whichString,nextRowString,nextColumnString,nextString);
+	  }
+	  continue;
+	}
 	 if (objective[i]||lengths[i]) {
 	    // see if bound will be needed
 	    if (columnLower[i]||columnUpper[i]<largeValue||isInteger(i)) {
@@ -5551,6 +5682,97 @@ CoinMpsIO::addString(int iRow,int iColumn, const char * value)
   stringElements_[numberStringElements_++]=line;
   strcpy(line,id);
   strcat(line,value);
+}
+// Decode string
+void 
+CoinMpsIO::decodeString(int iString, int & iRow, int & iColumn, const char * & value) const
+{
+  iRow=-1;
+  iColumn=-1;
+  value=NULL;
+  if (iString>=0&&iString<numberStringElements_) {
+    value = stringElements_[iString];
+    sscanf(value,"%d,%d,",&iRow,&iColumn);
+    value = strchr(value,',');
+    assert(value);
+    value++;
+    value = strchr(value,',');
+    assert(value);
+    value++;
+  }
+}
+// copies in strings from a CoinModel - returns number
+int 
+CoinMpsIO::copyStringElements(const CoinModel * model)
+{
+  if (!model->stringsExist())
+    return 0; // no strings
+  assert (!numberStringElements_);
+  /*
+    First columns (including objective==numberRows)
+    then RHS(==numberColumns (+1)) (with rowLower and rowUpper marked)
+    then bounds LO==numberRows+1, UP==numberRows+2
+  */
+  int numberColumns = model->numberColumns();
+  int numberRows = model->numberRows();
+  int iColumn;
+  for (iColumn=0;iColumn<numberColumns;iColumn++) {
+    const char * expr = model->getColumnObjectiveAsString(iColumn);
+    if (strcmp(expr,"Numeric")) {
+      addString(numberRows,iColumn,expr);
+    }
+    CoinModelLink triple=model->firstInColumn(iColumn);
+    while (triple.row()>=0) {
+      int iRow = triple.row();
+      const char * expr = model->getElementAsString(iRow,iColumn);
+      if (strcmp(expr,"Numeric")) {
+	addString(iRow,iColumn,expr);
+      }
+      triple=model->next(triple);
+    }
+  }
+  int iRow;
+  for (iRow=0;iRow<numberRows;iRow++) {
+    // for now no ranges
+    const char * expr1 = model->getRowLowerAsString(iRow);
+    const char * expr2 = model->getRowUpperAsString(iRow);
+    if (strcmp(expr1,"Numeric")) {
+      if (rowupper_[iRow]>1.0e20&&!strcmp(expr2,"Numeric")) {
+	// G row
+	addString(iRow,numberColumns,expr1);
+	rowlower_[iRow]=STRING_VALUE;
+      } else if (!strcmp(expr1,expr2)) {
+	// E row
+	addString(iRow,numberColumns,expr1);
+	rowlower_[iRow]=STRING_VALUE;
+	addString(iRow,numberColumns+1,expr1);
+	rowupper_[iRow]=STRING_VALUE;
+      } else if (rowlower_[iRow]<-1.0e20&&!strcmp(expr1,"Numeric")) {
+	// L row
+	addString(iRow,numberColumns+1,expr2);
+	rowupper_[iRow]=STRING_VALUE;
+      } else {
+	// Range
+	printf("Unaable to handle string ranges row %d %s %s\n",
+	       iRow,expr1,expr2);
+	abort();
+      }
+    }
+  }
+  // Bounds
+  for (iColumn=0;iColumn<numberColumns;iColumn++) {
+    const char * expr = model->getColumnLowerAsString(iColumn);
+    if (strcmp(expr,"Numeric")) {
+      addString(numberRows+1,iColumn,expr);
+      collower_[iColumn]=STRING_VALUE;
+    }
+    expr = model->getColumnUpperAsString(iColumn);
+    if (strcmp(expr,"Numeric")) {
+      addString(numberRows+2,iColumn,expr);
+      colupper_[iColumn]=STRING_VALUE;
+    }
+  }
+  return numberStringElements_;
 }
 // Constructor 
 CoinSet::CoinSet ( int numberEntries, const int * which)
