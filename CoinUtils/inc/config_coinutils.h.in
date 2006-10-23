@@ -18,6 +18,12 @@
 /* Define to 1 if zlib is available */
 #undef COIN_HAS_ZLIB
 
+/* Define to 64bit integer type */
+#undef COIN_INT64_T
+
+/* Define to integer type capturing pointer */
+#undef COIN_INTPTR_T
+
 /* Define to 1 if you have the <bzlib.h> header file. */
 #undef HAVE_BZLIB_H
 
@@ -26,6 +32,9 @@
 
 /* Define to 1 if you have the <cieeefp> header file. */
 #undef HAVE_CIEEEFP
+
+/* Define to 1 if you have the <cinttypes> header file. */
+#undef HAVE_CINTTYPES
 
 /* Define to 1 if you have the <cmath> header file. */
 #undef HAVE_CMATH
@@ -95,6 +104,18 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* The size of a `int', as computed by sizeof. */
+#undef SIZEOF_INT
+
+/* The size of a `int *', as computed by sizeof. */
+#undef SIZEOF_INT_P
+
+/* The size of a `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* The size of a `long long', as computed by sizeof. */
+#undef SIZEOF_LONG_LONG
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
