@@ -5,14 +5,14 @@
 #  pragma warning(disable:4786)
 #endif
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <cassert>
 
 #include "CoinIndexedVector.hpp"
 #include "CoinShallowPackedVector.hpp"
-
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
 
 //--------------------------------------------------------------------------
 void

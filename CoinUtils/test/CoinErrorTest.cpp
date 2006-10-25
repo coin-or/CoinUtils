@@ -1,12 +1,12 @@
 // Copyright (C) 2000, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
-#include <cassert>
-#include "CoinError.hpp"
-
 #ifdef NDEBUG
 #undef NDEBUG
 #endif
+
+#include <cassert>
+#include "CoinError.hpp"
 
 void
 CoinErrorUnitTest()

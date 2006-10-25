@@ -5,6 +5,10 @@
 #  pragma warning(disable:4786)
 #endif
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <cassert>
 
 #include "CoinMpsIO.hpp"
@@ -14,9 +18,6 @@
 
 //#############################################################################
 
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
 /* Build a model in some interesting way
    
    Nine blocks defined by 4 random numbers

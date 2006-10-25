@@ -1,3 +1,2 @@
 BuildTools    https://projects.coin-or.org/svn/BuildTools/stable/0.5
-Data/Netlib   https://projects.coin-or.org/svn/Data/stable/1.0/Netlib
-Data/Sample   https://projects.coin-or.org/svn/Data/stable/1.0/Sample
+Data/Sample   https://projects.coin-or.org/svn/Data/trunk/Sample

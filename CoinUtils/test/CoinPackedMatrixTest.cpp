@@ -6,6 +6,10 @@
 #  pragma warning(disable:4786)
 #endif
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <cassert>
 
 #include "CoinFloatEqual.hpp"
@@ -13,10 +17,6 @@
 #include "CoinPackedMatrix.hpp"
 
 //#############################################################################
-
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
 
 void
 CoinPackedMatrixUnitTest()

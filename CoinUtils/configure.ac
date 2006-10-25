@@ -207,6 +207,100 @@ else
 fi
 
 #############################################################################
+#                       Finding certain integer types                       #
+#############################################################################
+
+AC_COIN_CHECK_CXX_CHEADER(inttypes)
+
+##### 64bit Integer type
+CoinInt64=
+
+# try int64_t
+AC_CHECK_TYPE([int64_t],[CoinInt64=int64_t],[],[
+#ifdef HAVE_CINTTYPES
+# include <cinttypes>
+#else
+# ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+# endif
+#endif
+])
+
+# try long long
+if test x"$CoinInt64" = x; then
+  AC_CHECK_SIZEOF([long long])
+  case $ac_cv_sizeof_long_long in
+    8 | 8?) CoinInt64="long long" ;;  # We do this funny test, since sometimes ^M is added in ac_cv_sizeof_long_long
+  esac
+fi
+
+#try long
+if test x"$CoinInt64" = x; then
+  AC_CHECK_SIZEOF([long])
+  case $ac_cv_sizeof_long in
+    8 | 8?) CoinInt64="long" ;;  # We do this funny test, since sometimes ^M is added in ac_cv_sizeof_long
+  esac
+fi
+
+#try int
+if test x"$CoinInt64" = x; then
+  AC_CHECK_SIZEOF([int])
+  case $ac_cv_sizeof_int in
+    8 | 8?) CoinInt64="int" ;;  # We do this funny test, since sometimes ^M is added in ac_cv_sizeof_int
+  esac
+fi
+
+if test x"$CoinInt64" = x; then
+  AC_MSG_ERROR([Cannot find integer type with 64 bits])
+fi
+AC_DEFINE_UNQUOTED([COIN_INT64_T],[$CoinInt64],[Define to 64bit integer type])
+
+
+##### Integer type for Pointer
+CoinIntPtr=
+
+# try intptr_t
+AC_CHECK_TYPE([intptr_t],[CoinIntPtr=intptr_t],[],[
+#ifdef HAVE_CINTTYPES
+# include <cinttypes>
+#else
+# ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+# endif
+#endif
+])
+
+# try long long
+if test x"$CoinIntPtr" = x; then
+  AC_CHECK_SIZEOF([int *])
+  AC_CHECK_SIZEOF([long long])
+  if test "$ac_cv_sizeof_long_long" = "$ac_cv_sizeof_int_p"; then
+    CoinIntPtr="long long"
+  fi
+fi
+
+# try long
+if test x"$CoinIntPtr" = x; then
+  AC_CHECK_SIZEOF([long])
+  if test "$ac_cv_sizeof_long" = "$ac_cv_sizeof_int_p"; then
+    CoinIntPtr="long"
+  fi
+fi
+
+# try int
+if test x"$CoinIntPtr" = x; then
+  AC_CHECK_SIZEOF([int])
+  if test "$ac_cv_sizeof_int" = "$ac_cv_sizeof_int_p"; then
+    CoinIntPtr="int"
+  fi
+fi
+
+if test x"$CoinIntPtr" = x; then
+  AC_MSG_ERROR([Cannot find integer type capturing pointer])
+fi
+AC_DEFINE_UNQUOTED([COIN_INTPTR_T],[$CoinIntPtr],[Define to integer type capturing pointer])
+
+#############################################################################
 #                              COIN components                              #
 #############################################################################
 

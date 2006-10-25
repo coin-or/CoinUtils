@@ -515,7 +515,6 @@ uninstall-am: uninstall-info-am
 
 
 test: unitTest$(EXEEXT)
-	cd ../../Data/Netlib; make uncompress
 	./unitTest$(EXEEXT)
 
 .PHONY: test

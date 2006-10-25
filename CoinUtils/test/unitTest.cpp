@@ -7,8 +7,14 @@
 #  pragma warning(disable:4786)
 #endif
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <cassert>
 #include <iostream>
+
+#undef MY_C_FINITE
 
 #include "CoinError.hpp"
 #include "CoinHelperFunctions.hpp"
@@ -71,16 +77,17 @@ int main (int argc, const char *argv[])
     if ( definedKeyWords.find(key) == definedKeyWords.end() ) {
       // invalid key word.
       // Write help text
-      std::cerr <<"Undefined parameter \"" <<key <<"\".\n";
-      std::cerr <<"Correct usage: \n";
-      std::cerr <<"  unitTest [-mpsDir=V1] [-netlibDir=V2] [-testModel=V3]\n";
-      std::cerr <<"  where:\n";
-      std::cerr <<"    -mpsDir: directory containing mps test files\n";
-      std::cerr <<"        Default value V1=\"../../Data/Sample\"\n";
-      std::cerr <<"    -netlibDir: directory containing netlib files\n";
-      std::cerr <<"        Default value V2=\"../../Data/Netlib\"\n";
-      std::cerr <<"    -testModel: name of model in netlibdir for testing CoinModel\n";
-      std::cerr <<"        Default value V3=\"25fv47.mps\"\n";
+      std::cerr
+	  <<"Undefined parameter \"" <<key <<"\".\n"
+	  <<"Correct usage: \n"
+	  <<"  unitTest [-mpsDir=V1] [-netlibDir=V2] [-testModel=V3]\n"
+	  <<"  where:\n"
+	  <<"    -mpsDir: directory containing mps test files\n"
+	  <<"        Default value V1=\"../../Data/Sample\"\n"
+	  <<"    -netlibDir: directory containing netlib files\n"
+	  <<"        Default value V2=same as mpsDir\n"
+	  <<"    -testModel: name of model in netlibdir for testing CoinModel\n"
+	  <<"        Default value V3=\"p0033.mps\"\n";
       return 1;
     }
     parms[key]=value;
@@ -99,20 +106,62 @@ int main (int argc, const char *argv[])
   if (parms.find("-netlibDir") != parms.end())
     netlibDir=parms["-netlibDir"] + dirsep;
   else 
-    netlibDir = dirsep == '/' ? "../../Data/Netlib/" : "..\\..\\Data\\Netlib\\";
+    netlibDir = mpsDir;
 
   // Set directory containing netlib data files.
   std::string testModel;
   if (parms.find("-testModel") != parms.end())
     testModel=parms["-testModel"] ;
   else 
-    testModel = "25fv47.mps";
+    testModel = "p0033.mps";
 
   // *FIXME* : these tests should be written... 
   //  testingMessage( "Testing CoinHelperFunctions\n" );
   //  CoinHelperFunctionsUnitTest();
   //  testingMessage( "Testing CoinSort\n" );
   //  tripleCompareUnitTest();
+
+/*
+  Check that finite and isnan are working.
+*/
+  double finiteVal = 1.0 ;
+  double zero = 0.0 ;
+  double checkVal ;
+
+  testingMessage( "Testing CoinFinite ... " ) ;
+# ifdef MY_C_FINITE
+  checkVal = finiteVal/zero ;
+# else
+  checkVal = COIN_DBL_MAX ;
+# endif
+  testingMessage( " finite value: " ) ;
+  if (CoinFinite(finiteVal))
+  { testingMessage( "ok" ) ; }
+  else
+  { testingMessage( "ERROR" ) ; }
+  testingMessage( "; infinite value: " ) ;
+  if (!CoinFinite(checkVal))
+  { testingMessage( "ok.\n" ) ; }
+  else
+  { testingMessage( "ERROR!\n" ) ; }
+
+# ifdef MY_C_ISNAN
+  testingMessage( "Testing CoinIsnan ... " ) ;
+  testingMessage( " finite value: " ) ;
+  if (!CoinIsnan(finiteVal))
+  { testingMessage( "ok" ) ; }
+  else
+  { testingMessage( "ERROR" ) ; }
+  testingMessage( "; NaN value: " ) ;
+  checkVal = checkVal/checkVal ;
+  if (CoinIsnan(checkVal))
+  { testingMessage( "ok.\n" ) ; }
+  else
+  { testingMessage( "ERROR!\n" ) ; }
+# else
+  testingMessage( "ERROR: No functional CoinIsnan." ) ;
+# endif
+
 
   testingMessage( "Testing CoinModel\n" );
   CoinModelUnitTest(mpsDir,netlibDir,testModel);

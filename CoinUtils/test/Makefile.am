@@ -42,7 +42,6 @@ AM_CPPFLAGS = \
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 
 test: unitTest$(EXEEXT)
-	cd ../../Data/Netlib; make uncompress
 	./unitTest$(EXEEXT)
 
 .PHONY: test
