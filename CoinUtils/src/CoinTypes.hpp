@@ -17,14 +17,4 @@
 #define CoinInt64 COIN_INT64_T
 #define CoinIntPtr COIN_INTPTR_T
 
-//#############################################################################
-
-#if defined(_MSC_VER)
-   typedef __int64 int64_t;
-#else
-#  include <climits>
-#endif
-
-//#############################################################################
-
 #endif
