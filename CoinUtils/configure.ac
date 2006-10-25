@@ -63,10 +63,11 @@ AC_LANG_PUSH(C++)
 ################
 AC_COIN_CHECK_CXX_CHEADER(math)
 AC_COIN_CHECK_CXX_CHEADER(float)
-case $build in
-  *-cygwin*) ;;
-  *) AC_COIN_CHECK_CXX_CHEADER([ieeefp]) ;;
-esac
+AC_COIN_CHECK_CXX_CHEADER(ieeefp)
+#case $build in
+#  *-cygwin*) ;;
+#  *) AC_COIN_CHECK_CXX_CHEADER([ieeefp]) ;;
+#esac
 
 ###################
 # Function finite #
@@ -200,6 +201,30 @@ if test -z "$MY_C_ISNAN"; then
 #endif])
 fi
 if test -z "$MY_C_ISNAN"; then
+  AC_CHECK_DECL([isnand],[MY_C_ISNAN=isnand],,[
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif])
+fi
+if test -z "$MY_C_ISNAN"; then
   AC_MSG_WARN(Cannot find C-function for checking NaN. Check will return false)
 else
   AC_DEFINE_UNQUOTED([MY_C_ISNAN],[$MY_C_ISNAN],
@@ -226,6 +251,9 @@ AC_CHECK_TYPE([int64_t],[CoinInt64=int64_t],[],[
 #endif
 ])
 
+# We need to use the C compiler in the AC_CHECK_SIZEOF since otherwise the
+# MSCV compiler complains about redefinition of "exit"
+AC_LANG_PUSH(C)
 # try long long
 if test x"$CoinInt64" = x; then
   AC_CHECK_SIZEOF([long long])
@@ -249,6 +277,7 @@ if test x"$CoinInt64" = x; then
     8 | 8?) CoinInt64="int" ;;  # We do this funny test, since sometimes ^M is added in ac_cv_sizeof_int
   esac
 fi
+AC_LANG_POP(C)
 
 if test x"$CoinInt64" = x; then
   AC_MSG_ERROR([Cannot find integer type with 64 bits])
@@ -270,6 +299,7 @@ AC_CHECK_TYPE([intptr_t],[CoinIntPtr=intptr_t],[],[
 #endif
 ])
 
+AC_LANG_PUSH(C)
 # try long long
 if test x"$CoinIntPtr" = x; then
   AC_CHECK_SIZEOF([int *])
@@ -294,6 +324,7 @@ if test x"$CoinIntPtr" = x; then
     CoinIntPtr="int"
   fi
 fi
+AC_LANG_POP(C)
 
 if test x"$CoinIntPtr" = x; then
   AC_MSG_ERROR([Cannot find integer type capturing pointer])
