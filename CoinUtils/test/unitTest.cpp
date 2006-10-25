@@ -77,16 +77,17 @@ int main (int argc, const char *argv[])
     if ( definedKeyWords.find(key) == definedKeyWords.end() ) {
       // invalid key word.
       // Write help text
-      std::cerr <<"Undefined parameter \"" <<key <<"\".\n";
-      std::cerr <<"Correct usage: \n";
-      std::cerr <<"  unitTest [-mpsDir=V1] [-netlibDir=V2] [-testModel=V3]\n";
-      std::cerr <<"  where:\n";
-      std::cerr <<"    -mpsDir: directory containing mps test files\n";
-      std::cerr <<"        Default value V1=\"../../Data/Sample\"\n";
-      std::cerr <<"    -netlibDir: directory containing netlib files\n";
-      std::cerr <<"        Default value V2=\"../../Data/Netlib\"\n";
-      std::cerr <<"    -testModel: name of model in netlibdir for testing CoinModel\n";
-      std::cerr <<"        Default value V3=\"25fv47.mps\"\n";
+      std::cerr
+	  <<"Undefined parameter \"" <<key <<"\".\n"
+	  <<"Correct usage: \n"
+	  <<"  unitTest [-mpsDir=V1] [-netlibDir=V2] [-testModel=V3]\n"
+	  <<"  where:\n"
+	  <<"    -mpsDir: directory containing mps test files\n"
+	  <<"        Default value V1=\"../../Data/Sample\"\n"
+	  <<"    -netlibDir: directory containing netlib files\n"
+	  <<"        Default value V2=same as mpsDir\n"
+	  <<"    -testModel: name of model in netlibdir for testing CoinModel\n"
+	  <<"        Default value V3=\"p0033.mps\"\n";
       return 1;
     }
     parms[key]=value;
@@ -105,14 +106,14 @@ int main (int argc, const char *argv[])
   if (parms.find("-netlibDir") != parms.end())
     netlibDir=parms["-netlibDir"] + dirsep;
   else 
-    netlibDir = dirsep == '/' ? "../../Data/Netlib/" : "..\\..\\Data\\Netlib\\";
+    netlibDir = mpsDir;
 
   // Set directory containing netlib data files.
   std::string testModel;
   if (parms.find("-testModel") != parms.end())
     testModel=parms["-testModel"] ;
   else 
-    testModel = "25fv47.mps";
+    testModel = "p0033.mps";
 
   // *FIXME* : these tests should be written... 
   //  testingMessage( "Testing CoinHelperFunctions\n" );
