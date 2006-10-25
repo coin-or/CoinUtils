@@ -5,14 +5,14 @@
 #  pragma warning(disable:4786)
 #endif
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <cassert>
 
 #include "CoinPackedVector.hpp"
 #include "CoinShallowPackedVector.hpp"
-
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
 
 //--------------------------------------------------------------------------
 void
@@ -678,8 +678,8 @@ CoinPackedVectorUnitTest()
   } 
   
   // Test dividing vectors. Note that zeros are not automatically compressed
-  // out of the result. HUGE_VAL may give portability problems, in which case
-  // CoinFinite should be upgraded  -- lh, 04.06.11 --
+  // out of the result. Previously, used HUGE_VAL to get IEEE infinity, but
+  // this triggers a bug in some GCC compilers.  -- lh, 061020 --
   {    
     const int ne1 = 3;
     int inx1[ne1]   = { 1,  4,  7  };
@@ -687,6 +687,14 @@ CoinPackedVectorUnitTest()
     const int ne2 = 4;
     int inx2[ne2] =   { 7,  4,  2,  1  };
     double el2[ne2] = { 7., 4., 2., 1. };
+
+#   ifdef MY_C_FINITE
+    double one = 1.0 ;
+    double zero = 0.0 ;
+    double infty = one/zero ;
+#   else
+    double infty = COIN_DBL_MAX ;
+#   endif
 
     CoinPackedVector v1;
     CoinPackedVector v2;
@@ -697,7 +705,7 @@ CoinPackedVectorUnitTest()
     rV.setConstant(ne1,inx1,0) ;
     r = v2 / v1;
     assert(r.isEquivalent(rV)) ;
-    rV.setConstant(ne1,inx1,HUGE_VAL) ;
+    rV.setConstant(ne1,inx1,infty) ;
     r = v1 / v2;
     assert(r.isEquivalent(rV)) ;
 

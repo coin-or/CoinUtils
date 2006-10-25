@@ -7,8 +7,14 @@
 #  pragma warning(disable:4786)
 #endif
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <cassert>
 #include <iostream>
+
+#undef MY_C_FINITE
 
 #include "CoinError.hpp"
 #include "CoinHelperFunctions.hpp"
@@ -113,6 +119,48 @@ int main (int argc, const char *argv[])
   //  CoinHelperFunctionsUnitTest();
   //  testingMessage( "Testing CoinSort\n" );
   //  tripleCompareUnitTest();
+
+/*
+  Check that finite and isnan are working.
+*/
+  double finiteVal = 1.0 ;
+  double zero = 0.0 ;
+  double checkVal ;
+
+  testingMessage( "Testing CoinFinite ... " ) ;
+# ifdef MY_C_FINITE
+  checkVal = finiteVal/zero ;
+# else
+  checkVal = COIN_DBL_MAX ;
+# endif
+  testingMessage( " finite value: " ) ;
+  if (CoinFinite(finiteVal))
+  { testingMessage( "ok" ) ; }
+  else
+  { testingMessage( "ERROR" ) ; }
+  testingMessage( "; infinite value: " ) ;
+  if (!CoinFinite(checkVal))
+  { testingMessage( "ok.\n" ) ; }
+  else
+  { testingMessage( "ERROR!\n" ) ; }
+
+# ifdef MY_C_ISNAN
+  testingMessage( "Testing CoinIsnan ... " ) ;
+  testingMessage( " finite value: " ) ;
+  if (!CoinIsnan(finiteVal))
+  { testingMessage( "ok" ) ; }
+  else
+  { testingMessage( "ERROR" ) ; }
+  testingMessage( "; NaN value: " ) ;
+  checkVal = checkVal/checkVal ;
+  if (CoinIsnan(checkVal))
+  { testingMessage( "ok.\n" ) ; }
+  else
+  { testingMessage( "ERROR!\n" ) ; }
+# else
+  testingMessage( "ERROR: No functional CoinIsnan." ) ;
+# endif
+
 
   testingMessage( "Testing CoinModel\n" );
   CoinModelUnitTest(mpsDir,netlibDir,testModel);
