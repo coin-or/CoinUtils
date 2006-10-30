@@ -14,11 +14,7 @@
 # endif
 #endif
 
-#ifdef COIN_INT64_T
 #define CoinInt64 COIN_INT64_T
-#else
-#define CoinInt64 int64_t
-#endif
 #define CoinIntPtr COIN_INTPTR_T
 
 #endif
