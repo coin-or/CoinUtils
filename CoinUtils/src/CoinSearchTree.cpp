@@ -3,7 +3,7 @@
 void
 CoinSearchTreeManager::newSolution(double solValue) {
     ++numSolution;
-    const double q = tree_->top()->quality;
+    const double q = tree_->top()->quality_;
     const bool switchToDFS = fabs(q) < 1e-3 ?
 	(fabs(solValue) < 0.005) : ((solValue-q)/fabs(q) < 0.005);
     if (switchToDFS &&

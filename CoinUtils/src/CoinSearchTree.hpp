@@ -1,8 +1,8 @@
 #ifndef CoinSearchTree_H
 #define CoinSearchTree_H
 
-#include <queue>
-#include <set>
+#include <vector>
+#include <algorithm>
 #include <cmath>
 
 //#############################################################################
@@ -21,23 +21,23 @@ public:
     comparison functions. */
 class CoinTreeNodeInfo {
 public:
-    CoinTreeNode* node;
+    CoinTreeNode* node_;
     /// The depth of the node in the tree
-    int depth;
+    int depth_;
     /// Some quality for the node, e.g., the lower bound
-    double quality;
+    double quality_;
     /** A measure of fractionality, e.g., the fraction of unsatisfied
 	integrality requirements */
-    /*double fractionality;*/
+    /*double fractionality_;*/
 public:
     CoinTreeNodeInfo(CoinTreeNode* n, int d, double q/*, double f*/) :
-	node(n), depth(d), quality(q)/*, fractionality(f)*/ {}
+	node_(n), depth_(d), quality_(q)/*, fractionality_(f)*/ {}
     // Default (bitwise) constr, copy constr, assignment op, and destr all OK.
     inline void set(CoinTreeNode* n, int d, double q/*, double f*/) {
-	node = n;
-	depth = d;
-	quality = q;
-	/*fractionality = f;*/
+	node_ = n;
+	depth_ = d;
+	quality_ = q;
+	/*fractionality_ = f;*/
     }
 };
 
@@ -51,7 +51,7 @@ public:
 struct CoinSearchTreeCompareDepth {
     inline bool operator()(const CoinTreeNodeInfo* x,
 			   const CoinTreeNodeInfo* y) const {
-	return x->depth > y->depth;
+	return x->depth_ > y->depth_;
     }
 };
 
@@ -60,7 +60,7 @@ struct CoinSearchTreeCompareDepth {
 struct CoinSearchTreeCompareBreadth {
     inline bool operator()(const CoinTreeNodeInfo* x,
 			   const CoinTreeNodeInfo* y) const {
-	return x->depth < y->depth;
+	return x->depth_ < y->depth_;
     }
 };
 
@@ -69,7 +69,7 @@ struct CoinSearchTreeCompareBreadth {
 struct CoinSearchTreeCompareBest {
     inline bool operator()(const CoinTreeNodeInfo* x,
 			   const CoinTreeNodeInfo* y) const {
-	return x->quality < y->quality;
+	return x->quality_ < y->quality_;
     }
 };
 
@@ -104,6 +104,8 @@ public:
 
 //#############################################################################
 
+#ifdef CAN_TRUST_STL_HEAP
+
 template <class Comp>
 class CoinSearchTree : public CoinSearchTreeBase
 {
@@ -129,6 +131,66 @@ public:
 	++numInserted_;
     }
 };
+
+#else
+
+template <class Comp>
+class CoinSearchTree : public CoinSearchTreeBase
+{
+private:
+    Comp comp_;
+public:
+    CoinSearchTree() : CoinSearchTreeBase(), comp_() {}
+    CoinSearchTree(const CoinSearchTreeBase& t) :
+	CoinSearchTreeBase(), comp_() {
+	nodes_ = t.getNodes();
+	std::sort(nodes_.begin(), nodes_.end(), comp_);
+	numInserted_ = nodes_.size();
+    }
+    ~CoinSearchTree() {}
+
+    void pop() {
+	CoinTreeNodeInfo* node = nodes_.back();
+	nodes_.pop_back();
+	const int size = nodes_.size();
+	if (size > 0) {
+	    CoinTreeNodeInfo** nodes = &nodes_[0];
+	    --nodes;
+	    int pos = 1;
+	    int ch;
+	    for (ch = 2; ch < size; pos = ch, ch *= 2) {
+		if (comp_(nodes[ch+1], nodes[ch]))
+		    ++ch;
+		if (comp_(node, nodes[ch]))
+		    break;
+		nodes[pos] = nodes[ch];
+	    }
+	    if (ch == size) {
+		if (comp_(nodes[ch], node)) {
+		    nodes[pos] = nodes[ch];
+		    pos = ch;
+		}
+	    }
+	    nodes[pos] = node;
+	}
+    }
+    void push(CoinTreeNodeInfo* node) {
+	nodes_.push_back(node);
+	CoinTreeNodeInfo** nodes = &nodes_[0];
+	--nodes;
+	int pos = nodes_.size();
+	int ch;
+	for (ch = pos/2; ch != 0; pos = ch, ch /= 2) {
+	    if (comp_(nodes[ch], node))
+		break;
+	    nodes[pos] = nodes[ch];
+	}
+	nodes[pos] = node;
+	++numInserted_;
+    }
+};
+
+#endif
 
 //#############################################################################
 
