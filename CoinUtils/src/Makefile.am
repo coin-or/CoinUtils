@@ -82,6 +82,11 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 # "cygpath" stuff is necessary to compile with native compilers on Windows
 AM_CPPFLAGS =
 
+# If we have the Lapack library, we need to add additional things
+if COIN_HAS_LAPACK
+AM_CPPFLAGS += -DCOIN_HAS_LAPACK
+endif
+
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
@@ -131,6 +136,7 @@ include_HEADERS = \
 	CoinPresolveTripleton.hpp \
 	CoinPresolveUseless.hpp \
 	CoinPresolveZeros.hpp \
+	CoinSearchTree.hpp \
 	CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
 	CoinSort.hpp \
