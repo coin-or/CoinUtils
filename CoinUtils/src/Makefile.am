@@ -83,9 +83,9 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 AM_CPPFLAGS =
 
 # If we have the Lapack library, we need to add additional things
-if COIN_HAS_LAPACK
-AM_CPPFLAGS += -DCOIN_HAS_LAPACK
-endif
+#if COIN_HAS_LAPACK
+#AM_CPPFLAGS += -DCOIN_HAS_LAPACK
+#endif
 
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin
