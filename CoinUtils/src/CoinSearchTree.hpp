@@ -28,19 +28,20 @@ protected:
 public:
     /// The depth of the node in the tree
     int depth_;
-    /// Some quality for the node, e.g., the lower bound
+    /** Some quality for the node. For normal branch-and-cut problems the LP
+	relaxation value will do just fine. It is probably an OK approximation
+	even if column generation is done. */
     double quality_;
+    /** A true lower bound on the node. May be -infinity. For normal
+	branch-and-cut problems the LP relaxation value is OK. It is different
+	when column generation is done. */
+    double true_lower_bound_;
     /** A measure of fractionality, e.g., the fraction of unsatisfied
 	integrality requirements */
     /*double fractionality_;*/
 public:
     virtual ~CoinTreeNode() {}
     // Default (bitwise) constr, copy constr, assignment op, and destr all OK.
-    inline void set(int d, double q/*, double f*/) {
-	depth_ = d;
-	quality_ = q;
-	/*fractionality_ = f;*/
-    }
 };
 
 //#############################################################################
@@ -93,7 +94,7 @@ protected:
 public:
     virtual ~CoinSearchTreeBase() {}
 
-    inline const std::vector<CoinTreeNode*> getNodes() const {
+    inline const std::vector<CoinTreeNode*>& getNodes() const {
 	return nodes_;
     }
     inline bool empty() const { return nodes_.empty(); }
@@ -101,7 +102,7 @@ public:
     inline size_t numInserted() const { return numInserted_; }
     inline CoinTreeNode* top() const { return nodes_.front(); }
     virtual void pop() = 0;
-    virtual void push(CoinTreeNode* node) = 0;
+    virtual void push(CoinTreeNode* node, const bool incrInserted = true) = 0;
 };
 
 //#############################################################################
@@ -127,10 +128,12 @@ public:
 	std::pop_heap(nodes_.begin(), nodes_.end(), comp_);
 	nodes_.pop_back();
     }
-    void push(CoinTreeNode* node) {
+    void push(CoinTreeNode* node, const bool incrInserted = true) {
 	nodes_.push_back(node);
 	std::push_heap(nodes_.begin(), nodes_.end(), comp_);
-	++numInserted_;
+	if (incrInserted) {
+	    ++numInserted_;
+	}
     }
 };
 
@@ -176,7 +179,7 @@ public:
 	    nodes[pos] = node;
 	}
     }
-    void push(CoinTreeNode* node) {
+    void push(CoinTreeNode* node, const bool incrInserted = true) {
 	nodes_.push_back(node);
 	CoinTreeNode** nodes = &nodes_[0];
 	--nodes;
@@ -188,7 +191,9 @@ public:
 	    nodes[pos] = nodes[ch];
 	}
 	nodes[pos] = node;
-	++numInserted_;
+	if (incrInserted) {
+	    ++numInserted_;
+	}
     }
 };
 
@@ -196,21 +201,60 @@ public:
 
 //#############################################################################
 
+enum CoinNodeAction {
+    CoinAddNodeToCandidates,
+    CoinTestNodeForDiving,
+    CoinDiveIntoNode
+};
+
 class CoinSearchTreeManager
 {
 private:
     CoinSearchTreeManager(const CoinSearchTreeManager&);
     CoinSearchTreeManager& operator=(const CoinSearchTreeManager&);
 private:
-    CoinSearchTreeBase* tree_;
+    CoinSearchTreeBase* candidates_;
     int numSolution;
+    /** Whether there is an upper bound or not. The upper bound may have come
+	as input, not necessarily from a solution */
+    bool hasUB_;
+
+    /** variable used to test whether we need to reevaluate search strategy */
+    bool recentlyReevaluatedSearchStrategy_;
+    
 public:
-    CoinSearchTreeManager() : tree_(NULL), numSolution(0) {}
+    CoinSearchTreeManager() :
+	candidates_(NULL),
+	numSolution(0),
+	recentlyReevaluatedSearchStrategy_(true)
+    {}
     virtual ~CoinSearchTreeManager() {
-	delete tree_;
+	delete candidates_;
     }
-    inline void setTree(CoinSearchTreeBase* t) { delete tree_; tree_ = t; }
-    inline CoinSearchTreeBase* getTree() const { return tree_; }
+    
+    inline void setTree(CoinSearchTreeBase* t) {
+	delete candidates_;
+	candidates_ = t;
+    }
+    inline CoinSearchTreeBase* getTree() const {
+	return candidates_;
+    }
+
+    inline bool empty() const { return candidates_->empty(); }
+    inline size_t size() const { return candidates_->size(); }
+    inline size_t numInserted() const { return candidates_->numInserted(); }
+    inline CoinTreeNode* top() const { return candidates_->top(); }
+    inline void pop() { candidates_->pop(); }
+    inline void push(CoinTreeNode* node, const bool incrInserted = true) {
+	candidates_->push(node, incrInserted);
+    }
+
+    inline CoinTreeNode* bestQualityCandidate() const {
+	return candidates_->top();
+    }
+    inline double bestQuality() const {
+	return candidates_->top()->quality_;
+    }
     void newSolution(double solValue);
     void reevaluateSearchStrategy();
 };

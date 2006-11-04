@@ -1,23 +1,36 @@
 #include "CoinSearchTree.hpp"
 
 void
-CoinSearchTreeManager::newSolution(double solValue) {
+CoinSearchTreeManager::newSolution(double solValue)
+{
     ++numSolution;
-    const double q = tree_->top()->quality_;
+    hasUB_ = true;
+    const double q = candidates_->top()->quality_;
     const bool switchToDFS = fabs(q) < 1e-3 ?
 	(fabs(solValue) < 0.005) : ((solValue-q)/fabs(q) < 0.005);
     if (switchToDFS &&
-	dynamic_cast<CoinSearchTree<CoinSearchTreeCompareDepth>*>(tree_) == NULL) {
-	CoinSearchTree<CoinSearchTreeCompareDepth>* newtree =
-	    new CoinSearchTree<CoinSearchTreeCompareDepth>(*tree_);
-	delete tree_;
-	tree_ = newtree;
+	dynamic_cast<CoinSearchTree<CoinSearchTreeCompareDepth>*>(candidates_) == NULL) {
+	CoinSearchTree<CoinSearchTreeCompareDepth>* cands =
+	    new CoinSearchTree<CoinSearchTreeCompareDepth>(*candidates_);
+	delete candidates_;
+	candidates_ = cands;
     }
 }
 
-void CoinSearchTreeManager::reevaluateSearchStrategy() {
-    const int n = tree_->numInserted();
-    if ((n % 1000) == 1) {
-	/* we can reevaluate things... */
+void
+CoinSearchTreeManager::reevaluateSearchStrategy()
+{
+    const int n = candidates_->numInserted() % 1000;
+    /* the tests below ensure that even if this method is not invoked after
+       every push(), the search strategy will be reevaluated when n is ~500 */
+    if (recentlyReevaluatedSearchStrategy_) {
+	if (n > 250 && n <= 500) {
+	    recentlyReevaluatedSearchStrategy_ = false;
+	}
+    } else {
+	if (n > 500) {
+	    recentlyReevaluatedSearchStrategy_ = true;
+	    /* we can reevaluate things... */
+	}
     }
 }
