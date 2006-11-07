@@ -96,6 +96,7 @@ CoinModel::CoinModel(const char *fileName, bool allowStrings)
   }
   CoinMpsIO m;
   m.setAllowStringElements(allowStrings);
+  m.setConvertObjective(true);
   if (!status) {
     try {
       status=m.readMps(fileName,"");

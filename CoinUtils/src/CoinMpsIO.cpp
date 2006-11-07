@@ -3185,14 +3185,34 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
       if (returnCode==2)
         break;
       int iColumn = findHash(cardReader_->columnName(),1);
-      assert (iColumn>=0);
-      column[numberElements_]=iColumn;
-      double value = cardReader_->value();
-      if (fabs(value)<tinyElement)
-        numberTiny++;
-      else if (fabs(value)>largeElement)
-        numberLarge++;
-      element[numberElements_++]=value;
+      if (iColumn>=0) {
+	column[numberElements_]=iColumn;
+	double value = cardReader_->value();
+	if (fabs(value)<tinyElement)
+	  numberTiny++;
+	else if (fabs(value)>largeElement)
+	  numberLarge++;
+	element[numberElements_++]=value;
+      } else {
+	// may be string
+	char temp[100];
+	strcpy(temp,cardReader_->columnName());
+	char * ast = strchr(temp,'*');
+	if (!ast) {
+	  assert (iColumn>=0);
+	} else {
+	  *ast='\0';
+	  iColumn = findHash(temp,1);
+	  assert (iColumn>=0);
+	  char temp2[100];
+	  temp2[0]='\0';
+	  double value = cardReader_->value();
+	  if (value&&value!=1.0) 
+	    sprintf(temp2,"%g*",value);
+	  strcat(temp2,ast+1);
+	  addString(i,iColumn,temp2);
+	}
+      }
     }
     start[i+1]=numberElements_;
     next=cardReader_->getPosition();
@@ -3282,10 +3302,63 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     }
   }
   // Objective
-  assert (!convertObjective_); // do later
-  int iObj = findHash(objName,1);
-  assert (iObj>=0);
-  objective_[iObj]=minimize ? 1.0 : -1.0;
+  int iObjCol = findHash(objName,1);
+  int iObjRow=-1;
+  assert (iObjCol>=0);
+  if (!convertObjective_) {
+    objective_[iObjCol]=minimize ? 1.0 : -1.0;
+  } else {
+    // move column stuff
+    COINColumnIndex iColumn;
+    for ( iColumn = iObjCol+1; iColumn < numberColumns_; iColumn++ ) {
+      integerType_[iColumn-1]=integerType_[iColumn];
+      collower_[iColumn-1]=collower_[iColumn];
+      colupper_[iColumn-1]=colupper_[iColumn];
+    }
+    numberColumns_--;
+    double multiplier = minimize ? 1.0 : -1.0;
+    // but swap
+    multiplier *= -1.0;
+    int iRow;
+    CoinBigIndex nel=0;
+    CoinBigIndex last=0;
+    int kRow=0;
+    for (iRow=0;iRow<numberRows_;iRow++) {
+      CoinBigIndex j;
+      bool found=false;
+      for (j=last;j<start[iRow+1];j++) {
+	int iColumn = column[j];
+	if (iColumn!=iObjCol) {
+	  column[nel]=(iColumn<iObjCol) ? iColumn : iColumn-1;
+	  element[nel++]=element[j];
+	} else {
+	  found=true;
+	  assert (element[j]==1.0);
+	  break;
+	}
+      }
+      if (!found) {
+	last=start[iRow+1];
+	rowlower_[kRow]=rowlower_[iRow];
+	rowupper_[kRow]=rowupper_[iRow];
+	start[kRow+1]=nel;
+	kRow++;
+      } else {
+	iObjRow = iRow;
+	for (j=last;j<start[iRow+1];j++) {
+	  int iColumn = column[j];
+	  if (iColumn!=iObjCol) {
+	    if (iColumn>iObjCol)
+	      iColumn --;
+	    objective_[iColumn]=multiplier * element[j];
+	  }
+	}
+	last=start[iRow+1];
+      }
+    }
+    numberRows_=kRow;
+    assert (iObjRow>=0);
+  }
   stopHash(0);
   stopHash(1);
   // clean up integers
@@ -3306,7 +3379,36 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
   }
   free ( columnType );
   free ( rowType );
-  // construct packed matrix and convert to column format
+  if (numberStringElements()&&convertObjective_) {
+    int numberElements = numberStringElements();
+    for (int i=0;i<numberElements;i++) {
+      char * line = stringElements_[i];
+      int iRow;
+      int iColumn;
+      sscanf(line,"%d,%d,",&iRow,&iColumn);
+      bool modify=false;
+      if (iRow>iObjRow) {
+	modify=true;
+	iRow--;
+      }
+      if (iColumn>iObjCol) {
+	modify=true;
+	iColumn--;
+      }
+      if (modify) {
+	char temp[500];
+	const char * pos = strchr(line,',');
+	assert (pos);
+	pos = strchr(pos+1,',');
+	assert (pos);
+	pos++;
+	sprintf(temp,"%d,%d,%s",iRow,iColumn,pos);
+	free(line);
+	stringElements_[i]=strdup(temp);
+      }
+    }
+  }
+// construct packed matrix and convert to column format
   CoinPackedMatrix matrixByRow(false,
                                numberColumns_,numberRows_,numberElements_,
                                element,column,start,NULL);
@@ -3317,8 +3419,9 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
   matrixByColumn_->setExtraGap(0.0);
   matrixByColumn_->setExtraMajor(0.0);
   matrixByColumn_->reverseOrderedCopyOf(matrixByRow);
-  assert (matrixByColumn_->getVectorLengths()[iObj]==1);
-
+  if (!convertObjective_)
+    assert (matrixByColumn_->getVectorLengths()[iObjCol]==1);
+  
   handler_->message(COIN_MPS_STATS,messages_)<<problemName_
 					    <<numberRows_
 					    <<numberColumns_
