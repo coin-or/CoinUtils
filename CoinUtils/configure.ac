@@ -49,6 +49,12 @@ AC_COIN_DEBUG_COMPILE(CoinUtils)
 # Get the name of the C++ compiler and appropriate compiler options
 AC_COIN_PROG_CXX
 
+# Get the name of the Fortran compiler and appropriate compiler options
+AC_COIN_PROG_F77
+
+# Find out how to call Fortran from C and determine Fortran runtime libraries
+AC_COIN_F77_WRAPPERS
+
 # Initialize automake and libtool
 AC_COIN_INIT_AUTO_TOOLS
 
@@ -342,6 +348,31 @@ AC_COIN_HAS_PROJECT(CoinUtils)
 #############################################################################
 
 AC_COIN_HAS_USER_LIBRARY([Gmpl],[GMPL],[glpmpl.h],[mpl_initialize])
+
+#############################################################################
+#                       Other third party software                          #
+#############################################################################
+
+# Ampl Solver library
+AC_COIN_HAS_ASL
+
+#######################
+#        BLAS         #
+#######################
+
+AC_COIN_HAS_BLAS
+if test $coin_has_blas = no; then
+  AC_MSG_WARN([Cannot find BLAS - no dense factorization])
+fi
+
+#######################
+#       LAPACK        #
+#######################
+
+AC_COIN_HAS_LAPACK
+if test $coin_has_lapack = no; then
+  AC_MSG_WARN([Cannot find LAPACK - no dense factorization])
+fi
 
 AC_COIN_CHECK_GNU_ZLIB
 AC_COIN_CHECK_GNU_BZLIB
