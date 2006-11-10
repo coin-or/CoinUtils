@@ -15,9 +15,14 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #if DENSE_CODE==1
-// using simple clapack interface
-extern "C" int dgetrf_(int *m, int *n, double *a, int *	lda, 
-		       int *ipiv, int *info);
+// using simple lapack interface
+extern "C" 
+{
+  /** LAPACK Fortran subroutine DGETRF. */
+  void F77_FUNC(dgetrf,DGETRF)(ipfint * m, ipfint *n,
+                               double *A, ipfint *ldA,
+                               ipfint * ipiv, ipfint *info);
+}
 #endif
 static int counter1=0;
 //  factorSparse.  Does sparse phase of factorization
@@ -495,8 +500,8 @@ int CoinFactorization::factorDense()
     //now factorize
     //dgef(denseArea_,&numberDense_,&numberDense_,densePermute_);
     int info;
-    dgetrf_(&numberDense_,&numberDense_,denseArea_,&numberDense_,densePermute_,
-            &info);
+    F77_FUNC(dgetrf,DGETRF)(&numberDense_,&numberDense_,denseArea_,&numberDense_,densePermute_,
+			    &info);
     // need to check size of pivots
     if(info)
       status = -1;

@@ -569,6 +569,9 @@ public:
     /** Read a problem in MPS or GAMS format from the given filename.
     */
     CoinModel(const char *fileName, bool allowStrings=false);
+    /** Read a problem from AMPL nl file
+    */
+    CoinModel( int nonLinear, const char * fileName);
    /** Destructor */
    ~CoinModel();
    //@}
@@ -614,6 +617,10 @@ public:
   
   
 private:
+  /** Read a problem from AMPL nl file
+      so not constructor so gdb will work
+   */
+  void gdb( int nonLinear, const char * fileName);
   /**@name Data members */
    //@{
   /// Current number of rows

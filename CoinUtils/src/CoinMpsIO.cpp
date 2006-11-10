@@ -3310,11 +3310,14 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
   } else {
     // move column stuff
     COINColumnIndex iColumn;
+    free(names_[1][iObjCol]);
     for ( iColumn = iObjCol+1; iColumn < numberColumns_; iColumn++ ) {
       integerType_[iColumn-1]=integerType_[iColumn];
       collower_[iColumn-1]=collower_[iColumn];
       colupper_[iColumn-1]=colupper_[iColumn];
+      names_[1][iColumn-1]=names_[1][iColumn];
     }
+    numberHash_[1]--;
     numberColumns_--;
     double multiplier = minimize ? 1.0 : -1.0;
     // but swap
@@ -3341,9 +3344,11 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
 	last=start[iRow+1];
 	rowlower_[kRow]=rowlower_[iRow];
 	rowupper_[kRow]=rowupper_[iRow];
+	names_[0][kRow]=names_[0][iRow];
 	start[kRow+1]=nel;
 	kRow++;
       } else {
+	free(names_[0][iRow]);
 	iObjRow = iRow;
 	for (j=last;j<start[iRow+1];j++) {
 	  int iColumn = column[j];
@@ -3358,6 +3363,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     }
     numberRows_=kRow;
     assert (iObjRow>=0);
+    numberHash_[0]--;
   }
   stopHash(0);
   stopHash(1);

@@ -2,6 +2,7 @@
 // Corporation and others.  All Rights Reserved.
 
 
+#include "CoinUtilsConfig.h"
 #include "CoinHelperFunctions.hpp"
 #include "CoinModel.hpp"
 #include "CoinSort.hpp"
@@ -2780,3 +2781,410 @@ CoinModel::validateLinks() const
     columnList_.validateLinks(elements_);
   }
 }
+#if 0
+/* Read a problem from AMPL nl file
+ */
+CoinModel::CoinModel( int nonLinear, const char * fileName)
+ :  numberRows_(0),
+    maximumRows_(0),
+    numberColumns_(0),
+    maximumColumns_(0),
+    numberElements_(0),
+    maximumElements_(0),
+    numberQuadraticElements_(0),
+    maximumQuadraticElements_(0),
+    optimizationDirection_(1.0),
+    objectiveOffset_(0.0),
+    rowLower_(NULL),
+    rowUpper_(NULL),
+    rowType_(NULL),
+    objective_(NULL),
+    columnLower_(NULL),
+    columnUpper_(NULL),
+    integerType_(NULL),
+    columnType_(NULL),
+    start_(NULL),
+    elements_(NULL),
+    quadraticElements_(NULL),
+    sortIndices_(NULL),
+    sortElements_(NULL),
+    sortSize_(0),
+    sizeAssociated_(0),
+    associated_(NULL),
+    logLevel_(0),
+    type_(-1),
+    links_(0)
+{
+  problemName_ = strdup("");
+  int status=0;
+  if (!strcmp(fileName,"-")||!strcmp(fileName,"stdin")) {
+    // stdin
+  } else {
+    std::string name=fileName;
+    bool readable = fileCoinReadable(name);
+    if (!readable) {
+      std::cerr<<"Unable to open file "
+	       <<fileName<<std::endl;
+      status = -1;
+    }
+  }
+  if (!status) {
+    gdb(nonLinear,fileName);
+  }
+}
+/****************************************************************
+Copyright (C) 1997-2000 Lucent Technologies
+Modifications for Coin -  Copyright (C) 2006, International Business Machines Corporation and others.
+All Rights Reserved
+
+Permission to use, copy, modify, and distribute this software and
+its documentation for any purpose and without fee is hereby
+granted, provided that the above copyright notice appear in all
+copies and that both that the copyright notice and this
+permission notice and warranty disclaimer appear in supporting
+documentation, and that the name of Lucent or any of its entities
+not be used in advertising or publicity pertaining to
+distribution of the software without specific, written prior
+permission.
+
+LUCENT DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+IN NO EVENT SHALL LUCENT OR ANY OF ITS ENTITIES BE LIABLE FOR ANY
+SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
+****************************************************************/
+
+#ifdef HAVE_UNISTD_H
+# include "unistd.h"
+#endif
+
+extern "C" {
+# include "getstub.h"
+}
+
+#include <string>
+#include <cassert>
+#include "CoinSort.hpp"
+static void
+sos_kludge(int nsos, int *sosbeg, double *sosref,int * sosind)
+{
+  // Adjust sosref if necessary to make monotonic increasing
+  int i, j, k;
+  // first sort
+  for (i=0;i<nsos;i++) {
+    k = sosbeg[i];
+    int end=sosbeg[i+1];
+    CoinSort_2(sosref+k,sosref+end,sosind+k);
+  }
+  double t, t1;
+  for(i = j = 0; i++ < nsos; ) {
+    k = sosbeg[i];
+    t = sosref[j];
+    while(++j < k) {
+      t1 = sosref[j];
+      t += 1e-10;
+      if (t1 <= t)
+        sosref[j] = t1 = t + 1e-10;
+      t = t1;
+    }
+  }
+}
+// strdup used to avoid g++ compiler warning
+static SufDecl
+suftab[] = {
+	{ "direction", 0, ASL_Sufkind_var },
+	{ "downPseudocost", 0, ASL_Sufkind_var | ASL_Sufkind_real },
+	{ "priority", 0, ASL_Sufkind_var },
+	{ "ref", 0, ASL_Sufkind_var | ASL_Sufkind_real },
+	{ "sos", 0, ASL_Sufkind_var },
+	{ "sos", 0, ASL_Sufkind_con },
+	{ "sosno", 0, ASL_Sufkind_var | ASL_Sufkind_real },
+	{ "sosref", 0, ASL_Sufkind_var | ASL_Sufkind_real },
+	{ strdup("sstatus"), 0, ASL_Sufkind_var, 0 },
+	{ strdup("sstatus"), 0, ASL_Sufkind_con, 0 },
+	{ "upPseudocost", 0, ASL_Sufkind_var | ASL_Sufkind_real }
+	};
+#include "float.h"
+#include "limits.h"
+static ASL *asl=NULL;
+static FILE *nl=NULL;
+#if 0
+static void
+mip_stuff(void)
+{
+  int i;
+  double *pseudoUp, *pseudoDown;
+  int *priority, *direction;
+  SufDesc *dpup, *dpdown, *dpri, *ddir;
+  
+  ddir = suf_get("direction", ASL_Sufkind_var);
+  direction = ddir->u.i;
+  dpri = suf_get("priority", ASL_Sufkind_var);
+  priority = dpri->u.i;
+  dpdown = suf_get("downPseudocost", ASL_Sufkind_var);
+  pseudoDown = dpdown->u.r;
+  dpup = suf_get("upPseudocost", ASL_Sufkind_var);
+  pseudoUp = dpup->u.r;
+  assert(saveInfo);
+  int numberColumns = saveInfo->numberColumns;
+  if (direction) {
+    int baddir=0;
+    saveInfo->branchDirection = (int *) malloc(numberColumns*sizeof(int));
+    for (i=0;i<numberColumns;i++) {
+      int value = direction[i];
+      if (value<-1||value>1) {
+        baddir++;
+        value=0;
+      }
+      saveInfo->branchDirection[i]=value;
+    }
+    if (baddir)
+      fprintf(Stderr,
+              "Treating %d .direction values outside [-1, 1] as 0.\n",
+              baddir);
+  }
+  if (priority) {
+    int badpri=0;
+    saveInfo->priorities= (int *) malloc(numberColumns*sizeof(int));
+    for (i=0;i<numberColumns;i++) {
+      int value = priority[i];
+      if (value<0) {
+        badpri++;
+        value=0;
+      }
+      saveInfo->priorities[i]=value;
+    }
+    if (badpri)
+      fprintf(Stderr,
+              "Treating %d negative .priority values as 0\n",
+              badpri);
+  }
+  if (pseudoDown||pseudoUp) {
+    int badpseudo=0;
+    if (!pseudoDown||!pseudoUp)
+      fprintf(Stderr,
+              "Only one set of pseudocosts - assumed same\n");
+    saveInfo->pseudoDown= (double *) malloc(numberColumns*sizeof(double));
+    saveInfo->pseudoUp = (double *) malloc(numberColumns*sizeof(double));
+    for (i=0;i<numberColumns;i++) {
+      double valueD=0.0, valueU=0.0;
+      if (pseudoDown) {
+        valueD = pseudoDown[i];
+        if (valueD<0) {
+          badpseudo++;
+          valueD=0.0;
+        }
+      }
+      if (pseudoUp) {
+        valueU = pseudoUp[i];
+        if (valueU<0) {
+          badpseudo++;
+          valueU=0.0;
+        }
+      }
+      if (!valueD)
+        valueD=valueU;
+      if (!valueU)
+        valueU=valueD;
+      saveInfo->pseudoDown[i]=valueD;
+      saveInfo->pseudoUp[i]=valueU;
+    }
+    if (badpseudo)
+      fprintf(Stderr,
+              "Treating %d negative pseudoCosts as 0.0\n",badpseudo);
+  }
+}
+static void
+stat_map(int *stat, int n, int *map, int mx, const char *what)
+{
+  int bad, i, i1=0, j, j1=0;
+  static char badfmt[] = "Coin driver: %s[%d] = %d\n";
+  
+  for(i = bad = 0; i < n; i++) {
+    if ((j = stat[i]) >= 0 && j <= mx)
+      stat[i] = map[j];
+    else {
+      stat[i] = 0;
+      i1 = i;
+      j1 = j;
+      if (!bad++)
+        fprintf(Stderr, badfmt, what, i, j);
+    }
+  }
+  if (bad > 1) {
+    if (bad == 2)
+      fprintf(Stderr, badfmt, what, i1, j1);
+    else
+      fprintf(Stderr,
+              "Coin driver: %d messages about bad %s values suppressed.\n",
+              bad-1, what);
+  }
+}
+static int ampl_obj_prec()
+{
+  return obj_prec();
+}
+#endif
+CoinModel::gdb( int nonLinear, const char * fileName)
+{
+  char *stub;
+  ograd *og;
+  int i;
+  SufDesc *csd;
+  SufDesc *rsd;
+  /*bool *basis, *lower;*/
+  /*double *LU, *c, lb, objadj, *rshift, *shift, t, ub, *x, *x0, *x1;*/
+  char tempBuffer[20];
+  double * obj;
+  double * columnLower;
+  double * columnUpper;
+  double * rowLower;
+  double * rowUpper;
+  asl = ASL_alloc(ASL_read_f);
+  const char ** argv[2];
+  argv[0]="";
+  argv[1]=filename;
+  stub = getstub(&argv, &Oinfo);
+  if (!stub)
+    usage_ASL(&Oinfo, 1);
+  nl = jac0dim(stub, 0);
+  suf_declare(suftab, sizeof(suftab)/sizeof(SufDecl));
+  
+  /* set A_vals to get the constraints column-wise (malloc so can be freed) */
+  A_vals = (double *) malloc(nzc*sizeof(double));
+  if (!A_vals) {
+    printf("no memory\n");
+    return 1;
+  }
+  /* say we want primal solution */
+  want_xpi0=1;
+  /* for basis info */
+  int * columnStatus = (int *) malloc(n_var*sizeof(int));
+  int * rowStatus = (int *) malloc(n_con*sizeof(int));
+  csd = suf_iput("sstatus", ASL_Sufkind_var, columnStatus);
+  rsd = suf_iput("sstatus", ASL_Sufkind_con, rowStatus);
+  /* read linear model*/
+  f_read(nl,0);
+  // see if any sos
+  if (true) {
+    char *sostype;
+    int nsosnz, *sosbeg, *sosind, * sospri;
+    double *sosref;
+    int nsos;
+    int i = ASL_suf_sos_explict_free;
+    int copri[2], **p_sospri;
+    copri[0] = 0;
+    copri[1] = 0;
+    p_sospri = &sospri;
+    nsos = suf_sos(i, &nsosnz, &sostype, p_sospri, copri,
+				&sosbeg, &sosind, &sosref);
+    if (nsos) {
+      abort();
+#if 0
+      info->numberSos=nsos;
+      info->sosType = (char *) malloc(nsos);
+      info->sosPriority = (int *) malloc(nsos*sizeof(int));
+      info->sosStart = (int *) malloc((nsos+1)*sizeof(int));
+      info->sosIndices = (int *) malloc(nsosnz*sizeof(int));
+      info->sosReference = (double *) malloc(nsosnz*sizeof(double));
+      sos_kludge(nsos, sosbeg, sosref,sosind);
+      for (int i=0;i<nsos;i++) {
+        int ichar = sostype[i];
+        assert (ichar=='1'||ichar=='2');
+        info->sosType[i]=ichar-'0';
+      }	
+      memcpy(info->sosPriority,sospri,nsos*sizeof(int));
+      memcpy(info->sosStart,sosbeg,(nsos+1)*sizeof(int));
+      memcpy(info->sosIndices,sosind,nsosnz*sizeof(int));
+      memcpy(info->sosReference,sosref,nsosnz*sizeof(double));
+#endif
+    }
+  }
+
+  /*sos_finish(&specialOrderedInfo, 0, &j, 0, 0, 0, 0, 0);*/
+  Oinfo.uinfo = tempBuffer;
+  if (getopts(argv, &Oinfo))
+    return 1;
+  /* objective*/
+  obj = (double *) malloc(n_var*sizeof(double));
+  for (i=0;i<n_var;i++)
+    obj[i]=0.0;;
+  if (n_obj) {
+    for (og = Ograd[0];og;og = og->next)
+      obj[og->varno] = og->coef;
+  }
+  double direction;
+  if (objtype[0])
+    direction=-1.0;
+  else
+    direction=1.0;
+  double offset=objconst(0);
+  /* Column bounds*/
+  columnLower = (double *) malloc(n_var*sizeof(double));
+  columnUpper = (double *) malloc(n_var*sizeof(double));
+#define COIN_DBL_MAX DBL_MAX
+  for (i=0;i<n_var;i++) {
+    columnLower[i]=LUv[2*i];
+    if (columnLower[i]<= negInfinity)
+      columnLower[i]=-COIN_DBL_MAX;
+    columnUpper[i]=LUv[2*i+1];
+    if (columnUpper[i]>= Infinity)
+      columnUpper[i]=COIN_DBL_MAX;
+  }
+  /* Row bounds*/
+  rowLower = (double *) malloc(n_con*sizeof(double));
+  rowUpper = (double *) malloc(n_con*sizeof(double));
+  for (i=0;i<n_con;i++) {
+    rowLower[i]=LUrhs[2*i];
+    if (rowLower[i]<= negInfinity)
+      rowLower[i]=-COIN_DBL_MAX;
+    rowUpper[i]=LUrhs[2*i+1];
+    if (rowUpper[i]>= Infinity)
+      rowUpper[i]=COIN_DBL_MAX;
+  }
+  int numberRows=n_con;
+  int numberColumns=n_var;
+  int numberElements=nzc;;
+  int numberBinary=nbv;
+  int numberIntegers=niv;
+  int objective=obj;
+  double * rowLower=rowLower;
+  double * rowUpper=rowUpper;
+  double * columnLower=columnLower;
+  double * columnUpper=columnUpper;
+  int * starts=A_colstarts;
+  /*A_colstarts=NULL;*/
+  int * rows=A_rownos;
+  /*A_rownos=NULL;*/
+  double * elements=A_vals;
+  /*A_vals=NULL;*/
+  double * primalSolution=NULL;
+  /* put in primalSolution if exists */
+  if (X0) {
+    double * primalSolution=(double *) malloc(n_var*sizeof(double));
+    memcpy(double * primalSolution,X0,n_var*sizeof(double));
+  }
+  double * dualSolution=NULL;
+  if (niv+nbv>0)
+    mip_stuff(); // get any extra info
+  if ((!(niv+nbv)&&(csd->kind & ASL_Sufkind_input))
+      ||(rsd->kind & ASL_Sufkind_input)) {
+    /* convert status - need info on map */
+    static int map[] = {1, 3, 1, 1, 2, 1, 1};
+    stat_map(columnStatus, n_var, map, 6, "incoming columnStatus");
+    stat_map(rowStatus, n_con, map, 6, "incoming rowStatus");
+  } else {
+    /* all slack basis */
+    // leave status for output */
+#if 0
+    free(rowStatus);
+    rowStatus=NULL;
+    free(columnStatus);
+    columnStatus=NULL;
+#endif
+  }
+}
+#endif

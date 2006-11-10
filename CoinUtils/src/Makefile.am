@@ -87,6 +87,12 @@ AM_CPPFLAGS =
 #AM_CPPFLAGS += -DCOIN_HAS_LAPACK
 #endif
 
+# If we have the Ampl solver library, we need to add additional things
+if COIN_HAS_ASL
+#cbc_LDADD += $(ASLLIB)
+AM_CPPFLAGS += $(ASL_CPPFLAGS)
+endif
+
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc

@@ -16,11 +16,16 @@
 #include "CoinHelperFunctions.hpp"
 #include <stdio.h>
 #include <iostream>
-#if DENSE_CODE==1
-// using simple clapack interface
-extern "C" int dgetrs_(const char *trans, const int *n, const int *nrhs, 
-	const double *a, const int *lda, const int *ipiv, double *b, 
-		       const int * ldb, int *info);
+#if DENSE_CODE==1 
+// using simple lapack interface
+extern "C" 
+{
+  /** LAPACK Fortran subroutine DGETRS. */
+  void F77_FUNC(dgetrs,DGETRS)(char *trans, cipfint *n,
+                               cipfint *nrhs, const double *A, cipfint *ldA,
+                               cipfint * ipiv, double *B, cipfint *ldB, ipfint *info,
+			       int trans_len);
+}
 #endif
 // For semi-sparse
 #define BITS_PER_CHECK 8
@@ -390,8 +395,8 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse,
       char trans = 'N';
       int ione=1;
       int info;
-      dgetrs_(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
-	      densePermute_,region+lastSparse,&numberDense_,&info);
+      F77_FUNC(dgetrs,DGETRS)(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
+			      densePermute_,region+lastSparse,&numberDense_,&info,1);
       for (i=lastSparse;i<numberRows_;i++) {
 	double value = region[i];
 	if (value) {
@@ -1599,8 +1604,8 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
       char trans = 'T';
       int ione=1;
       int info;
-      dgetrs_(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
-	     densePermute_,region+lastSparse,&numberDense_,&info);
+      F77_FUNC(dgetrs,DGETRS)(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
+			      densePermute_,region+lastSparse,&numberDense_,&info,1);
       //and scan again
       if (goSparse>0||!numberL_)
 	regionSparse->scan(lastSparse,numberRows_,zeroTolerance_);
