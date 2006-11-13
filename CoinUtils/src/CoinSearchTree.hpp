@@ -136,8 +136,7 @@ public:
     inline int size() const { return size_; }
     inline int numInserted() const { return numInserted_; }
     inline CoinTreeNode* top() const {
-	CoinTreeSiblings* s = candidateList_.front();
-	return s ? s->currentNode() : NULL;
+	return (size_ == 0) ? NULL : candidateList_.front()->currentNode();
     }
     /** pop will advance the \c next pointer among the siblings on the top and
 	then moves the top to its correct position. #realpop is the method
