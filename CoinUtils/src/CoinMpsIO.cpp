@@ -3358,6 +3358,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
 	    objective_[iColumn]=multiplier * element[j];
 	  }
 	}
+	nel=start[kRow];
 	last=start[iRow+1];
       }
     }

@@ -570,6 +570,7 @@ public:
     */
     CoinModel(const char *fileName, bool allowStrings=false);
     /** Read a problem from AMPL nl file
+	NOTE - as I can't work out configure etc the source code is in Cbc_ampl.cpp!
     */
     CoinModel( int nonLinear, const char * fileName);
    /** Destructor */
