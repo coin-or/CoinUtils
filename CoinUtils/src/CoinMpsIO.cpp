@@ -3201,15 +3201,22 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
 	if (!ast) {
 	  assert (iColumn>=0);
 	} else {
+	  assert (allowStringElements_);
 	  *ast='\0';
-	  iColumn = findHash(temp,1);
+	  if (allowStringElements_==1)
+	    iColumn = findHash(temp,1);
+	  else
+	    iColumn = findHash(ast+1,1);
 	  assert (iColumn>=0);
 	  char temp2[100];
 	  temp2[0]='\0';
 	  double value = cardReader_->value();
 	  if (value&&value!=1.0) 
 	    sprintf(temp2,"%g*",value);
-	  strcat(temp2,ast+1);
+	  if (allowStringElements_==1)
+	    strcat(temp2,ast+1);
+	  else
+	    strcat(temp2,temp);
 	  addString(i,iColumn,temp2);
 	}
       }
@@ -5185,7 +5192,7 @@ infinity_(COIN_DBL_MAX),
 defaultHandler_(true),
 cardReader_(NULL),
 convertObjective_(false),
-allowStringElements_(false),
+allowStringElements_(0),
 maximumStringElements_(0),
 numberStringElements_(0),
 stringElements_(NULL)

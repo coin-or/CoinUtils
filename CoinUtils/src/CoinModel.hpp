@@ -69,11 +69,13 @@ public:
   void setElement(int i,int j,double value) ;
   /** Gets sorted row - user must provide enough space 
       (easiest is allocate number of columns).
+      If column or element NULL then just returns number
       Returns number of elements
   */
   int getRow(int whichRow, int * column, double * element);
   /** Gets sorted column - user must provide enough space 
       (easiest is allocate number of rows).
+      If row or element NULL then just returns number
       Returns number of elements
   */
   int getColumn(int whichColumn, int * column, double * element);
@@ -568,7 +570,7 @@ public:
    CoinModel();
     /** Read a problem in MPS or GAMS format from the given filename.
     */
-    CoinModel(const char *fileName, bool allowStrings=false);
+    CoinModel(const char *fileName, int allowStrings=0);
     /** Read a problem from AMPL nl file
 	NOTE - as I can't work out configure etc the source code is in Cbc_ampl.cpp!
     */
@@ -706,6 +708,20 @@ private:
   int sizeAssociated_;
   /// Associated values
   double * associated_;
+  /// Number of SOS - all these are done in one go e.g. from ampl
+  int numberSOS_;
+  /// SOS starts
+  int * startSOS_;
+  /// SOS members
+  int * memberSOS_;
+  /// SOS type
+  int * typeSOS_;
+  /// SOS priority
+  int * prioritySOS_;
+  /// SOS reference
+  double * referenceSOS_;
+  /// priorities (given for all columns (-1 if not integer)
+  int * priority_;
   /** Print level.
       I could have gone for full message handling but this should normally
       be silent and lightweight.  I can always change.

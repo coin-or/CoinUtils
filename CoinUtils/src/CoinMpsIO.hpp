@@ -550,10 +550,10 @@ public:
     /// Get default upper bound for integer variables
     int getDefaultBound() const;
     /// Whether to allow string elements
-    inline bool allowStringElements() const
+    inline int allowStringElements() const
     { return allowStringElements_;};
-    /// Whether to allow string elements
-    inline void setAllowStringElements(bool yesNo)
+    /// Whether to allow string elements (0 no, 1 yes, 2 yes and try flip)
+    inline void setAllowStringElements(int yesNo)
     { allowStringElements_ = yesNo;};
 //@}
 
@@ -1007,7 +1007,7 @@ protected:
       /// If .gms file should it be massaged to move objective
       bool convertObjective_;
       /// Whether to allow string elements
-      bool allowStringElements_;
+      int allowStringElements_;
       /// Maximum number of string elements
       int maximumStringElements_;
       /// Number of string elements

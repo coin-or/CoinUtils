@@ -17,41 +17,48 @@
 // Default Constructor 
 //-------------------------------------------------------------------
 CoinModel::CoinModel () 
- :  numberRows_(0),
-    maximumRows_(0),
-    numberColumns_(0),
-    maximumColumns_(0),
-    numberElements_(0),
-    maximumElements_(0),
-    numberQuadraticElements_(0),
-    maximumQuadraticElements_(0),
-    optimizationDirection_(1.0),
-    objectiveOffset_(0.0),
-    rowLower_(NULL),
-    rowUpper_(NULL),
-    rowType_(NULL),
-    objective_(NULL),
-    columnLower_(NULL),
-    columnUpper_(NULL),
-    integerType_(NULL),
-    columnType_(NULL),
-    start_(NULL),
-    elements_(NULL),
-    quadraticElements_(NULL),
-    sortIndices_(NULL),
-    sortElements_(NULL),
-    sortSize_(0),
-    sizeAssociated_(0),
-    associated_(NULL),
-    logLevel_(0),
-    type_(-1),
-    links_(0)
+  :  numberRows_(0),
+     maximumRows_(0),
+     numberColumns_(0),
+     maximumColumns_(0),
+     numberElements_(0),
+     maximumElements_(0),
+     numberQuadraticElements_(0),
+     maximumQuadraticElements_(0),
+     optimizationDirection_(1.0),
+     objectiveOffset_(0.0),
+     rowLower_(NULL),
+     rowUpper_(NULL),
+     rowType_(NULL),
+     objective_(NULL),
+     columnLower_(NULL),
+     columnUpper_(NULL),
+     integerType_(NULL),
+     columnType_(NULL),
+     start_(NULL),
+     elements_(NULL),
+     quadraticElements_(NULL),
+     sortIndices_(NULL),
+     sortElements_(NULL),
+     sortSize_(0),
+     sizeAssociated_(0),
+     associated_(NULL),
+     numberSOS_(0),
+     startSOS_(NULL),
+     memberSOS_(NULL),
+     typeSOS_(NULL),
+     prioritySOS_(NULL),
+     referenceSOS_(NULL),
+     priority_(NULL),
+     logLevel_(0),
+     type_(-1),
+     links_(0)
 {
   problemName_ = strdup("");
 }
 /* Read a problem in MPS or GAMS format from the given filename.
  */
-CoinModel::CoinModel(const char *fileName, bool allowStrings)
+CoinModel::CoinModel(const char *fileName, int allowStrings)
  :  numberRows_(0),
     maximumRows_(0),
     numberColumns_(0),
@@ -78,6 +85,13 @@ CoinModel::CoinModel(const char *fileName, bool allowStrings)
     sortSize_(0),
     sizeAssociated_(0),
     associated_(NULL),
+    numberSOS_(0),
+    startSOS_(NULL),
+    memberSOS_(NULL),
+    typeSOS_(NULL),
+    prioritySOS_(NULL),
+    referenceSOS_(NULL),
+    priority_(NULL),
     logLevel_(0),
     type_(-1),
     links_(0)
@@ -132,12 +146,15 @@ CoinModel::CoinModel(const char *fileName, bool allowStrings)
       addRow(rowLength[i],column+rowStart[i],
 	     element+rowStart[i],rowLower[i],rowUpper[i],m.rowName(i));
     }
+    int numberIntegers = 0;
     // Now do column part
     for (i=0;i<numberColumns;i++) {
       setColumnBounds(i,columnLower[i],columnUpper[i]);
       setColumnObjective(i,objective[i]);
-      if (m.isInteger(i))
+      if (m.isInteger(i)) {
 	setColumnIsInteger(i,true);;
+	numberIntegers++;
+      }
     }
     // do names
     int iRow;
@@ -175,6 +192,84 @@ CoinModel::CoinModel(const char *fileName, bool allowStrings)
 	}
       }
     }
+    // get quadratic part
+    if (m.reader()->whichSection (  ) == COIN_QUAD_SECTION ) {
+      int * start=NULL;
+      int * column = NULL;
+      double * element = NULL;
+      status=m.readQuadraticMps(NULL,start,column,element,2);
+      if (!status) {
+	if (!m.numberStringElements()&&!numberIntegers) {
+	  // no strings - add to quadratic (not donw yet)
+	  for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
+	    for (CoinBigIndex j = start[iColumn];j<start[iColumn+1];j++) {
+	      int jColumn = column[j];
+	      double value = element[j];
+	      // what about diagonal etc
+	      if (jColumn==iColumn) {
+		printf("diag %d %d %g\n",iColumn,jColumn,value);
+		setQuadraticElement(iColumn,jColumn,0.5*value);
+	      } else if (jColumn>iColumn) {
+		printf("above diag %d %d %g\n",iColumn,jColumn,value);
+	      } else if (jColumn<iColumn) {
+		printf("below diag %d %d %g\n",iColumn,jColumn,value);
+		setQuadraticElement(iColumn,jColumn,value);
+	      }
+	    }
+	  }
+	} else {
+	  // add in as strings
+	  for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
+	    char temp[1000];
+	    temp[0]='\0';
+	    int put=0;
+	    int n=0;
+	    bool ifFirst=true;
+	    double value = getColumnObjective(iColumn);
+	    if (value) {
+	      sprintf(temp,"%g",value);
+	      ifFirst=false;
+	      put = strlen(temp);
+	    }
+	    for (CoinBigIndex j = start[iColumn];j<start[iColumn+1];j++) {
+	      int jColumn = column[j];
+	      double value = element[j];
+	      // what about diagonal etc
+	      if (jColumn==iColumn) {
+		printf("diag %d %d %g\n",iColumn,jColumn,value);
+		value *= 0.5;
+	      } else if (jColumn>iColumn) {
+		printf("above diag %d %d %g\n",iColumn,jColumn,value);
+		value=0.0;
+	      } else if (jColumn<iColumn) {
+		printf("below diag %d %d %g\n",iColumn,jColumn,value);
+	      }
+	      if (value) {
+		n++;
+		const char * name = columnName(jColumn);
+		if (value==1.0) {
+		  sprintf(temp+put,"%s%s",ifFirst ? "" : "+",name);
+		} else {
+		  if (ifFirst||value<0.0)
+		    sprintf(temp+put,"%g*%s",value,name);
+		  else
+		    sprintf(temp+put,"+%g*%s",value,name);
+		}
+		put += strlen(temp+put);
+		assert (put<1000);
+	      }
+	    }
+	    if (n) {
+	      setObjective(iColumn,temp);
+	      printf("el for objective column c%7.7d is %s\n",iColumn,temp);
+	    }
+	  }
+	}
+      } 
+      delete [] start;
+      delete [] column;
+      delete [] element;
+    }
   }
 }
 
@@ -203,6 +298,7 @@ CoinModel::CoinModel (const CoinModel & rhs)
     quadraticRowList_(rhs.quadraticRowList_),
     quadraticColumnList_(rhs.quadraticColumnList_),
     sizeAssociated_(rhs.sizeAssociated_),
+    numberSOS_(rhs.numberSOS_),
     logLevel_(rhs.logLevel_),
     type_(rhs.type_),
     links_(rhs.links_)
@@ -219,6 +315,21 @@ CoinModel::CoinModel (const CoinModel & rhs)
   sortIndices_ = CoinCopyOfArray(rhs.sortIndices_,sortSize_);
   sortElements_ = CoinCopyOfArray(rhs.sortElements_,sortSize_);
   associated_ = CoinCopyOfArray(rhs.associated_,sizeAssociated_);
+  priority_ = CoinCopyOfArray(rhs.priority_,maximumColumns_);
+  if (numberSOS_) {
+    startSOS_ = CoinCopyOfArray(rhs.startSOS_,numberSOS_+1);
+    int numberMembers = startSOS_[numberSOS_];
+    memberSOS_ = CoinCopyOfArray(rhs.memberSOS_,numberMembers);
+    typeSOS_ = CoinCopyOfArray(rhs.typeSOS_,numberSOS_);
+    prioritySOS_ = CoinCopyOfArray(rhs.prioritySOS_,numberSOS_);
+    referenceSOS_ = CoinCopyOfArray(rhs.referenceSOS_,numberMembers);
+  } else {
+    startSOS_ = NULL;
+    memberSOS_ = NULL;
+    typeSOS_ = NULL;
+    prioritySOS_ = NULL;
+    referenceSOS_ = NULL;
+  }
   if (type_==0) {
     start_ = CoinCopyOfArray(rhs.start_,maximumRows_+1);
   } else if (type_==1) {
@@ -249,6 +360,12 @@ CoinModel::~CoinModel ()
   delete [] sortIndices_;
   delete [] sortElements_;
   delete [] associated_;
+  delete [] startSOS_;
+  delete [] memberSOS_;
+  delete [] typeSOS_;
+  delete [] prioritySOS_;
+  delete [] referenceSOS_;
+  delete [] priority_;
   free(problemName_);
 }
 
@@ -273,6 +390,12 @@ CoinModel::operator=(const CoinModel& rhs)
     delete [] sortIndices_;
     delete [] sortElements_;
     delete [] associated_;
+    delete [] startSOS_;
+    delete [] memberSOS_;
+    delete [] typeSOS_;
+    delete [] prioritySOS_;
+    delete [] referenceSOS_;
+    delete [] priority_;
     free(problemName_);
     problemName_ = strdup(rhs.problemName_);
     numberRows_ = rhs.numberRows_;
@@ -296,6 +419,7 @@ CoinModel::operator=(const CoinModel& rhs)
     quadraticRowList_ = rhs.quadraticRowList_;
     columnList_ = rhs.columnList_;
     sizeAssociated_= rhs.sizeAssociated_;
+    numberSOS_ = rhs.numberSOS_;
     type_ = rhs.type_;
     logLevel_ = rhs.logLevel_;
     links_ = rhs.links_;
@@ -307,6 +431,21 @@ CoinModel::operator=(const CoinModel& rhs)
     columnUpper_ = CoinCopyOfArray(rhs.columnUpper_,maximumColumns_);
     integerType_ = CoinCopyOfArray(rhs.integerType_,maximumColumns_);
     columnType_ = CoinCopyOfArray(rhs.columnType_,maximumColumns_);
+    priority_ = CoinCopyOfArray(rhs.priority_,maximumColumns_);
+    if (numberSOS_) {
+      startSOS_ = CoinCopyOfArray(rhs.startSOS_,numberSOS_+1);
+      int numberMembers = startSOS_[numberSOS_];
+      memberSOS_ = CoinCopyOfArray(rhs.memberSOS_,numberMembers);
+      typeSOS_ = CoinCopyOfArray(rhs.typeSOS_,numberSOS_);
+      prioritySOS_ = CoinCopyOfArray(rhs.prioritySOS_,numberSOS_);
+      referenceSOS_ = CoinCopyOfArray(rhs.referenceSOS_,numberMembers);
+    } else {
+      startSOS_ = NULL;
+      memberSOS_ = NULL;
+      typeSOS_ = NULL;
+      prioritySOS_ = NULL;
+      referenceSOS_ = NULL;
+    }
     if (type_==0) {
       start_ = CoinCopyOfArray(rhs.start_,maximumRows_+1);
     } else if (type_==1) {
@@ -2688,8 +2827,11 @@ int CoinModel::getRow(int whichRow, int * column, double * element)
       if (iColumn<last)
         sorted=false;
       last=iColumn;
-      column[n]=iColumn;
-      element[n++]=triple.value();
+      if (column)
+	column[n]=iColumn;
+      if (element)
+	element[n]=triple.value();
+      n++;
       triple=next(triple);
     }
     if (!sorted) {
@@ -2716,8 +2858,11 @@ int CoinModel::getColumn(int whichColumn, int * row, double * element)
       if (iRow<last)
         sorted=false;
       last=iRow;
-      row[n]=iRow;
-      element[n++]=triple.value();
+      if (row)
+	row[n]=iRow;
+      if (element)
+	element[n]=triple.value();
+      n++;
       triple=next(triple);
     }
     if (!sorted) {
