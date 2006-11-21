@@ -6,6 +6,9 @@
 /* Define to the debug verbosity level (0 is no output) */
 #undef COIN_COINUTILS_VERBOSITY
 
+/* If defined, the Ampl Solver Library is available. */
+#undef COIN_HAS_ASL
+
 /* If defined, the BLAS Library is available. */
 #undef COIN_HAS_BLAS
 
