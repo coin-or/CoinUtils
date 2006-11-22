@@ -156,19 +156,49 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	numberIntegers++;
       }
     }
+    bool quadraticInteger = (numberIntegers!=0)&&m.reader()->whichSection (  ) == COIN_QUAD_SECTION ;
     // do names
     int iRow;
     for (iRow=0;iRow<numberRows_;iRow++) {
       const char * name = m.rowName(iRow);
       setRowName(iRow,name);
     }
-    
+    bool ifStrings = m.numberStringElements();
+    int nChanged=0;
     int iColumn;
     for (iColumn=0;iColumn<numberColumns_;iColumn++) {
-      const char * name = m.columnName(iColumn);
-      setColumnName(iColumn,name);
+      // Replace - + or * if strings
+      if (!ifStrings&&!quadraticInteger) {
+	const char * name = m.columnName(iColumn);
+	setColumnName(iColumn,name);
+      } else {
+	assert (strlen(m.columnName(iColumn))<100);
+	char temp[100];
+	strcpy(temp,m.columnName(iColumn));
+	int n=strlen(temp);
+	bool changed=false;
+	for (int i=0;i<n;i++) {
+	  if (temp[i]=='-') {
+	    temp[i]='_';
+	    changed=true;
+	  } else
+	  if (temp[i]=='+') {
+	    temp[i]='$';
+	    changed=true;
+	  } else
+	  if (temp[i]=='*') {
+	    temp[i]='&';
+	    changed=true;
+	  }
+	}
+	if (changed)
+	  nChanged++;
+	setColumnName(iColumn,temp);
+      }
     }
-    if (m.numberStringElements()) {
+    if (nChanged) 
+      printf("%d column names changed to eliminate - + or *\n",nChanged);
+    if (ifStrings) {
       // add in 
       int numberElements = m.numberStringElements();
       for (int i=0;i<numberElements;i++) {
@@ -199,8 +229,18 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
       double * element = NULL;
       status=m.readQuadraticMps(NULL,start,column,element,2);
       if (!status) {
-	if (!m.numberStringElements()&&!numberIntegers) {
-	  // no strings - add to quadratic (not donw yet)
+	// If strings allowed 13 then just for Hans convert to equality
+	int objRow=-1;
+	if (allowStrings==13) {
+	  int objColumn=numberColumns_;
+	  objRow=numberRows_;
+	  // leave linear part in objective
+	  addColumn(0,NULL,NULL,-COIN_DBL_MAX,COIN_DBL_MAX,1.0,"obj");
+	  double minusOne=-1.0;
+	  addRow(1,&objColumn,&minusOne,0.0,0.0,"objrow");
+	}
+	if (!ifStrings&&!numberIntegers) {
+	  // no strings - add to quadratic (not done yet)
 	  for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
 	    for (CoinBigIndex j = start[iColumn];j<start[iColumn+1];j++) {
 	      int jColumn = column[j];
@@ -226,7 +266,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	    int n=0;
 	    bool ifFirst=true;
 	    double value = getColumnObjective(iColumn);
-	    if (value) {
+	    if (value&&objRow<0) {
 	      sprintf(temp,"%g",value);
 	      ifFirst=false;
 	      put = strlen(temp);
@@ -260,7 +300,10 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	      }
 	    }
 	    if (n) {
-	      setObjective(iColumn,temp);
+	      if (objRow<0)
+		setObjective(iColumn,temp);
+	      else
+		setElement(objRow,iColumn,temp);
 	      printf("el for objective column c%7.7d is %s\n",iColumn,temp);
 	    }
 	  }

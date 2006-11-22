@@ -2589,6 +2589,23 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    colupper_[icolumn] = defaultBound_;
 	  if ( colupper_[icolumn] > MAX_INTEGER ) 
 	    colupper_[icolumn] = MAX_INTEGER;
+	  // clean up to allow for bad reads on 1.0e2 etc
+	  if (colupper_[icolumn]<1.0e10) {
+	    double value = colupper_[icolumn];
+	    double value2 = floor(value+0.5);
+	    if (value!=value2) {
+	      if (fabs(value-value2)<1.0e-5)
+		colupper_[icolumn]=value2;
+	    }
+	  }
+	  if (collower_[icolumn]>-1.0e10) {
+	    double value = collower_[icolumn];
+	    double value2 = floor(value+0.5);
+	    if (value!=value2) {
+	      if (fabs(value-value2)<1.0e-5)
+		collower_[icolumn]=value2;
+	    }
+	  }
 	}
       }
     }
