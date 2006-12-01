@@ -260,7 +260,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	} else {
 	  // add in as strings
 	  for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
-	    char temp[1000];
+	    char temp[20000];
 	    temp[0]='\0';
 	    int put=0;
 	    int n=0;
@@ -276,13 +276,13 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	      double value = element[j];
 	      // what about diagonal etc
 	      if (jColumn==iColumn) {
-		printf("diag %d %d %g\n",iColumn,jColumn,value);
+		//printf("diag %d %d %g\n",iColumn,jColumn,value);
 		value *= 0.5;
 	      } else if (jColumn>iColumn) {
-		printf("above diag %d %d %g\n",iColumn,jColumn,value);
-		value=0.0;
+		//printf("above diag %d %d %g\n",iColumn,jColumn,value);
 	      } else if (jColumn<iColumn) {
-		printf("below diag %d %d %g\n",iColumn,jColumn,value);
+		//printf("below diag %d %d %g\n",iColumn,jColumn,value);
+		value=0.0;
 	      }
 	      if (value) {
 		n++;
@@ -296,7 +296,8 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 		    sprintf(temp+put,"+%g*%s",value,name);
 		}
 		put += strlen(temp+put);
-		assert (put<1000);
+		assert (put<20000);
+		ifFirst=false;
 	      }
 	    }
 	    if (n) {
@@ -304,7 +305,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 		setObjective(iColumn,temp);
 	      else
 		setElement(objRow,iColumn,temp);
-	      printf("el for objective column c%7.7d is %s\n",iColumn,temp);
+	      //printf("el for objective column c%7.7d is %s\n",iColumn,temp);
 	    }
 	  }
 	}
