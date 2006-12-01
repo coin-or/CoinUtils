@@ -63,7 +63,7 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libCoinUtils_la_LIBADD =
+am__DEPENDENCIES_1 =
 am_libCoinUtils_la_OBJECTS = CoinBuild.lo CoinDenseVector.lo \
 	CoinError.lo CoinFactorization1.lo CoinFactorization2.lo \
 	CoinFactorization3.lo CoinFactorization4.lo CoinFileIO.lo \
@@ -134,6 +134,7 @@ CDEFS = @CDEFS@
 CFLAGS = @CFLAGS@
 COINUTILSOBJDIR = @COINUTILSOBJDIR@
 COINUTILSSRCDIR = @COINUTILSSRCDIR@
+COINUTILS_LIBADD = @COINUTILS_LIBADD@
 COIN_BUILD_BLAS_FALSE = @COIN_BUILD_BLAS_FALSE@
 COIN_BUILD_BLAS_TRUE = @COIN_BUILD_BLAS_TRUE@
 COIN_BUILD_LAPACK_FALSE = @COIN_BUILD_LAPACK_FALSE@
@@ -343,6 +344,12 @@ libCoinUtils_la_SOURCES = \
 
 # This is for libtool (on Windows)
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
+
+# Here we list additional libraries that we want to include, such as Lapack
+# and Blas when they are compiled with the rest of COIN.  This is temporary
+# solution.
+libCoinUtils_la_LIBADD = $(COINUTILS_LIBADD)
+libCoinUtils_la_DEPENDENCIES = $(COINUTILS_LIBADD)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows

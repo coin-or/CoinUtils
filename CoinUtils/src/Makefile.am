@@ -85,6 +85,13 @@ libCoinUtils_la_SOURCES = \
 # This is for libtool (on Windows)
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
+# Here we list additional libraries that we want to include, such as Lapack
+# and Blas when they are compiled with the rest of COIN.  This is temporary
+# solution.
+libCoinUtils_la_LIBADD = $(COINUTILS_LIBADD)
+
+libCoinUtils_la_DEPENDENCIES = $(COINUTILS_LIBADD)
+
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
 AM_CPPFLAGS =

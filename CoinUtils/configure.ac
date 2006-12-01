@@ -364,6 +364,9 @@ AC_COIN_HAS_BLAS
 if test $coin_has_blas = no; then
   AC_MSG_WARN([Cannot find BLAS - no dense factorization])
 fi
+if test "$use_blas" = BUILD; then
+  COINUTILS_LIBADD="../../ThirdParty/Blas/libcoinblas.la $COINUTILS_LIBADD"
+fi
 
 #######################
 #       LAPACK        #
@@ -373,6 +376,13 @@ AC_COIN_HAS_LAPACK
 if test $coin_has_lapack = no; then
   AC_MSG_WARN([Cannot find LAPACK - no dense factorization])
 fi
+if test "$use_lapack" = BUILD; then
+  COINUTILS_LIBADD="../../ThirdParty/Lapack/libcoinlapack.la $COINUTILS_LIBADD"
+fi
+
+# For now, we just add the lapack and blas libraries here in case they are
+# compiled in ThirdParty.  On the long run, we need a different solution
+AC_SUBST(COINUTILS_LIBADD)
 
 AC_COIN_CHECK_GNU_ZLIB
 AC_COIN_CHECK_GNU_BZLIB
