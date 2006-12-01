@@ -16,6 +16,13 @@ AUTOMAKE_OPTIONS = foreign
 # in the 'lib' directory
 lib_LTLIBRARIES = libCoinUtils.la
 
+# AW: This is a fix at the moment to head with the fact that LIBS has
+# -llapack and other libraries in it when those are used and not compiled
+# here.  The content of LIBS is passed to libtool when building a shared
+# library, and that can cause trouble, since liblapack.a and others
+# should not be built into the shared libraries.
+LIBS =
+
 # List all source files for this library, including headers
 libCoinUtils_la_SOURCES = \
 	CoinUtilsConfig.h \
@@ -81,11 +88,6 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
 AM_CPPFLAGS =
-
-# If we have the Lapack library, we need to add additional things
-#if COIN_HAS_LAPACK
-#AM_CPPFLAGS += -DCOIN_HAS_LAPACK
-#endif
 
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin
