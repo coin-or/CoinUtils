@@ -49,11 +49,14 @@ AC_COIN_DEBUG_COMPILE(CoinUtils)
 # Get the name of the C++ compiler and appropriate compiler options
 AC_COIN_PROG_CXX
 
-# Get the name of the Fortran compiler and appropriate compiler options
-AC_COIN_PROG_F77
-
-# Find out how to call Fortran from C and determine Fortran runtime libraries
-AC_COIN_F77_WRAPPERS
+# Check if we have a Fortran compiler; if we do, acquire the appropriate
+# options. This has to be done before we call AC_COIN_INIT_AUTO_TOOLS, else
+# it will helpfully set FFLAGS to an incorrect value.
+AC_COIN_FIND_F77
+if test "$F77" != unavailable ; then
+  AC_COIN_PROG_F77
+  AC_COIN_F77_WRAPPERS
+fi
 
 # Initialize automake and libtool
 AC_COIN_INIT_AUTO_TOOLS
@@ -356,28 +359,51 @@ AC_COIN_HAS_USER_LIBRARY([Gmpl],[GMPL],[glpmpl.h],[mpl_initialize])
 # Ampl Solver library
 AC_COIN_HAS_ASL
 
-#######################
-#        BLAS         #
-#######################
+# Check for BLAS and LAPACK. If there's no Fortran compiler available, skip
+# this entirely, otherwise configuration will fail when we try to do a Fortran
+# link. The check cannot be embedded in AC_COIN_HAS_BLAS because the offending
+# macro is AC_REQUIRE'd from somewhere inside AC_TRY_LINK and ends up out in
+# front of all the code in AC_COIN_HAS_BLAS.  This will need to be revisited if
+# we run up against a situation where a prebuilt BLAS/LAPACK is linkable but
+# there's no Fortran compiler. This code has the unfortunate property that
+# calls to AM_CONDITIONAL are exposed here and still occur in AC_COIN_HAS_BLAS
+# and AC_COIN_HAS_LAPACK. With some thought, it should be possible to separate
+# BLAS and LAPACK configuration into two steps that would maintain information
+# hiding and still avoid attempting a Fortran link when no compiler is
+# present.
 
-AC_COIN_HAS_BLAS
-if test $coin_has_blas = no; then
-  AC_MSG_WARN([Cannot find BLAS - no dense factorization])
-fi
-if test "$use_blas" = BUILD; then
-  COINUTILS_LIBADD="../../ThirdParty/Blas/libcoinblas.la $COINUTILS_LIBADD"
-fi
+if test "$F77" = unavailable ; then
+  coin_has_blas=no
+  AM_CONDITIONAL([COIN_HAS_BLAS],[false])
+  AM_CONDITIONAL([COIN_BUILD_BLAS],[false])
+  coin_has_lapack=no
+  AM_CONDITIONAL([COIN_HAS_LAPACK],[false])
+  AM_CONDITIONAL([COIN_BUILD_LAPACK],[false])
+else
 
-#######################
-#       LAPACK        #
-#######################
+  #######################
+  #        BLAS         #
+  #######################
 
-AC_COIN_HAS_LAPACK
-if test $coin_has_lapack = no; then
-  AC_MSG_WARN([Cannot find LAPACK - no dense factorization])
-fi
-if test "$use_lapack" = BUILD; then
-  COINUTILS_LIBADD="../../ThirdParty/Lapack/libcoinlapack.la $COINUTILS_LIBADD"
+  AC_COIN_HAS_BLAS
+  if test $coin_has_blas = no; then
+    AC_MSG_WARN([Cannot find BLAS - no dense factorization])
+  fi
+  if test "$use_blas" = BUILD; then
+    COINUTILS_LIBADD="../../ThirdParty/Blas/libcoinblas.la $COINUTILS_LIBADD"
+  fi
+
+  #######################
+  #       LAPACK        #
+  #######################
+
+  AC_COIN_HAS_LAPACK
+  if test $coin_has_lapack = no; then
+    AC_MSG_WARN([Cannot find LAPACK - no dense factorization])
+  fi
+  if test "$use_lapack" = BUILD; then
+    COINUTILS_LIBADD="../../ThirdParty/Lapack/libcoinlapack.la $COINUTILS_LIBADD"
+  fi
 fi
 
 # For now, we just add the lapack and blas libraries here in case they are
