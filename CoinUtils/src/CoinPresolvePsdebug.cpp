@@ -364,6 +364,20 @@ void presolve_check_free_list (const CoinPostsolveMatrix *obj, bool chkElemCnt)
 */
   if (chkElemCnt)
   { assert(obj->nelems_+freeCnt == maxlink) ; }
+  //double *colels	= obj->colels_;
+  //int *hrow		= obj->hrow_;
+  CoinBigIndex *mcstrt	= obj->mcstrt_;
+  int *hincol		= obj->hincol_;
+  int ncols = obj->ncols_;
+  for (int jcolx=0;jcolx<ncols;jcolx++) {
+    CoinBigIndex k=mcstrt[jcolx];
+    int i;
+    for (i=0; i<hincol[jcolx]-1; ++i) {
+      k = obj->link_[k];
+      assert (k>=0);
+    }
+  }
+
 # endif
 
   return ; }
