@@ -70,7 +70,7 @@
 
 //-----------------------------------------------------------------------------
 
-#if defined(__sparc) && defined(__sun)
+#if defined(__sun)
 #  if defined(__SUNPRO_CC)
 #     include <signal.h>
       extern "C" {
