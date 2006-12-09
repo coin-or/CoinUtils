@@ -20,18 +20,19 @@ CoinWarmStartBasis::setSize(int ns, int na) {
   delete[] artificialStatus_;
   // Round all so arrays multiple of 4
   int nint = (ns+15) >> 4;
-  if (nint)
+  if (nint) {
     structuralStatus_ = new char[4*nint];
-  else
+    memset (structuralStatus_, 0, (4*nint) * sizeof(char));
+  } else {
     structuralStatus_ = NULL;
-  // CoinFillN was used here - I am sure memset will be cleaner for char
-  memset (structuralStatus_, 0, (4*nint) * sizeof(char));
+  }
   nint = (na+15) >> 4;
-  if (nint)
+  if (nint) {
     artificialStatus_ = new char[4*nint];
-  else
+    memset (artificialStatus_, 0, (4*nint) * sizeof(char));
+  } else {
     artificialStatus_ = NULL;
-  memset (artificialStatus_, 0, (4*nint) * sizeof(char));
+  }
   numArtificial_ = na;
   numStructural_ = ns;
 }
@@ -53,18 +54,22 @@ CoinWarmStartBasis::CoinWarmStartBasis(int ns, int na,
   numStructural_(ns), numArtificial_(na),
   structuralStatus_(NULL), artificialStatus_(NULL) {
   // Round all so arrays multiple of 4
-  int nint = (ns+15) >> 4;
-  structuralStatus_ = new char[4*nint];
-  structuralStatus_[4*nint-3]=0;
-  structuralStatus_[4*nint-2]=0;
-  structuralStatus_[4*nint-1]=0;
-  memcpy (structuralStatus_, sStat, ((ns + 3) / 4) * sizeof(char));
-  nint = (na+15) >> 4;
-  artificialStatus_ = new char[4*nint];
-  artificialStatus_[4*nint-3]=0;
-  artificialStatus_[4*nint-2]=0;
-  artificialStatus_[4*nint-1]=0;
-  memcpy (artificialStatus_, aStat, ((na + 3) / 4) * sizeof(char));
+  int nint = ((ns+15) >> 4);
+  if (nint > 0) {
+      structuralStatus_ = new char[4*nint];
+      structuralStatus_[4*nint-3]=0;
+      structuralStatus_[4*nint-2]=0;
+      structuralStatus_[4*nint-1]=0;
+      memcpy (structuralStatus_, sStat, ((ns + 3) / 4) * sizeof(char));
+  }
+  nint = ((na+15) >> 4);
+  if (nint > 0) {
+      artificialStatus_ = new char[4*nint];
+      artificialStatus_[4*nint-3]=0;
+      artificialStatus_[4*nint-2]=0;
+      artificialStatus_[4*nint-1]=0;
+      memcpy (artificialStatus_, aStat, ((na + 3) / 4) * sizeof(char));
+  }
 }
 
 CoinWarmStartBasis::CoinWarmStartBasis(const CoinWarmStartBasis& ws) :
@@ -72,13 +77,17 @@ CoinWarmStartBasis::CoinWarmStartBasis(const CoinWarmStartBasis& ws) :
   structuralStatus_(NULL), artificialStatus_(NULL) {
   // Round all so arrays multiple of 4
   int nint = (numStructural_+15) >> 4;
-  structuralStatus_ = new char[4*nint];
-  memcpy (structuralStatus_, ws.structuralStatus_, 
-	  (4*nint) * sizeof(char));
+  if (nint > 0) {
+      structuralStatus_ = new char[4*nint];
+      memcpy (structuralStatus_, ws.structuralStatus_, 
+	      (4*nint) * sizeof(char));
+  }
   nint = (numArtificial_+15) >> 4;
-  artificialStatus_ = new char[4*nint];
-  memcpy (artificialStatus_, ws.artificialStatus_, 
-	  (4*nint) * sizeof(char));
+  if (nint > 0) {
+      artificialStatus_ = new char[4*nint];
+      memcpy (artificialStatus_, ws.artificialStatus_, 
+	      (4*nint) * sizeof(char));
+  }
 }
 
 CoinWarmStartBasis& 
@@ -91,13 +100,21 @@ CoinWarmStartBasis::operator=(const CoinWarmStartBasis& rhs)
     delete [] artificialStatus_;
     // Round all so arrays multiple of 4
     int nint = (numStructural_+15) >> 4;
-    structuralStatus_ = new char[4*nint];
-    memcpy (structuralStatus_, rhs.structuralStatus_, 
-	    (4*nint) * sizeof(char));
+    if (nint > 0) {
+	structuralStatus_ = new char[4*nint + 4];
+	memcpy (structuralStatus_, rhs.structuralStatus_, 
+		(4*nint) * sizeof(char));
+    } else {
+	structuralStatus_ = NULL;
+    }
     nint = (numArtificial_+15) >> 4;
-    artificialStatus_ = new char[4*nint];
-    memcpy (artificialStatus_, rhs.artificialStatus_, 
-	  (4*nint) * sizeof(char));
+    if (nint > 0) {
+	artificialStatus_ = new char[4*nint + 4];
+	memcpy (artificialStatus_, rhs.artificialStatus_, 
+		(4*nint) * sizeof(char));
+    } else {
+	artificialStatus_ = NULL;
+    }
   }
   return *this;
 }
