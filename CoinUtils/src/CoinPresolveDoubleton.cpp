@@ -257,7 +257,8 @@ const CoinPresolveAction
 /*
   Check for integrality: If one variable is integer, keep it and substitute
   for the continuous variable. If both are integer, substitute only for the
-  forms x = y and x = 1-y, where both x and y are binary.
+  forms x = k * y (k integral and non-empty intersection on bounds on x)
+  or x = 1-y, where both x and y are binary.
 
   flag bits for integerStatus: 1>>0	x integer
 			       1>>1	y integer
@@ -287,6 +288,25 @@ const CoinPresolveAction
 	      integerStatus = 3;
 	    else
 	      integerStatus=-1;
+	    if (integerStatus==-1&&!rhs) {
+	      // maybe x = k * y;
+	      double value1 = colels[krowx];
+	      double value2 = colels[krowy];
+	      double ratio;
+	      bool swap=false;
+	      if (fabs(value1)>fabs(value2)) {
+		ratio = value1/value2;
+	      } else {
+		ratio = value2/value1;
+		swap=true;
+	      }
+	      ratio=fabs(ratio);
+	      if (fabs(ratio-floor(ratio+0.5))<1.0e-12) {
+		// possible
+		integerStatus = swap ? 2 : 1;
+		//printf("poss type %d\n",integerStatus);
+	      }
+	    }
 	  } else {
 	    integerStatus = 1;
 	  }

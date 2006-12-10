@@ -836,6 +836,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	    largestElement *= 0.1;
 	    int krow=-1;
 	    int ninrow=ncols+1;
+	    double thisValue=0.0;
 	    for (k=kcs; k<kce; ++k) {
 	      int row = hrow[k];
 	      double coeffj = colels[k];
@@ -844,6 +845,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		if (hinrow[row]<ninrow) {
 		  ninrow=hinrow[row];
 		  krow=row;
+		  thisValue=coeffj;
 		}
 	      }
 	    }
@@ -851,14 +853,16 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
               bool goodRow=true;
               if (integerType[j]) {
                 // can only accept if good looking row
-                if (fabs(rlo[krow]-floor(rlo[krow]+0.5))<tol) {
+		double scaleFactor = 1.0/thisValue;
+		double rhs = rlo[krow]*scaleFactor;
+                if (fabs(rhs-floor(rhs+0.5))<tol) {
                   CoinBigIndex krs = mrstrt[krow];
                   CoinBigIndex kre = krs + hinrow[krow];
                   CoinBigIndex kk;
                   bool allOnes=true;
                   for (kk = krs; kk < kre; ++kk) {
-                    double value=rowels[kk];
-                    if (value!=1.0)
+                    double value=rowels[kk]*scaleFactor;
+                    if (fabs(value)!=1.0)
                       allOnes=false;
                     int iColumn = hcol[kk];
                     if (!integerType[iColumn]||fabs(value-floor(value+0.5))>tol) {
