@@ -229,7 +229,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
       double * element = NULL;
       status=m.readQuadraticMps(NULL,start,column,element,2);
       if (!status) {
-	// If strings allowed 13 then just for Hans convert to equality
+	// If strings allowed 13 then just for Hans convert to constraint
 	int objRow=-1;
 	if (allowStrings==13) {
 	  int objColumn=numberColumns_;
@@ -237,7 +237,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	  // leave linear part in objective
 	  addColumn(0,NULL,NULL,-COIN_DBL_MAX,COIN_DBL_MAX,1.0,"obj");
 	  double minusOne=-1.0;
-	  addRow(1,&objColumn,&minusOne,0.0,0.0,"objrow");
+	  addRow(1,&objColumn,&minusOne,-COIN_DBL_MAX,0.0,"objrow");
 	}
 	if (!ifStrings&&!numberIntegers) {
 	  // no strings - add to quadratic (not done yet)

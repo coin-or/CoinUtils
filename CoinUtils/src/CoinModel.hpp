@@ -16,7 +16,7 @@
     1) A matrix of doubles (or strings - see note A)
     2) Column information including integer information and names
     3) Row information including names
-    4) Quadratic objective
+    4) Quadratic objective (not implemented - but see A)
 
     This class is meant to make it more efficient to build a model.  It is at
     its most efficient when all additions are done as addRow or as addCol but
@@ -36,6 +36,9 @@
         only use at present is to have named values e.g. value1 which can then be
         set to a value after model is created.  I have no idea whether that could
         be useful but I thought it might be fun.
+	Quadratic terms are allowed in strings!  A solver could try and use this
+	if so - the convention is that 0.5* quadratic is stored
+	
     B)  This class could be useful for modeling.
 */
 
