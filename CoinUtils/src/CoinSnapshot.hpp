@@ -61,6 +61,16 @@ public:
   inline const double * getRowUpper() const
   { return rowUpper_;};
   
+  /** Get pointer to array[getNumRows()] of row right-hand sides
+      This gives same results as OsiSolverInterface for useful cases
+      If getRowUpper()[i] != infinity then
+        getRightHandSide()[i] == getRowUpper()[i]
+      else
+        getRightHandSide()[i] == getRowLower()[i]
+  */
+  inline const double * getRightHandSide() const
+  { return rightHandSide_;};
+
   /// Get pointer to array[getNumCols()] of objective function coefficients
   inline const double * getObjCoefficients() const
   { return objCoefficients_;};
@@ -220,6 +230,25 @@ public:
   /// Set pointer to array[getNumRows()] of row upper bounds
   void setRowUpper(const double * array, bool copyIn=true);
   
+  /** Set pointer to array[getNumRows()] of row right-hand sides
+      This gives same results as OsiSolverInterface for useful cases
+      If getRowUpper()[i] != infinity then
+        getRightHandSide()[i] == getRowUpper()[i]
+      else
+        getRightHandSide()[i] == getRowLower()[i]
+  */
+  void setRightHandSide(const double * array, bool copyIn=true);
+
+  /** Create array[getNumRows()] of row right-hand sides
+      using existing information
+      This gives same results as OsiSolverInterface for useful cases
+      If getRowUpper()[i] != infinity then
+        getRightHandSide()[i] == getRowUpper()[i]
+      else
+        getRightHandSide()[i] == getRowLower()[i]
+  */
+  void createRightHandSide();
+
   /// Set pointer to array[getNumCols()] of objective function coefficients
   void setObjCoefficients(const double * array, bool copyIn=true);
   
@@ -355,6 +384,9 @@ private:
   /// pointer to array[getNumRows()] of row upper bounds
   const double * rowUpper_;
   
+  /// pointer to array[getNumRows()] of rhs side values
+  const double * rightHandSide_;
+  
   /// pointer to array[getNumCols()] of objective function coefficients
   const double * objCoefficients_;
   
@@ -406,6 +438,7 @@ private:
       unsigned int colUpper:1;
       unsigned int rowLower:1;
       unsigned int rowUpper:1;
+      unsigned int rightHandSide:1;
       unsigned int objCoefficients:1;
       unsigned int colType:1;
       unsigned int matrixByRow:1;

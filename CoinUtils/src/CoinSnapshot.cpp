@@ -61,6 +61,8 @@ CoinSnapshot::gutsOfDestructor(int type)
       delete [] rowLower_;
     if (owned_.rowUpper)
       delete [] rowUpper_;
+    if (owned_.rightHandSide)
+      delete [] rightHandSide_;
     if (owned_.objCoefficients)
       delete [] objCoefficients_;
     if (owned_.colType)
@@ -99,6 +101,7 @@ CoinSnapshot::gutsOfDestructor(int type)
     colUpper_ = NULL;
     rowLower_ = NULL;
     rowUpper_ = NULL;
+    rightHandSide_ = NULL;
     objCoefficients_ = NULL;
     colType_ = NULL;
     matrixByRow_ = NULL;
@@ -151,6 +154,10 @@ CoinSnapshot::gutsOfCopy(const CoinSnapshot & rhs)
     rowUpper_ = CoinCopyOfArray(rhs.rowUpper_,numRows_);
   else
     rowUpper_ = rhs.rowUpper_;
+  if (owned_.rightHandSide)
+    rightHandSide_ = CoinCopyOfArray(rhs.rightHandSide_,numRows_);
+  else
+    rightHandSide_ = rhs.rightHandSide_;
   if (owned_.objCoefficients)
     objCoefficients_ = CoinCopyOfArray(rhs.objCoefficients_,numCols_);
   else
@@ -232,6 +239,8 @@ CoinSnapshot::loadProblem(const CoinPackedMatrix& matrix,
   objCoefficients_ = CoinCopyOfArray(obj,numCols_,0.0);
   rowLower_ = CoinCopyOfArray(rowlb,numRows_,-infinity_);
   rowUpper_ = CoinCopyOfArray(rowub,numRows_,infinity_);
+  // do rhs as well
+  createRightHandSide();
 }
   
 // Set pointer to array[getNumCols()] of column lower bounds
@@ -289,6 +298,48 @@ CoinSnapshot::setRowUpper(const double * array, bool copyIn)
     owned_.rowUpper=0;
     rowUpper_ = array;
   }
+}
+/* Set pointer to array[getNumRows()] of rhs side values
+   This gives same results as OsiSolverInterface for useful cases
+   If getRowUpper()[i] != infinity then
+     getRightHandSide()[i] == getRowUpper()[i]
+   else
+     getRightHandSide()[i] == getRowLower()[i]
+*/
+void 
+CoinSnapshot::setRightHandSide(const double * array, bool copyIn)
+{
+  if (owned_.rightHandSide)
+    delete [] rightHandSide_;
+  if (copyIn) {
+    owned_.rightHandSide=1;
+    rightHandSide_ = CoinCopyOfArray(array,numRows_);
+  } else {
+    owned_.rightHandSide=0;
+    rightHandSide_ = array;
+  }
+}
+/* Create array[getNumRows()] of rhs side values
+   This gives same results as OsiSolverInterface for useful cases
+   If getRowUpper()[i] != infinity then
+     getRightHandSide()[i] == getRowUpper()[i]
+   else
+     getRightHandSide()[i] == getRowLower()[i]
+*/
+void 
+CoinSnapshot::createRightHandSide()
+{
+  if (owned_.rightHandSide)
+    delete [] rightHandSide_;
+  owned_.rightHandSide=1;
+  assert (rowUpper_);
+  assert (rowLower_);
+  double * rightHandSide = CoinCopyOfArray(rowUpper_,numRows_);
+  for (int i=0;i<numRows_;i++) {
+    if (rightHandSide[i]==infinity_)
+      rightHandSide[i] = rowLower_[i];
+  }
+  rightHandSide_ = rightHandSide;
 }
 // Set pointer to array[getNumCols()] of objective function coefficients
 void 
