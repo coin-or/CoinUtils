@@ -149,9 +149,14 @@ public:
   inline double getInfinity() const
   { return infinity_;};
   
-  /// Get objective function value
+  /** Get objective function value - includinbg any offset i.e.
+      sum c sub j * x subj - objValue = objOffset */
   inline double getObjValue() const
   { return objValue_;};
+
+  /// Get objective offset i.e. sum c sub j * x subj -objValue = objOffset 
+  inline double getObjOffset() const
+  { return objOffset_;};
 
   /// Get dual tolerance
   inline double getDualTolerance() const
@@ -262,6 +267,9 @@ public:
   /// Set pointer to row-wise copy of current matrix
   void setMatrixByRow(const CoinPackedMatrix * matrix, bool copyIn=true);
   
+  /// Create row-wise copy from MatrixByCol
+  void createMatrixByRow();
+  
   /// Set pointer to column-wise copy of current matrix
   void setMatrixByCol(const CoinPackedMatrix * matrix, bool copyIn=true);
   
@@ -290,9 +298,13 @@ public:
   inline void setInfinity(double value)
   { infinity_ = value;};
   
-  /// Set objective function value
+  /// Set objective function value (including any rhs offset)
   inline void setObjValue(double value)
   { objValue_ = value;};
+
+  /// Set objective offset i.e. sum c sub j * x subj -objValue = objOffset 
+  inline void setObjOffset(double value)
+  { objOffset_ = value;};
 
   /// Set dual tolerance
   inline void setDualTolerance(double value)
@@ -339,7 +351,8 @@ private:
   /** Does main work of destructor - type (or'ed)
       1 - NULLify pointers
       2 - delete pointers
-      4 - initialize scalars
+      4 - initialize scalars (tolerances etc)
+      8 - initialize scalars (objValue etc0
   */
   void gutsOfDestructor(int type);
   /// Does main work of copy
@@ -354,8 +367,11 @@ private:
   /// solver's value for infinity
   double infinity_;
   
-  /// objective function value
+  /// objective function value (including any rhs offset)
   double objValue_;
+
+  /// objective offset i.e. sum c sub j * x subj -objValue = objOffset 
+  double objOffset_;
 
   /// dual tolerance
   double dualTolerance_;

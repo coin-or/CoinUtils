@@ -16,7 +16,7 @@
 //-------------------------------------------------------------------
 CoinSnapshot::CoinSnapshot () 
 {
-  gutsOfDestructor(5);
+  gutsOfDestructor(13);
 }
 
 //-------------------------------------------------------------------
@@ -24,7 +24,7 @@ CoinSnapshot::CoinSnapshot ()
 //-------------------------------------------------------------------
 CoinSnapshot::CoinSnapshot (const CoinSnapshot & rhs) 
 {
-  gutsOfDestructor(5);
+  gutsOfDestructor(13);
   gutsOfCopy(rhs);
 }
 
@@ -33,7 +33,7 @@ CoinSnapshot::CoinSnapshot (const CoinSnapshot & rhs)
 //-------------------------------------------------------------------
 CoinSnapshot::~CoinSnapshot ()
 {
-  gutsOfDestructor(7);
+  gutsOfDestructor(15);
 }
 
 //----------------------------------------------------------------
@@ -43,7 +43,7 @@ CoinSnapshot &
 CoinSnapshot::operator=(const CoinSnapshot& rhs)
 {
   if (this != &rhs) {
-    gutsOfDestructor(7);
+    gutsOfDestructor(15);
     gutsOfCopy(rhs);
   }
   return *this;
@@ -89,10 +89,13 @@ CoinSnapshot::gutsOfDestructor(int type)
   if ((type&4)!=0) {
     objSense_ = 1.0;
     infinity_ = COIN_DBL_MAX;
-    objValue_ = COIN_DBL_MAX;
     dualTolerance_ = 1.0e-7;
     primalTolerance_ = 1.0e-7;
     integerTolerance_ = 1.0e-7;
+  }
+  if ((type&8)!=0) {
+    objValue_ = COIN_DBL_MAX;
+    objOffset_ = 0.0;
     integerUpperBound_ = COIN_DBL_MAX;
     integerLowerBound_ = -COIN_DBL_MAX;
   }
@@ -128,6 +131,7 @@ CoinSnapshot::gutsOfCopy(const CoinSnapshot & rhs)
   objSense_ = rhs.objSense_;
   infinity_ = rhs.infinity_;
   objValue_ = rhs.objValue_;
+  objOffset_ = rhs.objOffset_;
   dualTolerance_ = rhs.dualTolerance_;
   primalTolerance_ = rhs.primalTolerance_;
   integerTolerance_ = rhs.integerTolerance_;
@@ -221,8 +225,8 @@ CoinSnapshot::loadProblem(const CoinPackedMatrix& matrix,
 			  const double* rowlb, const double* rowub,
 			  bool makeRowCopy)
 {
-  // Keep scalars
-  gutsOfDestructor(3);
+  // Keep scalars (apart from objective value etc)
+  gutsOfDestructor(3+8);
   numRows_ = matrix.getNumRows();
   numCols_ = matrix.getNumCols();
   numElements_ = matrix.getNumElements();
@@ -390,6 +394,18 @@ CoinSnapshot::setMatrixByRow(const CoinPackedMatrix * matrix, bool copyIn)
   }
   assert (matrixByRow_->getNumCols()==numCols_);
   assert (matrixByRow_->getNumRows()==numRows_);
+}
+// Create row-wise copy from MatrixByCol
+void 
+CoinSnapshot::createMatrixByRow()
+{
+  if (owned_.matrixByRow)
+    delete matrixByRow_;
+  assert (matrixByCol_);
+  owned_.matrixByRow = 1;
+  CoinPackedMatrix * matrixByRow = new CoinPackedMatrix(*matrixByCol_);
+  matrixByRow->reverseOrdering();
+  matrixByRow_ = matrixByRow;
 }
 // Set pointer to column-wise copy of current matrix
 void 
