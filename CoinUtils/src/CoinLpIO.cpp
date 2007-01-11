@@ -632,11 +632,11 @@ CoinLpIO::out_coeff(FILE *fp, const double v, const int print_1) const {
   double frac = v - floor(v);
 
   if(frac < lp_eps) {
-    fprintf(fp, " %.0f", v);
+    fprintf(fp, " %.0f", floor(v));
   }
   else {
     if(frac > 1 - lp_eps) {
-      fprintf(fp, " %.0f", v+1);
+      fprintf(fp, " %.0f", floor(v+0.5));
     }
     else {
       int decimals = getDecimals();
