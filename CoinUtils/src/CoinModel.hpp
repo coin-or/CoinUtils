@@ -538,6 +538,9 @@ public:
   /// Says if strings exist
   inline bool stringsExist() const
   { return string_.numberItems()!=0;};
+  /// Return string array
+  inline const CoinModelHash * stringArray() const
+  { return &string_;};
   /// Returns associated array
   inline double * associatedArray() const
   { return associated_;};
