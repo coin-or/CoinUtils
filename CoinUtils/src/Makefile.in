@@ -721,6 +721,7 @@ uninstall-am: uninstall-includeHEADERS uninstall-info-am \
 	uninstall-am uninstall-includeHEADERS uninstall-info-am \
 	uninstall-libLTLIBRARIES uninstall-local
 
+@COIN_HAS_GMPL_TRUE@	AM_CPPFLAGS += -I`$(CYGPATH_W) $(GMPLINCDIR)`
 
 install-exec-local:
 	echo "#ifndef HAVE_CONFIG_H" >bla
