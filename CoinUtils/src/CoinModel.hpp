@@ -580,7 +580,7 @@ public:
     /** Read a problem from AMPL nl file
 	NOTE - as I can't work out configure etc the source code is in Cbc_ampl.cpp!
     */
-    CoinModel( int nonLinear, const char * fileName);
+    CoinModel( int nonLinear, const char * fileName,const void * info);
    /** Destructor */
    ~CoinModel();
    //@}
@@ -629,7 +629,7 @@ private:
   /** Read a problem from AMPL nl file
       so not constructor so gdb will work
    */
-  void gdb( int nonLinear, const char * fileName);
+  void gdb( int nonLinear, const char * fileName, const void * info);
   /**@name Data members */
    //@{
   /// Current number of rows
