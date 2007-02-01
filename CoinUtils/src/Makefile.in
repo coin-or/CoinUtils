@@ -43,6 +43,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@COIN_HAS_GMPL_TRUE@am__append_1 = -I`$(CYGPATH_W) $(GMPLINCDIR)`
 subdir = src
 DIST_COMMON = $(include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
@@ -201,12 +202,14 @@ abs_bin_dir = @abs_bin_dir@
 abs_include_dir = @abs_include_dir@
 abs_lib_dir = @abs_lib_dir@
 abs_source_dir = @abs_source_dir@
+ac_c_preproc_warn_flag = @ac_c_preproc_warn_flag@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 ac_ct_F77 = @ac_ct_F77@
 ac_ct_RANLIB = @ac_ct_RANLIB@
 ac_ct_STRIP = @ac_ct_STRIP@
+ac_cxx_preproc_warn_flag = @ac_cxx_preproc_warn_flag@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -321,7 +324,7 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
-AM_CPPFLAGS = 
+AM_CPPFLAGS = $(am__append_1)
 
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin
@@ -721,7 +724,6 @@ uninstall-am: uninstall-includeHEADERS uninstall-info-am \
 	uninstall-am uninstall-includeHEADERS uninstall-info-am \
 	uninstall-libLTLIBRARIES uninstall-local
 
-@COIN_HAS_GMPL_TRUE@	AM_CPPFLAGS += -I`$(CYGPATH_W) $(GMPLINCDIR)`
 
 install-exec-local:
 	echo "#ifndef HAVE_CONFIG_H" >bla
