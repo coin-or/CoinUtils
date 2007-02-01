@@ -81,7 +81,7 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 # "cygpath" stuff is necessary to compile with native compilers on Windows
 AM_CPPFLAGS =
 if COIN_HAS_GMPL
-	AM_CPPFLAGS += -I`$(CYGPATH_W) $(GMPLINCDIR)`
+  AM_CPPFLAGS += -I`$(CYGPATH_W) $(GMPLINCDIR)`
 endif
 
 # This line is necessary to allow VPATH compilation with MS compilers
