@@ -401,7 +401,7 @@ CoinSort_3(Iter_S sfirst, Iter_S slast, Iter_T tfirst, Iter_U, ufirst)
 template <class S, class T, class U, class CoinCompare3> void
 CoinSort_3(S* sfirst, S* slast, T* tfirst, U* ufirst, const CoinCompare3& tc)
 {
-  const int len = coinDistance(sfirst,slast);
+  const size_t len = coinDistance(sfirst,slast);
   if (len <= 1)
     return;
 
@@ -409,7 +409,7 @@ CoinSort_3(S* sfirst, S* slast, T* tfirst, U* ufirst, const CoinCompare3& tc)
   STU_triple* x =
     static_cast<STU_triple*>(::operator new(len * sizeof(STU_triple)));
 
-  int i = 0;
+  size_t i = 0;
   S* scurrent = sfirst;
   T* tcurrent = tfirst;
   U* ucurrent = ufirst;
