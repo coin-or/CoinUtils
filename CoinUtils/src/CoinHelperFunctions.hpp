@@ -683,7 +683,7 @@ inline double CoinDrand48()
     backslashes as directory separator */
 inline char CoinFindDirSeparator()
 {
-    size_t size = 1000;
+    int size = 1000;
     char* buf = 0;
     while (true) {
 	buf = new char[size];
