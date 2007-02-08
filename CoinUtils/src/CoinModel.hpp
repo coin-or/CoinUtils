@@ -568,6 +568,9 @@ public:
   /// Return column names array
   inline const CoinModelHash * columnNames() const
   { return &columnName_;};
+  /// Returns array of 0 or nonzero if can be a cut (or returns NULL)
+  inline const int * cutMarker() const
+  { return cut_;};
    //@}
 
   /**@name Constructors, destructor */
@@ -623,13 +626,47 @@ private:
 public:
   /// Fills in all associated - returning number of errors
   int computeAssociated(double * associated);
-  
+  /** Gets correct form for a quadratic row - user to delete
+      If row is not quadratic then returns which other variables are involved
+      with tiny (1.0e-100) elements and count of total number of variables which could not
+      be put in quadratic form
+  */
+  CoinPackedMatrix * quadraticRow(int rowNumber,double * linear,
+				  int & numberBad) const;
+  /// Replaces a quadratic row
+  void replaceQuadraticRow(int rowNumber,const double * linear, const CoinPackedMatrix * quadraticPart);
+  /** If possible return a model where if all variables marked nonzero are fixed
+      the problem will be linear.  At present may only work if quadratic.
+      Returns NULL if not possible
+  */
+  CoinModel * reorder(const char * mark) const;
+  /** Expands out all possible combinations for a knapsack
+      If buildObj NULL then just computes space needed - returns number elements
+      On entry numberOutput is maximum allowed, on exit it is number needed or
+      -1 (as will be number elements) if maximum exceeded.  numberOutput will have at
+      least space to return values which reconstruct input.
+      Rows returned will be original rows but no entries will be returned for
+      any rows all of whose entries are in knapsack.  So up to user to allow for this.
+      If reConstruct >=0 then returns number of entrie which make up item "reConstruct"
+      in expanded knapsack.  Values in buildRow and buildElement;
+  */
+  int expandKnapsack(int knapsackRow, int & numberOutput,double * buildObj, CoinBigIndex * buildStart,
+		     int * buildRow, double * buildElement,int reConstruct=-1) const;
+  /// Sets cut marker array
+  void setCutMarker(int size,const int * marker);
+  /// Sets priority array
+  void setPriorities(int size,const int * priorities);
+  /// priorities (given for all columns (-1 if not integer)
+  inline const int * priorities() const
+  { return priority_;};
   
 private:
   /** Read a problem from AMPL nl file
       so not constructor so gdb will work
    */
   void gdb( int nonLinear, const char * fileName, const void * info);
+  /// returns jColumn (-2 if linear term, -1 if unknown) and coefficient
+  int decodeBit(char * phrase, char * & nextPhrase, double & coefficient, bool ifFirst) const;
   /**@name Data members */
    //@{
   /// Current number of rows
@@ -728,6 +765,8 @@ private:
   double * referenceSOS_;
   /// priorities (given for all columns (-1 if not integer)
   int * priority_;
+  /// Nonzero if row is cut - done in one go e.g. from ampl
+  int * cut_;
   /** Print level.
       I could have gone for full message handling but this should normally
       be silent and lightweight.  I can always change.

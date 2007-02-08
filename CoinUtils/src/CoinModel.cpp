@@ -50,6 +50,7 @@ CoinModel::CoinModel ()
      prioritySOS_(NULL),
      referenceSOS_(NULL),
      priority_(NULL),
+     cut_(NULL),
      logLevel_(0),
      type_(-1),
      links_(0)
@@ -92,6 +93,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     prioritySOS_(NULL),
     referenceSOS_(NULL),
     priority_(NULL),
+    cut_(NULL),
     logLevel_(0),
     type_(-1),
     links_(0)
@@ -360,6 +362,7 @@ CoinModel::CoinModel (const CoinModel & rhs)
   sortElements_ = CoinCopyOfArray(rhs.sortElements_,sortSize_);
   associated_ = CoinCopyOfArray(rhs.associated_,sizeAssociated_);
   priority_ = CoinCopyOfArray(rhs.priority_,maximumColumns_);
+  cut_ = CoinCopyOfArray(rhs.cut_,maximumRows_);
   if (numberSOS_) {
     startSOS_ = CoinCopyOfArray(rhs.startSOS_,numberSOS_+1);
     int numberMembers = startSOS_[numberSOS_];
@@ -410,6 +413,7 @@ CoinModel::~CoinModel ()
   delete [] prioritySOS_;
   delete [] referenceSOS_;
   delete [] priority_;
+  delete [] cut_;
   free(problemName_);
 }
 
@@ -440,6 +444,7 @@ CoinModel::operator=(const CoinModel& rhs)
     delete [] prioritySOS_;
     delete [] referenceSOS_;
     delete [] priority_;
+    delete [] cut_;
     free(problemName_);
     problemName_ = strdup(rhs.problemName_);
     numberRows_ = rhs.numberRows_;
@@ -476,6 +481,7 @@ CoinModel::operator=(const CoinModel& rhs)
     integerType_ = CoinCopyOfArray(rhs.integerType_,maximumColumns_);
     columnType_ = CoinCopyOfArray(rhs.columnType_,maximumColumns_);
     priority_ = CoinCopyOfArray(rhs.priority_,maximumColumns_);
+    cut_ = CoinCopyOfArray(rhs.cut_,maximumRows_);
     if (numberSOS_) {
       startSOS_ = CoinCopyOfArray(rhs.startSOS_,numberSOS_+1);
       int numberMembers = startSOS_[numberSOS_];
@@ -2971,4 +2977,493 @@ CoinModel::validateLinks() const
     // validate column links
     columnList_.validateLinks(elements_);
   }
+}
+// returns jColumn (-2 if linear term, -1 if unknown) and coefficient
+int 
+CoinModel::decodeBit(char * phrase, char * & nextPhrase, double & coefficient, bool ifFirst) const
+{
+  char * pos = phrase;
+  // may be leading - (or +)
+  char * pos2 = pos;
+  double value=1.0;
+  if (*pos2=='-'||*pos2=='+')
+    pos2++;
+  // next terminator * or + or -
+  while (*pos2) {
+    if (*pos2=='*') {
+      break;
+    } else if (*pos2=='-'||*pos2=='+') {
+      if (pos2==pos||*(pos2-1)!='e')
+	break;
+    }
+    pos2++;
+  }
+  // if * must be number otherwise must be name
+  if (*pos2=='*') {
+    char * pos3 = pos;
+    while (pos3!=pos2) {
+      char x = *pos3;
+      pos3++;
+      assert ((x>='0'&&x<='9')||x=='.'||x=='+'||x=='-'||x=='e');
+    }
+    char saved = *pos2;
+    *pos2='\0';
+    value = atof(pos);
+    *pos2=saved;
+    // and down to next
+    pos2++;
+    pos=pos2;
+    while (*pos2) {
+      if (*pos2=='-'||*pos2=='+')
+	break;
+      pos2++;
+    }
+  }
+  char saved = *pos2;
+  *pos2='\0';
+  // now name
+  // might have + or -
+  if (*pos=='+') {
+    pos++;
+  } else if (*pos=='-') {
+    pos++;
+    assert (value==1.0);
+    value = - value;
+  }
+  int jColumn = column(pos);
+  // must be column unless first when may be linear term
+  if (jColumn<0) {
+    if (ifFirst) {
+      char * pos3 = pos;
+      while (pos3!=pos2) {
+	char x = *pos3;
+	pos3++;
+	assert ((x>='0'&&x<='9')||x=='.'||x=='+'||x=='-'||x=='e');
+      }
+      assert(*pos2=='\0');
+      // keep possible -
+      value = value * atof(pos);
+      jColumn=-2;
+    } else {
+      // bad
+      *pos2=saved;
+      printf("bad nonlinear term %s\n",phrase);
+      // maybe return -1 
+      abort();
+    }
+  }
+  *pos2=saved;
+  pos=pos2;
+  coefficient=value;
+  nextPhrase = pos;
+  return jColumn;
+}
+/* Gets correct form for a quadratic row - user to delete
+   If row is not quadratic then returns which other variables are involved
+   with tiny elements and count of total number of variables which could not
+   be put in quadratic form
+*/
+CoinPackedMatrix * 
+CoinModel::quadraticRow(int rowNumber,double * linearRow,
+			int & numberBad) const
+{
+  numberBad=0;
+  CoinZeroN(linearRow,numberColumns_);
+  int numberElements=0;
+  assert (rowNumber>=-1&&rowNumber<numberRows_);
+  if (rowNumber!=-1) {
+    // not objective 
+    CoinModelLink triple=firstInRow(rowNumber);
+    while (triple.column()>=0) {
+      int iColumn = triple.column();
+      const char * expr = getElementAsString(rowNumber,iColumn);
+      if (strcmp(expr,"Numeric")) {
+	// try and see which columns
+	assert (strlen(expr)<20000);
+	char temp[20000];
+	strcpy(temp,expr);
+	char * pos = temp;
+	bool ifFirst=true;
+	while (*pos) {
+	  double value;
+	  int jColumn = decodeBit(pos, pos, value, ifFirst);
+	  // must be column unless first when may be linear term
+	  if (jColumn>=0) {
+	    numberElements++;
+	  } else if (jColumn==-2) {
+	    linearRow[iColumn]=value;
+	  } else if (jColumn==-1) {
+	    // nonlinear term - we will just be marking
+	    numberElements++;
+	  } else {
+	    printf("bad nonlinear term %s\n",temp);
+	    abort();
+	  }
+	  ifFirst=false;
+	}
+      } else {
+	linearRow[iColumn]=getElement(rowNumber,iColumn);
+      }
+      triple=next(triple);
+    }
+    if (!numberElements) {
+      return NULL;
+    } else {
+      int * column = new int[numberElements];
+      int * column2 = new int[numberElements];
+      double * element = new double[numberElements];
+      numberElements=0;
+      CoinModelLink triple=firstInRow(rowNumber);
+      while (triple.column()>=0) {
+	int iColumn = triple.column();
+	const char * expr = getElementAsString(rowNumber,iColumn);
+	if (strcmp(expr,"Numeric")) {
+	  // try and see which columns
+	  assert (strlen(expr)<20000);
+	  char temp[20000];
+	  strcpy(temp,expr);
+	  char * pos = temp;
+	  bool ifFirst=true;
+	  while (*pos) {
+	    double value;
+	    int jColumn = decodeBit(pos, pos, value, ifFirst);
+	    // must be column unless first when may be linear term
+	    if (jColumn>=0) {
+	      column[numberElements]=iColumn;
+	      column2[numberElements]=jColumn;
+	      element[numberElements++]=value;
+	    } else if (jColumn==-1) {
+	      // nonlinear term - we will just be marking
+	      assert (jColumn>=0);
+	      column[numberElements]=iColumn;
+	      column2[numberElements]=jColumn;
+	      element[numberElements++]=1.0e-100;
+	      numberBad++;
+	    } else if (jColumn!=-2) {
+	      printf("bad nonlinear term %s\n",temp);
+	      abort();
+	    }
+	    ifFirst=false;
+	  }
+	}
+	triple=next(triple);
+      }
+      CoinPackedMatrix * newMatrix = new CoinPackedMatrix(true,column2,column,element,numberElements);
+      delete [] column;
+      delete [] column2;
+      delete [] element;
+      return newMatrix;
+    }
+  } else {
+    // objective
+    int iColumn;
+    for (iColumn=0;iColumn<numberColumns_;iColumn++) {
+      const char * expr = getColumnObjectiveAsString(iColumn);
+      if (strcmp(expr,"Numeric")) {
+	// try and see which columns
+	assert (strlen(expr)<20000);
+	char temp[20000];
+	strcpy(temp,expr);
+	char * pos = temp;
+	bool ifFirst=true;
+	while (*pos) {
+	  double value;
+	  int jColumn = decodeBit(pos, pos, value, ifFirst);
+	  // must be column unless first when may be linear term
+	  if (jColumn>=0) {
+	    numberElements++;
+	  } else if (jColumn==-2) {
+	    linearRow[iColumn]=value;
+	  } else if (jColumn==-1) {
+	    // nonlinear term - we will just be marking
+	    numberElements++;
+	  } else {
+	    printf("bad nonlinear term %s\n",temp);
+	    abort();
+	  }
+	  ifFirst=false;
+	}
+      } else {
+	linearRow[iColumn]=getElement(rowNumber,iColumn);
+      }
+    }
+    if (!numberElements) {
+      return NULL;
+    } else {
+      int * column = new int[numberElements];
+      int * column2 = new int[numberElements];
+      double * element = new double[numberElements];
+      numberElements=0;
+      for (iColumn=0;iColumn<numberColumns_;iColumn++) {
+	const char * expr = getColumnObjectiveAsString(iColumn);
+	if (strcmp(expr,"Numeric")) {
+	  // try and see which columns
+	  assert (strlen(expr)<20000);
+	  char temp[20000];
+	  strcpy(temp,expr);
+	  char * pos = temp;
+	  bool ifFirst=true;
+	  while (*pos) {
+	    double value;
+	    int jColumn = decodeBit(pos, pos, value, ifFirst);
+	    // must be column unless first when may be linear term
+	    if (jColumn>=0) {
+	      column[numberElements]=iColumn;
+	      column2[numberElements]=jColumn;
+	      element[numberElements++]=value;
+	    } else if (jColumn==-1) {
+	      // nonlinear term - we will just be marking
+	      assert (jColumn>=0);
+	      column[numberElements]=iColumn;
+	      column2[numberElements]=jColumn;
+	      element[numberElements++]=1.0e-100;
+	      numberBad++;
+	    } else if (jColumn!=-2) {
+	      printf("bad nonlinear term %s\n",temp);
+	      abort();
+	    }
+	    ifFirst=false;
+	  }
+	}
+      }
+      return new CoinPackedMatrix(true,column2,column,element,numberElements);
+    }
+  }
+}
+// Replaces a quadratic row
+void 
+CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const CoinPackedMatrix * quadraticPart)
+{
+  assert (rowNumber>=-1&&rowNumber<numberRows_);
+  if (rowNumber>=0) {
+    CoinModelLink triple=firstInRow(rowNumber);
+    while (triple.column()>=0) {
+      int iColumn = triple.column();
+      deleteElement(rowNumber,iColumn);
+      // triple stale - so start over
+      triple=firstInRow(rowNumber);
+    }
+    const double * element = quadraticPart->getElements();
+    const int * column = quadraticPart->getIndices();
+    const CoinBigIndex * columnStart = quadraticPart->getVectorStarts();
+    const int * columnLength = quadraticPart->getVectorLengths();
+    int numberLook = quadraticPart->getNumCols();
+    int i;
+    for (i=0;i<numberLook;i++) {
+      if (!columnLength[i]) {
+	// just linear part
+	if (linearRow[i])
+	  setElement(rowNumber,i,linearRow[i]);
+      } else {
+	char temp[10000];
+	int put=0;
+	char temp2[30];
+	bool first=true;
+	if (linearRow[i]) {
+	  sprintf(temp,"%g",linearRow[i]);
+	  first=false;
+	  put = strlen(temp);
+	}
+	for (int j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
+	  int jColumn = column[j];
+	  double value = element[j];
+	  if (value<0.0||first) 
+	    sprintf(temp2,"%g*c%7.7d",value,jColumn);
+	  else
+	    sprintf(temp2,"+%g*c%7.7d",value,jColumn);
+	  int nextPut = put + strlen(temp2);
+	  assert (nextPut<10000);
+	  strcpy(temp+put,temp2);
+	  put = nextPut;
+	}
+	setElement(rowNumber,i,temp);
+      }
+    }
+    // rest of linear
+    for (;i<numberColumns_;i++) {
+      if (linearRow[i])
+	setElement(rowNumber,i,linearRow[i]);
+    }
+  } else {
+    // objective
+    int iColumn;
+    for (iColumn=0;iColumn<numberColumns_;iColumn++) {
+      setColumnObjective(iColumn,0.0);
+    }
+    const double * element = quadraticPart->getElements();
+    const int * column = quadraticPart->getIndices();
+    const CoinBigIndex * columnStart = quadraticPart->getVectorStarts();
+    const int * columnLength = quadraticPart->getVectorLengths();
+    int numberLook = quadraticPart->getNumCols();
+    int i;
+    for (i=0;i<numberLook;i++) {
+      if (!columnLength[i]) {
+	// just linear part
+	if (linearRow[i])
+	  setColumnObjective(i,linearRow[i]);
+      } else {
+	char temp[10000];
+	int put=0;
+	char temp2[30];
+	bool first=true;
+	if (linearRow[i]) {
+	  sprintf(temp,"%g",linearRow[i]);
+	  first=false;
+	  put = strlen(temp);
+	}
+	for (int j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
+	  int jColumn = column[j];
+	  double value = element[j];
+	  if (value<0.0||first) 
+	    sprintf(temp2,"%g*c%7.7d",value,jColumn);
+	  else
+	    sprintf(temp2,"+%g*c%7.7d",value,jColumn);
+	  int nextPut = put + strlen(temp2);
+	  assert (nextPut<10000);
+	  strcpy(temp+put,temp2);
+	  put = nextPut;
+	}
+	setColumnObjective(i,temp);
+      }
+    }
+    // rest of linear
+    for (;i<numberColumns_;i++) {
+      if (linearRow[i])
+	setColumnObjective(i,linearRow[i]);
+    }
+  }
+}
+/* If possible return a model where if all variables marked nonzero are fixed
+      the problem will be linear.  At present may only work if quadratic.
+      Returns NULL if not possible
+*/
+CoinModel * 
+CoinModel::reorder(const char * mark) const
+{
+  // redo array so 2 high priority nonlinear, 1 nonlinear, 0 linear
+  char * highPriority = new char [numberColumns_];
+  double * linear = new double[numberColumns_];
+  CoinModel * newModel = new CoinModel(*this);
+  for (int iRow=-1;iRow<numberRows_;iRow++) {
+    int numberBad;
+    CoinPackedMatrix * row = quadraticRow(iRow,linear,numberBad);
+    assert (!numberBad); // fix later
+    if (row) {
+      // see if valid
+      //const double * element = row->getElements();
+      const int * column = row->getIndices();
+      const CoinBigIndex * columnStart = row->getVectorStarts();
+      const int * columnLength = row->getVectorLengths();
+      int numberLook = row->getNumCols();
+      for (int i=0;i<numberLook;i++) {
+	if (mark[i])
+	  highPriority[i]=2;
+	else
+	  highPriority[i]=1;
+	for (int j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
+	  int iColumn = column[j];
+	  if (mark[iColumn])
+	    highPriority[iColumn]=2;
+	  else
+	    highPriority[iColumn]=1;
+	}
+      }
+      delete row;
+    }
+  }
+  for (int iRow=-1;iRow<numberRows_;iRow++) {
+    int numberBad;
+    CoinPackedMatrix * row = quadraticRow(iRow,linear,numberBad);
+    if (row) {
+      // see if valid
+      const double * element = row->getElements();
+      const int * columnLow = row->getIndices();
+      const CoinBigIndex * columnHigh = row->getVectorStarts();
+      const int * columnLength = row->getVectorLengths();
+      int numberLook = row->getNumCols();
+      int canSwap=0;
+      for (int i=0;i<numberLook;i++) {
+	// this one needs to be available
+	int iPriority = highPriority[i];
+	for (int j=columnHigh[i];j<columnHigh[i]+columnLength[i];j++) {
+	  int iColumn = columnLow[j];
+	  if (highPriority[iColumn]<=1) {
+	    assert (highPriority[iColumn]==1);
+	    if (iPriority==1) {
+	      canSwap=-1; // no good
+	      break;
+	    } else {
+	      canSwap=1;
+	    }
+	  }
+	}
+      }
+      if (canSwap) {
+	if (canSwap>0) {
+	  // rewrite row
+	  /* get triples
+	     then swap ones needed
+	     then create packedmatrix
+	     then replace row
+	  */
+	  int numberElements=columnHigh[numberLook];
+	  int * columnHigh2 = new int [numberElements];
+	  int * columnLow2 = new int [numberElements];
+	  double * element2 = new double [numberElements];
+	  for (int i=0;i<numberLook;i++) {
+	    // this one needs to be available
+	    int iPriority = highPriority[i];
+	    if (iPriority==2) {
+	      for (int j=columnHigh[i];j<columnHigh[i]+columnLength[i];j++) {
+		columnHigh2[j]=i;
+		columnLow2[j]=columnLow[j];
+		element2[j]=element[j];
+	      }
+	    } else {
+	      for (int j=columnHigh[i];j<columnHigh[i]+columnLength[i];j++) {
+		columnLow2[j]=i;
+		columnHigh2[j]=columnLow[j];
+		element2[j]=element[j];
+	      }
+	    }
+	  }
+	  delete row;
+	  row = new CoinPackedMatrix(true,columnHigh2,columnLow2,element2,numberElements);
+	  delete [] columnHigh2;
+	  delete [] columnLow2;
+	  delete [] element2;
+	  // Now replace row
+	  newModel->replaceQuadraticRow(iRow,linear,row);
+	  delete row;
+	} else {
+	  delete row;
+	  delete newModel;
+	  newModel=NULL;
+	  printf("Unable to use priority - row %d\n",iRow);
+	  break;
+	}
+      }
+    }
+  }
+  delete [] highPriority;
+  delete [] linear;
+  return newModel;
+}
+// Sets cut marker array
+void 
+CoinModel::setCutMarker(int size,const int * marker)
+{
+  delete [] cut_;
+  cut_ = new int [maximumRows_];
+  CoinZeroN(cut_,maximumRows_);
+  memcpy(cut_,marker,size*sizeof(int));
+}
+// Sets priority array
+void 
+CoinModel::setPriorities(int size,const int * priorities)
+{
+  delete [] priority_;
+  priority_ = new int [maximumColumns_];
+  CoinZeroN(priority_,maximumColumns_);
+  memcpy(priority_,priorities,size*sizeof(int));
 }
