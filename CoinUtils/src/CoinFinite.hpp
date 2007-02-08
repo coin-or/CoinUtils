@@ -74,7 +74,7 @@ using std::max;
 inline bool CoinFinite(double val)
 {
 #ifdef MY_C_FINITE
-//    return static_cast<bool>(MY_C_FINITE(val));
+  //    return static_cast<bool>(MY_C_FINITE(val));
     return MY_C_FINITE(val)!=0;
 #else
     return val != DBL_MAX && val != -DBL_MAX;
@@ -86,7 +86,7 @@ inline bool CoinFinite(double val)
 inline bool CoinIsnan(double val)
 {
 #ifdef MY_C_ISNAN
-//    return static_cast<bool>(MY_C_ISNAN(val));
+  //    return static_cast<bool>(MY_C_ISNAN(val));
     return MY_C_ISNAN(val)!=0;
 #else
     return false;

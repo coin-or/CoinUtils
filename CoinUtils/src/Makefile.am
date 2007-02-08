@@ -16,6 +16,13 @@ AUTOMAKE_OPTIONS = foreign
 # in the 'lib' directory
 lib_LTLIBRARIES = libCoinUtils.la
 
+# AW: This is a fix at the moment to head with the fact that LIBS has
+# -llapack and other libraries in it when those are used and not compiled
+# here.  The content of LIBS is passed to libtool when building a shared
+# library, and that can cause trouble, since liblapack.a and others
+# should not be built into the shared libraries.
+LIBS =
+
 # List all source files for this library, including headers
 libCoinUtils_la_SOURCES = \
 	CoinUtilsConfig.h \
@@ -44,6 +51,7 @@ libCoinUtils_la_SOURCES = \
 	CoinPackedMatrix.cpp CoinPackedMatrix.hpp \
 	CoinPackedVector.cpp CoinPackedVector.hpp \
 	CoinPackedVectorBase.cpp CoinPackedVectorBase.hpp \
+	CoinParam.cpp CoinParamUtils.cpp CoinParam.hpp \
 	CoinPostsolveMatrix.cpp \
 	CoinPragma.hpp \
 	CoinPrePostsolveMatrix.cpp \
@@ -64,6 +72,7 @@ libCoinUtils_la_SOURCES = \
 	CoinPresolveTripleton.cpp CoinPresolveTripleton.hpp \
 	CoinPresolveUseless.cpp CoinPresolveUseless.hpp \
 	CoinPresolveZeros.cpp CoinPresolveZeros.hpp \
+	CoinSearchTree.cpp CoinSearchTree.hpp \
 	CoinShallowPackedVector.cpp CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
 	CoinSort.hpp \
@@ -76,6 +85,13 @@ libCoinUtils_la_SOURCES = \
 
 # This is for libtool (on Windows)
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
+
+# Here we list additional libraries that we want to include, such as Lapack
+# and Blas when they are compiled with the rest of COIN.  This is temporary
+# solution.
+libCoinUtils_la_LIBADD = $(COINUTILS_LIBADD)
+
+libCoinUtils_la_DEPENDENCIES = $(COINUTILS_LIBADD)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
@@ -133,6 +149,7 @@ include_HEADERS = \
 	CoinPresolveTripleton.hpp \
 	CoinPresolveUseless.hpp \
 	CoinPresolveZeros.hpp \
+	CoinSearchTree.hpp \
 	CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
 	CoinSort.hpp \

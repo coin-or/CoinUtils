@@ -6,6 +6,12 @@
 /* Define to the debug verbosity level (0 is no output) */
 #undef COIN_COINUTILS_VERBOSITY
 
+/* If defined, the Ampl Solver Library is available. */
+#undef COIN_HAS_ASL
+
+/* If defined, the BLAS Library is available. */
+#undef COIN_HAS_BLAS
+
 /* Define to 1 if bzlib is available */
 #undef COIN_HAS_BZLIB
 
@@ -15,6 +21,9 @@
 /* Define to 1 if the Gmpl package is used */
 #undef COIN_HAS_GMPL
 
+/* If defined, the LAPACK Library is available. */
+#undef COIN_HAS_LAPACK
+
 /* Define to 1 if zlib is available */
 #undef COIN_HAS_ZLIB
 
@@ -23,6 +32,20 @@
 
 /* Define to integer type capturing pointer */
 #undef COIN_INTPTR_T
+
+/* Define to dummy `main' function (if any) required to link to the Fortran
+   libraries. */
+#undef F77_DUMMY_MAIN
+
+/* Define to a macro mangling the given C identifier (in lower and upper
+   case), which must not contain underscores, for linking with Fortran. */
+#undef F77_FUNC
+
+/* As F77_FUNC, but for C identifiers containing underscores. */
+#undef F77_FUNC_
+
+/* Define if F77 and FC dummy `main' functions are identical. */
+#undef FC_DUMMY_MAIN_EQ_F77
 
 /* Define to 1 if you have the <bzlib.h> header file. */
 #undef HAVE_BZLIB_H

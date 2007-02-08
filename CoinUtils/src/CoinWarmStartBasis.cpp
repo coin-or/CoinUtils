@@ -162,15 +162,17 @@ CoinWarmStartBasis::resize (int newNumberRows, int newNumberColumns)
 void CoinWarmStartBasis::compressRows (int tgtCnt, const int *tgts)
 { 
   int i,keep,t,blkStart,blkEnd ;
-  // basis may be null or smaller than members of list
-  for (t = 0 ; t < tgtCnt ; t++) {
-    if (tgts[t]>=numArtificial_) {
-      // get rid of bad ones
-      tgtCnt = t;
-      break;
-    }
-  }
-  if (tgtCnt <= 0) return ;
+/*
+  Depending on circumstances, constraint indices may be larger than the size
+  of the basis. Check for that now. Scan from top, betting that in most cases
+  the majority of indices will be valid.
+*/
+  for (t = tgtCnt-1 ; t >= 0 && tgts[t] >= numArtificial_ ; t--) ;
+  // temporary trap to make sure that scan from top is correct choice.
+  // if ((t+1) < tgtCnt/2)
+  // { printf("CWSB: tgtCnt %d, t %d; BAD CASE",tgtCnt,t+1) ; }
+  if (t < 0) return ;
+  tgtCnt = t+1 ;
   Status stati ;
 
 # ifdef COIN_DEBUG
@@ -336,6 +338,60 @@ CoinWarmStartBasis::deleteColumns(int number, const int * which)
     std::cout<<numberBasic<<" basic structurals deleted"<<std::endl;
 #endif
 }
+
+/*
+  Merge the specified entries from the source basis (src) into the target
+  basis (this). For each entry in xferCols, xferRows, first is the source index,
+  second is the target index, and third is the run length.
+  
+  This routine was originally created to solve the problem of correctly
+  expanding an existing basis but can be used in a general context to merge
+  two bases.
+
+  If the xferRows (xferCols) vector is missing, no row (column) information
+  will be transferred from src to tgt.
+*/
+
+void CoinWarmStartBasis::mergeBasis (const CoinWarmStartBasis *src,
+				     const XferVec *xferRows,
+				     const XferVec *xferCols)
+
+{ assert(src) ;
+  int srcCols = src->getNumStructural() ;
+  int srcRows = src->getNumArtificial() ;
+/*
+  Merge the structural variable status.
+*/
+  if (srcCols > 0 && xferCols != NULL)
+  { XferVec::const_iterator xferSpec = xferCols->begin() ;
+    XferVec::const_iterator xferEnd = xferCols->end() ;
+    for ( ; xferSpec != xferEnd ; xferSpec++)
+    { int srcNdx = (*xferSpec).first ;
+      int tgtNdx = (*xferSpec).second ;
+      int runLen = (*xferSpec).third ;
+      assert(srcNdx >= 0 && srcNdx+runLen <= srcCols) ;
+      assert(tgtNdx >= 0 && tgtNdx+runLen <= getNumStructural()) ;
+      for (int i = 0 ; i < runLen ; i++)
+      { CoinWarmStartBasis::Status stat = src->getStructStatus(srcNdx+i) ;
+	setStructStatus(tgtNdx+i,stat) ; } } }
+/*
+  Merge the row (artificial variable) status.
+*/
+  if (srcRows > 0 && xferRows != NULL)
+  { XferVec::const_iterator xferSpec = xferRows->begin() ;
+    XferVec::const_iterator xferEnd = xferRows->end() ;
+    for ( ; xferSpec != xferEnd ; xferSpec++)
+    { int srcNdx = (*xferSpec).first ;
+      int tgtNdx = (*xferSpec).second ;
+      int runLen = (*xferSpec).third ;
+      assert(srcNdx >= 0 && srcNdx+runLen <= srcRows) ;
+      assert(tgtNdx >= 0 && tgtNdx+runLen <= getNumArtificial()) ;
+      for (int i = 0 ; i < runLen ; i++)
+      { CoinWarmStartBasis::Status stat = src->getArtifStatus(srcNdx+i) ;
+	setArtifStatus(tgtNdx+i,stat) ; } } }
+
+  return ; }
+
 // Prints in readable format (for debug)
 void 
 CoinWarmStartBasis::print() const

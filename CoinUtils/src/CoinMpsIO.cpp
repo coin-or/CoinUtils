@@ -17,6 +17,7 @@
 #include "CoinMpsIO.hpp"
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
+#include "CoinModel.hpp"
 
 //#############################################################################
 // type - 0 normal, 1 INTEL IEEE, 2 other IEEE
@@ -116,11 +117,13 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 	// okay
 	*output=ptr;
       } else {
-	*output=save;
+	value = osi_strtod(save,output);
+	sign1=1.0;
       }
     } else {
       // bad value
-      *output=save;
+      value = osi_strtod(save,output);
+      sign1=1.0;
     }
     value *= sign1;
   } else {
@@ -191,7 +194,29 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
     memcpy(&value,shortValue,sizeof(double));
   }
   return value;
-} 
+}
+// for strings 
+double CoinMpsCardReader::osi_strtod(char * ptr, char ** output) 
+{
+  char * save = ptr;
+  double value=-1.0e100;
+  if (!stringsAllowed_) {
+    *output=save;
+  } else {
+    // take off leading white space
+    while (*ptr==' '||*ptr=='\t')
+      ptr++;
+    if (*ptr=='=') {
+      strcpy(valueString_,ptr);
+#define STRING_VALUE  -1.234567e-101
+      value = STRING_VALUE;
+      *output=ptr+strlen(ptr);
+    } else {
+      *output=save;
+    }
+  }
+  return value;
+}
 //#############################################################################
 // sections
 const static char *section[] = {
@@ -425,6 +450,8 @@ CoinMpsCardReader::CoinMpsCardReader (  CoinFileInput *input,
   reader_ = reader;
   handler_ = reader_->messageHandler();
   messages_ = reader_->messages();
+  memset ( valueString_, 0, COIN_MAX_FIELD_LENGTH );
+  stringsAllowed_=false;
 }
 //  ~CoinMpsCardReader.  Destructor
 CoinMpsCardReader::~CoinMpsCardReader (  )
@@ -1576,6 +1603,9 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
   if ( ifmps ) {
     // mps file - always read in free format
     bool gotNrow = false;
+    // allow strings ?
+    if (allowStringElements_)
+      cardReader_->setStringsAllowed();
 
     //get ROWS
     cardReader_->nextField (  ) ;
@@ -1606,7 +1636,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
-      return numberErrors;
+      return numberErrors+100000;
     }
     //use malloc etc as I don't know how to do realloc in C++
     numberRows_ = 0;
@@ -1681,7 +1711,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
-      return numberErrors;
+      return numberErrors+100000;
     }
     //assert ( gotNrow );
     if (numberRows_)
@@ -1859,6 +1889,26 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	      return numberErrors;
 	    }
 	  }
+	} else if (cardReader_->value () == STRING_VALUE ) {
+	  // tiny element - string
+	  const char * s = cardReader_->valueString();
+	  assert (*s=='=');
+	  // get row number
+	  COINRowIndex irow = findHash ( cardReader_->rowName (  ) , 0 );
+
+	  if ( irow >= 0 ) {
+	    addString(irow,column,s+1);
+	  } else {
+	    numberErrors++;
+	    if ( numberErrors < 100 ) {
+		  handler_->message(COIN_MPS_NOMATCHROW,messages_)
+		    <<cardReader_->rowName()<<cardReader_->cardNumber()<<cardReader_->card()
+		    <<CoinMessageEol;
+	    } else if (numberErrors > 100000) {
+	      handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
+	      return numberErrors;
+	    }
+	  }
 	}
 	break;
       case COIN_INTORG:
@@ -1893,7 +1943,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
-      return numberErrors;
+      return numberErrors+100000;
     }
     if (numberColumns_) {
       columnType =
@@ -1984,6 +2034,13 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    } else {
 	      objUsed = true;
 	    }
+	    if (value==STRING_VALUE) {
+	      value=0.0;
+	      // tiny element - string
+	      const char * s = cardReader_->valueString();
+	      assert (*s=='=');
+	      addString(irow,numberColumns_,s+1);
+	    }
 	    objectiveOffset_ += value;
 	  } else if ( irow < numberRows_ ) {
 	    if ( rowlower_[irow] != -infinity_ ) {
@@ -1997,6 +2054,13 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 		return numberErrors;
 	      }
 	    } else {
+	      if (value==STRING_VALUE) {
+		value=0.0;
+		// tiny element - string
+		const char * s = cardReader_->valueString();
+		assert (*s=='=');
+		addString(irow,numberColumns_,s+1);
+	      }
 	      rowlower_[irow] = value;
 	    }
 	  }
@@ -2217,6 +2281,13 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	  case COIN_UP_BOUND:
 	    if ( value == -1.0e100 )
 	      ifError = true;
+	    if (value==STRING_VALUE) {
+	      value=1.0e10;
+	      // tiny element - string
+	      const char * s = cardReader_->valueString();
+	      assert (*s=='=');
+	      addString(numberRows_+2,icolumn,s+1);
+	    }
 	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
 	      if ( value < 0.0 ) {
 		collower_[icolumn] = -infinity_;
@@ -2239,6 +2310,13 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	  case COIN_LO_BOUND:
 	    if ( value == -1.0e100 )
 	      ifError = true;
+	    if (value==STRING_VALUE) {
+	      value=-1.0e10;
+	      // tiny element - string
+	      const char * s = cardReader_->valueString();
+	      assert (*s=='=');
+	      addString(numberRows_+1,icolumn,s+1);
+	    }
 	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
 	    } else if ( columnType[icolumn] == COIN_UP_BOUND ||
 			columnType[icolumn] == COIN_UI_BOUND ) {
@@ -2258,6 +2336,14 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	  case COIN_FX_BOUND:
 	    if ( value == -1.0e100 )
 	      ifError = true;
+	    if (value==STRING_VALUE) {
+	      value=0.0;
+	      // tiny element - string
+	      const char * s = cardReader_->valueString();
+	      assert (*s=='=');
+	      addString(numberRows_+1,icolumn,s+1);
+	      addString(numberRows_+2,icolumn,s+1);
+	    }
 	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
 	    } else if ( columnType[icolumn] == COIN_UI_BOUND ||
 			columnType[icolumn] == COIN_BV_BOUND) {
@@ -2307,6 +2393,13 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    columnType[icolumn] = COIN_PL_BOUND;
 	    break;
 	  case COIN_UI_BOUND:
+	    if (value==STRING_VALUE) {
+	      value=1.0e20;
+	      // tiny element - string
+	      const char * s = cardReader_->valueString();
+	      assert (*s=='=');
+	      addString(numberRows_+2,icolumn,s+1);
+	    }
 #if 0
 	    if ( value == -1.0e100 ) 
 	      ifError = true;
@@ -2353,6 +2446,13 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	  case COIN_LI_BOUND:
 	    if ( value == -1.0e100 )
 	      ifError = true;
+	    if (value==STRING_VALUE) {
+	      value=-1.0e20;
+	      // tiny element - string
+	      const char * s = cardReader_->valueString();
+	      assert (*s=='=');
+	      addString(numberRows_+1,icolumn,s+1);
+	    }
 	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
 	    } else if ( columnType[icolumn] == COIN_UP_BOUND ||
 			columnType[icolumn] == COIN_UI_BOUND ) {
@@ -2415,11 +2515,10 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	}
       }
     }
-    int i;
-    for (i=0;i<numberSets;i++)
-      delete sets[i];
+    //for (i=0;i<numberSets;i++)
+    //delete sets[i];
     numberSets=0;
-    delete [] sets;
+    //delete [] sets;
     sets=NULL;
     
     // Do SOS if found
@@ -2471,6 +2570,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	memcpy(sets,setsA,numberSets*sizeof(CoinSet **));
       }
       delete [] setsA;
+      delete [] which;
+      delete [] weights;
     }
     stopHash ( 1 );
     // clean up integers
@@ -2488,6 +2589,23 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    colupper_[icolumn] = defaultBound_;
 	  if ( colupper_[icolumn] > MAX_INTEGER ) 
 	    colupper_[icolumn] = MAX_INTEGER;
+	  // clean up to allow for bad reads on 1.0e2 etc
+	  if (colupper_[icolumn]<1.0e10) {
+	    double value = colupper_[icolumn];
+	    double value2 = floor(value+0.5);
+	    if (value!=value2) {
+	      if (fabs(value-value2)<1.0e-5)
+		colupper_[icolumn]=value2;
+	    }
+	  }
+	  if (collower_[icolumn]>-1.0e10) {
+	    double value = collower_[icolumn];
+	    double value2 = floor(value+0.5);
+	    if (value!=value2) {
+	      if (fabs(value-value2)<1.0e-5)
+		collower_[icolumn]=value2;
+	    }
+	  }
 	}
       }
     }
@@ -2498,7 +2616,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 						    <<cardReader_->card()
 						    <<CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING,messages_)<<CoinMessageEol;
-      return numberErrors+1000;
+      return numberErrors+100000;
     }
   } else {
     // This is very simple format - what should we use?
@@ -2912,8 +3030,12 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
           char * semi = strchr(objName,';');
           if (semi)
             *semi='\0';
-          assert (strstr(card,"maxim"));
-          minimize=false;
+	  if (strstr(card,"minim")) {
+	    minimize=true;
+	  } else {
+	    assert (strstr(card,"maxim"));
+	    minimize=false;
+	  }
         } else {
           decodeType=-1;
         }
@@ -2927,7 +3049,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
   collower_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
   colupper_ = ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
   objective_= ( double * ) malloc ( numberColumns_ * sizeof ( double ) );
-  CoinBigIndex *start = ( CoinBigIndex *) malloc ((numberColumns_ + 1) *
+  CoinBigIndex *start = ( CoinBigIndex *) malloc ((numberRows_ + 1) *
                                                   sizeof (CoinBigIndex) );
   COINColumnIndex * column = ( COINRowIndex * ) malloc (numberElements_ * sizeof (COINRowIndex));
   double *element = ( double * ) malloc (numberElements_ * sizeof (double) );
@@ -2963,8 +3085,10 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     assert (*next==','||*next==';');
     cardReader_->setPosition(next+1);
     columnName[i]=strdup(cardReader_->columnName());
-    // Default is free?
+    // Default is free? 
     collower_[i]=-COIN_DBL_MAX;
+    // Surely not - check
+    collower_[i]=0.0;
     colupper_[i]=COIN_DBL_MAX;
     objective_[i]=0.0;
     columnType[i]=COIN_UNSET_BOUND;
@@ -3078,14 +3202,41 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
       if (returnCode==2)
         break;
       int iColumn = findHash(cardReader_->columnName(),1);
-      assert (iColumn>=0);
-      column[numberElements_]=iColumn;
-      double value = cardReader_->value();
-      if (fabs(value)<tinyElement)
-        numberTiny++;
-      else if (fabs(value)>largeElement)
-        numberLarge++;
-      element[numberElements_++]=value;
+      if (iColumn>=0) {
+	column[numberElements_]=iColumn;
+	double value = cardReader_->value();
+	if (fabs(value)<tinyElement)
+	  numberTiny++;
+	else if (fabs(value)>largeElement)
+	  numberLarge++;
+	element[numberElements_++]=value;
+      } else {
+	// may be string
+	char temp[100];
+	strcpy(temp,cardReader_->columnName());
+	char * ast = strchr(temp,'*');
+	if (!ast) {
+	  assert (iColumn>=0);
+	} else {
+	  assert (allowStringElements_);
+	  *ast='\0';
+	  if (allowStringElements_==1)
+	    iColumn = findHash(temp,1);
+	  else
+	    iColumn = findHash(ast+1,1);
+	  assert (iColumn>=0);
+	  char temp2[100];
+	  temp2[0]='\0';
+	  double value = cardReader_->value();
+	  if (value&&value!=1.0) 
+	    sprintf(temp2,"%g*",value);
+	  if (allowStringElements_==1)
+	    strcat(temp2,ast+1);
+	  else
+	    strcat(temp2,temp);
+	  addString(i,iColumn,temp2);
+	}
+      }
     }
     start[i+1]=numberElements_;
     next=cardReader_->getPosition();
@@ -3143,13 +3294,102 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
           collower_[iColumn]=value;
         }
       }
+      // may be two per card
+      char * semi = strchr(dot+1,';');
+      dot = NULL;
+      if (semi)
+	dot = strchr(semi+1,'.');
+      if (dot) {
+	char * next= nextNonBlank(semi+1);
+	dot = strchr(next,'.');
+	assert (dot);
+	*dot='\0';
+	int jColumn = findHash(next,1);
+	assert (iColumn==jColumn);
+        // bound
+        next = strchr(dot+1,'=');
+        assert (next);
+        double value =atof(next+1);
+        if (!strncmp(dot+1,"fx",2)) {
+          collower_[iColumn]=value;
+	  abort();
+          colupper_[iColumn]=value;
+        } else if (!strncmp(dot+1,"up",2)) {
+          colupper_[iColumn]=value;
+        } else if (!strncmp(dot+1,"lo",2)) {
+          collower_[iColumn]=value;
+        }
+	// may be two per card
+	semi = strchr(dot+1,';');
+	assert (semi);
+      }
     }
   }
   // Objective
-  assert (!convertObjective_); // do later
-  int iObj = findHash(objName,1);
-  assert (iObj>=0);
-  objective_[iObj]=minimize ? 1.0 : -1.0;
+  int iObjCol = findHash(objName,1);
+  int iObjRow=-1;
+  assert (iObjCol>=0);
+  if (!convertObjective_) {
+    objective_[iObjCol]=minimize ? 1.0 : -1.0;
+  } else {
+    // move column stuff
+    COINColumnIndex iColumn;
+    free(names_[1][iObjCol]);
+    for ( iColumn = iObjCol+1; iColumn < numberColumns_; iColumn++ ) {
+      integerType_[iColumn-1]=integerType_[iColumn];
+      collower_[iColumn-1]=collower_[iColumn];
+      colupper_[iColumn-1]=colupper_[iColumn];
+      names_[1][iColumn-1]=names_[1][iColumn];
+    }
+    numberHash_[1]--;
+    numberColumns_--;
+    double multiplier = minimize ? 1.0 : -1.0;
+    // but swap
+    multiplier *= -1.0;
+    int iRow;
+    CoinBigIndex nel=0;
+    CoinBigIndex last=0;
+    int kRow=0;
+    for (iRow=0;iRow<numberRows_;iRow++) {
+      CoinBigIndex j;
+      bool found=false;
+      for (j=last;j<start[iRow+1];j++) {
+	int iColumn = column[j];
+	if (iColumn!=iObjCol) {
+	  column[nel]=(iColumn<iObjCol) ? iColumn : iColumn-1;
+	  element[nel++]=element[j];
+	} else {
+	  found=true;
+	  assert (element[j]==1.0);
+	  break;
+	}
+      }
+      if (!found) {
+	last=start[iRow+1];
+	rowlower_[kRow]=rowlower_[iRow];
+	rowupper_[kRow]=rowupper_[iRow];
+	names_[0][kRow]=names_[0][iRow];
+	start[kRow+1]=nel;
+	kRow++;
+      } else {
+	free(names_[0][iRow]);
+	iObjRow = iRow;
+	for (j=last;j<start[iRow+1];j++) {
+	  int iColumn = column[j];
+	  if (iColumn!=iObjCol) {
+	    if (iColumn>iObjCol)
+	      iColumn --;
+	    objective_[iColumn]=multiplier * element[j];
+	  }
+	}
+	nel=start[kRow];
+	last=start[iRow+1];
+      }
+    }
+    numberRows_=kRow;
+    assert (iObjRow>=0);
+    numberHash_[0]--;
+  }
   stopHash(0);
   stopHash(1);
   // clean up integers
@@ -3170,7 +3410,36 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
   }
   free ( columnType );
   free ( rowType );
-  // construct packed matrix and convert to column format
+  if (numberStringElements()&&convertObjective_) {
+    int numberElements = numberStringElements();
+    for (int i=0;i<numberElements;i++) {
+      char * line = stringElements_[i];
+      int iRow;
+      int iColumn;
+      sscanf(line,"%d,%d,",&iRow,&iColumn);
+      bool modify=false;
+      if (iRow>iObjRow) {
+	modify=true;
+	iRow--;
+      }
+      if (iColumn>iObjCol) {
+	modify=true;
+	iColumn--;
+      }
+      if (modify) {
+	char temp[500];
+	const char * pos = strchr(line,',');
+	assert (pos);
+	pos = strchr(pos+1,',');
+	assert (pos);
+	pos++;
+	sprintf(temp,"%d,%d,%s",iRow,iColumn,pos);
+	free(line);
+	stringElements_[i]=strdup(temp);
+      }
+    }
+  }
+// construct packed matrix and convert to column format
   CoinPackedMatrix matrixByRow(false,
                                numberColumns_,numberRows_,numberElements_,
                                element,column,start,NULL);
@@ -3181,8 +3450,9 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
   matrixByColumn_->setExtraGap(0.0);
   matrixByColumn_->setExtraMajor(0.0);
   matrixByColumn_->reverseOrderedCopyOf(matrixByRow);
-  assert (matrixByColumn_->getVectorLengths()[iObj]==1);
-
+  if (!convertObjective_)
+    assert (matrixByColumn_->getVectorLengths()[iObjCol]==1);
+  
   handler_->message(COIN_MPS_STATS,messages_)<<problemName_
 					    <<numberRows_
 					    <<numberColumns_
@@ -3709,11 +3979,18 @@ makeUniqueNames(char ** names,int number,char first)
     return 0;
   }
 }
+static void
+strcpyeq(char * output, const char * input)
+{
+  output[0]='=';
+  strcpy(output+1,input);
+}
 
 int
 CoinMpsIO::writeMps(const char *filename, int compression,
 		   int formatType, int numberAcross,
-		    CoinPackedMatrix * quadratic ) const
+		    CoinPackedMatrix * quadratic,
+		    int numberSOS, const CoinSet * setInfo) const
 {
   // Clean up format and numberacross
   numberAcross=CoinMax(1,numberAcross);
@@ -3790,7 +4067,10 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       freeFormat = true;
       formatType += 8;
    }
-
+   if (numberStringElements_) {
+     freeFormat=true;
+     numberAcross=1;
+   }
    
    // NAME card
 
@@ -3876,55 +4156,111 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 
    char outputValue[2][24];
    char outputRow[2][100];
+   // strings
+   int nextRowString=numberRows_+10;
+   int nextColumnString=numberColumns_+10;
+   int whichString=0;
+   const char * nextString=NULL;
+   // mark string rows
+   char * stringRow = new char[numberRows_+1];
+   memset(stringRow,0,numberRows_+1);
+   if (numberStringElements_) {
+     decodeString(whichString,nextRowString,nextColumnString,nextString);
+   }
 
    // Through columns (only put out if elements or objective value)
    for (i=0;i<numberColumns_;i++) {
-      if (objective[i]||lengths[i]) {
-	 // see if bound will be needed
-	 if (columnLower[i]||columnUpper[i]<largeValue||isInteger(i))
-	    ifBounds=true;
-	 int numberFields=0;
-	 if (objective[i]) {
-	    convertDouble(0,formatType,objective[i],outputValue[0],
-			  "OBJROW",outputRow[0]);
-	    numberFields=1;
+     if (i==nextColumnString) {
+       // set up
+       int k=whichString;
+       int iColumn=nextColumnString;
+       int iRow=nextRowString;
+       const char * dummy;
+       while (iColumn==nextColumnString) {
+	 stringRow[iRow]=1;
+	 k++;
+	 decodeString(k,iRow,iColumn,dummy);
+       }
+     }
+     if (objective[i]||lengths[i]||i==nextColumnString) {
+       // see if bound will be needed
+       if (columnLower[i]||columnUpper[i]<largeValue||isInteger(i))
+	 ifBounds=true;
+       int numberFields=0;
+       if (objective[i]) {
+	 convertDouble(0,formatType,objective[i],outputValue[0],
+		       "OBJROW",outputRow[0]);
+	 numberFields=1;
+	 if (stringRow[numberRows_]) {
+	   assert (objective[i]==STRING_VALUE);
+	   assert (nextColumnString==i&&nextRowString==numberRows_);
+	   strcpyeq(outputValue[0],nextString);
+	   stringRow[numberRows_]=0;
+	   decodeString(++whichString,nextRowString,nextColumnString,nextString);
 	 }
-	 if (numberFields==numberAcross) {
-	    // put out card
-	    outputCard(formatType, numberFields,
-		       output, "    ",
-		       columnNames[i],
-		       outputValue,
-		       outputRow);
-	    numberFields=0;
+       }
+       if (numberFields==numberAcross) {
+	 // put out card
+	 outputCard(formatType, numberFields,
+		    output, "    ",
+		    columnNames[i],
+		    outputValue,
+		    outputRow);
+	 numberFields=0;
+       }
+       int j;
+       for (j=0;j<lengths[i];j++) {
+	 int jRow = rows[starts[i]+j];
+	 double value = elements[starts[i]+j];
+	 if (value&&!stringRow[jRow]) {
+	   convertDouble(0,formatType,value,
+			 outputValue[numberFields],
+			 rowNames[jRow],
+			 outputRow[numberFields]);
+	   numberFields++;
+	   if (numberFields==numberAcross) {
+	     // put out card
+	     outputCard(formatType, numberFields,
+			output, "    ",
+			columnNames[i],
+			outputValue,
+			outputRow);
+	     numberFields=0;
+	   }
 	 }
-	 int j;
-	 for (j=0;j<lengths[i];j++) {
-	    convertDouble(0,formatType,elements[starts[i]+j],
-			  outputValue[numberFields],
-			  rowNames[rows[starts[i]+j]],
-			  outputRow[numberFields]);
-	    numberFields++;
-	    if (numberFields==numberAcross) {
-	       // put out card
-	       outputCard(formatType, numberFields,
-			  output, "    ",
-			  columnNames[i],
-			  outputValue,
-			  outputRow);
-	       numberFields=0;
-	    }
-	 }
-	 if (numberFields) {
-	    // put out card
-	    outputCard(formatType, numberFields,
-		       output, "    ",
-		       columnNames[i],
-		       outputValue,
-		       outputRow);
-	 }
-      }
+       }
+       if (numberFields) {
+	 // put out card
+	 outputCard(formatType, numberFields,
+		    output, "    ",
+		    columnNames[i],
+		    outputValue,
+		    outputRow);
+       }
+     }
+     // end see if any strings
+     if (i==nextColumnString) {
+       int iColumn=nextColumnString;
+       int iRow=nextRowString;
+       while (iColumn==nextColumnString) {
+	 double value = 1.0;
+	 convertDouble(0,formatType,value,
+		       outputValue[0],
+		       rowNames[nextRowString],
+		       outputRow[0]);
+	 strcpyeq(outputValue[0],nextString);
+	 // put out card
+	 outputCard(formatType, 1,
+		    output, "    ",
+		    columnNames[i],
+		    outputValue,
+		    outputRow);
+	 stringRow[iRow]=0;
+	 decodeString(++whichString,nextRowString,nextColumnString,nextString);
+       }
+     }
    }
+   delete [] stringRow;
 
    bool ifRange=false;
    // RHS
@@ -3973,6 +4309,10 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 		       outputValue[numberFields],
 		       rowNames[i],
 		       outputRow[numberFields]);
+	 if (i==nextRowString&&nextColumnString>=numberColumns_) {
+	   strcpyeq(outputValue[0],nextString);
+	   decodeString(++whichString,nextRowString,nextColumnString,nextString);
+	 }
 	 numberFields++;
 	 if (numberFields==numberAcross) {
 	    // put out card
@@ -4035,6 +4375,67 @@ CoinMpsIO::writeMps(const char *filename, int compression,
       writeString(output, "BOUNDS\n");
 
       for (i=0;i<numberColumns_;i++) {
+	if (i==nextColumnString) {
+	  // just lo and up
+	  if (columnLower[i]==STRING_VALUE) {
+	    assert (nextRowString==numberRows_+1);
+	    convertDouble(2,formatType,1.0,
+			  outputValue[0],
+			  columnNames[i],
+			  outputRow[0]);
+	    strcpyeq(outputValue[0],nextString);
+	    decodeString(++whichString,nextRowString,nextColumnString,nextString);
+	    if (i==nextColumnString) {
+	      assert (columnUpper[i]==STRING_VALUE);
+	      assert (nextRowString==numberRows_+2);
+	      if (!strcmp(nextString,outputValue[0])) {
+		// put out card FX
+		outputCard(formatType, 1,
+			   output, " FX ",
+			   "BOUND",
+			   outputValue,
+			   outputRow);
+	      } else {
+		// put out card LO
+		outputCard(formatType, 1,
+			   output, " LO ",
+			   "BOUND",
+			   outputValue,
+			   outputRow);
+		// put out card UP
+		strcpyeq(outputValue[0],nextString);
+		outputCard(formatType, 1,
+			   output, " UP ",
+			   "BOUND",
+			   outputValue,
+			   outputRow);
+	      }
+	      decodeString(++whichString,nextRowString,nextColumnString,nextString);
+	    } else {
+	      // just LO
+	      // put out card LO
+	      outputCard(formatType, 1,
+			 output, " LO ",
+			 "BOUND",
+			 outputValue,
+			 outputRow);
+	    }
+	  } else if (columnUpper[i]==STRING_VALUE) {
+	    assert (nextRowString==numberRows_+2);
+	    convertDouble(2,formatType,1.0,
+			  outputValue[0],
+			  columnNames[i],
+			  outputRow[0]);
+	    strcpyeq(outputValue[0],nextString);
+	    outputCard(formatType, 1,
+		       output, " UP ",
+		       "BOUND",
+		       outputValue,
+		       outputRow);
+	    decodeString(++whichString,nextRowString,nextColumnString,nextString);
+	  }
+	  continue;
+	}
 	 if (objective[i]||lengths[i]) {
 	    // see if bound will be needed
 	    if (columnLower[i]||columnUpper[i]<largeValue||isInteger(i)) {
@@ -4167,6 +4568,29 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 		    columnNames[iColumn],
 		    outputValue,
 		    outputRow);
+       }
+     }
+   }
+   // SOS
+   if (numberSOS) {
+     writeString(output, "SOS\n");
+     for (int i=0;i<numberSOS;i++) {
+       int type = setInfo[i].setType();
+       writeString(output, (type==1) ? " S1\n" : " S2\n");
+       int n=setInfo[i].numberEntries();
+       const int * which = setInfo[i].which();
+       const double * weights = setInfo[i].weights();
+       
+       for (int j=0;j<n;j++) {
+	 int k=which[j];
+	 convertDouble(2,formatType,
+		       weights ? weights[j] : COIN_DBL_MAX,outputValue[0],
+		       "",outputRow[0]);
+	 // put out card
+	 outputCard(formatType, 1,
+		    output, "   ",
+		    columnNames[k],
+		    outputValue,outputRow);
        }
      }
    }
@@ -4613,7 +5037,6 @@ CoinMpsIO::setProblemName (const char *name)
 { free(problemName_) ;
   problemName_ = strdup(name) ; }
 
-
 //------------------------------------------------------------------
 // Return true if column is a continuous, binary, ...
 //------------------------------------------------------------------
@@ -4785,7 +5208,11 @@ defaultBound_(1),
 infinity_(COIN_DBL_MAX),
 defaultHandler_(true),
 cardReader_(NULL),
-convertObjective_(false)
+convertObjective_(false),
+allowStringElements_(0),
+maximumStringElements_(0),
+numberStringElements_(0),
+stringElements_(NULL)
 {
   numberHash_[0]=0;
   hash_[0]=NULL;
@@ -4826,7 +5253,11 @@ fileName_(strdup("????")),
 defaultBound_(1),
 infinity_(COIN_DBL_MAX),
 defaultHandler_(true),
-cardReader_(NULL)
+cardReader_(NULL),
+allowStringElements_(rhs.allowStringElements_),
+maximumStringElements_(rhs.maximumStringElements_),
+numberStringElements_(rhs.numberStringElements_),
+stringElements_(NULL)
 {
   numberHash_[0]=0;
   hash_[0]=NULL;
@@ -4905,6 +5336,16 @@ void CoinMpsIO::gutsOfCopy(const CoinMpsIO & rhs)
       }
     }
   }
+  allowStringElements_ = rhs.allowStringElements_;
+  maximumStringElements_ = rhs.maximumStringElements_;
+  numberStringElements_ = rhs.numberStringElements_;
+  if (numberStringElements_) {
+    stringElements_ = new char * [maximumStringElements_];
+    for (int i=0;i<numberStringElements_;i++)
+      stringElements_[i]=strdup(rhs.stringElements_[i]);
+  } else {
+    stringElements_ = NULL;
+  }
 }
 
 //-------------------------------------------------------------------
@@ -4982,6 +5423,9 @@ void CoinMpsIO::freeAll()
   rhsName_=NULL;
   rangeName_=NULL;
   boundName_=NULL;
+  for (int i=0;i<numberStringElements_;i++)
+    free(stringElements_[i]);
+  delete [] stringElements_;
 }
 
 /* Release all information which can be re-calculated e.g. rowsense
@@ -5353,18 +5797,166 @@ CoinMpsIO::readConicMps(const char * filename,
   stopHash(1);
   return numberErrors;
 }
+// Add string to list
+void 
+CoinMpsIO::addString(int iRow,int iColumn, const char * value)
+{
+  char id [20];
+  sprintf(id,"%d,%d,",iRow,iColumn);
+  int n = strlen(id)+strlen(value);
+  if (numberStringElements_==maximumStringElements_) {
+    maximumStringElements_ = 2*maximumStringElements_+100;
+    char ** temp = new char * [maximumStringElements_];
+    for (int i=0;i<numberStringElements_;i++)
+      temp[i]=stringElements_[i];
+    delete [] stringElements_;
+    stringElements_ = temp;
+  }
+  char * line = (char *) malloc(n+1);
+  stringElements_[numberStringElements_++]=line;
+  strcpy(line,id);
+  strcat(line,value);
+}
+// Decode string
+void 
+CoinMpsIO::decodeString(int iString, int & iRow, int & iColumn, const char * & value) const
+{
+  iRow=-1;
+  iColumn=-1;
+  value=NULL;
+  if (iString>=0&&iString<numberStringElements_) {
+    value = stringElements_[iString];
+    sscanf(value,"%d,%d,",&iRow,&iColumn);
+    value = strchr(value,',');
+    assert(value);
+    value++;
+    value = strchr(value,',');
+    assert(value);
+    value++;
+  }
+}
+// copies in strings from a CoinModel - returns number
+int 
+CoinMpsIO::copyStringElements(const CoinModel * model)
+{
+  if (!model->stringsExist())
+    return 0; // no strings
+  assert (!numberStringElements_);
+  /*
+    First columns (including objective==numberRows)
+    then RHS(==numberColumns (+1)) (with rowLower and rowUpper marked)
+    then bounds LO==numberRows+1, UP==numberRows+2
+  */
+  int numberColumns = model->numberColumns();
+  int numberRows = model->numberRows();
+  int iColumn;
+  for (iColumn=0;iColumn<numberColumns;iColumn++) {
+    const char * expr = model->getColumnObjectiveAsString(iColumn);
+    if (strcmp(expr,"Numeric")) {
+      addString(numberRows,iColumn,expr);
+    }
+    CoinModelLink triple=model->firstInColumn(iColumn);
+    while (triple.row()>=0) {
+      int iRow = triple.row();
+      const char * expr = model->getElementAsString(iRow,iColumn);
+      if (strcmp(expr,"Numeric")) {
+	addString(iRow,iColumn,expr);
+      }
+      triple=model->next(triple);
+    }
+  }
+  int iRow;
+  for (iRow=0;iRow<numberRows;iRow++) {
+    // for now no ranges
+    const char * expr1 = model->getRowLowerAsString(iRow);
+    const char * expr2 = model->getRowUpperAsString(iRow);
+    if (strcmp(expr1,"Numeric")) {
+      if (rowupper_[iRow]>1.0e20&&!strcmp(expr2,"Numeric")) {
+	// G row
+	addString(iRow,numberColumns,expr1);
+	rowlower_[iRow]=STRING_VALUE;
+      } else if (!strcmp(expr1,expr2)) {
+	// E row
+	addString(iRow,numberColumns,expr1);
+	rowlower_[iRow]=STRING_VALUE;
+	addString(iRow,numberColumns+1,expr1);
+	rowupper_[iRow]=STRING_VALUE;
+      } else if (rowlower_[iRow]<-1.0e20&&!strcmp(expr1,"Numeric")) {
+	// L row
+	addString(iRow,numberColumns+1,expr2);
+	rowupper_[iRow]=STRING_VALUE;
+      } else {
+	// Range
+	printf("Unaable to handle string ranges row %d %s %s\n",
+	       iRow,expr1,expr2);
+	abort();
+      }
+    }
+  }
+  // Bounds
+  for (iColumn=0;iColumn<numberColumns;iColumn++) {
+    const char * expr = model->getColumnLowerAsString(iColumn);
+    if (strcmp(expr,"Numeric")) {
+      addString(numberRows+1,iColumn,expr);
+      collower_[iColumn]=STRING_VALUE;
+    }
+    expr = model->getColumnUpperAsString(iColumn);
+    if (strcmp(expr,"Numeric")) {
+      addString(numberRows+2,iColumn,expr);
+      colupper_[iColumn]=STRING_VALUE;
+    }
+  }
+  return numberStringElements_;
+}
 // Constructor 
 CoinSet::CoinSet ( int numberEntries, const int * which)
 {
   numberEntries_ = numberEntries;
   which_ = new int [numberEntries_];
+  weights_ = NULL;
   memcpy(which_,which,numberEntries_*sizeof(int));
+  setType_=1;
+}
+// Default constructor 
+CoinSet::CoinSet ()
+{
+  numberEntries_ = 0;
+  which_ = NULL;
+  weights_ = NULL;
+  setType_=1;
+}
+
+// Copy constructor 
+CoinSet::CoinSet (const CoinSet & rhs)
+{
+  numberEntries_ = rhs.numberEntries_;
+  setType_=rhs.setType_;
+  which_ = CoinCopyOfArray(rhs.which_,numberEntries_);
+  weights_ = CoinCopyOfArray(rhs.weights_,numberEntries_);
+}
+  
+//----------------------------------------------------------------
+// Assignment operator 
+//-------------------------------------------------------------------
+CoinSet &
+CoinSet::operator=(const CoinSet& rhs)
+{
+  if (this != &rhs) {    
+    delete [] which_;
+    delete [] weights_;
+    numberEntries_ = rhs.numberEntries_;
+    setType_=rhs.setType_;
+    which_ = CoinCopyOfArray(rhs.which_,numberEntries_);
+    weights_ = CoinCopyOfArray(rhs.weights_,numberEntries_);
+  }
+  return *this;
 }
 
 // Destructor
 CoinSet::~CoinSet (  )
 {
   delete [] which_;
+  delete [] weights_;
 }
 // Constructor 
 CoinSosSet::CoinSosSet ( int numberEntries, const int * which, const double * weights, int type)
@@ -5373,12 +5965,24 @@ CoinSosSet::CoinSosSet ( int numberEntries, const int * which, const double * we
   weights_= new double [numberEntries_];
   memcpy(weights_,weights,numberEntries_*sizeof(double));
   setType_ = type;
+  double last = weights_[0];
+  int i;
+  bool allSame=true;
+  for (i=1;i<numberEntries_;i++) {
+    if(weights_[i]!=last) {
+      allSame=false;
+      break;
+    }
+  }
+  if (allSame) {
+    for (i=0;i<numberEntries_;i++) 
+      weights_[i] = i;
+  }
 }
 
 // Destructor
 CoinSosSet::~CoinSosSet (  )
 {
-  delete [] weights_;
 }
 #ifdef USE_SBB
 #include "SbbModel.hpp"

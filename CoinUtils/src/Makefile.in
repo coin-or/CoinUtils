@@ -64,25 +64,26 @@ am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libCoinUtils_la_LIBADD =
+am__DEPENDENCIES_1 =
 am_libCoinUtils_la_OBJECTS = CoinBuild.lo CoinDenseVector.lo \
 	CoinError.lo CoinFactorization1.lo CoinFactorization2.lo \
 	CoinFactorization3.lo CoinFactorization4.lo CoinFileIO.lo \
 	CoinIndexedVector.lo CoinLpIO.lo CoinMessage.lo \
 	CoinMessageHandler.lo CoinModel.lo CoinModelUseful.lo \
 	CoinModelUseful2.lo CoinMpsIO.lo CoinPackedMatrix.lo \
-	CoinPackedVector.lo CoinPackedVectorBase.lo \
-	CoinPostsolveMatrix.lo CoinPrePostsolveMatrix.lo \
-	CoinPresolveDoubleton.lo CoinPresolveDual.lo \
-	CoinPresolveDupcol.lo CoinPresolveEmpty.lo \
+	CoinPackedVector.lo CoinPackedVectorBase.lo CoinParam.lo \
+	CoinParamUtils.lo CoinPostsolveMatrix.lo \
+	CoinPrePostsolveMatrix.lo CoinPresolveDoubleton.lo \
+	CoinPresolveDual.lo CoinPresolveDupcol.lo CoinPresolveEmpty.lo \
 	CoinPresolveFixed.lo CoinPresolveForcing.lo \
 	CoinPresolveHelperFunctions.lo CoinPresolveImpliedFree.lo \
 	CoinPresolveIsolated.lo CoinPresolveMatrix.lo \
 	CoinPresolvePsdebug.lo CoinPresolveSingleton.lo \
 	CoinPresolveSubst.lo CoinPresolveTighten.lo \
 	CoinPresolveTripleton.lo CoinPresolveUseless.lo \
-	CoinPresolveZeros.lo CoinShallowPackedVector.lo \
-	CoinWarmStartBasis.lo CoinWarmStartDual.lo
+	CoinPresolveZeros.lo CoinSearchTree.lo \
+	CoinShallowPackedVector.lo CoinWarmStartBasis.lo \
+	CoinWarmStartDual.lo
 libCoinUtils_la_OBJECTS = $(am_libCoinUtils_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/../depcomp
 am__depfiles_maybe = depfiles
@@ -113,12 +114,15 @@ ACLOCAL = @ACLOCAL@
 ADDLIBS = @ADDLIBS@
 ADD_CFLAGS = @ADD_CFLAGS@
 ADD_CXXFLAGS = @ADD_CXXFLAGS@
+ADD_FFLAGS = @ADD_FFLAGS@
 ALWAYS_FALSE_FALSE = @ALWAYS_FALSE_FALSE@
 ALWAYS_FALSE_TRUE = @ALWAYS_FALSE_TRUE@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 AR = @AR@
+ASLLIB = @ASLLIB@
+ASL_CPPFLAGS = @ASL_CPPFLAGS@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -131,10 +135,21 @@ CDEFS = @CDEFS@
 CFLAGS = @CFLAGS@
 COINUTILSOBJDIR = @COINUTILSOBJDIR@
 COINUTILSSRCDIR = @COINUTILSSRCDIR@
+COINUTILS_LIBADD = @COINUTILS_LIBADD@
+COIN_BUILD_BLAS_FALSE = @COIN_BUILD_BLAS_FALSE@
+COIN_BUILD_BLAS_TRUE = @COIN_BUILD_BLAS_TRUE@
+COIN_BUILD_LAPACK_FALSE = @COIN_BUILD_LAPACK_FALSE@
+COIN_BUILD_LAPACK_TRUE = @COIN_BUILD_LAPACK_TRUE@
+COIN_HAS_ASL_FALSE = @COIN_HAS_ASL_FALSE@
+COIN_HAS_ASL_TRUE = @COIN_HAS_ASL_TRUE@
+COIN_HAS_BLAS_FALSE = @COIN_HAS_BLAS_FALSE@
+COIN_HAS_BLAS_TRUE = @COIN_HAS_BLAS_TRUE@
 COIN_HAS_COINUTILS_FALSE = @COIN_HAS_COINUTILS_FALSE@
 COIN_HAS_COINUTILS_TRUE = @COIN_HAS_COINUTILS_TRUE@
 COIN_HAS_GMPL_FALSE = @COIN_HAS_GMPL_FALSE@
 COIN_HAS_GMPL_TRUE = @COIN_HAS_GMPL_TRUE@
+COIN_HAS_LAPACK_FALSE = @COIN_HAS_LAPACK_FALSE@
+COIN_HAS_LAPACK_TRUE = @COIN_HAS_LAPACK_TRUE@
 COIN_HAS_ZLIB_FALSE = @COIN_HAS_ZLIB_FALSE@
 COIN_HAS_ZLIB_TRUE = @COIN_HAS_ZLIB_TRUE@
 CPP = @CPP@
@@ -147,6 +162,7 @@ CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DBG_CFLAGS = @DBG_CFLAGS@
 DBG_CXXFLAGS = @DBG_CXXFLAGS@
+DBG_FFLAGS = @DBG_FFLAGS@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 ECHO = @ECHO@
@@ -158,6 +174,7 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FADDLIBS = @FADDLIBS@
 FFLAGS = @FFLAGS@
+FLIBS = @FLIBS@
 GMPLINCDIR = @GMPLINCDIR@
 GMPLLIB = @GMPLLIB@
 HAVE_EXTERNALS_FALSE = @HAVE_EXTERNALS_FALSE@
@@ -169,7 +186,13 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBEXT = @LIBEXT@
 LIBOBJS = @LIBOBJS@
-LIBS = @LIBS@
+
+# AW: This is a fix at the moment to head with the fact that LIBS has
+# -llapack and other libraries in it when those are used and not compiled
+# here.  The content of LIBS is passed to libtool when building a shared
+# library, and that can cause trouble, since liblapack.a and others
+# should not be built into the shared libraries.
+LIBS = 
 LIBTOOL = @LIBTOOL@
 LIBTOOLM4 = @LIBTOOLM4@
 LN_S = @LN_S@
@@ -181,9 +204,11 @@ MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
 MPICC = @MPICC@
 MPICXX = @MPICXX@
+MPIF77 = @MPIF77@
 OBJEXT = @OBJEXT@
 OPT_CFLAGS = @OPT_CFLAGS@
 OPT_CXXFLAGS = @OPT_CXXFLAGS@
+OPT_FFLAGS = @OPT_FFLAGS@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -288,6 +313,7 @@ libCoinUtils_la_SOURCES = \
 	CoinPackedMatrix.cpp CoinPackedMatrix.hpp \
 	CoinPackedVector.cpp CoinPackedVector.hpp \
 	CoinPackedVectorBase.cpp CoinPackedVectorBase.hpp \
+	CoinParam.cpp CoinParamUtils.cpp CoinParam.hpp \
 	CoinPostsolveMatrix.cpp \
 	CoinPragma.hpp \
 	CoinPrePostsolveMatrix.cpp \
@@ -308,6 +334,7 @@ libCoinUtils_la_SOURCES = \
 	CoinPresolveTripleton.cpp CoinPresolveTripleton.hpp \
 	CoinPresolveUseless.cpp CoinPresolveUseless.hpp \
 	CoinPresolveZeros.cpp CoinPresolveZeros.hpp \
+	CoinSearchTree.cpp CoinSearchTree.hpp \
 	CoinShallowPackedVector.cpp CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
 	CoinSort.hpp \
@@ -321,6 +348,12 @@ libCoinUtils_la_SOURCES = \
 
 # This is for libtool (on Windows)
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
+
+# Here we list additional libraries that we want to include, such as Lapack
+# and Blas when they are compiled with the rest of COIN.  This is temporary
+# solution.
+libCoinUtils_la_LIBADD = $(COINUTILS_LIBADD)
+libCoinUtils_la_DEPENDENCIES = $(COINUTILS_LIBADD)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
@@ -375,6 +408,7 @@ include_HEADERS = \
 	CoinPresolveTripleton.hpp \
 	CoinPresolveUseless.hpp \
 	CoinPresolveZeros.hpp \
+	CoinSearchTree.hpp \
 	CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
 	CoinSort.hpp \
@@ -480,6 +514,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPackedMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPackedVector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPackedVectorBase.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinParam.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinParamUtils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPostsolveMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPrePostsolveMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPresolveDoubleton.Plo@am__quote@
@@ -499,6 +535,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPresolveTripleton.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPresolveUseless.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPresolveZeros.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSearchTree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinShallowPackedVector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartBasis.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartDual.Plo@am__quote@

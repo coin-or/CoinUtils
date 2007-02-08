@@ -125,9 +125,34 @@ public:
     return puts (s.c_str ());
   } 
 };
-/* Tests if file readable and may change name to add 
-   compression extension.  Here to get ZLIB etc in one place
-   Extended so it knows about directories on various platforms
+
+/*! \relates CoinFileInput
+    \brief Test if the given string looks like an absolute file path
+
+    The criteria are:
+    - unix: string begins with `/'
+    - windows: string begins with `\' or with `drv:' (drive specifier)
 */
-bool fileCoinReadable(std::string & name);
+bool fileAbsPath (const std::string &path) ;
+
+/*! \relates CoinFileInput
+    \brief Test if the file is readable, using likely versions of the file
+	   name, and return the name that worked.
+
+   The file name is constructed from \p name using the following rules:
+   <ul>
+     <li> An absolute path is not modified.
+     <li> If the name begins with `~', an attempt is made to replace `~'
+	  with the value of the environment variable HOME.
+     <li> If a default prefix (\p dfltPrefix) is provided, it is
+	  prepended to the name.
+   </ul>
+   If the constructed file name cannot be opened, and CoinUtils was built
+   with support for compressed files, fileCoinReadable will try any
+   standard extensions for supported compressed files.
+
+   The value returned in \p name is the file name that actually worked.
+*/
+bool fileCoinReadable(std::string &name,
+		      const std::string &dfltPrefix = std::string(""));
 #endif

@@ -15,7 +15,7 @@
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessageHandler.hpp"
 #include "CoinFileIO.hpp"
-
+class CoinModel;
 // Plus infinity
 #ifndef COIN_DBL_MAX
 #define COIN_DBL_MAX DBL_MAX
@@ -124,6 +124,10 @@ public:
   inline double value (  ) const {
     return value_;
   };
+  /// Returns value as string in current field
+  inline const char *valueString (  ) const {
+    return valueString_;
+  };
   /// Whole card (for printing)
   inline const char *card (  ) const {
     return card_;
@@ -146,6 +150,9 @@ public:
   inline CoinFileInput * fileInput (  ) const {
     return input_;
   };
+  /// Sets whether strings allowed
+  inline void setStringsAllowed()
+  { stringsAllowed_=true;};
   //@}
 
 ////////////////// data //////////////////
@@ -185,16 +192,22 @@ protected:
   CoinMessageHandler * handler_;
   /// Messages
   CoinMessages messages_;
+  /// Current element as characters (only if strings allowed) 
+  char valueString_[COIN_MAX_FIELD_LENGTH];
+  /// Whether strings allowed
+  bool stringsAllowed_;
   //@}
 public:
   /**@name methods */
   //@{
   /// type - 0 normal, 1 INTEL IEEE, 2 other IEEE
-  static double osi_strtod(char * ptr, char ** output, int type);
+  double osi_strtod(char * ptr, char ** output, int type);
   /// remove blanks 
   static void strcpyAndCompress ( char *to, const char *from );
   ///
   static char * nextBlankOr ( char *image );
+  /// For strings
+  double osi_strtod(char * ptr, char ** output);
   //@}
 
 };
@@ -211,9 +224,17 @@ public:
 
   /**@name Constructor and destructor */
   //@{
+  /// Default constructor 
+  CoinSet ( );
   /// Constructor 
   CoinSet ( int numberEntries, const int * which);
 
+  /// Copy constructor 
+  CoinSet (const CoinSet &);
+  
+  /// Assignment operator 
+  CoinSet & operator=(const CoinSet& rhs);  
+  
   /// Destructor
   virtual ~CoinSet (  );
   //@}
@@ -230,6 +251,9 @@ public:
   /// Returns list of variables
   inline const int * which (  ) const 
   { return which_;  };
+  /// Returns weights
+  inline const double * weights (  ) const 
+  { return weights_;  };
   //@}
 
 #ifdef USE_SBB
@@ -252,6 +276,8 @@ protected:
   int setType_;
   /// Which variables are in set
   int * which_;
+  /// Weights
+  double * weights_;
   //@}
 };
 
@@ -271,12 +297,6 @@ public:
   //@}
 
 
-  /**@name gets */
-  //@{
-  /// Returns weights
-  inline const double * weights (  ) const 
-  { return weights_;  };
-  //@}
 #ifdef USE_SBB
   /**@name Use in sbb */
   //@{
@@ -290,8 +310,6 @@ protected:
 
   /**@name data */
   //@{
-  /// Weights
-  double * weights_;
   //@}
 };
 
@@ -459,6 +477,12 @@ public:
 
     /// Return the bound vector name
     const char * getBoundName() const;
+    /// Number of string elements
+    inline int numberStringElements() const
+    { return numberStringElements_;};
+    /// String element
+    inline const char * stringElement(int i) const
+    { return stringElements_[i];};
 //@}
 
 
@@ -525,6 +549,12 @@ public:
 
     /// Get default upper bound for integer variables
     int getDefaultBound() const;
+    /// Whether to allow string elements
+    inline int allowStringElements() const
+    { return allowStringElements_;};
+    /// Whether to allow string elements (0 no, 1 yes, 2 yes and try flip)
+    inline void setAllowStringElements(int yesNo)
+    { allowStringElements_ = yesNo;};
 //@}
 
 
@@ -648,7 +678,8 @@ public:
     */
     int writeMps(const char *filename, int compression = 0,
 		 int formatType = 0, int numberAcross = 2,
-		 CoinPackedMatrix * quadratic = NULL) const;
+		 CoinPackedMatrix * quadratic = NULL,
+		 int numberSOS=0,const CoinSet * setInfo=NULL) const;
 
     /// Return card reader object so can see what last card was e.g. QUADOBJ
     inline const CoinMpsCardReader * reader() const
@@ -707,6 +738,8 @@ public:
     /// Set whether to move objective from matrix
     inline void setConvertObjective(bool trueFalse)
     { convertObjective_=trueFalse;};
+  /// copies in strings from a CoinModel - returns number
+  int copyStringElements(const CoinModel * model);
   //@}
 
 /** @name Constructors and destructors */
@@ -839,6 +872,13 @@ protected:
 
   int dealWithFileName(const char * filename,  const char * extension,
 		       CoinFileInput * &input); 
+  /** Add string to list
+      iRow==numberRows is objective, nr+1 is lo, nr+2 is up
+      iColumn==nc is rhs (can't cope with ranges at present)
+  */
+  void addString(int iRow,int iColumn, const char * value);
+  /// Decode string
+  void decodeString(int iString, int & iRow, int & iColumn, const char * & value) const;
   //@}
 
   
@@ -966,6 +1006,14 @@ protected:
       CoinMpsCardReader * cardReader_;
       /// If .gms file should it be massaged to move objective
       bool convertObjective_;
+      /// Whether to allow string elements
+      int allowStringElements_;
+      /// Maximum number of string elements
+      int maximumStringElements_;
+      /// Number of string elements
+      int numberStringElements_;
+      /// String elements
+      char ** stringElements_;
     //@}
 
 };

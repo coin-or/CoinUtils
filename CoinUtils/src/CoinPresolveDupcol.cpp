@@ -402,6 +402,9 @@ const CoinPresolveAction
           upperBound = CoinMin(upperBound,rhs[iRow]/value);
         }
       }
+    } else {
+      // Not sure what to do so give up
+      continue;
     }
 /*
   There are two main cases: The objective coefficients are equal or unequal.
@@ -671,7 +674,8 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
 #   if PRESOLVE_CONSISTENCY
     presolve_check_free_list(prob) ;
 #   endif
-    hincol[icol] = hincol[icol2]; // right?
+    // hincol[icol] = hincol[icol2]; // right? - no - has to match number in create_col
+    hincol[icol] = f->nincol; 
 
     double l_j = f->thislo;
     double u_j = f->thisup;

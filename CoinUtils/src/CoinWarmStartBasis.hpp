@@ -11,6 +11,9 @@
 #ifndef CoinWarmStartBasis_H
 #define CoinWarmStartBasis_H
 
+#include <vector>
+
+#include "CoinSort.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinWarmStart.hpp"
 
@@ -55,6 +58,16 @@ public:
     atUpperBound = 0x02,	///< Nonbasic at upper bound
     atLowerBound = 0x03		///< Nonbasic at lower bound
   };
+
+  /** \brief Transfer vector entry for
+	 mergeBases(const CoinWarmStartBasis*,const XferVec*,const XferVec*)
+  */
+  typedef CoinTriple<int,int,int> XferEntry ;
+
+  /** \brief Transfer vector for
+	 mergeBases(const CoinWarmStartBasis*,const XferVec*,const XferVec*)
+  */
+  typedef std::vector<XferEntry> XferVec ;
 
 public:
 
@@ -221,6 +234,22 @@ public:
  */
 
   virtual void deleteColumns(int number, const int * which);
+
+  /** \brief Merge entries from a source basis into this basis.
+
+    \warning
+    It's the client's responsibility to ensure validity of the merged basis,
+    if that's important to the application.
+
+    The vector xferCols (xferRows) specifies runs of entries to be taken from
+    the source basis and placed in this basis. Each entry is a CoinTriple,
+    with first specifying the starting source index of a run, second
+    specifying the starting destination index, and third specifying the run
+    length.
+  */
+  virtual void mergeBasis(const CoinWarmStartBasis *src,
+			  const XferVec *xferRows,
+			  const XferVec *xferCols) ;
 
 //@}
 

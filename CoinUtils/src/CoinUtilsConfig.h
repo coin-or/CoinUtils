@@ -59,4 +59,4 @@
 
 #endif /* HAVE_CONFIG_H */
 
-#endif /*__COINUTILS_CONFIG_H__*/
+#endif /*__COINUTILSCONFIG_H__*/

@@ -190,6 +190,8 @@ public:
   char * getName(int which) const;
   /// Sets name at position (does not create)
   void setName(int which,char * name ) ;
+  /// Validates
+  void validateHash() const;
 private:
   /// Returns a hash value
   int hashValue(const char * name) const;

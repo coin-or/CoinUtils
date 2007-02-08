@@ -569,38 +569,70 @@ bool CoinFileOutput::puts (const char *s)
 
   return write (s, len) == len;
 }
-/* Tests if file readable and may change name to add 
-   compression extension.  Here to get ZLIB etc in one place
+
+/*
+  Tests if the given string looks like an absolute path to a file.
+    - unix:	string begins with `/'
+    - windows:	string begins with `\' or `drv:', where drv is a drive
+		designator.
 */
-bool fileCoinReadable(std::string & fileName)
+bool fileAbsPath (const std::string &path)
 {
-  const char dirsep =  CoinFindDirSeparator();
-  std::string directory = (dirsep == '/' ? "./" : ".\\");
-  std::string field = fileName;
-  bool absolutePath;
-  if (dirsep=='/') {
+  const char dirsep =  CoinFindDirSeparator() ;
+  bool absolutePath ;
+
+  if (dirsep == '/') {
     // non Windows (or cygwin)
-    absolutePath=(field[0]=='/');
+    absolutePath = (path[0] == '/') ;
   } else {
     //Windows (non cycgwin)
-    absolutePath=(field[0]=='\\');
-    // but allow for :
-    if (strchr(field.c_str(),':'))
-      absolutePath=true;
-  }
-  if (absolutePath) {
-    // nothing to do
-  } else if (field[0]=='~') {
-    char * home_dir = getenv("HOME");
-    if (home_dir) {
-      std::string home(home_dir);
-      field=field.erase(0,1);
-      fileName = home+field;
-    } else {
-      fileName=field;
+    absolutePath = (path[0] == '\\') ;
+    // but allow for an initial drive designator:
+    if (strchr(path.c_str(),':')) {
+      absolutePath = true ;
     }
-  } else {
-    fileName = directory+field;
+  }
+
+  return (absolutePath) ;
+}
+
+
+/*
+   Tests if file readable and may change name to add 
+   compression extension.  Here to get ZLIB etc in one place
+
+   stdin goes by unmolested by all the fussing with file names. We shouldn't
+   close it, either.
+*/
+bool fileCoinReadable(std::string & fileName, const std::string &dfltPrefix)
+{
+  if (fileName != "stdin")
+  { const char dirsep =  CoinFindDirSeparator();
+    std::string directory ;
+    if (dfltPrefix == "")
+    { directory = (dirsep == '/' ? "./" : ".\\") ; }
+    else
+    { directory = dfltPrefix ;
+      if (directory[directory.length()-1] != dirsep)
+      { directory += dirsep ; } }
+
+    bool absolutePath = fileAbsPath(fileName) ;
+    std::string field = fileName;
+
+    if (absolutePath) {
+      // nothing to do
+    } else if (field[0]=='~') {
+      char * home_dir = getenv("HOME");
+      if (home_dir) {
+	std::string home(home_dir);
+	field=field.erase(0,1);
+	fileName = home+field;
+      } else {
+	fileName=field;
+      }
+    } else {
+      fileName = directory+field;
+    }
   }
   // I am opening it to make sure not odd
   FILE *fp;
@@ -630,7 +662,9 @@ bool fileCoinReadable(std::string & fileName)
   if (!fp) {
     return false;
   } else {
-    fclose(fp);
+    if (fp != stdin) {
+      fclose(fp);
+    }
     return true;
   }
 }

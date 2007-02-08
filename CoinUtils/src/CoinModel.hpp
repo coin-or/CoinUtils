@@ -16,7 +16,7 @@
     1) A matrix of doubles (or strings - see note A)
     2) Column information including integer information and names
     3) Row information including names
-    4) Quadratic objective
+    4) Quadratic objective (not implemented - but see A)
 
     This class is meant to make it more efficient to build a model.  It is at
     its most efficient when all additions are done as addRow or as addCol but
@@ -36,6 +36,9 @@
         only use at present is to have named values e.g. value1 which can then be
         set to a value after model is created.  I have no idea whether that could
         be useful but I thought it might be fun.
+	Quadratic terms are allowed in strings!  A solver could try and use this
+	if so - the convention is that 0.5* quadratic is stored
+	
     B)  This class could be useful for modeling.
 */
 
@@ -69,11 +72,13 @@ public:
   void setElement(int i,int j,double value) ;
   /** Gets sorted row - user must provide enough space 
       (easiest is allocate number of columns).
+      If column or element NULL then just returns number
       Returns number of elements
   */
   int getRow(int whichRow, int * column, double * element);
   /** Gets sorted column - user must provide enough space 
       (easiest is allocate number of rows).
+      If row or element NULL then just returns number
       Returns number of elements
   */
   int getColumn(int whichColumn, int * column, double * element);
@@ -266,7 +271,7 @@ public:
   not const as may change model e.g. fill in default bounds
   */
   int writeMps(const char *filename, int compression = 0,
-               int formatType = 0, int numberAcross = 2) ;
+               int formatType = 0, int numberAcross = 2, bool keepStrings=false) ;
   
   /** Check two models against each other.  Return nonzero if different.
       Ignore names if that set.
@@ -533,6 +538,9 @@ public:
   /// Says if strings exist
   inline bool stringsExist() const
   { return string_.numberItems()!=0;};
+  /// Return string array
+  inline const CoinModelHash * stringArray() const
+  { return &string_;};
   /// Returns associated array
   inline double * associatedArray() const
   { return associated_;};
@@ -560,12 +568,22 @@ public:
   /// Return column names array
   inline const CoinModelHash * columnNames() const
   { return &columnName_;};
+  /// Returns array of 0 or nonzero if can be a cut (or returns NULL)
+  inline const int * cutMarker() const
+  { return cut_;};
    //@}
 
   /**@name Constructors, destructor */
    //@{
    /** Default constructor. */
    CoinModel();
+    /** Read a problem in MPS or GAMS format from the given filename.
+    */
+    CoinModel(const char *fileName, int allowStrings=0);
+    /** Read a problem from AMPL nl file
+	NOTE - as I can't work out configure etc the source code is in Cbc_ampl.cpp!
+    */
+    CoinModel( int nonLinear, const char * fileName,const void * info);
    /** Destructor */
    ~CoinModel();
    //@}
@@ -605,11 +623,50 @@ private:
   double getDoubleFromString(CoinYacc & info, const char * string);
   /// Frees value memory
   void freeStringMemory(CoinYacc & info);
+public:
   /// Fills in all associated - returning number of errors
   int computeAssociated(double * associated);
-  
+  /** Gets correct form for a quadratic row - user to delete
+      If row is not quadratic then returns which other variables are involved
+      with tiny (1.0e-100) elements and count of total number of variables which could not
+      be put in quadratic form
+  */
+  CoinPackedMatrix * quadraticRow(int rowNumber,double * linear,
+				  int & numberBad) const;
+  /// Replaces a quadratic row
+  void replaceQuadraticRow(int rowNumber,const double * linear, const CoinPackedMatrix * quadraticPart);
+  /** If possible return a model where if all variables marked nonzero are fixed
+      the problem will be linear.  At present may only work if quadratic.
+      Returns NULL if not possible
+  */
+  CoinModel * reorder(const char * mark) const;
+  /** Expands out all possible combinations for a knapsack
+      If buildObj NULL then just computes space needed - returns number elements
+      On entry numberOutput is maximum allowed, on exit it is number needed or
+      -1 (as will be number elements) if maximum exceeded.  numberOutput will have at
+      least space to return values which reconstruct input.
+      Rows returned will be original rows but no entries will be returned for
+      any rows all of whose entries are in knapsack.  So up to user to allow for this.
+      If reConstruct >=0 then returns number of entrie which make up item "reConstruct"
+      in expanded knapsack.  Values in buildRow and buildElement;
+  */
+  int expandKnapsack(int knapsackRow, int & numberOutput,double * buildObj, CoinBigIndex * buildStart,
+		     int * buildRow, double * buildElement,int reConstruct=-1) const;
+  /// Sets cut marker array
+  void setCutMarker(int size,const int * marker);
+  /// Sets priority array
+  void setPriorities(int size,const int * priorities);
+  /// priorities (given for all columns (-1 if not integer)
+  inline const int * priorities() const
+  { return priority_;};
   
 private:
+  /** Read a problem from AMPL nl file
+      so not constructor so gdb will work
+   */
+  void gdb( int nonLinear, const char * fileName, const void * info);
+  /// returns jColumn (-2 if linear term, -1 if unknown) and coefficient
+  int decodeBit(char * phrase, char * & nextPhrase, double & coefficient, bool ifFirst) const;
   /**@name Data members */
    //@{
   /// Current number of rows
@@ -694,6 +751,22 @@ private:
   int sizeAssociated_;
   /// Associated values
   double * associated_;
+  /// Number of SOS - all these are done in one go e.g. from ampl
+  int numberSOS_;
+  /// SOS starts
+  int * startSOS_;
+  /// SOS members
+  int * memberSOS_;
+  /// SOS type
+  int * typeSOS_;
+  /// SOS priority
+  int * prioritySOS_;
+  /// SOS reference
+  double * referenceSOS_;
+  /// priorities (given for all columns (-1 if not integer)
+  int * priority_;
+  /// Nonzero if row is cut - done in one go e.g. from ampl
+  int * cut_;
   /** Print level.
       I could have gone for full message handling but this should normally
       be silent and lightweight.  I can always change.
@@ -718,4 +791,8 @@ private:
   mutable int links_;
    //@}
 };
+/// Just function of single variable x
+double getFunctionValueFromString(const char * string, const char * x, double xValue);
+/// faster version
+double getDoubleFromString(CoinYacc & info, const char * string, const char * x, double xValue);
 #endif
