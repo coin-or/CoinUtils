@@ -1,4 +1,4 @@
-// Last edit: 3/15/06
+// Last edit: 2/10/07
 //
 // Name:     CoinLpIO.cpp; Support for Lp files
 // Author:   Francois Margot
@@ -802,9 +802,9 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 	 out_coeff(fp, elements[j], 0);
 	 fprintf(fp, " %s", colNames[indices[j]]);
 	 cnt_print++;
-       }
-       if(cnt_print % numberAcross == 0) {
-	 fprintf(fp, "\n");
+	 if(cnt_print % numberAcross == 0) {
+	   fprintf(fp, "\n");
+	 }
        }
      }
 
@@ -837,9 +837,9 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 	       out_coeff(fp, elements[j], 0);
 	       fprintf(fp, " %s", colNames[indices[j]]);
 	       cnt_print++;
-	     }
-	     if(cnt_print % numberAcross == 0) {
-	       fprintf(fp, "\n");
+	       if(cnt_print % numberAcross == 0) {
+		 fprintf(fp, "\n");
+	       }
 	     }
 	   }
 	   fprintf(fp, " >=");
@@ -880,7 +880,7 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 	 fprintf(fp, " <= %s\n", colNames[j]);
        }
      }
-     if((collow[j] == -lp_inf) && (colup[j] == lp_inf)) {
+     if(collow[j] == -lp_inf) {
        fprintf(fp, " %s Free\n", colNames[j]); 
      }
    }
@@ -1613,7 +1613,6 @@ CoinLpIO::readLp(FILE* fp)
 	scan_next(buff, fp);
 	if(is_free(buff)) {
 	  collow[icol] = -lp_inf;
-	  colup[icol] = lp_inf;
 	  scan_next(buff, fp);
 	}
        	else {
@@ -1672,16 +1671,16 @@ variable: %s read_sense1: %d  read_sense2: %d\n", buff, read_sense1, read_sense2
 	  else {
 	    if(read_sense1 > -1) {
 	      switch(read_sense1) {
-	      case 0: collow[icol] = bnd1; colup[icol] = lp_inf; break;
+	      case 0: collow[icol] = bnd1; break;
 	      case 1: collow[icol] = bnd1; colup[icol] = bnd1; break;
-	      case 2: collow[icol] = 0; colup[icol] = bnd1; break;
+	      case 2: colup[icol] = bnd1; break;
 	      }
 	    }
 	    if(read_sense2 > -1) {
 	      switch(read_sense2) {
-	      case 0: collow[icol] = 0; colup[icol] = bnd2; break;
+	      case 0: colup[icol] = bnd2; break;
 	      case 1: collow[icol] = bnd2; colup[icol] = bnd2; break;
-	      case 2: collow[icol] = bnd2; colup[icol] = lp_inf; break;
+	      case 2: collow[icol] = bnd2; break;
 	      }
 	    }
 	  }
