@@ -1,4 +1,4 @@
-// Last edit: 3/15/06
+// Last edit: 2/10/07
 //
 // Name:     CoinLpIO.hpp; Support for Lp files
 // Author:   Francois Margot
@@ -70,11 +70,13 @@ Notes: <UL>
  <LI> At most one constant term may appear in the objective function; 
       if present, it must appear last. 
  <LI> Default bounds are 0 for lower bound and +infinity for upper bound.
- <LI> Free variables get lower bound -infinity and upper bound +infinity.
- <LI> If a variable appears in the Bounds section more than once,
-      the last bound is the one taken into account. The bounds for a
-      binary variable are set to 0/1 only if this bound is stronger than 
-      the bound obtained from the Bounds section. 
+ <LI> Free variables get default lower bound -infinity and 
+      default upper bound +infinity. Writing "x0 Free" in an
+      LP file means "set lower bound on x0 to -infinity".
+ <LI> If more than one upper (resp. lower) bound on a variable appears in 
+      the Bounds section, the last one is the one taken into 
+      account. The bounds for a binary variable are set to 0/1 only if this 
+      bound is stronger than the bound obtained from the Bounds section. 
  <LI> Numbers larger than DBL_MAX (or larger than 1e+400) in the input file
       might crash the code.
  <LI> A comment must start with '\' or '/'. That symbol must either be
