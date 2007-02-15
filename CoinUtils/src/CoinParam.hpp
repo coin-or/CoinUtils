@@ -179,7 +179,7 @@ public:
 
   /*! \brief  Destructor */
 
-  ~CoinParam() ;
+  virtual ~CoinParam() ;
 
 //@}
 

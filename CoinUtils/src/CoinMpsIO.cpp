@@ -4995,7 +4995,7 @@ CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
 		      char const * const * const colnames,
 		      char const * const * const rownames)
 {
-   const int numrows = matrixByColumn_->getNumRows();
+   const int numrows = m.getNumRows();
 
    double * rlb = numrows ? new double[numrows] : 0;
    double * rub = numrows ? new double[numrows] : 0;
@@ -5018,7 +5018,7 @@ CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
 		      const std::vector<std::string> & colnames,
 		      const std::vector<std::string> & rownames)
 {
-   const int numrows = matrixByColumn_->getNumRows();
+   const int numrows = m.getNumRows();
 
    double * rlb = numrows ? new double[numrows] : 0;
    double * rub = numrows ? new double[numrows] : 0;

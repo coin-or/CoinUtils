@@ -14,6 +14,8 @@
 #include <cassert>
 #include <iostream>
 
+#undef MY_C_FINITE
+
 #include "CoinError.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
