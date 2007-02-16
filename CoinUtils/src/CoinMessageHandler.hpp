@@ -97,7 +97,7 @@ public:
   inline int detail() const
   {return detail_;}
   /// Return the message text
-   char * message() const
+  inline char * message() const 
   {return message_;}
   //@}
 
@@ -109,8 +109,8 @@ public:
     char detail_;
   /// Severity
     char severity_;
-  /// Messages (in correct language)
-  char * message_;
+  /// Messages (in correct language) (not all 400 may exist)
+  mutable char message_[400];
   //@}
 };
 
@@ -183,6 +183,10 @@ public:
   /// Returns class
   inline int getClass() const
   { return class_;};
+  /// Moves to compact format
+  void toCompact();
+  /// Moves from compact format
+  void fromCompact();
   //@}
 
   /**@name member data */
@@ -195,6 +199,10 @@ public:
   char source_[5];
   /// Class - see later on before CoinMessageHandler
   int class_;
+  /** Length of fake CoinOneMessage array.
+      First you get numberMessages_ pointers which point to stuff
+  */
+  int lengthMessages_;
   /// Messages
   CoinOneMessage ** message_;
   //@}

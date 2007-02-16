@@ -12,24 +12,19 @@
 CoinOneMessage::CoinOneMessage()
 {
   externalNumber_=-1;
-  message_=NULL;
+  message_[0]='\0';
   severity_='I';
   detail_=0;
 }
 /* Destructor */
 CoinOneMessage::~CoinOneMessage()
 {
-  if (message_)
-    free(message_);
 }
 /* The copy constructor */
 CoinOneMessage::CoinOneMessage(const CoinOneMessage & rhs)
 {
   externalNumber_=rhs.externalNumber_;
-  if (rhs.message_)
-    message_=strdup(rhs.message_);
-  else
-    message_=NULL;
+  strcpy(message_,rhs.message_);
   severity_=rhs.severity_;
   detail_=rhs.detail_;
 }
@@ -39,12 +34,7 @@ CoinOneMessage::operator=(const CoinOneMessage & rhs)
 {
   if (this != &rhs) {
     externalNumber_=rhs.externalNumber_;
-    if (message_)
-      free(message_);
-    if (rhs.message_)
-      message_=strdup(rhs.message_);
-    else
-      message_=NULL;
+    strcpy(message_,rhs.message_);
     severity_=rhs.severity_;
     detail_=rhs.detail_;
   }
@@ -55,7 +45,7 @@ CoinOneMessage::CoinOneMessage(int externalNumber, char detail,
 		const char * message)
 {
   externalNumber_=externalNumber;
-  message_=strdup(message);
+  strcpy(message_,message);
   if (externalNumber<3000)
     severity_='I';
   else if (externalNumber<6000)
@@ -70,9 +60,7 @@ CoinOneMessage::CoinOneMessage(int externalNumber, char detail,
 void 
 CoinOneMessage::replaceMessage( const char * message)
 {
-  if (message_)
-    free(message_);
-  message_=strdup(message);
+  strcpy(message_,message);
 }
 
 
@@ -83,6 +71,7 @@ CoinMessages::CoinMessages(int numberMessages)
   language_=us_en;
   strcpy(source_,"Unk");
   class_=1;
+  lengthMessages_=-1;
   if (numberMessages_) {
     message_ = new CoinOneMessage * [numberMessages_];
     int i;
@@ -96,8 +85,10 @@ CoinMessages::CoinMessages(int numberMessages)
 CoinMessages::~CoinMessages()
 {
   int i;
-  for (i=0;i<numberMessages_;i++) 
-    delete message_[i];
+  if (lengthMessages_<0) {
+    for (i=0;i<numberMessages_;i++) 
+      delete message_[i];
+  }
   delete [] message_;
 }
 /* The copy constructor */
@@ -107,31 +98,8 @@ CoinMessages::CoinMessages(const CoinMessages & rhs)
   language_=rhs.language_;
   strcpy(source_,rhs.source_);
   class_=rhs.class_;
-  if (numberMessages_) {
-    message_ = new CoinOneMessage * [numberMessages_];
-    int i;
-    for (i=0;i<numberMessages_;i++) 
-      if (rhs.message_[i])
-	message_[i]=new CoinOneMessage(*(rhs.message_[i]));
-      else
-	message_[i] = NULL;
-  } else {
-    message_=NULL;
-  }
-}
-/* assignment operator. */
-CoinMessages& 
-CoinMessages::operator=(const CoinMessages & rhs)
-{
-  if (this != &rhs) {
-    language_=rhs.language_;
-    strcpy(source_,rhs.source_);
-    class_=rhs.class_;
-    int i;
-    for (i=0;i<numberMessages_;i++)
-	delete message_[i];
-    delete [] message_;
-    numberMessages_=rhs.numberMessages_;
+  lengthMessages_=rhs.lengthMessages_;
+  if (lengthMessages_<0) {
     if (numberMessages_) {
       message_ = new CoinOneMessage * [numberMessages_];
       int i;
@@ -142,6 +110,67 @@ CoinMessages::operator=(const CoinMessages & rhs)
 	  message_[i] = NULL;
     } else {
       message_=NULL;
+    }
+  } else {
+    char * temp = CoinCopyOfArray((char *) rhs.message_,lengthMessages_);
+    message_ = (CoinOneMessage **) temp;
+    int offset = temp - (char *) rhs.message_;
+    int i;
+    //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
+    for (i=0;i<numberMessages_;i++) {
+      if (message_[i]) {
+	char * newAddress = ((char *) message_[i]) + offset;
+	assert (newAddress-temp<lengthMessages_);
+	message_[i] = (CoinOneMessage *) newAddress;
+	//printf("message %d at %x is %s\n",i,message_[i],message_[i]->message());
+	//printf("message %d at %x wass %s\n",i,rhs.message_[i],rhs.message_[i]->message());
+      }
+    }
+  }
+}
+/* assignment operator. */
+CoinMessages& 
+CoinMessages::operator=(const CoinMessages & rhs)
+{
+  if (this != &rhs) {
+    language_=rhs.language_;
+    strcpy(source_,rhs.source_);
+    class_=rhs.class_;
+    if (lengthMessages_<0) {
+      int i;
+      for (i=0;i<numberMessages_;i++)
+	delete message_[i];
+    }
+    delete [] message_;
+    numberMessages_=rhs.numberMessages_;
+    lengthMessages_=rhs.lengthMessages_;
+    if (lengthMessages_<0) {
+      if (numberMessages_) {
+	message_ = new CoinOneMessage * [numberMessages_];
+	int i;
+	for (i=0;i<numberMessages_;i++) 
+	  if (rhs.message_[i])
+	    message_[i]=new CoinOneMessage(*(rhs.message_[i]));
+	  else
+	    message_[i] = NULL;
+      } else {
+	message_=NULL;
+      }
+    } else {
+      char * temp = CoinCopyOfArray((char *) rhs.message_,lengthMessages_);
+      message_ = (CoinOneMessage **) temp;
+      int offset = temp - (char *) rhs.message_;
+      int i;
+      //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
+      for (i=0;i<numberMessages_;i++) {
+	if (message_[i]) {
+	  char * newAddress = ((char *) message_[i]) + offset;
+	  assert (newAddress-temp<lengthMessages_);
+	  message_[i] = (CoinOneMessage *) newAddress;
+	  //printf("message %d at %x is %s\n",i,message_[i],message_[i]->message());
+	  //printf("message %d at %x wass %s\n",i,rhs.message_[i],rhs.message_[i]->message());
+	}
+      }
     }
   }
   return *this;
@@ -161,6 +190,8 @@ CoinMessages::addMessage(int messageNumber, const CoinOneMessage & message)
     delete [] message_;
     message_ = temp;
   }
+  if (lengthMessages_>=0)
+    fromCompact();
   delete message_[messageNumber];
   message_[messageNumber]=new CoinOneMessage(message);
 }
@@ -169,6 +200,8 @@ void
 CoinMessages::replaceMessage(int messageNumber, 
 			     const char * message)
 {
+  if (lengthMessages_>=0)
+    fromCompact();
   assert(messageNumber<numberMessages_);
   message_[messageNumber]->replaceMessage(message);
 }
@@ -233,6 +266,76 @@ CoinMessages::setDetailMessages(int newLevel, int low, int high)
     if (iNumber>=low&&iNumber<high)
       message_[i]->setDetail(newLevel);
   }
+}
+// Moves to compact format
+void 
+CoinMessages::toCompact()
+{
+  if (numberMessages_&&lengthMessages_<0) {
+    lengthMessages_=numberMessages_*sizeof(CoinOneMessage *);
+    int i;
+    for (i=0;i<numberMessages_;i++) {
+      if (message_[i]) {
+	int length = strlen(message_[i]->message());
+	length = (message_[i]->message()+length+1)-
+	  (char *) message_[i];
+	assert (length<1000);
+	int leftOver = length %8;
+	if (leftOver)
+	  length += 8-leftOver;
+	lengthMessages_+=length;
+      }
+    }
+    // space
+    char * temp = new char [lengthMessages_];
+    CoinOneMessage ** newMessage = (CoinOneMessage **) temp;
+    temp += numberMessages_*sizeof(CoinOneMessage *);
+    CoinOneMessage message;
+    //printf("new address %x(%x) - length %d\n",newMessage,temp,lengthMessages_);
+    lengthMessages_=numberMessages_*sizeof(CoinOneMessage *);
+    for (i=0;i<numberMessages_;i++) {
+      if (message_[i]) {
+	message = *message_[i];
+	int length = strlen(message.message());
+	length = (message.message()+length+1)-
+	  (char *) (&message);
+	assert (length<1000);
+	int leftOver = length %8;
+	memcpy(temp,&message,length);
+	newMessage[i]=(CoinOneMessage *) temp;
+	//printf("message %d at %x is %s\n",i,newMessage[i],newMessage[i]->message());
+	if (leftOver)
+	  length += 8-leftOver;
+	temp += length;
+	lengthMessages_+=length;
+      } else {
+	// null message
+	newMessage[i]=NULL;
+      }
+    }
+    for (i=0;i<numberMessages_;i++)
+      delete message_[i];
+    delete [] message_;
+    message_ = newMessage;
+  }
+}
+// Moves from compact format
+void 
+CoinMessages::fromCompact()
+{
+  if (numberMessages_&&lengthMessages_>=0) {
+    CoinOneMessage ** temp = new CoinOneMessage * [numberMessages_];
+    int i;
+    for (i=0;i<numberMessages_;i++) {
+      if (message_[i])
+	temp[i]=new CoinOneMessage(*(message_[i]));
+      else
+	temp[i]=NULL;
+    }
+    delete [] message_;
+    message_ = temp;
+  }
+  lengthMessages_=-1;
 }
 
 // Clean, print message and check severity, return 0 normally

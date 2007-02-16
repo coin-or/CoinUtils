@@ -14,8 +14,8 @@
 #include <string>
 #include <cassert>
 #include "CoinFinite.hpp"
+#include "CoinIndexedVector.hpp"
 class CoinPackedMatrix;
-class CoinIndexedVector;
 /** This deals with Factorization and Updates
 
     This class started with a parallel simplex code I was writing in the
@@ -56,6 +56,8 @@ public:
 
   /// Destructor
    ~CoinFactorization (  );
+  /// Delete all stuff (leaves as after CoinFactorization())
+  void almostDestructor();
   /// Debug show object (shows one representation)
   void show_self (  ) const;
   /// Debug - save on file - 0 if no error
@@ -133,19 +135,19 @@ public:
   };
   /// Returns address of permute region
   inline int *permute (  ) const {
-    return permute_;
+    return permute_.array();
   };
   /// Returns address of pivotColumn region (also used for permuting)
   inline int *pivotColumn (  ) const {
-    return pivotColumn_;
+    return pivotColumn_.array();
   };
   /// Returns address of permuteBack region
   inline int *permuteBack (  ) const {
-    return permuteBack_;
+    return permuteBack_.array();
   };
   /// Returns address of pivotColumnBack region (also used for permuting)
   inline int *pivotColumnBack (  ) const {
-    return pivotColumnBack_;
+    return pivotColumnBack_.array();
   };
   /// Number of Rows after iterating
   inline int numberRowsExtra (  ) const {
@@ -169,7 +171,7 @@ public:
   };
   /// Length of FT vector
   inline int numberForrestTomlin (  ) const {
-    return numberInColumn_[numberColumnsExtra_];
+    return numberInColumn_.array()[numberColumnsExtra_];
   };
   /// Number of good columns in factorization
   inline int numberGoodColumns (  ) const {
@@ -276,6 +278,14 @@ public:
   { return biasLU_;};
   inline void setBiasLU(int value)
   { biasLU_=value;};
+  /** Array persistence flag
+      If 0 then as now (delete/new)
+      1 then only do arrays if bigger needed
+      2 as 1 but give a bit extra if bigger needed
+  */
+  inline int persistenceFlag() const
+  { return persistenceFlag_;};
+  void setPersistenceFlag(int value);
   //@}
 
   /**@name rank one updates which do exist */
@@ -430,33 +440,39 @@ protected:
   void checkConsistency (  );
   /// Adds a link in chain of equal counts
   inline void addLink ( int index, int count ) {
-    int next = firstCount_[count];
-      lastCount_[index] = -2 - count;
+    int *nextCount = nextCount_.array();
+    int *firstCount = firstCount_.array();
+    int *lastCount = lastCount_.array();
+    int next = firstCount[count];
+      lastCount[index] = -2 - count;
     if ( next < 0 ) {
       //first with that count
-      firstCount_[count] = index;
-      nextCount_[index] = -1;
+      firstCount[count] = index;
+      nextCount[index] = -1;
     } else {
-      firstCount_[count] = index;
-      nextCount_[index] = next;
-      lastCount_[next] = index;
+      firstCount[count] = index;
+      nextCount[index] = next;
+      lastCount[next] = index;
   }};
   /// Deletes a link in chain of equal counts
   inline void deleteLink ( int index ) {
-    int next = nextCount_[index];
-    int last = lastCount_[index];
+    int *nextCount = nextCount_.array();
+    int *firstCount = firstCount_.array();
+    int *lastCount = lastCount_.array();
+    int next = nextCount[index];
+    int last = lastCount[index];
     if ( last >= 0 ) {
-      nextCount_[last] = next;
+      nextCount[last] = next;
     } else {
       int count = -last - 2;
 
-      firstCount_[count] = next;
+      firstCount[count] = next;
     }
     if ( next >= 0 ) {
-      lastCount_[next] = last;
+      lastCount[next] = last;
     }
-    nextCount_[index] = -2;
-    lastCount_[index] = -2;
+    nextCount[index] = -2;
+    lastCount[index] = -2;
     return;
   };
   /// Separate out links with same row/column count
@@ -542,8 +558,8 @@ protected:
   /** Returns accuracy status of replaceColumn
       returns 0=OK, 1=Probably OK, 2=singular */
   int checkPivot(double saveFromU, double oldPivot) const;
-  /// The real work of constructors etc 
-  void gutsOfDestructor();
+  /// The real work of constructors etc 0 just scalars, 1 bit normal 
+  void gutsOfDestructor(int type=1);
   /// 1 bit - tolerances etc, 2 more, 4 dummy arrays
   void gutsOfInitialize(int type);
   void gutsOfCopy(const CoinFactorization &other);
@@ -573,18 +589,18 @@ protected:
 	  T markRow[] ,
 	  int largeInteger)
 {
-  int *indexColumnU = indexColumnU_;
-  CoinBigIndex *startColumnU = startColumnU_;
-  int *numberInColumn = numberInColumn_;
-  double *elementU = elementU_;
-  int *indexRowU = indexRowU_;
-  CoinBigIndex *startRowU = startRowU_;
-  int *numberInRow = numberInRow_;
-  double *elementL = elementL_;
-  int *indexRowL = indexRowL_;
-  int *saveColumn = saveColumn_;
-  int *nextRow = nextRow_;
-  int *lastRow = lastRow_;
+  int *indexColumnU = indexColumnU_.array();
+  CoinBigIndex *startColumnU = startColumnU_.array();
+  int *numberInColumn = numberInColumn_.array();
+  double *elementU = elementU_.array();
+  int *indexRowU = indexRowU_.array();
+  CoinBigIndex *startRowU = startRowU_.array();
+  int *numberInRow = numberInRow_.array();
+  double *elementL = elementL_.array();
+  int *indexRowL = indexRowL_.array();
+  int *saveColumn = saveColumn_.array();
+  int *nextRow = nextRow_.array();
+  int *lastRow = lastRow_.array() ;
 
   //store pivot columns (so can easily compress)
   int numberInPivotRow = numberInRow[pivotRow] - 1;
@@ -635,10 +651,11 @@ protected:
   //l+=currentAreaL_->elementByColumn-elementL;
   CoinBigIndex lSave = l;
 
-  pivotRowL_[numberGoodL_] = pivotRow;
-  startColumnL_[numberGoodL_] = l;	//for luck and first time
+  pivotRowL_.array()[numberGoodL_] = pivotRow;
+  CoinBigIndex * startColumnL = startColumnL_.array();
+  startColumnL[numberGoodL_] = l;	//for luck and first time
   numberGoodL_++;
-  startColumnL_[numberGoodL_] = l + numberInPivotColumn;
+  startColumnL[numberGoodL_] = l + numberInPivotColumn;
   lengthL_ += numberInPivotColumn;
   if ( pivotRowPosition < 0 ) {
     for ( pivotRowPosition = startColumn; pivotRowPosition < endColumn; pivotRowPosition++ ) {
@@ -700,7 +717,7 @@ protected:
   double pivotElement = elementU[pivotRowPosition];
   double pivotMultiplier = 1.0 / pivotElement;
 
-  pivotRegion_[numberGoodU_] = pivotMultiplier;
+  pivotRegion_.array()[numberGoodU_] = pivotMultiplier;
   pivotRowPosition++;
   for ( ; pivotRowPosition < endColumn; pivotRowPosition++ ) {
     int iRow = indexRowU[pivotRowPosition];
@@ -747,6 +764,7 @@ protected:
   }
   CoinBigIndex added = numberInPivotRow * numberInPivotColumn;
   unsigned int *temp2 = workArea2;
+  int * nextColumn = nextColumn_.array();
 
   //pack down and move to work
   int jColumn;
@@ -829,13 +847,14 @@ protected:
     //clean up counts
     startColumn++;
     numberInColumn[iColumn] = put - startColumn;
-    numberInColumnPlus_[iColumn]++;
+    int * numberInColumnPlus = numberInColumnPlus_.array();
+    numberInColumnPlus[iColumn]++;
     startColumnU[iColumn]++;
     //how much space have we got
-    int next = nextColumn_[iColumn];
+    int next = nextColumn[iColumn];
     CoinBigIndex space;
 
-    space = startColumnU[next] - put - numberInColumnPlus_[next];
+    space = startColumnU[next] - put - numberInColumnPlus[next];
     //assume no zero elements
     if ( numberInPivotColumn > space ) {
       //getColumnSpace also moves fixed part
@@ -849,6 +868,7 @@ protected:
     }
     double tolerance = zeroTolerance_;
 
+    int *nextCount = nextCount_.array();
     for ( j = 0; j < numberInPivotColumn; j++ ) {
       value = work[j] - thisPivotValue * multipliersL[j];
       double absValue = fabs ( value );
@@ -905,7 +925,7 @@ protected:
       indexRowU[startColumn] = iRow;
     }
     //linked list for column
-    if ( nextCount_[iColumn + numberRows_] != -2 ) {
+    if ( nextCount[iColumn + numberRows_] != -2 ) {
       //modify linked list
       deleteLink ( iColumn + numberRows_ );
       addLink ( iColumn + numberRows_, numberInColumn[iColumn] );
@@ -1076,13 +1096,13 @@ protected:
   /// Number of elements after factorization
   CoinBigIndex factorElements_;
   /// Pivot order for each Column
-  int *pivotColumn_;
+  CoinIntArrayWithLength pivotColumn_;
   /// Permutation vector for pivot row order
-  int *permute_;
+  CoinIntArrayWithLength permute_;
   /// DePermutation vector for pivot row order
-  int *permuteBack_;
+  CoinIntArrayWithLength permuteBack_;
   /// Inverse Pivot order for each Column
-  int *pivotColumnBack_;
+  CoinIntArrayWithLength pivotColumnBack_;
   /// Status of factorization
   int status_;
 
@@ -1092,62 +1112,62 @@ protected:
      - taken out as always 2 */
   //int increasingRows_;
 
-  /// Detail in messages
-  int messageLevel_;
-
   /// Number of trials before rejection
   int numberTrials_;
   /// Start of each Row as pointer
-  CoinBigIndex *startRowU_;
+  CoinBigIndexArrayWithLength startRowU_;
 
   /// Number in each Row
-  int *numberInRow_;
+  CoinIntArrayWithLength numberInRow_;
 
   /// Number in each Column
-  int *numberInColumn_;
+  CoinIntArrayWithLength numberInColumn_;
 
   /// Number in each Column including pivoted
-  int *numberInColumnPlus_;
+  CoinIntArrayWithLength numberInColumnPlus_;
 
   /** First Row/Column with count of k,
       can tell which by offset - Rows then Columns */
-  int *firstCount_;
+  CoinIntArrayWithLength firstCount_;
 
   /// Next Row/Column with count
-  int *nextCount_;
+  CoinIntArrayWithLength nextCount_;
 
   /// Previous Row/Column with count
-  int *lastCount_;
+  CoinIntArrayWithLength lastCount_;
 
   /// Next Column in memory order
-  int *nextColumn_;
+  CoinIntArrayWithLength nextColumn_;
 
   /// Previous Column in memory order
-  int *lastColumn_;
+  CoinIntArrayWithLength lastColumn_;
 
   /// Next Row in memory order
-  int *nextRow_;
+  CoinIntArrayWithLength nextRow_;
 
   /// Previous Row in memory order
-  int *lastRow_;
+  CoinIntArrayWithLength lastRow_;
 
   /// Columns left to do in a single pivot
-  int *saveColumn_;
+  CoinIntArrayWithLength saveColumn_;
 
   /// Marks rows to be updated
-  int *markRow_;
+  CoinIntArrayWithLength markRow_;
+
+  /// Detail in messages
+  int messageLevel_;
 
   /// Larger of row and column size
   int biggerDimension_;
 
   /// Base address for U (may change)
-  int *indexColumnU_;
+  CoinIntArrayWithLength indexColumnU_;
 
   /// Pivots for L
-  int *pivotRowL_;
+  CoinIntArrayWithLength pivotRowL_;
 
   /// Inverses of pivot values
-  double *pivotRegion_;
+  CoinDoubleArrayWithLength pivotRegion_;
 
   /// Number of slacks at beginning of U
   int numberSlacks_;
@@ -1168,16 +1188,16 @@ protected:
   CoinBigIndex lengthAreaU_;
 
 /// Elements of U
-  double *elementU_;
+  CoinDoubleArrayWithLength elementU_;
 
 /// Row indices of U
-  int *indexRowU_;
+  CoinIntArrayWithLength indexRowU_;
 
 /// Start of each column in U
-  CoinBigIndex *startColumnU_;
+  CoinBigIndexArrayWithLength startColumnU_;
 
 /// Converts rows to columns in U 
-  CoinBigIndex *convertRowToColumnU_;
+  CoinBigIndexArrayWithLength convertRowToColumnU_;
 
   /// Number in L
   int numberL_;
@@ -1192,13 +1212,16 @@ protected:
   CoinBigIndex lengthAreaL_;
 
   /// Elements of L
-  double *elementL_;
+  CoinDoubleArrayWithLength elementL_;
 
   /// Row indices of L
-  int *indexRowL_;
+  CoinIntArrayWithLength indexRowL_;
 
   /// Start of each column in L
-  CoinBigIndex *startColumnL_;
+  CoinBigIndexArrayWithLength startColumnL_;
+
+  /// true if Forrest Tomlin update, false if PFI 
+  bool doForrestTomlin_;
 
   /// Number in R
   int numberR_;
@@ -1216,7 +1239,7 @@ protected:
   int *indexRowR_;
 
   /// Start of columns for R
-  CoinBigIndex *startColumnR_;
+  CoinBigIndexArrayWithLength startColumnR_;
 
   /// Dense area
   double  * denseArea_;
@@ -1230,14 +1253,14 @@ protected:
   /// Dense threshold
   int denseThreshold_;
 
+  /// First work area
+  CoinDoubleArrayWithLength workArea_;
+
+  /// Second work area
+  CoinUnsignedIntArrayWithLength workArea2_;
+
   /// Number of compressions done
   CoinBigIndex numberCompressions_;
-
-  /// true if Forrest Tomlin update, false if PFI 
-  bool doForrestTomlin_;
-
-  /// For statistics 
-  mutable bool collectStatistics_;
 
   /// Below are all to collect
   mutable double ftranCountInput_;
@@ -1261,6 +1284,9 @@ protected:
   double btranAverageAfterR_;
   double btranAverageAfterL_;
 
+  /// For statistics 
+  mutable bool collectStatistics_;
+
   /// Below this use sparse technology - if 0 then no L row copy
   int sparseThreshold_;
 
@@ -1268,20 +1294,26 @@ protected:
   int sparseThreshold2_;
 
   /// Start of each row in L
-  CoinBigIndex * startRowL_;
+  CoinBigIndexArrayWithLength startRowL_;
 
   /// Index of column in row for L
-  int * indexColumnL_;
+  CoinIntArrayWithLength indexColumnL_;
 
   /// Elements in L (row copy)
-  double * elementByRowL_;
+  CoinDoubleArrayWithLength elementByRowL_;
 
   /// Sparse regions
-  mutable int * sparse_;
+  mutable CoinIntArrayWithLength sparse_;
   /** L to U bias
       0 - U bias, 1 - some U bias, 2 some L bias, 3 L bias
   */
   int biasLU_;
+  /** Array persistence flag
+      If 0 then as now (delete/new)
+      1 then only do arrays if bigger needed
+      2 as 1 but give a bit extra if bigger needed
+  */
+  int persistenceFlag_;
   //@}
 };
 // Dense coding

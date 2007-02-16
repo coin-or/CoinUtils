@@ -1515,3 +1515,164 @@ CoinIndexedVector::print() const
   printf("\n");
 }
 
+// Zero out array
+void 
+CoinArrayWithLength::clear()
+{
+  assert ((size_>0&&array_)||!array_);
+  memset (array_,0,size_);
+}
+static char * mallocArray(int size)
+{
+  if (size>0)
+    return (char *) malloc(size);
+  else
+    return NULL;
+}
+// Conditionally gets new array
+char * 
+CoinArrayWithLength::conditionalNew(int sizeWanted)
+{
+  if (size_<0) {
+    free(array_);
+    array_ = mallocArray(sizeWanted);
+  } else if (sizeWanted>size_) {
+    free(array_);
+    size_ = (int) (sizeWanted*1.01)+64;
+    array_ = mallocArray(size_);
+  }
+  return array_;
+}
+// Conditionally deletes
+void 
+CoinArrayWithLength::conditionalDelete()
+{
+  if (size_<0) {
+    free(array_);
+    array_=NULL;
+  }
+}
+/* Copy constructor. */
+CoinArrayWithLength::CoinArrayWithLength(const CoinArrayWithLength & rhs)
+{
+  assert (rhs.size_>=0);
+  size_=rhs.size_;
+  array_ = mallocArray(size_);
+  memcpy(array_,rhs.array_,size_);
+}
+
+/* Copy constructor.2 */
+CoinArrayWithLength::CoinArrayWithLength(const CoinArrayWithLength * rhs)
+{
+  assert (rhs->size_>=0);
+  size_=rhs->size_;
+  array_ = mallocArray(size_);
+  memcpy(array_,rhs->array_,size_);
+}
+/* Assignment operator. */
+CoinArrayWithLength & 
+CoinArrayWithLength::operator=(const CoinArrayWithLength & rhs)
+{
+  if (this != &rhs) {
+    assert (rhs.size_>=0||!rhs.array_);
+    if (rhs.size_==-1) {
+      free(array_);
+      array_=NULL;
+      size_=-1;
+    } else {
+      int capacity = getCapacity();
+      int rhsCapacity = rhs.getCapacity();
+      if (capacity<rhsCapacity) {
+	free(array_);
+	array_ = mallocArray(rhsCapacity);
+      }
+      size_=rhs.size_;
+      if (size_>0)
+	memcpy(array_,rhs.array_,size_);
+    }
+  }
+  return *this;
+}
+/* Assignment with length (if -1 use internal length) */
+void 
+CoinArrayWithLength::copy(const CoinArrayWithLength & rhs, int numberBytes)
+{
+  if (numberBytes==-1||numberBytes<=rhs.getCapacity()) {
+    CoinArrayWithLength::operator=(rhs);
+  } else {
+    assert (numberBytes>=0);
+    if (size_==-1) {
+      free(array_);
+      array_=NULL;
+    } else {
+      size_=-1;
+    } 
+    if (rhs.size_>=0) 
+      size_ = numberBytes;
+    array_ = mallocArray(numberBytes);
+    if (rhs.array_)
+      memcpy(array_,rhs.array_,numberBytes);
+  }
+}
+/* Assignment with length - does not copy */
+void 
+CoinArrayWithLength::allocate(const CoinArrayWithLength & rhs, int numberBytes)
+{
+  if (numberBytes==-1||numberBytes<=rhs.getCapacity()) {
+    assert (rhs.size_>=0||!rhs.array_);
+    if (rhs.size_==-1) {
+      free(array_);
+      array_=NULL;
+      size_=-1;
+    } else {
+      int capacity = getCapacity();
+      int rhsCapacity = rhs.getCapacity();
+      if (capacity<rhsCapacity) {
+	free(array_);
+	array_ = mallocArray(rhsCapacity);
+      }
+      size_=rhs.size_;
+    }
+  } else {
+    assert (numberBytes>=0);
+    if (size_==-1) {
+      free(array_);
+      array_=NULL;
+    } else {
+      size_=-1;
+    } 
+    if (rhs.size_>=0) 
+      size_ = numberBytes;
+    array_ = mallocArray(numberBytes);
+  }
+}
+// Does what is needed to set persistence
+void 
+CoinArrayWithLength::setPersistence(int flag,int currentLength)
+{
+  if (flag) {
+    if (size_==-1) {
+      if (currentLength&&array_) {
+	size_=currentLength;
+      } else {
+	size_=0;
+	free(array_);
+	array_=NULL;
+      }
+    }
+  } else {
+    size_=-1;
+  }
+}
+// Swaps memory between two members
+void 
+CoinArrayWithLength::swap(CoinArrayWithLength & other)
+{
+  assert (size_==other.size_);
+  char * swapArray = other.array_;
+  other.array_=array_;
+  array_=swapArray;
+  int swapSize = other.size_;
+  other.size_=size_;
+  size_=swapSize;
+}

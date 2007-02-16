@@ -30,11 +30,12 @@ static int counter1=0;
 int
 CoinFactorization::factorSparse (  )
 {
-  int *indexRow = indexRowU_;
-  int *indexColumn = indexColumnU_;
-  double *element = elementU_;
+  int *indexRow = indexRowU_.array();
+  int *indexColumn = indexColumnU_.array();
+  double *element = elementU_.array();
   int count = 1;
-  double *workArea = new double [ numberRows_ ];
+  workArea_.conditionalNew(numberRows_);
+  double * workArea = workArea_.array();
   counter1++;
   // when to go dense
   int denseThreshold=denseThreshold_;
@@ -42,7 +43,8 @@ CoinFactorization::factorSparse (  )
   CoinZeroN ( workArea, numberRows_ );
   //get space for bit work area
   CoinBigIndex workSize = 1000;
-  unsigned int *workArea2 = ( unsigned int * ) new int [ workSize ];
+  workArea2_.conditionalNew(workSize);
+  unsigned int * workArea2 = workArea2_.array();
 
   int larger;
 
@@ -53,34 +55,43 @@ CoinFactorization::factorSparse (  )
   }
   int status = 0;
   //do slacks first
+  int * numberInRow = numberInRow_.array();
+  int * numberInColumn = numberInColumn_.array();
+  int * numberInColumnPlus = numberInColumnPlus_.array();
+  int * pivotRowL = pivotRowL_.array();
+  CoinBigIndex * startColumnU = startColumnU_.array();
+  CoinBigIndex * startColumnL = startColumnL_.array();
   if (biasLU_<3&&numberColumns_==numberRows_) {
-    int pivotColumn;
-    for ( pivotColumn = 0; pivotColumn < numberColumns_;
-	  pivotColumn++ ) {
-      if ( numberInColumn_[pivotColumn] == 1 ) {
-	CoinBigIndex start = startColumnU_[pivotColumn];
+    int iPivotColumn;
+    int * pivotColumn = pivotColumn_.array();
+    int * nextRow = nextRow_.array();
+    int * lastRow = lastRow_.array();
+    for ( iPivotColumn = 0; iPivotColumn < numberColumns_;
+	  iPivotColumn++ ) {
+      if ( numberInColumn[iPivotColumn] == 1 ) {
+	CoinBigIndex start = startColumnU[iPivotColumn];
 	double value = element[start];
-	if ( value == slackValue_ && numberInColumnPlus_[pivotColumn] == 0 ) {
+	if ( value == slackValue_ && numberInColumnPlus[iPivotColumn] == 0 ) {
 	  // treat as slack
-	  int iRow = indexRowU_[start];
+	  int iRow = indexRow[start];
 	  // but only if row not marked
-	  if (numberInRow_[iRow]>0) {
-	    totalElements_ -= numberInRow_[iRow];
+	  if (numberInRow[iRow]>0) {
+	    totalElements_ -= numberInRow[iRow];
 	    //take out this bit of indexColumnU
-	    int next = nextRow_[iRow];
-	    int last = lastRow_[iRow];
+	    int next = nextRow[iRow];
+	    int last = lastRow[iRow];
 	    
-	    nextRow_[last] = next;
-	    lastRow_[next] = last;
-	    nextRow_[iRow] = numberGoodU_;	//use for permute
+	    nextRow[last] = next;
+	    lastRow[next] = last;
+	    nextRow[iRow] = numberGoodU_;	//use for permute
 	    //modify linked list for pivots
 	    deleteLink ( iRow );
-	    numberInRow_[iRow]=-1;
-	    numberInColumn_[pivotColumn]=0;
-	    pivotRowL_[numberGoodL_] = iRow;
+	    numberInRow[iRow]=-1;
+	    numberInColumn[iPivotColumn]=0;
+	    pivotRowL[numberGoodL_] = iRow;
 	    numberGoodL_++;
-	    startColumnL_[numberGoodL_] = 0;
-	    pivotColumn_[numberGoodU_] = pivotColumn;
+	    startColumnL[numberGoodL_] = 0;
+	    pivotColumn[numberGoodU_] = iPivotColumn;
 	    numberGoodU_++;
 	  }
 	}
@@ -90,11 +101,10 @@ CoinFactorization::factorSparse (  )
     preProcess(4);
   }
   numberSlacks_ = numberGoodU_;
-  int *nextCount = nextCount_;
-  int *numberInRow = numberInRow_;
-  int *numberInColumn = numberInColumn_;
-  CoinBigIndex *startRow = startRowU_;
-  CoinBigIndex *startColumn = startColumnU_;
+  int *nextCount = nextCount_.array();
+  int *firstCount = firstCount_.array();
+  CoinBigIndex *startRow = startRowU_.array();
+  CoinBigIndex *startColumn = startColumnU;
   double pivotTolerance = pivotTolerance_;
   int numberTrials = numberTrials_;
   int numberRows = numberRows_;
@@ -107,7 +117,7 @@ CoinFactorization::factorSparse (  )
     if (counter1==-1&&counter2>=0) {
       // check counts consistent
       for (int iCount=1;iCount<numberRows_;iCount++) {
-        int look = firstCount_[iCount];
+        int look = firstCount[iCount];
         while ( look >= 0 ) {
           if ( look < numberRows_ ) {
             int iRow = look;
@@ -136,37 +146,38 @@ CoinFactorization::factorSparse (  )
     CoinBigIndex minimumCount = INT_MAX;
     double minimumCost = COIN_DBL_MAX;
 
-    int pivotRow = -1;
-    int pivotColumn = -1;
+    int iPivotRow = -1;
+    int iPivotColumn = -1;
     int pivotRowPosition = -1;
     int pivotColumnPosition = -1;
-    int look = firstCount_[count];
+    int look = firstCount[count];
     int trials = 0;
+    int * pivotColumn = pivotColumn_.array();
 
-    if ( count == 1 && firstCount_[1] >= 0 &&!biasLU_) {
+    if ( count == 1 && firstCount[1] >= 0 &&!biasLU_) {
       //do column singletons first to put more in U
       while ( look >= 0 ) {
         if ( look < numberRows_ ) {
-          look = nextCount_[look];
+          look = nextCount[look];
         } else {
           int iColumn = look - numberRows_;
           
-          assert ( numberInColumn_[iColumn] == count );
-          CoinBigIndex start = startColumnU_[iColumn];
+          assert ( numberInColumn[iColumn] == count );
+          CoinBigIndex start = startColumnU[iColumn];
           int iRow = indexRow[start];
           
-          pivotRow = iRow;
+          iPivotRow = iRow;
           pivotRowPosition = start;
-          pivotColumn = iColumn;
-          assert (pivotRow>=0&&pivotColumn>=0);
+          iPivotColumn = iColumn;
+          assert (iPivotRow>=0&&iPivotColumn>=0);
           pivotColumnPosition = -1;
           look = -1;
           break;
         }
       }			/* endwhile */
-      if ( pivotRow < 0 ) {
+      if ( iPivotRow < 0 ) {
         //back to singletons
-        look = firstCount_[1];
+        look = firstCount[1];
       }
     }
     while ( look >= 0 ) {
@@ -206,23 +217,23 @@ CoinFactorization::factorSparse (  )
             if ( value >= minimumValue ) {
               minimumCost = cost;
               minimumCount = numberInColumn[iColumn];
-              pivotRow = iRow;
+              iPivotRow = iRow;
               pivotRowPosition = -1;
-              pivotColumn = iColumn;
-              assert (pivotRow>=0&&pivotColumn>=0);
+              iPivotColumn = iColumn;
+              assert (iPivotRow>=0&&iPivotColumn>=0);
               pivotColumnPosition = i;
               rejected=false;
               if ( minimumCount < count ) {
                 look = -1;
                 break;
               }
-            } else if ( pivotRow == -1 ) {
+            } else if ( iPivotRow == -1 ) {
               rejected = true;
             }
           }
         }
         trials++;
-        if ( trials >= numberTrials && pivotRow >= 0 ) {
+        if ( trials >= numberTrials && iPivotRow >= 0 ) {
           look = -1;
           break;
         }
@@ -256,10 +267,10 @@ CoinFactorization::factorSparse (  )
             if ( cost < minimumCost ) {
               minimumCost = cost;
               minimumCount = nInRow;
-              pivotRow = iRow;
+              iPivotRow = iRow;
               pivotRowPosition = i;
-              pivotColumn = iColumn;
-              assert (pivotRow>=0&&pivotColumn>=0);
+              iPivotColumn = iColumn;
+              assert (iPivotRow>=0&&iPivotColumn>=0);
               pivotColumnPosition = -1;
               if ( minimumCount <= count + 1 ) {
                 look = -1;
@@ -269,16 +280,16 @@ CoinFactorization::factorSparse (  )
           }
         }
         trials++;
-        if ( trials >= numberTrials && pivotRow >= 0 ) {
+        if ( trials >= numberTrials && iPivotRow >= 0 ) {
           look = -1;
           break;
         }
       }
     }				/* endwhile */
-    if (pivotRow>=0) {
-      if ( pivotRow >= 0 ) {
-        int numberDoRow = numberInRow_[pivotRow] - 1;
-        int numberDoColumn = numberInColumn_[pivotColumn] - 1;
+    if (iPivotRow>=0) {
+      if ( iPivotRow >= 0 ) {
+        int numberDoRow = numberInRow[iPivotRow] - 1;
+        int numberDoColumn = numberInColumn[iPivotColumn] - 1;
         
         totalElements_ -= ( numberDoRow + numberDoColumn + 1 );
         if ( numberDoColumn > 0 ) {
@@ -300,24 +311,24 @@ CoinFactorization::factorSparse (  )
               
               if ( size > workSize ) {
                 workSize = size;
-                delete []  workArea2 ;
-                workArea2 = ( unsigned int * ) new int [ workSize ];
+		workArea2_.conditionalNew(workSize);
+		workArea2 = workArea2_.array();
               }
               bool goodPivot;
               
               if ( larger < 32766 ) {
                 //branch out to best pivot routine 
-                goodPivot = pivot ( pivotRow, pivotColumn,
+                goodPivot = pivot ( iPivotRow, iPivotColumn,
                                     pivotRowPosition, pivotColumnPosition,
                                     workArea, workArea2, increment,
-                                    increment2, ( short * ) markRow_ ,
+                                    increment2, ( short * ) markRow_.array() ,
                                     32767);
               } else {
                 //might be able to do better by permuting
-                goodPivot = pivot ( pivotRow, pivotColumn,
+                goodPivot = pivot ( iPivotRow, iPivotColumn,
                                     pivotRowPosition, pivotColumnPosition,
                                     workArea, workArea2, increment,
-                                    increment2, ( int * ) markRow_ ,
+                                    increment2, ( int * ) markRow_.array() ,
                                     INT_MAX);
               }
               if ( !goodPivot ) {
@@ -326,7 +337,7 @@ CoinFactorization::factorSparse (  )
                 break;
               }
             } else {
-              if ( !pivotOneOtherRow ( pivotRow, pivotColumn ) ) {
+              if ( !pivotOneOtherRow ( iPivotRow, iPivotColumn ) ) {
                 status = -99;
                 count=biggerDimension_+1;
                 break;
@@ -334,7 +345,7 @@ CoinFactorization::factorSparse (  )
             }
           } else {
             assert (!numberDoRow);
-            if ( !pivotRowSingleton ( pivotRow, pivotColumn ) ) {
+            if ( !pivotRowSingleton ( iPivotRow, iPivotColumn ) ) {
               status = -99;
               count=biggerDimension_+1;
               break;
@@ -342,13 +353,13 @@ CoinFactorization::factorSparse (  )
           }
         } else {
           assert (!numberDoColumn);
-          if ( !pivotColumnSingleton ( pivotRow, pivotColumn ) ) {
+          if ( !pivotColumnSingleton ( iPivotRow, iPivotColumn ) ) {
             status = -99;
             count=biggerDimension_+1;
             break;
           }
         }
-        pivotColumn_[numberGoodU_] = pivotColumn;
+        pivotColumn[numberGoodU_] = iPivotColumn;
         numberGoodU_++;
         // This should not need to be trapped here - but be safe
         if (numberGoodU_==numberRows_) 
@@ -398,7 +409,7 @@ CoinFactorization::factorSparse (  )
             break;
           int check=0;
           for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
-            if (numberInColumn_[iColumn]) 
+            if (numberInColumn[iColumn]) 
               check++;
           }
           if (check!=leftRows&&denseThreshold_) {
@@ -422,8 +433,8 @@ CoinFactorization::factorSparse (  )
       count++;
     } 
   }				/* endwhile */
-  delete []  workArea ;
-  delete [] workArea2 ;
+  workArea_.conditionalDelete() ;
+  workArea2_.conditionalDelete() ;
   return status;
 }
 
@@ -445,51 +456,63 @@ int CoinFactorization::factorDense()
   denseArea_= new double [full];
   CoinZeroN(denseArea_,full);
   densePermute_= new int [numberDense_];
+  int * pivotRowL = pivotRowL_.array();
+  int * indexRowU = indexRowU_.array();
   //mark row lookup using lastRow
   int i;
+  int * nextRow = nextRow_.array();
+  int * lastRow = lastRow_.array();
+  int * numberInColumn = numberInColumn_.array();
+  int * numberInColumnPlus = numberInColumnPlus_.array();
   for (i=0;i<numberRows_;i++)
-    lastRow_[i]=0;
-  int * indexRow = indexRowU_;
-  double * element = elementU_;
+    lastRow[i]=0;
+  int * indexRow = indexRowU_.array();
+  double * element = elementU_.array();
   for ( i=0;i<numberGoodU_;i++) {
-    int iRow=pivotRowL_[i];
-    lastRow_[iRow]=-1;
+    int iRow=pivotRowL[i];
+    lastRow[iRow]=-1;
   } 
   int which=0;
   for (i=0;i<numberRows_;i++) {
-    if (!lastRow_[i]) {
-      lastRow_[i]=which;
-      nextRow_[i]=numberGoodU_+which;
+    if (!lastRow[i]) {
+      lastRow[i]=which;
+      nextRow[i]=numberGoodU_+which;
       densePermute_[which]=i;
       which++;
     }
   } 
   //for L part
-  CoinBigIndex endL=startColumnL_[numberGoodL_];
+  CoinBigIndex * startColumnL = startColumnL_.array();
+  double * elementL = elementL_.array();
+  int * indexRowL = indexRowL_.array();
+  CoinBigIndex endL=startColumnL[numberGoodL_];
   //take out of U
   double * column = denseArea_;
   int rowsDone=0;
   int iColumn=0;
+  int * pivotColumn = pivotColumn_.array();
+  double * pivotRegion = pivotRegion_.array();
+  CoinBigIndex * startColumnU = startColumnU_.array();
   for (iColumn=0;iColumn<numberColumns_;iColumn++) {
-    if (numberInColumn_[iColumn]) {
+    if (numberInColumn[iColumn]) {
       //move
-      CoinBigIndex start = startColumnU_[iColumn];
-      int number = numberInColumn_[iColumn];
+      CoinBigIndex start = startColumnU[iColumn];
+      int number = numberInColumn[iColumn];
       CoinBigIndex end = start+number;
       for (CoinBigIndex i=start;i<end;i++) {
         int iRow=indexRow[i];
-        iRow=lastRow_[iRow];
+        iRow=lastRow[iRow];
         column[iRow]=element[i];
       } /* endfor */
       column+=numberDense_;
-      while (lastRow_[rowsDone]<0) {
+      while (lastRow[rowsDone]<0) {
         rowsDone++;
       } /* endwhile */
-      pivotRowL_[numberGoodU_]=rowsDone;
-      startColumnL_[numberGoodU_+1]=endL;
-      numberInColumn_[iColumn]=0;
-      pivotColumn_[numberGoodU_]=iColumn;
-      pivotRegion_[numberGoodU_]=1.0;
+      pivotRowL[numberGoodU_]=rowsDone;
+      startColumnL[numberGoodU_+1]=endL;
+      numberInColumn[iColumn]=0;
+      pivotColumn[numberGoodU_]=iColumn;
+      pivotRegion[numberGoodU_]=1.0;
       numberGoodU_++;
     } 
   } 
@@ -515,15 +538,17 @@ int CoinFactorization::factorDense()
   denseThreshold_=0;
   double tolerance = zeroTolerance_;
   tolerance = 1.0e-30;
+  int * nextColumn = nextColumn_.array();
+  const int * pivotColumnConst = pivotColumn_.array();
   // make sure we have enough space in L and U
   for (iDense=0;iDense<numberToDo;iDense++) {
     //how much space have we got
-    iColumn = pivotColumn_[base+iDense];
-    int next = nextColumn_[iColumn];
+    iColumn = pivotColumnConst[base+iDense];
+    int next = nextColumn[iColumn];
     int numberInPivotColumn = iDense;
-    CoinBigIndex space = startColumnU_[next] 
-      - startColumnU_[iColumn]
-      - numberInColumnPlus_[next];
+    CoinBigIndex space = startColumnU[next] 
+      - startColumnU[iColumn]
+      - numberInColumnPlus[next];
     //assume no zero elements
     if ( numberInPivotColumn > space ) {
       //getColumnSpace also moves fixed part
@@ -532,13 +557,13 @@ int CoinFactorization::factorDense()
       }
     }
     // set so further moves will work
-    numberInColumn_[iColumn]=numberInPivotColumn;
+    numberInColumn[iColumn]=numberInPivotColumn;
   }
   // Fill in ?
   for (iColumn=numberGoodU_+numberToDo;iColumn<numberRows_;iColumn++) {
-    pivotRowL_[iColumn]=iColumn;
-    startColumnL_[iColumn+1]=endL;
-    pivotRegion_[iColumn]=1.0;
+    pivotRowL[iColumn]=iColumn;
+    startColumnL[iColumn+1]=endL;
+    pivotRegion[iColumn]=1.0;
   } 
   if ( lengthL_ + full*0.5 > lengthAreaL_ ) {
     //need more memory
@@ -546,6 +571,7 @@ int CoinFactorization::factorDense()
       std::cout << "more memory needed in middle of invert" << std::endl;
     return -99;
   }
+  double *elementU = elementU_.array();
   for (iDense=0;iDense<numberToDo;iDense++) {
     int iRow;
     int jDense;
@@ -559,12 +585,12 @@ int CoinFactorization::factorDense()
       }
     }
     if ( pivotRow >= 0 ) {
-      iColumn = pivotColumn_[base+iDense];
+      iColumn = pivotColumnConst[base+iDense];
       double pivotElement=element[pivotRow];
       // get original row
       int originalRow = densePermute_[pivotRow];
       // do nextRow
-      nextRow_[originalRow] = numberGoodU_;
+      nextRow[originalRow] = numberGoodU_;
       // swap
       densePermute_[pivotRow]=densePermute_[iDense];
       densePermute_[iDense] = originalRow;
@@ -576,33 +602,33 @@ int CoinFactorization::factorDense()
       }
       double pivotMultiplier = 1.0 / pivotElement;
       //printf("pivotMultiplier %g\n",pivotMultiplier);
-      pivotRegion_[numberGoodU_] = pivotMultiplier;
+      pivotRegion[numberGoodU_] = pivotMultiplier;
       // Do L
       element = denseArea_+iDense*numberDense_;
       CoinBigIndex l = lengthL_;
-      startColumnL_[numberGoodL_] = l;	//for luck and first time
+      startColumnL[numberGoodL_] = l;	//for luck and first time
       for (iRow=iDense+1;iRow<numberDense_;iRow++) {
 	double value = element[iRow]*pivotMultiplier;
 	element[iRow] = value;
 	if (fabs(value)>tolerance) {
-	  indexRowL_[l] = densePermute_[iRow];
-	  elementL_[l++] = value;
+	  indexRowL[l] = densePermute_[iRow];
+	  elementL[l++] = value;
 	}
       }
-      pivotRowL_[numberGoodL_++] = originalRow;
+      pivotRowL[numberGoodL_++] = originalRow;
       lengthL_ = l;
-      startColumnL_[numberGoodL_] = l;
+      startColumnL[numberGoodL_] = l;
       // update U column
-      CoinBigIndex start = startColumnU_[iColumn];
+      CoinBigIndex start = startColumnU[iColumn];
       for (iRow=0;iRow<iDense;iRow++) {
 	if (fabs(element[iRow])>tolerance) {
-	  indexRowU_[start] = densePermute_[iRow];
-	  elementU_[start++] = element[iRow];
+	  indexRowU[start] = densePermute_[iRow];
+	  elementU[start++] = element[iRow];
 	}
       }
-      numberInColumn_[iColumn]=0;
-      numberInColumnPlus_[iColumn] += start-startColumnU_[iColumn];
-      startColumnU_[iColumn]=start;
+      numberInColumn[iColumn]=0;
+      numberInColumnPlus[iColumn] += start-startColumnU[iColumn];
+      startColumnU[iColumn]=start;
       // update other columns
       double * element2 = element+numberDense_;
       for (jDense=iDense+1;jDense<numberToDo;jDense++) {
@@ -612,7 +638,7 @@ int CoinFactorization::factorDense()
 	  element2[iRow] -= value*element[iRow];
 	  //if (oldValue&&!element2[iRow]) {
           //printf("Updated element for column %d, row %d old %g",
-          //   pivotColumn_[base+jDense],densePermute_[iRow],oldValue);
+          //   pivotColumnConst[base+jDense],densePermute_[iRow],oldValue);
           //printf(" new %g\n",element2[iRow]);
 	  //}
 	}
@@ -636,31 +662,34 @@ int CoinFactorization::factorDense()
 void 
 CoinFactorization::separateLinks(int count,bool rowsFirst)
 {
-  int next = firstCount_[count];
+  int *nextCount = nextCount_.array();
+  int *firstCount = firstCount_.array();
+  int *lastCount = lastCount_.array();
+  int next = firstCount[count];
   int firstRow=-1;
   int firstColumn=-1;
   int lastRow=-1;
   int lastColumn=-1;
   while(next>=0) {
-    int next2=nextCount_[next];
+    int next2=nextCount[next];
     if (next>=numberRows_) {
-      nextCount_[next]=-1;
+      nextCount[next]=-1;
       // Column
       if (firstColumn>=0) {
-	lastCount_[next]=lastColumn;
-	nextCount_[lastColumn]=next;
+	lastCount[next]=lastColumn;
+	nextCount[lastColumn]=next;
       } else {
-	lastCount_[next]= -2 - count;
+	lastCount[next]= -2 - count;
 	firstColumn=next;
       }
       lastColumn=next;
     } else {
       // Row
       if (firstRow>=0) {
-	lastCount_[next]=lastRow;
-	nextCount_[lastRow]=next;
+	lastCount[next]=lastRow;
+	nextCount[lastRow]=next;
       } else {
-	lastCount_[next]= -2 - count;
+	lastCount[next]= -2 - count;
 	firstRow=next;
       }
       lastRow=next;
@@ -668,17 +697,17 @@ CoinFactorization::separateLinks(int count,bool rowsFirst)
     next=next2;
   }
   if (rowsFirst&&firstRow>=0) {
-    firstCount_[count]=firstRow;
-    nextCount_[lastRow]=firstColumn;
+    firstCount[count]=firstRow;
+    nextCount[lastRow]=firstColumn;
     if (firstColumn>=0)
-      lastCount_[firstColumn]=lastRow;
+      lastCount[firstColumn]=lastRow;
   } else if (firstRow<0) {
-    firstCount_[count]=firstColumn;
+    firstCount[count]=firstColumn;
   } else if (firstColumn>=0) {
-    firstCount_[count]=firstColumn;
-    nextCount_[lastColumn]=firstRow;
+    firstCount[count]=firstColumn;
+    nextCount[lastColumn]=firstRow;
     if (firstRow>=0)
-      lastCount_[firstRow]=lastColumn;
+      lastCount[firstRow]=lastColumn;
   } 
 }
 // Debug - save on file
@@ -694,69 +723,68 @@ CoinFactorization::saveFactorization (const char * file  ) const
     last += sizeof(int);
     if (fwrite(first,last-first,1,fp)!=1)
       return 1;
-    int extraSpace = maximumColumnsExtra_ - numberColumns_;
     // Now arrays
-    if (CoinToFile(elementU_,lengthAreaU_ , fp ))
+    if (CoinToFile(elementU_.array(),lengthAreaU_ , fp ))
       return 1;
-    if (CoinToFile(indexRowU_,lengthAreaU_ , fp ))
+    if (CoinToFile(indexRowU_.array(),lengthAreaU_ , fp ))
       return 1;
-    if (CoinToFile(indexColumnU_,lengthAreaU_ , fp ))
+    if (CoinToFile(indexColumnU_.array(),lengthAreaU_ , fp ))
       return 1;
-    if (CoinToFile(convertRowToColumnU_,lengthAreaU_ , fp ))
+    if (CoinToFile(convertRowToColumnU_.array(),lengthAreaU_ , fp ))
       return 1;
-    if (CoinToFile(elementByRowL_,lengthAreaL_ , fp ))
+    if (CoinToFile(elementByRowL_.array(),lengthAreaL_ , fp ))
       return 1;
-    if (CoinToFile(indexColumnL_,lengthAreaL_ , fp ))
+    if (CoinToFile(indexColumnL_.array(),lengthAreaL_ , fp ))
       return 1;
-    if (CoinToFile(startRowL_ , numberRows_+1, fp ))
+    if (CoinToFile(startRowL_.array() , numberRows_+1, fp ))
       return 1;
-    if (CoinToFile(elementL_,lengthAreaL_ , fp ))
+    if (CoinToFile(elementL_.array(),lengthAreaL_ , fp ))
       return 1;
-    if (CoinToFile(indexRowL_,lengthAreaL_ , fp ))
+    if (CoinToFile(indexRowL_.array(),lengthAreaL_ , fp ))
       return 1;
-    if (CoinToFile(startColumnL_,numberRows_ + 1 , fp ))
+    if (CoinToFile(startColumnL_.array(),numberRows_ + 1 , fp ))
       return 1;
-    if (CoinToFile(markRow_,numberRows_  , fp))
+    if (CoinToFile(markRow_.array(),numberRows_  , fp))
       return 1;
-    if (CoinToFile(saveColumn_,numberColumns_  , fp))
+    if (CoinToFile(saveColumn_.array(),numberColumns_  , fp))
       return 1;
-    if (CoinToFile(startColumnR_ , extraSpace + 1 , fp ))
+    if (CoinToFile(startColumnR_.array() , maximumPivots_ + 1 , fp ))
       return 1;
-    if (CoinToFile(startRowU_,maximumRowsExtra_ + 1 , fp ))
+    if (CoinToFile(startRowU_.array(),maximumRowsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(numberInRow_,maximumRowsExtra_ + 1 , fp ))
+    if (CoinToFile(numberInRow_.array(),maximumRowsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(nextRow_,maximumRowsExtra_ + 1 , fp ))
+    if (CoinToFile(nextRow_.array(),maximumRowsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(lastRow_,maximumRowsExtra_ + 1 , fp ))
+    if (CoinToFile(lastRow_.array(),maximumRowsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(pivotRegion_,maximumRowsExtra_ + 1 , fp ))
+    if (CoinToFile(pivotRegion_.array(),maximumRowsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(permuteBack_,maximumRowsExtra_ + 1 , fp ))
+    if (CoinToFile(permuteBack_.array(),maximumRowsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(permute_,maximumRowsExtra_ + 1 , fp ))
+    if (CoinToFile(permute_.array(),maximumRowsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(pivotColumnBack_,maximumRowsExtra_ + 1 , fp ))
+    if (CoinToFile(pivotColumnBack_.array(),maximumRowsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(startColumnU_,maximumColumnsExtra_ + 1 , fp ))
+    if (CoinToFile(startColumnU_.array(),maximumColumnsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(numberInColumn_,maximumColumnsExtra_ + 1 , fp ))
+    if (CoinToFile(numberInColumn_.array(),maximumColumnsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(numberInColumnPlus_,maximumColumnsExtra_ + 1 , fp ))
+    if (CoinToFile(numberInColumnPlus_.array(),maximumColumnsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(firstCount_,biggerDimension_ + 2 , fp ))
+    if (CoinToFile(firstCount_.array(),biggerDimension_ + 2 , fp ))
       return 1;
-    if (CoinToFile(nextCount_,numberRows_ + numberColumns_ , fp ))
+    if (CoinToFile(nextCount_.array(),numberRows_ + numberColumns_ , fp ))
       return 1;
-    if (CoinToFile(lastCount_,numberRows_ + numberColumns_ , fp ))
+    if (CoinToFile(lastCount_.array(),numberRows_ + numberColumns_ , fp ))
       return 1;
-    if (CoinToFile(pivotRowL_,numberRows_ + 1 , fp ))
+    if (CoinToFile(pivotRowL_.array(),numberRows_ + 1 , fp ))
       return 1;
-    if (CoinToFile(pivotColumn_,maximumColumnsExtra_ + 1 , fp ))
+    if (CoinToFile(pivotColumn_.array(),maximumColumnsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(nextColumn_,maximumColumnsExtra_ + 1 , fp ))
+    if (CoinToFile(nextColumn_.array(),maximumColumnsExtra_ + 1 , fp ))
       return 1;
-    if (CoinToFile(lastColumn_,maximumColumnsExtra_ + 1 , fp ))
+    if (CoinToFile(lastColumn_.array(),maximumColumnsExtra_ + 1 , fp ))
       return 1;
     if (CoinToFile(denseArea_ , numberDense_*numberDense_, fp ))
       return 1;
@@ -782,100 +810,130 @@ CoinFactorization::restoreFactorization (const char * file , bool factorIt )
     last += sizeof(int);
     if (fread(first,last-first,1,fp)!=1)
       return 1;
-    int extraSpace = maximumColumnsExtra_ - numberColumns_;
     CoinBigIndex space = lengthAreaL_ - lengthL_;
     // Now arrays
-    if (CoinFromFile(elementU_,lengthAreaU_ , fp, newSize )==1)
+    double *elementU = elementU_.array();
+    if (CoinFromFile(elementU,lengthAreaU_ , fp, newSize )==1)
       return 1;
     assert (newSize==lengthAreaU_);
-    if (CoinFromFile(indexRowU_,lengthAreaU_ , fp, newSize )==1)
+    int * indexRowU = indexRowU_.array();
+    if (CoinFromFile(indexRowU,lengthAreaU_ , fp, newSize )==1)
       return 1;
     assert (newSize==lengthAreaU_);
-    if (CoinFromFile(indexColumnU_,lengthAreaU_ , fp, newSize )==1)
+    int * indexColumnU = indexColumnU_.array();
+    if (CoinFromFile(indexColumnU,lengthAreaU_ , fp, newSize )==1)
       return 1;
     assert (newSize==lengthAreaU_);
-    if (CoinFromFile(convertRowToColumnU_,lengthAreaU_ , fp, newSize )==1)
+    CoinBigIndex *convertRowToColumnU = convertRowToColumnU_.array();
+    if (CoinFromFile(convertRowToColumnU,lengthAreaU_ , fp, newSize )==1)
       return 1;
-    assert (newSize==lengthAreaU_||(newSize==0&&!convertRowToColumnU_));
-    if (CoinFromFile(elementByRowL_,lengthAreaL_ , fp, newSize )==1)
+    assert (newSize==lengthAreaU_||(newSize==0&&!convertRowToColumnU_.array()));
+    double * elementByRowL = elementByRowL_.array();
+    if (CoinFromFile(elementByRowL,lengthAreaL_ , fp, newSize )==1)
       return 1;
-    assert (newSize==lengthAreaL_||(newSize==0&&!elementByRowL_));
-    if (CoinFromFile(indexColumnL_,lengthAreaL_ , fp, newSize )==1)
+    assert (newSize==lengthAreaL_||(newSize==0&&!elementByRowL_.array()));
+    int * indexColumnL = indexColumnL_.array();
+    if (CoinFromFile(indexColumnL,lengthAreaL_ , fp, newSize )==1)
       return 1;
-    assert (newSize==lengthAreaL_||(newSize==0&&!indexColumnL_));
-    if (CoinFromFile(startRowL_ , numberRows_+1, fp, newSize )==1)
+    assert (newSize==lengthAreaL_||(newSize==0&&!indexColumnL_.array()));
+    CoinBigIndex * startRowL = startRowL_.array();
+    if (CoinFromFile(startRowL , numberRows_+1, fp, newSize )==1)
       return 1;
-    assert (newSize==numberRows_+1||(newSize==0&&!startRowL_));
-    if (CoinFromFile(elementL_,lengthAreaL_ , fp, newSize )==1)
+    assert (newSize==numberRows_+1||(newSize==0&&!startRowL_.array()));
+    double * elementL = elementL_.array();
+    if (CoinFromFile(elementL,lengthAreaL_ , fp, newSize )==1)
       return 1;
     assert (newSize==lengthAreaL_);
-    if (CoinFromFile(indexRowL_,lengthAreaL_ , fp, newSize )==1)
+    int * indexRowL = indexRowL_.array();
+    if (CoinFromFile(indexRowL,lengthAreaL_ , fp, newSize )==1)
       return 1;
     assert (newSize==lengthAreaL_);
-    if (CoinFromFile(startColumnL_,numberRows_ + 1 , fp, newSize )==1)
+    CoinBigIndex * startColumnL = startColumnL_.array();
+    if (CoinFromFile(startColumnL,numberRows_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==numberRows_+1);
-    if (CoinFromFile(markRow_,numberRows_  , fp, newSize )==1)
+    int * markRow = markRow_.array();
+    if (CoinFromFile(markRow,numberRows_  , fp, newSize )==1)
       return 1;
     assert (newSize==numberRows_);
-    if (CoinFromFile(saveColumn_,numberColumns_  , fp, newSize )==1)
+    int * saveColumn = saveColumn_.array();
+    if (CoinFromFile(saveColumn,numberColumns_  , fp, newSize )==1)
       return 1;
     assert (newSize==numberColumns_);
-    if (CoinFromFile(startColumnR_ , extraSpace + 1 , fp, newSize )==1)
+    CoinBigIndex * startColumnR = startColumnR_.array();
+    if (CoinFromFile(startColumnR , maximumPivots_ + 1 , fp, newSize )==1)
       return 1;
-    assert (newSize==extraSpace+1||(newSize==0&&!startColumnR_));
-    if (CoinFromFile(startRowU_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+    assert (newSize==maximumPivots_+1||(newSize==0&&!startColumnR_.array()));
+    CoinBigIndex * startRowU = startRowU_.array();
+    if (CoinFromFile(startRowU,maximumRowsExtra_ + 1 , fp, newSize )==1)
       return 1;
-    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!startRowU_));
-    if (CoinFromFile(numberInRow_,maximumRowsExtra_ + 1 , fp, newSize )==1)
-      return 1;
-    assert (newSize==maximumRowsExtra_+1);
-    if (CoinFromFile(nextRow_,maximumRowsExtra_ + 1 , fp, newSize )==1)
-      return 1;
-    assert (newSize==maximumRowsExtra_+1);
-    if (CoinFromFile(lastRow_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!startRowU_.array()));
+    int * numberInRow = numberInRow_.array();
+    if (CoinFromFile(numberInRow,maximumRowsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumRowsExtra_+1);
-    if (CoinFromFile(pivotRegion_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+    int * nextRow = nextRow_.array();
+    if (CoinFromFile(nextRow,maximumRowsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumRowsExtra_+1);
-    if (CoinFromFile(permuteBack_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+    int * lastRow = lastRow_.array();
+    if (CoinFromFile(lastRow,maximumRowsExtra_ + 1 , fp, newSize )==1)
       return 1;
-    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!permuteBack_));
-    if (CoinFromFile(permute_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+    assert (newSize==maximumRowsExtra_+1);
+    double * pivotRegion = pivotRegion_.array();
+    if (CoinFromFile(pivotRegion,maximumRowsExtra_ + 1 , fp, newSize )==1)
       return 1;
-    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!permute_));
-    if (CoinFromFile(pivotColumnBack_,maximumRowsExtra_ + 1 , fp, newSize )==1)
+    assert (newSize==maximumRowsExtra_+1);
+    int * permuteBack = permuteBack_.array();
+    if (CoinFromFile(permuteBack,maximumRowsExtra_ + 1 , fp, newSize )==1)
       return 1;
-    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!pivotColumnBack_));
-    if (CoinFromFile(startColumnU_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!permuteBack_.array()));
+    int * permute = permute_.array();
+    if (CoinFromFile(permute,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!permute_.array()));
+    int * pivotColumnBack = pivotColumnBack_.array();
+    if (CoinFromFile(pivotColumnBack,maximumRowsExtra_ + 1 , fp, newSize )==1)
+      return 1;
+    assert (newSize==maximumRowsExtra_+1||(newSize==0&&!pivotColumnBack_.array()));
+    CoinBigIndex * startColumnU = startColumnU_.array();
+    if (CoinFromFile(startColumnU,maximumColumnsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumColumnsExtra_+1);
-    if (CoinFromFile(numberInColumn_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+    int * numberInColumn = numberInColumn_.array();
+    if (CoinFromFile(numberInColumn,maximumColumnsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumColumnsExtra_+1);
-    if (CoinFromFile(numberInColumnPlus_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+    int * numberInColumnPlus = numberInColumnPlus_.array();
+    if (CoinFromFile(numberInColumnPlus,maximumColumnsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumColumnsExtra_+1);
-    if (CoinFromFile(firstCount_,biggerDimension_ + 2 , fp, newSize )==1)
+    int *firstCount = firstCount_.array();
+    if (CoinFromFile(firstCount,biggerDimension_ + 2 , fp, newSize )==1)
       return 1;
     assert (newSize==biggerDimension_+2);
-    if (CoinFromFile(nextCount_,numberRows_ + numberColumns_ , fp, newSize )==1)
+    int *nextCount = nextCount_.array();
+    if (CoinFromFile(nextCount,numberRows_ + numberColumns_ , fp, newSize )==1)
       return 1;
     assert (newSize==numberRows_+numberColumns_);
-    if (CoinFromFile(lastCount_,numberRows_ + numberColumns_ , fp, newSize )==1)
+    int *lastCount = lastCount_.array();
+    if (CoinFromFile(lastCount,numberRows_ + numberColumns_ , fp, newSize )==1)
       return 1;
     assert (newSize==numberRows_+numberColumns_);
-    if (CoinFromFile(pivotRowL_,numberRows_ + 1 , fp, newSize )==1)
+    int * pivotRowL = pivotRowL_.array();
+    if (CoinFromFile(pivotRowL,numberRows_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==numberRows_+1);
-    if (CoinFromFile(pivotColumn_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+    int * pivotColumn = pivotColumn_.array(); 
+    if (CoinFromFile(pivotColumn,maximumColumnsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumColumnsExtra_+1);
-    if (CoinFromFile(nextColumn_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+    int * nextColumn = nextColumn_.array();
+    if (CoinFromFile(nextColumn,maximumColumnsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumColumnsExtra_+1);
-    if (CoinFromFile(lastColumn_,maximumColumnsExtra_ + 1 , fp, newSize )==1)
+    int * lastColumn = lastColumn_.array();
+    if (CoinFromFile(lastColumn,maximumColumnsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumColumnsExtra_+1);
     if (CoinFromFile(denseArea_ , numberDense_*numberDense_, fp, newSize )==1)
@@ -885,8 +943,8 @@ CoinFactorization::restoreFactorization (const char * file , bool factorIt )
       return 1;
     assert (newSize==numberDense_);
     lengthAreaR_ = space;
-    elementR_ = elementL_ + lengthL_;
-    indexRowR_ = indexRowL_ + lengthL_;
+    elementR_ = elementL_.array() + lengthL_;
+    indexRowR_ = indexRowL_.array() + lengthL_;
     fclose(fp);
     if (factorIt) {
       if (biasLU_>=3||numberRows_!=numberColumns_)
