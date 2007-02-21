@@ -1533,13 +1533,16 @@ static char * mallocArray(int size)
 char * 
 CoinArrayWithLength::conditionalNew(int sizeWanted)
 {
-  if (size_<0) {
+  if (size_==-1) {
     free(array_);
     array_ = mallocArray(sizeWanted);
-  } else if (sizeWanted>size_) {
-    free(array_);
-    size_ = (int) (sizeWanted*1.01)+64;
-    array_ = mallocArray(size_);
+  } else {
+    setCapacity();
+    if (sizeWanted>size_) {
+      free(array_);
+      size_ = (int) (sizeWanted*1.01)+64;
+      array_ = mallocArray(size_);
+    }
   }
   return array_;
 }
@@ -1547,34 +1550,38 @@ CoinArrayWithLength::conditionalNew(int sizeWanted)
 void 
 CoinArrayWithLength::conditionalDelete()
 {
-  if (size_<0) {
+  if (size_==-1) {
     free(array_);
     array_=NULL;
+  } else if (size_>=0) {
+    size_ = -size_-2;
   }
 }
 /* Copy constructor. */
 CoinArrayWithLength::CoinArrayWithLength(const CoinArrayWithLength & rhs)
 {
-  assert (rhs.size_>=0);
+  assert (rhs.getCapacity()>=0);
   size_=rhs.size_;
-  array_ = mallocArray(size_);
-  memcpy(array_,rhs.array_,size_);
+  array_ = mallocArray(getCapacity());
+  if (size_>0)
+    memcpy(array_,rhs.array_,size_);
 }
 
 /* Copy constructor.2 */
 CoinArrayWithLength::CoinArrayWithLength(const CoinArrayWithLength * rhs)
 {
-  assert (rhs->size_>=0);
+  assert (rhs->getCapacity()>=0);
   size_=rhs->size_;
-  array_ = mallocArray(size_);
-  memcpy(array_,rhs->array_,size_);
+  array_ = mallocArray(getCapacity());
+  if (size_>0)
+    memcpy(array_,rhs->array_,size_);
 }
 /* Assignment operator. */
 CoinArrayWithLength & 
 CoinArrayWithLength::operator=(const CoinArrayWithLength & rhs)
 {
   if (this != &rhs) {
-    assert (rhs.size_>=0||!rhs.array_);
+    assert (rhs.size_!=-1||!rhs.array_);
     if (rhs.size_==-1) {
       free(array_);
       array_=NULL;
@@ -1619,7 +1626,7 @@ void
 CoinArrayWithLength::allocate(const CoinArrayWithLength & rhs, int numberBytes)
 {
   if (numberBytes==-1||numberBytes<=rhs.getCapacity()) {
-    assert (rhs.size_>=0||!rhs.array_);
+    assert (rhs.size_!=-1||!rhs.array_);
     if (rhs.size_==-1) {
       free(array_);
       array_=NULL;

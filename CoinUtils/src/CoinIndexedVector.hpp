@@ -475,6 +475,9 @@ public:
   /// Get the capacity
   inline int getCapacity() const 
   { return (size_>-2) ? size_ : (-size_)-2; };
+  /// Set the capacity to >=0 if <=-2
+  inline void setCapacity() 
+  { if (size_<=-2) size_ = (-size_)-2; };
   /// Get Array
   inline const char * array() const 
   { return (size_>-2) ? array_ : NULL; };
@@ -554,7 +557,7 @@ public:
   { return size_/sizeof(double); };
   /// Get Array
   inline double * array() const 
-  { return (double *) array_; };
+  { return (double *) ((size_>-2) ? array_ : NULL); };
   //@}
   
   /**@name Set methods */
@@ -608,7 +611,7 @@ public:
   { return size_/sizeof(int); };
   /// Get Array
   inline int * array() const 
-  { return (int *) array_; };
+  { return (int *) ((size_>-2) ? array_ : NULL); };
   //@}
   
   /**@name Set methods */
@@ -662,7 +665,7 @@ public:
   { return size_/sizeof(CoinBigIndex); };
   /// Get Array
   inline CoinBigIndex * array() const 
-  { return (CoinBigIndex *) array_; };
+  { return (CoinBigIndex *) ((size_>-2) ? array_ : NULL); };
   //@}
   
   /**@name Set methods */
@@ -716,7 +719,7 @@ public:
   { return size_/sizeof(unsigned int); };
   /// Get Array
   inline unsigned int * array() const 
-  { return (unsigned int *) array_; };
+  { return (unsigned int *) ((size_>-2) ? array_ : NULL); };
   //@}
   
   /**@name Set methods */
