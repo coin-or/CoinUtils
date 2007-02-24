@@ -454,7 +454,7 @@ int getIntField (int argc, const char *argv[], int *valid)
 
   if (valid != 0)
   { if (field != "EOL")
-    { if (errno != 0)
+    { if (errno == 0)
       { *valid = 0 ; }
       else
       { *valid = 1 ; } }
@@ -496,7 +496,7 @@ double getDoubleField (int argc, const char *argv[], int *valid)
 
   if (valid != 0)
   { if (field != "EOL")
-    { if (errno != 0)
+    { if (errno == 0)
       { *valid = 0 ; }
       else
       { *valid = 1 ; } }
