@@ -60,12 +60,12 @@ public:
   };
 
   /** \brief Transfer vector entry for
-	 mergeBases(const CoinWarmStartBasis*,const XferVec*,const XferVec*)
+	 mergeBasis(const CoinWarmStartBasis*,const XferVec*,const XferVec*)
   */
   typedef CoinTriple<int,int,int> XferEntry ;
 
   /** \brief Transfer vector for
-	 mergeBases(const CoinWarmStartBasis*,const XferVec*,const XferVec*)
+	 mergeBasis(const CoinWarmStartBasis*,const XferVec*,const XferVec*)
   */
   typedef std::vector<XferEntry> XferVec ;
 
