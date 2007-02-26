@@ -6,6 +6,9 @@
 #include <string>
 #include <iostream>
 #include <cassert>
+
+#include "CoinPragma.hpp"
+
 //-------------------------------------------------------------------
 //
 // Error class used to throw exceptions
@@ -28,7 +31,10 @@ It contains:
   For asserts class=> optional hint
 */
 class CoinError  {
-   friend void CoinErrorUnitTest();
+  friend void CoinErrorUnitTest();
+
+private:
+  CoinError(); 
 
 public:
     
@@ -53,67 +59,67 @@ public:
     inline int lineNumber() const 
     { return lineNumber_;   }
     /// Just print (for asserts)
-    void print() const;
+    inline void print(bool doPrint = true) const
+    {
+      if (! doPrint)
+        return;
+      if (lineNumber_<0) {
+        std::cout<<message_<<" in "<<method_<<" class "<<class_<<std::endl;
+      } else {
+        std::cout<<file_<<":"<<lineNumber_<<" method "<<method_
+                 <<" : assertion \'"<<message_<<"\' failed."<<std::endl;
+        if(class_!="")
+          std::cout<<"Possible reason: "<<class_<<std::endl;
+      }
+    }
   //@}
   
     
   /**@name Constructors and destructors */
   //@{
-    /// Default Constructor 
-    CoinError ()
-      :
-      message_(),
-      method_(),
-      class_(),
-      file_(),
-      lineNumber_(-1)
-    {
-      // nothing to do here
-    }
-  
     /// Alternate Constructor 
     CoinError ( 
       std::string message, 
       std::string methodName, 
-      std::string className)
+      std::string className,
+      std::string fileName = std::string(),
+      int line = -1,
+      std::string dummyFileName = std::string(),
+      int dummyLine = -1)
       :
       message_(message),
       method_(methodName),
       class_(className),
-      file_(),
-      lineNumber_(-1)
+      file_(fileName),
+      lineNumber_(line)
     {
-      // nothing to do here
+      print(printErrors_);
     }
-
-    /// Other alternate Constructor 
-    CoinError ( 
-      const char * message, 
-      const char * methodName, 
-      const char * className)
-      :
-      message_(message),
-      method_(methodName),
-      class_(className),
-      file_(),
-      lineNumber_(-1)
-    {
-      // nothing to do here
-    }
-
-    /// Other alternate Constructor for assert
-    CoinError ( 
-      const char * assertion, 
-      const char * methodName, 
-      const char * hint,
-      const char * fileName, 
-      int line);
 
     /// Copy constructor 
-    CoinError (const CoinError & source);
+    CoinError (const CoinError & source)
+      :
+      message_(source.message_),
+      method_(source.method_),
+      class_(source.class_),
+      file_(source.file_),
+      lineNumber_(source.lineNumber_)
+    {
+      // nothing to do here
+    }
 
     /// Assignment operator 
-    CoinError & operator=(const CoinError& rhs);
+    CoinError & operator=(const CoinError& rhs)
+    {
+      if (this != &rhs) {
+	message_=rhs.message_;
+	method_=rhs.method_;
+	class_=rhs.class_;
+	file_=rhs.file_;
+	lineNumber_ = rhs.lineNumber_;
+      }
+      return *this;
+    }
 
     /// Destructor 
     virtual ~CoinError ()
@@ -137,7 +143,12 @@ private:
     /// Line number
     int lineNumber_;
   //@}
+
+public:
+  /// Whether to print every error
+  static bool printErrors_;
 };
+
 #ifndef COIN_ASSERT
 #   define CoinAssertDebug(expression) assert(expression)
 #   define CoinAssertDebugHint(expression,hint) assert(expression)
@@ -257,5 +268,9 @@ private:
     compiled with debugging. */
 void
 CoinErrorUnitTest();
+
+#ifdef __LINE__
+#define CoinError(x, y, z) CoinError((x), (y), (z), __FILE__, __LINE__)
+#endif
 
 #endif
