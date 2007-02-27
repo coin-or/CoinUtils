@@ -31,10 +31,10 @@ It contains:
   For asserts class=> optional hint
 */
 class CoinError  {
-  friend void CoinErrorUnitTest();
+    friend void CoinErrorUnitTest();
 
 private:
-  CoinError(); 
+    CoinError();
 
 public:
     
@@ -83,9 +83,7 @@ public:
       std::string methodName, 
       std::string className,
       std::string fileName = std::string(),
-      int line = -1,
-      std::string dummyFileName = std::string(),
-      int dummyLine = -1)
+      int line = -1)
       :
       message_(message),
       method_(methodName),
@@ -270,7 +268,7 @@ void
 CoinErrorUnitTest();
 
 #ifdef __LINE__
-#define CoinError(x, y, z) CoinError((x), (y), (z), __FILE__, __LINE__)
+#define CoinErrorFL(x, y, z) CoinError((x), (y), (z), __FILE__, __LINE__)
 #endif
 
 #endif
