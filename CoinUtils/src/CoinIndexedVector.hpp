@@ -444,7 +444,6 @@ private:
     compiled with debugging. */
 void
 CoinIndexedVectorUnitTest();
-#include <malloc.h>
 /** Pointer with length in bytes
     
     This has a pointer to an array and the number of bytes in array.
@@ -497,6 +496,8 @@ public:
   void clear();
   /// Swaps memory between two members
   void swap(CoinArrayWithLength & other);
+  /// Extend a persistent array keeping data (size in bytes)
+  void extend(int newSize);
   //@}
   
   /**@name Condition methods */
@@ -514,13 +515,13 @@ public:
   { array_=NULL; size_=-1;};
   /** Alternate Constructor - length in bytes - size_ -1 */
   inline CoinArrayWithLength(int size)
-  { array_=(char *) malloc(size); size_=-1;};
+  { array_=new char [size]; size_=-1;};
   /** Alternate Constructor - length in bytes 
       mode -  0 size_ set to size
       1 size_ set to size and zeroed
   */
   inline CoinArrayWithLength(int size, int mode)
-  { array_ = (char *) ((mode==0) ? malloc(size) : calloc(size,1)); size_=size;};
+  { array_ = new char [size]; if (mode) memset(array_,0,size);size_=size;};
   /** Copy constructor. */
   CoinArrayWithLength(const CoinArrayWithLength & rhs);
   /** Copy constructor.2 */
@@ -533,7 +534,8 @@ public:
   void allocate(const CoinArrayWithLength & rhs, int numberBytes);
   /** Destructor */
   inline ~CoinArrayWithLength ()
-  { free(array_); };
+  { delete [] array_; };
+  // was { free(array_); };
   //@}
   
 protected:
@@ -581,7 +583,7 @@ public:
   { array_=NULL; size_=-1;};
   /** Alternate Constructor - length in bytes - size_ -1 */
   inline CoinDoubleArrayWithLength(int size)
-  { array_=(char *) malloc(size*sizeof(double)); size_=-1;};
+  { array_=new char [size*sizeof(double)]; size_=-1;};
   /** Alternate Constructor - length in bytes 
       mode -  0 size_ set to size
       1 size_ set to size and zeroed
@@ -635,7 +637,7 @@ public:
   { array_=NULL; size_=-1;};
   /** Alternate Constructor - length in bytes - size_ -1 */
   inline CoinIntArrayWithLength(int size)
-  { array_=(char *) malloc(size*sizeof(int)); size_=-1;};
+  { array_=new char [size*sizeof(int)]; size_=-1;};
   /** Alternate Constructor - length in bytes 
       mode -  0 size_ set to size
       1 size_ set to size and zeroed
@@ -689,7 +691,7 @@ public:
   { array_=NULL; size_=-1;};
   /** Alternate Constructor - length in bytes - size_ -1 */
   inline CoinBigIndexArrayWithLength(int size)
-  { array_=(char *) malloc(size*sizeof(CoinBigIndex)); size_=-1;};
+  { array_=new char [size*sizeof(CoinBigIndex)]; size_=-1;};
   /** Alternate Constructor - length in bytes 
       mode -  0 size_ set to size
       1 size_ set to size and zeroed
@@ -743,7 +745,7 @@ public:
   { array_=NULL; size_=-1;};
   /** Alternate Constructor - length in bytes - size_ -1 */
   inline CoinUnsignedIntArrayWithLength(int size)
-  { array_=(char *) malloc(size*sizeof(unsigned int)); size_=-1;};
+  { array_=new char [size*sizeof(unsigned int)]; size_=-1;};
   /** Alternate Constructor - length in bytes 
       mode -  0 size_ set to size
       1 size_ set to size and zeroed

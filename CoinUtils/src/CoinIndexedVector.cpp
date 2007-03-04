@@ -1524,22 +1524,29 @@ CoinArrayWithLength::clear()
 }
 static char * mallocArray(int size)
 {
-  if (size>0)
-    return (char *) malloc(size);
-  else
+  if (size>0) {
+    char * array = new char [size];
+    return array;
+  } else {
     return NULL;
+  }
+}
+static void freeArray(void * array)
+{
+  char * charArray = (char *) array;
+  delete [] charArray;
 }
 // Conditionally gets new array
 char * 
 CoinArrayWithLength::conditionalNew(int sizeWanted)
 {
   if (size_==-1) {
-    free(array_);
+    freeArray(array_);
     array_ = mallocArray(sizeWanted);
   } else {
     setCapacity();
     if (sizeWanted>size_) {
-      free(array_);
+      freeArray(array_);
       size_ = (int) (sizeWanted*1.01)+64;
       array_ = mallocArray(size_);
     }
@@ -1551,7 +1558,7 @@ void
 CoinArrayWithLength::conditionalDelete()
 {
   if (size_==-1) {
-    free(array_);
+    freeArray(array_);
     array_=NULL;
   } else if (size_>=0) {
     size_ = -size_-2;
@@ -1583,14 +1590,14 @@ CoinArrayWithLength::operator=(const CoinArrayWithLength & rhs)
   if (this != &rhs) {
     assert (rhs.size_!=-1||!rhs.array_);
     if (rhs.size_==-1) {
-      free(array_);
+      freeArray(array_);
       array_=NULL;
       size_=-1;
     } else {
       int capacity = getCapacity();
       int rhsCapacity = rhs.getCapacity();
       if (capacity<rhsCapacity) {
-	free(array_);
+	freeArray(array_);
 	array_ = mallocArray(rhsCapacity);
       }
       size_=rhs.size_;
@@ -1609,7 +1616,7 @@ CoinArrayWithLength::copy(const CoinArrayWithLength & rhs, int numberBytes)
   } else {
     assert (numberBytes>=0);
     if (size_==-1) {
-      free(array_);
+      freeArray(array_);
       array_=NULL;
     } else {
       size_=-1;
@@ -1628,14 +1635,14 @@ CoinArrayWithLength::allocate(const CoinArrayWithLength & rhs, int numberBytes)
   if (numberBytes==-1||numberBytes<=rhs.getCapacity()) {
     assert (rhs.size_!=-1||!rhs.array_);
     if (rhs.size_==-1) {
-      free(array_);
+      freeArray(array_);
       array_=NULL;
       size_=-1;
     } else {
       int capacity = getCapacity();
       int rhsCapacity = rhs.getCapacity();
       if (capacity<rhsCapacity) {
-	free(array_);
+	freeArray(array_);
 	array_ = mallocArray(rhsCapacity);
       }
       size_=rhs.size_;
@@ -1643,7 +1650,7 @@ CoinArrayWithLength::allocate(const CoinArrayWithLength & rhs, int numberBytes)
   } else {
     assert (numberBytes>=0);
     if (size_==-1) {
-      free(array_);
+      freeArray(array_);
       array_=NULL;
     } else {
       size_=-1;
@@ -1663,7 +1670,7 @@ CoinArrayWithLength::setPersistence(int flag,int currentLength)
 	size_=currentLength;
       } else {
 	size_=0;
-	free(array_);
+	freeArray(array_);
 	array_=NULL;
       }
     }
@@ -1682,4 +1689,18 @@ CoinArrayWithLength::swap(CoinArrayWithLength & other)
   int swapSize = other.size_;
   other.size_=size_;
   size_=swapSize;
+}
+// Extend a persistent array keeping data (size in bytes)
+void 
+CoinArrayWithLength::extend(int newSize)
+{
+  //assert (newSize>=getCapacity()&&getCapacity()>=0);
+  assert (size_>=0); // not much point otherwise
+  if (newSize>size_) {
+    char * temp = mallocArray(newSize);
+    memcpy(temp,array_,size_);
+    freeArray(array_);
+    array_=temp;
+    size_=newSize;
+  }
 }
