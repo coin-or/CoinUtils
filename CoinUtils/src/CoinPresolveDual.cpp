@@ -613,7 +613,24 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
       }
     }
   }
+  // can't fix if integer and non-unit coefficient
+  //const double *rowels	= prob->rowels_;
+  //const int *hcol	= prob->hcol_;
+  //const CoinBigIndex *mrstrt	= prob->mrstrt_;
+  //int *hinrow	= prob->hinrow_;
+  const unsigned char *integerType = prob->integerType_;
   for ( i = 0; i < nrows; i++) {
+    if (abs(canFix[i])==1) {
+      CoinBigIndex krs = mrstrt[i];
+      CoinBigIndex kre = krs + hinrow[i];
+      for (CoinBigIndex k=krs; k<kre; k++) {
+	double coeff = rowels[k];
+	int icol = hcol[k];
+	if (cup[icol]>clo[icol]&&integerType[icol]) {
+	  canFix[i]=0; // not safe
+	}
+      }
+    }
     if (canFix[i]==1) {
       rlo[i]=rup[i];
       prob->addRow(i);
