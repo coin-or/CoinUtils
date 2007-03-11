@@ -577,7 +577,7 @@ protected:
 #define COINFACTORIZATION_SHIFT_PER_INT 5
 #define COINFACTORIZATION_MASK_PER_INT 0x1f
 #endif
-  template <class T>  bool
+  template <class T>  inline bool
   pivot ( int pivotRow,
 	  int pivotColumn,
 	  CoinBigIndex pivotRowPosition,
