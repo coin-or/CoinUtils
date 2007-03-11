@@ -209,8 +209,15 @@ CoinPackedVector::insert( int index, double element )
 void
 CoinPackedVector::append(const CoinPackedVectorBase & caboose)
 {
-   const int s = nElements_;
    const int cs = caboose.getNumElements();
+   if (cs == 0) {
+       return;
+   }
+   if (testForDuplicateIndex()) {
+       // Just to initialize the index heap
+       indexSet("append (1st call)", "CoinPackedVector");
+   }
+   const int s = nElements_;
    // Make sure there is enough room for the caboose
    if ( capacity_ < s + cs)
       reserve(CoinMax(s + cs, 2 * capacity_));
@@ -222,7 +229,7 @@ CoinPackedVector::append(const CoinPackedVectorBase & caboose)
    CoinIotaN(origIndices_ + s, cs, s);
    nElements_ += cs;
    if (testForDuplicateIndex()) {
-      std::set<int>& is = *indexSet("append", "CoinPackedVector");
+      std::set<int>& is = *indexSet("append (2nd call)", "CoinPackedVector");
       for (int i = 0; i < cs; ++i) {
 	 if (!is.insert(cind[i]).second)
 	    throw CoinError("duplicate index", "append", "CoinPackedVector");
