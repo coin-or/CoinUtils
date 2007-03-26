@@ -3907,7 +3907,7 @@ case $build in
      if test "$enable_doscompile" = msvc ; then
        coin_f77_comps="ifort fl32"
      else
-       coin_f77_comps="gfortran g77 ifort fl32"
+       coin_f77_comps="gfortran ifort g77 fl32"
      fi ;;
   sparc-sun-solaris*)
      coin_f77_comps="f95 f90 f77 xlf fort77 gfortran g77 pgf90 pgf77 ifort ifc frt af77" ;;
@@ -21528,6 +21528,16 @@ echo "$as_me: Build is \"$build\"." >&6;}
   esac
 
   case $build in
+    *x86_64-*)
+# Here we need to check if -m32 is specified.  If so, we need to correct sys_lib_search_path_spec
+      if test "$GCC" = yes && (echo $CXXFLAGS $CFLAGS $FFLAGS | $EGREP 'm32' >& /dev/null); then
+        { echo "$as_me:$LINENO: Applying patches to libtool for 32bit compilation" >&5
+echo "$as_me: Applying patches to libtool for 32bit compilation" >&6;}
+        sed -e 's|sys_lib_search_path_spec=".*"|sys_lib_search_path_spec="/lib /usr/lib"|' libtool > conftest.bla
+        mv conftest.bla libtool
+        chmod 755 libtool
+      fi
+      ;;
     *-cygwin* | *-mingw*)
     case "$CXX" in
       cl* | */cl* | CL* | */CL*)
@@ -27502,58 +27512,25 @@ else
 fi;
 
 if test "$use_asldir" = BUILD; then
-  as_ac_File=`echo "ac_cv_file_$coin_aslobjdir/Makefile" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $coin_aslobjdir/Makefile" >&5
-echo $ECHO_N "checking for $coin_aslobjdir/Makefile... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$coin_aslobjdir/Makefile"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-  :
-else
-  { { echo "$as_me:$LINENO: error: option \"BUILD\" specified for asldir, but directory is not configure (sources missing?)" >&5
+  if test "$PACKAGE_NAME" != ThirdPartyASL; then
+    # If we are configuring ThirdParty/ASL, don't check
+    if test -r $coin_aslobjdir/.MakeOk; then :; else
+      { { echo "$as_me:$LINENO: error: option \"BUILD\" specified for asldir, but directory is not configure (sources missing?)" >&5
 echo "$as_me: error: option \"BUILD\" specified for asldir, but directory is not configure (sources missing?)" >&2;}
    { (exit 1); exit 1; }; }
-fi
-
+    fi
+  fi
 elif test -z "$use_asldir"; then
  # try to find sources - if not given don't compile
-  as_ac_File=`echo "ac_cv_file_$coin_aslobjdir/Makefile" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $coin_aslobjdir/Makefile" >&5
-echo $ECHO_N "checking for $coin_aslobjdir/Makefile... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$coin_aslobjdir/Makefile"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-  use_asldir=BUILD
-else
-  use_asldir=no
-fi
-
+  if test "$PACKAGE_NAME" != ThirdPartyASL; then
+    if test -r $coin_aslobjdir/.MakeOk; then
+      use_asldir=BUILD
+    else
+      use_asldir=no
+    fi
+  else
+    use_asldir=no
+  fi
 elif test "$use_asldir" != "no"; then
   as_ac_File=`echo "ac_cv_file_$use_asldir/$ampllib" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $use_asldir/$ampllib" >&5
@@ -27800,7 +27777,11 @@ else
   #        BLAS         #
   #######################
 
+  if test "$PACKAGE_NAME" = ThirdPartyBlas || test "$PACKAGE_NAME" = ThirdPartyLapack; then
+  coin_blasobjdir=../Blas
+else
   coin_blasobjdir=../ThirdParty/Blas
+fi
 coin_blassrcdir=$srcdir/$coin_blasobjdir
 
 
@@ -27812,35 +27793,18 @@ else
   use_blas=
 fi;
 
+MAKEOKFILE=.MakeOk
 # Check if user supplied option makes sense
 if test x"$use_blas" != x; then
   if test "$use_blas" = "BUILD"; then
-    as_ac_File=`echo "ac_cv_file_$coin_blasobjdir/Makefile" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $coin_blasobjdir/Makefile" >&5
-echo $ECHO_N "checking for $coin_blasobjdir/Makefile... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+    # Don't check for course code if this is executed in ThirdParty/Blas
+    if test "$PACKAGE_NAME" != ThirdPartyBlas; then
+      if test -r $coin_blasobjdir/.MakeOk; then :; else
+        { { echo "$as_me:$LINENO: error: option \"BUILD\" specified for Blas, but $coin_blasobjdir directory is not properly configured" >&5
+echo "$as_me: error: option \"BUILD\" specified for Blas, but $coin_blasobjdir directory is not properly configured" >&2;}
    { (exit 1); exit 1; }; }
-if test -r "$coin_blasobjdir/Makefile"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-  :
-else
-  { { echo "$as_me:$LINENO: error: option \"BUILD\" specified for Blas, but $coin_blasobjdir directory is not configured" >&5
-echo "$as_me: error: option \"BUILD\" specified for Blas, but $coin_blasobjdir directory is not configured" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
+      fi
+    fi
   elif test "$use_blas" != no ; then
     echo "$as_me:$LINENO: checking whether user supplied BLASLIB=\"$use_blas\" works" >&5
 echo $ECHO_N "checking whether user supplied BLASLIB=\"$use_blas\" works... $ECHO_C" >&6
@@ -28225,8 +28189,8 @@ esac
   fi
 else
 # Try to autodetect the library for blas based on build system
-  echo "$as_me:$LINENO: checking default locations for BLAS" >&5
-echo $ECHO_N "checking default locations for BLAS... $ECHO_C" >&6
+  #AC_MSG_CHECKING([default locations for BLAS])
+  skip_lblas_check=no
   case $build in
     *-sgi-*)
       SAVE_LIBS="$LIBS"
@@ -28995,13 +28959,18 @@ esac
 # On cygwin, consider -lblas only if doscompile is disabled. The prebuilt
 # library will want to link with cygwin, hence won't run standalone in DOS.
     *-cygwin*)
-      if test "$enable_doscompile" = no; then
-	if test -z "$use_blas"; then
-	  SAVE_LIBS="$LIBS"
-	  echo "$as_me:$LINENO: checking whether -lblas has BLAS" >&5
+      if test "$enable_doscompile" = mingw; then
+	skip_lblas_check=yes
+      fi
+      ;;
+  esac
+
+  if test -z "$use_blas" && test $skip_lblas_check = no; then
+    SAVE_LIBS="$LIBS"
+    echo "$as_me:$LINENO: checking whether -lblas has BLAS" >&5
 echo $ECHO_N "checking whether -lblas has BLAS... $ECHO_C" >&6
-	  LIBS="-lblas $LIBS"
-	  case $ac_ext in
+    LIBS="-lblas $LIBS"
+    case $ac_ext in
   f)
     cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -29050,15 +29019,15 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			     ADDLIBS="-lblas $ADDLIBS"
-			     use_blas='-lblas'
+		       ADDLIBS="-lblas $ADDLIBS"
+		       use_blas='-lblas'
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			     LIBS="$SAVE_LIBS"
+	               LIBS="$SAVE_LIBS"
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
@@ -29144,8 +29113,8 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			     ADDLIBS="-lblas $ADDLIBS"
-			     use_blas='-lblas'
+		       ADDLIBS="-lblas $ADDLIBS"
+		       use_blas='-lblas'
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -29198,8 +29167,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			     ADDLIBS="-lblas $ADDLIBS"
-			     use_blas='-lblas'
+		       ADDLIBS="-lblas $ADDLIBS"
+		       use_blas='-lblas'
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -29208,14 +29177,14 @@ sed 's/^/| /' conftest.$ac_ext >&5
 LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			     LIBS="$SAVE_LIBS"
+	               LIBS="$SAVE_LIBS"
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
       else
         echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			     LIBS="$SAVE_LIBS"
+	               LIBS="$SAVE_LIBS"
       fi
     fi
     ;;
@@ -29300,8 +29269,8 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			     ADDLIBS="-lblas $ADDLIBS"
-			     use_blas='-lblas'
+		       ADDLIBS="-lblas $ADDLIBS"
+		       use_blas='-lblas'
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -29354,8 +29323,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			     ADDLIBS="-lblas $ADDLIBS"
-			     use_blas='-lblas'
+		       ADDLIBS="-lblas $ADDLIBS"
+		       use_blas='-lblas'
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -29364,50 +29333,28 @@ sed 's/^/| /' conftest.$ac_ext >&5
 LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			     LIBS="$SAVE_LIBS"
+	               LIBS="$SAVE_LIBS"
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
       else
         echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			     LIBS="$SAVE_LIBS"
+	               LIBS="$SAVE_LIBS"
       fi
     fi
     ;;
 esac
 
-	fi
-      fi
-      ;;
-    esac
+  fi
 
 # If we have no other ideas, consider building BLAS.
   if test -z "$use_blas"; then
-    echo "$as_me:$LINENO: checking if BLAS can be built." >&5
-echo $ECHO_N "checking if BLAS can be built.... $ECHO_C" >&6
-    as_ac_File=`echo "ac_cv_file_$coin_blasobjdir/Makefile" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $coin_blasobjdir/Makefile" >&5
-echo $ECHO_N "checking for $coin_blasobjdir/Makefile... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$coin_blasobjdir/Makefile"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-  use_blas=BUILD
-fi
-
+    if test "$PACKAGE_NAME" != ThirdPartyBlas; then
+      if test -r $coin_blasobjdir/.MakeOk; then
+        use_blas=BUILD
+      fi
+    fi
   fi
 fi
 
@@ -29474,32 +29421,14 @@ fi;
 # Check if user supplied option makes sense
 if test x"$use_lapack" != x; then
   if test "$use_lapack" = "BUILD"; then
-    as_ac_File=`echo "ac_cv_file_$coin_lapackobjdir/Makefile" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $coin_lapackobjdir/Makefile" >&5
-echo $ECHO_N "checking for $coin_lapackobjdir/Makefile... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$coin_lapackobjdir/Makefile"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-  :
-else
-  { { echo "$as_me:$LINENO: error: option \"BUILD\" specified for LAPACK, but $coin_lapackobjdir directory is not configured" >&5
+    # Don't check for course code if this is executed in ThirdParty/Blas
+    if test "$PACKAGE_NAME" != ThirdPartyLapack; then
+      if test -r $coin_lapackobjdir/.MakeOk; then :; else
+        { { echo "$as_me:$LINENO: error: option \"BUILD\" specified for LAPACK, but $coin_lapackobjdir directory is not configured" >&5
 echo "$as_me: error: option \"BUILD\" specified for LAPACK, but $coin_lapackobjdir directory is not configured" >&2;}
    { (exit 1); exit 1; }; }
-fi
-
+      fi
+    fi
   else
     echo "$as_me:$LINENO: checking whether user supplied LAPACKLIB=\"$use_lapack\" works" >&5
 echo $ECHO_N "checking whether user supplied LAPACKLIB=\"$use_lapack\" works... $ECHO_C" >&6
@@ -30249,6 +30178,7 @@ echo "${ECHO_T}no" >&6
 esac
 
   fi
+  skip_llapack_check=no
   if test -z "$use_lapack"; then
     # Try to autodetect the library for lapack based on build system
     case $build in
@@ -31019,13 +30949,19 @@ esac
 # On cygwin, do this check only if doscompile is disabled. The prebuilt library
 # will want to link with cygwin, hence won't run standalone in DOS.
       *-cygwin*)
-	if test "$enable_doscompile" = no; then
-	  if test -z "$use_lapack"; then
-	    SAVE_LIBS="$LIBS"
-	    echo "$as_me:$LINENO: checking whether -llapack has LAPACK" >&5
+	if test "$enable_doscompile" = mingw; then
+	  skip_llapack_check=yes
+	fi
+	;;
+    esac
+  fi
+
+  if test -z "$use_lapack" && test $skip_llapack_check = no; then
+    SAVE_LIBS="$LIBS"
+    echo "$as_me:$LINENO: checking whether -llapack has LAPACK" >&5
 echo $ECHO_N "checking whether -llapack has LAPACK... $ECHO_C" >&6
-	    LIBS="-llapack $LIBS"
-	    case $ac_ext in
+    LIBS="-llapack $LIBS"
+    case $ac_ext in
   f)
     cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -31074,15 +31010,15 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			       ADDLIBS="-llapack $ADDLIBS"
-			       use_lapack='-llapack'
+		       ADDLIBS="-llapack $ADDLIBS"
+		       use_lapack='-llapack'
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			       LIBS="$SAVE_LIBS"
+		       LIBS="$SAVE_LIBS"
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
@@ -31168,8 +31104,8 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			       ADDLIBS="-llapack $ADDLIBS"
-			       use_lapack='-llapack'
+		       ADDLIBS="-llapack $ADDLIBS"
+		       use_lapack='-llapack'
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -31222,8 +31158,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			       ADDLIBS="-llapack $ADDLIBS"
-			       use_lapack='-llapack'
+		       ADDLIBS="-llapack $ADDLIBS"
+		       use_lapack='-llapack'
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -31232,14 +31168,14 @@ sed 's/^/| /' conftest.$ac_ext >&5
 LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			       LIBS="$SAVE_LIBS"
+		       LIBS="$SAVE_LIBS"
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
       else
         echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			       LIBS="$SAVE_LIBS"
+		       LIBS="$SAVE_LIBS"
       fi
     fi
     ;;
@@ -31324,8 +31260,8 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			       ADDLIBS="-llapack $ADDLIBS"
-			       use_lapack='-llapack'
+		       ADDLIBS="-llapack $ADDLIBS"
+		       use_lapack='-llapack'
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -31378,8 +31314,8 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-			       ADDLIBS="-llapack $ADDLIBS"
-			       use_lapack='-llapack'
+		       ADDLIBS="-llapack $ADDLIBS"
+		       use_lapack='-llapack'
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -31388,48 +31324,28 @@ sed 's/^/| /' conftest.$ac_ext >&5
 LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			       LIBS="$SAVE_LIBS"
+		       LIBS="$SAVE_LIBS"
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
       else
         echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			       LIBS="$SAVE_LIBS"
+		       LIBS="$SAVE_LIBS"
       fi
     fi
     ;;
 esac
 
-	  fi
-	fi
-	;;
-    esac
   fi
+
 # If we have no other ideas, consider building LAPACK.
   if test -z "$use_lapack"; then
-    as_ac_File=`echo "ac_cv_file_$coin_lapackobjdir/Makefile" | $as_tr_sh`
-echo "$as_me:$LINENO: checking for $coin_lapackobjdir/Makefile" >&5
-echo $ECHO_N "checking for $coin_lapackobjdir/Makefile... $ECHO_C" >&6
-if eval "test \"\${$as_ac_File+set}\" = set"; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  test "$cross_compiling" = yes &&
-  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
-echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
-   { (exit 1); exit 1; }; }
-if test -r "$coin_lapackobjdir/Makefile"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_File'}'`" >&5
-echo "${ECHO_T}`eval echo '${'$as_ac_File'}'`" >&6
-if test `eval echo '${'$as_ac_File'}'` = yes; then
-  use_lapack=BUILD
-fi
-
+    if test "$PACKAGE_NAME" != ThirdPartyLapack; then
+      if test -r $coin_lapackobjdir/.MakeOk; then
+        use_lapack=BUILD
+      fi
+    fi
   fi
 fi
 
@@ -32027,25 +31943,45 @@ fi
 
 # Finally, we let configure write all the output...
 
-FADDLIBS="$ADDLIBS"
-if test x"$coin_need_flibs" = xyes; then
-  ADDLIBS="$ADDLIBS $FLIBS"
-fi
+if test x$coin_skip_ac_output != xyes; then
 
-# library extension
+  FADDLIBS="$ADDLIBS"
+  if test x"$coin_need_flibs" = xyes; then
+    ADDLIBS="$ADDLIBS $FLIBS"
+  fi
 
-case "$CC" in
-  cl* | */cl* | CL* | */CL*)
-       LIBEXT=lib ;;
-    *) LIBEXT=a ;;
-esac
+  # library extension
 
-# Define VPATH_DISTCLEANFILES to be everything that needs to be
-# cleaned for distclean in a vpath configuration
+  case "$CC" in
+    cl* | */cl* | CL* | */CL*)
+         LIBEXT=lib ;;
+      *) LIBEXT=a ;;
+  esac
 
-VPATH_DISTCLEANFILES="$coin_vpath_link_files"
+  # Define VPATH_DISTCLEANFILES to be everything that needs to be
+  # cleaned for distclean in a vpath configuration
 
-cat >confcache <<\_ACEOF
+  VPATH_DISTCLEANFILES="$coin_vpath_link_files"
+
+  # Take out subdirectories if their configuration concluded that they
+  # don't need to be compiled
+  if test x"$coin_ac_skip_subdirs" != x; then
+    new_subdirs=
+    for i in $subdirs; do
+      skipme=no
+      for j in $coin_ac_skip_subdirs; do
+        if test $i = $j; then
+          skipme=yes;
+        fi
+      done
+      if test $skipme = no; then
+        new_subdirs="$new_subdirs $i"
+      fi
+    done
+    subdirs="$new_subdirs"
+  fi
+
+  cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
 # scripts and configure runs, see configure's option --config-cache.
@@ -33643,20 +33579,20 @@ if test "$no_create" != yes; then
 fi
 
 
-if test x"$coin_vpath_link_files" = x; then : ; else
-  lnkcmd=
-  if test "$enable_doscompile" = yes; then
-    lnkcmd=cp
-  fi
-  case "$CC" in
-    cl* | */cl* | CL* | */CL*)
-      lnkcmd=cp ;;
-  esac
-  if test "$lnkcmd" = cp; then
-    { echo "$as_me:$LINENO: Copying data files for VPATH configuration" >&5
+  if test x"$coin_vpath_link_files" = x; then : ; else
+    lnkcmd=
+    if test "$enable_doscompile" = yes; then
+      lnkcmd=cp
+    fi
+    case "$CC" in
+      cl* | */cl* | CL* | */CL*)
+        lnkcmd=cp ;;
+    esac
+    if test "$lnkcmd" = cp; then
+      { echo "$as_me:$LINENO: Copying data files for VPATH configuration" >&5
 echo "$as_me: Copying data files for VPATH configuration" >&6;}
-  else
-    echo "$as_me:$LINENO: checking whether ln -s works" >&5
+    else
+      echo "$as_me:$LINENO: checking whether ln -s works" >&5
 echo $ECHO_N "checking whether ln -s works... $ECHO_C" >&6
 LN_S=$as_ln_s
 if test "$LN_S" = "ln -s"; then
@@ -33667,12 +33603,12 @@ else
 echo "${ECHO_T}no, using $LN_S" >&6
 fi
 
-    { echo "$as_me:$LINENO: Creating VPATH links for data files" >&5
+      { echo "$as_me:$LINENO: Creating VPATH links for data files" >&5
 echo "$as_me: Creating VPATH links for data files" >&6;}
-    lnkcmd="$LN_S"
-  fi
-  for file in $coin_vpath_link_files; do
-    dir=`(dirname "./$file") 2>/dev/null ||
+      lnkcmd="$LN_S"
+    fi
+    for file in $coin_vpath_link_files; do
+      dir=`(dirname "./$file") 2>/dev/null ||
 $as_expr X"./$file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
 	 X"./$file" : 'X\(//\)[^/]' \| \
 	 X"./$file" : 'X\(//\)$' \| \
@@ -33684,8 +33620,8 @@ echo X"./$file" |
   	  /^X\(\/\/\)$/{ s//\1/; q; }
   	  /^X\(\/\).*/{ s//\1/; q; }
   	  s/.*/./; q'`
-    if test -d $dir; then : ; else
-      { if $as_mkdir_p; then
+      if test -d $dir; then : ; else
+        { if $as_mkdir_p; then
     mkdir -p $dir
   else
     as_dir=$dir
@@ -33710,17 +33646,22 @@ echo X"$as_dir" |
 echo "$as_me: error: cannot create directory $dir" >&2;}
    { (exit 1); exit 1; }; }; }
 
-    fi
-    rm -f $file
-    $lnkcmd $abs_source_dir/$file $file
-  done
+      fi
+      rm -f $file
+      $lnkcmd $abs_source_dir/$file $file
+    done
+  fi
+
+  if test x$coin_projectdir = xyes; then
+    { echo "$as_me:$LINENO: Configuration of $PACKAGE_NAME successful" >&5
+echo "$as_me: Configuration of $PACKAGE_NAME successful" >&6;}
+  else
+    { echo "$as_me:$LINENO: Main configuration of $PACKAGE_NAME successful" >&5
+echo "$as_me: Main configuration of $PACKAGE_NAME successful" >&6;}
+  fi
+else
+  { echo "$as_me:$LINENO: No configuration of $PACKAGE_NAME necessary" >&5
+echo "$as_me: No configuration of $PACKAGE_NAME necessary" >&6;}
 fi
 
-if test x$coin_projectdir = xyes; then
-  { echo "$as_me:$LINENO: Configuration of $PACKAGE_NAME successful" >&5
-echo "$as_me: Configuration of $PACKAGE_NAME successful" >&6;}
-else
-  { echo "$as_me:$LINENO: Main configuration of $PACKAGE_NAME successful" >&5
-echo "$as_me: Main configuration of $PACKAGE_NAME successful" >&6;}
-fi
 
