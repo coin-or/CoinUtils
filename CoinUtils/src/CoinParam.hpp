@@ -296,7 +296,7 @@ public:
 
   /*! \brief Set the parameter keyword (name) string */
 
-  inline void setName(std::string name) { name_ = name ; } ;
+  inline void setName(std::string name) { name_ = name ; processName() ; } ;
 
   /*! \brief Check if the specified string matches the parameter keyword (name)
 	     string
@@ -350,8 +350,8 @@ private:
 /*! \name Private methods */
 //@{
 
-  /*! Constructor helper */
-  void gutsOfConstructor() ;
+  /*! Process a name for efficient matching */
+  void processName() ;
 
 //@}
 

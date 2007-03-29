@@ -69,7 +69,7 @@ CoinParam::CoinParam (std::string name, std::string help,
     longHelp_(),
     display_(display)
 {
-  gutsOfConstructor() ;
+  processName() ;
 }
 
 /*
@@ -96,7 +96,7 @@ CoinParam::CoinParam (std::string name, std::string help,
     longHelp_(),
     display_(display)
 {
-  gutsOfConstructor() ;
+  processName() ;
 }
 
 /*
@@ -123,7 +123,7 @@ CoinParam::CoinParam (std::string name, std::string help,
     longHelp_(),
     display_(display)
 {
-  gutsOfConstructor() ;
+  processName() ;
   definedKwds_.push_back(firstValue) ;
 }
 
@@ -151,7 +151,7 @@ CoinParam::CoinParam (std::string name, std::string help,
     longHelp_(),
     display_(display)
 {
-  gutsOfConstructor() ;
+  processName() ;
 }
 
 /*
@@ -177,7 +177,7 @@ CoinParam::CoinParam (std::string name, std::string help, bool display)
     longHelp_(),
     display_(display)
 {
-  gutsOfConstructor() ;
+  processName() ;
 }
 
 /*
@@ -239,13 +239,24 @@ CoinParam &CoinParam::operator= (const CoinParam &rhs)
   return *this ; }
 
 /*
-  Constructor helper.
+  Destructor
+*/
+CoinParam::~CoinParam ()
+{ /* Nothing more to do */ }
+
+
+/*
+  Methods to manipulate a CoinParam object.
+*/
+
+/*
+  Process the parameter name.
   
   Process the name for efficient matching: determine if an `!' is present. If
   so, locate and record the position and remove the `!'.
 */
 
-void CoinParam::gutsOfConstructor ()
+void CoinParam::processName()
 
 { std::string::size_type shriekPos = name_.find('!') ;
   lengthName_ = name_.length() ;
@@ -257,17 +268,6 @@ void CoinParam::gutsOfConstructor ()
     lengthName_-- ; }
 
   return ; }
-
-/*
-  Destructor
-*/
-CoinParam::~CoinParam ()
-{ /* Nothing more to do */ }
-
-
-/*
-  Methods to manipulate a CoinParam object.
-*/
 
 /*
   Check an input string to see if it matches the parameter name. The whole
@@ -344,7 +344,7 @@ void CoinParam::printLongHelp() const
       if (strValue_ == "")
       { std::cout << "(unset)>" ; }
       else
-      { std::cout << "`" << strValue_ << "'" ; }
+      { std::cout << "`" << strValue_ << "'>" ; }
       std::cout << std::endl ;
       break ; }
     case coinParamAct:

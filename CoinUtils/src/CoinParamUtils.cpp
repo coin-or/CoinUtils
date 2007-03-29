@@ -517,6 +517,10 @@ double getDoubleField (int argc, const char *argv[], int *valid)
 
   The routine allows for the possibility of null entries in the parameter
   vector.
+
+  In order to handle `?' and `???', there's nothing to it but to force a
+  unique match if we match `?' exactly. (This is another quirk of clp/cbc
+  parameter parsing, which we need to match for historical reasons.)
 */
 
 int matchParam (const CoinParamVec &paramVec, std::string name,
@@ -535,7 +539,10 @@ int matchParam (const CoinParamVec &paramVec, std::string name,
     int match = paramVec[i]->matches(name) ;
     if (match == 1)
     { matchNdx = i ;
-      matchCnt++ ; }
+      matchCnt++ ;
+      if (name == "?")
+      { matchCnt = 1 ;
+	break ; } }
     else
     { shortCnt += match>>1 ; } }
 
@@ -646,28 +653,32 @@ void shortOrHelpOne (CoinParamVec &paramVec,
 
 void shortOrHelpMany (CoinParamVec &paramVec, std::string name, int numQuery)
 
-{ int i,k ;
-  int numParams = paramVec.size() ;
+{ int numParams = paramVec.size() ;
 /*
   Scan the parameter list. For each match, print just the name, or the name
   and short help.
 */
-  k = 0 ;
-  for (i = 0 ; i < numParams ; i++)
+  int lineLen = 0 ;
+  bool printed = false ;
+  for (int i = 0 ; i < numParams ; i++)
   { CoinParam *param = paramVec[i] ;
     if (param == 0) continue ;
     int match = param->matches(name) ;
     if (match > 0)
-    { std::cout << param->matchName() ;
+    { std::string nme = param->matchName() ;
+      int len = nme.length() ;
       if (numQuery >= 2) 
-      { std::cout << " : " << param->shortHelp() ;
+      { std::cout << nme << " : " << param->shortHelp() ;
 	std::cout << std::endl ; }
       else
-      { std::cout << " " ;
-	k++ ;
-	if (k == 4)
-	{ std::cout << std::endl ; } } } }
-  if (k != 4)
+      { lineLen += 2+len ;
+	if (lineLen > 80)
+	{ std::cout << std::endl ;
+	  lineLen = 2+len ; }
+	std::cout << "  " << nme ;
+	printed = true ; } } }
+
+  if (printed)
   { std::cout << std::endl ; }
 
   return ; }
@@ -682,25 +693,30 @@ void printGenericHelp ()
 
 { std::cout << std::endl ;
   std::cout
-    << "In a command line argument list, keywords have a leading `-'; "
-    << "-stdin or just - switches to stdin."
+    << "For command line arguments, keywords have a leading `-' or '--'; "
     << std::endl ;
   std::cout
-    << "When using stdin, one command per line, without the leading `-'."
+    << "-stdin or just - switches to stdin with a prompt."
+    << std::endl ;
+  std::cout
+    << "When prompted, one command per line, without the leading `-'."
     << std::endl ;
   std::cout
     << "abcd value sets abcd to value."
     << std::endl ;
   std::cout
-    << "abcd without a value (where one is expected) gives the "
-    << "current value."
+    << "abcd without a value (where one is expected) gives the current value."
     << std::endl ;
   std::cout
-    << "abcd? gives a list of possible matches; if there's only one "
-    << "a short help message is printed."
+    << "abcd? gives a list of possible matches; if there's only one, a short"
     << std::endl ;
   std::cout
-    << "abcd?? always prints the short help; if there's only one "
+    << "help message is printed."
+    << std::endl ;
+  std::cout
+    << "abcd?? prints the short help for all matches; if there's only one"
+    << std::endl ;
+  std::cout
     << "match, a longer help message and current value are printed."
     << std::endl ;
   
@@ -725,21 +741,26 @@ void printHelp (CoinParamVec &paramVec, int firstParam, int lastParam,
 
 { bool noHelp = !(shortHelp || longHelp) ;
   int i ;
+  int pfxLen = prefix.length() ;
+  bool printed = false ;
 
   if (noHelp)
-  { int maxAcross = 5 ;
-    int printed = 0 ;
+  { int lineLen = 0 ;
     for (i = firstParam ; i <= lastParam ; i++)
     { CoinParam *param = paramVec[i] ;
       if (param == 0) continue ;
       if (param->display() || hidden)
-      { if (printed%maxAcross == 0)
+      { std::string nme = param->matchName() ;
+	int len = nme.length() ;
+	if (!printed)
 	{ std::cout << std::endl << prefix ;
-	  printed = 0 ; }
-	else
-	{ std::cout << "  " ; }
-        std::cout << param->matchName() ;
-	printed++ ; } }
+	  lineLen += pfxLen ;
+	  printed = true ; }
+	lineLen += 2+len ;
+	if (lineLen > 80)
+	{ std::cout << std::endl << prefix ;
+	  lineLen = pfxLen+2+len ; }
+        std::cout << "  " << nme ; } }
     if (printed)
     { std::cout << std::endl ; } }
   else
