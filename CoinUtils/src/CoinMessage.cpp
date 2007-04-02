@@ -5,6 +5,7 @@
 #  pragma warning(disable:4786)
 #endif
 
+#include "CoinPragma.hpp"
 #include "CoinMessage.hpp"
 
 typedef struct {
