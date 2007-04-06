@@ -156,6 +156,10 @@ public:
   static bool printErrors_;
 };
 
+#ifndef __STRING
+#define __STRING(x)	#x
+#endif
+
 #ifndef COIN_ASSERT
 #   define CoinAssertDebug(expression) assert(expression)
 #   define CoinAssertDebugHint(expression,hint) assert(expression)
@@ -170,7 +174,7 @@ public:
 #      define CoinAssertDebugHint(expression,hint)	(static_cast<void> (0))
        ***********************************************************************/
 #   else
-#      if  (__GNUC_PREREQ (2, 6))
+#      if defined(__GNUC__) && __GNUC_PREREQ(2, 6)
 #         define CoinAssertDebug(expression) { 				   \
              if (!(expression)) {					   \
                 throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, \
@@ -216,7 +220,7 @@ public:
 		       ( throw CoinError(__STRING(expression), "", hint , __FILE__,__LINE__))))
 #endif
 ******************************************************************************/
-#   if  (__GNUC_PREREQ (2, 6))
+#   if defined(__GNUC__) && __GNUC_PREREQ(2, 6)
 #      define CoinAssert(expression) { 					\
           if (!(expression)) {						\
              throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, \
