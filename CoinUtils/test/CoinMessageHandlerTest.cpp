@@ -5,6 +5,7 @@
   any of the various enbryonic features.
 */
 
+#include "CoinPragma.hpp"
 #include "CoinMessageHandler.hpp"
 
 /*
