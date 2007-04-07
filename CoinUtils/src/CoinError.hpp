@@ -37,7 +37,7 @@ private:
       method_(),
       class_(),
       file_(),
-      lineNumber_()
+      lineNumber_(-1)
     {
       // nothing to do here
     }
@@ -71,18 +71,6 @@ public:
     
   /**@name Constructors and destructors */
   //@{
-    /// Default Constructor 
-    CoinError ()
-      :
-      message_(),
-      method_(),
-      class_(),
-      file_(),
-      lineNumber_(-1)
-    {
-      // nothing to do here
-    }
-  
     /// Alternate Constructor 
     CoinError ( 
       std::string message, 
