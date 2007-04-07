@@ -16,6 +16,8 @@
 // Turn off compiler warning: 
 // "empty controlled statement found; is this the intent?"
 #  pragma warning(disable:4390)
+// Turn off compiler warning about deprecated functions
+#  pragma warning(disable:4996)
 #endif
 
 #endif
