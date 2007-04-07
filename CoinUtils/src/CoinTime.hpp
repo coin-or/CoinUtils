@@ -169,6 +169,11 @@ public:
    inline double timeLeft() const {
       return evaluate(end - CoinCpuTime());
    }
+
+   /** Return how much time has elapsed */
+   inline double timeElapsed() const {
+      return evaluate(CoinCpuTime() - start);
+   }
 };
 
 #endif
