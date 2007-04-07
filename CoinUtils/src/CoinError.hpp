@@ -30,6 +30,18 @@ It contains:
 class CoinError  {
    friend void CoinErrorUnitTest();
 
+private:
+    CoinError()
+      :
+      message_(),
+      method_(),
+      class_(),
+      file_(),
+      lineNumber_()
+    {
+      // nothing to do here
+    }
+
 public:
     
   //-------------------------------------------------------------------
