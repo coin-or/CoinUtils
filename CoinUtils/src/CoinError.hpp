@@ -138,6 +138,11 @@ private:
     int lineNumber_;
   //@}
 };
+
+#ifndef __GNUC_PREREQ
+# define __GNUC_PREREQ(maj, min) (0)
+#endif 
+
 #ifndef __STRING
 #define __STRING(x)	#x
 #endif
