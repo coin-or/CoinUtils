@@ -169,10 +169,6 @@ public:
 #   ifdef NDEBUG
 #      define CoinAssertDebug(expression)		{}
 #      define CoinAssertDebugHint(expression,hint)	{}
-       /********************* LL: FIXME: I think the code above is just as good
-#      define CoinAssertDebug(expression)		(static_cast<void> (0))
-#      define CoinAssertDebugHint(expression,hint)	(static_cast<void> (0))
-       ***********************************************************************/
 #   else
 #      if defined(__GNUC__) && __GNUC_PREREQ(2, 6)
 #         define CoinAssertDebug(expression) { 				   \
@@ -201,25 +197,7 @@ public:
              }								   \
           }
 #      endif
-/**************************** LL: FIXME: I think the code above is just as good
-#if  (__GNUC_PREREQ (2, 6))
-# define CoinAssertDebug(expression) \
-  (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, "",\
-                       __FILE__,__LINE__))))
-# define CoinAssertDebugHint(expression,hint) \
-  (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, hint ,\
-                        __FILE__,__LINE__))))
-#else
-# define CoinAssertDebug(expression) \
-  (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), "", "", __FILE__,__LINE__))))
-# define CoinAssertDebugHint(expression,hint) \
-  (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), "", hint , __FILE__,__LINE__))))
-#endif
-******************************************************************************/
+#   endif
 #   if defined(__GNUC__) && __GNUC_PREREQ(2, 6)
 #      define CoinAssert(expression) { 					\
           if (!(expression)) {						\
@@ -247,28 +225,7 @@ public:
           }								\
        }
 #   endif
-
-/**************************** LL: FIXME: I think the code above is just as good
-#if  (__GNUC_PREREQ (2, 6))
-# define CoinAssert(expression) \
-  (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, "",\
-                       __FILE__,__LINE__))))
-# define CoinAssertHint(expression,hint) \
-  (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), __PRETTY_FUNCTION__, hint ,\
-                        __FILE__,__LINE__))))
-#else
-# define CoinAssert(expression) \
-  (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), "", "", __FILE__,__LINE__))))
-# define CoinAssertHint(expression,hint) \
-  (static_cast<void> ((expression) ? 0 :					      \
-		       ( throw CoinError(__STRING(expression), "", hint , __FILE__,__LINE__))))
 #endif
-******************************************************************************/
-#endif
-#   endif
 
 
 //#############################################################################
