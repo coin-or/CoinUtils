@@ -160,6 +160,10 @@ public:
 #define __STRING(x)	#x
 #endif
 
+#ifndef __GNUC_PREREQ
+# define __GNUC_PREREQ(maj, min) (0)
+#endif 
+
 #ifndef COIN_ASSERT
 #   define CoinAssertDebug(expression) assert(expression)
 #   define CoinAssertDebugHint(expression,hint) assert(expression)
