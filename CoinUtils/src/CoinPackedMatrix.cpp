@@ -1774,9 +1774,16 @@ CoinPackedMatrix::CoinPackedMatrix(
        CoinCopyN(indexRow,numberElements,colIndices);
      }
 
-  int numberRows=*std::max_element(rowIndices,rowIndices+numberElements)+1;
+  int numberRows;
+  int numberColumns;
+  if (numberElements ) {
+    numberRows = *std::max_element(rowIndices,rowIndices+numberElements)+1;
+    numberColumns = *std::max_element(colIndices,colIndices+numberElements)+1;
+  } else {
+    numberRows = 0;
+    numberColumns = 0;
+  }
   int * rowCount = new int[numberRows];
-  int numberColumns=*std::max_element(colIndices,colIndices+numberElements)+1;
   int * columnCount = new int[numberColumns];
   CoinBigIndex * startColumn = new CoinBigIndex[numberColumns+1];
   int * lengths = new int[numberColumns+1];
