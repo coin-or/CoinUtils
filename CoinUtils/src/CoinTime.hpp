@@ -152,12 +152,12 @@ public:
    /** Return whether the given percentage of the time limit has elapsed since
        the timer was started */
    inline bool isPastPercent(double pct) const {
-      return evaluate(start + limit * pct > CoinCpuTime());
+      return evaluate(start + limit * pct < CoinCpuTime());
    }
    /** Return whether the given amount of time has elapsed since the timer was
        started */
    inline bool isPast(double lim) const {
-      return evaluate(start + lim > CoinCpuTime());
+      return evaluate(start + lim < CoinCpuTime());
    }
    /** Return whether the originally specified time limit has passed since the
        timer was started */
@@ -173,6 +173,11 @@ public:
    /** Return how much time has elapsed */
    inline double timeElapsed() const {
       return evaluate(CoinCpuTime() - start);
+   }
+
+   inline void setLimit(double l) {
+      limit = l;
+      return;
    }
 };
 
