@@ -2525,6 +2525,11 @@ CoinModel::fillList(int which, CoinModelLinkedList & list, int type) const
 */
 int CoinModel::getRow(int whichRow, int * column, double * element)
 {
+  if (!hashElements_.maximumItems()) {
+    // set up number of items
+    hashElements_.setNumberItems(numberElements_);
+    hashElements_.resize(maximumElements_,elements_);
+  }
   assert (whichRow>=0);
   int n=0;
   if (whichRow<numberRows_) {
@@ -2553,6 +2558,11 @@ int CoinModel::getRow(int whichRow, int * column, double * element)
 */
 int CoinModel::getColumn(int whichColumn, int * row, double * element)
 {
+  if (!hashElements_.maximumItems()) {
+    // set up number of items
+    hashElements_.setNumberItems(numberElements_);
+    hashElements_.resize(maximumElements_,elements_);
+  }
   assert (whichColumn>=0);
   int n=0;
   if (whichColumn<numberColumns_) {
