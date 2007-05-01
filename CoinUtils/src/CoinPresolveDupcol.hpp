@@ -4,6 +4,8 @@
 #ifndef CoinPresolveDupcol_H
 #define CoinPresolveDupcol_H
 
+#include "CoinPresolveMatrix.hpp"
+
 /*!
   \file
 */
@@ -26,6 +28,10 @@
 */
 
 class dupcol_action : public CoinPresolveAction {
+  dupcol_action();
+  dupcol_action(const dupcol_action& rhs);
+  dupcol_action& operator=(const dupcol_action& rhs);
+
   struct action {
     double thislo;
     double thisup;
@@ -39,11 +45,14 @@ class dupcol_action : public CoinPresolveAction {
   };
 
   const int nactions_;
+  // actions_ is owned by the class and must be deleted at destruction
   const action *const actions_;
 
-  dupcol_action():CoinPresolveAction(NULL),nactions_(0),actions_(NULL) {};
   dupcol_action(int nactions, const action *actions,
-		const CoinPresolveAction *next) ;
+		const CoinPresolveAction *next) :
+      CoinPresolveAction(next),
+      nactions_(nactions),
+      actions_(actions) {}
 
  public:
   const char *name() const;
@@ -52,6 +61,8 @@ class dupcol_action : public CoinPresolveAction {
 					 const CoinPresolveAction *next);
 
   void postsolve(CoinPostsolveMatrix *prob) const;
+
+  ~dupcol_action();
 
 };
 

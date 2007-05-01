@@ -87,13 +87,6 @@ void create_col (int col, int n, double *els,
 
 
 
-dupcol_action::dupcol_action (int nactions, const action *actions,
-			      const CoinPresolveAction *next)
-  : CoinPresolveAction(next),
-    nactions_(nactions),
-    actions_(actions)
-{ }
-
 const char *dupcol_action::name () const
 {
   return ("dupcol_action");
@@ -713,7 +706,8 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
     // row activity doesn't change
     // dj of both variables is the same
     rcosts[icol] = rcosts[icol2];
-    deleteAction(f->colels,double *);
+    // leave until desctructor
+    //    deleteAction(f->colels,double *);
 
 #   if PRESOLVE_DEBUG
     const double ztolzb = prob->ztolzb_;
@@ -723,7 +717,16 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
 	     printf("BAD DUPCOL BOUNDS:  %g %g %g\n", clo[icol2], sol[icol2], cup[icol2]);
 #   endif
   }
-  deleteAction(actions_,action *);
+  // leave until desctructor
+  //  deleteAction(actions_,action *);
+}
+
+dupcol_action::~dupcol_action()
+{
+    for (int i = nactions_-1; i >= 0; --i) {
+	deleteAction(actions_[i].colels, double *);
+    }
+    deleteAction(actions_, action*);
 }
 
 

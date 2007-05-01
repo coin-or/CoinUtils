@@ -3,11 +3,19 @@
 
 #ifndef CoinPresolveIsolated_H
 #define CoinPresolveIsolated_H
+
+#include "CoinPresolveMatrix.hpp"
+
 class isolated_constraint_action : public CoinPresolveAction {
+  isolated_constraint_action();
+  isolated_constraint_action(const isolated_constraint_action& rhs);
+  isolated_constraint_action& operator=(const isolated_constraint_action& rhs);
+
   double rlo_;
   double rup_;
   int row_;
   int ninrow_;
+  // the arrays are owned by the class and must be deleted at destruction
   const int *rowcols_;
   const double *rowels_;
   const double *costs_;
@@ -23,7 +31,7 @@ class isolated_constraint_action : public CoinPresolveAction {
     CoinPresolveAction(next),
     rlo_(rlo), rup_(rup), row_(row), ninrow_(ninrow),
     rowcols_(rowcols), rowels_(rowels), costs_(costs) {}
-
+      
  public:
   const char *name() const;
 
@@ -32,6 +40,8 @@ class isolated_constraint_action : public CoinPresolveAction {
 					 const CoinPresolveAction *next);
 
   void postsolve(CoinPostsolveMatrix *prob) const;
+
+  ~isolated_constraint_action();
 };
 
 

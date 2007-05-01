@@ -188,8 +188,15 @@ void isolated_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
   rowacts[irow] = rowact;
 
-  deleteAction(rowcols_,int *);
-  deleteAction(rowels_,double *);
-  deleteAction(costs_,double *);
+  // leave until desctructor
+  //  deleteAction(rowcols_,int *);
+  //  deleteAction(rowels_,double *);
+  //  deleteAction(costs_,double *);
 }
 
+isolated_constraint_action::~isolated_constraint_action()
+{
+    deleteAction(rowcols_,int *);
+    deleteAction(rowels_,double *);
+    deleteAction(costs_,double *);
+}

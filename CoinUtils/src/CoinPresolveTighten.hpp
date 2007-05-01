@@ -3,6 +3,9 @@
 
 #ifndef CoinPresolveTighten_H
 #define CoinPresolveTighten_H
+
+#include "CoinPresolveMatrix.hpp"
+
 // This action has no separate class;
 // instead, it decides which columns can be made fixed
 // and calls make_fixed_action::presolve.
@@ -12,6 +15,10 @@ const CoinPresolveAction *tighten_zero_cost(CoinPresolveMatrix *prob,
 #define	DO_TIGHTEN	30
 
 class do_tighten_action : public CoinPresolveAction {
+  do_tighten_action();
+  do_tighten_action(const do_tighten_action& rhs);
+  do_tighten_action& operator=(const do_tighten_action& rhs);
+
   struct action {
     int *rows;
     double *lbound;
@@ -37,6 +44,9 @@ class do_tighten_action : public CoinPresolveAction {
 					 const CoinPresolveAction *next);
 
   void postsolve(CoinPostsolveMatrix *prob) const;
+
+  ~do_tighten_action();
+
 };
 #endif
 

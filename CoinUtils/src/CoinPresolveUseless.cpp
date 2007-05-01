@@ -172,5 +172,3 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
   //deleteAction(actions_,action *);
 }
-
-

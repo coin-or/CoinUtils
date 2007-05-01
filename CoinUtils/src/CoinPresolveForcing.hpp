@@ -4,6 +4,8 @@
 #ifndef CoinPresolveForcing_H
 #define CoinPresolveForcing_H
 
+#include "CoinPresolveMatrix.hpp"
+
 /*!
   \file
 */
@@ -21,6 +23,10 @@
   force more than one variable.
 */
 class forcing_constraint_action : public CoinPresolveAction {
+  forcing_constraint_action();
+  forcing_constraint_action(const forcing_constraint_action& rhs);
+  forcing_constraint_action& operator=(const forcing_constraint_action& rhs);
+
   struct action {
     const int *rowcols;
     const double *bounds;
@@ -30,6 +36,7 @@ class forcing_constraint_action : public CoinPresolveAction {
   };
 
   const int nactions_;
+  // actions_ is owned by the class and must be deleted at destruction
   const action *const actions_;
 
   forcing_constraint_action(int nactions,
