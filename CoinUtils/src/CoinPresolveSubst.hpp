@@ -5,9 +5,14 @@
 #define CoinPresolveSubst_H
 #define	SUBST_ROW	21
 
+#include "CoinPresolveMatrix.hpp"
 
 class subst_constraint_action : public CoinPresolveAction {
-public:
+private:
+  subst_constraint_action();
+  subst_constraint_action(const subst_constraint_action& rhs);
+  subst_constraint_action& operator=(const subst_constraint_action& rhs);
+
   struct action {
     double *rlos;
     double *rups;
@@ -27,11 +32,12 @@ public:
   };
 
   const int nactions_;
+  // actions_ is owned by the class and must be deleted at destruction
   const action *const actions_;
 
   subst_constraint_action(int nactions,
 			  action *actions,
-		      const CoinPresolveAction *next) :
+			  const CoinPresolveAction *next) :
     CoinPresolveAction(next),
     nactions_(nactions), actions_(actions) {};
 

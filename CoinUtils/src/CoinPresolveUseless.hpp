@@ -21,7 +21,6 @@ class useless_constraint_action : public CoinPresolveAction {
   useless_constraint_action(int nactions,
                             const action *actions,
                             const CoinPresolveAction *next);
-  ~useless_constraint_action();
 
  public:
   const char *name() const;
@@ -35,6 +34,9 @@ class useless_constraint_action : public CoinPresolveAction {
 					 const CoinPresolveAction *next);
 
   void postsolve(CoinPostsolveMatrix *prob) const;
+
+  ~useless_constraint_action();
+
 };
 
 

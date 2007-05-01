@@ -268,7 +268,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 					       useless_rows, nuseless_rows,
 					       next);
   }
-  delete [] actions;
+  deleteAction(actions, action*);
   delete[]useless_rows;
 
   if (nfixdown_cols) {
@@ -408,9 +408,23 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
       }
     }
 
-    deleteAction(rows,int *);
-    deleteAction(lbound,double *);
-    deleteAction(ubound,double *);
+    // leave until desctructor
+    //    deleteAction(rows,int *);
+    //    deleteAction(lbound,double *);
+    //    deleteAction(ubound,double *);
   }
-  deleteAction(actions_,action *);
+  // leave until desctructor
+  //  deleteAction(actions_,action *);
+}
+
+do_tighten_action::~do_tighten_action()
+{
+    if (nactions_ > 0) {
+	for (int i = nactions_ - 1; i >= 0; --i) {
+	    delete[] actions_[i].rows;
+	    delete[] actions_[i].lbound;
+	    delete[] actions_[i].ubound;
+	}
+	deleteAction(actions_, action*);
+    }
 }
