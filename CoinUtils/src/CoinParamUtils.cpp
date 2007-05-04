@@ -278,7 +278,7 @@ std::string getCommand (int argc, const char *argv[],
 int lookupParam (std::string name, CoinParamVec &paramVec,
 		 int *matchCntp, int *shortCntp, int *queryCntp)
 
-{ int i ;
+{
   int retval = -3 ;
 
   if (matchCntp != 0)
@@ -357,7 +357,7 @@ int lookupParam (std::string name, CoinParamVec &paramVec,
   the result.
 */
   if (matchCnt == 1 && shortCnt == 0 && numQuery == 0)
-  { assert (matchNdx >= 0 && matchNdx < paramVec.size()) ;
+  { assert (matchNdx >= 0 && matchNdx < static_cast<int>(paramVec.size())) ;
     return (matchNdx) ; }
 /*
   A single match? There are two possibilities:
@@ -625,7 +625,7 @@ void shortOrHelpOne (CoinParamVec &paramVec,
       << "Short match for '" << name << "'; possible completion: "
       << paramVec[lclNdx]->matchName() << "." ; } }
   else
-  { assert(matchNdx >= 0 && matchNdx < paramVec.size()) ;
+  { assert(matchNdx >= 0 && matchNdx < static_cast<int>(paramVec.size())) ;
     std::cout << "Match for `" << name << "': "
 	      << paramVec[matchNdx]->matchName() ;
     lclNdx = matchNdx ; }
