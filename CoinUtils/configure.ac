@@ -73,6 +73,7 @@ AC_LANG_PUSH(C++)
 AC_COIN_CHECK_CXX_CHEADER(math)
 AC_COIN_CHECK_CXX_CHEADER(float)
 AC_COIN_CHECK_CXX_CHEADER(ieeefp)
+AC_COIN_CHECK_CXX_CHEADER(assert)
 #case $build in
 #  *-cygwin*) ;;
 #  *) AC_COIN_CHECK_CXX_CHEADER([ieeefp]) ;;
