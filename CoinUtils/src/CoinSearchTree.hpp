@@ -15,18 +15,28 @@
     fast access. This class is used in the various comparison functions. */
 class CoinTreeNode {
 protected:
-    CoinTreeNode() : depth_(-1), quality_(-COIN_DBL_MAX) {}
-    CoinTreeNode(int d, double q/*, double f*/) :
-	depth_(d), quality_(q)/*, fractionality_(f)*/ {}
+    CoinTreeNode() :
+	depth_(-1),
+	quality_(-COIN_DBL_MAX),
+	true_lower_bound_(-COIN_DBL_MAX) {}
+    CoinTreeNode(int d,
+		 double q = -COIN_DBL_MAX,
+		 double tlb = -COIN_DBL_MAX /*, double f*/) :
+	depth_(d),
+	quality_(q),
+	true_lower_bound_(tlb)/*, fractionality_(f)*/ {}
     CoinTreeNode(const CoinTreeNode& x) :
-	depth_(x.depth_), quality_(x.quality_) {}
+	depth_(x.depth_),
+	quality_(x.quality_),
+	true_lower_bound_(x.true_lower_bound_) {}
     CoinTreeNode& operator=(const CoinTreeNode& x) {
 	// Not worth to test (this != &x)
 	depth_ = x.depth_;
 	quality_ = x.quality_;
+	true_lower_bound_ = x.true_lower_bound_;
 	return *this;
     }
-public:
+private:
     /// The depth of the node in the tree
     int depth_;
     /** Some quality for the node. For normal branch-and-cut problems the LP
@@ -42,7 +52,14 @@ public:
     /*double fractionality_;*/
 public:
     virtual ~CoinTreeNode() {}
-    // Default (bitwise) constr, copy constr, assignment op, and destr all OK.
+
+    inline int    getDepth()   const { return depth_; }
+    inline double getQuality() const { return quality_; }
+    inline double getTrueLB()  const { return true_lower_bound_; }
+    
+    inline void setDepth(int d)       { depth_ = d; }
+    inline void setQuality(double q)  { quality_ = q; }
+    inline void setTrueLB(double tlb) { true_lower_bound_ = tlb; }
 };
 
 class CoinTreeSiblings {
@@ -84,7 +101,7 @@ public:
 struct CoinSearchTreeCompareDepth {
     inline bool operator()(const CoinTreeSiblings* x,
 			   const CoinTreeSiblings* y) const {
-	return x->currentNode()->depth_ > y->currentNode()->depth_;
+	return x->currentNode()->getDepth() > y->currentNode()->getDepth();
     }
 };
 
@@ -93,7 +110,7 @@ struct CoinSearchTreeCompareDepth {
 struct CoinSearchTreeCompareBreadth {
     inline bool operator()(const CoinTreeSiblings* x,
 			   const CoinTreeSiblings* y) const {
-	return x->currentNode()->depth_ < y->currentNode()->depth_;
+	return x->currentNode()->getDepth() < y->currentNode()->getDepth();
     }
 };
 
@@ -102,7 +119,7 @@ struct CoinSearchTreeCompareBreadth {
 struct CoinSearchTreeCompareBest {
     inline bool operator()(const CoinTreeSiblings* x,
 			   const CoinTreeSiblings* y) const {
-	return x->currentNode()->quality_ < y->currentNode()->quality_;
+	return x->currentNode()->getQuality() < y->currentNode()->getQuality();
     }
 };
 
@@ -333,7 +350,7 @@ public:
 	return candidates_->top();
     }
     inline double bestQuality() const {
-	return candidates_->top()->quality_;
+	return candidates_->top()->getQuality();
     }
     void newSolution(double solValue);
     void reevaluateSearchStrategy();

@@ -6,7 +6,7 @@ CoinSearchTreeManager::newSolution(double solValue)
     ++numSolution;
     hasUB_ = true;
     CoinTreeNode* top = candidates_->top();
-    const double q = top ? top->quality_ : solValue;
+    const double q = top ? top->getQuality() : solValue;
     const bool switchToDFS = fabs(q) < 1e-3 ?
 	(fabs(solValue) < 0.005) : ((solValue-q)/fabs(q) < 0.005);
     if (switchToDFS &&
