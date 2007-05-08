@@ -6,6 +6,7 @@ CoinUtils/configure.ac -text
 CoinUtils/inc/config_coinutils.h.in -text
 CoinUtils/src/CoinSearchTree.cpp -text
 CoinUtils/src/CoinSearchTree.hpp -text
+CoinUtils/src/CoinSmartPtr.hpp -text
 CoinUtils/src/CoinSnapshot.cpp -text
 CoinUtils/src/CoinSnapshot.hpp -text
 CoinUtils/test/CoinMessageHandlerTest.cpp -text

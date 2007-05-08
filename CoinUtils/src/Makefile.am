@@ -75,6 +75,7 @@ libCoinUtils_la_SOURCES = \
 	CoinSearchTree.cpp CoinSearchTree.hpp \
 	CoinShallowPackedVector.cpp CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
+	CoinSmartPtr.hpp \
 	CoinSort.hpp \
 	CoinTime.hpp \
 	CoinTypes.hpp \
