@@ -381,10 +381,10 @@ AC_COIN_HAS_PROJECT(CoinUtils)
 #                             Other dependencies                            #
 #############################################################################
 
-AC_LANG_PUSH(C++)
+AC_LANG_PUSH(C)
 AC_COIN_HAS_USER_LIBRARY([Gmpl],[GMPL],[glpmpl.h],
     [_glp_mpl_initialize glp_mpl_initialize])
-AC_LANG_POP(C++)
+AC_LANG_POP(C)
 
 #############################################################################
 #                       Other third party software                          #
