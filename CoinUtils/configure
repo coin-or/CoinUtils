@@ -27639,11 +27639,11 @@ echo "${ECHO_T}$coin_has_coinutils" >&6
 #                             Other dependencies                            #
 #############################################################################
 
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ac_ext=cc
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
   echo "$as_me:$LINENO: checking if user provides library for Gmpl" >&5
@@ -27746,7 +27746,7 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
-	   for fnm in glp_mpl_initialize ; do
+	   for fnm in _glp_mpl_initialize glp_mpl_initialize ; do
 	     echo "$as_me:$LINENO: checking whether symbol $fnm is available with GMPL" >&5
 echo $ECHO_N "checking whether symbol $fnm is available with GMPL... $ECHO_C" >&6
 	     cat >conftest.$ac_ext <<_ACEOF
@@ -27808,17 +27808,17 @@ fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
 	   done
-	   ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
+	   ac_ext=cc
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 	   if test x"$coin_GMPL_link" = xyes ; then
 	     LIBS="$coin_save_LIBS"
 	   else
-	     { { echo "$as_me:$LINENO: error: Cannot find symbol(s) glp_mpl_initialize with GMPL" >&5
-echo "$as_me: error: Cannot find symbol(s) glp_mpl_initialize with GMPL" >&2;}
+	     { { echo "$as_me:$LINENO: error: Cannot find symbol(s) _glp_mpl_initialize glp_mpl_initialize with GMPL" >&5
+echo "$as_me: error: Cannot find symbol(s) _glp_mpl_initialize glp_mpl_initialize with GMPL" >&2;}
    { (exit 1); exit 1; }; }
 	   fi
 	 fi
