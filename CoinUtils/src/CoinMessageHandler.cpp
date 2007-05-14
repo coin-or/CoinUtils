@@ -267,7 +267,13 @@ CoinMessages::setDetailMessages(int newLevel, int low, int high)
       message_[i]->setDetail(newLevel);
   }
 }
-// Moves to compact format
+/*
+  Moves to compact format
+
+  Compact format is an initial array of CoinOneMessage pointers, followed by a
+  bulk store that holds compressed CoinOneMessage objects, where the
+  message_ array is truncated to be just as large as necessary.
+*/
 void 
 CoinMessages::toCompact()
 {

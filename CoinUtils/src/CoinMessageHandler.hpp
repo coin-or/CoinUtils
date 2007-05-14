@@ -226,6 +226,28 @@ enum CoinMessageMarker {
     A prefix makes the messages look less nimble but is very useful
     for "grep" <i>etc</i>.
 
+    <h3> Usage </h3>
+
+    The general approach to using the COIN messaging facility is as follows:
+    <ul>
+      <li> Define your messages. For each message, you must supply an external
+	 ID number, a log (detail) level, and a format string. Typically, you
+	 define a convenience structure for this, something that's easy to
+	 use to create an array of initialised message definitions at compile
+	 time.
+      <li> Create a CoinMessages object, sized to accommodate the number of
+        messages you've defined. (Incremental growth will happen if
+	necessary as messages are loaded, but it's inefficient.)
+      <li> Load the messages into the CoinMessages object. Typically this
+	entails creating a CoinOneMessage object for each message and
+	passing it as a parameter to CoinMessages::addMessage(). You specify
+	the message's internal ID as the other parameter to addMessage.
+      <li> Create and use a CoinMessageHandler object to print messages.
+    </ul>
+    See, for example, CoinMessage.hpp and CoinMessage.cpp for an example of
+    the first three steps. `Format codes' below has a simple example of
+    printing a message.
+
     <h3> External ID numbers and severity </h3>
 
     CoinMessageHandler assumes the following relationship between the
@@ -279,7 +301,7 @@ enum CoinMessageMarker {
     A message with a double 53.5.
     \endverbatim
 
-    For some very basic examples of usage, see CoinMessageHandlerUnitTest in
+    For additional examples of usage, see CoinMessageHandlerUnitTest in
     CoinMessageHandlerTest.cpp.
 */
 

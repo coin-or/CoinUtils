@@ -201,14 +201,16 @@ public:
   */
   std::string kwdVal() const ;
 
-  /*! \brief Set the value of the keyword parameter using an integer
+  /*! \brief Set the value of the keyword parameter using the integer
+	     associated with a value-keyword.
   
     If \p printIt is true, the corresponding value-keyword string will be
     echoed to std::cout.
   */
   void setKwdVal(int value, bool printIt = false) ;
 
-  /*! \brief Set the value of the keyword parameter using a string
+  /*! \brief Set the value of the keyword parameter using a value-keyword
+	     string.
   
     The given string will be tested against the set of value-keywords for
     the parameter using the shortest match rules.
