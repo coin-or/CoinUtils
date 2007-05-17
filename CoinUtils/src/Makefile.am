@@ -133,6 +133,7 @@ include_HEADERS = \
 	CoinPackedMatrix.hpp \
 	CoinPackedVector.hpp \
 	CoinPackedVectorBase.hpp \
+	CoinParam.hpp \
 	CoinPragma.hpp \
 	CoinPresolveDoubleton.hpp \
 	CoinPresolveDual.hpp \
@@ -153,6 +154,7 @@ include_HEADERS = \
 	CoinSearchTree.hpp \
 	CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
+	CoinSmartPtr.hpp \
 	CoinSort.hpp \
 	CoinTime.hpp \
 	CoinTypes.hpp \
