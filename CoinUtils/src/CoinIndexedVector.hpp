@@ -503,7 +503,7 @@ public:
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  char * conditionalNew(int sizeWanted); 
+  char * conditionalNew(long sizeWanted); 
   /// Conditionally deletes
   void conditionalDelete();
   //@}
@@ -573,7 +573,7 @@ public:
   //@{
   /// Conditionally gets new array
   inline double * conditionalNew(int sizeWanted)
-  { return (double *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (int) (sizeWanted*sizeof(double)) : -1); };
+  { return (double *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(double)) : -1); };
   //@}
   
   /**@name Constructors and destructors */
@@ -627,7 +627,7 @@ public:
   //@{
   /// Conditionally gets new array
   inline int * conditionalNew(int sizeWanted)
-  { return (int *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (int) (sizeWanted*sizeof(int)) : -1); };
+  { return (int *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(int)) : -1); };
   //@}
   
   /**@name Constructors and destructors */
@@ -681,7 +681,7 @@ public:
   //@{
   /// Conditionally gets new array
   inline CoinBigIndex * conditionalNew(int sizeWanted)
-  { return (CoinBigIndex *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (int) (sizeWanted*sizeof(CoinBigIndex)) : -1); };
+  { return (CoinBigIndex *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(CoinBigIndex)) : -1); };
   //@}
   
   /**@name Constructors and destructors */
@@ -735,7 +735,7 @@ public:
   //@{
   /// Conditionally gets new array
   inline unsigned int * conditionalNew(int sizeWanted)
-  { return (unsigned int *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (int) (sizeWanted*sizeof(unsigned int)) : -1); };
+  { return (unsigned int *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(unsigned int)) : -1); };
   //@}
   
   /**@name Constructors and destructors */

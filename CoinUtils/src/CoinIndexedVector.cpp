@@ -1522,7 +1522,7 @@ CoinArrayWithLength::clear()
   assert ((size_>0&&array_)||!array_);
   memset (array_,0,size_);
 }
-static char * mallocArray(int size)
+static char * mallocArray(long size)
 {
   if (size>0) {
     char * array = new char [size];
@@ -1538,7 +1538,7 @@ static void freeArray(void * array)
 }
 // Conditionally gets new array
 char * 
-CoinArrayWithLength::conditionalNew(int sizeWanted)
+CoinArrayWithLength::conditionalNew(long sizeWanted)
 {
   if (size_==-1) {
     freeArray(array_);
