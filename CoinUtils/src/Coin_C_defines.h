@@ -26,13 +26,10 @@
 #endif
 /* We need to allow for Microsoft */
 #ifndef COINLIBAPI
-#if defined (CLPMSDLL)
-/* for backward compatibility */
-#define COINMSDLL
-#endif
-#if defined (COINMSDLL)
+
+#if defined(CBCCINTERFACEDLL_EXPORTS) || defined(CLPMSDLL)
 #if defined (COIN_EXTERN_C)
-#   define COINLIBAPI __declspec(dllexport) extern "C"
+#   define COINLIBAPI __declspec(dllexport)
 #else
 #   define COINLIBAPI __declspec(dllexport)
 #endif
