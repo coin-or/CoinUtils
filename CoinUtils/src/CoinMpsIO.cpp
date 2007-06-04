@@ -605,7 +605,7 @@ CoinMpsCardReader::nextField (  )
 		if ( eol_ - next >= 8 ) {
 		  if ( *( next + 8 ) != ' ' && *( next + 8 ) != '\0' ) {
 		    eightChar_ = false;
-		  } else if (section_ != COIN_SOS_SECTION) {
+		  } else {
 		    nextBlank = next + 8;
 		  }
 		  if (nextBlank) {
@@ -2524,6 +2524,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
     
     // Do SOS if found
     if ( cardReader_->whichSection (  ) == COIN_SOS_SECTION ) {
+      // Go to free format
+      cardReader_->setFreeFormat(true);
       int numberInSet=0;
       int iType=-1;
       int * which = new int[numberColumns_];
