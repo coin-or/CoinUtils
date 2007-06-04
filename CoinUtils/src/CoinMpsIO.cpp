@@ -1492,7 +1492,11 @@ double CoinMpsIO::objectiveOffset() const
 {
   return objectiveOffset_;
 }
-//#define MAX_INTEGER 1.0e30
+/*
+  Prior to June 2007, this was set to 1e30. But that causes problems in
+  some of the cut generators --- they need to see finite infinity in order
+  to work properly.
+*/
 #define MAX_INTEGER COIN_DBL_MAX
 // Sets default upper bound for integer variables
 void CoinMpsIO::setDefaultBound(int value)
