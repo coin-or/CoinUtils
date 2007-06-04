@@ -605,7 +605,7 @@ CoinMpsCardReader::nextField (  )
 		if ( eol_ - next >= 8 ) {
 		  if ( *( next + 8 ) != ' ' && *( next + 8 ) != '\0' ) {
 		    eightChar_ = false;
-		  } else {
+		  } else if (section_ != COIN_SOS_SECTION) {
 		    nextBlank = next + 8;
 		  }
 		  if (nextBlank) {
@@ -1492,7 +1492,8 @@ double CoinMpsIO::objectiveOffset() const
 {
   return objectiveOffset_;
 }
-#define MAX_INTEGER 1.0e30
+//#define MAX_INTEGER 1.0e30
+#define MAX_INTEGER COIN_DBL_MAX
 // Sets default upper bound for integer variables
 void CoinMpsIO::setDefaultBound(int value)
 {
@@ -3304,8 +3305,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
 	dot = strchr(next,'.');
 	assert (dot);
 	*dot='\0';
-	int jColumn = findHash(next,1);
-	assert (iColumn==jColumn);
+	assert (iColumn==findHash(next,1));
         // bound
         next = strchr(dot+1,'=');
         assert (next);
