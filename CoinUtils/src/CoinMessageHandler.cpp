@@ -472,7 +472,12 @@ CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler& rhs)
 {
   logLevel_=rhs.logLevel_;
   prefix_ = rhs.prefix_;
-  currentMessage_=rhs.currentMessage_;
+  if (rhs.format_ && *rhs.format_ == '\0')
+  { *rhs.format_ = '%' ;
+    currentMessage_=rhs.currentMessage_;
+    *rhs.format_ = '\0' ; }
+  else
+  { currentMessage_=rhs.currentMessage_; }
   internalNumber_=rhs.internalNumber_;
   int i;
   for ( i=0;i<COIN_NUM_LOG;i++)
@@ -489,8 +494,12 @@ CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler& rhs)
   numberStringFields_ = rhs.numberStringFields_;
   for (i=0;i<numberStringFields_;i++) 
     stringValue_[i]=rhs.stringValue_[i];
-  int offset = rhs.format_ - rhs.currentMessage_.message();
-  format_ = currentMessage_.message()+offset;
+  int offset ;
+  if (rhs.format_)
+  { offset = rhs.format_ - rhs.currentMessage_.message();
+    format_ = currentMessage_.message()+offset; }
+  else
+  { format_ = NULL ; }
   strcpy(messageBuffer_,rhs.messageBuffer_);
   offset = rhs.messageOut_-rhs.messageBuffer_;
   messageOut_= messageBuffer_+offset;
@@ -506,7 +515,12 @@ CoinMessageHandler::operator=(const CoinMessageHandler& rhs)
   if (this != &rhs) {
     logLevel_=rhs.logLevel_;
     prefix_ = rhs.prefix_;
-    currentMessage_=rhs.currentMessage_;
+    if (rhs.format_ && *rhs.format_ == '\0')
+    { *rhs.format_ = '%' ;
+      currentMessage_=rhs.currentMessage_;
+      *rhs.format_ = '\0' ; }
+    else
+    { currentMessage_=rhs.currentMessage_; }
     internalNumber_=rhs.internalNumber_;
     int i;
     for ( i=0;i<COIN_NUM_LOG;i++)
@@ -523,8 +537,12 @@ CoinMessageHandler::operator=(const CoinMessageHandler& rhs)
     numberStringFields_ = rhs.numberStringFields_;
     for (i=0;i<numberStringFields_;i++) 
       stringValue_[i]=rhs.stringValue_[i];
-    int offset = rhs.format_ - rhs.currentMessage_.message();
-    format_ = currentMessage_.message()+offset;
+    int offset ;
+    if (rhs.format_)
+    { offset = rhs.format_ - rhs.currentMessage_.message();
+      format_ = currentMessage_.message()+offset; }
+    else
+    { format_ = 0 ; }
     strcpy(messageBuffer_,rhs.messageBuffer_);
     offset = rhs.messageOut_-rhs.messageBuffer_;
     messageOut_= messageBuffer_+offset;
@@ -622,6 +640,7 @@ CoinMessageHandler::printing(bool onOff)
   // has no effect if skipping or whole message in
   if (printStatus_<2) {
     assert(format_[1]=='?');
+    *format_ = '%' ;
     if (onOff)
       printStatus_=0;
     else
