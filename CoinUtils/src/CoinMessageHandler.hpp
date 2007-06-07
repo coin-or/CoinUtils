@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstdio>
 #include <string>
+#include <vector>
 #include "CoinFinite.hpp"
 
 /** \file CoinMessageHandler.hpp
@@ -312,6 +313,10 @@ enum CoinMessageMarker {
 class CoinMessageHandler  {
 
 friend void CoinMessageHandlerUnitTest () ;
+
+private:
+  /** The body of the copy constructor and the assignment operator */
+  void gutsOfCopy(const CoinMessageHandler& rhs);
   
 public:
    /**@name Virtual methods that the derived classes may provide */
@@ -389,7 +394,7 @@ public:
     Incremented each time a field of type double is processed.
   */
   inline int numberDoubleFields() const
-  {return numberDoubleFields_;}
+  {return doubleValue_.size();}
   /*! \brief Values of integer fields already processed.
 
     As the parameter for a integer field is processed, the value is saved
@@ -402,7 +407,7 @@ public:
     Incremented each time a field of type integer is processed.
   */
   inline int numberIntFields() const
-  {return numberIntFields_;}
+  {return longValue_.size();}
   /*! \brief Values of char fields already processed.
 
     As the parameter for a char field is processed, the value is saved
@@ -415,7 +420,7 @@ public:
     Incremented each time a field of type char is processed.
   */
   inline int numberCharFields() const
-  {return numberCharFields_;}
+  {return charValue_.size();}
   /*! \brief Values of string fields already processed.
 
     As the parameter for a string field is processed, the value is saved
@@ -428,7 +433,7 @@ public:
     Incremented each time a field of type string is processed.
   */
   inline int numberStringFields() const
-  {return numberStringFields_;}
+  {return stringValue_.size();}
 
   /// Current message
   inline CoinOneMessage  currentMessage() const
@@ -504,7 +509,7 @@ public:
 
     The default format code is `%g'.
   */
-  CoinMessageHandler & operator<< (std::string stringvalue);
+  CoinMessageHandler & operator<< (const std::string& stringvalue);
   /*! \brief Process a char parameter value.
 
     The default format code is `%s'.
@@ -562,10 +567,10 @@ private:
   /**@name Private member data */
   //@{
   /// values in message
-  double doubleValue_[10];
-  long longValue_[10];
-  char charValue_[10];
-  std::string stringValue_[10];
+  std::vector<double> doubleValue_;
+  std::vector<long> longValue_;
+  std::vector<char> charValue_;
+  std::vector<std::string> stringValue_;
   /// Log level
   int logLevel_;
   /// Log levels
@@ -578,11 +583,6 @@ private:
   int internalNumber_;
   /// Format string for message (remainder)
   char * format_;
-  /// Number fields filled in,  0 in constructor then incremented
-  int numberDoubleFields_;
-  int numberIntFields_;
-  int numberCharFields_;
-  int numberStringFields_;
   /// Output buffer
   char messageBuffer_[1000];
   /// Position in output buffer
