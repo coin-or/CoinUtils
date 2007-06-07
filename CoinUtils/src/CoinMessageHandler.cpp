@@ -319,10 +319,6 @@ CoinMessageHandler::CoinMessageHandler() :
   currentMessage_(),
   internalNumber_(0),
   format_(NULL),
-  numberDoubleFields_(0),
-  numberIntFields_(0),
-  numberCharFields_(0),
-  numberStringFields_(0),
   printStatus_(0),
   highestNumber_(-1),
   fp_(stdout)
@@ -340,10 +336,6 @@ CoinMessageHandler::CoinMessageHandler(FILE * fp) :
   currentMessage_(),
   internalNumber_(0),
   format_(NULL),
-  numberDoubleFields_(0),
-  numberIntFields_(0),
-  numberCharFields_(0),
-  numberStringFields_(0),
   printStatus_(0),
   highestNumber_(-1),
   fp_(fp)
@@ -358,8 +350,9 @@ CoinMessageHandler::CoinMessageHandler(FILE * fp) :
 CoinMessageHandler::~CoinMessageHandler()
 {
 }
-/* The copy constructor */
-CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler& rhs)
+
+void
+CoinMessageHandler::gutsOfCopy(const CoinMessageHandler& rhs)
 {
   logLevel_=rhs.logLevel_;
   prefix_ = rhs.prefix_;
@@ -368,18 +361,10 @@ CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler& rhs)
   int i;
   for ( i=0;i<COIN_NUM_LOG;i++)
     logLevels_[i]=rhs.logLevels_[i];
-  numberDoubleFields_ = rhs.numberDoubleFields_;
-  for (i=0;i<numberDoubleFields_;i++) 
-    doubleValue_[i]=rhs.doubleValue_[i];
-  numberIntFields_ = rhs.numberIntFields_;
-  for (i=0;i<numberIntFields_;i++) 
-    longValue_[i]=rhs.longValue_[i];
-  numberCharFields_ = rhs.numberCharFields_;
-  for (i=0;i<numberCharFields_;i++) 
-    charValue_[i]=rhs.charValue_[i];
-  numberStringFields_ = rhs.numberStringFields_;
-  for (i=0;i<numberStringFields_;i++) 
-    stringValue_[i]=rhs.stringValue_[i];
+  doubleValue_=rhs.doubleValue_;
+  longValue_=rhs.longValue_;
+  charValue_=rhs.charValue_;
+  stringValue_=rhs.stringValue_;
   int offset = rhs.format_ - rhs.currentMessage_.message();
   format_ = currentMessage_.message()+offset;
   strcpy(messageBuffer_,rhs.messageBuffer_);
@@ -390,39 +375,17 @@ CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler& rhs)
   fp_ = rhs.fp_;
   source_ = rhs.source_;
 }
+/* The copy constructor */
+CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler& rhs)
+{
+  gutsOfCopy(rhs);
+}
 /* assignment operator. */
 CoinMessageHandler & 
 CoinMessageHandler::operator=(const CoinMessageHandler& rhs)
 {
   if (this != &rhs) {
-    logLevel_=rhs.logLevel_;
-    prefix_ = rhs.prefix_;
-    currentMessage_=rhs.currentMessage_;
-    internalNumber_=rhs.internalNumber_;
-    int i;
-    for ( i=0;i<COIN_NUM_LOG;i++)
-      logLevels_[i]=rhs.logLevels_[i];
-    numberDoubleFields_ = rhs.numberDoubleFields_;
-    for (i=0;i<numberDoubleFields_;i++) 
-      doubleValue_[i]=rhs.doubleValue_[i];
-    numberIntFields_ = rhs.numberIntFields_;
-    for (i=0;i<numberIntFields_;i++) 
-      longValue_[i]=rhs.longValue_[i];
-    numberCharFields_ = rhs.numberCharFields_;
-    for (i=0;i<numberCharFields_;i++) 
-      charValue_[i]=rhs.charValue_[i];
-    numberStringFields_ = rhs.numberStringFields_;
-    for (i=0;i<numberStringFields_;i++) 
-      stringValue_[i]=rhs.stringValue_[i];
-    int offset = rhs.format_ - rhs.currentMessage_.message();
-    format_ = currentMessage_.message()+offset;
-    strcpy(messageBuffer_,rhs.messageBuffer_);
-    offset = rhs.messageOut_-rhs.messageBuffer_;
-    messageOut_= messageBuffer_+offset;
-    printStatus_= rhs.printStatus_;
-    highestNumber_= rhs.highestNumber_;
-    fp_ = rhs.fp_;
-    source_ = rhs.source_;
+    gutsOfCopy(rhs);
   }
   return *this;
 }
@@ -441,10 +404,6 @@ CoinMessageHandler::message(int messageNumber,
     // put out last message
     internalPrint();
   }
-  numberDoubleFields_=0;
-  numberIntFields_=0;
-  numberCharFields_=0;
-  numberStringFields_=0;
   internalNumber_=messageNumber;
   currentMessage_= *(normalMessage.message_[messageNumber]);
   source_ = normalMessage.source_;
@@ -484,10 +443,6 @@ CoinMessageHandler::message(int externalNumber,const char * source,
     // put out last message
     internalPrint();
   }
-  numberDoubleFields_=0;
-  numberIntFields_=0;
-  numberCharFields_=0;
-  numberStringFields_=0;
   internalNumber_=externalNumber;
   currentMessage_= CoinOneMessage();
   currentMessage_.setExternalNumber(externalNumber);
@@ -530,10 +485,6 @@ CoinMessageHandler::finish()
     // put out last message
     internalPrint();
   }
-  numberDoubleFields_=0;
-  numberIntFields_=0;
-  numberCharFields_=0;
-  numberStringFields_=0;
   internalNumber_=-1;
   format_ = NULL;
   messageBuffer_[0]='\0';
@@ -598,7 +549,7 @@ CoinMessageHandler::operator<< (int intvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  longValue_[numberIntFields_++] = intvalue;
+  longValue_.push_back(intvalue);
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but may be changed to null)
@@ -622,7 +573,7 @@ CoinMessageHandler::operator<< (double doublevalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  doubleValue_[numberDoubleFields_++] = doublevalue;
+  doubleValue_.push_back(doublevalue);
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but changed to 0)
@@ -647,7 +598,7 @@ CoinMessageHandler::operator<< (long longvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  longValue_[numberIntFields_++] = longvalue;
+  longValue_.push_back(longvalue);
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but may be changed to null)
@@ -673,7 +624,7 @@ CoinMessageHandler::operator<< (long long longvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  longValue_[numberIntFields_++] = longvalue;
+  longValue_.push_back(longvalue);
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but may be changed to null)
@@ -694,11 +645,11 @@ CoinMessageHandler::operator<< (long long longvalue)
 }
 #endif
 CoinMessageHandler & 
-CoinMessageHandler::operator<< (std::string stringvalue)
+CoinMessageHandler::operator<< (const std::string& stringvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  stringValue_[numberStringFields_++] = stringvalue;
+  stringValue_.push_back(stringvalue);
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but changed to 0)
@@ -722,7 +673,7 @@ CoinMessageHandler::operator<< (char charvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  longValue_[numberCharFields_++] = charvalue;
+  longValue_.push_back(charvalue);
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but changed to 0)
@@ -746,7 +697,7 @@ CoinMessageHandler::operator<< (const char *stringvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  stringValue_[numberStringFields_++] = stringvalue;
+  stringValue_.push_back(stringvalue);
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but changed to 0)
