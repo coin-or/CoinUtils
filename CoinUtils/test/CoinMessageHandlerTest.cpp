@@ -110,7 +110,7 @@ void basicTestsWithMessages (const CoinMessages &testMessages, int &errs)
 {
   CoinMessageHandler hdl ;
   hdl.setLogLevel(1) ;
-  if (hdl.getLogLevel() != 1)
+  if (hdl.logLevel() != 1)
   { std::cout
       << "Cannot set/get log level of 0!" << std::endl ;
     errs++ ; }
