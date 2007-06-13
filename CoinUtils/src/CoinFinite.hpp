@@ -51,7 +51,7 @@ typedef long long CoinBigIndex;
 #endif
 
 #ifndef COIN_INT_MAX
-#define COIN_INT_MAX ((~((int)0)) >> 1)
+#define COIN_INT_MAX ((int)((~((unsigned int)0)) >> 1))
 #endif
 
 //=============================================================================
