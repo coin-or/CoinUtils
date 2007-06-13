@@ -438,7 +438,7 @@ CoinFactorization::factorizePart1 ( int numberOfRows,
 /* This is part two of factorization
    Arrays belong to factorization and were returned by part 1
    If status okay, permutation has pivot rows.
-   If status is singular, then basic variables have +1 and ones thrown out have -INT_MAX
+   If status is singular, then basic variables have +1 and ones thrown out have -COIN_INT_MAX
    to say thrown out.
    returns 0 -okay, -1 singular, -99 memory */
 int 
@@ -1292,7 +1292,7 @@ CoinFactorization::getColumnSpace ( int iColumn,
     numberCompressions_++;
     startColumnU[maximumColumnsExtra_] = put;
     space = lengthAreaU_ - put;
-    if ( extraNeeded == INT_MAX >> 1 ) {
+    if ( extraNeeded == COIN_INT_MAX >> 1 ) {
       return true;
     }
     if ( space < extraNeeded + number + 2 ) {
@@ -1435,7 +1435,7 @@ CoinFactorization::getRowSpace ( int iRow,
 void
 CoinFactorization::cleanup (  )
 {
-  getColumnSpace ( 0, INT_MAX >> 1 );	//compress
+  getColumnSpace ( 0, COIN_INT_MAX >> 1 );	//compress
   CoinBigIndex * startColumnU = startColumnU_.array();
   CoinBigIndex lastU = startColumnU[maximumColumnsExtra_];
 

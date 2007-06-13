@@ -45,9 +45,13 @@ typedef long long CoinBigIndex;
 #endif
 
 //=============================================================================
-// Plus infinity
+// Plus infinity (double and int)
 #ifndef COIN_DBL_MAX
 #define COIN_DBL_MAX DBL_MAX
+#endif
+
+#ifndef COIN_INT_MAX
+#define COIN_INT_MAX ((~((int)0)) >> 1)
 #endif
 
 //=============================================================================

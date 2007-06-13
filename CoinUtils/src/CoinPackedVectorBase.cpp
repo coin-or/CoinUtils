@@ -8,6 +8,7 @@
 
 #include <numeric>
 
+#include "CoinFinite.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedVectorBase.hpp"
 
@@ -207,8 +208,8 @@ CoinPackedVectorBase::sum() const
 //#############################################################################
 
 CoinPackedVectorBase::CoinPackedVectorBase() :
-   maxIndex_(/*std::numeric_limits<int>::max()*/INT_MIN/*0*/),
-   minIndex_(/*std::numeric_limits<int>::min()*/INT_MAX/*0*/),
+   maxIndex_(-COIN_INT_MAX/*0*/),
+   minIndex_(COIN_INT_MAX/*0*/),
    indexSetPtr_(NULL),
    testForDuplicateIndex_(true),
    testedDuplicateIndex_(false) {}
@@ -285,8 +286,8 @@ void
 CoinPackedVectorBase::clearBase() const
 {
    clearIndexSet();
-   maxIndex_ = /*std::numeric_limits<int>::max()*/INT_MIN/*0*/;
-   minIndex_ = /*std::numeric_limits<int>::min()*/INT_MAX/*0*/;
+   maxIndex_ = -COIN_INT_MAX/*0*/;
+   minIndex_ = COIN_INT_MAX/*0*/;
    testedDuplicateIndex_ = false;
 }
 
