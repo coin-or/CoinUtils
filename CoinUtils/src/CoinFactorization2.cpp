@@ -128,7 +128,7 @@ CoinFactorization::factorSparse (  )
         }
       }
     }
-    CoinBigIndex minimumCount = INT_MAX;
+    CoinBigIndex minimumCount = COIN_INT_MAX;
     double minimumCost = COIN_DBL_MAX;
 
     int pivotRow = -1;
@@ -313,7 +313,7 @@ CoinFactorization::factorSparse (  )
                                     pivotRowPosition, pivotColumnPosition,
                                     workArea, workArea2, increment,
                                     increment2, ( int * ) markRow_ ,
-                                    INT_MAX);
+                                    COIN_INT_MAX);
               }
               if ( !goodPivot ) {
                 status = -99;

@@ -11,6 +11,7 @@
 
 #include <cassert>
 
+#include "CoinFinite.hpp"
 #include "CoinPackedVector.hpp"
 #include "CoinShallowPackedVector.hpp"
 
@@ -344,10 +345,8 @@ CoinPackedVectorUnitTest()
   // length vector 
   {
     CoinPackedVector nullVec;
-    assert( nullVec.getMaxIndex() ==
-	    /*std::numeric_limits<int>::max()*/INT_MIN/*0*/ );
-    assert( nullVec.getMinIndex() ==
-	    /*std::numeric_limits<int>::min()*/INT_MAX/*0*/ );
+    assert( nullVec.getMaxIndex() == -COIN_INT_MAX/*0*/ );
+    assert( nullVec.getMinIndex() == COIN_INT_MAX/*0*/ );
   } 
 
   // Test CoinFltEq with equivalent method

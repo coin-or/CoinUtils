@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstdio>
 
+#include "CoinFinite.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinTypes.hpp"
@@ -1281,7 +1282,7 @@ CoinIndexedVector::operator!=(const CoinIndexedVector & rhs) const
 int 
 CoinIndexedVector::getMaxIndex() const
 {
-  int maxIndex = INT_MIN;
+  int maxIndex = -COIN_INT_MAX;
   int i;
   for (i=0;i<nElements_;i++)
     maxIndex = CoinMax(maxIndex,indices_[i]);
@@ -1291,7 +1292,7 @@ CoinIndexedVector::getMaxIndex() const
 int 
 CoinIndexedVector::getMinIndex() const
 {
-  int minIndex = INT_MAX;
+  int minIndex = COIN_INT_MAX;
   int i;
   for (i=0;i<nElements_;i++)
     minIndex = CoinMin(minIndex,indices_[i]);
