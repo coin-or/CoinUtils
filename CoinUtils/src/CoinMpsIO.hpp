@@ -649,6 +649,14 @@ public:
     int writeMps(const char *filename, int compression = 0,
 		 int formatType = 0, int numberAcross = 2,
 		 CoinPackedMatrix * quadratic = NULL) const;
+    /** Write the problem in MPS format to a file with the given filename.
+	For compatibility with trunk etc - last two parameters ignored
+    */
+    inline int writeMps(const char *filename, int compression ,
+		 int formatType , int numberAcross ,
+		 CoinPackedMatrix * quadratic ,
+		 int numberSOS,const CoinSet * setInfo) const
+  { return writeMps(filename,compression,formatType,numberAcross,quadratic);};
 
     /// Return card reader object so can see what last card was e.g. QUADOBJ
     inline const CoinMpsCardReader * reader() const

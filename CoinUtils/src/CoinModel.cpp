@@ -1732,6 +1732,7 @@ double
 CoinModel::getElement(int i,int j) const
 {
   if (!hashElements_.numberItems()) {
+    hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_);
   }
   int position = hashElements_.hash(i,j,elements_);
@@ -1746,6 +1747,7 @@ double
 CoinModel::getElement(const char * rowName,const char * columnName) const
 {
   if (!hashElements_.numberItems()) {
+    hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_);
   }
   int i=rowName_.hash(rowName);
@@ -1774,6 +1776,7 @@ const char *
 CoinModel::getElementAsString(int i,int j) const
 {
   if (!hashElements_.numberItems()) {
+    hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_);
   }
   int position = hashElements_.hash(i,j,elements_);
@@ -1796,6 +1799,7 @@ int
 CoinModel::position (int i,int j) const
 {
   if (!hashElements_.numberItems()) {
+    hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_,true);
   }
   return hashElements_.hash(i,j,elements_);
@@ -1808,6 +1812,7 @@ double *
 CoinModel::pointer (int i,int j) const
 {
   if (!hashElements_.numberItems()) {
+    hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_);
   }
   int position = hashElements_.hash(i,j,elements_);

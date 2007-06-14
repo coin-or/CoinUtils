@@ -478,14 +478,14 @@ CoinModelHash2::operator=(const CoinModelHash2& rhs)
 void 
 CoinModelHash2::setNumberItems(int number)
 {
-  assert (number>=0&&number<=numberItems_);
+  assert (number>=0&&(number<=numberItems_||!numberItems_));
   numberItems_=number;
 }
 // Resize hash (also re-hashs)
 void 
 CoinModelHash2::resize(int maxItems, const CoinModelTriple * triples,bool forceReHash)
 {
-  assert (numberItems_<=maximumItems_);
+  assert (numberItems_<=maximumItems_||!maximumItems_);
   if (maxItems<=maximumItems_&&!forceReHash)
     return;
   if (maxItems>maximumItems_) {
