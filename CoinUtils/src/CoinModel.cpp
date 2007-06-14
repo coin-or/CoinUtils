@@ -51,6 +51,7 @@ CoinModel::CoinModel ()
      referenceSOS_(NULL),
      priority_(NULL),
      cut_(NULL),
+     moreInfo_(NULL),
      logLevel_(0),
      type_(-1),
      links_(0)
@@ -94,6 +95,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     referenceSOS_(NULL),
     priority_(NULL),
     cut_(NULL),
+    moreInfo_(NULL),
     logLevel_(0),
     type_(-1),
     links_(0)
@@ -363,6 +365,7 @@ CoinModel::CoinModel (const CoinModel & rhs)
   associated_ = CoinCopyOfArray(rhs.associated_,sizeAssociated_);
   priority_ = CoinCopyOfArray(rhs.priority_,maximumColumns_);
   cut_ = CoinCopyOfArray(rhs.cut_,maximumRows_);
+  moreInfo_ = rhs.moreInfo_;
   if (numberSOS_) {
     startSOS_ = CoinCopyOfArray(rhs.startSOS_,numberSOS_+1);
     int numberMembers = startSOS_[numberSOS_];
@@ -482,6 +485,7 @@ CoinModel::operator=(const CoinModel& rhs)
     columnType_ = CoinCopyOfArray(rhs.columnType_,maximumColumns_);
     priority_ = CoinCopyOfArray(rhs.priority_,maximumColumns_);
     cut_ = CoinCopyOfArray(rhs.cut_,maximumRows_);
+    moreInfo_ = rhs.moreInfo_;
     if (numberSOS_) {
       startSOS_ = CoinCopyOfArray(rhs.startSOS_,numberSOS_+1);
       int numberMembers = startSOS_[numberSOS_];
@@ -3015,7 +3019,9 @@ CoinModel::decodeBit(char * phrase, char * & nextPhrase, double & coefficient, b
   if (*pos2=='*') {
     char * pos3 = pos;
     while (pos3!=pos2) {
+#ifndef NDEBUG
       char x = *pos3;
+#endif
       pos3++;
       assert ((x>='0'&&x<='9')||x=='.'||x=='+'||x=='-'||x=='e');
     }
@@ -3049,7 +3055,9 @@ CoinModel::decodeBit(char * phrase, char * & nextPhrase, double & coefficient, b
     if (ifFirst) {
       char * pos3 = pos;
       while (pos3!=pos2) {
+#ifndef NDEBUG
 	char x = *pos3;
+#endif
 	pos3++;
 	assert ((x>='0'&&x<='9')||x=='.'||x=='+'||x=='-'||x=='e');
       }

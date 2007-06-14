@@ -624,7 +624,6 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
       CoinBigIndex krs = mrstrt[i];
       CoinBigIndex kre = krs + hinrow[i];
       for (CoinBigIndex k=krs; k<kre; k++) {
-	double coeff = rowels[k];
 	int icol = hcol[k];
 	if (cup[icol]>clo[icol]&&integerType[icol]) {
 	  canFix[i]=0; // not safe

@@ -571,6 +571,12 @@ public:
   /// Returns array of 0 or nonzero if can be a cut (or returns NULL)
   inline const int * cutMarker() const
   { return cut_;};
+  /// Return pointer to more information
+  inline void * moreInfo() const
+  { return moreInfo_;};
+  /// Set pointer to more information
+  inline void setMoreInfo(void * info)
+  { moreInfo_ = info;};
    //@}
 
   /**@name Constructors, destructor */
@@ -767,6 +773,8 @@ private:
   int * priority_;
   /// Nonzero if row is cut - done in one go e.g. from ampl
   int * cut_;
+  /// Pointer to more information
+  void * moreInfo_;
   /** Print level.
       I could have gone for full message handling but this should normally
       be silent and lightweight.  I can always change.

@@ -1905,7 +1905,9 @@ CoinFactorization::replaceRow ( int whichRow, int iNumberInRow,
     return 0;
   int next = nextRow_.array()[whichRow];
   int * numberInRow = numberInRow_.array();
+#ifndef NDEBUG
   const int * numberInColumn = numberInColumn_.array();
+#endif
   int numberNow = numberInRow[whichRow];
   const CoinBigIndex * startRowU = startRowU_.array();
   double * pivotRegion = pivotRegion_.array();
@@ -2022,7 +2024,9 @@ CoinFactorization::emptyRows(int numberToEmpty, const int which[])
   int i;
   int * delRow = new int [maximumRowsExtra_];
   int * indexRowU = indexRowU_.array();
+#ifndef NDEBUG
   double * pivotRegion = pivotRegion_.array();
+#endif
   for (i=0;i<maximumRowsExtra_;i++)
     delRow[i]=0;
   int * numberInRow = numberInRow_.array();

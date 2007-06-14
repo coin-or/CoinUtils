@@ -245,8 +245,7 @@ CoinModelHash::validateHash() const
 {
   for (int i = 0; i < numberItems_; ++i ) {
     if (names_[i]) {
-      int ipos = hash( names_[i]);
-      assert (ipos>=0);
+      assert (hash( names_[i])>=0);
     }
   }
 }
