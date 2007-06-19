@@ -365,7 +365,7 @@ CoinMessageHandler::gutsOfCopy(const CoinMessageHandler& rhs)
   longValue_=rhs.longValue_;
   charValue_=rhs.charValue_;
   stringValue_=rhs.stringValue_;
-  int offset = rhs.format_ - rhs.currentMessage_.message();
+  long int offset = rhs.format_ - rhs.currentMessage_.message();
   format_ = currentMessage_.message()+offset;
   strcpy(messageBuffer_,rhs.messageBuffer_);
   offset = rhs.messageOut_-rhs.messageBuffer_;
