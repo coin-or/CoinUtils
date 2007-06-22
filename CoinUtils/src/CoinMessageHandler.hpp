@@ -364,7 +364,7 @@ public:
     Incremented each time a field of type double is processed.
   */
   inline int numberDoubleFields() const
-  {return doubleValue_.size();}
+  {return static_cast<int>(doubleValue_.size());}
   /*! \brief Values of integer fields already processed.
 
     As the parameter for a integer field is processed, the value is saved
@@ -377,7 +377,7 @@ public:
     Incremented each time a field of type integer is processed.
   */
   inline int numberIntFields() const
-  {return longValue_.size();}
+  {return static_cast<int>(longValue_.size());}
   /*! \brief Values of char fields already processed.
 
     As the parameter for a char field is processed, the value is saved
@@ -390,7 +390,7 @@ public:
     Incremented each time a field of type char is processed.
   */
   inline int numberCharFields() const
-  {return charValue_.size();}
+  {return static_cast<int>(charValue_.size());}
   /*! \brief Values of string fields already processed.
 
     As the parameter for a string field is processed, the value is saved
@@ -403,7 +403,7 @@ public:
     Incremented each time a field of type string is processed.
   */
   inline int numberStringFields() const
-  {return stringValue_.size();}
+  {return static_cast<int>(stringValue_.size());}
 
   /// Current message
   inline CoinOneMessage  currentMessage() const
