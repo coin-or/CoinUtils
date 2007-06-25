@@ -271,6 +271,14 @@ public:
     int eliminateDuplicates(double threshold);
     /** Sort all columns so indices are increasing.in each column */
     void orderMatrix();
+    /** Really clean up matrix.
+	a) eliminate all duplicate AND small elements in matrix 
+	b) remove all gaps and set extraGap_ and extraMajor_ to 0.0
+	c) reallocate arrays and make max lengths equal to lengths
+	d) orders elements
+	returns number of elements eliminated
+    */
+    int cleanMatrix(double threshold=1.0e-20);
   //@}
 
   //---------------------------------------------------------------------------

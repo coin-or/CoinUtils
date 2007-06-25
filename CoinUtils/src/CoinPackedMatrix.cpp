@@ -631,6 +631,84 @@ CoinPackedMatrix::removeGaps(double removeValue)
 
 //#############################################################################
 
+/* Really clean up matrix.
+   a) eliminate all duplicate AND small elements in matrix 
+   b) remove all gaps and set extraGap_ and extraMajor_ to 0.0
+   c) reallocate arrays and make max lengths equal to lengths
+   d) orders elements
+   returns number of elements eliminated
+*/
+int 
+CoinPackedMatrix::cleanMatrix(double threshold)
+{
+  if (!majorDim_) {
+    extraGap_=0.0;
+    extraMajor_=0.0;
+    return 0;
+  }
+  CoinBigIndex numberEliminated =0;
+  // space for eliminated
+  int * mark = new int [minorDim_];
+  int i;
+  for (i=0;i<minorDim_;i++)
+    mark[i]=-1;
+  CoinBigIndex n = 0;
+  for (i=0;i<majorDim_;i++) {
+    CoinBigIndex k=start_[i];
+    start_[i]=n;
+    CoinBigIndex end = k+length_[i];
+    CoinBigIndex j;
+    for (j=k;j<end;j++) {
+      int index = index_[j];
+      if (mark[index]==-1) {
+	mark[index]=j;
+      } else {
+	// duplicate
+	int jj = mark[index];
+	element_[jj] += element_[j];
+	element_[j]=0.0;
+      }
+    }
+    for (j=k;j<end;j++) {
+      int index = index_[j];
+      mark[index]=-1;
+      if (fabs(element_[j])>=threshold) {
+	element_[n]=element_[j];
+	index_[n++]=index_[j];
+	k++;
+      }
+    }
+    numberEliminated += end-k;
+    length_[i] = n-start_[i];
+    // sort
+    CoinSort_2(index_+start_[i],index_+n,element_+start_[i]);
+  }
+  start_[majorDim_]=n;
+  size_ -= numberEliminated;
+  assert (n==size_);
+  delete [] mark;
+  extraGap_=0.0;
+  extraMajor_=0.0;
+  maxMajorDim_=majorDim_;
+  maxSize_=size_;
+  // Now reallocate - do smallest ones first
+  int * temp = CoinCopyOfArray(length_,majorDim_);
+  delete [] length_;
+  length_ = temp;
+  CoinBigIndex * temp2 = CoinCopyOfArray(start_,majorDim_+1);
+  delete [] start_;
+  start_ = temp2;
+  temp = CoinCopyOfArray(index_,size_);
+  delete [] index_;
+  index_ = temp;
+  double * temp3 = CoinCopyOfArray(element_,size_);
+  delete [] element_;
+  element_ = temp3;
+  return numberEliminated;
+}
+
+//#############################################################################
+
 void
 CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
 			     const int numMajor, const int * indMajor)
