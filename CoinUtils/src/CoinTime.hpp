@@ -50,6 +50,29 @@ static inline double CoinCpuTime()
 }
 
 //#############################################################################
+// On most systems SELF seems to include children threads, This is for when it doesn't
+static inline double CoinCpuTimeJustChildren()
+{
+  double cpu_temp;
+#if defined(_MSC_VER) || defined(__MSVCRT__)
+  unsigned int ticksnow;        /* clock_t is same as int */
+  
+  ticksnow = (unsigned int)clock();
+  
+  cpu_temp = (double)((double)ticksnow/CLOCKS_PER_SEC);
+#else
+  struct rusage usage;
+# ifdef ZEROFAULT
+  usage.ru_utime.tv_sec = 0 ;
+  usage.ru_utime.tv_usec = 0 ;
+# endif
+  getrusage(RUSAGE_CHILDREN,&usage);
+  cpu_temp = usage.ru_utime.tv_sec;
+  cpu_temp += 1.0e-6*((double) usage.ru_utime.tv_usec);
+#endif
+  return cpu_temp;
+}
+//#############################################################################
 
 #include <fstream>
 

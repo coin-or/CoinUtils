@@ -3691,7 +3691,7 @@ convertDouble(int section,int formatType, double value, char outputValue[24],
    3 - IEEE hex - not INTEL
 */
 void
-CoinConvertDouble(int section, int formatType, double value, char outputValue[20])
+CoinConvertDouble(int section, int formatType, double value, char outputValue[24])
 {
   if (formatType==0) {
     bool stripZeros=true;
