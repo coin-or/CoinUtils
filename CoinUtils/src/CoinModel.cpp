@@ -3365,7 +3365,8 @@ CoinModel::reorder(const char * mark) const
   char * highPriority = new char [numberColumns_];
   double * linear = new double[numberColumns_];
   CoinModel * newModel = new CoinModel(*this);
-  for (int iRow=-1;iRow<numberRows_;iRow++) {
+  int iRow;
+  for (iRow=-1;iRow<numberRows_;iRow++) {
     int numberBad;
     CoinPackedMatrix * row = quadraticRow(iRow,linear,numberBad);
     assert (!numberBad); // fix later
@@ -3392,7 +3393,7 @@ CoinModel::reorder(const char * mark) const
       delete row;
     }
   }
-  for (int iRow=-1;iRow<numberRows_;iRow++) {
+  for (iRow=-1;iRow<numberRows_;iRow++) {
     int numberBad;
     CoinPackedMatrix * row = quadraticRow(iRow,linear,numberBad);
     if (row) {
