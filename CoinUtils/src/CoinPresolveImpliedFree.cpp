@@ -1181,7 +1181,7 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
       rlo[irow] = f->rlo;
       rup[irow] = f->rup;
     }
-    deleteAction( save_costs,double*);
+    //deleteAction( f->costs,double*); do on delete
     // coeff has now been initialized
 
     // compute solution
@@ -1345,7 +1345,7 @@ implied_free_action::~implied_free_action()
   int i;
   for (i=0;i<nactions_;i++) {
     deleteAction(actions_[i].rowels,double *);
-    //delete [] actions_[i].costs; deleted earlier
+    deleteAction( actions_[i].costs,double *); 
   }
   deleteAction(actions_,action *);
 }
