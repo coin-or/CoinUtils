@@ -93,7 +93,7 @@ public:
   {return severity_;}
   /// Set detail level
   inline void setDetail(int level)
-  {detail_=level;}
+  {detail_=(char) level;}
   /// Get detail level
   inline int detail() const
   {return detail_;}

@@ -7,6 +7,7 @@
 
 #include "CoinPragma.hpp"
 #include "CoinMessage.hpp"
+#include "CoinError.hpp"
 
 typedef struct {
   COIN_Message internalNumber;

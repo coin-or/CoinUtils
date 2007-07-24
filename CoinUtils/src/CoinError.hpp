@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <cassert>
+#include <cstring>
 
 #include "CoinPragma.hpp"
 

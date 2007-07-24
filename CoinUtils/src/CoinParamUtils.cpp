@@ -5,7 +5,8 @@
 
 #include "CoinUtilsConfig.h"
 #include "CoinParam.hpp"
-
+#include <cstdlib>
+#include <cstring>
 
 #ifdef COIN_HAS_READLINE     
 #include <readline/readline.h>
