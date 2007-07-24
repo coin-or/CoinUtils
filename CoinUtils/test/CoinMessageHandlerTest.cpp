@@ -9,6 +9,7 @@
 
 #include "CoinPragma.hpp"
 #include "CoinMessageHandler.hpp"
+#include <cstring>
 
 namespace { // begin file-local namespace
 
