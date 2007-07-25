@@ -381,10 +381,9 @@ AC_COIN_HAS_PROJECT(CoinUtils)
 #                             Other dependencies                            #
 #############################################################################
 
-AC_LANG_PUSH(C)
-AC_COIN_HAS_USER_LIBRARY([Gmpl],[GMPL],[glpmpl.h],
-    [_glp_mpl_initialize glp_mpl_initialize])
-AC_LANG_POP(C)
+# For Gnu Mathprog (GMPL), supplied by glpk.
+
+AC_COIN_HAS_GLPK(Gmpl)
 
 #############################################################################
 #                       Other third party software                          #
