@@ -405,7 +405,7 @@ class CoinWarmStartBasisDiff : public CoinWarmStartDiff
     see it when they make <i>their</i> default constructor protected or
     private.
   */
-  CoinWarmStartBasisDiff () : sze_(0), diffNdxs_(0), diffVals_(0) { } ;
+  CoinWarmStartBasisDiff () : sze_(0), diffNdxs_(0), diffVals_(0) { } 
 
   /*! \brief Copy constructor
   

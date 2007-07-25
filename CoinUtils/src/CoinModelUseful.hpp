@@ -47,40 +47,40 @@ public:
    //@{
   /// Get row
   inline int row() const
-  { return row_;};
+  { return row_;}
   /// Get column
   inline int column() const
-  { return column_;};
+  { return column_;}
   /// Get value
   inline double value() const
-  { return value_;};
+  { return value_;}
   /// Get value
   inline double element() const
-  { return value_;};
+  { return value_;}
   /// Get position
   inline int position() const
-  { return position_;};
+  { return position_;}
   /// Get onRow
   inline bool onRow() const
-  { return onRow_;};
+  { return onRow_;}
   /// Set row
   inline void setRow(int row)
-  { row_=row;};
+  { row_=row;}
   /// Set column
   inline void setColumn(int column)
-  { column_=column;};
+  { column_=column;}
   /// Set value
   inline void setValue(double value)
-  { value_=value;};
+  { value_=value;}
   /// Set value
   inline void setElement(double value)
-  { value_=value;};
+  { value_=value;}
   /// Set position
   inline void setPosition(int position)
-  { position_=position;};
+  { position_=position;}
   /// Set onRow
   inline void setOnRow(bool onRow)
-  { onRow_=onRow;};
+  { onRow_=onRow;}
    //@}
 
 private:
@@ -165,15 +165,15 @@ public:
   void resize(int maxItems,bool forceReHash=false);
   /// Number of items i.e. rows if just row names
   inline int numberItems() const
-  { return numberItems_;};
+  { return numberItems_;}
   /// Set number of items
   void setNumberItems(int number);
   /// Maximum number of items
   inline int maximumItems() const
-  { return maximumItems_;};
+  { return maximumItems_;}
   /// Names
   inline const char *const * names() const
-  { return names_;};
+  { return names_;}
   //@}
 
   /**@name hashing */
@@ -238,12 +238,12 @@ public:
   void resize(int maxItems, const CoinModelTriple * triples,bool forceReHash=false);
   /// Number of items
   inline int numberItems() const
-  { return numberItems_;};
+  { return numberItems_;}
   /// Set number of items
   void setNumberItems(int number);
   /// Maximum number of items
   inline int maximumItems() const
-  { return maximumItems_;};
+  { return maximumItems_;}
   //@}
 
   /**@name hashing */
@@ -305,34 +305,34 @@ public:
               int numberElements, const CoinModelTriple * triples);
   /// Number of major items i.e. rows if just row links
   inline int numberMajor() const
-  { return numberMajor_;};
+  { return numberMajor_;}
   /// Maximum number of major items i.e. rows if just row links
   inline int maximumMajor() const
-  { return maximumMajor_;};
+  { return maximumMajor_;}
   /// Number of elements
   inline int numberElements() const
-  { return numberElements_;};
+  { return numberElements_;}
   /// Maximum number of elements
   inline int maximumElements() const
-  { return maximumElements_;};
+  { return maximumElements_;}
   /// First on free chain
   inline int firstFree() const
-  { return first_[maximumMajor_];};
+  { return first_[maximumMajor_];}
   /// Last on free chain
   inline int lastFree() const
-  { return last_[maximumMajor_];};
+  { return last_[maximumMajor_];}
   /// First on  chain
   inline int first(int which) const
-  { return first_[which];};
+  { return first_[which];}
   /// Last on  chain
   inline int last(int which) const
-  { return last_[which];};
+  { return last_[which];}
   /// Next array
   inline const int * next() const
-  { return next_;};
+  { return next_;}
   /// Previous array
   inline const int * previous() const
-  { return previous_;};
+  { return previous_;}
   //@}
 
   /**@name does work */

@@ -141,7 +141,7 @@ class CoinWarmStartDualDiff : public CoinWarmStartDiff
     see it when they make <i>their</i> default constructor protected or
     private.
   */
-  CoinWarmStartDualDiff () : sze_(0), diffNdxs_(0), diffVals_(NULL) {} ;
+  CoinWarmStartDualDiff () : sze_(0), diffNdxs_(0), diffVals_(NULL) {} 
 
   /*! \brief Copy constructor
   

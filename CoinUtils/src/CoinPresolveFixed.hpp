@@ -151,7 +151,7 @@ class make_fixed_action : public CoinPresolveAction {
   ~make_fixed_action() { 
     deleteAction(actions_,action*); 
     delete faction_;
-  };
+  }
 };
 
 /*! \relates make_fixed_action

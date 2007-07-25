@@ -31,35 +31,35 @@ public:
   //@{
   /// Get number of columns
   inline int getNumCols() const
-  { return numCols_;};
+  { return numCols_;}
   
   /// Get number of rows
   inline int getNumRows() const
-  { return numRows_;};
+  { return numRows_;}
   
   /// Get number of nonzero elements
   inline int getNumElements() const
-  { return numElements_;};
+  { return numElements_;}
   
   /// Get number of integer variables
   inline int getNumIntegers() const
-  { return numIntegers_;};
+  { return numIntegers_;}
   
   /// Get pointer to array[getNumCols()] of column lower bounds
   inline const double * getColLower() const
-  { return colLower_;};
+  { return colLower_;}
   
   /// Get pointer to array[getNumCols()] of column upper bounds
   inline const double * getColUpper() const
-  { return colUpper_;};
+  { return colUpper_;}
   
   /// Get pointer to array[getNumRows()] of row lower bounds
   inline const double * getRowLower() const
-  { return rowLower_;};
+  { return rowLower_;}
   
   /// Get pointer to array[getNumRows()] of row upper bounds
   inline const double * getRowUpper() const
-  { return rowUpper_;};
+  { return rowUpper_;}
   
   /** Get pointer to array[getNumRows()] of row right-hand sides
       This gives same results as OsiSolverInterface for useful cases
@@ -69,114 +69,114 @@ public:
         getRightHandSide()[i] == getRowLower()[i]
   */
   inline const double * getRightHandSide() const
-  { return rightHandSide_;};
+  { return rightHandSide_;}
 
   /// Get pointer to array[getNumCols()] of objective function coefficients
   inline const double * getObjCoefficients() const
-  { return objCoefficients_;};
+  { return objCoefficients_;}
   
   /// Get objective function sense (1 for min (default), -1 for max)
   inline double getObjSense() const
-  { return objSense_;};
+  { return objSense_;}
   
   /// Return true if variable is continuous
   inline bool isContinuous(int colIndex) const
-  { return colType_[colIndex]=='C';};
+  { return colType_[colIndex]=='C';}
   
   /// Return true if variable is binary
   inline bool isBinary(int colIndex) const
-  { return colType_[colIndex]=='B';};
+  { return colType_[colIndex]=='B';}
   
   /// Return true if column is integer.
   inline bool isInteger(int colIndex) const
-  { return colType_[colIndex]=='B'||colType_[colIndex]=='I';};
+  { return colType_[colIndex]=='B'||colType_[colIndex]=='I';}
   
   /// Return true if variable is general integer
   inline bool isIntegerNonBinary(int colIndex) const
-  { return colType_[colIndex]=='I';};
+  { return colType_[colIndex]=='I';}
   
   /// Return true if variable is binary and not fixed at either bound
   inline bool isFreeBinary(int colIndex) const
-  { return colType_[colIndex]=='B'&&colUpper_[colIndex]>colLower_[colIndex];};
+  { return colType_[colIndex]=='B'&&colUpper_[colIndex]>colLower_[colIndex];}
 
   /// Get colType array ('B', 'I', or 'C' for Binary, Integer and Continuous) 
   inline const char * getColType() const
-  { return colType_;};
+  { return colType_;}
   
   /// Get pointer to row-wise copy of current matrix
   inline const CoinPackedMatrix * getMatrixByRow() const
-  { return matrixByRow_;};
+  { return matrixByRow_;}
   
   /// Get pointer to column-wise copy of current matrix
   inline const CoinPackedMatrix * getMatrixByCol() const
-  { return matrixByCol_;};
+  { return matrixByCol_;}
   
   /// Get pointer to row-wise copy of "original" matrix
   inline const CoinPackedMatrix * getOriginalMatrixByRow() const
-  { return originalMatrixByRow_;};
+  { return originalMatrixByRow_;}
   
   /// Get pointer to column-wise copy of "original" matrix
   inline const CoinPackedMatrix * getOriginalMatrixByCol() const
-  { return originalMatrixByCol_;};
+  { return originalMatrixByCol_;}
   //@}
   
   /**@name Solution query methods */
   //@{
   /// Get pointer to array[getNumCols()] of primal variable values
   inline const double * getColSolution() const
-  { return colSolution_;};
+  { return colSolution_;}
   
   /// Get pointer to array[getNumRows()] of dual variable values
   inline const double * getRowPrice() const
-  { return rowPrice_;};
+  { return rowPrice_;}
   
   /// Get a pointer to array[getNumCols()] of reduced costs
   inline const double * getReducedCost() const
-  { return reducedCost_;};
+  { return reducedCost_;}
   
   /// Get pointer to array[getNumRows()] of row activity levels (constraint matrix times the solution vector). 
   inline const double * getRowActivity() const
-  { return rowActivity_;};
+  { return rowActivity_;}
   
   /// Get pointer to array[getNumCols()] of primal variable values which should not be separated (for debug)
   inline const double * getDoNotSeparateThis() const
-  { return doNotSeparateThis_;};
+  { return doNotSeparateThis_;}
   //@}
   
   /**@name Other scalar get methods */
   //@{
   /// Get solver's value for infinity
   inline double getInfinity() const
-  { return infinity_;};
+  { return infinity_;}
   
   /** Get objective function value - includinbg any offset i.e.
       sum c sub j * x subj - objValue = objOffset */
   inline double getObjValue() const
-  { return objValue_;};
+  { return objValue_;}
 
   /// Get objective offset i.e. sum c sub j * x subj -objValue = objOffset 
   inline double getObjOffset() const
-  { return objOffset_;};
+  { return objOffset_;}
 
   /// Get dual tolerance
   inline double getDualTolerance() const
-  { return dualTolerance_;};
+  { return dualTolerance_;}
 
   /// Get primal tolerance
   inline double getPrimalTolerance() const
-  { return primalTolerance_;};
+  { return primalTolerance_;}
 
   /// Get integer tolerance
   inline double getIntegerTolerance() const
-  { return integerTolerance_;};
+  { return integerTolerance_;}
 
   /// Get integer upper bound i.e. best solution * getObjSense
   inline double getIntegerUpperBound() const
-  { return integerUpperBound_;};
+  { return integerUpperBound_;}
 
   /// Get integer lower bound i.e. best possible solution * getObjSense
   inline double getIntegerLowerBound() const
-  { return integerLowerBound_;};
+  { return integerLowerBound_;}
   //@}
   
   //---------------------------------------------------------------------------
@@ -209,19 +209,19 @@ public:
   //@{
   /// Set number of columns
   inline void setNumCols(int value)
-  { numCols_ = value;};
+  { numCols_ = value;}
   
   /// Set number of rows
   inline void setNumRows(int value)
-  { numRows_ = value;};
+  { numRows_ = value;}
   
   /// Set number of nonzero elements
   inline void setNumElements(int value)
-  { numElements_ = value;};
+  { numElements_ = value;}
   
   /// Set number of integer variables
   inline void setNumIntegers(int value)
-  { numIntegers_ = value;};
+  { numIntegers_ = value;}
   
   /// Set pointer to array[getNumCols()] of column lower bounds
   void setColLower(const double * array, bool copyIn=true);
@@ -259,7 +259,7 @@ public:
   
   /// Set objective function sense (1 for min (default), -1 for max)
   inline void setObjSense(double value)
-  { objSense_ = value;};
+  { objSense_ = value;}
   
   /// Set colType array ('B', 'I', or 'C' for Binary, Integer and Continuous) 
   void setColType(const char *array, bool copyIn=true);
@@ -296,35 +296,35 @@ public:
 
   /// Set solver's value for infinity
   inline void setInfinity(double value)
-  { infinity_ = value;};
+  { infinity_ = value;}
   
   /// Set objective function value (including any rhs offset)
   inline void setObjValue(double value)
-  { objValue_ = value;};
+  { objValue_ = value;}
 
   /// Set objective offset i.e. sum c sub j * x subj -objValue = objOffset 
   inline void setObjOffset(double value)
-  { objOffset_ = value;};
+  { objOffset_ = value;}
 
   /// Set dual tolerance
   inline void setDualTolerance(double value)
-  { dualTolerance_ = value;};
+  { dualTolerance_ = value;}
 
   /// Set primal tolerance
   inline void setPrimalTolerance(double value)
-  { primalTolerance_ = value;};
+  { primalTolerance_ = value;}
 
   /// Set integer tolerance
   inline void setIntegerTolerance(double value)
-  { integerTolerance_ = value;};
+  { integerTolerance_ = value;}
 
   /// Set integer upper bound i.e. best solution * getObjSense
   inline void setIntegerUpperBound(double value)
-  { integerUpperBound_ = value;};
+  { integerUpperBound_ = value;}
 
   /// Set integer lower bound i.e. best possible solution * getObjSense
   inline void setIntegerLowerBound(double value)
-  { integerLowerBound_ = value;};
+  { integerLowerBound_ = value;}
   //@}
   
   //---------------------------------------------------------------------------

@@ -91,7 +91,7 @@ class duprow_action : public CoinPresolveAction {
   const int nactions_;
   const action *const actions_;
 
-  duprow_action():CoinPresolveAction(NULL),nactions_(0),actions_(NULL) {};
+  duprow_action():CoinPresolveAction(NULL),nactions_(0),actions_(NULL) {}
   duprow_action(int nactions,
 		      const action *actions,
 		      const CoinPresolveAction *next) :

@@ -183,7 +183,7 @@ public:
   void setDetailMessages(int newLevel, int low, int high);
   /// Returns class
   inline int getClass() const
-  { return class_;};
+  { return class_;}
   /// Moves to compact format
   void toCompact();
   /// Moves from compact format
@@ -348,7 +348,7 @@ public:
    //@{
   /// Get detail level of a message.
   inline int detail(int messageNumber, const CoinMessages &normalMessage) const
-  { return normalMessage.message_[messageNumber]->detail();};
+  { return normalMessage.message_[messageNumber]->detail();}
   /** Get current log (detail) level. */
   inline int logLevel() const
           { return logLevel_;}

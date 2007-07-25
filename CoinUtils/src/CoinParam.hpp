@@ -252,22 +252,22 @@ public:
 
   /*! \brief Add a short help string to a parameter */
 
-  inline void setShortHelp(const std::string help) { shortHelp_ = help ; } ;
+  inline void setShortHelp(const std::string help) { shortHelp_ = help ; } 
 
   /*! \brief Retrieve the short help string */
 
-  inline std::string shortHelp() const { return (shortHelp_) ; } ;
+  inline std::string shortHelp() const { return (shortHelp_) ; } 
 
   /*! \brief Add a long help message to a parameter
   
     See printLongHelp() for a description of how messages are broken into
     lines.
   */
-  inline void setLongHelp(const std::string help) { longHelp_ = help ; } ;
+  inline void setLongHelp(const std::string help) { longHelp_ = help ; } 
 
   /*! \brief Retrieve the long help message */
 
-  inline std::string longHelp() const { return (longHelp_) ; } ;
+  inline std::string longHelp() const { return (longHelp_) ; } 
 
   /*! \brief  Print long help
 
@@ -286,19 +286,19 @@ public:
 
   /*! \brief Return the type of the parameter */
 
-  inline CoinParamType type() const { return (type_) ; } ;
+  inline CoinParamType type() const { return (type_) ; } 
 
   /*! \brief Set the type of the parameter */
 
-  inline void setType(CoinParamType type) { type_ = type ; } ;
+  inline void setType(CoinParamType type) { type_ = type ; } 
 
   /*! \brief Return the parameter keyword (name) string */
 
-  inline std::string  name() const { return (name_) ; } ;
+  inline std::string  name() const { return (name_) ; } 
 
   /*! \brief Set the parameter keyword (name) string */
 
-  inline void setName(std::string name) { name_ = name ; processName() ; } ;
+  inline void setName(std::string name) { name_ = name ; processName() ; } 
 
   /*! \brief Check if the specified string matches the parameter keyword (name)
 	     string
@@ -323,27 +323,27 @@ public:
     parameters is processed. Used by CoinParamUtils::printHelp when printing
     help messages for a list of parameters.
   */
-  inline void setDisplay(bool display) { display_ = display ; } ;
+  inline void setDisplay(bool display) { display_ = display ; } 
 
   /*! \brief Get visibility of parameter */
 
-  inline bool display() const { return (display_) ; } ;
+  inline bool display() const { return (display_) ; } 
 
   /*! \brief Get push function */
 
-  inline CoinParamFunc pushFunc() { return (pushFunc_) ; } ;
+  inline CoinParamFunc pushFunc() { return (pushFunc_) ; } 
 
   /*! \brief Set push function */
 
-  inline void setPushFunc(CoinParamFunc func) { pushFunc_ = func ; }  ;
+  inline void setPushFunc(CoinParamFunc func) { pushFunc_ = func ; }  
 
   /*! \brief Get pull function */
 
-  inline CoinParamFunc pullFunc() { return (pullFunc_) ; } ;
+  inline CoinParamFunc pullFunc() { return (pullFunc_) ; } 
 
   /*! \brief Set pull function */
 
-  inline void setPullFunc(CoinParamFunc func) { pullFunc_ = func ; } ;
+  inline void setPullFunc(CoinParamFunc func) { pullFunc_ = func ; } 
 
 //@}
 

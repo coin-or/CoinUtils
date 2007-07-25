@@ -20,7 +20,7 @@ public:
 
   /// Return the method of reading being used
   inline std::string getReadType () const
-  { return readType_.c_str();};
+  { return readType_.c_str();}
 protected:
   std::string readType_;
 private:

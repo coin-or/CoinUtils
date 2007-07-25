@@ -33,7 +33,7 @@ components of the vector integer, single or double precision.
 Here is a sample usage:
 @verbatim
     const int ne = 4;
-    double el[ne] = { 10., 40., 1., 50. };
+    double el[ne] = { 10., 40., 1., 50. }
 
     // Create vector and set its value
     CoinDenseVector<double> r(ne,el);

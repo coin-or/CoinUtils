@@ -137,7 +137,7 @@ class CoinPresolveAction
    than use throw directly in the routine, I use it in a stub routine.
   */
   static void throwCoinError(const char *error, const char *ps_routine)
-  { throw CoinError(error, ps_routine, "CoinPresolve"); } ;
+  { throw CoinError(error, ps_routine, "CoinPresolve"); } 
 
 
   /*! \brief The next presolve transformation
@@ -298,13 +298,13 @@ class CoinPrePostsolveMatrix
     unsigned char & st_byte = rowstat_[sequence];
     st_byte &= ~7;
     st_byte |= status;
-  };
+  }
   /// Get row status
   inline Status getRowStatus(int sequence) const
-  {return static_cast<Status> (rowstat_[sequence]&7);};
+  {return static_cast<Status> (rowstat_[sequence]&7);}
   /// Check if artificial for this row is basic
   inline bool rowIsBasic(int sequence) const
-  {return (static_cast<Status> (rowstat_[sequence]&7)==basic);};
+  {return (static_cast<Status> (rowstat_[sequence]&7)==basic);}
   /// Set column status (<i>i.e.</i>, status of primal variable)
   inline void setColumnStatus(int sequence, Status status)
   {
@@ -344,13 +344,13 @@ class CoinPrePostsolveMatrix
       { assert(false) ;
 	break ; } }
 #   endif
-  };
+  }
   /// Get column (structural variable) status
   inline Status getColumnStatus(int sequence) const
-  {return static_cast<Status> (colstat_[sequence]&7);};
+  {return static_cast<Status> (colstat_[sequence]&7);}
   /// Check if column (structural variable) is basic
   inline bool columnIsBasic(int sequence) const
-  {return (static_cast<Status> (colstat_[sequence]&7)==basic);};
+  {return (static_cast<Status> (colstat_[sequence]&7)==basic);}
   /*! \brief Set status of row (artificial variable) to the correct nonbasic
 	     status given bounds and current value
   */
@@ -419,40 +419,40 @@ class CoinPrePostsolveMatrix
   //@{
   /// Get current number of columns
   inline int getNumCols()
-  { return (ncols_) ; } ;
+  { return (ncols_) ; } 
   /// Get current number of rows
   inline int getNumRows()
-  { return (nrows_) ; } ;
+  { return (nrows_) ; } 
   /// Get current number of non-zero coefficients
   inline int getNumElems()
-  { return (nelems_) ; } ;
+  { return (nelems_) ; } 
   /// Get column start vector for column-major packed matrix
   inline const CoinBigIndex *getColStarts() const
-  { return (mcstrt_) ; } ;
+  { return (mcstrt_) ; } 
   /// Get column length vector for column-major packed matrix
   inline const int *getColLengths() const
-  { return (hincol_) ; } ;
+  { return (hincol_) ; } 
   /// Get vector of row indices for column-major packed matrix
   inline const int *getRowIndicesByCol() const
-  { return (hrow_) ; } ;
+  { return (hrow_) ; } 
   /// Get vector of elements for column-major packed matrix
   inline const double *getElementsByCol() const
-  { return (colels_) ; } ;
+  { return (colels_) ; } 
   /// Get column lower bounds
   inline const double *getColLower() const
-  { return (clo_) ; } ;
+  { return (clo_) ; } 
   /// Get column upper bounds
   inline const double *getColUpper() const
-  { return (cup_) ; } ;
+  { return (cup_) ; } 
   /// Get objective coefficients
   inline const double *getCost() const
-  { return (cost_) ; } ;
+  { return (cost_) ; } 
   /// Get row lower bounds
   inline const double *getRowLower() const
-  { return (rlo_) ; } ;
+  { return (rlo_) ; } 
   /// Get row upper bounds
   inline const double *getRowUpper() const
-  { return (rup_) ; } ;
+  { return (rup_) ; } 
   /// Get column solution (primal variable values)
   inline const double *getColSolution() const
   { return (sol_) ; }
@@ -910,10 +910,10 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   { return (anyInteger_) ; }
   /// Picks up any special options
   inline int presolveOptions() const
-  { return presolveOptions_;};
+  { return presolveOptions_;}
   /// Sets any special options
   inline void setPresolveOptions(int value)
-  { presolveOptions_=value;};
+  { presolveOptions_=value;}
   //@}
 
   /*! \name Matrix storage management links
@@ -1237,7 +1237,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
 
   /// Check if there are any prohibited rows or columns 
   inline bool anyProhibited() const
-  { return anyProhibited_;};
+  { return anyProhibited_;}
   /// Set a flag for presence of prohibited rows or columns
   inline void setAnyProhibited(bool val = true)
   { anyProhibited_ = val ; }

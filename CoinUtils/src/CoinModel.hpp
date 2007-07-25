@@ -64,10 +64,10 @@ public:
                      double columnUpper=COIN_DBL_MAX, double objectiveValue=0.0,
                      const char * name=NULL, bool isInteger=false)
   { addColumn(numberInColumn, rows, elements, columnLower, columnUpper, objectiveValue,
-              name,isInteger);};
+              name,isInteger);}
   /// Sets value for row i and column j 
   inline void operator() (int i,int j,double value) 
-  { setElement(i,j,value);};
+  { setElement(i,j,value);}
   /// Sets value for row i and column j 
   void setElement(int i,int j,double value) ;
   /** Gets sorted row - user must provide enough space 
@@ -86,7 +86,7 @@ public:
   void setQuadraticElement(int i,int j,double value) ;
   /// Sets value for row i and column j as string
   inline void operator() (int i,int j,const char * value) 
-  { setElement(i,j,value);};
+  { setElement(i,j,value);}
   /// Sets value for row i and column j as string
   void setElement(int i,int j,const char * value) ;
   /// Associates a string with a value.  Returns string id (or -1 if does not exist)
@@ -135,52 +135,52 @@ public:
       all columns up to this are defined with default values and no elements)
   */
   inline void setObjective(int whichColumn,double columnObjective) 
-  { setColumnObjective( whichColumn, columnObjective);}; 
+  { setColumnObjective( whichColumn, columnObjective);} 
   /** Sets integer state (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setIsInteger(int whichColumn,bool columnIsInteger) 
-  { setColumnIsInteger( whichColumn, columnIsInteger);}; 
+  { setColumnIsInteger( whichColumn, columnIsInteger);} 
   /** Sets integer (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setInteger(int whichColumn) 
-  { setColumnIsInteger( whichColumn, true);}; 
+  { setColumnIsInteger( whichColumn, true);} 
   /** Sets continuous (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setContinuous(int whichColumn) 
-  { setColumnIsInteger( whichColumn, false);}; 
+  { setColumnIsInteger( whichColumn, false);} 
   /** Sets columnLower (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setColLower(int whichColumn,double columnLower) 
-  { setColumnLower( whichColumn, columnLower);}; 
+  { setColumnLower( whichColumn, columnLower);} 
   /** Sets columnUpper (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setColUpper(int whichColumn,double columnUpper) 
-  { setColumnUpper( whichColumn, columnUpper);}; 
+  { setColumnUpper( whichColumn, columnUpper);} 
   /** Sets columnLower and columnUpper (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setColBounds(int whichColumn,double columnLower,double columnUpper) 
-  { setColumnBounds( whichColumn, columnLower, columnUpper);}; 
+  { setColumnBounds( whichColumn, columnLower, columnUpper);} 
   /** Sets columnObjective (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setColObjective(int whichColumn,double columnObjective) 
-  { setColumnObjective( whichColumn, columnObjective);}; 
+  { setColumnObjective( whichColumn, columnObjective);} 
   /** Sets name (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setColName(int whichColumn,const char * columnName) 
-  { setColumnName( whichColumn, columnName);}; 
+  { setColumnName( whichColumn, columnName);} 
   /** Sets integer (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setColIsInteger(int whichColumn,bool columnIsInteger) 
-  { setColumnIsInteger( whichColumn, columnIsInteger);}; 
+  { setColumnIsInteger( whichColumn, columnIsInteger);} 
   /** Sets rowLower (if row does not exist then
       all rows up to this are defined with default values and no elements)
   */
@@ -209,12 +209,12 @@ public:
       all columns up to this are defined with default values and no elements)
   */
   inline void setObjective(int whichColumn,const char * columnObjective) 
-  { setColumnObjective( whichColumn, columnObjective);}; 
+  { setColumnObjective( whichColumn, columnObjective);} 
   /** Sets integer (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setIsInteger(int whichColumn,const char * columnIsInteger) 
-  { setColumnIsInteger( whichColumn, columnIsInteger);}; 
+  { setColumnIsInteger( whichColumn, columnIsInteger);} 
   /** Deletes all entries in row and bounds.  Will be ignored by
       writeMps etc and will be packed down if asked for. */
   void deleteRow(int whichRow);
@@ -224,7 +224,7 @@ public:
   /** Deletes all entries in column and bounds.  If last column the number of columns
       will be decremented and true returned.  */
   inline void deleteCol(int whichColumn)
-  { deleteColumn(whichColumn);};
+  { deleteColumn(whichColumn);}
   /// Takes element out of matrix - returning position (<0 if not there);
   int deleteElement(int row, int column);
   /// Takes element out of matrix when position known
@@ -238,7 +238,7 @@ public:
   /** Packs down all columns i.e. removes empty columns permanently.  Empty columns
       have no elements and no objective. returns number of columns deleted. */
   inline int packCols()
-  { return packColumns();};
+  { return packColumns();}
   /** Packs down all rows and columns.  i.e. removes empty rows and columns permanently.
       Empty rows have no elements and feasible bounds.
       Empty columns have no elements and no objective.
@@ -285,24 +285,24 @@ public:
    //@{
    /// Return number of rows or maximum found so far
   inline int numberRows() const
-  { return numberRows_;};
+  { return numberRows_;}
    /// Return number of columns or maximum found so far
   inline int numberColumns() const
-  { return numberColumns_;};
+  { return numberColumns_;}
    /// Return number of elements
   inline CoinBigIndex numberElements() const
-  { return numberElements_;};
+  { return numberElements_;}
    /// Return  elements as triples
   inline const CoinModelTriple * elements() const
-  { return elements_;};
+  { return elements_;}
   /// Returns value for row i and column j
   inline double operator() (int i,int j) const
-  { return getElement(i,j);};
+  { return getElement(i,j);}
   /// Returns value for row i and column j
   double getElement(int i,int j) const;
   /// Returns value for row rowName and column columnName
   inline double operator() (const char * rowName,const char * columnName) const
-  { return getElement(rowName,columnName);};
+  { return getElement(rowName,columnName);}
   /// Returns value for row rowName and column columnName
   double getElement(const char * rowName,const char * columnName) const;
   /// Returns quadratic value for columns i and j
@@ -368,15 +368,15 @@ public:
   */
   const char * getRowName(int whichRow) const ; 
   inline double  rowLower(int whichRow) const
-  { return getRowLower(whichRow);};
+  { return getRowLower(whichRow);}
   /** Gets rowUpper (if row does not exist then COIN_DBL_MAX)
   */
   inline double  rowUpper(int whichRow) const
-  { return getRowUpper(whichRow) ;};
+  { return getRowUpper(whichRow) ;}
   /** Gets name (if row does not exist then "")
   */
   inline const char * rowName(int whichRow) const
-  { return getRowName(whichRow);};
+  { return getRowName(whichRow);}
   /** Gets columnLower (if column does not exist then 0.0)
   */
   double  getColumnLower(int whichColumn) const ; 
@@ -395,51 +395,51 @@ public:
   /** Gets columnLower (if column does not exist then 0.0)
   */
   inline double  columnLower(int whichColumn) const
-  { return getColumnLower(whichColumn);};
+  { return getColumnLower(whichColumn);}
   /** Gets columnUpper (if column does not exist then COIN_DBL_MAX)
   */
   inline double  columnUpper(int whichColumn) const
-  { return getColumnUpper(whichColumn) ;};
+  { return getColumnUpper(whichColumn) ;}
   /** Gets columnObjective (if column does not exist then 0.0)
   */
   inline double  columnObjective(int whichColumn) const
-  { return getColumnObjective(whichColumn);};
+  { return getColumnObjective(whichColumn);}
   /** Gets columnObjective (if column does not exist then 0.0)
   */
   inline double  objective(int whichColumn) const
-  { return getColumnObjective(whichColumn);};
+  { return getColumnObjective(whichColumn);}
   /** Gets name (if column does not exist then "")
   */
   inline const char * columnName(int whichColumn) const
-  { return getColumnName(whichColumn);};
+  { return getColumnName(whichColumn);}
   /** Gets if integer (if column does not exist then false)
   */
   inline bool columnIsInteger(int whichColumn) const
-  { return getColumnIsInteger(whichColumn);};
+  { return getColumnIsInteger(whichColumn);}
   /** Gets if integer (if column does not exist then false)
   */
   inline bool isInteger(int whichColumn) const
-  { return getColumnIsInteger(whichColumn);};
+  { return getColumnIsInteger(whichColumn);}
   /** Gets columnLower (if column does not exist then 0.0)
   */
   inline double  getColLower(int whichColumn) const
-  { return getColumnLower(whichColumn);};
+  { return getColumnLower(whichColumn);}
   /** Gets columnUpper (if column does not exist then COIN_DBL_MAX)
   */
   inline double  getColUpper(int whichColumn) const
-  { return getColumnUpper(whichColumn) ;};
+  { return getColumnUpper(whichColumn) ;}
   /** Gets columnObjective (if column does not exist then 0.0)
   */
   inline double  getColObjective(int whichColumn) const
-  { return getColumnObjective(whichColumn);};
+  { return getColumnObjective(whichColumn);}
   /** Gets name (if column does not exist then "")
   */
   inline const char * getColName(int whichColumn) const
-  { return getColumnName(whichColumn);};
+  { return getColumnName(whichColumn);}
   /** Gets if integer (if column does not exist then false)
   */
   inline bool getColIsInteger(int whichColumn) const
-  { return getColumnIsInteger(whichColumn);};
+  { return getColumnIsInteger(whichColumn);}
   /** Gets rowLower (if row does not exist then -COIN_DBL_MAX)
   */
   const char *  getRowLowerAsString(int whichRow) const ; 
@@ -447,11 +447,11 @@ public:
   */
   const char *  getRowUpperAsString(int whichRow) const ; 
   inline const char *  rowLowerAsString(int whichRow) const
-  { return getRowLowerAsString(whichRow);};
+  { return getRowLowerAsString(whichRow);}
   /** Gets rowUpper (if row does not exist then COIN_DBL_MAX)
   */
   inline const char *  rowUpperAsString(int whichRow) const
-  { return getRowUpperAsString(whichRow) ;};
+  { return getRowUpperAsString(whichRow) ;}
   /** Gets columnLower (if column does not exist then 0.0)
   */
   const char *  getColumnLowerAsString(int whichColumn) const ; 
@@ -467,27 +467,27 @@ public:
   /** Gets columnLower (if column does not exist then 0.0)
   */
   inline const char *  columnLowerAsString(int whichColumn) const
-  { return getColumnLowerAsString(whichColumn);};
+  { return getColumnLowerAsString(whichColumn);}
   /** Gets columnUpper (if column does not exist then COIN_DBL_MAX)
   */
   inline const char *  columnUpperAsString(int whichColumn) const
-  { return getColumnUpperAsString(whichColumn) ;};
+  { return getColumnUpperAsString(whichColumn) ;}
   /** Gets columnObjective (if column does not exist then 0.0)
   */
   inline const char *  columnObjectiveAsString(int whichColumn) const
-  { return getColumnObjectiveAsString(whichColumn);};
+  { return getColumnObjectiveAsString(whichColumn);}
   /** Gets columnObjective (if column does not exist then 0.0)
   */
   inline const char *  objectiveAsString(int whichColumn) const
-  { return getColumnObjectiveAsString(whichColumn);};
+  { return getColumnObjectiveAsString(whichColumn);}
   /** Gets if integer (if column does not exist then false)
   */
   inline const char * columnIsIntegerAsString(int whichColumn) const
-  { return getColumnIsIntegerAsString(whichColumn);};
+  { return getColumnIsIntegerAsString(whichColumn);}
   /** Gets if integer (if column does not exist then false)
   */
   inline const char * isIntegerAsString(int whichColumn) const
-  { return getColumnIsIntegerAsString(whichColumn);};
+  { return getColumnIsIntegerAsString(whichColumn);}
   /// Row index from row name (-1 if no names or no match)
   int row(const char * rowName) const;
   /// Column index from column name (-1 if no names or no match)
@@ -496,26 +496,26 @@ public:
       This is the RHS entry for the objective row
   */
   inline double objectiveOffset() const
-  { return objectiveOffset_;};
+  { return objectiveOffset_;}
   /// Set objective offset
   inline void setObjectiveOffset(double value)
-  { objectiveOffset_=value;};
+  { objectiveOffset_=value;}
   /// Get print level 0 - off, 1 - errors, 2 - more
   inline int logLevel() const
-  { return logLevel_;};
+  { return logLevel_;}
   /// Set print level 0 - off, 1 - errors, 2 - more
   void setLogLevel(int value);
   /// Return the problem name
   inline const char * getProblemName() const
-  { return problemName_;};
+  { return problemName_;}
   /// Set problem name
   void setProblemName(const char *name) ;
   /// Returns type
   inline int type() const
-  { return type_;};
+  { return type_;}
   /// returns unset value
   inline double unsetValue() const
-  { return -1.23456787654321e-97;};
+  { return -1.23456787654321e-97;}
   /// Creates a packed matrix - return number of errors
   int createPackedMatrix(CoinPackedMatrix & matrix, const double * associated);
   /** Fills in startPositive and startNegative with counts for +-1 matrix.
@@ -537,46 +537,46 @@ public:
                    double * & associated);
   /// Says if strings exist
   inline bool stringsExist() const
-  { return string_.numberItems()!=0;};
+  { return string_.numberItems()!=0;}
   /// Return string array
   inline const CoinModelHash * stringArray() const
-  { return &string_;};
+  { return &string_;}
   /// Returns associated array
   inline double * associatedArray() const
-  { return associated_;};
+  { return associated_;}
   /// Return rowLower array
   inline double * rowLowerArray() const
-  { return rowLower_;};
+  { return rowLower_;}
   /// Return rowUpper array
   inline double * rowUpperArray() const
-  { return rowUpper_;};
+  { return rowUpper_;}
   /// Return columnLower array
   inline double * columnLowerArray() const
-  { return columnLower_;};
+  { return columnLower_;}
   /// Return columnUpper array
   inline double * columnUpperArray() const
-  { return columnUpper_;};
+  { return columnUpper_;}
   /// Return objective array
   inline double * objectiveArray() const
-  { return objective_;};
+  { return objective_;}
   /// Return integerType array
   inline int * integerTypeArray() const
-  { return integerType_;};
+  { return integerType_;}
   /// Return row names array
   inline const CoinModelHash * rowNames() const
-  { return &rowName_;};
+  { return &rowName_;}
   /// Return column names array
   inline const CoinModelHash * columnNames() const
-  { return &columnName_;};
+  { return &columnName_;}
   /// Returns array of 0 or nonzero if can be a cut (or returns NULL)
   inline const int * cutMarker() const
-  { return cut_;};
+  { return cut_;}
   /// Return pointer to more information
   inline void * moreInfo() const
-  { return moreInfo_;};
+  { return moreInfo_;}
   /// Set pointer to more information
   inline void setMoreInfo(void * info)
-  { moreInfo_ = info;};
+  { moreInfo_ = info;}
    //@}
 
   /**@name Constructors, destructor */
@@ -664,7 +664,7 @@ public:
   void setPriorities(int size,const int * priorities);
   /// priorities (given for all columns (-1 if not integer)
   inline const int * priorities() const
-  { return priority_;};
+  { return priority_;}
   
 private:
   /** Read a problem from AMPL nl file

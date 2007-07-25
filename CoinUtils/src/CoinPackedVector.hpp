@@ -21,8 +21,8 @@ Supports sorting of vector while maintaining the original indices.
 Here is a sample usage:
 @verbatim
     const int ne = 4;
-    int inx[ne] =   {  1,   4,  0,   2 };
-    double el[ne] = { 10., 40., 1., 50. };
+    int inx[ne] =   {  1,   4,  0,   2 }
+    double el[ne] = { 10., 40., 1., 50. }
 
     // Create vector and set its value
     CoinPackedVector r(ne,inx,el);

@@ -238,7 +238,7 @@ public:
   
   /// Set objective offset
   inline void setObjectiveOffset(double value)
-  { objectiveOffset_ = value;};
+  { objectiveOffset_ = value;}
   
   /// Return true if a column is an integer (binary or general 
   /// integer) variable

@@ -94,65 +94,65 @@ public:
   /// Returns current section type
   inline COINSectionType whichSection (  ) const {
     return section_;
-  };
+  }
   /// Sets current section type
   inline void setWhichSection(COINSectionType section  ) {
     section_=section;
-  };
+  }
   /// Sees if free format. 
   inline bool freeFormat() const
-  { return freeFormat_;};
+  { return freeFormat_;}
   /// Sets whether free format.  Mainly for blank RHS etc
   inline void setFreeFormat(bool yesNo) 
-  { freeFormat_=yesNo;};
+  { freeFormat_=yesNo;}
   /// Only for first field on card otherwise BLANK_COLUMN
   /// e.g. COIN_E_ROW
   inline COINMpsType mpsType (  ) const {
     return mpsType_;
-  };
+  }
   /// Reads and cleans card - taking out trailing blanks - return 1 if EOF
   int cleanCard();
   /// Returns row name of current field
   inline const char *rowName (  ) const {
     return rowName_;
-  };
+  }
   /// Returns column name of current field
   inline const char *columnName (  ) const {
     return columnName_;
-  };
+  }
   /// Returns value in current field
   inline double value (  ) const {
     return value_;
-  };
+  }
   /// Returns value as string in current field
   inline const char *valueString (  ) const {
     return valueString_;
-  };
+  }
   /// Whole card (for printing)
   inline const char *card (  ) const {
     return card_;
-  };
+  }
   /// Whole card - so we look at it (not const so nextBlankOr will work for gms reader)
   inline char *mutableCard (  ) {
     return card_;
-  };
+  }
   /// set position (again so gms reader will work)
   inline void setPosition(char * position)
-  { position_=position;};
+  { position_=position;}
   /// get position (again so gms reader will work)
   inline char * getPosition() const
-  { return position_;};
+  { return position_;}
   /// Returns card number
   inline CoinBigIndex cardNumber (  ) const {
     return cardNumber_;
-  };
+  }
   /// Returns file input
   inline CoinFileInput * fileInput (  ) const {
     return input_;
-  };
+  }
   /// Sets whether strings allowed
   inline void setStringsAllowed()
-  { stringsAllowed_=true;};
+  { stringsAllowed_=true;}
   //@}
 
 ////////////////// data //////////////////
@@ -244,16 +244,16 @@ public:
   //@{
   /// Returns number of entries
   inline int numberEntries (  ) const 
-  { return numberEntries_;  };
+  { return numberEntries_;  }
   /// Returns type of set - 1 =SOS1, 2 =SOS2
   inline int setType (  ) const 
-  { return setType_;  };
+  { return setType_;  }
   /// Returns list of variables
   inline const int * which (  ) const 
-  { return which_;  };
+  { return which_;  }
   /// Returns weights
   inline const double * weights (  ) const 
-  { return weights_;  };
+  { return weights_;  }
   //@}
 
 #ifdef USE_SBB
@@ -261,7 +261,7 @@ public:
   //@{
   /// returns an object of type SbbObject
   virtual SbbObject * sbbObject(SbbModel * model) const 
-  { return NULL;};
+  { return NULL;}
   //@}
 #endif
 
@@ -461,7 +461,7 @@ public:
     double objectiveOffset() const;
     /// Set objective offset
     inline void setObjectiveOffset(double value)
-    { objectiveOffset_=value;};
+    { objectiveOffset_=value;}
 
     /// Return the problem name
     const char * getProblemName() const;
@@ -479,10 +479,10 @@ public:
     const char * getBoundName() const;
     /// Number of string elements
     inline int numberStringElements() const
-    { return numberStringElements_;};
+    { return numberStringElements_;}
     /// String element
     inline const char * stringElement(int i) const
-    { return stringElements_[i];};
+    { return stringElements_[i];}
 //@}
 
 
@@ -551,10 +551,10 @@ public:
     int getDefaultBound() const;
     /// Whether to allow string elements
     inline int allowStringElements() const
-    { return allowStringElements_;};
+    { return allowStringElements_;}
     /// Whether to allow string elements (0 no, 1 yes, 2 yes and try flip)
     inline void setAllowStringElements(int yesNo)
-    { allowStringElements_ = yesNo;};
+    { allowStringElements_ = yesNo;}
 //@}
 
 
@@ -683,7 +683,7 @@ public:
 
     /// Return card reader object so can see what last card was e.g. QUADOBJ
     inline const CoinMpsCardReader * reader() const
-    { return cardReader_;};
+    { return cardReader_;}
   
     /** Read in a quadratic objective from the given filename.
 
@@ -737,7 +737,7 @@ public:
 		     int * &columnStart, int * &column, int & numberCones);
     /// Set whether to move objective from matrix
     inline void setConvertObjective(bool trueFalse)
-    { convertObjective_=trueFalse;};
+    { convertObjective_=trueFalse;}
   /// copies in strings from a CoinModel - returns number
   int copyStringElements(const CoinModel * model);
   //@}
@@ -771,15 +771,15 @@ public:
   void newLanguage(CoinMessages::Language language);
 
   /// Set the language for messages.
-  void setLanguage(CoinMessages::Language language) {newLanguage(language);};
+  void setLanguage(CoinMessages::Language language) {newLanguage(language);}
 
   /// Return the message handler
-  CoinMessageHandler * messageHandler() const {return handler_;};
+  CoinMessageHandler * messageHandler() const {return handler_;}
 
   /// Return the messages
-  CoinMessages messages() {return messages_;};
+  CoinMessages messages() {return messages_;}
   /// Return the messages pointer
-  CoinMessages * messagesPointer() {return & messages_;};
+  CoinMessages * messagesPointer() {return & messages_;}
 //@}
 
 

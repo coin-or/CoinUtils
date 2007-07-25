@@ -39,7 +39,7 @@ private:
 			  action *actions,
 			  const CoinPresolveAction *next) :
     CoinPresolveAction(next),
-    nactions_(nactions), actions_(actions) {};
+    nactions_(nactions), actions_(actions) {}
 
  public:
   const char *name() const;

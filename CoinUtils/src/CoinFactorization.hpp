@@ -128,117 +128,117 @@ public:
   /// Returns status
   inline int status (  ) const {
     return status_;
-  };
+  }
   /// Returns number of pivots since factorization
   inline int pivots (  ) const {
     return numberPivots_;
-  };
+  }
   /// Returns address of permute region
   inline int *permute (  ) const {
     return permute_.array();
-  };
+  }
   /// Returns address of pivotColumn region (also used for permuting)
   inline int *pivotColumn (  ) const {
     return pivotColumn_.array();
-  };
+  }
   /// Returns address of permuteBack region
   inline int *permuteBack (  ) const {
     return permuteBack_.array();
-  };
+  }
   /// Returns address of pivotColumnBack region (also used for permuting)
   inline int *pivotColumnBack (  ) const {
     return pivotColumnBack_.array();
-  };
+  }
   /// Number of Rows after iterating
   inline int numberRowsExtra (  ) const {
     return numberRowsExtra_;
-  };
+  }
   /// Number of Rows after factorization
   inline int numberRows (  ) const {
     return numberRows_;
-  };
+  }
   /// Maximum of Rows after iterating
   inline int maximumRowsExtra (  ) const {
     return maximumRowsExtra_;
-  };
+  }
   /// Total number of columns in factorization
   inline int numberColumns (  ) const {
     return numberColumns_;
-  };
+  }
   /// Total number of elements in factorization
   inline int numberElements (  ) const {
     return totalElements_;
-  };
+  }
   /// Length of FT vector
   inline int numberForrestTomlin (  ) const {
     return numberInColumn_.array()[numberColumnsExtra_];
-  };
+  }
   /// Number of good columns in factorization
   inline int numberGoodColumns (  ) const {
     return numberGoodU_;
-  };
+  }
   /// Whether larger areas needed
   inline double areaFactor (  ) const {
     return areaFactor_;
-  };
+  }
   inline void areaFactor ( double value ) {
     areaFactor_=value;
-  };
+  }
   /// Returns areaFactor but adjusted for dense
   double adjustedAreaFactor() const;
   /// Allows change of pivot accuracy check 1.0 == none >1.0 relaxed
   inline void relaxAccuracyCheck(double value)
-  { relaxCheck_ = value;};
+  { relaxCheck_ = value;}
   inline double getAccuracyCheck() const
-  { return relaxCheck_;};
+  { return relaxCheck_;}
   /// Whether rows increase after pivoting - dummy
   inline bool increasingRows (  ) const 
-  { return true; };
+  { return true; }
   /** 0 - no increasing rows - no nothing (not coded)
       1 - no permutation (i.e. basis order in is pivot order), 
       2 user wants slacks pivoting on own rows,
       3 user needs to know everything as row are really increasing 
       - OUT so dummy */
-  inline void increasingRows ( int value  ) {};
+  inline void increasingRows ( int value  ) {}
   /// Level of detail of messages
   inline int messageLevel (  ) const {
     return messageLevel_ ;
-  };
+  }
   void messageLevel (  int value );
   /// Maximum number of pivots between factorizations
   inline int maximumPivots (  ) const {
     return maximumPivots_ ;
-  };
+  }
   void maximumPivots (  int value );
 
   /// Gets dense threshold
   inline int denseThreshold() const 
-    { return denseThreshold_;};
+    { return denseThreshold_;}
   /// Sets dense threshold
   inline void setDenseThreshold(int value)
-    { denseThreshold_ = value;};
+    { denseThreshold_ = value;}
   /// Pivot tolerance
   inline double pivotTolerance (  ) const {
     return pivotTolerance_ ;
-  };
+  }
   void pivotTolerance (  double value );
   /// Zero tolerance
   inline double zeroTolerance (  ) const {
     return zeroTolerance_ ;
-  };
+  }
   void zeroTolerance (  double value );
   /// Whether slack value is +1 or -1
   inline double slackValue (  ) const {
     return slackValue_ ;
-  };
+  }
   void slackValue (  double value );
   /// Returns maximum absolute value in factorization
   double maximumCoefficient() const;
   /// true if Forrest Tomlin update, false if PFI 
   inline bool forrestTomlin() const
-  { return doForrestTomlin_;};
+  { return doForrestTomlin_;}
   inline void setForrestTomlin(bool value)
-  { doForrestTomlin_=value;};
+  { doForrestTomlin_=value;}
   //@}
 
   /**@name some simple stuff */
@@ -246,45 +246,45 @@ public:
 
   /// Returns number of dense rows
   inline int numberDense() const
-  { return numberDense_;};
+  { return numberDense_;}
 
   /// Returns number in U area
   inline CoinBigIndex numberElementsU (  ) const {
     return lengthU_;
-  };
+  }
   /// Returns length of U area
   inline CoinBigIndex lengthAreaU (  ) const {
     return lengthAreaU_;
-  };
+  }
   /// Returns number in L area
   inline CoinBigIndex numberElementsL (  ) const {
     return lengthL_;
-  };
+  }
   /// Returns length of L area
   inline CoinBigIndex lengthAreaL (  ) const {
     return lengthAreaL_;
-  };
+  }
   /// Returns number in R area
   inline CoinBigIndex numberElementsR (  ) const {
     return lengthR_;
-  };
+  }
   /// Number of compressions done
   inline CoinBigIndex numberCompressions() const
-  { return numberCompressions_;};
+  { return numberCompressions_;}
   /** L to U bias
       0 - U bias, 1 - some U bias, 2 some L bias, 3 L bias
   */
   inline int biasLU() const
-  { return biasLU_;};
+  { return biasLU_;}
   inline void setBiasLU(int value)
-  { biasLU_=value;};
+  { biasLU_=value;}
   /** Array persistence flag
       If 0 then as now (delete/new)
       1 then only do arrays if bigger needed
       2 as 1 but give a bit extra if bigger needed
   */
   inline int persistenceFlag() const
-  { return persistenceFlag_;};
+  { return persistenceFlag_;}
   void setPersistenceFlag(int value);
   //@}
 
@@ -340,7 +340,7 @@ public:
   //@{
   /// Get rid of all memory
   inline void clearArrays()
-  { gutsOfDestructor();};
+  { gutsOfDestructor();}
   //@}
 
   /**@name various updates - none of which have been written! */
@@ -453,7 +453,7 @@ protected:
       firstCount[count] = index;
       nextCount[index] = next;
       lastCount[next] = index;
-  }};
+  }}
   /// Deletes a link in chain of equal counts
   inline void deleteLink ( int index ) {
     int *nextCount = nextCount_.array();
@@ -474,7 +474,7 @@ protected:
     nextCount[index] = -2;
     lastCount[index] = -2;
     return;
-  };
+  }
   /// Separate out links with same row/column count
   void separateLinks(int count,bool rowsFirst);
   /// Cleans up at end of factorization

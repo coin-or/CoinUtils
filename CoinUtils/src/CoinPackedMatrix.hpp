@@ -587,13 +587,13 @@ public:
     /** The lengths of the major-dimension vectors. */
     inline int * getMutableVectorLengths() const { return length_; }
     /// NULLify element array - used when space is very tight
-    inline void nullElementArray() {element_=NULL;};
+    inline void nullElementArray() {element_=NULL;}
     /// NULLify start array - used when space is very tight
-    inline void nullStartArray() {start_=NULL;};
+    inline void nullStartArray() {start_=NULL;}
     /// NULLify length array - used when space is very tight
-    inline void nullLengthArray() {length_=NULL;};
+    inline void nullLengthArray() {length_=NULL;}
     /// NULLify index array - used when space is very tight
-    inline void nullIndexArray() {index_=NULL;};
+    inline void nullIndexArray() {index_=NULL;}
    //@}
 
    //--------------------------------------------------------------------------

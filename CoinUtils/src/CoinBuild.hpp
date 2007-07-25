@@ -39,16 +39,16 @@ public:
                   const double * elements, 
                   double columnLower=0.0, 
                   double columnUpper=COIN_DBL_MAX, double objectiveValue=0.0)
-  { addColumn(numberInColumn, rows, elements, columnLower, columnUpper, objectiveValue);};
+  { addColumn(numberInColumn, rows, elements, columnLower, columnUpper, objectiveValue);}
    /// Return number of rows or maximum found so far
   inline int numberRows() const
-  { return (type_==0) ? numberItems_ : numberOther_;};
+  { return (type_==0) ? numberItems_ : numberOther_;}
    /// Return number of columns or maximum found so far
   inline int numberColumns() const
-  { return (type_==1) ? numberItems_ : numberOther_;};
+  { return (type_==1) ? numberItems_ : numberOther_;}
    /// Return number of elements
   inline CoinBigIndex numberElements() const
-  { return numberElements_;};
+  { return numberElements_;}
   /**  Returns number of elements in a row and information in row
    */
   int row(int whichRow, double & rowLower, double & rowUpper,
@@ -78,7 +78,7 @@ public:
   int currentColumn() const;
   /// Returns type
   inline int type() const
-  { return type_;};
+  { return type_;}
    //@}
 
 
