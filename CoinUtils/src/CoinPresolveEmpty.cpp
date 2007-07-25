@@ -382,8 +382,8 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
 
 	nactions++;
 	if (rlo[i] > 0.0 || rup[i] < 0.0) {
-	  if (rlo[i]<=prob->feasibilityTolerance_ &&
-	      rup[i]>=-prob->feasibilityTolerance_||fixInfeasibility) {
+	  if ((rlo[i]<=prob->feasibilityTolerance_ &&
+	       rup[i]>=-prob->feasibilityTolerance_)||fixInfeasibility) {
 	    rlo[i]=0.0;
 	    rup[i]=0.0;
 	  } else {

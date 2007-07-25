@@ -535,8 +535,8 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
         rup[iRow]=newUpper;
         if (rowstat&&sol) {
           // update solution and basis
-          if (sol[iCol] < cup[iCol]-ztolzb&&
-              sol[iCol] > clo[iCol]+ztolzb||prob->columnIsBasic(iCol))
+          if ((sol[iCol] < cup[iCol]-ztolzb&&
+	       sol[iCol] > clo[iCol]+ztolzb)||prob->columnIsBasic(iCol))
             prob->setRowStatus(iRow,CoinPrePostsolveMatrix::basic);
           prob->setColumnStatusUsingValue(CoinPrePostsolveMatrix::atLowerBound);
         }
