@@ -563,7 +563,7 @@ public:
 
   */
 #define COIN_NUM_LOG 4
-private:
+protected:
   /**@name Private member data */
   //@{
   /// values in message
