@@ -27923,10 +27923,7 @@ if test x"$use_thirdpartyglpk" = xtry ; then
 # another to indicate a link check is a bad idea (hard to do before the library
 # exists).
 
-  if test x"$use_thirdpartyglpk" == xbuild ; then
-    GMPLLIB=`cd $coin_glpkobjdir; pwd`/libcoinglpk.la
-
-    ADDLIBS="$GMPLLIB $ADDLIBS"
+  if test x"$use_thirdpartyglpk" = xbuild ; then
     GMPLINCDIR="$coin_glpksrcdir/glpk/include"
 
 
@@ -27965,6 +27962,9 @@ fi
 
 
 
+if test x"$use_thirdpartyglpk" = xbuild; then
+  COINUTILS_LIBADD="../../ThirdParty/Glpk/libcoinglpk.la $COINUTILS_LIBADD"
+fi
 
 #############################################################################
 #                       Other third party software                          #

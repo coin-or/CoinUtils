@@ -384,6 +384,9 @@ AC_COIN_HAS_PROJECT(CoinUtils)
 # For Gnu Mathprog (GMPL), supplied by glpk.
 
 AC_COIN_HAS_GLPK(Gmpl)
+if test x"$use_thirdpartyglpk" = xbuild; then
+  COINUTILS_LIBADD="../../ThirdParty/Glpk/libcoinglpk.la $COINUTILS_LIBADD"
+fi
 
 #############################################################################
 #                       Other third party software                          #
