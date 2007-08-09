@@ -611,9 +611,9 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   startColumnL_.allocate(other.startColumnL_,(other.numberRows_ + 1)*sizeof(CoinBigIndex) );
   int extraSpace;
   if (other.numberInColumnPlus_.array()) {
-    extraSpace = maximumPivots_ + 1 + maximumColumnsExtra_ + 1;
+    extraSpace = other.maximumPivots_ + 1 + other.maximumColumnsExtra_ + 1;
   } else {
-    extraSpace = maximumPivots_ + 1 ;
+    extraSpace = other.maximumPivots_ + 1 ;
   }
   startColumnR_.allocate(other.startColumnR_,extraSpace*sizeof(CoinBigIndex));
   startRowU_.allocate(other.startRowU_,(other.maximumRowsExtra_ + 1)*sizeof(CoinBigIndex));
