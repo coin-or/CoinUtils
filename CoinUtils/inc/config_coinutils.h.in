@@ -18,7 +18,7 @@
 /* Define to 1 if the CoinUtils package is used */
 #undef COIN_HAS_COINUTILS
 
-/* Define to 1 if the Gmpl package is used */
+/* Define to 1 if the Gmpl package is available */
 #undef COIN_HAS_GMPL
 
 /* If defined, the LAPACK Library is available. */
