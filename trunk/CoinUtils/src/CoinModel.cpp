@@ -167,7 +167,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
       const char * name = m.rowName(iRow);
       setRowName(iRow,name);
     }
-    bool ifStrings = m.numberStringElements();
+    bool ifStrings = ( m.numberStringElements() != 0 );
     int nChanged=0;
     int iColumn;
     for (iColumn=0;iColumn<numberColumns_;iColumn++) {
@@ -1407,7 +1407,7 @@ CoinModel::packRows()
       newRow[iRow]++;
     }
   }
-  bool doRowNames = rowName_.numberItems();
+  bool doRowNames = ( rowName_.numberItems() != 0 );
   for (iRow=0;iRow<numberRows_;iRow++) {
     if (newRow[iRow]) {
       rowLower_[n]=rowLower_[iRow];
@@ -1513,7 +1513,7 @@ CoinModel::packColumns()
       newColumn[iColumn]++;
     }
   }
-  bool doColumnNames = columnName_.numberItems();
+  bool doColumnNames = ( columnName_.numberItems() != 0 );
   for (iColumn=0;iColumn<numberColumns_;iColumn++) {
     if (newColumn[iColumn]) {
       columnLower_[n]=columnLower_[iColumn];
