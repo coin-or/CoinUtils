@@ -758,17 +758,25 @@ static     void
        char const *fname;
        double (*fnct) (double);
      };
-     
+
+     inline double sin_wrapper (double x) { return sin(x) ; }
+     inline double cos_wrapper (double x) { return cos(x) ; }
+     inline double atan_wrapper (double x) { return atan(x) ; }
+     inline double log_wrapper (double x) { return log(x) ; }
+     inline double exp_wrapper (double x) { return exp(x) ; }
+     inline double sqrt_wrapper (double x) { return sqrt(x) ; }
+     inline double fabs_wrapper (double x) { return fabs(x) ; }
+
      struct init const arith_fncts[] =
      {
-       {"sin",  sin},
-       {"cos",  cos},
-       {"atan", atan},
-       {"ln",   log},
-       {"exp",  exp},
-       {"sqrt", sqrt},
-       {"fabs", fabs},
-       {"abs", fabs},
+       {"sin",  sin_wrapper},
+       {"cos",  cos_wrapper},
+       {"atan", atan_wrapper},
+       {"ln",   log_wrapper},
+       {"exp",  exp_wrapper},
+       {"sqrt", sqrt_wrapper},
+       {"fabs", fabs_wrapper},
+       {"abs", fabs_wrapper},
        {NULL, 0}
      };
      
