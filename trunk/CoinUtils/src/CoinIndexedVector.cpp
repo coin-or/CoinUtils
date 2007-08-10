@@ -542,7 +542,7 @@ CoinIndexedVector::reserve(int n)
     double * temp = new double [n+7];
     offset_ = 0;
     CoinInt64 xx = reinterpret_cast<CoinInt64>(temp);
-    CoinInt64 iBottom = xx & 63;
+    int iBottom = static_cast<int>(xx & 63);
     if (iBottom)
       offset_ = (64-iBottom)>>3;
     elements_ = temp + offset_;;
