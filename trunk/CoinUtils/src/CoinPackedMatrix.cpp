@@ -746,7 +746,8 @@ CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
    }
 #else
    for (i = 0; i < numMajor; ++i) {
-      appendMajorVector(matrix.getVector(sortedInd[i]));
+      const CoinShallowPackedVector reqdBySunCC = matrix.getVector(sortedInd[i]) ;
+      appendMajorVector(reqdBySunCC);
    }
 #endif
 
@@ -793,7 +794,8 @@ CoinPackedMatrix::submatrixOfWithDuplicates(const CoinPackedMatrix& matrix,
    }
 #else
    for (i = 0; i < numMajor; ++i) {
-      appendMajorVector(matrix.getVector(indMajor[i]));
+      const CoinShallowPackedVector reqdBySunCC = matrix.getVector(indMajor[i]) ;
+      appendMajorVector(reqdBySunCC);
    }
 #endif
 
