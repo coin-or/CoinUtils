@@ -55,11 +55,7 @@ static inline double CoinCpuTimeJustChildren()
 {
   double cpu_temp;
 #if defined(_MSC_VER) || defined(__MSVCRT__)
-  unsigned int ticksnow;        /* clock_t is same as int */
-  
-  ticksnow = (unsigned int)clock();
-  
-  cpu_temp = (double)((double)ticksnow/CLOCKS_PER_SEC);
+  cpu_temp = 0.0;
 #else
   struct rusage usage;
 # ifdef ZEROFAULT
