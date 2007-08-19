@@ -40,8 +40,6 @@ trunk/CoinUtils/coinutils_addlibs.txt.in -text
 trunk/CoinUtils/configure -text
 trunk/CoinUtils/configure.ac -text
 trunk/CoinUtils/inc/config_coinutils.h.in -text
-trunk/CoinUtils/src/CoinRead.cpp -text
-trunk/CoinUtils/src/CoinRead.hpp -text
 trunk/CoinUtils/src/CoinSearchTree.cpp -text
 trunk/CoinUtils/src/CoinSearchTree.hpp -text
 trunk/CoinUtils/src/CoinSmartPtr.hpp -text

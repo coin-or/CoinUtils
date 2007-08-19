@@ -72,7 +72,6 @@ libCoinUtils_la_SOURCES = \
 	CoinPresolveTripleton.cpp CoinPresolveTripleton.hpp \
 	CoinPresolveUseless.cpp CoinPresolveUseless.hpp \
 	CoinPresolveZeros.cpp CoinPresolveZeros.hpp \
-	CoinRead.cpp \
 	CoinSearchTree.cpp CoinSearchTree.hpp \
 	CoinShallowPackedVector.cpp CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
