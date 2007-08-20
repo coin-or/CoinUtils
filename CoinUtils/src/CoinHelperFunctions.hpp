@@ -30,9 +30,8 @@ CoinCopyN(register const T* from, const int size, register T* to)
 	throw CoinError("trying to copy negative number of entries",
 			"CoinCopyN", "");
 
-    const long dist = to - from;
     register int n = (size + 7) / 8;
-    if (dist > 0) {
+    if (to > from) {
 	register const T* downfrom = from + size;
 	register T* downto = to + size;
 	// Use Duff's device to copy
@@ -97,9 +96,14 @@ CoinDisjointCopyN(register const T* from, const int size, register T* to)
 	throw CoinError("trying to copy negative number of entries",
 			"CoinDisjointCopyN", "");
 
+#if 0
+    /* There is no point to do this test. If to and from are from different
+       blocks then dist is undefined, so this can crash correct code. It's
+       better to trust the user that the arrays are really disjoint. */
     const long dist = to - from;
     if (-size < dist && dist < size)
 	throw CoinError("overlapping arrays", "CoinDisjointCopyN", "");
+#endif
 
     for (register int n = size / 8; n > 0; --n, from += 8, to += 8) {
 	to[0] = from[0];
@@ -214,9 +218,14 @@ CoinMemcpyN(register const T* from, const int size, register T* to)
 	throw CoinError("trying to copy negative number of entries",
 			"CoinMemcpyN", "");
   
+#if 0
+    /* There is no point to do this test. If to and from are from different
+       blocks then dist is undefined, so this can crash correct code. It's
+       better to trust the user that the arrays are really disjoint. */
     const long dist = to - from;
     if (-size < dist && dist < size)
 	throw CoinError("overlapping arrays", "CoinMemcpyN", "");
+#endif
 #endif
     memcpy(to,from,size*sizeof(T));
 #else
@@ -227,9 +236,14 @@ CoinMemcpyN(register const T* from, const int size, register T* to)
 	throw CoinError("trying to copy negative number of entries",
 			"CoinMemcpyN", "");
 
+#if 0
+    /* There is no point to do this test. If to and from are from different
+       blocks then dist is undefined, so this can crash correct code. It's
+       better to trust the user that the arrays are really disjoint. */
     const long dist = to - from;
     if (-size < dist && dist < size)
 	throw CoinError("overlapping arrays", "CoinMemcpyN", "");
+#endif
 
     for (register int n = size / 8; n > 0; --n, from += 8, to += 8) {
 	to[0] = from[0];
