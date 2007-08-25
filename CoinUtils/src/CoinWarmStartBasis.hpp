@@ -47,7 +47,7 @@ public:
     The status vectors are currently packed using two bits per status code,
     four codes per byte. The location of the status information for
     variable \c i is in byte <code>i>>2</code> and occupies bits 0:1
-    if <code>i%4 == 0</code>, bits 2:3 if <code>i%4 == 1</code>, etc.
+    if <code>i\%4 == 0</code>, bits 2:3 if <code>i\%4 == 1</code>, etc.
     The non-member functions getStatus(const char*,int) and
     setStatus(char*,int,CoinWarmStartBasis::Status) are provided to hide
     details of the packing.
