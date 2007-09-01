@@ -571,6 +571,13 @@ public:
   /// Returns array of 0 or nonzero if can be a cut (or returns NULL)
   inline const int * cutMarker() const
   { return cut_;}
+  /// Direction of optimization (1 - minimize, -1 - maximize, 0 - ignore
+  inline double optimizationDirection() const {
+    return  optimizationDirection_;
+  }
+  /// Set direction of optimization (1 - minimize, -1 - maximize, 0 - ignore
+  inline void setOptimizationDirection(double value)
+  { optimizationDirection_=value;}
   /// Return pointer to more information
   inline void * moreInfo() const
   { return moreInfo_;}
