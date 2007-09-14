@@ -99,11 +99,11 @@ const CoinPresolveAction *isolated_constraint_action::presolve(CoinPresolveMatri
     costs[k-krs] = dcost[hcol[k]];
     dcost[hcol[k]] = 0.0;
   }
-  
+
   next = new isolated_constraint_action(rlo[irow], rup[irow],
 					irow, nc,
-					CoinCopyOfArray(&hcol[krs], nc*sizeof(int)),
-					CoinCopyOfArray(&rowels[krs], nc*sizeof(double)),
+					CoinCopyOfArray(&hcol[krs], nc),
+					CoinCopyOfArray(&rowels[krs], nc),
 					costs,
 					next);
 
