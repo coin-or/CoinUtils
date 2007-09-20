@@ -927,10 +927,38 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	  } else if (clo[j] <= ilow && iup <= cup[j]) {
 	    
 	    // both column bounds implied by the constraints of the problem
-	    implied_free[j] = row;
-	    infiniteUp[row]=-3;
-	    //printf("column %d implied free by row %d hincol %d hinrow %d\n",
-	    //   j,row,hincol[j],hinrow[row]);
+	    bool goodRow=true;
+	    if (integerType[j]) {
+	      // can only accept if good looking row
+	      double scaleFactor = 1.0/coeffj;
+	      double rhs = rlo[row]*scaleFactor;
+	      if (fabs(rhs-floor(rhs+0.5))<tol) {
+		CoinBigIndex krs = mrstrt[row];
+		CoinBigIndex kre = krs + hinrow[row];
+		CoinBigIndex kk;
+		bool allOnes=true;
+		for (kk = krs; kk < kre; ++kk) {
+		  double value=rowels[kk]*scaleFactor;
+		  if (fabs(value)!=1.0)
+		    allOnes=false;
+		  int iColumn = hcol[kk];
+		  if (!integerType[iColumn]||fabs(value-floor(value+0.5))>tol) {
+		    goodRow=false;
+		    break;
+		  }
+		}
+		if (rlo[row]==1.0&&hinrow[row]>=5&&stopSomeStuff&&allOnes)
+		  goodRow=false; // may spoil SOS 
+	      } else {
+		goodRow=false;
+	      }
+	    }
+	    if (goodRow) {
+	      implied_free[j] = row;
+	      infiniteUp[row]=-3;
+	      //printf("column %d implied free by row %d hincol %d hinrow %d\n",
+	      //   j,row,hincol[j],hinrow[row]);
+	    }
 	  }
 	}
       }
