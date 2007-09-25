@@ -1622,8 +1622,8 @@ CoinLpIO::readLp(FILE* fp)
 	    mult = 1;
 	    start_str = buff;
 
-	    if(buff[0] == '-') {
-	      mult = -1;
+	    if(buff[0] == '-'||buff[0] == '+') {
+	      mult = (buff[0] == '-') ? -1 : +1;
 	      if(strlen(buff) == 1) {
 		scan_next(buff, fp);
 		start_str = buff;
@@ -1637,8 +1637,14 @@ CoinLpIO::readLp(FILE* fp)
 	      scan_next(buff, fp);
 	    }
 	    else {
-	      printf("### ERROR: CoinLpIO::readLp(): lost in Bounds section; expect a number, get: %s\n", buff);
-	      exit(1);
+	      if (strncmp(start_str,"inf",3)&&strncmp(start_str,"Inf",3)) {
+		printf("### ERROR: CoinLpIO::readLp(): lost in Bounds section; expect a number, get: %s\n", buff);
+		exit(1);
+	      } else {
+		// infinity
+		bnd2 = DBL_MAX;
+		scan_next(buff, fp);
+	      }
 	    }
 	  }
 
