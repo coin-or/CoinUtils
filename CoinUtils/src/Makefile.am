@@ -76,6 +76,7 @@ libCoinUtils_la_SOURCES = \
 	CoinShallowPackedVector.cpp CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
 	CoinSmartPtr.hpp \
+	CoinSnapshot.cpp CoinSnapshot.hpp \
 	CoinSort.hpp \
 	CoinTime.hpp \
 	CoinTypes.hpp \
@@ -155,6 +156,7 @@ include_HEADERS = \
 	CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
 	CoinSmartPtr.hpp \
+	CoinSnapshot.hpp \
 	CoinSort.hpp \
 	CoinTime.hpp \
 	CoinTypes.hpp \
