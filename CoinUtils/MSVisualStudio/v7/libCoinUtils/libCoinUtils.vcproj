@@ -503,6 +503,12 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinParam.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinParamUtils.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinPostsolveMatrix.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -1005,6 +1011,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinPackedVectorBase.hpp">
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinParam.hpp">
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinPragma.hpp">
