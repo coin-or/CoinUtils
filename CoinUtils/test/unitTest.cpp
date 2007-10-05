@@ -61,7 +61,7 @@ int main (int argc, const char *argv[])
   for ( i=1; i<argc; i++ ) {
     std::string parm(argv[i]);
     std::string key,value;
-    size_t eqPos = parm.find('=');
+    std::string::size_type eqPos = parm.find('=');
 
     // Does parm contain and '='
     if ( eqPos==std::string::npos ) {
