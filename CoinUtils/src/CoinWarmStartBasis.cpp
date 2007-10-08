@@ -9,6 +9,7 @@
 #include <cassert>
 
 #include "CoinWarmStartBasis.hpp"
+#include "CoinHelperFunctions.hpp"
 #include <cmath>
 #include <iostream>
 
@@ -17,20 +18,16 @@
 void 
 CoinWarmStartBasis::setSize(int ns, int na) {
   delete[] structuralStatus_;
-  delete[] artificialStatus_;
   // Round all so arrays multiple of 4
-  int nint = (ns+15) >> 4;
-  if (nint) {
-    structuralStatus_ = new char[4*nint];
-    memset (structuralStatus_, 0, (4*nint) * sizeof(char));
+  int nintS = (ns+15) >> 4;
+  int nintA = (na+15) >> 4;
+  if (nintS+nintA) {
+    structuralStatus_ = new char[4*(nintS+nintA)];
+    memset (structuralStatus_, 0, (4*nintS) * sizeof(char));
+    artificialStatus_ = structuralStatus_+4*nintS;
+    memset (artificialStatus_, 0, (4*nintA) * sizeof(char));
   } else {
     structuralStatus_ = NULL;
-  }
-  nint = (na+15) >> 4;
-  if (nint) {
-    artificialStatus_ = new char[4*nint];
-    memset (artificialStatus_, 0, (4*nint) * sizeof(char));
-  } else {
     artificialStatus_ = NULL;
   }
   numArtificial_ = na;
@@ -41,11 +38,22 @@ void
 CoinWarmStartBasis::assignBasisStatus(int ns, int na, char*& sStat, 
 				     char*& aStat) {
   delete[] structuralStatus_;
-  delete[] artificialStatus_;
+  // Round all so arrays multiple of 4
+  int nintS = (ns+15) >> 4;
+  int nintA = (na+15) >> 4;
+  if (nintS+nintA) {
+    structuralStatus_ = new char[4*(nintS+nintA)];
+    memcpy (structuralStatus_, sStat, (4*nintS) * sizeof(char));
+    artificialStatus_ = structuralStatus_+4*nintS;
+    memcpy (artificialStatus_, aStat, (4*nintA) * sizeof(char));
+  } else {
+    structuralStatus_ = NULL;
+    artificialStatus_ = NULL;
+  }
   numStructural_ = ns;
   numArtificial_ = na;
-  structuralStatus_ = sStat;
-  artificialStatus_ = aStat;
+  delete [] sStat;
+  delete [] aStat;
   sStat = NULL;
   aStat = NULL;
 }
@@ -54,21 +62,23 @@ CoinWarmStartBasis::CoinWarmStartBasis(int ns, int na,
   numStructural_(ns), numArtificial_(na),
   structuralStatus_(NULL), artificialStatus_(NULL) {
   // Round all so arrays multiple of 4
-  int nint = ((ns+15) >> 4);
-  if (nint > 0) {
-      structuralStatus_ = new char[4*nint];
-      structuralStatus_[4*nint-3]=0;
-      structuralStatus_[4*nint-2]=0;
-      structuralStatus_[4*nint-1]=0;
+  int nintS = ((ns+15) >> 4);
+  int nintA = ((na+15) >> 4);
+  if (nintS+nintA > 0) {
+    structuralStatus_ = new char[4*(nintS+nintA)];
+    if (nintS>0) {
+      structuralStatus_[4*nintS-3]=0;
+      structuralStatus_[4*nintS-2]=0;
+      structuralStatus_[4*nintS-1]=0;
       memcpy (structuralStatus_, sStat, ((ns + 3) / 4) * sizeof(char));
-  }
-  nint = ((na+15) >> 4);
-  if (nint > 0) {
-      artificialStatus_ = new char[4*nint];
-      artificialStatus_[4*nint-3]=0;
-      artificialStatus_[4*nint-2]=0;
-      artificialStatus_[4*nint-1]=0;
+    }
+    artificialStatus_ = structuralStatus_+4*nintS;
+    if (nintA > 0) {
+      artificialStatus_[4*nintA-3]=0;
+      artificialStatus_[4*nintA-2]=0;
+      artificialStatus_[4*nintA-1]=0;
       memcpy (artificialStatus_, aStat, ((na + 3) / 4) * sizeof(char));
+    }
   }
 }
 
@@ -76,17 +86,15 @@ CoinWarmStartBasis::CoinWarmStartBasis(const CoinWarmStartBasis& ws) :
   numStructural_(ws.numStructural_), numArtificial_(ws.numArtificial_),
   structuralStatus_(NULL), artificialStatus_(NULL) {
   // Round all so arrays multiple of 4
-  int nint = (numStructural_+15) >> 4;
-  if (nint > 0) {
-      structuralStatus_ = new char[4*nint];
-      memcpy (structuralStatus_, ws.structuralStatus_, 
-	      (4*nint) * sizeof(char));
-  }
-  nint = (numArtificial_+15) >> 4;
-  if (nint > 0) {
-      artificialStatus_ = new char[4*nint];
-      memcpy (artificialStatus_, ws.artificialStatus_, 
-	      (4*nint) * sizeof(char));
+  int nintS = (numStructural_+15) >> 4;
+  int nintA = (numArtificial_+15) >> 4;
+  if (nintS+nintA > 0) {
+    structuralStatus_ = new char[4*(nintS+nintA)];
+    memcpy (structuralStatus_, ws.structuralStatus_, 
+	    (4*nintS) * sizeof(char));
+    artificialStatus_ = structuralStatus_+4*nintS;
+    memcpy (artificialStatus_, ws.artificialStatus_, 
+	    (4*nintA) * sizeof(char));
   }
 }
 
@@ -97,23 +105,19 @@ CoinWarmStartBasis::operator=(const CoinWarmStartBasis& rhs)
     numStructural_=rhs.numStructural_;
     numArtificial_=rhs.numArtificial_;
     delete [] structuralStatus_;
-    delete [] artificialStatus_;
     // Round all so arrays multiple of 4
-    int nint = (numStructural_+15) >> 4;
-    if (nint > 0) {
-	structuralStatus_ = new char[4*nint + 4];
-	memcpy (structuralStatus_, rhs.structuralStatus_, 
-		(4*nint) * sizeof(char));
+    int nintS = (numStructural_+15) >> 4;
+    int nintA = (numArtificial_+15) >> 4;
+    if (nintS+nintA > 0) {
+      structuralStatus_ = new char[4*(nintS+nintA)];
+      memcpy (structuralStatus_, rhs.structuralStatus_, 
+	      (4*nintS) * sizeof(char));
+      artificialStatus_ = structuralStatus_+4*nintS;
+      memcpy (artificialStatus_, rhs.artificialStatus_, 
+	      (4*nintA) * sizeof(char));
     } else {
-	structuralStatus_ = NULL;
-    }
-    nint = (numArtificial_+15) >> 4;
-    if (nint > 0) {
-	artificialStatus_ = new char[4*nint + 4];
-	memcpy (artificialStatus_, rhs.artificialStatus_, 
-		(4*nint) * sizeof(char));
-    } else {
-	artificialStatus_ = NULL;
+      structuralStatus_ = NULL;
+      artificialStatus_ = NULL;
     }
   }
   return *this;
@@ -124,32 +128,27 @@ void
 CoinWarmStartBasis::resize (int newNumberRows, int newNumberColumns)
 {
   char * array;
-  int i , nCharNew, nCharOld;
-  if (newNumberRows!=numArtificial_) {
-    nCharOld  = 4*((numArtificial_+15)>>4);
-    nCharNew  = 4*((newNumberRows+15)>>4);
-    array = new char[nCharNew];
+  int i , nCharNewS, nCharOldS, nCharNewA, nCharOldA;
+  if (newNumberRows!=numArtificial_||newNumberColumns!=numStructural_) {
+    nCharOldS  = 4*((numStructural_+15)>>4);
+    nCharNewS  = 4*((newNumberColumns+15)>>4);
+    nCharOldA  = 4*((numArtificial_+15)>>4);
+    nCharNewA  = 4*((newNumberRows+15)>>4);
+    array = new char[nCharNewS+nCharNewA];
     // zap all for clarity and zerofault etc
-    memset(array,0,nCharNew*sizeof(char));
-    memcpy(array,artificialStatus_,(nCharOld>nCharNew)?nCharNew:nCharOld);
-    delete [] artificialStatus_;
-    artificialStatus_ = array;
-    for (i=numArtificial_;i<newNumberRows;i++) 
-      setArtifStatus(i, basic);
-    numArtificial_ = newNumberRows;
-  }
-  if (newNumberColumns!=numStructural_) {
-    nCharOld  = 4*((numStructural_+15)>>4);
-    nCharNew  = 4*((newNumberColumns+15)>>4);
-    array = new char[nCharNew];
-    // zap all for clarity and zerofault etc
-    memset(array,0,nCharNew*sizeof(char));
-    memcpy(array,structuralStatus_,(nCharOld>nCharNew)?nCharNew:nCharOld);
+    memset(array,0,(nCharNewS+nCharNewA)*sizeof(char));
+    memcpy(array,structuralStatus_,(nCharOldS>nCharNewS)?nCharNewS:nCharOldS);
+    memcpy(array+nCharNewS,artificialStatus_,
+	   (nCharOldA>nCharNewA)?nCharNewA:nCharOldA);
     delete [] structuralStatus_;
     structuralStatus_ = array;
+    artificialStatus_ = array+nCharNewS;
     for (i=numStructural_;i<newNumberColumns;i++) 
       setStructStatus(i, atLowerBound);
     numStructural_ = newNumberColumns;
+    for (i=numArtificial_;i<newNumberRows;i++) 
+      setArtifStatus(i, basic);
+    numArtificial_ = newNumberRows;
   }
 }
 
@@ -220,8 +219,6 @@ void CoinWarmStartBasis::compressRows (int tgtCnt, const int *tgts)
 
   return ; }
 
-#define CWSB_NEW_DELETE
-#ifdef CWSB_NEW_DELETE
 /*
   deleteRows takes an unordered list of target indices with duplicates and
   removes them from the basis. The strategy is to preprocesses the list into
@@ -244,56 +241,6 @@ CoinWarmStartBasis::deleteRows (int rawTgtCnt, const int *rawTgts)
 
   return  ; }
 
-#else
-/*
-  Original model. Keep around until it's clear new version is cross-platform
-  safe.
-*/
-// Deletes rows
-void 
-CoinWarmStartBasis::deleteRows(int number, const int * which)
-{
-  int i ;
-  char * deleted = new char[numArtificial_];
-  int numberDeleted=0;
-  memset(deleted,0,numArtificial_*sizeof(char));
-  for (i=0;i<number;i++) {
-    int j = which[i];
-    if (j>=0&&j<numArtificial_&&!deleted[j]) {
-      numberDeleted++;
-      deleted[j]=1;
-    }
-  }
-  int nCharNew  = 4*((numArtificial_-numberDeleted+15)>>4);
-  char * array = new char[nCharNew];
-# ifdef ZEROFAULT
-  memset(array,0,(nCharNew*sizeof(char))) ;
-# endif
-  int put=0;
-# ifdef COIN_DEBUG
-  int numberNotBasic=0;
-# endif
-  for (i=0;i<numArtificial_;i++) {
-    Status status = getArtifStatus(i);
-    if (!deleted[i]) {
-      setStatus(array,put,status) ;
-      put++; }
-#   ifdef COIN_DEBUG
-    else
-    if (status!=CoinWarmStartBasis::basic)
-    { numberNotBasic++ ; }
-#   endif
-  }
-  delete [] artificialStatus_;
-  artificialStatus_ = array;
-  delete [] deleted;
-  numArtificial_ -= numberDeleted;
-# ifdef COIN_DEBUG
-  if (numberNotBasic)
-    std::cout<<numberNotBasic<<" non basic artificials deleted"<<std::endl;
-# endif
-}
-#endif
 // Deletes columns
 void 
 CoinWarmStartBasis::deleteColumns(int number, const int * which)
@@ -309,11 +256,13 @@ CoinWarmStartBasis::deleteColumns(int number, const int * which)
       deleted[j]=1;
     }
   }
-  int nCharNew  = 4*((numStructural_-numberDeleted+15)>>4);
-  char * array = new char[nCharNew];
+  int nCharNewS  = 4*((numStructural_-numberDeleted+15)>>4);
+  int nCharNewA  = 4*((numArtificial_+15)>>4);
+  char * array = new char[nCharNewS+nCharNewA];
 # ifdef ZEROFAULT
-  memset(array,0,(nCharNew*sizeof(char))) ;
+  memset(array,0,((nCharNewS+nCharNewA)*sizeof(char))) ;
 # endif
+  memcpy(array+nCharNewS,artificialStatus_,nCharNewA);
   int put=0;
 # ifdef COIN_DEBUG
   int numberBasic=0;
@@ -331,6 +280,7 @@ CoinWarmStartBasis::deleteColumns(int number, const int * which)
   }
   delete [] structuralStatus_;
   structuralStatus_ = array;
+  artificialStatus_ = structuralStatus_ + nCharNewA;
   delete [] deleted;
   numStructural_ -= numberDeleted;
 #ifdef COIN_DEBUG
@@ -422,7 +372,6 @@ CoinWarmStartBasis::CoinWarmStartBasis()
 CoinWarmStartBasis::~CoinWarmStartBasis()
 {
   delete[] structuralStatus_;
-  delete[] artificialStatus_;
 }
 // Returns number of basic structurals
 int
@@ -437,7 +386,6 @@ CoinWarmStartBasis::numberBasicStructurals() const
   }
   return numberBasic;
 }
-
 /*
   Generate a diff that'll convert oldCWS into the basis pointed to by this.
 
@@ -477,8 +425,8 @@ CoinWarmStartBasis::generateDiff (const CoinWarmStart *const oldCWS) const
   int sizeNewStruct = (newStructCnt+15)>>4 ;
   int maxBasisLength = sizeNewArtif+sizeNewStruct ;
 
-  unsigned int *diffNdx = new unsigned int [maxBasisLength]; 
-  unsigned int *diffVal = new unsigned int [maxBasisLength]; 
+  unsigned int *diffNdx = new unsigned int [2*maxBasisLength]; 
+  unsigned int *diffVal = diffNdx + maxBasisLength; 
 /*
   Ok, setup's over. Now scan the logicals (aka artificials, standing in for
   constraints). For the portion of the status arrays which overlap, create
@@ -521,13 +469,15 @@ CoinWarmStartBasis::generateDiff (const CoinWarmStart *const oldCWS) const
 /*
   Create the object of our desire.
 */
-  CoinWarmStartBasisDiff *diff =
-    new CoinWarmStartBasisDiff(numberChanged,diffNdx,diffVal) ;
+  CoinWarmStartBasisDiff *diff;
+  if (numberChanged*2+1000000<maxBasisLength+1||!newStructCnt)
+    diff = new CoinWarmStartBasisDiff(numberChanged,diffNdx,diffVal) ;
+  else
+    diff = new CoinWarmStartBasisDiff(newBasis) ;
 /*
   Clean up and return.
 */
   delete[] diffNdx ;
-  delete[] diffVal ;
 
   return (dynamic_cast<CoinWarmStartDiff *>(diff)) ; }
 
@@ -551,23 +501,33 @@ void CoinWarmStartBasis::applyDiff (const CoinWarmStartDiff *const cwsdDiff)
   Index entries for logicals (aka artificials) are tagged with 0x80000000.
 */
   const int numberChanges = diff->sze_ ;
-  const unsigned int *diffNdxs = diff->diffNdxs_ ;
-  const unsigned int *diffVals = diff->diffVals_ ;
   unsigned int *structStatus =
-      reinterpret_cast<unsigned int *>(this->getStructuralStatus()) ;
+    reinterpret_cast<unsigned int *>(this->getStructuralStatus()) ;
   unsigned int *artifStatus =
-      reinterpret_cast<unsigned int *>(this->getArtificialStatus()) ;
-
-  for (int i = 0 ; i < numberChanges ; i++)
-  { unsigned int diffNdx = diffNdxs[i] ;
-    unsigned int diffVal = diffVals[i] ;
-    if ((diffNdx&0x80000000) == 0)
-    { structStatus[diffNdx] = diffVal ; }
-    else
-    { artifStatus[diffNdx&0x7fffffff] = diffVal ; } }
+    reinterpret_cast<unsigned int *>(this->getArtificialStatus()) ;
+  if (numberChanges>=0) {
+    const unsigned int *diffNdxs = diff->difference_ ;
+    const unsigned int *diffVals = diffNdxs+numberChanges ;
+    
+    for (int i = 0 ; i < numberChanges ; i++)
+      { unsigned int diffNdx = diffNdxs[i] ;
+      unsigned int diffVal = diffVals[i] ;
+      if ((diffNdx&0x80000000) == 0)
+	{ structStatus[diffNdx] = diffVal ; }
+      else
+	{ artifStatus[diffNdx&0x7fffffff] = diffVal ; } }
+  } else {
+    // just replace
+    const unsigned int * diffA = diff->difference_ -1;
+    const int artifCnt = (int) diffA[0];
+    const int structCnt = -numberChanges;
+    int sizeArtif = (artifCnt+15)>>4 ;
+    int sizeStruct = (structCnt+15)>>4 ;
+    memcpy(structStatus,diffA+1,sizeStruct*sizeof(unsigned int));
+    memcpy(artifStatus,diffA+1+sizeStruct,sizeArtif*sizeof(unsigned int));
+  }
 
   return ; }
-
 
 
 /* Routines for CoinWarmStartBasisDiff */
@@ -578,16 +538,34 @@ void CoinWarmStartBasis::applyDiff (const CoinWarmStartDiff *const cwsdDiff)
 CoinWarmStartBasisDiff::CoinWarmStartBasisDiff (int sze,
   const unsigned int *const diffNdxs, const unsigned int *const diffVals)
   : sze_(sze),
-    diffNdxs_(0),
-    diffVals_(0)
+    difference_(0)
 
 { if (sze > 0)
-  { diffNdxs_ = new unsigned int[sze] ;
-    memcpy(diffNdxs_,diffNdxs,sze*sizeof(unsigned int)) ;
-    diffVals_ = new unsigned int[sze] ;
-    memcpy(diffVals_,diffVals,sze*sizeof(unsigned int)) ; }
+  { difference_ = new unsigned int[2*sze] ;
+    memcpy(difference_,diffNdxs,sze*sizeof(unsigned int)) ;
+    memcpy(difference_+sze_,diffVals,sze*sizeof(unsigned int)) ; }
   
   return ; }
+/*
+  Constructor when full is smaller than diff!
+*/
+CoinWarmStartBasisDiff::CoinWarmStartBasisDiff (const CoinWarmStartBasis * rhs)
+  : sze_(0),
+    difference_(0)
+{
+  const int artifCnt = rhs->getNumArtificial() ;
+  const int structCnt = rhs->getNumStructural() ;
+  int sizeArtif = (artifCnt+15)>>4 ;
+  int sizeStruct = (structCnt+15)>>4 ;
+  int maxBasisLength = sizeArtif+sizeStruct ;
+  assert (maxBasisLength&&structCnt);
+  sze_ = - structCnt;
+  difference_ = new unsigned int [maxBasisLength+1];
+  difference_[0]=artifCnt;
+  difference_++;
+  memcpy(difference_,rhs->getStructuralStatus(),sizeStruct*sizeof(unsigned int));
+  memcpy(difference_+sizeStruct,rhs->getArtificialStatus(),sizeArtif*sizeof(unsigned int));
+}
 
 /*
   Copy constructor.
@@ -596,13 +574,19 @@ CoinWarmStartBasisDiff::CoinWarmStartBasisDiff (int sze,
 CoinWarmStartBasisDiff::CoinWarmStartBasisDiff
   (const CoinWarmStartBasisDiff &rhs)
   : sze_(rhs.sze_),
-    diffNdxs_(0),
-    diffVals_(0)
-{ if (sze_ > 0)
-  { diffNdxs_ = new unsigned int[sze_] ;
-    memcpy(diffNdxs_,rhs.diffNdxs_,sze_*sizeof(unsigned int)) ;
-    diffVals_ = new unsigned int[sze_] ;
-    memcpy(diffVals_,rhs.diffVals_,sze_*sizeof(unsigned int)) ; }
+    difference_(0)
+{ if (sze_ >0)
+    { difference_ = CoinCopyOfArray(rhs.difference_,2*sze_); }
+  else if (sze_<0) {
+    const unsigned int * diff = rhs.difference_ -1;
+    const int artifCnt = (int) diff[0];
+    const int structCnt = -sze_;
+    int sizeArtif = (artifCnt+15)>>4 ;
+    int sizeStruct = (structCnt+15)>>4 ;
+    int maxBasisLength = sizeArtif+sizeStruct ;
+    difference_ = CoinCopyOfArray(diff,maxBasisLength+1);
+    difference_++;
+  }
 
   return ; }
 
@@ -614,18 +598,36 @@ CoinWarmStartBasisDiff&
 CoinWarmStartBasisDiff::operator= (const CoinWarmStartBasisDiff &rhs)
 
 { if (this != &rhs)
-  { if (sze_ > 0)
-    { delete[] diffNdxs_ ;
-      delete[] diffVals_ ; }
+  { if (sze_>0 )
+      { delete[] difference_ ; }
+      else if (sze_<0) {
+	unsigned int * diff = difference_ -1;
+	delete [] diff;
+      }
     sze_ = rhs.sze_ ;
     if (sze_ > 0)
-    { diffNdxs_ = new unsigned int[sze_] ;
-      memcpy(diffNdxs_,rhs.diffNdxs_,sze_*sizeof(unsigned int)) ;
-      diffVals_ = new unsigned int[sze_] ;
-      memcpy(diffVals_,rhs.diffVals_,sze_*sizeof(unsigned int)) ; }
+      { difference_ = CoinCopyOfArray(rhs.difference_,2*sze_); }
+    else if (sze_<0) {
+      const unsigned int * diff = rhs.difference_ -1;
+      const int artifCnt = (int) diff[0];
+      const int structCnt = -sze_;
+      int sizeArtif = (artifCnt+15)>>4 ;
+      int sizeStruct = (structCnt+15)>>4 ;
+      int maxBasisLength = sizeArtif+sizeStruct ;
+      difference_ = CoinCopyOfArray(diff,maxBasisLength+1);
+      difference_++;
+    }
     else
-    { diffNdxs_ = 0 ;
-      diffVals_ = 0 ; } }
+    { difference_ = 0 ; } }
   
   return (*this) ; }
-
+/*brief Destructor */
+CoinWarmStartBasisDiff::~CoinWarmStartBasisDiff()
+{
+  if (sze_>0 ) {
+    delete[] difference_ ;
+  } else if (sze_<0) {
+    unsigned int * diff = difference_ -1;
+    delete [] diff;
+  }
+}

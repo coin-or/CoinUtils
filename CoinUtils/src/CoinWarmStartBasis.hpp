@@ -368,8 +368,8 @@ inline void setStatus(char * array, int i, CoinWarmStartBasis::Status st) {
   applying diffs, is restricted to the friend functions
   CoinWarmStartBasis::generateDiff() and CoinWarmStartBasis::applyDiff().
 
-  The actual data structure is a pair of unsigned int vectors, #diffNdxs_ and
-  #diffVals_.
+  The actual data structure is an unsigned int vector, #difference_ which
+  starts with indices of changed and then has values starting after #sze_
 
   \todo This is a pretty generic structure, and vector diff is a pretty generic
 	activity. We should be able to convert this to a template.
@@ -393,9 +393,7 @@ class CoinWarmStartBasisDiff : public CoinWarmStartDiff
     CoinWarmStartBasisDiff &operator= (const CoinWarmStartBasisDiff &rhs) ;
 
   /*! \brief Destructor */
-  virtual ~CoinWarmStartBasisDiff()
-  { delete[] diffNdxs_ ;
-    delete[] diffVals_ ; }
+  virtual ~CoinWarmStartBasisDiff();
 
   protected:
 
@@ -405,7 +403,7 @@ class CoinWarmStartBasisDiff : public CoinWarmStartDiff
     see it when they make <i>their</i> default constructor protected or
     private.
   */
-  CoinWarmStartBasisDiff () : sze_(0), diffNdxs_(0), diffVals_(0) { } 
+  CoinWarmStartBasisDiff () : sze_(0), difference_(0) { } 
 
   /*! \brief Copy constructor
   
@@ -422,6 +420,9 @@ class CoinWarmStartBasisDiff : public CoinWarmStartDiff
   /*! \brief Standard constructor */
   CoinWarmStartBasisDiff (int sze, const unsigned int *const diffNdxs,
 			  const unsigned int *const diffVals) ;
+
+  /*! \brief Constructor when full is smaller than diff!*/
+  CoinWarmStartBasisDiff (const CoinWarmStartBasis * rhs);
   
   private:
 
@@ -433,13 +434,10 @@ class CoinWarmStartBasisDiff : public CoinWarmStartDiff
   /*! \brief Number of entries (and allocated capacity), in units of \c int. */
   int sze_ ;
 
-  /*! \brief Array of diff indices */
+  /*! \brief Array of diff indices and diff values */
 
-  unsigned int *diffNdxs_ ;
+  unsigned int *difference_ ;
 
-  /*! \brief Array of diff values */
-
-  unsigned int *diffVals_ ;
 } ;
 
 
