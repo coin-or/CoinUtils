@@ -204,12 +204,13 @@ int main (int argc, const char *argv[])
   { allOK = false ; }
 
   if (allOK)
-  { testingMessage( "All tests completed successfully.\n" ); }
+  { testingMessage( "All tests completed successfully.\n" );
+    return (0) ; }
   else
   { testingMessage( "\nERROR: " ) ;
     testingMessage(
-  	"Errors occurred during testing; please check the output.\n\n"); }
-  return 0;
+  	"Errors occurred during testing; please check the output.\n\n");
+    return (1) ; }
 }
 
  
