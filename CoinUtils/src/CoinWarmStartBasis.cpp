@@ -280,7 +280,7 @@ CoinWarmStartBasis::deleteColumns(int number, const int * which)
   }
   delete [] structuralStatus_;
   structuralStatus_ = array;
-  artificialStatus_ = structuralStatus_ + nCharNewA;
+  artificialStatus_ = structuralStatus_ + nCharNewS;
   delete [] deleted;
   numStructural_ -= numberDeleted;
 #ifdef COIN_DEBUG
