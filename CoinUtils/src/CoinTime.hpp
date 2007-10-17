@@ -49,6 +49,7 @@ inline double CoinWallclockTime()
     printf(stderr, "WARNING: CoinWallclockTime() is not implemented with MSVC.\n");
     return 0.0;
 }
+#endif
 
 #else
 
