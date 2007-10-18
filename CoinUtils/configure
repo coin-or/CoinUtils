@@ -1904,7 +1904,7 @@ fi
 coin_has_cc=yes
 
 save_cflags="$CFLAGS"
-# For sparc-sun-solaris, promote Studio/Workshop compiler to front of list.
+# For *-*-solaris*, promote Studio/Workshop compiler to front of list.
 # ToDo: If Studio/Workshop cc is not present, we may find /usr/ucb/cc, which
 # is likely to be a non-functional shell. But many installations will have
 # both cc and gcc, so promoting gcc isn't good either. How to test reliably?
@@ -1915,7 +1915,7 @@ case $build in
 	     else
 	       comps="gcc cl"
 	     fi ;;
-  sparc-sun-solaris*)
+  *-*-solaris*)
   	     comps="cc xlc gcc pgcc icc" ;;
   *-linux-*) comps="xlc gcc cc pgcc icc" ;;
   *)         comps="xlc_r xlc cc gcc pgcc icc" ;;
@@ -2818,7 +2818,7 @@ rm -f conftest.err conftest.$ac_objext \
         coin_add_cflags="-Ae"
         coin_dbg_cflags="-g"
         ;;
-      *-sun-*)
+      *-*-solaris*)
         coin_opt_cflags="-xO4"
         coin_dbg_cflags="-g"
         ;;
@@ -3091,7 +3091,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 coin_has_cxx=yes
 
 save_cxxflags="$CXXFLAGS"
-# For sparc-sun-solaris, promote Studio/Workshop compiler to front of list.
+# For *-*-solaris*, promote Studio/Workshop compiler to front of list.
 case $build in
   *-cygwin* | *-mingw*)
   	     if test "$enable_doscompile" = msvc ; then
@@ -3099,7 +3099,7 @@ case $build in
 	     else
 	       comps="g++ cl"
 	     fi ;;
-  sparc-sun-solaris*)
+  *-*-solaris*)
   	     comps="CC xlC aCC g++ c++ pgCC icpc gpp cxx cc++ cl FCC KCC RCC" ;;
   *-darwin*) comps="g++ c++ CC" ;;
           *) comps="xlC aCC CC g++ c++ pgCC icpc gpp cxx cc++ cl FCC KCC RCC" ;;
@@ -3663,7 +3663,7 @@ rm -f conftest.err conftest.$ac_objext \
             ;;
         esac
         ;;
-      *-sun-*)
+      *-*-solaris*)
           coin_opt_cxxflags="-O4"
           coin_dbg_cxxflags="-g"
         ;;
@@ -3929,7 +3929,7 @@ case $build in
      else
        coin_f77_comps="gfortran g77 ifort fl32 compile_f2c"
      fi ;;
-  sparc-sun-solaris*)
+  *-*-solaris*)
      coin_f77_comps="f95 f90 f77 xlf fort77 gfortran g77 pgf90 pgf77 ifort ifc frt af77" ;;
   *) coin_f77_comps="xlf fort77 gfortran f77 g77 pgf90 pgf77 ifort ifc frt af77" ;;
  esac
@@ -4441,7 +4441,7 @@ rm -f conftest.err conftest.$ac_objext \
         coin_add_fflags="+U77"
         coin_dbg_fflags="-C -g"
         ;;
-      *-sun-*)
+      *-*-solaris*)
         coin_opt_fflags="-O4"
         coin_dbg_fflags="-g"
         ;;
@@ -21665,7 +21665,7 @@ if test $enable_shared = yes; then
         RPATH_FLAGS=nothing ;;
     *-mingw32)
         RPATH_FLAGS=nothing ;;
-    *-sun-*)
+    *-*-solaris*)
         RPATH_FLAGS=
         for dir in $abs_lib_dir; do
           RPATH_FLAGS="$RPATH_FLAGS -R$dir"
@@ -29027,11 +29027,18 @@ echo "${ECHO_T}no" >&6
 esac
 
       ;;
-    *-sun-*)
+
+# Ideally, we'd use -library=sunperf, but it's an imperfect world. Studio
+# cc doesn't recognise -library, it wants -xlic_lib. Studio 12 CC doesn't
+# recognise -xlic_lib. Libtool doesn't like -xlic_lib anyway. Sun claims
+# that CC and cc will understand -library in Studio 13. The main extra
+# function of -xlic_lib and -library is to arrange for the Fortran run-time
+# libraries to be linked for C++ and C. We can arrange that explicitly.
+    *-*-solaris*)
       SAVE_LIBS="$LIBS"
-      echo "$as_me:$LINENO: checking whether -xlic_lib=sunperf has BLAS" >&5
-echo $ECHO_N "checking whether -xlic_lib=sunperf has BLAS... $ECHO_C" >&6
-      LIBS="-xlic_lib=sunperf $LIBS"
+      echo "$as_me:$LINENO: checking for BLAS in libsunperf" >&5
+echo $ECHO_N "checking for BLAS in libsunperf... $ECHO_C" >&6
+      LIBS="-lsunperf $FLIBS $LIBS"
       case $ac_ext in
   f)
     cat >conftest.$ac_ext <<_ACEOF
@@ -29081,8 +29088,9 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-xlic_lib=sunperf'
-                         ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -29175,8 +29183,9 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-xlic_lib=sunperf'
-                         ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -29229,8 +29238,9 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-xlic_lib=sunperf'
-                         ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -29331,8 +29341,9 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-xlic_lib=sunperf'
-                         ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -29385,8 +29396,9 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-xlic_lib=sunperf'
-                         ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -31017,12 +31029,14 @@ echo "${ECHO_T}no" >&6
 esac
 
         ;;
-      *-sun-*)
-        SAVE_LIBS="$LIBS"
-        echo "$as_me:$LINENO: checking whether -xlic_lib=sunperf has LAPACK" >&5
-echo $ECHO_N "checking whether -xlic_lib=sunperf has LAPACK... $ECHO_C" >&6
-        LIBS="-xlic_lib=sunperf $LIBS"
-        case $ac_ext in
+
+# See comments in COIN_HAS_BLAS.
+      *-*-solaris*)
+      SAVE_LIBS="$LIBS"
+      echo "$as_me:$LINENO: checking for LAPACK in libsunperf" >&5
+echo $ECHO_N "checking for LAPACK in libsunperf... $ECHO_C" >&6
+      LIBS="-lsunperf $FLIBS $LIBS"
+      case $ac_ext in
   f)
     cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -31071,15 +31085,16 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack='-xlic_lib=sunperf'
-                           ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-                           LIBS="$SAVE_LIBS"
+                         LIBS="$SAVE_LIBS"
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
@@ -31165,8 +31180,9 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack='-xlic_lib=sunperf'
-                           ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -31219,8 +31235,9 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack='-xlic_lib=sunperf'
-                           ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -31229,14 +31246,14 @@ sed 's/^/| /' conftest.$ac_ext >&5
 LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-                           LIBS="$SAVE_LIBS"
+                         LIBS="$SAVE_LIBS"
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
       else
         echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-                           LIBS="$SAVE_LIBS"
+                         LIBS="$SAVE_LIBS"
       fi
     fi
     ;;
@@ -31321,8 +31338,9 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack='-xlic_lib=sunperf'
-                           ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -31375,8 +31393,9 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack='-xlic_lib=sunperf'
-                           ADDLIBS="-xlic_lib=sunperf $ADDLIBS"
+                         use_blas='-lsunperf'
+                         ADDLIBS="-lsunperf $ADDLIBS"
+			 coin_need_flibs=yes
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -31385,14 +31404,14 @@ sed 's/^/| /' conftest.$ac_ext >&5
 LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-                           LIBS="$SAVE_LIBS"
+                         LIBS="$SAVE_LIBS"
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
       else
         echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-                           LIBS="$SAVE_LIBS"
+                         LIBS="$SAVE_LIBS"
       fi
     fi
     ;;
