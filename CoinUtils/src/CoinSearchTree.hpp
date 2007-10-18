@@ -52,6 +52,8 @@ private:
 	branch-and-cut problems the LP relaxation value is OK. It is different
 	when column generation is done. */
     double true_lower_bound_;
+    /** */
+    uint64_t preferred_;
     /** A measure of fractionality, e.g., the fraction of unsatisfied
 	integrality requirements */
     /*double fractionality_;*/
@@ -117,7 +119,16 @@ struct CoinSearchTreeComparePreferred {
 struct CoinSearchTreeCompareDepth {
     inline bool operator()(const CoinTreeSiblings* x,
 			   const CoinTreeSiblings* y) const {
-	return x->currentNode()->getDepth() > y->currentNode()->getDepth();
+#if 1
+	return x->currentNode()->getDepth() >= y->currentNode()->getDepth();
+#else
+	if(x->currentNode()->getDepth() > y->currentNode()->getDepth())
+	  return 1;
+	if(x->currentNode()->getDepth() == y->currentNode()->getDepth() &&
+	   x->currentNode()->getQuality() <= y->currentNode()->getQuality())
+	  return 1;
+	return 0;
+#endif
     }
 };
 
