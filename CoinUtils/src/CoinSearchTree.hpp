@@ -18,22 +18,27 @@ protected:
     CoinTreeNode() :
 	depth_(-1),
 	quality_(-COIN_DBL_MAX),
-	true_lower_bound_(-COIN_DBL_MAX) {}
+	true_lower_bound_(-COIN_DBL_MAX),
+	preferred_(0) {}
     CoinTreeNode(int d,
 		 double q = -COIN_DBL_MAX,
-		 double tlb = -COIN_DBL_MAX /*, double f*/) :
+		 double tlb = -COIN_DBL_MAX /*, double f*/,
+		 uint64_t p = 0) :
 	depth_(d),
 	quality_(q),
-	true_lower_bound_(tlb)/*, fractionality_(f)*/ {}
+	true_lower_bound_(tlb),
+	preferred_(p) /*, fractionality_(f)*/ {}
     CoinTreeNode(const CoinTreeNode& x) :
 	depth_(x.depth_),
 	quality_(x.quality_),
-	true_lower_bound_(x.true_lower_bound_) {}
+	true_lower_bound_(x.true_lower_bound_),
+	preferred_(x.preferred_) {}
     CoinTreeNode& operator=(const CoinTreeNode& x) {
 	// Not worth to test (this != &x)
 	depth_ = x.depth_;
 	quality_ = x.quality_;
 	true_lower_bound_ = x.true_lower_bound_;
+	preferred_ = x.preferred_;
 	return *this;
     }
 private:
@@ -53,13 +58,15 @@ private:
 public:
     virtual ~CoinTreeNode() {}
 
-    inline int    getDepth()   const { return depth_; }
-    inline double getQuality() const { return quality_; }
-    inline double getTrueLB()  const { return true_lower_bound_; }
+    inline int       getDepth()     const { return depth_; }
+    inline double    getQuality()   const { return quality_; }
+    inline double    getTrueLB()    const { return true_lower_bound_; }
+    inline uint64_t getPreferred() const { return preferred_; }
     
-    inline void setDepth(int d)       { depth_ = d; }
-    inline void setQuality(double q)  { quality_ = q; }
-    inline void setTrueLB(double tlb) { true_lower_bound_ = tlb; }
+    inline void setDepth(int d)           { depth_ = d; }
+    inline void setQuality(double q)      { quality_ = q; }
+    inline void setTrueLB(double tlb)     { true_lower_bound_ = tlb; }
+    inline void setPreferred(uint64_t p) { preferred_ = p; }
 };
 
 class CoinTreeSiblings {
@@ -97,6 +104,15 @@ public:
     must return true if the first argument is "better" than the second one,
     i.e., it should be processed first. */
 /*@{*/
+/** Depth First Search. */
+struct CoinSearchTreeComparePreferred {
+  inline bool operator()(const CoinTreeSiblings* x,
+			 const CoinTreeSiblings* y) const {
+    return x->currentNode()->getPreferred() < y->currentNode()->getPreferred();
+  }
+};
+
+//-----------------------------------------------------------------------------
 /** Depth First Search. */
 struct CoinSearchTreeCompareDepth {
     inline bool operator()(const CoinTreeSiblings* x,
