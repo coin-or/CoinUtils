@@ -43,11 +43,11 @@ inline double CoinWallclockTime()
     return ((double)(callTime) - wrapFirstCall)/1000.0;
 }
 #else
-#include <cstdio>
+#include <iostream>
 inline double CoinWallclockTime()
 {
-    printf(stderr, "WARNING: CoinWallclockTime() is not implemented with MSVC.\n");
-    return 0.0;
+  std::cerr << "WARNING: CoinWallclockTime() is not implemented with MSVC.\n";
+  return 0.0;
 }
 #endif
 
