@@ -110,7 +110,17 @@ public:
 struct CoinSearchTreeComparePreferred {
   inline bool operator()(const CoinTreeSiblings* x,
 			 const CoinTreeSiblings* y) const {
-    return x->currentNode()->getPreferred() < y->currentNode()->getPreferred();
+    register const CoinTreeNode* xNode = x->currentNode();
+    register const CoinTreeNode* yNode = y->currentNode();
+    register const uint64_t xPref = xNode->getPreferred();
+    register const uint64_t yPref = yNode->getPreferred();
+    if (xPref < yPref) {
+      return true;
+    }
+    if (xPref > yPref) {
+      return false;
+    }
+    return xNode->getQuality() < yNode->getQuality();
   }
 };
 
