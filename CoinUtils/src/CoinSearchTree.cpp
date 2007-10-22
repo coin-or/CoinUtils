@@ -1,4 +1,54 @@
+#include <cstdio>
 #include "CoinSearchTree.hpp"
+
+BitVector128::BitVector128()
+{
+  bits_[0] = 0;
+  bits_[1] = 0;
+  bits_[2] = 0;
+  bits_[3] = 0;
+}
+
+void
+BitVector128::setBit(int i)
+{
+  int byte = i >> 5;
+  int bit = i & 31;
+  bits_[byte] |= (1 << bit);
+}
+  
+void
+BitVector128::clearBit(int i)
+{
+  int byte = i >> 5;
+  int bit = i & 31;
+  bits_[byte] &= ~(1 << bit);
+}
+
+void
+BitVector128::print(char* output) const
+{
+  sprintf(output, "%08X %08X %08X %08X",
+	  bits_[3], bits_[2], bits_[1], bits_[0]);
+}
+  
+bool
+operator<(const BitVector128& b0, const BitVector128& b1)
+{
+  if (b0.bits_[3] < b1.bits_[3])
+    return true;
+  if (b0.bits_[3] > b1.bits_[3])
+    return false;
+  if (b0.bits_[2] < b1.bits_[2])
+    return true;
+  if (b0.bits_[2] > b1.bits_[2])
+    return false;
+  if (b0.bits_[1] < b1.bits_[1])
+    return true;
+  if (b0.bits_[1] > b1.bits_[1])
+    return false;
+  return (b0.bits_[0] < b1.bits_[0]);
+}
 
 void
 CoinSearchTreeManager::newSolution(double solValue)

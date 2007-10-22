@@ -8,6 +8,24 @@
 #include "CoinFinite.hpp"
 #include "CoinHelperFunctions.hpp"
 
+// #define DEBUG_PRINT
+
+//#############################################################################
+
+class BitVector128 {
+  friend bool operator<(const BitVector128& b0, const BitVector128& b1);
+private:
+  unsigned int bits_[4];
+public:
+  BitVector128();
+  ~BitVector128() {}
+  void setBit(int i);
+  void clearBit(int i);
+  void print(char* output) const;
+};
+
+bool operator<(const BitVector128& b0, const BitVector128& b1);
+
 //#############################################################################
 
 /** A class from which the real tree nodes should be derived from. Some of the
@@ -19,11 +37,11 @@ protected:
 	depth_(-1),
 	quality_(-COIN_DBL_MAX),
 	true_lower_bound_(-COIN_DBL_MAX),
-	preferred_(0) {}
+	preferred_() {}
     CoinTreeNode(int d,
 		 double q = -COIN_DBL_MAX,
 		 double tlb = -COIN_DBL_MAX /*, double f*/,
-		 uint64_t p = 0) :
+		 BitVector128 p = BitVector128()) :
 	depth_(d),
 	quality_(q),
 	true_lower_bound_(tlb),
@@ -53,22 +71,22 @@ private:
 	when column generation is done. */
     double true_lower_bound_;
     /** */
-    uint64_t preferred_;
+    BitVector128 preferred_;
     /** A measure of fractionality, e.g., the fraction of unsatisfied
 	integrality requirements */
     /*double fractionality_;*/
 public:
     virtual ~CoinTreeNode() {}
 
-    inline int       getDepth()     const { return depth_; }
-    inline double    getQuality()   const { return quality_; }
-    inline double    getTrueLB()    const { return true_lower_bound_; }
-    inline uint64_t getPreferred() const { return preferred_; }
+    inline int          getDepth()     const { return depth_; }
+    inline double       getQuality()   const { return quality_; }
+    inline double       getTrueLB()    const { return true_lower_bound_; }
+    inline BitVector128 getPreferred() const { return preferred_; }
     
-    inline void setDepth(int d)           { depth_ = d; }
-    inline void setQuality(double q)      { quality_ = q; }
-    inline void setTrueLB(double tlb)     { true_lower_bound_ = tlb; }
-    inline void setPreferred(uint64_t p) { preferred_ = p; }
+    inline void setDepth(int d)              { depth_ = d; }
+    inline void setQuality(double q)         { quality_ = q; }
+    inline void setTrueLB(double tlb)        { true_lower_bound_ = tlb; }
+    inline void setPreferred(BitVector128 p) { preferred_ = p; }
 };
 
 class CoinTreeSiblings {
@@ -98,6 +116,14 @@ public:
     inline bool advanceNode() { return ++current_ != numSiblings_; }
     inline int toProcess() const { return numSiblings_ - current_; }
     inline int size() const { return numSiblings_; }
+  inline void printPref() const {
+    char output[44];
+    output[43] = 0;
+    for (int i = 0; i < numSiblings_; ++i) {
+      siblings_[i]->getPreferred().print(output);
+      printf("prefs of sibligs: sibling[%i]: %s\n", i, output);
+    }
+  }
 };
 
 //#############################################################################
@@ -112,15 +138,26 @@ struct CoinSearchTreeComparePreferred {
 			 const CoinTreeSiblings* y) const {
     register const CoinTreeNode* xNode = x->currentNode();
     register const CoinTreeNode* yNode = y->currentNode();
-    register const uint64_t xPref = xNode->getPreferred();
-    register const uint64_t yPref = yNode->getPreferred();
+    const BitVector128 xPref = xNode->getPreferred();
+    const BitVector128 yPref = yNode->getPreferred();
+    bool retval = true;
     if (xPref < yPref) {
-      return true;
+      retval = true;
     }
-    if (xPref > yPref) {
-      return false;
+    if (yPref < xPref) {
+      retval = false;
     }
-    return xNode->getQuality() < yNode->getQuality();
+    retval = xNode->getQuality() < yNode->getQuality();
+    char o0[44];
+    char o1[44];
+    o0[43]=0;
+    o1[43]=0;
+#ifdef DEBUG_PRINT
+    xPref.print(o0);
+    yPref.print(o1);
+    printf("Comparing xpref (%s) and ypref (%s) : %s\n", retval ? "T" : "F");
+#endif
+    return retval;
   }
 };
 
@@ -190,7 +227,15 @@ public:
     inline int size() const { return size_; }
     inline int numInserted() const { return numInserted_; }
     inline CoinTreeNode* top() const {
-	return (size_ == 0) ? NULL : candidateList_.front()->currentNode();
+      if (size_ == NULL)
+	return NULL;
+#ifdef DEBUG_PRINT
+      char output[44];
+      output[43] = 0;
+      candidateList_.front()->currentNode()->getPreferred().print(output);
+      printf("top's pref: %s\n", output);
+#endif
+      return candidateList_.front()->currentNode();
     }
     /** pop will advance the \c next pointer among the siblings on the top and
 	then moves the top to its correct position. #realpop is the method
@@ -217,6 +262,9 @@ public:
     inline void push(const CoinTreeSiblings& sib,
 		     const bool incrInserted = true) {
 	CoinTreeSiblings* s = new CoinTreeSiblings(sib);
+#ifdef DEBUG_PRINT
+	s->printPref();
+#endif
 	realpush(s);
 	if (incrInserted) {
 	    numInserted_ += sib.toProcess();
@@ -227,6 +275,7 @@ public:
 
 //#############################################################################
 
+// #define CAN_TRUST_STL_HEAP
 #ifdef CAN_TRUST_STL_HEAP
 
 template <class Comp>
@@ -236,7 +285,7 @@ private:
     Comp comp_;
 protected:
     virtual void realpop() {
-	candidateList_.pop();
+	candidateList_.pop_back();
     }
     virtual void fixTop() {
 	CoinTreeSiblings* s = top();
