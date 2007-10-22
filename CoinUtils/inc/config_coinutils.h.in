@@ -33,6 +33,9 @@
 /* Define to integer type capturing pointer */
 #undef COIN_INTPTR_T
 
+/* Define to 64bit unsigned integer type */
+#undef COIN_UINT64_T
+
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
 #undef F77_DUMMY_MAIN

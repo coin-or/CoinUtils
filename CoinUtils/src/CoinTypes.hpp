@@ -15,6 +15,7 @@
 #endif
 
 #define CoinInt64 COIN_INT64_T
+#define CoinUInt64 COIN_UINT64_T
 #define CoinIntPtr COIN_INTPTR_T
 
 #endif

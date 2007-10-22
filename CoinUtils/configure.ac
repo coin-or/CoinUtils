@@ -277,11 +277,15 @@ fi
 
 AC_COIN_CHECK_CXX_CHEADER(inttypes)
 
-##### 64bit Integer type
+##### 64bit Integer types
+# The problem here is that you can't extend `int64_t' to `unsigned int64_t'.
+# So we need distinct CoinInt64 and CoinUInt64. It should be safe to assume
+# uint64_t, given int64_t.
 CoinInt64=
+CoinUInt64=
 
 # try int64_t
-AC_CHECK_TYPE([int64_t],[CoinInt64=int64_t],[],[
+AC_CHECK_TYPE([int64_t],[CoinInt64=int64_t ; CoinUInt64=uint64_t],[],[
 #ifdef HAVE_CINTTYPES
 # include <cinttypes>
 #else
@@ -292,13 +296,16 @@ AC_CHECK_TYPE([int64_t],[CoinInt64=int64_t],[],[
 ])
 
 # We need to use the C compiler in the AC_CHECK_SIZEOF since otherwise the
-# MSCV compiler complains about redefinition of "exit"
+# MSCV compiler complains about redefinition of "exit". ac_cv_sizeof_<type>
+# sometimes adds `^M' to the number, hence the check for `8?'.
 AC_LANG_PUSH(C)
 # try long long
 if test x"$CoinInt64" = x; then
   AC_CHECK_SIZEOF([long long])
   case $ac_cv_sizeof_long_long in
-    8 | 8?) CoinInt64="long long" ;;  # We do this funny test, since sometimes ^M is added in ac_cv_sizeof_long_long
+    8 | 8?) CoinInt64="long long"
+    	    CoinUInt64="unsigned long long"
+	    ;;
   esac
 fi
 
@@ -306,7 +313,9 @@ fi
 if test x"$CoinInt64" = x; then
   AC_CHECK_SIZEOF([long])
   case $ac_cv_sizeof_long in
-    8 | 8?) CoinInt64="long" ;;  # We do this funny test, since sometimes ^M is added in ac_cv_sizeof_long
+    8 | 8?) CoinInt64="long"
+    	    CoinUInt64="unsigned long"
+	    ;;
   esac
 fi
 
@@ -314,7 +323,9 @@ fi
 if test x"$CoinInt64" = x; then
   AC_CHECK_SIZEOF([int])
   case $ac_cv_sizeof_int in
-    8 | 8?) CoinInt64="int" ;;  # We do this funny test, since sometimes ^M is added in ac_cv_sizeof_int
+    8 | 8?) CoinInt64="int"
+    	    CoinUInt64="unsigned int"
+	    ;;
   esac
 fi
 AC_LANG_POP(C)
@@ -323,6 +334,8 @@ if test x"$CoinInt64" = x; then
   AC_MSG_ERROR([Cannot find integer type with 64 bits])
 fi
 AC_DEFINE_UNQUOTED([COIN_INT64_T],[$CoinInt64],[Define to 64bit integer type])
+AC_DEFINE_UNQUOTED([COIN_UINT64_T],[$CoinInt64],
+		   [Define to 64bit unsigned integer type])
 
 
 ##### Integer type for Pointer
