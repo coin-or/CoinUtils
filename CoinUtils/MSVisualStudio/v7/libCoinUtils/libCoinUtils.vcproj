@@ -889,6 +889,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinSearchTree.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinShallowPackedVector.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -1065,6 +1068,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinPresolveZeros.hpp">
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinSearchTree.hpp">
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinShallowPackedVector.hpp">
