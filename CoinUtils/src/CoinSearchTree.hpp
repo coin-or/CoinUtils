@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 #include "CoinFinite.hpp"
 #include "CoinHelperFunctions.hpp"
@@ -21,7 +22,7 @@ public:
   ~BitVector128() {}
   void setBit(int i);
   void clearBit(int i);
-  void print(char* output) const;
+  std::string str() const;
 };
 
 bool operator<(const BitVector128& b0, const BitVector128& b1);
@@ -116,14 +117,12 @@ public:
     inline bool advanceNode() { return ++current_ != numSiblings_; }
     inline int toProcess() const { return numSiblings_ - current_; }
     inline int size() const { return numSiblings_; }
-  inline void printPref() const {
-    char output[44];
-    output[43] = 0;
-    for (int i = 0; i < numSiblings_; ++i) {
-      siblings_[i]->getPreferred().print(output);
-      printf("prefs of sibligs: sibling[%i]: %s\n", i, output);
+    inline void printPref() const {
+      for (int i = 0; i < numSiblings_; ++i) {
+	std::string pref = siblings_[i]->getPreferred().str();
+	printf("prefs of sibligs: sibling[%i]: %s\n", i, pref.c_str());
+      }
     }
-  }
 };
 
 //#############################################################################
@@ -134,6 +133,8 @@ public:
 /*@{*/
 /** Depth First Search. */
 struct CoinSearchTreeComparePreferred {
+  static const std::string compName;
+  static inline const char* name() { return "CoinSearchTreeComparePreferred"; }
   inline bool operator()(const CoinTreeSiblings* x,
 			 const CoinTreeSiblings* y) const {
     register const CoinTreeNode* xNode = x->currentNode();
@@ -143,19 +144,14 @@ struct CoinSearchTreeComparePreferred {
     bool retval = true;
     if (xPref < yPref) {
       retval = true;
-    }
-    if (yPref < xPref) {
+    } else if (yPref < xPref) {
       retval = false;
+    } else {
+      retval = xNode->getQuality() < yNode->getQuality();
     }
-    retval = xNode->getQuality() < yNode->getQuality();
-    char o0[44];
-    char o1[44];
-    o0[43]=0;
-    o1[43]=0;
 #ifdef DEBUG_PRINT
-    xPref.print(o0);
-    yPref.print(o1);
-    printf("Comparing xpref (%s) and ypref (%s) : %s\n", retval ? "T" : "F");
+    printf("Comparing xpref (%s) and ypref (%s) : %s\n",
+	   xpref.str().c_str(), ypref.str().c_str(), retval ? "T" : "F");
 #endif
     return retval;
   }
@@ -164,37 +160,43 @@ struct CoinSearchTreeComparePreferred {
 //-----------------------------------------------------------------------------
 /** Depth First Search. */
 struct CoinSearchTreeCompareDepth {
-    inline bool operator()(const CoinTreeSiblings* x,
-			   const CoinTreeSiblings* y) const {
+  static const std::string compName;
+  static inline const char* name() { return "CoinSearchTreeCompareDepth"; }
+  inline bool operator()(const CoinTreeSiblings* x,
+			 const CoinTreeSiblings* y) const {
 #if 1
-	return x->currentNode()->getDepth() >= y->currentNode()->getDepth();
+    return x->currentNode()->getDepth() >= y->currentNode()->getDepth();
 #else
-	if(x->currentNode()->getDepth() > y->currentNode()->getDepth())
-	  return 1;
-	if(x->currentNode()->getDepth() == y->currentNode()->getDepth() &&
-	   x->currentNode()->getQuality() <= y->currentNode()->getQuality())
-	  return 1;
-	return 0;
+    if(x->currentNode()->getDepth() > y->currentNode()->getDepth())
+      return 1;
+    if(x->currentNode()->getDepth() == y->currentNode()->getDepth() &&
+       x->currentNode()->getQuality() <= y->currentNode()->getQuality())
+      return 1;
+    return 0;
 #endif
-    }
+  }
 };
 
 //-----------------------------------------------------------------------------
 /* Breadth First Search */
 struct CoinSearchTreeCompareBreadth {
-    inline bool operator()(const CoinTreeSiblings* x,
-			   const CoinTreeSiblings* y) const {
-	return x->currentNode()->getDepth() < y->currentNode()->getDepth();
-    }
+  static const std::string compName;
+  static inline const char* name() { return "CoinSearchTreeCompareBreadth"; }
+  inline bool operator()(const CoinTreeSiblings* x,
+			 const CoinTreeSiblings* y) const {
+    return x->currentNode()->getDepth() < y->currentNode()->getDepth();
+  }
 };
 
 //-----------------------------------------------------------------------------
 /** Best first search */
 struct CoinSearchTreeCompareBest {
-    inline bool operator()(const CoinTreeSiblings* x,
-			   const CoinTreeSiblings* y) const {
-	return x->currentNode()->getQuality() < y->currentNode()->getQuality();
-    }
+  static const std::string compName;
+  static inline const char* name() { return "CoinSearchTreeCompareBest"; }
+  inline bool operator()(const CoinTreeSiblings* x,
+			 const CoinTreeSiblings* y) const {
+    return x->currentNode()->getQuality() < y->currentNode()->getQuality();
+  }
 };
 
 //#############################################################################
@@ -219,6 +221,8 @@ protected:
 
 public:
     virtual ~CoinSearchTreeBase() {}
+    virtual std::string printComp() const = 0;
+    virtual const char* compName() const = 0;
 
     inline const std::vector<CoinTreeSiblings*>& getCandidates() const {
 	return candidateList_;
@@ -306,6 +310,8 @@ public:
 	size_ = t.size_;
     }
     ~CoinSearchTree() {}
+    std::string printComp() const { comp_.compName; }
+    const char* compName() const { return Comp::name(); }
 };
 
 #else
@@ -371,6 +377,8 @@ public:
 	size_ = t.size();
     }
     ~CoinSearchTree() {}
+    std::string printComp() const { return comp_.compName; }
+    const char* compName() const { return Comp::name(); }
 };
 
 #endif

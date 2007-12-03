@@ -25,11 +25,14 @@ BitVector128::clearBit(int i)
   bits_[byte] &= ~(1 << bit);
 }
 
-void
-BitVector128::print(char* output) const
+std::string
+BitVector128::str() const
 {
-  sprintf(output, "%08X %08X %08X %08X",
+  char output[33];
+  output[32] = 0;
+  sprintf(output, "%08X%08X%08X%08X",
 	  bits_[3], bits_[2], bits_[1], bits_[0]);
+  return output;
 }
   
 bool
@@ -85,3 +88,15 @@ CoinSearchTreeManager::reevaluateSearchStrategy()
 	}
     }
 }
+
+const std::string
+CoinSearchTreeCompareBest::compName("CoinSearchTreeCompareBest");
+
+const std::string
+CoinSearchTreeCompareBreadth::compName("CoinSearchTreeCompareBreadth");
+
+const std::string
+CoinSearchTreeCompareDepth::compName("CoinSearchTreeCompareDepth");
+
+const std::string
+CoinSearchTreeComparePreferred::compName("CoinSearchTreeComparePreferred");
