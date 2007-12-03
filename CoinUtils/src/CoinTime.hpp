@@ -55,12 +55,24 @@ inline double CoinWallclockTime()
 
 #include <sys/time.h>
 
-inline double CoinWallclockTime()
+inline double CoinGetTimeOfDay()
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    static const double firstCall = tv.tv_sec + tv.tv_usec/1000000.0;
-    double callTime = tv.tv_sec + tv.tv_usec/1000000.0;
+    return tv.tv_sec + tv.tv_usec/1000000.0;
+}
+
+/**
+   Query the elapsed wallclock time since the first call to this function. If
+   a positive argument is passed to the function then the time of the first
+   call is set to that value (this kind of argument is allowed only at the
+   first call!).
+*/
+
+inline double CoinWallclockTime(double callType = 0)
+{
+    double callTime = CoinGetTimeOfDay();
+    static const double firstCall = callType > 0 ? callType : callTime;
     return callTime - firstCall;
 }
 
