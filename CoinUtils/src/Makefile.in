@@ -83,7 +83,8 @@ am_libCoinUtils_la_OBJECTS = CoinBuild.lo CoinDenseVector.lo \
 	CoinPresolveTripleton.lo CoinPresolveUseless.lo \
 	CoinPresolveZeros.lo CoinSearchTree.lo \
 	CoinShallowPackedVector.lo CoinSnapshot.lo \
-	CoinWarmStartBasis.lo CoinWarmStartDual.lo
+	CoinWarmStartBasis.lo CoinWarmStartVector.lo \
+	CoinWarmStartDual.lo CoinWarmStartPrimalDual.lo
 libCoinUtils_la_OBJECTS = $(am_libCoinUtils_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/../depcomp
 am__depfiles_maybe = depfiles
@@ -348,7 +349,9 @@ libCoinUtils_la_SOURCES = \
 	CoinUtility.hpp \
 	CoinWarmStart.hpp \
 	CoinWarmStartBasis.cpp CoinWarmStartBasis.hpp \
-	CoinWarmStartDual.cpp CoinWarmStartDual.hpp
+	CoinWarmStartVector.cpp CoinWarmStartVector.hpp \
+	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
+	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
 
 
 # This is for libtool (on Windows)
@@ -425,7 +428,9 @@ include_HEADERS = \
 	CoinUtility.hpp \
 	CoinWarmStart.hpp \
 	CoinWarmStartBasis.hpp \
-	CoinWarmStartDual.hpp
+	CoinWarmStartVector.hpp \
+	CoinWarmStartDual.hpp \
+	CoinWarmStartPrimalDual.hpp
 
 
 #############################################################################
@@ -548,6 +553,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSnapshot.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartBasis.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartDual.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartPrimalDual.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartVector.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

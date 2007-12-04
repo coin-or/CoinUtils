@@ -31,47 +31,16 @@ CoinWarmStartDual::generateDiff (const CoinWarmStart *const oldCWS) const
   if (!oldDual)
   { throw CoinError("Old warm start not derived from CoinWarmStartDual.",
 		    "generateDiff","CoinWarmStartDual") ; }
-  const CoinWarmStartDual *newDual = this ;
-/*
-  Make sure newDual is equal or bigger than oldDual. Calculate the worst
-  case number of diffs and allocate vectors to hold them.
-*/
-  const int oldCnt = oldDual->size() ;
-  const int newCnt = newDual->size() ;
 
-  assert(newCnt >= oldCnt) ;
+  CoinWarmStartDualDiff* diff = new CoinWarmStartDualDiff;
+  CoinWarmStartDiff* vecdiff = dual_.generateDiff(&oldDual->dual_);
+  diff->diff_.swap(*dynamic_cast<CoinWarmStartVectorDiff*>(vecdiff));
+  delete vecdiff;
 
-  unsigned int *diffNdx = new unsigned int [newCnt]; 
-  double *diffVal = new double [newCnt]; 
-/*
-  Scan the dual vectors.  For the portion of the vectors which overlap,
-  create diffs. Then add any additional entries from newDual.
-*/
-  const double *oldVal = oldDual->dual() ;
-  const double *newVal = newDual->dual() ;
-  int numberChanged = 0 ;
-  int i ;
-  for (i = 0 ; i < oldCnt ; i++)
-  { if (oldVal[i] != newVal[i])
-    { diffNdx[numberChanged] = i ;
-      diffVal[numberChanged++] = newVal[i] ; } }
-  for ( ; i < newCnt ; i++)
-  { diffNdx[numberChanged] = i ;
-    diffVal[numberChanged++] = newVal[i] ; }
-/*
-  Create the object of our desire.
-*/
-  CoinWarmStartDualDiff *diff =
-    new CoinWarmStartDualDiff(numberChanged,diffNdx,diffVal) ;
-/*
-  Clean up and return.
-*/
-  delete[] diffNdx ;
-  delete[] diffVal ;
+  return diff;
+}
 
-  return (dynamic_cast<CoinWarmStartDiff *>(diff)) ; }
-
-
+//=============================================================================
 /*
   Apply diff to this warm start.
 
@@ -89,74 +58,6 @@ void CoinWarmStartDual::applyDiff (const CoinWarmStartDiff *const cwsdDiff)
   if (!diff)
   { throw CoinError("Diff not derived from CoinWarmStartDualDiff.",
 		    "applyDiff","CoinWarmStartDual") ; }
-/*
-  Application is by straighforward replacement of words in the dual vector.
-*/
-  const int numberChanges = diff->sze_ ;
-  const unsigned int *diffNdxs = diff->diffNdxs_ ;
-  const double *diffVals = diff->diffVals_ ;
-  double *vals = this->dualVector_ ;
 
-  for (int i = 0 ; i < numberChanges ; i++)
-  { unsigned int diffNdx = diffNdxs[i] ;
-    double diffVal = diffVals[i] ;
-    vals[diffNdx] = diffVal ; }
-
-  return ; }
-
-
-//#############################################################################
-
-
-// Assignment
-
-CoinWarmStartDualDiff&
-CoinWarmStartDualDiff::operator= (const CoinWarmStartDualDiff &rhs)
-
-{ if (this != &rhs)
-  { if (sze_ > 0)
-    { delete[] diffNdxs_ ;
-      delete[] diffVals_ ; }
-    sze_ = rhs.sze_ ;
-    if (sze_ > 0)
-    { diffNdxs_ = new unsigned int[sze_] ;
-      memcpy(diffNdxs_,rhs.diffNdxs_,sze_*sizeof(unsigned int)) ;
-      diffVals_ = new double[sze_] ;
-      memcpy(diffVals_,rhs.diffVals_,sze_*sizeof(double)) ; }
-    else
-    { diffNdxs_ = 0 ;
-      diffVals_ = 0 ; } }
-
-  return (*this) ; }
-
-
-// Copy constructor
-
-CoinWarmStartDualDiff::CoinWarmStartDualDiff (const CoinWarmStartDualDiff &rhs)
-  : sze_(rhs.sze_),
-    diffNdxs_(0),
-    diffVals_(0)
-{ if (sze_ > 0)
-  { diffNdxs_ = new unsigned int[sze_] ;
-    memcpy(diffNdxs_,rhs.diffNdxs_,sze_*sizeof(unsigned int)) ;
-    diffVals_ = new double[sze_] ;
-    memcpy(diffVals_,rhs.diffVals_,sze_*sizeof(double)) ; }
-  
-  return ; }
-
-
-/// Standard constructor
-
-CoinWarmStartDualDiff::CoinWarmStartDualDiff
-  (int sze, const unsigned int *const diffNdxs, const double *const diffVals)
-  : sze_(sze),
-    diffNdxs_(0),
-    diffVals_(0)
-{ if (sze > 0)
-  { diffNdxs_ = new unsigned int[sze] ;
-    memcpy(diffNdxs_,diffNdxs,sze*sizeof(unsigned int)) ;
-    diffVals_ = new double[sze] ;
-    memcpy(diffVals_,diffVals,sze*sizeof(double)) ; }
-  
-  return ; }
-
+  dual_.applyDiff(&diff->diff_);
+}

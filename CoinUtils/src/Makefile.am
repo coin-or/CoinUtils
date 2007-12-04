@@ -83,7 +83,9 @@ libCoinUtils_la_SOURCES = \
 	CoinUtility.hpp \
 	CoinWarmStart.hpp \
 	CoinWarmStartBasis.cpp CoinWarmStartBasis.hpp \
-	CoinWarmStartDual.cpp CoinWarmStartDual.hpp
+	CoinWarmStartVector.cpp CoinWarmStartVector.hpp \
+	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
+	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
 
 # This is for libtool (on Windows)
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
@@ -163,7 +165,9 @@ include_HEADERS = \
 	CoinUtility.hpp \
 	CoinWarmStart.hpp \
 	CoinWarmStartBasis.hpp \
-	CoinWarmStartDual.hpp
+	CoinWarmStartVector.hpp \
+	CoinWarmStartDual.hpp \
+	CoinWarmStartPrimalDual.hpp
 
 #############################################################################
 # Create the Config.h file that always defines HAVE_CONFIG_H and install it #

@@ -19,6 +19,10 @@ CoinUtils/src/CoinSearchTree.hpp -text
 CoinUtils/src/CoinSmartPtr.hpp -text
 CoinUtils/src/CoinSnapshot.cpp -text
 CoinUtils/src/CoinSnapshot.hpp -text
+CoinUtils/src/CoinWarmStartPrimalDual.cpp -text
+CoinUtils/src/CoinWarmStartPrimalDual.hpp -text
+CoinUtils/src/CoinWarmStartVector.cpp -text
+CoinUtils/src/CoinWarmStartVector.hpp -text
 CoinUtils/test/CoinMessageHandlerTest.cpp -text
 /INSTALL -text
 /config.guess -text

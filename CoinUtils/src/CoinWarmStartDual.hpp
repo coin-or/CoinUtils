@@ -6,6 +6,7 @@
 
 #include "CoinHelperFunctions.hpp"
 #include "CoinWarmStart.hpp"
+#include "CoinWarmStartVector.hpp"
 
 
 //#############################################################################
@@ -13,59 +14,37 @@
 /** WarmStart information that is only a dual vector */
 
 class CoinWarmStartDual : public CoinWarmStart {
-protected:
-   inline void gutsOfDestructor() {
-      delete[] dualVector_;
-   }
-   inline void gutsOfCopy(const CoinWarmStartDual& rhs) {
-      dualSize_  = rhs.dualSize_;
-      dualVector_ = new double[dualSize_];
-      CoinDisjointCopyN(rhs.dualVector_, dualSize_, dualVector_);
-   }
-
 public:
    /// return the size of the dual vector
-   int size() const { return dualSize_; }
+   inline int size() const { return dual_.size(); }
    /// return a pointer to the array of duals
-   const double * dual() const { return dualVector_; }
+   inline const double * dual() const { return dual_.values(); }
 
    /** Assign the dual vector to be the warmstart information. In this method
        the object assumes ownership of the pointer and upon return "dual" will
        be a NULL pointer. If copying is desirable use the constructor. */
-   void assignDual(int size, double *& dual) {
-      dualSize_ = size;
-      delete[] dualVector_;
-      dualVector_ = dual;
-      dual = NULL;
-   }
+   inline void assignDual(int size, double *& dual)
+    { dual_.assignVector(size, dual); }
 
-   CoinWarmStartDual() : dualSize_(0), dualVector_(NULL) {}
+   CoinWarmStartDual() {}
 
-   CoinWarmStartDual(int size, const double * dual) :
-      dualSize_(size), dualVector_(new double[size]) {
-      CoinDisjointCopyN(dual, size, dualVector_);
-   }
+   CoinWarmStartDual(int size, const double * dual) : dual_(size, dual) {}
 
-   CoinWarmStartDual(const CoinWarmStartDual& rhs) {
-      gutsOfCopy(rhs);
-   }
+   CoinWarmStartDual(const CoinWarmStartDual& rhs) : dual_(rhs.dual_) {}
 
    CoinWarmStartDual& operator=(const CoinWarmStartDual& rhs) {
-      if (this != &rhs) {
-	 gutsOfDestructor();
-	 gutsOfCopy(rhs);
-      }
-      return *this;
+     if (this != &rhs) {
+       dual_ = rhs.dual_;
+     }
+     return *this;
    }
 
    /** `Virtual constructor' */
    virtual CoinWarmStart *clone() const {
       return new CoinWarmStartDual(*this);
    }
-     
-   virtual ~CoinWarmStartDual() {
-      gutsOfDestructor();
-   }
+
+   virtual ~CoinWarmStartDual() {}
 
 /*! \name Dual warm start `diff' methods */
 //@{
@@ -88,16 +67,14 @@ public:
 
   virtual void applyDiff (const CoinWarmStartDiff *const cwsdDiff) ;
 
+protected:
+  inline const CoinWarmStartVector& warmStartVector() const { return dual_; }
+
 //@}
 
 private:
    ///@name Private data members
-   //@{
-   /// the size of the dual vector
-   int dualSize_;
-   /// the dual vector itself
-   double * dualVector_;
-   //@}
+    CoinWarmStartVector dual_;
 };
 
 //#############################################################################
@@ -122,16 +99,21 @@ class CoinWarmStartDualDiff : public CoinWarmStartDiff
 
   /*! \brief `Virtual constructor' */
   virtual CoinWarmStartDiff *clone() const
-  { CoinWarmStartDualDiff *cwsdd =  new CoinWarmStartDualDiff(*this) ;
-    return (dynamic_cast<CoinWarmStartDiff *>(cwsdd)) ; }
+  {
+      return new CoinWarmStartDualDiff(*this) ;
+  }
 
   /*! \brief Assignment */
-  virtual CoinWarmStartDualDiff &operator= (const CoinWarmStartDualDiff &rhs) ;
+  virtual CoinWarmStartDualDiff &operator= (const CoinWarmStartDualDiff &rhs)
+  {
+      if (this != &rhs) {
+	  diff_ = rhs.diff_;
+      }
+      return *this;
+  }
 
   /*! \brief Destructor */
-  virtual ~CoinWarmStartDualDiff()
-  { delete[] diffNdxs_ ;
-    delete[] diffVals_ ; }
+  virtual ~CoinWarmStartDualDiff() {}
 
   protected:
 
@@ -141,7 +123,7 @@ class CoinWarmStartDualDiff : public CoinWarmStartDiff
     see it when they make <i>their</i> default constructor protected or
     private.
   */
-  CoinWarmStartDualDiff () : sze_(0), diffNdxs_(0), diffVals_(NULL) {} 
+  CoinWarmStartDualDiff () : diff_() {}
 
   /*! \brief Copy constructor
   
@@ -153,7 +135,8 @@ class CoinWarmStartDualDiff : public CoinWarmStartDiff
     see it when the make <i>their</i> copy constructor protected or
     private.
   */
-  CoinWarmStartDualDiff (const CoinWarmStartDualDiff &rhs) ;
+  CoinWarmStartDualDiff (const CoinWarmStartDualDiff &rhs) :
+      diff_(rhs.diff_) {}
 
   private:
 
@@ -164,22 +147,15 @@ class CoinWarmStartDualDiff : public CoinWarmStartDiff
 
   /*! \brief Standard constructor */
   CoinWarmStartDualDiff (int sze, const unsigned int *const diffNdxs,
-			 const double *const diffVals) ;
-  
+			 const double *const diffVals) :
+      diff_(sze, diffNdxs, diffVals) {}
+
   /*!
-      \brief Number of entries (and allocated capacity), in units of
-	     \c double.
+      \brief The difference in the dual vector is simply the difference in a
+      vector.
   */
-  int sze_ ;
-
-  /*! \brief Array of diff indices */
-
-  unsigned int *diffNdxs_ ;
-
-  /*! \brief Array of diff values */
-
-  double *diffVals_ ;
-} ;
+  CoinWarmStartVectorDiff diff_;
+};
 
 
 #endif
