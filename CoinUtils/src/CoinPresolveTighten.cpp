@@ -213,6 +213,10 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	    action *s = &actions[nactions];	  
 	    nactions++;
 	    s->col = j;
+	    if (integerType[j]) {
+	      assert (iflag==-1||iflag==1);
+	      iflag *= 2; // say integer
+	    }
 	    s->direction = iflag;
 
 	    s->rows =   new int[hincol[j]];
@@ -324,7 +328,7 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
 
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
     int jcol = f->col;
-    //    int iflag = f->direction;
+    int iflag = f->direction;
     int nr   = f->nrows;
     const int *rows = f->rows;
     const double *lbound = f->lbound;
@@ -371,11 +375,33 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
 
 	// adjust to just meet newrlo (solve for correction)
 	double new_correction = (newrlo - activity) / coeff;
+	//adjust if integer
+	if (iflag==-2||iflag==2) {
+	  new_correction += sol[jcol];
+	  if (fabs(floor(new_correction+0.5)-new_correction)>1.0e-4) {
+	    new_correction = ceil(new_correction)-sol[jcol];
+#ifdef COIN_DEVELOP
+	    printf("integer postsolve changing correction from %g to %g - flag %d\n",
+		   (newrlo-activity)/coeff,new_correction,iflag);
+#endif
+	  }
+	}
 	correction = new_correction;
       } else if (activity + correction * coeff > newrup) {
 	last_corrected = irow;
 
 	double new_correction = (newrup - activity) / coeff;
+	//adjust if integer
+	if (iflag==-2||iflag==2) {
+	  new_correction += sol[jcol];
+	  if (fabs(floor(new_correction+0.5)-new_correction)>1.0e-4) {
+	    new_correction = ceil(new_correction)-sol[jcol];
+#ifdef COIN_DEVELOP
+	    printf("integer postsolve changing correction from %g to %g - flag %d\n",
+		   (newrup-activity)/coeff,new_correction,iflag);
+#endif
+	  }
+	}
 	correction = new_correction;
       }
     }
