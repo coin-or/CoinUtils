@@ -413,12 +413,21 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	  !(fabs(cup[icoly] - clo[icolx]) < ZTOLDP) &&
 	  !(fabs(cup[icolz] - clo[icoly]) < ZTOLDP)) {
 	assert (coeffx*coeffz>0.0&&coeffx*coeffy<0.0);
-	/* don't do if y integer for now */
-	if (integerType[icoly])
-	  continue;
 	// Only do if does not give implicit bounds on x and z
 	double cx = - coeffx/coeffy;
 	double cz = - coeffz/coeffy;
+	/* don't do if y integer for now */
+	if (integerType[icoly]) {
+#define PRESOLVE_DANGEROUS
+#ifndef PRESOLVE_DANGEROUS
+	  continue;
+#else
+	  if (!integerType[icolx]||!integerType[icolz])
+	    continue;
+	  if (cx!=floor(cx+0.5)||cz!=floor(cz+0.5))
+	    continue;
+#endif
+	}
 	double rhsRatio = rhs/coeffy;
 	if (clo[icoly]>-1.0e30) {
 	  if (clo[icolx]<-1.0e30||clo[icolz]<-1.0e30)
