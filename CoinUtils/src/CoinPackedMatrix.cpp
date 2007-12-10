@@ -23,10 +23,12 @@
 #include <stdio.h>
 
 //#############################################################################
-static inline int
-CoinLengthWithExtra(int len, double extraGap)
+// T must be an integral type (int, CoinBigIndex, etc.)
+template <typename T>
+static inline T
+CoinLengthWithExtra(T len, double extraGap)
 {
-  return static_cast<int>(ceil(len * (1 + extraGap)));
+  return static_cast<T>(ceil(len * (1 + extraGap)));
 }
 
 //#############################################################################
@@ -818,7 +820,7 @@ CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix& rhs)
    }
 
    const CoinBigIndex newMaxSize =
-      CoinMax(maxSize_, getLastStart()+ (CoinBigIndex) extraMajor_);
+      CoinMax(maxSize_, CoinLengthWithExtra(getLastStart(), extraMajor_));
 
    if (newMaxSize > maxSize_) {
       maxSize_ = newMaxSize;
@@ -2327,7 +2329,7 @@ CoinPackedMatrix::resizeForAddingMajorVectors(const int numVec,
   }
 
   maxSize_ =
-    CoinMax(maxSize_,newStart[majorDim_]+ (int) extraMajor_);
+    CoinMax(maxSize_, CoinLengthWithExtra(newStart[majorDim_], extraMajor_));
   majorDim_ -= numVec;
 
   int * newIndex = new int[maxSize_];
@@ -2375,7 +2377,7 @@ CoinPackedMatrix::resizeForAddingMinorVectors(const int * addedEntries)
       newLength[i] -= addedEntries[i];
 
    maxSize_ =
-     CoinMax(newStart[majorDim_]+ (int) extraMajor_, maxSize_);
+     CoinMax(maxSize_, CoinLengthWithExtra(newStart[majorDim_], extraMajor_));
    int * newIndex = new int[maxSize_];
    double * newElem = new double[maxSize_];
    for (i = majorDim_ - 1; i >= 0; --i) {
