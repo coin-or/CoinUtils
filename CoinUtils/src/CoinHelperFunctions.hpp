@@ -811,5 +811,80 @@ inline double CoinCbrt(double x)
     return cbrt(x);
 #endif
 }
+/** Class for thread specific random numbers
+*/
+
+class CoinThreadRandom  {
+public:
+  /**@name Constructors, destructor */
+
+  //@{
+  /** Default constructor. */
+  CoinThreadRandom()
+  { seed_[0]=50000;seed_[1]=40000;seed_[2]=30000;}
+  /** Constructor wih seed. */
+  CoinThreadRandom(const unsigned short seed[3])
+  { memcpy(seed_,seed,3*sizeof(unsigned short));}
+  /** Constructor wih seed. */
+  CoinThreadRandom(int seed)
+  { 
+    union { int i[2]; unsigned short int s[4];} put;
+    put.i[0]=seed;
+    put.i[1]=seed;
+    memcpy(seed_,put.s,3*sizeof(unsigned short));
+  }
+  /** Destructor */
+  ~CoinThreadRandom() {};
+  // Copy
+  CoinThreadRandom(const CoinThreadRandom & rhs)
+  { memcpy(seed_,rhs.seed_,3*sizeof(unsigned short));}
+  // Assignment
+  CoinThreadRandom& operator=(const CoinThreadRandom & rhs)
+  {
+    if (this != &rhs) {
+      memcpy(seed_,rhs.seed_,3*sizeof(unsigned short));
+    }
+    return *this;
+  }
+
+  //@}
+  
+  /**@name Sets/gets */
+
+  //@{
+  /** Set seed. */
+  inline void setSeed(const unsigned short seed[3])
+  { memcpy(seed_,seed,3*sizeof(unsigned short));}
+  /** Set seed. */
+  inline void setSeed(int seed)
+  { 
+    union { int i[2]; unsigned short int s[4];} put;
+    put.i[0]=seed;
+    put.i[1]=seed;
+    memcpy(seed_,put.s,3*sizeof(unsigned short));
+  }
+  /// return a random number
+  inline double randomDouble() const
+  {
+    double retVal;
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN32__)
+    retVal=rand();
+    retVal=retVal/(double) RAND_MAX;
+#else
+    retVal = erand48(seed_);
+#endif
+    return retVal;
+  }
+  //@}
+  
+  
+protected:
+  /**@name Data members
+     The data members are protected to allow access for derived classes. */
+  //@{
+  /// Current seed
+  mutable unsigned short seed_[3];
+  //@}
+};
 
 #endif
