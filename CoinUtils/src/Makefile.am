@@ -27,6 +27,7 @@ LIBS =
 libCoinUtils_la_SOURCES = \
 	CoinUtilsConfig.h \
 	Coin_C_defines.h \
+	CoinAlloc.cpp CoinAlloc.hpp \
 	CoinBuild.cpp CoinBuild.hpp \
 	CoinDenseVector.cpp CoinDenseVector.hpp \
 	CoinDistance.hpp \
@@ -117,6 +118,7 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 include_HEADERS = \
 	../inc/config_coinutils.h \
 	Coin_C_defines.h \
+	CoinAlloc.hpp \
 	CoinBuild.hpp \
 	CoinDenseVector.hpp \
 	CoinDistance.hpp \

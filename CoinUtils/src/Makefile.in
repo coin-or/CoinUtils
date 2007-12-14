@@ -65,16 +65,17 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-am_libCoinUtils_la_OBJECTS = CoinBuild.lo CoinDenseVector.lo \
-	CoinError.lo CoinFactorization1.lo CoinFactorization2.lo \
-	CoinFactorization3.lo CoinFactorization4.lo CoinFileIO.lo \
-	CoinIndexedVector.lo CoinLpIO.lo CoinMessage.lo \
-	CoinMessageHandler.lo CoinModel.lo CoinModelUseful.lo \
-	CoinModelUseful2.lo CoinMpsIO.lo CoinPackedMatrix.lo \
-	CoinPackedVector.lo CoinPackedVectorBase.lo CoinParam.lo \
-	CoinParamUtils.lo CoinPostsolveMatrix.lo \
-	CoinPrePostsolveMatrix.lo CoinPresolveDoubleton.lo \
-	CoinPresolveDual.lo CoinPresolveDupcol.lo CoinPresolveEmpty.lo \
+am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
+	CoinDenseVector.lo CoinError.lo CoinFactorization1.lo \
+	CoinFactorization2.lo CoinFactorization3.lo \
+	CoinFactorization4.lo CoinFileIO.lo CoinIndexedVector.lo \
+	CoinLpIO.lo CoinMessage.lo CoinMessageHandler.lo CoinModel.lo \
+	CoinModelUseful.lo CoinModelUseful2.lo CoinMpsIO.lo \
+	CoinPackedMatrix.lo CoinPackedVector.lo \
+	CoinPackedVectorBase.lo CoinParam.lo CoinParamUtils.lo \
+	CoinPostsolveMatrix.lo CoinPrePostsolveMatrix.lo \
+	CoinPresolveDoubleton.lo CoinPresolveDual.lo \
+	CoinPresolveDupcol.lo CoinPresolveEmpty.lo \
 	CoinPresolveFixed.lo CoinPresolveForcing.lo \
 	CoinPresolveHelperFunctions.lo CoinPresolveImpliedFree.lo \
 	CoinPresolveIsolated.lo CoinPresolveMatrix.lo \
@@ -293,6 +294,7 @@ lib_LTLIBRARIES = libCoinUtils.la
 libCoinUtils_la_SOURCES = \
 	CoinUtilsConfig.h \
 	Coin_C_defines.h \
+	CoinAlloc.cpp CoinAlloc.hpp \
 	CoinBuild.cpp CoinBuild.hpp \
 	CoinDenseVector.cpp CoinDenseVector.hpp \
 	CoinDistance.hpp \
@@ -380,6 +382,7 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 include_HEADERS = \
 	../inc/config_coinutils.h \
 	Coin_C_defines.h \
+	CoinAlloc.hpp \
 	CoinBuild.hpp \
 	CoinDenseVector.hpp \
 	CoinDistance.hpp \
@@ -508,6 +511,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinAlloc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinBuild.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseVector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinError.Plo@am__quote@

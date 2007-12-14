@@ -14,6 +14,8 @@ CoinUtils/coinutils_addlibs.txt.in -text
 CoinUtils/configure -text
 CoinUtils/configure.ac -text
 CoinUtils/inc/config_coinutils.h.in -text
+CoinUtils/src/CoinAlloc.cpp -text
+CoinUtils/src/CoinAlloc.hpp -text
 CoinUtils/src/CoinSearchTree.cpp -text
 CoinUtils/src/CoinSearchTree.hpp -text
 CoinUtils/src/CoinSmartPtr.hpp -text
