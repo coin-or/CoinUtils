@@ -2,6 +2,8 @@
 CoinUtils/LICENSE -text
 CoinUtils/MSVisualStudio/v6/libCoinUtils/libCoinUtils.dsp -text
 CoinUtils/MSVisualStudio/v6/unitTestCoinUtils/unitTestCoinUtils.dsp -text
+CoinUtils/MSVisualStudio/v7/CoinUtils.sln -text
+CoinUtils/MSVisualStudio/v7/CoinUtils.suo -text
 CoinUtils/MSVisualStudio/v7/libCoinUtils/libCoinUtils.vcproj -text
 CoinUtils/MSVisualStudio/v7/unitTestCoinUtils/unitTestCoinUtils.vcproj -text
 CoinUtils/MSVisualStudio/v8/CoinUtils.sln -text
