@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="libCoinUtils"
+	ProjectGUID="{3FF2C6EE-EF72-44A1-9C75-CF6B496AB108}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -122,6 +123,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\..\src\CoinAlloc.cpp">
+			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinBuild.cpp">
 				<FileConfiguration
@@ -957,6 +961,9 @@
 			Filter="h;hpp;hxx;hm;inl">
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\Coin_C_defines.h">
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinAlloc.hpp">
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinBuild.hpp">

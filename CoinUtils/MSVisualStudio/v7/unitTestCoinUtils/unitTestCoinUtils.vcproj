@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="unitTestCoinUtils"
+	ProjectGUID="{82F8C156-9529-4759-9719-38CCBC9DE5CD}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
