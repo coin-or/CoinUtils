@@ -470,7 +470,7 @@ CoinWarmStartBasis::generateDiff (const CoinWarmStart *const oldCWS) const
   Create the object of our desire.
 */
   CoinWarmStartBasisDiff *diff;
-  if (numberChanged*2+1000000<maxBasisLength+1||!newStructCnt)
+  if (numberChanged*2<maxBasisLength+1||!newStructCnt)
     diff = new CoinWarmStartBasisDiff(numberChanged,diffNdx,diffVal) ;
   else
     diff = new CoinWarmStartBasisDiff(newBasis) ;
