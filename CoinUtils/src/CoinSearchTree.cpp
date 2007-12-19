@@ -88,15 +88,3 @@ CoinSearchTreeManager::reevaluateSearchStrategy()
 	}
     }
 }
-
-const std::string
-CoinSearchTreeCompareBest::compName("CoinSearchTreeCompareBest");
-
-const std::string
-CoinSearchTreeCompareBreadth::compName("CoinSearchTreeCompareBreadth");
-
-const std::string
-CoinSearchTreeCompareDepth::compName("CoinSearchTreeCompareDepth");
-
-const std::string
-CoinSearchTreeComparePreferred::compName("CoinSearchTreeComparePreferred");

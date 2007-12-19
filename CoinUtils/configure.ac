@@ -272,6 +272,38 @@ else
 fi
 
 #############################################################################
+#                       Thread configuration				    #
+#############################################################################
+
+# Define new options: --enable-coinutils-threads --enable-coinutils-override-new
+
+AC_ARG_ENABLE([coinutils-threads],
+[AC_HELP_STRING([--enable-coinutils-threads],
+                [enables compilation of thread aware CoinUtils (mempool so far)])])
+
+if test "$enable_coinutils_threads" = yes; then
+  # Define the preprocessor macro
+  AC_DEFINE([COINUTILS_PTHREADS],[1],[Define to 1 if the thread aware version of CoinUtils should be compiled])
+  AC_CHECK_LIB([rt],[clock_gettime],
+               [ADDLIBS="-lrt $ADDLIBS"],
+	       [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lrt unavailable])])
+  AC_CHECK_LIB([pthread],[pthread_create],
+               [ADDLIBS="-lpthread $ADDLIBS"],
+	       [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lpthreads unavailable])])
+fi
+
+AC_ARG_ENABLE([coinutils-override-new],
+[AC_HELP_STRING([--enable-coinutils-override-new],
+                [enables the CoinUtils mempool to override global new/delete])])
+
+if test "$enable_coinutils_override_new" = yes; then
+   AC_DEFINE([COINUTILS_OVERRIDE_NEW],[1],[Define to 1 CoinUtils should override global new/delete])
+fi
+
+AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(void *)
+
+#############################################################################
 #                       Finding certain integer types                       #
 #############################################################################
 

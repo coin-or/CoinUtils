@@ -133,7 +133,6 @@ public:
 /*@{*/
 /** Depth First Search. */
 struct CoinSearchTreeComparePreferred {
-  static const std::string compName;
   static inline const char* name() { return "CoinSearchTreeComparePreferred"; }
   inline bool operator()(const CoinTreeSiblings* x,
 			 const CoinTreeSiblings* y) const {
@@ -160,7 +159,6 @@ struct CoinSearchTreeComparePreferred {
 //-----------------------------------------------------------------------------
 /** Depth First Search. */
 struct CoinSearchTreeCompareDepth {
-  static const std::string compName;
   static inline const char* name() { return "CoinSearchTreeCompareDepth"; }
   inline bool operator()(const CoinTreeSiblings* x,
 			 const CoinTreeSiblings* y) const {
@@ -180,7 +178,6 @@ struct CoinSearchTreeCompareDepth {
 //-----------------------------------------------------------------------------
 /* Breadth First Search */
 struct CoinSearchTreeCompareBreadth {
-  static const std::string compName;
   static inline const char* name() { return "CoinSearchTreeCompareBreadth"; }
   inline bool operator()(const CoinTreeSiblings* x,
 			 const CoinTreeSiblings* y) const {
@@ -191,7 +188,6 @@ struct CoinSearchTreeCompareBreadth {
 //-----------------------------------------------------------------------------
 /** Best first search */
 struct CoinSearchTreeCompareBest {
-  static const std::string compName;
   static inline const char* name() { return "CoinSearchTreeCompareBest"; }
   inline bool operator()(const CoinTreeSiblings* x,
 			 const CoinTreeSiblings* y) const {
@@ -310,7 +306,7 @@ public:
 	size_ = t.size_;
     }
     ~CoinSearchTree() {}
-    std::string printComp() const { comp_.compName; }
+    std::string printComp() const { return Comp::name(); }
     const char* compName() const { return Comp::name(); }
 };
 
@@ -377,7 +373,7 @@ public:
 	size_ = t.size();
     }
     ~CoinSearchTree() {}
-    std::string printComp() const { return comp_.compName; }
+    std::string printComp() const { return Comp::name(); }
     const char* compName() const { return Comp::name(); }
 };
 

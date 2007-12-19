@@ -1,5 +1,11 @@
 /* inc/config_coinutils.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to 1 CoinUtils should override global new/delete */
+#undef COINUTILS_OVERRIDE_NEW
+
+/* Define to 1 if the thread aware version of CoinUtils should be compiled */
+#undef COINUTILS_PTHREADS
+
 /* Define to the debug sanity check level (0 is no test) */
 #undef COIN_COINUTILS_CHECKLEVEL
 
@@ -148,6 +154,12 @@
 
 /* The size of a `long long', as computed by sizeof. */
 #undef SIZEOF_LONG_LONG
+
+/* The size of a `size_t', as computed by sizeof. */
+#undef SIZEOF_SIZE_T
+
+/* The size of a `void *', as computed by sizeof. */
+#undef SIZEOF_VOID_P
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
