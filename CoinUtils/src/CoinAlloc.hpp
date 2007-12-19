@@ -5,6 +5,9 @@
 #define CoinAlloc_hpp
 
 #include "config_coinutils.h"
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 
 /* Note:
    This memory pool implementation assumes that sizeof(size_t) <= sizeof(void*)
