@@ -4,7 +4,7 @@
 #ifndef CoinAlloc_hpp
 #define CoinAlloc_hpp
 
-#include "CoinUtilsConfig.hpp"
+#include "CoinUtilsConfig.h"
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
