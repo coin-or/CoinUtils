@@ -24056,6 +24056,12 @@ cat >>confdefs.h <<\_ACEOF
 #define COINUTILS_MEMPOOL_MAXPOOLED -1
 _ACEOF
 
+elif test x"$enable_coinutils_mempool_maxpooled" = x; then
+
+cat >>confdefs.h <<\_ACEOF
+#define COINUTILS_MEMPOOL_MAXPOOLED -1
+_ACEOF
+
 else
 
 cat >>confdefs.h <<_ACEOF

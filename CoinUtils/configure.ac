@@ -311,6 +311,8 @@ if test "$enable_coinutils_mempool_maxpooled" = yes; then
    AC_DEFINE([COINUTILS_MEMPOOL_MAXPOOLED],[4096],[Default maximum pooled allocation size])
 elif test "$enable_coinutils_mempool_maxpooled" = no; then
    AC_DEFINE([COINUTILS_MEMPOOL_MAXPOOLED],[-1],[Disable CoinUtils memory pool])
+elif test x"$enable_coinutils_mempool_maxpooled" = x; then
+   AC_DEFINE([COINUTILS_MEMPOOL_MAXPOOLED],[-1],[Disable CoinUtils memory pool])
 else
    AC_DEFINE_UNQUOTED([COINUTILS_MEMPOOL_MAXPOOLED],${enable_coinutils_mempool_maxpooled},[Default maximum pooled allocation size])
 fi
