@@ -13,21 +13,21 @@
    This memory pool implementation assumes that sizeof(size_t) <= sizeof(void*)
 */
 
-#if !defined(COIN_DISABLE_MEMPOOL) && (SIZEOF_SIZE_T > SIZEOF_VOID_P)
-#error "On this platform sizeof(size_t) > sizeof(void*). Please, explicitly disable memory pool by defining COIN_DISABLE_MEMPOOL"
+#if !defined(COINUTILS_MEMPOOL_MAXPOOLED)
+#  define COINUTILS_MEMPOOL_MAXPOOLED -1
+#endif
+
+#if (COINUTILS_MEMPOOL_MAXPOOLED >= 0)
+
+#if (SIZEOF_SIZE_T > SIZEOF_VOID_P)
+#error "On this platform sizeof(size_t) > sizeof(void*). Please, explicitly disable memory pool by --with-coinutils-mempool-maxpooled=-1 if configure is used or by defining COINUTILS_MEMPOOL_MAXPOOLED as -1"
 #endif
 
 #if (SIZEOF_VOID_P != 4 && SIZEOF_VOID_P != 8)
-#error "On this platform sizeof(void*) is neither 4 nor 8. Please, explicitly disable memory pool by defining COIN_DISABLE_MEMPOOL"
+#error "On this platform sizeof(void*) is neither 4 nor 8. Please, explicitly disable memory pool by --with-coinutils-mempool-maxpooled=-1 if configure is used or by defining COINUTILS_MEMPOOL_MAXPOOLED as -1"
 #endif
 
-#ifndef COIN_DISABLE_MEMPOOL
-
 //#############################################################################
-
-static const std::size_t CoinAllocBlockSize = 1024;
-static const std::size_t CoinAllocMaxPooledSize = 2048;
-static const std::size_t CoinAllocTableSize = CoinAllocMaxPooledSize / SIZEOF_VOID_P;
 
 #if (SIZEOF_VOID_P == 4)
 static const std::size_t CoinAllocPtrShift = 2;
@@ -56,6 +56,7 @@ private:
 #if defined(COINUTILS_PTHREADS) && (COINUTILS_PTHREAD == 1)
   pthread_mutex_t mutex_;
 #endif
+  int last_block_size_;
   void** first_free_;
   const std::size_t entry_size_;
   const std::size_t ptr_in_entry_;
@@ -99,7 +100,7 @@ public:
     If a request arrives for allocating \c n bytes then it is first
     rounded up to the nearest multiple of \c sizeof(void*) (this is \c
     n_roundup), then one more \c sizeof(void*) is added to this
-    number. If the result is no more than CoinAllocMaxPooledSize then
+    number. If the result is no more than maxpooled_ then
     the appropriate pool is used to get a chunk of memory, if not,
     then malloc is used. In either case, the size of the allocated
     chunk is written into the first \c sizeof(void*) bytes and a
@@ -109,22 +110,22 @@ public:
 class CoinAlloc
 {
 private:
-  CoinMempool pool_[CoinAllocTableSize];
-  int alloc_strategy_;
+  CoinMempool* pool_;
+  int maxpooled_;
 public:
   CoinAlloc();
   ~CoinAlloc() {}
 
   inline void* alloc(const std::size_t n)
   {
-    if (alloc_strategy_ == 0) {
+    if (maxpooled_ <= 0) {
       return malloc(n);
     }
     void *p = NULL;
     const std::size_t to_alloc =
       ((n+SIZEOF_VOID_P-1) & CoinAllocRoundMask) + SIZEOF_VOID_P;
     CoinMempool* pool = NULL;
-    if (to_alloc > CoinAllocMaxPooledSize) {
+    if (maxpooled_ > 0 && to_alloc >= (size_t)maxpooled_) {
       p = malloc(to_alloc);
       if (p == NULL) throw std::bad_alloc();
     } else {
@@ -137,7 +138,7 @@ public:
 
   inline void dealloc(void* p)
   {
-    if (alloc_strategy_ == 0) {
+    if (maxpooled_ <= 0) {
       free(p);
       return;
     }
@@ -157,7 +158,7 @@ extern CoinAlloc CoinAllocator;
 
 //#############################################################################
 
-#if defined(COINUTILS_OVERRIDE_NEW) && (COINUTILS_OVERRIDE_NEW==1)
+#if defined(COINUTILS_MEMPOOL_OVERRIDE_NEW) && (COINUTILS_MEMPOOL_OVERRIDE_NEW == 1)
 void* operator new(std::size_t size) throw (std::bad_alloc);
 void* operator new[](std::size_t) throw (std::bad_alloc);
 void operator delete(void*) throw();
@@ -168,6 +169,6 @@ void operator delete(void*, const std::nothrow_t&) throw();
 void operator delete[](void*, const std::nothrow_t&) throw();
 #endif
 
-#endif /*COIN_DISABLE_MEMPOOL*/
+#endif /*(COINUTILS_MEMPOOL_MAXPOOLED >= 0)*/
 
 #endif

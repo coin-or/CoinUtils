@@ -1112,9 +1112,16 @@ Optional Features:
   --enable-coinutils-threads
                           enables compilation of thread aware CoinUtils
                           (mempool so far)
-  --enable-coinutils-override-new
+  --enable-coinutils-mempool-override-new
                           enables the CoinUtils mempool to override global
                           new/delete
+  --enable-coinutils-mempool-maxpooled
+                          Specify the default maximum memory allocation size
+                          that is served by the memory pool. If negative (or
+                          'no') then the memory pool is disabled completely.
+                          Otherwise its value can be overridden at runtime
+                          using the COINUTILS_MEMPOOL_MAXPOOLED environment
+                          variable.
   --enable-gmpl-libcheck use disable-gmpl-libcheck to skip the
                           link check at configuration time
   --enable-gnu-packages   compile with GNU packages (disabled by default)
@@ -4214,7 +4221,7 @@ fi
 
 
 # Provide some information about the compiler.
-echo "$as_me:4217:" \
+echo "$as_me:4224:" \
      "checking for Fortran 77 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -4780,7 +4787,7 @@ _ACEOF
 # flags.
 ac_save_FFLAGS=$FFLAGS
 FFLAGS="$FFLAGS $ac_verb"
-(eval echo $as_me:4783: \"$ac_link\") >&5
+(eval echo $as_me:4790: \"$ac_link\") >&5
 ac_f77_v_output=`eval $ac_link 5>&1 2>&1 | grep -v 'Driving:'`
 echo "$ac_f77_v_output" >&5
 FFLAGS=$ac_save_FFLAGS
@@ -4858,7 +4865,7 @@ _ACEOF
 # flags.
 ac_save_FFLAGS=$FFLAGS
 FFLAGS="$FFLAGS $ac_cv_prog_f77_v"
-(eval echo $as_me:4861: \"$ac_link\") >&5
+(eval echo $as_me:4868: \"$ac_link\") >&5
 ac_f77_v_output=`eval $ac_link 5>&1 2>&1 | grep -v 'Driving:'`
 echo "$ac_f77_v_output" >&5
 FFLAGS=$ac_save_FFLAGS
@@ -7331,7 +7338,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7334 "configure"' > conftest.$ac_ext
+  echo '#line 7341 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9311,11 +9318,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9314: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9321: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9318: \$? = $ac_status" >&5
+   echo "$as_me:9325: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9579,11 +9586,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9582: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9589: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9586: \$? = $ac_status" >&5
+   echo "$as_me:9593: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9683,11 +9690,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9686: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9693: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9690: \$? = $ac_status" >&5
+   echo "$as_me:9697: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12100,7 +12107,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 12103 "configure"
+#line 12110 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12200,7 +12207,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 12203 "configure"
+#line 12210 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14560,11 +14567,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14563: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14570: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14567: \$? = $ac_status" >&5
+   echo "$as_me:14574: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14664,11 +14671,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14667: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14674: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14671: \$? = $ac_status" >&5
+   echo "$as_me:14678: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16234,11 +16241,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16237: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16244: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16241: \$? = $ac_status" >&5
+   echo "$as_me:16248: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16338,11 +16345,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16341: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16348: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16345: \$? = $ac_status" >&5
+   echo "$as_me:16352: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -18545,11 +18552,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18548: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18555: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18552: \$? = $ac_status" >&5
+   echo "$as_me:18559: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -18813,11 +18820,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18816: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18823: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18820: \$? = $ac_status" >&5
+   echo "$as_me:18827: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -18917,11 +18924,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18920: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18927: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:18924: \$? = $ac_status" >&5
+   echo "$as_me:18931: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -23837,7 +23844,10 @@ fi
 #                       Thread configuration				    #
 #############################################################################
 
-# Define new options: --enable-coinutils-threads --enable-coinutils-override-new
+# Define new options:
+#    --enable-coinutils-threads
+#    --enable-coinutils-mempool-override-new
+#    --enable-coinutils-mempool-maxpooled
 
 # Check whether --enable-coinutils-threads or --disable-coinutils-threads was given.
 if test "${enable_coinutils_threads+set}" = set; then
@@ -24014,16 +24024,42 @@ fi
 
 fi
 
-# Check whether --enable-coinutils-override-new or --disable-coinutils-override-new was given.
-if test "${enable_coinutils_override_new+set}" = set; then
-  enableval="$enable_coinutils_override_new"
+# Check whether --enable-coinutils-mempool-override-new or --disable-coinutils-mempool-override-new was given.
+if test "${enable_coinutils_mempool_override_new+set}" = set; then
+  enableval="$enable_coinutils_mempool_override_new"
 
 fi;
 
-if test "$enable_coinutils_override_new" = yes; then
+if test "$enable_coinutils_mempool_override_new" = yes; then
 
 cat >>confdefs.h <<\_ACEOF
-#define COINUTILS_OVERRIDE_NEW 1
+#define COINUTILS_MEMPOOL_OVERRIDE_NEW 1
+_ACEOF
+
+fi
+
+# Check whether --enable-coinutils-mempool-maxpooled or --disable-coinutils-mempool-maxpooled was given.
+if test "${enable_coinutils_mempool_maxpooled+set}" = set; then
+  enableval="$enable_coinutils_mempool_maxpooled"
+
+fi;
+
+if test "$enable_coinutils_mempool_maxpooled" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define COINUTILS_MEMPOOL_MAXPOOLED 4096
+_ACEOF
+
+elif test "$enable_coinutils_mempool_maxpooled" = no; then
+
+cat >>confdefs.h <<\_ACEOF
+#define COINUTILS_MEMPOOL_MAXPOOLED -1
+_ACEOF
+
+else
+
+cat >>confdefs.h <<_ACEOF
+#define COINUTILS_MEMPOOL_MAXPOOLED ${enable_coinutils_mempool_maxpooled}
 _ACEOF
 
 fi

@@ -6,7 +6,7 @@
 #include <new>
 #include "CoinAlloc.hpp"
 
-#ifndef COIN_DISABLE_MEMPOOL
+#if (COINUTILS_MEMPOOL_MAXPOOLED >= 0)
 
 //=============================================================================
 
@@ -16,6 +16,7 @@ CoinMempool::CoinMempool(size_t entry) :
   block_num_(0),
   max_block_num_(0),
 #endif
+  last_block_size_(0),
   first_free_(NULL),
   entry_size_(entry),
   ptr_in_entry_(entry_size_/sizeof(void*))
@@ -64,7 +65,7 @@ CoinMempool::alloc()
     block_heads_[block_num_++] = block;
 #endif
     // link in the new block
-    block[(CoinAllocBlockSize-1)*ptr_in_entry_]=static_cast<void*>(first_free_);
+    block[(last_block_size_-1)*ptr_in_entry_]=static_cast<void*>(first_free_);
     first_free_ = block;
   }
   void** p = first_free_;
@@ -78,13 +79,14 @@ CoinMempool::alloc()
 void**
 CoinMempool::allocate_new_block()
 {
-  void** block = static_cast<void**>(malloc(CoinAllocBlockSize*entry_size_));
+  last_block_size_ = static_cast<int>(1.5 * last_block_size_ + 32);
+  void** block = static_cast<void**>(malloc(last_block_size_*entry_size_));
   // link the entries in the new block together
-  for (int i = CoinAllocBlockSize-2; i >= 0; --i) {
+  for (int i = last_block_size_-2; i >= 0; --i) {
     block[i*ptr_in_entry_] = static_cast<void*>(block + ((i+1)*ptr_in_entry_));
   }
   // terminate the linked list with a null pointer
-  block[(CoinAllocBlockSize-1)*ptr_in_entry_] = NULL;
+  block[(last_block_size_-1)*ptr_in_entry_] = NULL;
   return block;
 }
 
@@ -92,18 +94,26 @@ CoinMempool::allocate_new_block()
 
 CoinAlloc CoinAllocator;
 
-CoinAlloc::CoinAlloc()
+CoinAlloc::CoinAlloc() :
+  pool_(NULL),
+  maxpooled_(COINUTILS_MEMPOOL_MAXPOOLED)
 {
-  const char* strategy = getenv("COIN_MEMPOOL_STRATEGY");
-  alloc_strategy_ = strategy == NULL ? 0 : atoi(strategy);
-  for (int i = CoinAllocTableSize-1; i >= 0; --i) {
-    new (&pool_[i]) CoinMempool(i*sizeof(void*));
+  maxpooled_ = (maxpooled_ / SIZEOF_VOID_P) * SIZEOF_VOID_P;
+  const char* maxpooled = getenv("COINUTILS_MEMPOOL_MAXPOOLED");
+  if (maxpooled) {
+    maxpooled_ = atoi(maxpooled);
+  }
+  if (maxpooled_ > 0) {
+    pool_ = new CoinMempool[maxpooled_/SIZEOF_VOID_P];
+    for (int i = (maxpooled_/SIZEOF_VOID_P)-1; i >= 0; --i) {
+      new (&pool_[i]) CoinMempool(i*sizeof(void*));
+    }
   }
 }
 
 //#############################################################################
 
-#if defined(COINUTILS_OVERRIDE_NEW) && (COINUTILS_OVERRIDE_NEW == 1)
+#if defined(COINUTILS_MEMPOOL_OVERRIDE_NEW) && (COINUTILS_MEMPOOL_OVERRIDE_NEW == 1)
 void* operator new(std::size_t sz) throw (std::bad_alloc)
 { 
   return CoinAllocator.alloc(sz); 
@@ -160,4 +170,4 @@ void operator delete[](void* p, const std::nothrow_t&) throw()
 
 #endif
 
-#endif /*COIN_DISABLE_MEMPOOL*/
+#endif /*(COINUTILS_MEMPOOL_MAXPOOLED >= 0)*/

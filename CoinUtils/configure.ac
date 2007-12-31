@@ -275,7 +275,10 @@ fi
 #                       Thread configuration				    #
 #############################################################################
 
-# Define new options: --enable-coinutils-threads --enable-coinutils-override-new
+# Define new options: 
+#    --enable-coinutils-threads 
+#    --enable-coinutils-mempool-override-new
+#    --enable-coinutils-mempool-maxpooled
 
 AC_ARG_ENABLE([coinutils-threads],
 [AC_HELP_STRING([--enable-coinutils-threads],
@@ -292,12 +295,24 @@ if test "$enable_coinutils_threads" = yes; then
 	       [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lpthreads unavailable])])
 fi
 
-AC_ARG_ENABLE([coinutils-override-new],
-[AC_HELP_STRING([--enable-coinutils-override-new],
+AC_ARG_ENABLE([coinutils-mempool-override-new],
+[AC_HELP_STRING([--enable-coinutils-mempool-override-new],
                 [enables the CoinUtils mempool to override global new/delete])])
 
-if test "$enable_coinutils_override_new" = yes; then
-   AC_DEFINE([COINUTILS_OVERRIDE_NEW],[1],[Define to 1 CoinUtils should override global new/delete])
+if test "$enable_coinutils_mempool_override_new" = yes; then
+   AC_DEFINE([COINUTILS_MEMPOOL_OVERRIDE_NEW],[1],[Define to 1 CoinUtils should override global new/delete])
+fi
+
+AC_ARG_ENABLE([coinutils-mempool-maxpooled],
+[AC_HELP_STRING([--enable-coinutils-mempool-maxpooled],
+                [Specify the default maximum memory allocation size that is served by the memory pool. If negative (or 'no') then the memory pool is disabled completely. Otherwise its value can be overridden at runtime using the COINUTILS_MEMPOOL_MAXPOOLED environment variable.])])
+
+if test "$enable_coinutils_mempool_maxpooled" = yes; then
+   AC_DEFINE([COINUTILS_MEMPOOL_MAXPOOLED],[4096],[Default maximum pooled allocation size])
+elif test "$enable_coinutils_mempool_maxpooled" = no; then
+   AC_DEFINE([COINUTILS_MEMPOOL_MAXPOOLED],[-1],[Disable CoinUtils memory pool])
+else
+   AC_DEFINE_UNQUOTED([COINUTILS_MEMPOOL_MAXPOOLED],${enable_coinutils_mempool_maxpooled},[Default maximum pooled allocation size])
 fi
 
 AC_CHECK_SIZEOF(size_t)
