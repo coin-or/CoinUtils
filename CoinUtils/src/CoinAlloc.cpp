@@ -18,13 +18,13 @@ CoinMempool::CoinMempool(size_t entry) :
 #endif
   last_block_size_(0),
   first_free_(NULL),
-  entry_size_(entry),
-  ptr_in_entry_(entry_size_/sizeof(void*))
+  entry_size_(entry)
 {
 #if defined(COINUTILS_PTHREADS) && (COINUTILS_PTHREAD == 1)
   pthread_mutex_init(&mutex_, NULL);
 #endif
-  assert(ptr_in_entry_*sizeof(void*) == entry_size_);
+  assert((entry_size_/COINUTILS_MEMPOOL_ALIGNMENT)*COINUTILS_MEMPOOL_ALIGNMENT
+	 == entry_size_);
 }
 
 //=============================================================================
@@ -43,50 +43,50 @@ CoinMempool::~CoinMempool()
 
 //==============================================================================
 
-void* 
+char* 
 CoinMempool::alloc()
 {
   lock_mutex();
   if (first_free_ == NULL) {
     unlock_mutex();
-    void** block = allocate_new_block();
+    char* block = allocate_new_block();
     lock_mutex();
 #if (COIN_MEMPOOL_SAVE_BLOCKHEADS==1)
     // see if we can record another block head. If not, then resize
     // block_heads
     if (max_block_num_ == block_num_) {
       max_block_num_ = 2 * block_num_ + 10;
-      void *** old_block_heads = block_heads_;
-      block_heads_ = (void ***)malloc(max_block_num_ * sizeof(void**));
-      memcpy(block_heads_, old_block_heads, block_num_ * sizeof(void**));
+      char** old_block_heads = block_heads_;
+      block_heads_ = (char**)malloc(max_block_num_ * sizeof(char*));
+      memcpy(block_heads_, old_block_heads, block_num_ * sizeof(char*));
       free(old_block_heads);
     }
     // save the new block
     block_heads_[block_num_++] = block;
 #endif
     // link in the new block
-    block[(last_block_size_-1)*ptr_in_entry_]=static_cast<void*>(first_free_);
+    *(char**)(block+((last_block_size_-1)*entry_size_)) = first_free_;
     first_free_ = block;
   }
-  void** p = first_free_;
-  first_free_ = static_cast<void **>(*p);
+  char* p = first_free_;
+  first_free_ = *(char**)p;
   unlock_mutex();
-  return static_cast<void*>(p);
+  return p;
 }
 
 //=============================================================================
 
-void**
+char*
 CoinMempool::allocate_new_block()
 {
   last_block_size_ = static_cast<int>(1.5 * last_block_size_ + 32);
-  void** block = static_cast<void**>(malloc(last_block_size_*entry_size_));
+  char* block = static_cast<char*>(malloc(last_block_size_*entry_size_));
   // link the entries in the new block together
   for (int i = last_block_size_-2; i >= 0; --i) {
-    block[i*ptr_in_entry_] = static_cast<void*>(block + ((i+1)*ptr_in_entry_));
+    *(char**)(block+(i*entry_size_)) = block+((i+1)*entry_size_);
   }
   // terminate the linked list with a null pointer
-  block[(last_block_size_-1)*ptr_in_entry_] = NULL;
+  *(char**)(block+((last_block_size_-1)*entry_size_)) = NULL;
   return block;
 }
 
@@ -98,15 +98,16 @@ CoinAlloc::CoinAlloc() :
   pool_(NULL),
   maxpooled_(COINUTILS_MEMPOOL_MAXPOOLED)
 {
-  maxpooled_ = (maxpooled_ / SIZEOF_VOID_P) * SIZEOF_VOID_P;
   const char* maxpooled = getenv("COINUTILS_MEMPOOL_MAXPOOLED");
   if (maxpooled) {
     maxpooled_ = atoi(maxpooled);
   }
+  const size_t poolnum = maxpooled_ / COINUTILS_MEMPOOL_ALIGNMENT;
+  maxpooled_ = poolnum * COINUTILS_MEMPOOL_ALIGNMENT;
   if (maxpooled_ > 0) {
-    pool_ = new CoinMempool[maxpooled_/SIZEOF_VOID_P];
-    for (int i = (maxpooled_/SIZEOF_VOID_P)-1; i >= 0; --i) {
-      new (&pool_[i]) CoinMempool(i*sizeof(void*));
+    pool_ = (CoinMempool*)malloc(sizeof(CoinMempool)*poolnum);
+    for (int i = poolnum-1; i >= 0; --i) {
+      new (&pool_[i]) CoinMempool(i*COINUTILS_MEMPOOL_ALIGNMENT);
     }
   }
 }

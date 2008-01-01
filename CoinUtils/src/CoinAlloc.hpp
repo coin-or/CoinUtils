@@ -5,13 +5,6 @@
 #define CoinAlloc_hpp
 
 #include "CoinUtilsConfig.h"
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
-/* Note:
-   This memory pool implementation assumes that sizeof(size_t) <= sizeof(void*)
-*/
 
 #if !defined(COINUTILS_MEMPOOL_MAXPOOLED)
 #  define COINUTILS_MEMPOOL_MAXPOOLED -1
@@ -19,23 +12,34 @@
 
 #if (COINUTILS_MEMPOOL_MAXPOOLED >= 0)
 
-#if (SIZEOF_SIZE_T > SIZEOF_VOID_P)
-#error "On this platform sizeof(size_t) > sizeof(void*). Please, explicitly disable memory pool by --with-coinutils-mempool-maxpooled=-1 if configure is used or by defining COINUTILS_MEMPOOL_MAXPOOLED as -1"
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
 #endif
 
-#if (SIZEOF_VOID_P != 4 && SIZEOF_VOID_P != 8)
-#error "On this platform sizeof(void*) is neither 4 nor 8. Please, explicitly disable memory pool by --with-coinutils-mempool-maxpooled=-1 if configure is used or by defining COINUTILS_MEMPOOL_MAXPOOLED as -1"
+#ifndef COINUTILS_MEMPOOL_ALIGNMENT
+#define COINUTILS_MEMPOOL_ALIGNMENT 8
 #endif
+
+/* Note:
+   This memory pool implementation assumes that sizeof(size_t) and
+   sizeof(void*) are both <= COINUTILS_MEMPOOL_ALIGNMENT.
+   Choosing an alignment of 4 will cause segfault on 64-bit platforms and may
+   lead to bad performance on 32-bit platforms. So 8 is a mnimum recommended
+   alignment. Probably 16 does not waste too much space either and may be even
+   better for performance. One must play with it.
+*/
 
 //#############################################################################
 
-#if (SIZEOF_VOID_P == 4)
-static const std::size_t CoinAllocPtrShift = 2;
-#else
+#if (COINUTILS_MEMPOOL_ALIGNMENT == 16)
+static const std::size_t CoinAllocPtrShift = 4;
+static const std::size_t CoinAllocRoundMask = ~((std::size_t)15);
+#elif (COINUTILS_MEMPOOL_ALIGNMENT == 8)
 static const std::size_t CoinAllocPtrShift = 3;
+static const std::size_t CoinAllocRoundMask = ~((std::size_t)7);
+#else
+#error "COINUTILS_MEMPOOL_ALIGNMENT must be defined as 8 or 16 (or this code needs to be changed :-)"
 #endif
-static const std::size_t CoinAllocPtrSize = 1 << CoinAllocPtrShift;
-static const std::size_t CoinAllocRoundMask = ~((std::size_t)SIZEOF_VOID_P-1);
 
 //#############################################################################
 
@@ -49,7 +53,7 @@ class CoinMempool
 {
 private:
 #if (COIN_MEMPOOL_SAVE_BLOCKHEADS == 1)
-   void *** block_heads;
+   char** block_heads;
    std::size_t block_num;
    std::size_t max_block_num;
 #endif
@@ -57,16 +61,15 @@ private:
   pthread_mutex_t mutex_;
 #endif
   int last_block_size_;
-  void** first_free_;
+  char* first_free_;
   const std::size_t entry_size_;
-  const std::size_t ptr_in_entry_;
 
 private:
   CoinMempool(const CoinMempool&);
   CoinMempool& operator=(const CoinMempool&);
 
 private:
-  void** allocate_new_block();
+  char* allocate_new_block();
   inline void lock_mutex() {
 #if defined(COINUTILS_PTHREADS) && (COINUTILS_PTHREAD == 1)
     pthread_mutex_lock(&mutex_);
@@ -82,13 +85,13 @@ public:
   CoinMempool(std::size_t size = 0);
   ~CoinMempool();
 
-  void* alloc();
-  inline void dealloc(void *p) 
+  char* alloc();
+  inline void dealloc(char *p) 
   {
-    void** pp = static_cast<void**>(p);
+    char** pp = (char**)p;
     lock_mutex();
-    *pp = static_cast<void*>(first_free_);
-    first_free_ = pp;
+    *pp = first_free_;
+    first_free_ = p;
     unlock_mutex();
   }
 };
@@ -121,19 +124,20 @@ public:
     if (maxpooled_ <= 0) {
       return malloc(n);
     }
-    void *p = NULL;
+    char *p = NULL;
     const std::size_t to_alloc =
-      ((n+SIZEOF_VOID_P-1) & CoinAllocRoundMask) + SIZEOF_VOID_P;
+      ((n+COINUTILS_MEMPOOL_ALIGNMENT-1) & CoinAllocRoundMask) +
+      COINUTILS_MEMPOOL_ALIGNMENT;
     CoinMempool* pool = NULL;
     if (maxpooled_ > 0 && to_alloc >= (size_t)maxpooled_) {
-      p = malloc(to_alloc);
+      p = static_cast<char*>(malloc(to_alloc));
       if (p == NULL) throw std::bad_alloc();
     } else {
       pool = pool_ + (to_alloc >> CoinAllocPtrShift);
       p = pool->alloc();
     }
     *((CoinMempool**)p) = pool;
-    return (((void**)p)+1);
+    return static_cast<void*>(p+COINUTILS_MEMPOOL_ALIGNMENT);
   }
 
   inline void dealloc(void* p)
@@ -143,7 +147,7 @@ public:
       return;
     }
     if (p) {
-      void** base = (static_cast<void**>(p))-1;
+      char* base = static_cast<char*>(p)-COINUTILS_MEMPOOL_ALIGNMENT;
       CoinMempool* pool = *((CoinMempool**)base);
       if (!pool) {
 	free(base);

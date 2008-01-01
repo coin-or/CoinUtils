@@ -317,9 +317,6 @@ else
    AC_DEFINE_UNQUOTED([COINUTILS_MEMPOOL_MAXPOOLED],${enable_coinutils_mempool_maxpooled},[Default maximum pooled allocation size])
 fi
 
-AC_CHECK_SIZEOF(size_t)
-AC_CHECK_SIZEOF(void *)
-
 #############################################################################
 #                       Finding certain integer types                       #
 #############################################################################
