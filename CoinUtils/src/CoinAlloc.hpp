@@ -5,6 +5,7 @@
 #define CoinAlloc_hpp
 
 #include "CoinUtilsConfig.h"
+#include <cstdlib>
 
 #if !defined(COINUTILS_MEMPOOL_MAXPOOLED)
 #  define COINUTILS_MEMPOOL_MAXPOOLED -1
@@ -122,7 +123,7 @@ public:
   inline void* alloc(const std::size_t n)
   {
     if (maxpooled_ <= 0) {
-      return malloc(n);
+      return std::malloc(n);
     }
     char *p = NULL;
     const std::size_t to_alloc =
@@ -130,7 +131,7 @@ public:
       COINUTILS_MEMPOOL_ALIGNMENT;
     CoinMempool* pool = NULL;
     if (maxpooled_ > 0 && to_alloc >= (size_t)maxpooled_) {
-      p = static_cast<char*>(malloc(to_alloc));
+      p = static_cast<char*>(std::malloc(to_alloc));
       if (p == NULL) throw std::bad_alloc();
     } else {
       pool = pool_ + (to_alloc >> CoinAllocPtrShift);
@@ -143,14 +144,14 @@ public:
   inline void dealloc(void* p)
   {
     if (maxpooled_ <= 0) {
-      free(p);
+      std::free(p);
       return;
     }
     if (p) {
       char* base = static_cast<char*>(p)-COINUTILS_MEMPOOL_ALIGNMENT;
       CoinMempool* pool = *((CoinMempool**)base);
       if (!pool) {
-	free(base);
+	std::free(base);
       } else {
 	pool->dealloc(base);
       }

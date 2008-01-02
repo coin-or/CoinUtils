@@ -80,7 +80,7 @@ char*
 CoinMempool::allocate_new_block()
 {
   last_block_size_ = static_cast<int>(1.5 * last_block_size_ + 32);
-  char* block = static_cast<char*>(malloc(last_block_size_*entry_size_));
+  char* block = static_cast<char*>(std::malloc(last_block_size_*entry_size_));
   // link the entries in the new block together
   for (int i = last_block_size_-2; i >= 0; --i) {
     *(char**)(block+(i*entry_size_)) = block+((i+1)*entry_size_);
@@ -98,9 +98,9 @@ CoinAlloc::CoinAlloc() :
   pool_(NULL),
   maxpooled_(COINUTILS_MEMPOOL_MAXPOOLED)
 {
-  const char* maxpooled = getenv("COINUTILS_MEMPOOL_MAXPOOLED");
+  const char* maxpooled = std::getenv("COINUTILS_MEMPOOL_MAXPOOLED");
   if (maxpooled) {
-    maxpooled_ = atoi(maxpooled);
+    maxpooled_ = std::atoi(maxpooled);
   }
   const size_t poolnum = maxpooled_ / COINUTILS_MEMPOOL_ALIGNMENT;
   maxpooled_ = poolnum * COINUTILS_MEMPOOL_ALIGNMENT;
