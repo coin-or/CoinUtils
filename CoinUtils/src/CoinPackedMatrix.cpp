@@ -831,6 +831,38 @@ CoinPackedMatrix::copyOf(const bool colordered,
    gutsOfCopyOf(colordered, minor, major, numels, elem, ind, start, len,
 		extraMajor, extraGap);
 }
+//#############################################################################
+/* Copy method. This method makes an exact replica of the argument,
+   including the extra space parameters. 
+   If there is room it will re-use arrays */
+void 
+CoinPackedMatrix::copyReuseArrays(const CoinPackedMatrix& rhs)
+{
+  assert (colOrdered_==rhs.colOrdered_);
+  if (maxMajorDim_>=rhs.majorDim_&&maxSize_>=rhs.size_) {
+    majorDim_ = rhs.majorDim_;
+    minorDim_ = rhs.minorDim_;
+    size_ = rhs.size_;
+    extraGap_ = rhs.extraGap_;
+    extraMajor_ = rhs.extraMajor_;
+    CoinMemcpyN(rhs.length_, majorDim_,length_);
+    CoinMemcpyN(rhs.start_, majorDim_+1,start_);
+    if (size_==start_[majorDim_]) {
+      CoinMemcpyN(rhs.index_ , size_, index_);
+      CoinMemcpyN(rhs.element_ , size_, element_);
+    } else {
+     // we can't just simply memcpy these content over, because that can
+     // upset memory debuggers like purify if there were gaps and those gaps
+     // were uninitialized memory blocks
+     for (int i = majorDim_ - 1; i >= 0; --i) {
+       CoinMemcpyN(rhs.index_ + start_[i], length_[i], index_ + start_[i]);
+       CoinMemcpyN(rhs.element_ + start_[i], length_[i], element_ + start_[i]);
+     }
+    }
+  } else {
+    copyOf(rhs);
+  }
+}
 
 //#############################################################################
 

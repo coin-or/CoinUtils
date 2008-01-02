@@ -1804,12 +1804,6 @@ CoinFactorization::goSparse ( )
     }
   }
 }
-//  get sparse threshold
-int
-CoinFactorization::sparseThreshold ( ) const
-{
-  return sparseThreshold_;
-}
 
 //  set sparse threshold
 void
@@ -2260,4 +2254,36 @@ CoinFactorization::replaceColumnPFI ( CoinIndexedVector * regionSparse,
   int * pivotColumn2 = pivotColumn_.array()+numberRows_;
   pivotColumn2[iColumn]=pivotColumn[pivotRow];
   return 0;
+}
+// See if worth going sparse
+void 
+CoinFactorization::checkSparse()
+{
+  // See if worth going sparse and when
+  if (numberFtranCounts_>100) {
+    ftranCountInput_= CoinMax(ftranCountInput_,1.0);
+    ftranAverageAfterL_ = CoinMax(ftranCountAfterL_/ftranCountInput_,1.0);
+    ftranAverageAfterR_ = CoinMax(ftranCountAfterR_/ftranCountAfterL_,1.0);
+    ftranAverageAfterU_ = CoinMax(ftranCountAfterU_/ftranCountAfterR_,1.0);
+    if (btranCountInput_&&btranCountAfterU_&&btranCountAfterR_) {
+      btranAverageAfterU_ = CoinMax(btranCountAfterU_/btranCountInput_,1.0);
+      btranAverageAfterR_ = CoinMax(btranCountAfterR_/btranCountAfterU_,1.0);
+      btranAverageAfterL_ = CoinMax(btranCountAfterL_/btranCountAfterR_,1.0);
+    } else {
+      // we have not done any useful btrans (values pass?)
+      btranAverageAfterU_ = 1.0;
+      btranAverageAfterR_ = 1.0;
+      btranAverageAfterL_ = 1.0;
+    }
+  }
+  // scale back
+  
+  ftranCountInput_ *= 0.8;
+  ftranCountAfterL_ *= 0.8;
+  ftranCountAfterR_ *= 0.8;
+  ftranCountAfterU_ *= 0.8;
+  btranCountInput_ *= 0.8;
+  btranCountAfterU_ *= 0.8;
+  btranCountAfterR_ *= 0.8;
+  btranCountAfterL_ *= 0.8;
 }

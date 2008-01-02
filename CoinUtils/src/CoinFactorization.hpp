@@ -129,10 +129,16 @@ public:
   inline int status (  ) const {
     return status_;
   }
+  /// Sets status
+  inline void setStatus (  int value)
+  {  status_=value;  }
   /// Returns number of pivots since factorization
   inline int pivots (  ) const {
     return numberPivots_;
   }
+  /// Sets number of pivots since factorization
+  inline void setPivots (  int value ) 
+  { numberPivots_=value; }
   /// Returns address of permute region
   inline int *permute (  ) const {
     return permute_.array();
@@ -140,6 +146,10 @@ public:
   /// Returns address of pivotColumn region (also used for permuting)
   inline int *pivotColumn (  ) const {
     return pivotColumn_.array();
+  }
+  /// Returns address of pivot region
+  inline double *pivotRegion (  ) const {
+    return pivotRegion_.array();
   }
   /// Returns address of permuteBack region
   inline int *permuteBack (  ) const {
@@ -149,14 +159,44 @@ public:
   inline int *pivotColumnBack (  ) const {
     return pivotColumnBack_.array();
   }
+  /// Start of each row in L
+  inline CoinBigIndex * startRowL() const
+  { return startRowL_.array();}
+
+  /// Start of each column in L
+  inline CoinBigIndex * startColumnL() const
+  { return startColumnL_.array();}
+
+  /// Index of column in row for L
+  inline int * indexColumnL() const
+  { return indexColumnL_.array();}
+
+  /// Row indices of L
+  inline int * indexRowL() const
+  { return indexRowL_.array();}
+
+  /// Elements in L (row copy)
+  inline double * elementByRowL() const
+  { return elementByRowL_.array();}
+
   /// Number of Rows after iterating
   inline int numberRowsExtra (  ) const {
     return numberRowsExtra_;
   }
+  /// Set number of Rows after factorization
+  inline void setNumberRows(int value)
+  { numberRows_ = value; }
   /// Number of Rows after factorization
   inline int numberRows (  ) const {
     return numberRows_;
   }
+  /// Number in L
+  inline CoinBigIndex numberL() const
+  { return numberL_;}
+
+  /// Base of L
+  inline CoinBigIndex baseL() const
+  { return baseL_;};
   /// Maximum of Rows after iterating
   inline int maximumRowsExtra (  ) const {
     return maximumRowsExtra_;
@@ -252,6 +292,9 @@ public:
   inline CoinBigIndex numberElementsU (  ) const {
     return lengthU_;
   }
+  /// Setss number in U area
+  inline void setNumberElementsU(CoinBigIndex value)
+  { lengthU_ = value; }
   /// Returns length of U area
   inline CoinBigIndex lengthAreaU (  ) const {
     return lengthAreaU_;
@@ -271,6 +314,24 @@ public:
   /// Number of compressions done
   inline CoinBigIndex numberCompressions() const
   { return numberCompressions_;}
+  /// Number of entries in each row
+  inline int * numberInRow() const
+  { return numberInRow_.array();}
+  /// Number of entries in each column
+  inline int * numberInColumn() const
+  { return numberInColumn_.array();}
+  /// Elements of U
+  inline double * elementU() const
+  { return elementU_.array();}
+  /// Row indices of U
+  inline int * indexRowU() const
+  { return indexRowU_.array();}
+  /// Start of each column in U
+  inline CoinBigIndex * startColumnU() const
+  { return startColumnU_.array();}
+  /// Maximum number of Columns after iterating
+  inline int maximumColumnsExtra()
+  { return maximumColumnsExtra_;}
   /** L to U bias
       0 - U bias, 1 - some U bias, 2 some L bias, 3 L bias
   */
@@ -329,7 +390,8 @@ public:
   /** makes a row copy of L for speed and to allow very sparse problems */
   void goSparse();
   /**  get sparse threshold */
-  int sparseThreshold ( ) const;
+  inline int sparseThreshold ( ) const
+  { return sparseThreshold_;}
   /**  set sparse threshold */
   void sparseThreshold ( int value );
   //@}
@@ -375,7 +437,26 @@ public:
   /// Takes out all entries for given rows
   void emptyRows(int numberToEmpty, const int which[]);
   //@}
-protected:
+  /**@name used by ClpFactorization */
+  /// See if worth going sparse
+  void checkSparse();
+  /// For statistics 
+  inline bool collectStatistics() const
+  { return collectStatistics_;}
+  /// For statistics 
+  inline void setCollectStatistics(bool onOff) const
+  { collectStatistics_ = onOff;}
+  /// The real work of constructors etc 0 just scalars, 1 bit normal 
+  void gutsOfDestructor(int type=1);
+  /// 1 bit - tolerances etc, 2 more, 4 dummy arrays
+  void gutsOfInitialize(int type);
+  void gutsOfCopy(const CoinFactorization &other);
+
+  /// Reset all sparsity etc statistics
+  void resetStatistics();
+
+
+  //@}
 
   /**@name used by factorization */
   /// Gets space for a factorization, called by constructors
@@ -390,6 +471,7 @@ protected:
 		    int possibleDuplicates = -1 );
   /// Does most of factorization
   int factor (  );
+protected:
   /// Does sparse phase of factorization
   /// return code is <0 error, 0= finished
   int factorSparse (  );
@@ -548,25 +630,17 @@ protected:
   void updateColumnTransposeLSparsish ( CoinIndexedVector * region ) const;
   /// Updates part of column transpose (BTRANL) when sparse (by Row)
   void updateColumnTransposeLSparse ( CoinIndexedVector * region ) const;
+public:
   /** Replaces one Column to basis for PFI
    returns 0=OK, 1=Probably OK, 2=singular, 3=no room.
    In this case region is not empty - it is incoming variable (updated)
   */
   int replaceColumnPFI ( CoinIndexedVector * regionSparse,
 			 int pivotRow, double alpha);
-
+protected:
   /** Returns accuracy status of replaceColumn
       returns 0=OK, 1=Probably OK, 2=singular */
   int checkPivot(double saveFromU, double oldPivot) const;
-  /// The real work of constructors etc 0 just scalars, 1 bit normal 
-  void gutsOfDestructor(int type=1);
-  /// 1 bit - tolerances etc, 2 more, 4 dummy arrays
-  void gutsOfInitialize(int type);
-  void gutsOfCopy(const CoinFactorization &other);
-
-  /// Reset all sparsity etc statistics
-  void resetStatistics();
-
   /********************************* START LARGE TEMPLATE ********/
 #ifdef INT_IS_8
 #define COINFACTORIZATION_BITS_PER_INT 64
@@ -1200,10 +1274,10 @@ protected:
   CoinBigIndexArrayWithLength convertRowToColumnU_;
 
   /// Number in L
-  int numberL_;
+  CoinBigIndex numberL_;
 
 /// Base of L
-  int baseL_;
+  CoinBigIndex baseL_;
 
   /// Length of L
   CoinBigIndex lengthL_;

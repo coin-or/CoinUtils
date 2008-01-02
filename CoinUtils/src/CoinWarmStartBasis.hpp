@@ -328,6 +328,8 @@ protected:
     int numStructural_;
     /// The number of artificial variables
     int numArtificial_;
+    /// The maximum sise (in ints - actually 4*char) (so resize does not need to do new)
+    int maxSize_;
     /** The status of the structural variables. */
     char * structuralStatus_;
     /** The status of the artificial variables. */

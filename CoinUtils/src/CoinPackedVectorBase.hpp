@@ -63,6 +63,9 @@ public:
    /** Returns true if the vector should be tested for duplicate indices when
        they can occur. */
    bool testForDuplicateIndex() const { return testForDuplicateIndex_; }
+   /// Just sets test stuff false without a try etc
+   inline void setTestsOff() const
+   { testForDuplicateIndex_=false; testedDuplicateIndex_=false;}
    //@}
 
    /**@name Methods for getting info on the packed vector as a full vector */

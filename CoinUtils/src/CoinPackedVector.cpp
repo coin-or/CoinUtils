@@ -88,12 +88,16 @@ CoinPackedVector::assignVector(int size, int*& inds, double*& elems,
     CoinIotaN(origIndices_, size, 0);
     capacity_ = size;
   }
-  try {    
-    CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
-  }
-  catch (CoinError e) {
+  if (testForDuplicateIndex) {
+    try {    
+      CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
+    }
+    catch (CoinError e) {
     throw CoinError("duplicate index", "assignVector",
-      "CoinPackedVector");
+		    "CoinPackedVector");
+    }
+  } else {
+    setTestsOff();
   }
 }
 #endif
@@ -478,11 +482,15 @@ CoinPackedVector::gutsOfSetVector(int size,
       CoinDisjointCopyN(elems, size, elements_);
       CoinIotaN(origIndices_, size, 0);
    }
-   try {
-      CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
-   }
-   catch (CoinError e) {
-      throw CoinError("duplicate index", method, "CoinPackedVector");
+   if (testForDuplicateIndex) {
+     try {
+       CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
+     }
+     catch (CoinError e) {
+       throw CoinError("duplicate index", method, "CoinPackedVector");
+     }
+   } else {
+     setTestsOff();
    }
 }
 

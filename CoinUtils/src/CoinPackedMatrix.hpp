@@ -318,6 +318,10 @@ public:
  	       const double * elem, const int * ind,
  	       const CoinBigIndex * start, const int * len,
  	       const double extraMajor=0.0, const double extraGap=0.0);
+    /** Copy method. This method makes an exact replica of the argument,
+        including the extra space parameters. 
+	If there is room it will re-use arrays */
+    void copyReuseArrays(const CoinPackedMatrix& rhs);
     /** Reverse copy method. This method makes an exact replica of the
         argument, but the major ordering reversed. The extra space parameters
         are copied and reversed, too. */

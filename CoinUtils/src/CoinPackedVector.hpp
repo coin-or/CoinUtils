@@ -12,7 +12,11 @@
 
 #include "CoinPackedVectorBase.hpp"
 #include "CoinSort.hpp"
-
+#ifndef COIN_NOTEST_DUPLICATE
+#define COIN_DEFAULT_VALUE_FOR_DUPLICATE true
+#else
+#define COIN_DEFAULT_VALUE_FOR_DUPLICATE false
+#endif
 /** Sparse Vector
 
 Stores vector of indices and associated element values.
@@ -157,7 +161,7 @@ public:
        to be tested for duplicate indices.
    */
    void assignVector(int size, int*& inds, double*& elems,
-		     bool testForDuplicateIndex = true);
+		     bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
 
    /** Set vector size, indices, and elements.
        Size is the length of both the indices and elements vectors.
@@ -165,20 +169,20 @@ public:
        member data. The last argument specifies whether this vector will have
        to be checked for duplicate indices whenever that can happen. */
    void setVector(int size, const int * inds, const double * elems,
-		  bool testForDuplicateIndex = true);
+		  bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
   
    /** Elements set to have the same scalar value */
    void setConstant(int size, const int * inds, double elems,
-		    bool testForDuplicateIndex = true);
+		    bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
   
    /** Indices are not specified and are taken to be 0,1,...,size-1 */
    void setFull(int size, const double * elems,
-		bool testForDuplicateIndex = true);
+		bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
 
    /** Indices are not specified and are taken to be 0,1,...,size-1,
     but only where non zero*/
    void setFullNonZero(int size, const double * elems,
-		bool testForDuplicateIndex = true);
+		bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
 
    /** Set an existing element in the packed vector
        The first argument is the "index" into the elements() array
@@ -260,11 +264,6 @@ public:
    */
    int capacity() const { return capacity_; }
    //@}
-#ifndef COIN_NOTEST_DUPLICATE
-#define COIN_DEFAULT_VALUE_FOR_DUPLICATE true
-#else
-#define COIN_DEFAULT_VALUE_FOR_DUPLICATE false
-#endif
    /**@name Constructors and destructors */
    //@{
    /** Default constructor */
