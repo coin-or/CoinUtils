@@ -62,7 +62,7 @@ DIST_COMMON = README $(am__configure_deps) \
 	$(srcdir)/../ltmain.sh $(srcdir)/../missing \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/coinutils_addlibs.txt.in $(top_srcdir)/configure \
-	$(top_srcdir)/inc/config_coinutils.h.in AUTHORS
+	$(top_srcdir)/inc/config_coinutils.h.in AUTHORS INSTALL
 @HAVE_EXTERNALS_TRUE@am__append_2 = Externals
 @HAVE_EXTERNALS_TRUE@am__append_3 = .Externals-stamp
 subdir = .
