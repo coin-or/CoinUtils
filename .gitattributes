@@ -1,4 +1,6 @@
 * text=auto !eol
+/AUTHORS -text
+CoinUtils/INSTALL -text
 CoinUtils/LICENSE -text
 CoinUtils/MSVisualStudio/v6/CoinUtils.dsw -text
 CoinUtils/MSVisualStudio/v6/CoinUtils.opt -text
@@ -14,6 +16,7 @@ CoinUtils/MSVisualStudio/v8/libCoinUtils/libCoinUtils.vcproj -text
 CoinUtils/MSVisualStudio/v8/unitTestCoinUtils/unitTestCoinUtils.ncb -text
 CoinUtils/MSVisualStudio/v8/unitTestCoinUtils/unitTestCoinUtils.suo -text
 CoinUtils/MSVisualStudio/v8/unitTestCoinUtils/unitTestCoinUtils.vcproj -text
+CoinUtils/README -text
 CoinUtils/coinutils_addlibs.txt.in -text
 CoinUtils/configure -text
 CoinUtils/configure.ac -text
@@ -31,6 +34,8 @@ CoinUtils/src/CoinWarmStartVector.cpp -text
 CoinUtils/src/CoinWarmStartVector.hpp -text
 CoinUtils/test/CoinMessageHandlerTest.cpp -text
 /INSTALL -text
+/LICENSE -text
+/README -text
 /config.guess -text
 /config.sub -text
 /configure -text
