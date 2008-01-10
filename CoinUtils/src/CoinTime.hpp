@@ -66,14 +66,15 @@ inline double CoinGetTimeOfDay()
    Query the elapsed wallclock time since the first call to this function. If
    a positive argument is passed to the function then the time of the first
    call is set to that value (this kind of argument is allowed only at the
-   first call!).
+   first call!). If a negative argument is passed to the function then it
+   returns the time when it was set.
 */
 
 inline double CoinWallclockTime(double callType = 0)
 {
     double callTime = CoinGetTimeOfDay();
     static const double firstCall = callType > 0 ? callType : callTime;
-    return callTime - firstCall;
+    return callType < 0 ? firstCall : callTime - firstCall;
 }
 
 #endif
