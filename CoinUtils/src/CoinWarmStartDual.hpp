@@ -13,7 +13,7 @@
 
 /** WarmStart information that is only a dual vector */
 
-class CoinWarmStartDual : public CoinWarmStart {
+class CoinWarmStartDual : public virtual CoinWarmStart {
 public:
    /// return the size of the dual vector
    inline int size() const { return dual_.size(); }
@@ -67,14 +67,16 @@ public:
 
   virtual void applyDiff (const CoinWarmStartDiff *const cwsdDiff) ;
 
+#if 0
 protected:
-  inline const CoinWarmStartVector& warmStartVector() const { return dual_; }
+  inline const CoinWarmStartVector<double>& warmStartVector() const { return dual_; }
+#endif
 
 //@}
 
 private:
    ///@name Private data members
-    CoinWarmStartVector dual_;
+  CoinWarmStartVector<double> dual_;
 };
 
 //#############################################################################
@@ -94,7 +96,7 @@ private:
     
 */
 
-class CoinWarmStartDualDiff : public CoinWarmStartDiff
+class CoinWarmStartDualDiff : public virtual CoinWarmStartDiff
 { public:
 
   /*! \brief `Virtual constructor' */
@@ -154,7 +156,7 @@ class CoinWarmStartDualDiff : public CoinWarmStartDiff
       \brief The difference in the dual vector is simply the difference in a
       vector.
   */
-  CoinWarmStartVectorDiff diff_;
+  CoinWarmStartVectorDiff<double> diff_;
 };
 
 

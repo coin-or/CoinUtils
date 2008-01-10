@@ -35,7 +35,7 @@
 	  better sanity checks.
 */
 
-class CoinWarmStartBasis : public CoinWarmStart {
+class CoinWarmStartBasis : public virtual CoinWarmStart {
 public:
 
   /*! \brief Enum for status of variables
@@ -382,7 +382,7 @@ inline void setStatus(char * array, int i, CoinWarmStartBasis::Status st) {
 	CoinWarmStartBasis, so changes are definitely required.
 */
 
-class CoinWarmStartBasisDiff : public CoinWarmStartDiff
+class CoinWarmStartBasisDiff : public virtual CoinWarmStartDiff
 { public:
 
   /*! \brief `Virtual constructor' */

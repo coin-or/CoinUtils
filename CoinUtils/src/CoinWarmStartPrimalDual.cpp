@@ -35,10 +35,10 @@ CoinWarmStartPrimalDual::generateDiff (const CoinWarmStart *const oldCWS) const
   CoinWarmStartPrimalDualDiff* diff = new CoinWarmStartPrimalDualDiff;
   CoinWarmStartDiff* vecdiff;
   vecdiff = primal_.generateDiff(&old->primal_);
-  diff->primalDiff_.swap(*dynamic_cast<CoinWarmStartVectorDiff*>(vecdiff));
+  diff->primalDiff_.swap(*dynamic_cast<CoinWarmStartVectorDiff<double>*>(vecdiff));
   delete vecdiff;
   vecdiff = dual_.generateDiff(&old->dual_);
-  diff->dualDiff_.swap(*dynamic_cast<CoinWarmStartVectorDiff*>(vecdiff));
+  diff->dualDiff_.swap(*dynamic_cast<CoinWarmStartVectorDiff<double>*>(vecdiff));
   delete vecdiff;
 
   return diff;
