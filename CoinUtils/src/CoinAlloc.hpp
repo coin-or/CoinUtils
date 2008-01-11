@@ -175,5 +175,35 @@ void operator delete[](void*, const std::nothrow_t&) throw();
 #endif
 
 #endif /*(COINUTILS_MEMPOOL_MAXPOOLED >= 0)*/
+#include <malloc.h>
+#include "CoinFinite.hpp"
+#if (defined(__GNUC__) && defined(__linux__))
+#define COIN_MALLOC_ALIGN(size) memalign(32,size)
+#else
+#define COIN_MALLOC_ALIGN(size) malloc(size)
+#endif
+inline void * CoinMallocAlign (size_t size) 
+{
+  void * p = COIN_MALLOC_ALIGN (size);
+  if (!p)
+    throw (std::bad_alloc());
+  return  p;
+}
+inline double * CoinDoubleMallocAlign (size_t size) 
+{
+  return (double *) CoinMallocAlign(size*sizeof(double));
+}
+inline int * CoinIntMallocAlign (size_t size) 
+{
+  return (int *) CoinMallocAlign(size*sizeof(int));
+}
+inline CoinBigIndex * CoinBigIndexMallocAlign (size_t size) 
+{
+  return (CoinBigIndex *) CoinMallocAlign(size*sizeof(CoinBigIndex));
+}
+inline void CoinFreeAlign (void *p)
+{
+  free(p);
+}
 
 #endif

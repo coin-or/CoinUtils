@@ -233,8 +233,8 @@ CoinSort_2(S* key, S* lastKey, T* array2)
   const int number = coinDistance(key, lastKey);
   if (number <= 1) {
     return;
-  } else if (number>1000) {
-    CoinSort_2Many(key, lastKey, array2);
+  } else if (number>10000) {
+    CoinSort_2Std(key, lastKey, array2);
     return;
   }
 #if 0

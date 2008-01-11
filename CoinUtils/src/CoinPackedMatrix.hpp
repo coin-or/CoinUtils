@@ -402,6 +402,9 @@ public:
 	  allocated with <code>new int[]</code>, free it with
 	  <code>delete[]</code>. */
       int * countOrthoLength() const;
+      /** Count the number of entries in every minor-dimension vector and
+	  fill in an array containing these lengths.  */
+      void countOrthoLength(int * counts) const;
       /** Major dimension. For row ordered matrix this would be the number of
           rows. */
       int getMajorDim() const { return majorDim_; }
@@ -590,6 +593,9 @@ public:
     inline CoinBigIndex * getMutableVectorStarts() const { return start_; }
     /** The lengths of the major-dimension vectors. */
     inline int * getMutableVectorLengths() const { return length_; }
+    /// Change size after modifying - be careful
+    inline void setNumElements(CoinBigIndex value)
+    { size_ = value;}
     /// NULLify element array - used when space is very tight
     inline void nullElementArray() {element_=NULL;}
     /// NULLify start array - used when space is very tight
@@ -639,6 +645,12 @@ public:
 
    /// Copy constructor 
    CoinPackedMatrix(const CoinPackedMatrix& m);
+
+  /** Copy constructor - fine tuning - allowing extra space and/or reverse ordering.
+      extraForMajor is exact extra after any possible reverse ordering.
+      extraMajor_ and extraGap_ set to zero.
+  */
+  CoinPackedMatrix(const CoinPackedMatrix& m, int extraForMajor, int extraElements, bool reverseOrdering=false);
 
   /** Subset constructor (without gaps).  Duplicates are allowed
       and order is as given */

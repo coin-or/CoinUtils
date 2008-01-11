@@ -902,11 +902,6 @@ CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix& rhs)
      return;
    }
 
-   // first compute how long each major-dimension vector will be
-   // this trickery is needed because MSVC++ is not willing to delete[] a
-   // 'const int *'
-   int * orthoLengthPtr = rhs.countOrthoLength();
-   const int * orthoLength = orthoLengthPtr;
 
    // Allocate sufficient space (resizeForAddingMinorVectors())
    
@@ -920,6 +915,9 @@ CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix& rhs)
       start_ = new CoinBigIndex[maxMajorDim_ + 1];
       length_ = new int[maxMajorDim_];
    }
+   // first compute how long each major-dimension vector will be
+   int * orthoLength = length_;
+   rhs.countOrthoLength(orthoLength);
 
    start_[0] = 0;
    if (extraGap_ == 0) {
@@ -949,9 +947,12 @@ CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix& rhs)
    // now insert the entries of matrix
    
    minorDim_ = 0;
+#if 0
+   // no need
    // Copy lengths
    CoinCopyN(orthoLength, majorDim_, length_);
    delete[] orthoLengthPtr;
+#endif
 
    for (i = 0; i < rhs.majorDim_; ++i) {
       const CoinBigIndex last = rhs.getVectorLast(i);
@@ -1105,30 +1106,37 @@ CoinPackedMatrix::transposeTimes(const CoinPackedVectorBase& x, double * y) cons
 #endif
 //#############################################################################
 //#############################################################################
+/* Count the number of entries in every minor-dimension vector and
+   fill in an array containing these lengths.  */
+void
+CoinPackedMatrix::countOrthoLength(int * orthoLength) const
+{
+  CoinZeroN(orthoLength, minorDim_);
+  if (size_!=start_[majorDim_]) {
+    // has gaps
+    for (int i = 0; i <majorDim_ ; ++i) {
+      const CoinBigIndex first = start_[i];
+      const CoinBigIndex last = first + length_[i];
+      for (CoinBigIndex j = first; j < last; ++j) {
+	assert( index_[j] < minorDim_ && index_[j]>=0);
+	++orthoLength[index_[j]];
+      }
+    }
+  } else {
+    // no gaps 
+    const CoinBigIndex last = start_[majorDim_];
+    for (CoinBigIndex j = 0; j < last; ++j) {
+      assert( index_[j] < minorDim_ && index_[j]>=0);
+      ++orthoLength[index_[j]];
+    }
+  }
+}
 
 int *
 CoinPackedMatrix::countOrthoLength() const
 {
    int * orthoLength = new int[minorDim_];
-   CoinZeroN(orthoLength, minorDim_);
-   if (size_!=start_[majorDim_]) {
-     // has gaps
-     for (int i = 0; i <majorDim_ ; ++i) {
-       const CoinBigIndex first = start_[i];
-       const CoinBigIndex last = first + length_[i];
-       for (CoinBigIndex j = first; j < last; ++j) {
-         assert( index_[j] < minorDim_ && index_[j]>=0);
-         ++orthoLength[index_[j]];
-       }
-     }
-   } else {
-     // no gaps 
-     const CoinBigIndex last = start_[majorDim_];
-     for (CoinBigIndex j = 0; j < last; ++j) {
-       assert( index_[j] < minorDim_ && index_[j]>=0);
-       ++orthoLength[index_[j]];
-     }
-   }
+   countOrthoLength(orthoLength);
    return orthoLength;
 }
 
@@ -2070,6 +2078,113 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs) :
 		rhs.minorDim_, rhs.majorDim_, rhs.size_,
 		rhs.element_, rhs.index_, rhs.start_, rhs.length_,
 		rhs.extraMajor_, rhs.extraGap_);
+  }
+}
+/* Copy constructor - fine tuning - allowing extra space and/or reverse ordering.
+   extraForMajor is exact extra after any possible reverse ordering.
+   extraMajor_ and extraGap_ set to zero.
+*/
+CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix& rhs, int extraForMajor, 
+				   int extraElements, bool reverseOrdering)
+  :  colOrdered_(rhs.colOrdered_),
+   extraGap_(0),
+   extraMajor_(0),
+   element_(0), 
+   index_(0),
+   start_(0),
+   length_(0),
+   majorDim_(rhs.majorDim_),
+   minorDim_(rhs.minorDim_),
+   size_(rhs.size_),
+   maxMajorDim_(0),
+   maxSize_(0)
+{
+  if (!reverseOrdering) {
+    maxMajorDim_ = majorDim_ + extraForMajor;
+    maxSize_ = size_ + extraElements;
+    assert (maxMajorDim_>0);
+    assert (maxSize_>0);
+    length_ = new int[maxMajorDim_];
+    CoinMemcpyN(rhs.length_, majorDim_, length_);
+    start_ = new CoinBigIndex[maxMajorDim_+1];
+    element_ = new double[maxSize_];
+    index_ = new int[maxSize_];
+    bool hasGaps = rhs.size_<rhs.start_[rhs.majorDim_];
+    if (hasGaps) {
+      // we can't just simply memcpy these content over, because that can
+      // upset memory debuggers like purify if there were gaps and those gaps
+      // were uninitialized memory blocks
+      CoinBigIndex size=0;
+      for (int i = 0 ; i < majorDim_ ; i++) {
+	start_[i]=size;
+	CoinMemcpyN(rhs.index_ + rhs.start_[i], length_[i], index_ + size);
+	CoinMemcpyN(rhs.element_ + rhs.start_[i], length_[i], element_ + size);
+	size += length_[i];
+      }
+      start_[majorDim_]=size;
+      assert (size_==size);
+    } else {
+      CoinMemcpyN(rhs.start_, majorDim_+1, start_);
+      CoinMemcpyN(rhs.index_, size_, index_);
+      CoinMemcpyN(rhs.element_, size_, element_ );
+    }
+  } else {
+    // more complicated
+    colOrdered_ =  ! colOrdered_;
+    minorDim_ = rhs.majorDim_;
+    majorDim_ = rhs.minorDim_;
+    maxMajorDim_ = majorDim_ + extraForMajor;
+    maxSize_ = size_ + extraElements;
+    assert (maxMajorDim_>0);
+    assert (maxSize_>0);
+    length_ = new int[maxMajorDim_];
+    start_ = new CoinBigIndex[maxMajorDim_+1];
+    element_ = new double[maxSize_];
+    index_ = new int[maxSize_];
+    bool hasGaps = rhs.size_<rhs.start_[rhs.majorDim_];
+    CoinZeroN(length_, majorDim_);
+    int i;
+    if (hasGaps) {
+      // has gaps
+      for (i = 0; i <rhs.majorDim_ ; ++i) {
+	const CoinBigIndex first = rhs.start_[i];
+	const CoinBigIndex last = first + rhs.length_[i];
+	for (CoinBigIndex j = first; j < last; ++j) {
+	  assert( rhs.index_[j] < rhs.minorDim_ && rhs.index_[j]>=0);
+	  ++length_[rhs.index_[j]];
+	}
+      }
+    } else {
+      // no gaps 
+      const CoinBigIndex last = rhs.start_[rhs.majorDim_];
+      for (CoinBigIndex j = 0; j < last; ++j) {
+       assert( rhs.index_[j] < rhs.minorDim_ && rhs.index_[j]>=0);
+       ++length_[rhs.index_[j]];
+      }
+    }
+    // Now do starts
+    CoinBigIndex size=0;
+    for (i = 0; i <majorDim_ ; ++i) {
+      start_[i]=size;
+      size += length_[i];
+    }
+    start_[majorDim_]=size;
+    assert (size==size_);
+    for (i = 0; i <rhs.majorDim_ ; ++i) {
+      const CoinBigIndex first = rhs.start_[i];
+      const CoinBigIndex last = first + rhs.length_[i];
+      for (CoinBigIndex j = first; j < last; ++j) {
+	const int ind = rhs.index_[j];
+	CoinBigIndex put = start_[ind];
+	start_[ind] = put +1;
+	element_[put] = rhs.element_[j];
+	index_[put] = i;
+      }
+    }
+    // and re-adjust start_
+    for (i = 0; i < majorDim_; ++i) {
+      start_[i] -= length_[i];
+    }
   }
 }
 // Subset constructor (without gaps)
