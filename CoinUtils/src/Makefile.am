@@ -37,6 +37,8 @@ libCoinUtils_la_SOURCES = \
 	CoinFactorization2.cpp \
 	CoinFactorization3.cpp \
 	CoinFactorization4.cpp \
+	CoinDenseFactorization.hpp \
+	CoinDenseFactorization.cpp \
 	CoinFileIO.cpp CoinFileIO.hpp \
 	CoinFinite.hpp \
 	CoinFloatEqual.hpp \

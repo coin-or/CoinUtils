@@ -573,6 +573,19 @@ CoinFactorization::getAreas ( int numberOfRows,
   indexColumnU_.conditionalNew( lengthAreaU_ );
   elementL_.conditionalNew( lengthAreaL_ );
   indexRowL_.conditionalNew( lengthAreaL_ );
+  if (persistenceFlag_) {
+    // But we can use all we have if bigger
+    int length;
+    length = CoinMin(elementU_.getSize(),indexRowU_.getSize());
+    if (length>lengthAreaU_) {
+      lengthAreaU_=length;
+      assert (indexColumnU_.getSize()==indexRowU_.getSize());
+    }
+    length = CoinMin(elementL_.getSize(),indexRowL_.getSize());
+    if (length>lengthAreaL_) {
+      lengthAreaL_=length;
+    }
+  }
   startColumnL_.conditionalNew( numberRows_ + 1 );
   startColumnL_.array()[0] = 0;
   startRowU_.conditionalNew( maximumRowsExtra_ + 1);
