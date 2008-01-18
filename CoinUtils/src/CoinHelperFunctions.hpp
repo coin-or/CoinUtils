@@ -834,7 +834,7 @@ public:
     memcpy(seed_,put.s,3*sizeof(unsigned short));
   }
   /** Destructor */
-  ~CoinThreadRandom() {};
+  ~CoinThreadRandom() {}
   // Copy
   CoinThreadRandom(const CoinThreadRandom & rhs)
   { memcpy(seed_,rhs.seed_,3*sizeof(unsigned short));}
