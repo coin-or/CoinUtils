@@ -196,7 +196,7 @@ public:
 
   /// Base of L
   inline CoinBigIndex baseL() const
-  { return baseL_;};
+  { return baseL_;}
   /// Maximum of Rows after iterating
   inline int maximumRowsExtra (  ) const {
     return maximumRowsExtra_;
@@ -887,7 +887,7 @@ protected:
       if ( mark < 0 ) {
 	//keep
 	indexRowU[put] = iRow;
-	elementU[put] = value;;
+	elementU[put] = value;
 	if ( checkLargest ) {
 	  double absValue = fabs ( value );
 
@@ -899,7 +899,7 @@ protected:
 	put++;
       } else if ( mark != largeInteger ) {
 	//will be updated
-	work[mark] = value;;
+	work[mark] = value;
 	int word = mark >> COINFACTORIZATION_SHIFT_PER_INT;
 	int bit = mark & COINFACTORIZATION_MASK_PER_INT;
 
