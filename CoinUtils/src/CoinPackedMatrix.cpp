@@ -2134,9 +2134,8 @@ CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix& rhs, int extraForMajo
     minorDim_ = rhs.majorDim_;
     majorDim_ = rhs.minorDim_;
     maxMajorDim_ = majorDim_ + extraForMajor;
-    maxSize_ = size_ + extraElements;
+    maxSize_ = CoinMax(size_ + extraElements,1);
     assert (maxMajorDim_>0);
-    assert (maxSize_>0);
     length_ = new int[maxMajorDim_];
     start_ = new CoinBigIndex[maxMajorDim_+1];
     element_ = new double[maxSize_];
