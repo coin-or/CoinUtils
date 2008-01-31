@@ -27,29 +27,21 @@
 
 //#############################################################################
 
-#if defined(_MSC_VER) || defined(__MSVCRT__)
+#if defined(_MSC_VER)
 
-#if 0
 #include <windows.h>
-inline double CoinWallclockTime()
+#define TWO_TO_THE_THIRTYTWO 4294967296.0
+#define DELTA_EPOCH_IN_SECS  11644473600.0
+
+inline double CoinGetTimeOfDay()
 {
-    static const DWORD dwordFirstCall = timeGetTime();
-    static const double firstCall = (double)(dwordFirstCall);
-    static const double wrapFirstCall = firstCall - 4294967296.0 /*2^32*/;
-    DWORD callTime = timeGetTime();
-    if (callTime > firstCall) {
-	return ((double)(callTime) - firstCall)/1000.0;
-    }
-    return ((double)(callTime) - wrapFirstCall)/1000.0;
+    FILETIME ft;
+ 
+    GetSystemTimeAsFileTime(&ft);
+    double t = ft.dwHighDateTime * TWO_TO_THE_THIRTYTWO + ft.dwLowDateTime;
+    t = t/10000000.0 - DELTA_EPOCH_IN_SECS;
+    return t;
 }
-#else
-#include <iostream>
-inline double CoinWallclockTime()
-{
-  std::cerr << "WARNING: CoinWallclockTime() is not implemented with MSVC.\n";
-  return 0.0;
-}
-#endif
 
 #else
 
@@ -61,6 +53,8 @@ inline double CoinGetTimeOfDay()
     gettimeofday(&tv, NULL);
     return tv.tv_sec + tv.tv_usec/1000000.0;
 }
+
+#endif // _MSC_VER
 
 /**
    Query the elapsed wallclock time since the first call to this function. If
@@ -76,8 +70,6 @@ inline double CoinWallclockTime(double callType = 0)
     static const double firstCall = callType > 0 ? callType : callTime;
     return callType < 0 ? firstCall : callTime - firstCall;
 }
-
-#endif
 
 //#############################################################################
 
