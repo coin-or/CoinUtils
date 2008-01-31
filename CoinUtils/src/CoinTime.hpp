@@ -30,6 +30,12 @@
 #if defined(_MSC_VER)
 
 #include <windows.h>
+#ifdef small
+/* for some unfathomable reason (to me) rpcndr.h (pulled in by windows.h) does a
+   '#define small char' */
+#undef small
+#endif
+
 #define TWO_TO_THE_THIRTYTWO 4294967296.0
 #define DELTA_EPOCH_IN_SECS  11644473600.0
 
