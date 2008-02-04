@@ -29,25 +29,36 @@
 
 #if defined(_MSC_VER)
 
+#if 0 // change this to 1 if want to use the win32 API
 #include <windows.h>
 #ifdef small
 /* for some unfathomable reason (to me) rpcndr.h (pulled in by windows.h) does a
    '#define small char' */
 #undef small
 #endif
-
 #define TWO_TO_THE_THIRTYTWO 4294967296.0
 #define DELTA_EPOCH_IN_SECS  11644473600.0
-
 inline double CoinGetTimeOfDay()
 {
-    FILETIME ft;
+  FILETIME ft;
  
-    GetSystemTimeAsFileTime(&ft);
-    double t = ft.dwHighDateTime * TWO_TO_THE_THIRTYTWO + ft.dwLowDateTime;
-    t = t/10000000.0 - DELTA_EPOCH_IN_SECS;
-    return t;
+  GetSystemTimeAsFileTime(&ft);
+  double t = ft.dwHighDateTime * TWO_TO_THE_THIRTYTWO + ft.dwLowDateTime;
+  t = t/10000000.0 - DELTA_EPOCH_IN_SECS;
+  return t;
 }
+#else
+#include <sys/types.h>
+#include <sys/timeb.h>
+inline double CoinGetTimeOfDay()
+{
+  struct _timeb timebuffer;
+#pragma warning(disable:4996)
+  _ftime( &timebuffer ); // C4996
+#pragma warning(default:4996)
+  return timebuffer.time + timebuffer.millitm/1000.0;
+}
+#endif
 
 #else
 
