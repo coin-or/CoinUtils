@@ -20,7 +20,6 @@
 #include "CoinPackedVectorBase.hpp"
 #endif
 #include "CoinPackedMatrix.hpp"
-#include <stdio.h>
 
 //#############################################################################
 // T must be an integral type (int, CoinBigIndex, etc.)
@@ -1244,22 +1243,25 @@ CoinPackedMatrix::appendMinorVector(const int vecsize,
 				   const int *vecind,
 				   const double *vecelem)
 {
+  if (vecsize == 0) {
+    return;
+  }
+
   int i;
-#ifdef COIN_DEBUG
+#if COIN_COINUTILS_CHECKLEVEL > 3
+  // Test if any of the indices are out of range
   for (i = 0; i < vecsize; ++i) {
     if (vecind[i] < 0 || vecind[i] >= majorDim_)
       throw CoinError("out of range index",
 		     "appendMinorVector", "CoinPackedMatrix");
   }
-#if 0   
-  if (std::find_if(vecind, vecind + vecsize,
-		   compose2(logical_or<bool>(),
-			    bind2nd(less<int>(), 0),
-			    bind2nd(greater_equal<int>(), majorDim_))) !=
-      vecind + vecsize)
-    throw CoinError("out of range index",
-		   "appendMinorVector", "CoinPackedMatrix");
-#endif
+  // Test if there are duplicate indices
+  int* sortedind = CoinCopyOfArray(vecind, vecsize);
+  std::sort(sortedind, sortedind+vecsize);
+  if (std::adjacent_find(sortedind, sortedind+vecsize) != sortedind+vecsize) {
+    throw CoinError("identical indices",
+		     "appendMinorVector", "CoinPackedMatrix");
+  }
 #endif
 
   // test that there's a gap at the end of every major-dimension vector where
