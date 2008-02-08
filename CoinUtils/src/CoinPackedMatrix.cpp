@@ -21,6 +21,10 @@
 #endif
 #include "CoinPackedMatrix.hpp"
 
+#if !defined(COIN_COINUTILS_CHECKLEVEL)
+#define COIN_COINUTILS_CHECKLEVEL 0
+#endif
+
 //#############################################################################
 // T must be an integral type (int, CoinBigIndex, etc.)
 template <typename T>
