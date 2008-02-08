@@ -74,7 +74,7 @@ public:
       if (! doPrint)
         return;
       if (lineNumber_<0) {
-        std::cout<<message_<<" in "<<method_<<" class "<<class_<<std::endl;
+        std::cout<<message_<<" in "<<class_<<"::"<<method_<<std::endl;
       } else {
         std::cout<<file_<<":"<<lineNumber_<<" method "<<method_
                  <<" : assertion \'"<<message_<<"\' failed."<<std::endl;
