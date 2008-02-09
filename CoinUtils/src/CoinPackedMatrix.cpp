@@ -1128,6 +1128,7 @@ CoinPackedMatrix::appendMinorVector(const int vecsize,
 				   const double *vecelem)
 {
   if (vecsize == 0) {
+    ++minorDim_;
     return;
   }
 
