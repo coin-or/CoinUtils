@@ -1952,3 +1952,15 @@ CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
   }
   return put;
 }
+// Condition number - product of pivots after factorization
+double 
+CoinFactorization::conditionNumber() const
+{
+  double condition = 1.0;
+  const double * pivotRegion = pivotRegion_.array();
+  for (int i=0;i<numberRows_;i++) {
+    condition *= pivotRegion[i];
+  }
+  condition = CoinMax(fabs(condition),1.0e-50);
+  return 1.0/condition;
+}

@@ -121,6 +121,9 @@ public:
       and ones thrown out have -1
       returns 0 -okay, -1 singular, -99 memory */
   int factorizePart2 (int permutation[],int exactNumberElements);
+  /// Condition number - product of pivots after factorization
+  double conditionNumber() const;
+  
   //@}
 
   /**@name general stuff such as permutation or status */
