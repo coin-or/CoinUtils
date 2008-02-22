@@ -61,7 +61,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   double * sol = prob->sol_;
   //  unsigned char * colstat = prob->colstat_;
 
-  //  const char *integerType = prob->integerType_;
+  const unsigned char *integerType = prob->integerType_;
 
   const double ztolzb	= prob->ztolzb_;
 
@@ -136,11 +136,29 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	  up = PRESOLVE_INF;
       }
       
-      if (clo[jcol] < lo)
-	clo[jcol] = lo;
+      if (clo[jcol] < lo) {
+	// If integer be careful
+	if (integerType[jcol]) {
+	  if (fabs(lo-floor(lo+0.5))<0.000001)
+	    lo=floor(lo+0.5);
+	  if (clo[jcol] < lo) 
+	    clo[jcol] = lo;
+	} else {
+	  clo[jcol] = lo;
+	}
+      }
 
-      if (cup[jcol] > up) 
-	cup[jcol] = up;
+      if (cup[jcol] > up) {
+	// If integer be careful
+	if (integerType[jcol]) {
+	  if (fabs(up-floor(up+0.5))<0.000001)
+	    up=floor(up+0.5);
+	  if (cup[jcol] > up) 
+	    cup[jcol] = up;
+	} else {
+	  cup[jcol] = up;
+	}
+      }
 
       if (fabs(cup[jcol] - clo[jcol]) < ZTOLDP) {
 	fixed_cols[nfixed_cols++] = jcol;
