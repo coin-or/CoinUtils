@@ -65,9 +65,10 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includecoindir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-am_libCoinUtils_la_OBJECTS = CoinBuild.lo CoinDenseVector.lo \
-	CoinError.lo CoinFactorization1.lo CoinFactorization2.lo \
-	CoinFactorization3.lo CoinFactorization4.lo CoinFileIO.lo \
+am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
+	CoinDenseVector.lo CoinError.lo CoinFactorization1.lo \
+	CoinFactorization2.lo CoinFactorization3.lo \
+	CoinFactorization4.lo CoinDenseFactorization.lo CoinFileIO.lo \
 	CoinIndexedVector.lo CoinLpIO.lo CoinMessage.lo \
 	CoinMessageHandler.lo CoinModel.lo CoinModelUseful.lo \
 	CoinModelUseful2.lo CoinMpsIO.lo CoinPackedMatrix.lo \
@@ -133,6 +134,7 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CDEFS = @CDEFS@
 CFLAGS = @CFLAGS@
+COINUTILSDOCDIR = @COINUTILSDOCDIR@
 COINUTILSOBJDIR = @COINUTILSOBJDIR@
 COINUTILSSRCDIR = @COINUTILSSRCDIR@
 COINUTILS_LIBADD = @COINUTILS_LIBADD@
@@ -505,6 +507,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinBuild.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseFactorization.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseVector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinError.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinFactorization1.Plo@am__quote@
