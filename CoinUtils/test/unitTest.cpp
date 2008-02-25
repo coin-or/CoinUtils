@@ -115,6 +115,8 @@ int main (int argc, const char *argv[])
   else 
     testModel = "p0033.mps";
 
+  bool allOK = true ;
+
   // *FIXME* : these tests should be written... 
   //  testingMessage( "Testing CoinHelperFunctions\n" );
   //  CoinHelperFunctionsUnitTest();
@@ -138,12 +140,14 @@ int main (int argc, const char *argv[])
   if (CoinFinite(finiteVal))
   { testingMessage( "ok" ) ; }
   else
-  { testingMessage( "ERROR" ) ; }
+  { allOK = false ;
+    testingMessage( "ERROR" ) ; }
   testingMessage( "; infinite value: " ) ;
   if (!CoinFinite(checkVal))
   { testingMessage( "ok.\n" ) ; }
   else
-  { testingMessage( "ERROR!\n" ) ; }
+  { allOK = false ;
+    testingMessage( "ERROR.\n" ) ; }
 
 # ifdef MY_C_ISNAN
   testingMessage( "Testing CoinIsnan ... " ) ;
@@ -151,15 +155,18 @@ int main (int argc, const char *argv[])
   if (!CoinIsnan(finiteVal))
   { testingMessage( "ok" ) ; }
   else
-  { testingMessage( "ERROR" ) ; }
+  { allOK = false ;
+    testingMessage( "ERROR" ) ; }
   testingMessage( "; NaN value: " ) ;
   checkVal = checkVal/checkVal ;
   if (CoinIsnan(checkVal))
   { testingMessage( "ok.\n" ) ; }
   else
-  { testingMessage( "ERROR!\n" ) ; }
+  { allOK = false ;
+    testingMessage( "ERROR.\n" ) ; }
 # else
-  testingMessage( "ERROR: No functional CoinIsnan." ) ;
+  allOK = false ;
+  testingMessage( "ERROR: No functional CoinIsnan.\n" ) ;
 # endif
 
 
@@ -193,9 +200,15 @@ int main (int argc, const char *argv[])
   CoinMpsIOUnitTest(mpsDir);
 
   testingMessage( "Testing CoinMessageHandler\n" );
-  CoinMessageHandlerUnitTest() ;
+  if (!CoinMessageHandlerUnitTest())
+  { allOK = false ; }
 
-  testingMessage( "All tests completed successfully\n" );
+  if (allOK)
+  { testingMessage( "All tests completed successfully.\n" ); }
+  else
+  { testingMessage( "\nERROR: " ) ;
+    testingMessage(
+  	"Errors occurred during testing; please check the output.\n\n"); }
   return 0;
 }
 

@@ -215,7 +215,7 @@ void advTestsWithMessages (const CoinMessages &testMessages, int &errs)
 
 } // end file-local namespace
 
-void CoinMessageHandlerUnitTest ()
+bool CoinMessageHandlerUnitTest ()
 
 { int errs = 0 ;
   CoinMessages::Language curLang = CoinMessages::us_en ;
@@ -260,4 +260,4 @@ void CoinMessageHandlerUnitTest ()
   { std::cout
       << "CoinMessageHandlerTest completed without error." << std::endl ; }
 
-  return ; }
+  return (errs == 0) ; }
