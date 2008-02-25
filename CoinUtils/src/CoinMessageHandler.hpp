@@ -312,7 +312,7 @@ enum CoinMessageMarker {
 
 class CoinMessageHandler  {
 
-friend void CoinMessageHandlerUnitTest () ;
+friend bool CoinMessageHandlerUnitTest () ;
 
 private:
   /** The body of the copy constructor and the assignment operator */
@@ -608,7 +608,7 @@ private:
     have to be compiled into the library. And that's a gain, because the
     library should be compiled with optimization on, but this method should be
     compiled with debugging. */
-void
+bool
 CoinMessageHandlerUnitTest();
 
 #endif
