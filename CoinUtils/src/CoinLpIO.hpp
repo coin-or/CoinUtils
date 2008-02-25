@@ -121,6 +121,9 @@ public:
   /// Get the problem name
   const char * getProblemName() const;
 
+  /// Set problem name
+  void setProblemName(const char *name);
+
   /// Get number of columns
   int getNumCols() const;
 

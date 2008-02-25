@@ -124,6 +124,13 @@ const char * CoinLpIO::getProblemName() const
   return problemName_;
 }
 
+void
+CoinLpIO::setProblemName (const char *name)
+{
+  free(problemName_) ;
+  problemName_ = strdup(name);
+}
+
 /*************************************************************************/
 int CoinLpIO::getNumCols() const
 {
