@@ -151,6 +151,23 @@ CoinPackedVectorBase::operator!=(const CoinPackedVectorBase& rhs) const
 
 //-----------------------------------------------------------------------------
 
+int
+CoinPackedVectorBase::compare(const CoinPackedVectorBase& rhs) const
+{
+  const int size = getNumElements();
+  int itmp = size - rhs.getNumElements();
+  if (itmp != 0) {
+    return itmp;
+  }
+  itmp = memcmp(getIndices(), rhs.getIndices(), size * sizeof(int));
+  if (itmp != 0) {
+    return itmp;
+  }
+  return memcmp(getElements(), rhs.getElements(), size * sizeof(double));
+}
+
+//#############################################################################
+
 double
 CoinPackedVectorBase::dotProduct(const double* dense) const
 {

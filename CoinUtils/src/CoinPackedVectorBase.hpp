@@ -115,6 +115,22 @@ public:
    /// Not equal
    bool operator!=(const CoinPackedVectorBase & rhs) const;
 
+#if 0
+   // LL: This should be implemented eventually. It is useful to have.
+   /** Lexicographic comparisons of two packed vectors. Returns
+       negative/0/positive depending on whether \c this is
+       smaller/equal.greater than \c rhs */
+   int lexCompare(const CoinPackedVectorBase& rhs);
+#endif
+  
+   /** This method establishes an ordering on packed vectors. It is complete
+       ordering, but not the same as lexicographic ordering. However, it is
+       quick and dirty to compute and thus it is useful to keep packed vectors
+       in a heap when all we care is to quickly check whether a particular
+       vector is already in the heap or not. Returns negative/0/positive
+       depending on whether \c this is smaller/equal.greater than \c rhs. */
+   int compare(const CoinPackedVectorBase& rhs) const;
+
    /** equivalent - If shallow packed vector A & B are equivalent, then they
        are still equivalent no matter how they are sorted.
        In this method the FloatEqual function operator can be specified. The
