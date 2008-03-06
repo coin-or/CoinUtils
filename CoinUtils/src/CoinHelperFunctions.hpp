@@ -665,31 +665,55 @@ CoinDeleteEntriesFromArray(register T * arrayFirst, register T * arrayLast,
 }
 
 //#############################################################################
-
+/* Thanks to Stefano Gliozzi for providing an operating system
+   independent random number generator.  */
 /// Seed random number generator
 inline void CoinSeedRandom(int iseed)
 {
-    int jseed;
-    jseed = iseed + 69822;
-#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN32__)
-    srand(jseed);
+#if defined COIN_OWN_RANDOM_32
+  double CoinDrand48(bool isSeed = false, unsigned long seed=1);
+  CoinDrand48(true, iseed);
 #else
-    srand48(jseed);
+  int jseed;
+  jseed = iseed + 69822;
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN32__)
+  srand(jseed);
+#else
+  srand48(jseed);
 #endif
+#endif // end else COIN_OWN_RANDOM
 }
 
 /// Return random number between 0 and 1.
+#if defined COIN_OWN_RANDOM_32
+// linear congruential generator. given the seed, the generated numbers are  
+// always the same regardless the (32 bit) architecture. This allows to 
+// build & test in different environments (i.e. Wintel, Linux/Intel AIX Power5)
+// getting in most cases the same optimization path. 
+inline double CoinDrand48(bool isSeed = false, unsigned long seed=1)
+{
+  static unsigned last;
+  if (isSeed) { 
+    last = seed;
+  } else {
+    last = 1664525*last+1013904223;
+    return (((double) last)/4294967296.0);
+  }
+  return(0.0);
+}
+#else 
 inline double CoinDrand48()
 {  
-    double retVal;
+  double retVal;
 #if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN32__)
-    retVal=rand();
-    retVal=retVal/(double) RAND_MAX;
+  retVal=rand();
+  retVal=retVal/(double) RAND_MAX;
 #else
-    retVal = drand48();
+  retVal = drand48();
 #endif
-    return retVal;
+  return retVal;
 }
+#endif
 
 //#############################################################################
 
