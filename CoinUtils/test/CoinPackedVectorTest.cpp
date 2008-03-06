@@ -94,7 +94,7 @@ CoinPackedVectorUnitTest()
       assert( !errorThrown );
     }
 
-    CoinPackedVector r1(ne2,inx2,el2);
+    CoinPackedVector r1(ne2,inx2,el2,true);
     assert( r == r1 );   
     
     // Test operator[] where index is duplicated 
@@ -105,7 +105,7 @@ CoinPackedVectorUnitTest()
       double el3[ne3] = { 2.2, 4.4, 8.8, 6.6 };
       bool errorThrown = false;
       try {
-	 r.setVector(ne3,inx3,el3);
+	r.setVector(ne3,inx3,el3,true);
       }
       catch (CoinError e) {
 	 errorThrown = true;
@@ -121,7 +121,6 @@ CoinPackedVectorUnitTest()
       }
       assert( errorThrown );
     } 
-
 
 
     // Test sorting by increasing elements
@@ -437,7 +436,7 @@ CoinPackedVectorUnitTest()
 
   // Test the insert method
   {
-    CoinPackedVector v1;
+    CoinPackedVector v1(true);
     assert( v1.getNumElements()==0 );
     assert( v1.capacity()==0 );
 
@@ -1002,7 +1001,7 @@ CoinPackedVectorUnitTest()
       assert( !errorThrown );
     }
 
-    CoinPackedVector r1(ne2,inx2,el2);
+    CoinPackedVector r1(ne2,inx2,el2,true);
     assert( r == r1 );   
     
     // Test operator[] where index is duplicated 
@@ -1013,7 +1012,7 @@ CoinPackedVectorUnitTest()
       double el3[ne3] = { 2.2, 4.4, 8.8, 6.6 };
       bool errorThrown = false;
       try {
-	 r.setVector(ne3,inx3,el3);
+	r.setVector(ne3,inx3,el3,true);
       }
       catch (CoinError e) {
 	 errorThrown = true;
