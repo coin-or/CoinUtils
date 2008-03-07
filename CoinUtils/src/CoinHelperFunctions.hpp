@@ -663,7 +663,6 @@ CoinDeleteEntriesFromArray(register T * arrayFirst, register T * arrayLast,
 
     return arrayFirst + size;
 }
-#define COIN_OWN_RANDOM_32
 
 //#############################################################################
 /* Thanks to Stefano Gliozzi for providing an operating system
