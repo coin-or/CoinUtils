@@ -18,6 +18,7 @@
  */
 
 #ifndef __COINUTILSCONFIG_H__
+#define __COINUTILSCONFIG_H__
 
 #ifdef HAVE_CONFIG_H
 #include "config_coinutils.h"
