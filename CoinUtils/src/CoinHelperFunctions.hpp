@@ -161,6 +161,24 @@ CoinCopyOfArray( const T * array, const int size)
     }
 }
 
+
+/*! \brief Return an array of length \p size filled with first copySize from \p array,
+  or null if \p array is null.
+*/
+
+template <class T> inline T*
+CoinCopyOfArrayPartial( const T * array, const int size,const int copySize)
+{
+    if (array) {
+	T * arrayNew = new T[size];
+	assert (copySize<=size);
+	memcpy(arrayNew,array,copySize*sizeof(T));
+	return arrayNew;
+    } else {
+	return NULL;
+    }
+}
+
 /*! \brief Return an array of length \p size filled with input from \p array,
   or filled with (scalar) \p value if \p array is null
 */
@@ -663,6 +681,7 @@ CoinDeleteEntriesFromArray(register T * arrayFirst, register T * arrayLast,
 
     return arrayFirst + size;
 }
+#define COIN_OWN_RANDOM_32
 
 //#############################################################################
 /* Thanks to Stefano Gliozzi for providing an operating system
@@ -837,7 +856,64 @@ inline double CoinCbrt(double x)
 }
 /** Class for thread specific random numbers
 */
+#if defined COIN_OWN_RANDOM_32
+class CoinThreadRandom  {
+public:
+  /**@name Constructors, destructor */
 
+  //@{
+  /** Default constructor. */
+  CoinThreadRandom()
+  { seed_=12345678;}
+  /** Constructor wih seed. */
+  CoinThreadRandom(int seed)
+  { 
+    seed_ = seed;
+  }
+  /** Destructor */
+  ~CoinThreadRandom() {}
+  // Copy
+  CoinThreadRandom(const CoinThreadRandom & rhs)
+  { seed_ = rhs.seed_;}
+  // Assignment
+  CoinThreadRandom& operator=(const CoinThreadRandom & rhs)
+  {
+    if (this != &rhs) {
+      seed_ = rhs.seed_;
+    }
+    return *this;
+  }
+
+  //@}
+  
+  /**@name Sets/gets */
+
+  //@{
+  /** Set seed. */
+  inline void setSeed(int seed)
+  { 
+    seed_ = seed;
+  }
+  /// return a random number
+  inline double randomDouble() const
+  {
+    double retVal;
+    seed_ = 1664525*(seed_)+1013904223;
+    retVal = (((double) seed_)/4294967296.0);
+    return retVal;
+  }
+  //@}
+  
+  
+protected:
+  /**@name Data members
+     The data members are protected to allow access for derived classes. */
+  //@{
+  /// Current seed
+  mutable unsigned int seed_;
+  //@}
+};
+#else
 class CoinThreadRandom  {
 public:
   /**@name Constructors, destructor */
@@ -891,17 +967,11 @@ public:
   inline double randomDouble() const
   {
     double retVal;
-#if defined COIN_OWN_RANDOM_32
-    unsigned int * last = (unsigned int *) seed_;
-    *last = 1664525*(*last)+1013904223;
-    retVal = (((double) *last)/4294967296.0);
-#else
 #if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN32__)
     retVal=rand();
     retVal=retVal/(double) RAND_MAX;
 #else
     retVal = erand48(seed_);
-#endif
 #endif
     return retVal;
   }
@@ -916,5 +986,5 @@ protected:
   mutable unsigned short seed_[3];
   //@}
 };
-
+#endif
 #endif
