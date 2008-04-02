@@ -299,7 +299,7 @@ CoinWarmStartBasis::deleteColumns(int number, const int * which)
   }
   int nCharNewS  = 4*((numStructural_-numberDeleted+15)>>4);
   int nCharNewA  = 4*((numArtificial_+15)>>4);
-  char * array = new char[maxSize_];
+  char * array = new char[4*maxSize_];
 # ifdef ZEROFAULT
   memset(array,0,(4*maxSize_*sizeof(char))) ;
 # endif
