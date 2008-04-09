@@ -7,6 +7,7 @@
 
 #include "CoinUtilsConfig.h"
 
+#include <cstdlib>
 #ifdef HAVE_CMATH
 # include <cmath>
 #else

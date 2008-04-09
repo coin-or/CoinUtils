@@ -9,6 +9,7 @@
 #endif
 
 #include <cassert>
+#include <cstdlib>
 #include <cmath>
 #include "CoinHelperFunctions.hpp"
 
