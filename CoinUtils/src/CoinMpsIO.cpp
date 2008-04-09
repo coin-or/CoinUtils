@@ -8,6 +8,7 @@
 #include "CoinUtilsConfig.h"
 
 #include <cassert>
+#include <cstdlib>
 #include <cmath>
 #include <cfloat>
 #include <string>

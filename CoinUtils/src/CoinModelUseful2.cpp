@@ -68,19 +68,19 @@
 #define FNCT 260
 #define NEG 261
 
+#include <cstdlib>
+
 #include "CoinModel.hpp"
 #include "CoinHelperFunctions.hpp"
 
 
 /* Copy the first part of user declarations.  */
 
-#include <math.h>  /* For math functions, cos(), sin(), etc.  */
-
+#include <cmath>  /* For math functions, cos(), sin(), etc.  */
 
 #include <cstdio>
 #include <ctype.h>
 #include <cstring>
-#include <cstdlib>
 #include <cassert>
 static void yyerror (char const *);
 
