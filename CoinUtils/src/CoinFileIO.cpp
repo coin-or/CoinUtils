@@ -579,21 +579,19 @@ bool CoinFileOutput::puts (const char *s)
 bool fileAbsPath (const std::string &path)
 {
   const char dirsep =  CoinFindDirSeparator() ;
-  bool absolutePath ;
 
-  if (dirsep == '/') {
-    // non Windows (or cygwin)
-    absolutePath = (path[0] == '/') ;
-  } else {
-    //Windows (non cycgwin)
-    absolutePath = (path[0] == '\\') ;
-    // but allow for an initial drive designator:
-    if (strchr(path.c_str(),':')) {
-      absolutePath = true ;
+  // If the first two chars are drive designators then treat it as absolute
+  // path (noone in their right mind would create a file named 'Z:' on unix,
+  // right?...)
+  const int len = path.length();
+  if (len >= 2 && path[1] == ':') {
+    const char ch = path[0];
+    if (('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z')) {
+      return true;
     }
   }
 
-  return (absolutePath) ;
+  return path[0] == dirsep;
 }
 
 
