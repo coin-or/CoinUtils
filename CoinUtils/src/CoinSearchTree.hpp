@@ -36,33 +36,42 @@ class CoinTreeNode {
 protected:
     CoinTreeNode() :
 	depth_(-1),
+	fractionality_(-1),
 	quality_(-COIN_DBL_MAX),
 	true_lower_bound_(-COIN_DBL_MAX),
 	preferred_() {}
     CoinTreeNode(int d,
+		 int f,
 		 double q = -COIN_DBL_MAX,
-		 double tlb = -COIN_DBL_MAX /*, double f*/,
+		 double tlb = -COIN_DBL_MAX,
 		 BitVector128 p = BitVector128()) :
 	depth_(d),
+	fractionality_(f),
 	quality_(q),
 	true_lower_bound_(tlb),
-	preferred_(p) /*, fractionality_(f)*/ {}
+	preferred_(p) {}
     CoinTreeNode(const CoinTreeNode& x) :
 	depth_(x.depth_),
+	fractionality_(x.fractionality_),
 	quality_(x.quality_),
 	true_lower_bound_(x.true_lower_bound_),
 	preferred_(x.preferred_) {}
     CoinTreeNode& operator=(const CoinTreeNode& x) {
-	// Not worth to test (this != &x)
-	depth_ = x.depth_;
-	quality_ = x.quality_;
-	true_lower_bound_ = x.true_lower_bound_;
-	preferred_ = x.preferred_;
+        if (this != &x) {
+	  depth_ = x.depth_;
+	  fractionality_ = x.fractionality_;
+	  quality_ = x.quality_;
+	  true_lower_bound_ = x.true_lower_bound_;
+	  preferred_ = x.preferred_;
+	}
 	return *this;
     }
 private:
     /// The depth of the node in the tree
     int depth_;
+    /** A measure of fractionality, e.g., the number of unsatisfied
+	integrality requirements */
+    int fractionality_;
     /** Some quality for the node. For normal branch-and-cut problems the LP
 	relaxation value will do just fine. It is probably an OK approximation
 	even if column generation is done. */
@@ -73,22 +82,23 @@ private:
     double true_lower_bound_;
     /** */
     BitVector128 preferred_;
-    /** A measure of fractionality, e.g., the fraction of unsatisfied
-	integrality requirements */
-    /*double fractionality_;*/
 public:
     virtual ~CoinTreeNode() {}
 
-    inline int          getDepth()     const { return depth_; }
-    inline double       getQuality()   const { return quality_; }
-    inline double       getTrueLB()    const { return true_lower_bound_; }
-    inline BitVector128 getPreferred() const { return preferred_; }
+    inline int          getDepth()         const { return depth_; }
+    inline int          getFractionality() const { return fractionality_; }
+    inline double       getQuality()       const { return quality_; }
+    inline double       getTrueLB()        const { return true_lower_bound_; }
+    inline BitVector128 getPreferred()     const { return preferred_; }
     
     inline void setDepth(int d)              { depth_ = d; }
+    inline void setFractionality(int f)      { fractionality_ = f; }
     inline void setQuality(double q)         { quality_ = q; }
     inline void setTrueLB(double tlb)        { true_lower_bound_ = tlb; }
     inline void setPreferred(BitVector128 p) { preferred_ = p; }
 };
+
+//==============================================================================
 
 class CoinTreeSiblings {
 private:
@@ -217,7 +227,6 @@ protected:
 
 public:
     virtual ~CoinSearchTreeBase() {}
-    virtual std::string printComp() const = 0;
     virtual const char* compName() const = 0;
 
     inline const std::vector<CoinTreeSiblings*>& getCandidates() const {
@@ -306,7 +315,6 @@ public:
 	size_ = t.size_;
     }
     ~CoinSearchTree() {}
-    std::string printComp() const { return Comp::name(); }
     const char* compName() const { return Comp::name(); }
 };
 
@@ -373,7 +381,6 @@ public:
 	size_ = t.size();
     }
     ~CoinSearchTree() {}
-    std::string printComp() const { return Comp::name(); }
     const char* compName() const { return Comp::name(); }
 };
 
