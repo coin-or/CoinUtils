@@ -41,7 +41,7 @@ protected:
 	true_lower_bound_(-COIN_DBL_MAX),
 	preferred_() {}
     CoinTreeNode(int d,
-		 int f,
+		 int f = -1,
 		 double q = -COIN_DBL_MAX,
 		 double tlb = -COIN_DBL_MAX,
 		 BitVector128 p = BitVector128()) :
