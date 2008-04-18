@@ -127,6 +127,7 @@ includecoin_HEADERS = \
 	CoinDistance.hpp \
 	CoinError.hpp \
 	CoinFactorization.hpp \
+	CoinDenseFactorization.hpp \
 	CoinFileIO.hpp \
 	CoinFinite.hpp \
 	CoinFloatEqual.hpp \
