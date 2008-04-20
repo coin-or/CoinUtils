@@ -1529,7 +1529,7 @@ int CoinFactorization::updateColumnFT ( CoinIndexedVector * regionSparse,
     
     startColumnU[iColumn] = startColumnU[maximumColumnsExtra_];
     CoinBigIndex start = startColumnU[iColumn];
-    CoinBigIndex space = lengthAreaU_ - ( start + numberRows_ );
+    CoinBigIndex space = lengthAreaU_ - ( start + numberRowsExtra_ );
     doFT = space>=0;
     if (doFT) {
       regionIndex = indexRowU_.array() + start;
