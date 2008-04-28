@@ -26,8 +26,8 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
   int numberColumns = prob->ncols_;
   double * columnLower	= new double[numberColumns];
   double * columnUpper	= new double[numberColumns];
-  memcpy(columnLower,prob->clo_,numberColumns*sizeof(double));
-  memcpy(columnUpper,prob->cup_,numberColumns*sizeof(double));
+  CoinMemcpyN(prob->clo_,numberColumns,columnLower);
+  CoinMemcpyN(prob->cup_,numberColumns,columnUpper);
 
   const double *element	= prob->rowels_;
   const int *column	= prob->hcol_;
@@ -364,7 +364,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
     for (iRow = 0; iRow < numberRows; iRow++) {
       
       if (markRow[iRow]<0) {
-	
+
 	// possible row
 	int infiniteUpper = 0;
 	int infiniteLower = 0;
@@ -374,7 +374,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 	CoinBigIndex rEnd = rowStart[iRow]+rowLength[iRow];
 	CoinBigIndex j;
 	// Compute possible lower and upper ranges
-	
+
 	for (j = rStart; j < rEnd; ++j) {
 	  double value=element[j];
 	  iColumn = column[j];

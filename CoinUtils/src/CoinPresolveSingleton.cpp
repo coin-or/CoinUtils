@@ -139,8 +139,15 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       if (clo[jcol] < lo) {
 	// If integer be careful
 	if (integerType[jcol]) {
+#ifdef COIN_DEVELOP
+	  double lo2=lo;
+#endif
 	  if (fabs(lo-floor(lo+0.5))<0.000001)
 	    lo=floor(lo+0.5);
+#ifdef COIN_DEVELOP
+	  if (lo!=lo2&&fabs(lo-floor(lo+0.5))<0.01)
+	    printf("first lo %g second %g orig %g\n",lo2,lo,clo[jcol]);
+#endif
 	  if (clo[jcol] < lo) 
 	    clo[jcol] = lo;
 	} else {
@@ -151,8 +158,15 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       if (cup[jcol] > up) {
 	// If integer be careful
 	if (integerType[jcol]) {
+#ifdef COIN_DEVELOP
+	  double up2=up;
+#endif
 	  if (fabs(up-floor(up+0.5))<0.000001)
 	    up=floor(up+0.5);
+#ifdef COIN_DEVELOP
+	  if (up!=up2&&fabs(up-floor(up+0.5))<0.01)
+	    printf("first up %g second %g orig %g\n",up2,up,cup[jcol]);
+#endif
 	  if (cup[jcol] > up) 
 	    cup[jcol] = up;
 	} else {
@@ -470,8 +484,29 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
       // don't bother with fixed cols
       if (fabs(cup[iCol] - clo[iCol]) < ztolzb)
 	continue;
-      if (integerType&&integerType[iCol])
-        continue;
+      if (integerType&&integerType[iCol]) {
+	// only possible if everything else integer and unit coefficient
+	// check everything else a bit later
+	if (acoeff!=1.0)
+	  continue;
+        double currentLower = rlo[iRow];
+        double currentUpper = rup[iRow];
+	if (coeff==1.0&&currentLower==1.0&&currentUpper==1.0) {
+	  // leave if integer slack on sum x == 1
+	  bool allInt=true;
+	  for (CoinBigIndex j=mrstrt[iRow];
+	       j<mrstrt[iRow]+hinrow[iRow];j++) {
+	    int iColumn = hcol[j];
+	    double value = fabs(rowels[j]);
+	    if (!integerType[iColumn]||value!=1.0) {
+	      allInt=false;
+	      break;
+	    }
+	  }
+	  if (allInt)
+	    continue; // leave as may help search
+	}
+      }
       if (!prob->colProhibited(iCol)) {
         double currentLower = rlo[iRow];
         double currentUpper = rup[iRow];
@@ -514,10 +549,33 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
               newLower=-COIN_DBL_MAX;
           }
         }
+	if (integerType&&integerType[iCol]) {
+	  // only possible if everything else integer
+	  if (newLower>-1.0e30) {
+	    if (newLower!=floor(newLower+0.5))
+	      continue;
+	  }
+	  if (newUpper<1.0e30) {
+	    if (newUpper!=floor(newUpper+0.5))
+	      continue;
+	  }
+	  bool allInt=true;
+	  for (CoinBigIndex j=mrstrt[iRow];
+	       j<mrstrt[iRow]+hinrow[iRow];j++) {
+	    int iColumn = hcol[j];
+	    double value = fabs(rowels[j]);
+	    if (!integerType[iColumn]||value!=floor(value+0.5)) {
+	      allInt=false;
+	      break;
+	    }
+	  }
+	  if (!allInt)
+	    continue; // no good
+	}
         if (nactions==maxActions) {
           maxActions += CoinMin(numberLook-iLook,maxActions);
           action * temp = new action[maxActions];
-          memcpy(temp,actions,nactions*sizeof(action));
+          CoinMemcpyN(actions,nactions,temp);
           delete [] actions;
           actions=temp;
         }
@@ -596,11 +654,12 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
 #   if PRESOLVE_SUMMARY
     printf("SINGLETON COLS:  %d\n", nactions);
 #   endif
+#ifdef COIN_DEVELOP
     printf("%d singletons, %d with costs - offset %g\n",nactions,
            nWithCosts, costOffset);
+#endif
     action *save_actions = new action[nactions];
     CoinMemcpyN(actions, nactions, save_actions);
-    delete [] actions;
     next = new slack_singleton_action(nactions, save_actions, next);
 
     if (nfixed_cols)
@@ -608,6 +667,7 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
 					 true, // arbitrary
 					 next);
   }
+  delete [] actions;
   delete [] fixed_cols;
   if (prob->tuning_) {
     double thisTime=CoinCpuTime();
@@ -700,8 +760,10 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
           numberBasic++;
         if (prob->rowIsBasic(iRow)) 
           numberBasic++;
+#ifdef COIN_DEVELOP
         if (numberBasic>1)
           printf("odd in singleton\n");
+#endif
         if (sol[iCol]>clo[iCol]+ztolzb&&sol[iCol]<cup[iCol]-ztolzb) {
           prob->setColumnStatus(iCol,CoinPrePostsolveMatrix::basic);
           prob->setRowStatusUsingValue(iRow);
@@ -736,8 +798,10 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
         printf("Singleton %d had coeff of %g in row %d (dual %g) - bounds %g %g - cost %g, (dj %g - new %g)\n",
                iCol,coeff,iRow,rowduals[iRow],clo[iCol],cup[iCol],dcost[iCol],rcosts[iCol],cost);
 #endif
+#ifdef COIN_DEVELOP
         if (prob->columnIsBasic(iCol)) 
           printf("column basic!\n");
+#endif
         basic=false;
       }
       if (fabs(rowduals[iRow])>1.0e-6&&prob->rowIsBasic(iRow))

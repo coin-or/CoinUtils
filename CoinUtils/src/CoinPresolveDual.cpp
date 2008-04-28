@@ -157,7 +157,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	int nordl = 0;
 	double ddjlo = maxmin * dcost[j];
 	double ddjhi = ddjlo;
-	
+
 	for (CoinBigIndex k = kcs; k < kce; k++) {
 	  int i = hrow[k];
 	  double coeff = colels[k];
@@ -330,12 +330,12 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	  }
 	}
 #endif
-	
+
 #if	PRESOLVE_TIGHTEN_DUALS
 	djmin[j] = (nflagl ?  -PRESOLVE_INF : ddjlo);
 	djmax[j] = (nflagu ? PRESOLVE_INF : ddjhi);
 #endif
-	
+
 	if (ddjlo > ztoldj && nflagl == 0&&!prob->colProhibited2(j)) {
 	  // dj>0 at optimality ==> must be at lower bound
 	  if (clo[j] <= -ekkinf) {
@@ -627,6 +627,10 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	int icol = hcol[k];
 	if (cup[icol]>clo[icol]&&integerType[icol]) {
 	  canFix[i]=0; // not safe
+#ifdef COIN_DEVELOP
+	  printf("no dual something CoinPresolveDual row %d col %d\n",
+		 i,icol);
+#endif
 	}
       }
     }

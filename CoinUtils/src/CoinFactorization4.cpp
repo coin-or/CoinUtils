@@ -47,7 +47,12 @@ CoinFactorization::updateColumnU ( CoinIndexedVector * regionSparse,
   }
   switch (goSparse) {
   case 0: // densish
-    updateColumnUDensish(regionSparse,indexIn);
+    {
+      double *region = regionSparse->denseVector (  );
+      int * regionIndex = regionSparse->getIndices();
+      int numberNonZero=updateColumnUDensish(region,regionIndex);
+      regionSparse->setNumElements ( numberNonZero );
+    }
     break;
   case 1: // middling
     updateColumnUSparsish(regionSparse,indexIn);
@@ -59,14 +64,19 @@ CoinFactorization::updateColumnU ( CoinIndexedVector * regionSparse,
   if (collectStatistics_) 
     ftranCountAfterU_ += (double) regionSparse->getNumElements (  );
 }
-
-//  updateColumnUDensish.  Updates part of column (FTRANU)
-void
-CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse,
-					  int * indexIn) const
+#ifdef COIN_DEVELOP
+static double ncall_DZ=0.0;
+static double nrow_DZ=0.0;
+static double nslack_DZ=0.0;
+static double nU_DZ=0.0;
+static double nnz_DZ=0.0;
+static double nDone_DZ=0.0;
+#endif
+// Updates part of column (FTRANU) real work
+int 
+CoinFactorization::updateColumnUDensish ( double * COIN_RESTRICT region, 
+					  int * COIN_RESTRICT regionIndex) const
 {
-  double *region = regionSparse->denseVector (  );
-  int * regionIndex = regionSparse->getIndices();
   double tolerance = zeroTolerance_;
   const CoinBigIndex *startColumn = startColumnU_.array();
   const int *indexRow = indexRowU_.array();
@@ -75,22 +85,33 @@ CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse,
   const int *numberInColumn = numberInColumn_.array();
   int i;
   const double *pivotRegion = pivotRegion_.array();
-
+#ifdef COIN_DEVELOP
+  ncall_DZ++;
+  nrow_DZ += numberRows_;
+  nslack_DZ += numberSlacks_;
+  nU_DZ += numberU_;
+#endif
+  
   for (i = numberU_-1 ; i >= numberSlacks_; i-- ) {
     double pivotValue = region[i];
     if (pivotValue) {
+#ifdef COIN_DEVELOP
+      nnz_DZ++;
+#endif
       region[i] = 0.0;
       if ( fabs ( pivotValue ) > tolerance ) {
 	CoinBigIndex start = startColumn[i];
 	const double * thisElement = element+start;
 	const int * thisIndex = indexRow+start;
-
 	CoinBigIndex j;
+#ifdef COIN_DEVELOP
+	nDone_DZ += numberInColumn[i];
+#endif
 	for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
-	  int iRow0 = thisIndex[j];
-	  double regionValue0 = region[iRow0];
-	  double value0 = thisElement[j];
-	  region[iRow0] = regionValue0 - value0 * pivotValue;
+	  int iRow = thisIndex[j];
+	  double regionValue = region[iRow];
+	  double value = thisElement[j];
+	  region[iRow] = regionValue - value * pivotValue;
 	}
 	pivotValue *= pivotRegion[i];
 	region[i]=pivotValue;
@@ -100,8 +121,62 @@ CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse,
   }
     
   // now do slacks
-  double factor = slackValue_;
-  if (factor==1.0) {
+#ifndef COIN_FAST_CODE
+  if (slackValue_==-1.0) {
+#endif
+#if 0
+    // Could skew loop to pick up next one earlier
+    // might improve pipelining
+    for ( i = numberSlacks_-1; i>2;i-=2) {
+      double value0 = region[i];
+      double absValue0 = fabs ( value0 );
+      double value1 = region[i-1];
+      double absValue1 = fabs ( value1 );
+      if ( value0 ) {
+	if ( absValue0 > tolerance ) {
+	  region[i]=-value0;
+	  regionIndex[numberNonZero++]=i;
+	} else {
+	  region[i]=0.0;
+	}
+      }
+      if ( value1 ) {
+	if ( absValue1 > tolerance ) {
+	  region[i-1]=-value1;
+	  regionIndex[numberNonZero++]=i-1;
+	} else {
+	  region[i-1]=0.0;
+	}
+      }
+    }
+    for ( ; i>=0;i--) {
+      double value = region[i];
+      double absValue = fabs ( value );
+      if ( value ) {
+	if ( absValue > tolerance ) {
+	  region[i]=-value;
+	  regionIndex[numberNonZero++]=i;
+	} else {
+	  region[i]=0.0;
+	}
+      }
+    }
+#else
+    for ( i = numberSlacks_-1; i>=0;i--) {
+      double value = region[i];
+      if ( value ) {
+	region[i]=-value;
+	regionIndex[numberNonZero]=i;
+	if ( fabs(value) > tolerance ) 
+	  numberNonZero++;
+	else 
+	  region[i]=0.0;
+      }
+    }
+#endif
+#ifndef COIN_FAST_CODE
+  } else {
+    assert (slackValue_==1.0);
     for ( i = numberSlacks_-1; i>=0;i--) {
       double value = region[i];
       double absValue = fabs ( value );
@@ -113,23 +188,9 @@ CoinFactorization::updateColumnUDensish ( CoinIndexedVector * regionSparse,
 	}
       }
     }
-  } else {
-    assert (factor==-1.0);
-    // Could skew loop to pick up next one earlier
-    // might improve pipelining
-    for ( i = numberSlacks_-1; i>=0;i--) {
-      double value = region[i];
-      double absValue = fabs ( value );
-      if ( value ) {
-	region[i]=0.0;
-	if ( absValue > tolerance ) {
-	  region[i]=-value;
-	  regionIndex[numberNonZero++]=i;
-	}
-      }
-    }
   }
-  regionSparse->setNumElements ( numberNonZero );
+#endif
+  return numberNonZero;
 }
 //  updateColumnU.  Updates part of column (FTRANU)
 /*
@@ -317,6 +378,7 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
     }
   }
   // slacks
+#ifndef COIN_FAST_CODE
   if (slackValue_==1.0) {
     for (;put<putLast;put++) {
       int iPivot = *put;
@@ -329,6 +391,7 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
       }
     }
   } else {
+#endif
     for (;put<putLast;put++) {
       int iPivot = *put;
       mark[iPivot]=0;
@@ -339,7 +402,9 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
 	regionIndex[numberNonZero++]=iPivot;
       }
     }
+#ifndef COIN_FAST_CODE
   }
+#endif
   regionSparse->setNumElements ( numberNonZero );
 }
 //  updateColumnU.  Updates part of column (FTRANU)
@@ -349,6 +414,14 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
   better there (I know I could if I marked the depth of every element
   but that would lead to other inefficiencies.
 */
+#ifdef COIN_DEVELOP
+static double ncall_SZ=0.0;
+static double nrow_SZ=0.0;
+static double nslack_SZ=0.0;
+static double nU_SZ=0.0;
+static double nnz_SZ=0.0;
+static double nDone_SZ=0.0;
+#endif
 void
 CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 					   int * indexIn) const
@@ -375,6 +448,12 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
   const int *indexRow = indexRowU_.array();
   const double *element = elementU_.array();
   const double *pivotRegion = pivotRegion_.array();
+#ifdef COIN_DEVELOP
+  ncall_SZ++;
+  nrow_SZ += numberRows_;
+  nslack_SZ += numberSlacks_;
+  nU_SZ += numberU_;
+#endif
 
   for (i=0;i<numberNonZero;i++) {
     iPivot=indexIn[i];
@@ -395,11 +474,17 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
     double pivotValue = region[i];
     region[i] = 0.0;
     if ( fabs ( pivotValue ) > tolerance ) {
+#ifdef COIN_DEVELOP
+      nnz_SZ ++;
+#endif
       CoinBigIndex start = startColumn[i];
       const double * thisElement = element+start;
       const int * thisIndex = indexRow+start;
       
       CoinBigIndex j;
+#ifdef COIN_DEVELOP
+      nDone_SZ += numberInColumn[i];
+#endif
       for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
 	int iRow0 = thisIndex[j];
 	double regionValue0 = region[iRow0];
@@ -432,6 +517,9 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 	for ( ; i >= iLast; i-- ) {
 	  double pivotValue = region[i];
 	  if (pivotValue) {
+#ifdef COIN_DEVELOP
+	    nnz_SZ ++;
+#endif
 	    region[i] = 0.0;
 	    if ( fabs ( pivotValue ) > tolerance ) {
 	      CoinBigIndex start = startColumn[i];
@@ -439,6 +527,9 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 	      const int * thisIndex = indexRow+start;
 	      
 	      CoinBigIndex j;
+#ifdef COIN_DEVELOP
+	      nDone_SZ += numberInColumn[i];
+#endif
 	      for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
 		int iRow0 = thisIndex[j];
 		double regionValue0 = region[iRow0];
@@ -468,11 +559,17 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
     double pivotValue = region[i];
     region[i] = 0.0;
     if ( fabs ( pivotValue ) > tolerance ) {
+#ifdef COIN_DEVELOP
+      nnz_SZ ++;
+#endif
       CoinBigIndex start = startColumn[i];
       const double * thisElement = element+start;
       const int * thisIndex = indexRow+start;
       
       CoinBigIndex j;
+#ifdef COIN_DEVELOP
+      nDone_SZ += numberInColumn[i];
+#endif
       for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
 	int iRow0 = thisIndex[j];
 	double regionValue0 = region[iRow0];
@@ -495,6 +592,7 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
   
   if (numberSlacks_) {
     // now do slacks
+#ifndef COIN_FAST_CODE
     double factor = slackValue_;
     if (factor==1.0) {
       // First do down to convenient power of 2
@@ -535,6 +633,7 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
       }
     } else {
       assert (factor==-1.0);
+#endif
       // First do down to convenient power of 2
       CoinBigIndex jLast = (numberSlacks_-1)>>CHECK_SHIFT;
       jLast = jLast<<CHECK_SHIFT;
@@ -571,7 +670,9 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 	  mark[k]=0;
 	}
       }
+#ifndef COIN_FAST_CODE
     }
+#endif
   }
   regionSparse->setNumElements ( numberNonZero );
   mark[(numberU_-1)>>CHECK_SHIFT]=0;
@@ -589,8 +690,8 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 CoinFactorization & CoinFactorization::operator = ( const CoinFactorization & other ) {
   if (this != &other) {    
     gutsOfDestructor();
-    persistenceFlag_=other.persistenceFlag_;
     gutsOfInitialize(3);
+    persistenceFlag_=other.persistenceFlag_;
     gutsOfCopy(other);
   }
   return *this;
@@ -646,7 +747,9 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   lengthAreaR_ = other.lengthAreaR_;
   pivotTolerance_ = other.pivotTolerance_;
   zeroTolerance_ = other.zeroTolerance_;
+#ifndef COIN_FAST_CODE
   slackValue_ = other.slackValue_;
+#endif
   areaFactor_ = other.areaFactor_;
   numberRows_ = other.numberRows_;
   numberRowsExtra_ = other.numberRowsExtra_;
@@ -1067,7 +1170,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	pivotValue = region[iRow];
 	//zero out pre-permuted
 	region[iRow] = 0.0;
-	
+
 	CoinBigIndex j;
 	for ( j = start; j < end; j ++ ) {
 	  double value = element[j];
@@ -1336,7 +1439,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
       //in at end
       int iColumn = numberColumnsExtra_;
       
-      startColumnU[iColumn] = startColumnU[maximumColumnsExtra_];
+      assert(startColumnU[iColumn] == startColumnU[maximumColumnsExtra_]);
       CoinBigIndex start = startColumnU[iColumn];
       
       int * putIndex = indexRowU_.array() + start;
@@ -1363,7 +1466,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
     numberNonZero = regionSparse->getNumElements (  );
     int iColumn = numberColumnsExtra_;
     
-    startColumnU[iColumn] = startColumnU[maximumColumnsExtra_];
+    assert(startColumnU[iColumn] == startColumnU[maximumColumnsExtra_]);
     CoinBigIndex start = startColumnU[iColumn];
     numberInColumn[iColumn] = numberNonZero;
     startColumnU[maximumColumnsExtra_] = start + numberNonZero;
@@ -1605,13 +1708,12 @@ int CoinFactorization::updateColumnFT ( CoinIndexedVector * regionSparse,
     // Do PFI after everything else
     updateColumnPFI(regionSparse);
   }
-  numberNonZero = regionSparse->getNumElements (  );
   permuteBack(regionSparse,regionSparse2);
   // will be negative if no room
   if ( doFT ) 
-    return numberNonZero;
+    return regionSparse2->getNumElements();
   else 
-    return -numberNonZero;
+    return -regionSparse2->getNumElements();
 }
 /* Updates one column (FTRAN) from region2 and permutes.
    region1 starts as zero
@@ -1853,6 +1955,7 @@ void CoinFactorization::zeroTolerance (  double value )
     zeroTolerance_=value;
   }
 }
+#ifndef COIN_FAST_CODE
 void CoinFactorization::slackValue (  double value )
 {
   if (value>=0.0) {
@@ -1861,6 +1964,7 @@ void CoinFactorization::slackValue (  double value )
     slackValue_=-1.0;
   }
 }
+#endif
 // Reset all sparsity etc statistics
 void CoinFactorization::resetStatistics()
 {
@@ -2287,3 +2391,26 @@ CoinFactorization::checkSparse()
   btranCountAfterR_ *= 0.8;
   btranCountAfterL_ *= 0.8;
 }
+#ifdef COIN_DEVELOP
+void print_fac_stats()
+{
+  double mult = ncall_DZ ? 1.0/ncall_DZ : 1.0;
+  printf("UDen called %g times, average rows %g, average slacks %g, average (U-S) %g average nnz in %g average ops %g\n",
+	 ncall_DZ,mult*nrow_DZ,mult*nslack_DZ,mult*(nU_DZ-nslack_DZ),mult*nnz_DZ,mult*nDone_DZ);
+  ncall_DZ=0.0;
+  nrow_DZ=0.0;
+  nslack_DZ=0.0;
+  nU_DZ=0.0;
+  nnz_DZ=0.0;
+  nDone_DZ=0.0;
+  mult = ncall_SZ ? 1.0/ncall_SZ : 1.0;
+  printf("USpars called %g times, average rows %g, average slacks %g, average (U-S) %g average nnz in %g average ops %g\n",
+	 ncall_SZ,mult*nrow_SZ,mult*nslack_SZ,mult*(nU_SZ-nslack_SZ),mult*nnz_SZ,mult*nDone_SZ);
+  ncall_SZ=0.0;
+  nrow_SZ=0.0;
+  nslack_SZ=0.0;
+  nU_SZ=0.0;
+  nnz_SZ=0.0;
+  nDone_SZ=0.0;
+}
+#endif

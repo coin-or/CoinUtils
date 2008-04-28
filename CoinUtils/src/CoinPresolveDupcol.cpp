@@ -85,7 +85,7 @@ void create_col (int col, int n, double *els,
 
 } // end unnamed file-local namespace
 
-
+
 
 const char *dupcol_action::name () const
 {
@@ -148,7 +148,7 @@ const CoinPresolveAction
   // If all coefficients positive do more simply
   bool allPositive=true;
   double * rhs = new double[nrows];
-  memcpy(rhs,rup,nrows*sizeof(double));  
+  CoinMemcpyN(rup,nrows,rhs);  
 /*
   Scan the columns for candidates, and write the indices into sort. We're not
   interested in columns that are empty, prohibited, or integral.
@@ -729,7 +729,7 @@ dupcol_action::~dupcol_action()
     deleteAction(actions_, action*);
 }
 
-
+
 
 /*
   Routines for duplicate rows. This is definitely unfinished --- there's no

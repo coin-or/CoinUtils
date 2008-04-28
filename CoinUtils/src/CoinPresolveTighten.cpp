@@ -421,7 +421,7 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
 	double coeff = colels[k];
 	k = link[k];
 	//      double activity = acts[irow];
-	
+
 	acts[irow] += correction * coeff;
       }
       // if the col happens to get pushed to its bound,

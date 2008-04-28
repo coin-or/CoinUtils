@@ -179,10 +179,12 @@ CoinPackedVector::setFullNonZero(int size, const double * elems,
 void
 CoinPackedVector::setElement(int index, double element)
 {
+#ifndef COIN_FAST_CODE
    if ( index >= nElements_ ) 
       throw CoinError("index >= size()", "setElement", "CoinPackedVector");
    if ( index < 0 ) 
       throw CoinError("index < 0" , "setElement", "CoinPackedVector");
+#endif
    elements_[index] = element;
 }
 

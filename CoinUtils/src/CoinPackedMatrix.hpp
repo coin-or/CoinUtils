@@ -68,9 +68,9 @@ public:
   /**@name Query members */
   //@{
     /** Return the current setting of the extra gap. */
-    double getExtraGap() const { return extraGap_; }
+    inline double getExtraGap() const { return extraGap_; }
     /** Return the current setting of the extra major. */
-    double getExtraMajor() const { return extraMajor_; }
+    inline double getExtraMajor() const { return extraMajor_; }
 
     /** Reserve sufficient space for appending major-ordered vectors. 
 	If create is true, empty columns are created (for column generation) */
@@ -80,13 +80,17 @@ public:
     void clear();
 
     /** Whether the packed matrix is column major ordered or not. */
-    bool isColOrdered() const { return colOrdered_; }
+    inline bool isColOrdered() const { return colOrdered_; }
+    /** Whether the packed matrix has gaps or not. */
+    inline bool hasGaps() const 
+    { return  size_<start_[majorDim_];} 
+
     /** Number of entries in the packed matrix. */
-    CoinBigIndex getNumElements() const { return size_; }
+    inline CoinBigIndex getNumElements() const { return size_; }
     /** Number of columns. */
-    int getNumCols() const { return colOrdered_ ? majorDim_ : minorDim_; }
+    inline int getNumCols() const { return colOrdered_ ? majorDim_ : minorDim_; }
     /** Number of rows. */
-    int getNumRows() const { return colOrdered_ ? minorDim_ : majorDim_; }
+    inline int getNumRows() const { return colOrdered_ ? minorDim_ : majorDim_; }
 
     /** A vector containing the elements in the packed matrix. Note that there
 	might be gaps in this list, entries that do not belong to any
@@ -101,9 +105,9 @@ public:
     inline const int * getIndices() const { return index_; }
 
     /** The size of the <code>vectorStarts</code> array */
-    int getSizeVectorStarts()const { return majorDim_ > 0 ? majorDim_+1 : 0;}
+    inline int getSizeVectorStarts()const { return majorDim_ > 0 ? majorDim_+1 : 0;}
     /** The size of the <code>vectorLengths</code> array */
-    int getSizeVectorLengths() const { return majorDim_; }
+    inline int getSizeVectorLengths() const { return majorDim_; }
     /** The positions where the major-dimension vectors start in elements and
         indices. */
     inline const CoinBigIndex * getVectorStarts() const { return start_; }
@@ -114,28 +118,36 @@ public:
     /** The position of the first element in the i'th major-dimension vector.
      */
     CoinBigIndex getVectorFirst(const int i) const {
+#ifndef COIN_FAST_CODE
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vectorFirst", "CoinPackedMatrix");
+#endif
       return start_[i];
     }
     /** The position of the last element (well, one entry <em>past</em> the
         last) in the i'th major-dimension vector. */
     CoinBigIndex getVectorLast(const int i) const {
+#ifndef COIN_FAST_CODE
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vectorLast", "CoinPackedMatrix");
+#endif
       return start_[i] + length_[i];
     }
     /** The length of i'th vector. */
     inline int getVectorSize(const int i) const {
+#ifndef COIN_FAST_CODE
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vectorSize", "CoinPackedMatrix");
+#endif
       return length_[i];
     }
 #ifndef CLP_NO_VECTOR  
     /** Return the i'th vector in matrix. */
     const CoinShallowPackedVector getVector(int i) const {
+#ifndef COIN_FAST_CODE
       if (i < 0 || i >= majorDim_)
 	throw CoinError("bad index", "vector", "CoinPackedMatrix");
+#endif
       return CoinShallowPackedVector(length_[i],
   				    index_ + start_[i],
   				    element_ + start_[i],

@@ -1821,7 +1821,7 @@ CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
 	//move
 	CoinBigIndex get;
 	CoinBigIndex getEnd;
-	
+
 	get = startColumnU[jColumn];
 	getEnd = get + numberInColumn[jColumn];
 	startColumnU[jColumn] = put;
@@ -1857,7 +1857,7 @@ CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
       for ( i = 0; i < numberRowsExtra_; i++ ) {
 	CoinBigIndex start = startColumnU[i];
 	CoinBigIndex end = start + numberInColumn[i];
-	
+
 	CoinBigIndex j;
 	for ( j = start; j < end; j++ ) {
 	  int iRow = indexRowU[j];
@@ -1963,4 +1963,322 @@ CoinFactorization::conditionNumber() const
   }
   condition = CoinMax(fabs(condition),1.0e-50);
   return 1.0/condition;
+}
+/* Updates one column (FTRAN) from region2
+   Tries to do FT update
+   number returned is negative if no room.
+   Also updates region3
+   region1 starts as zero and is zero at end */
+int 
+CoinFactorization::updateTwoColumnsFT ( CoinIndexedVector * regionSparse1,
+					CoinIndexedVector * regionSparse2,
+					CoinIndexedVector * regionSparse3,
+					bool noPermuteRegion3)
+{
+#if 1
+  //#ifdef NDEBUG
+  //#undef NDEBUG
+  //#endif
+  //#define COIN_DEBUG
+#ifdef COIN_DEBUG
+  regionSparse1->checkClean();
+  CoinIndexedVector save2(*regionSparse2);
+  CoinIndexedVector save3(*regionSparse3);
+#endif
+  CoinIndexedVector * regionFT ;
+  CoinIndexedVector * regionUpdate ;
+  int *regionIndex ;
+  int numberNonZero ;
+  const int *permute = permute_.array();
+  int * index ;
+  double * region ;
+  int j;
+  if (!noPermuteRegion3) {
+    regionFT = regionSparse3;
+    regionUpdate = regionSparse1;
+    //permute and move indices into index array
+    regionIndex = regionUpdate->getIndices (  );
+    //int numberNonZero;
+    region = regionUpdate->denseVector();
+    
+    numberNonZero = regionSparse3->getNumElements();
+    int * index = regionSparse3->getIndices();
+    double * array = regionSparse3->denseVector();
+    assert (!regionSparse3->packedMode());
+    for ( j = 0; j < numberNonZero; j ++ ) {
+      int iRow = index[j];
+      double value = array[iRow];
+      array[iRow]=0.0;
+      iRow = permute[iRow];
+      region[iRow] = value;
+      regionIndex[j] = iRow;
+    }
+    regionUpdate->setNumElements ( numberNonZero );
+  } else {
+    regionFT = regionSparse1;
+    regionUpdate = regionSparse3;
+  }
+  //permute and move indices into index array (in U)
+  regionIndex = regionFT->getIndices (  );
+  numberNonZero = regionSparse2->getNumElements();
+  index = regionSparse2->getIndices();
+  region = regionFT->denseVector();
+  double * array = regionSparse2->denseVector();
+  CoinBigIndex * startColumnU = startColumnU_.array();
+  CoinBigIndex start = startColumnU[maximumColumnsExtra_];
+  startColumnU[numberColumnsExtra_] = start;
+  regionIndex = indexRowU_.array() + start;
+
+  assert(regionSparse2->packedMode());
+  for ( j = 0; j < numberNonZero; j ++ ) {
+    int iRow = index[j];
+    double value = array[j];
+    array[j]=0.0;
+    iRow = permute[iRow];
+    region[iRow] = value;
+    regionIndex[j] = iRow;
+  }
+  regionFT->setNumElements ( numberNonZero );
+  if (collectStatistics_) {
+    numberFtranCounts_+=2;
+    ftranCountInput_ += (double) regionFT->getNumElements()+
+    (double) regionUpdate->getNumElements();
+  }
+    
+  //  ******* L
+  updateColumnL ( regionFT, regionIndex );
+  updateColumnL ( regionUpdate, regionUpdate->getIndices() );
+  if (collectStatistics_) 
+    ftranCountAfterL_ += (double) regionFT->getNumElements()+
+      (double) regionUpdate->getNumElements();
+  //permute extra
+  //row bits here
+  updateColumnRFT ( regionFT, regionIndex );
+  updateColumnR ( regionUpdate );
+  if (collectStatistics_) 
+    ftranCountAfterR_ += (double) regionFT->getNumElements()+
+    (double) regionUpdate->getNumElements();
+  //  ******* U - see if densish
+  // Guess at number at end
+  int goSparse=0;
+  if (sparseThreshold_>0) {
+    int numberNonZero = (regionUpdate->getNumElements (  )+
+			 regionFT->getNumElements())>>1;
+    if (ftranAverageAfterR_) {
+      int newNumber = (int) (numberNonZero*ftranAverageAfterU_);
+      if (newNumber< sparseThreshold_)
+	goSparse = 2;
+      else if (newNumber< sparseThreshold2_)
+	goSparse = 1;
+    } else {
+      if (numberNonZero<sparseThreshold_) 
+	goSparse = 2;
+    }
+  }
+#ifndef COIN_FAST_CODE
+  assert (slackValue_==-1.0);
+#endif
+  if (!goSparse&&numberRows_<1000) {
+    double *arrayFT = regionFT->denseVector (  );
+    int * indexFT = regionFT->getIndices();
+    int numberNonZeroFT;
+    double *arrayUpdate = regionUpdate->denseVector (  );
+    int * indexUpdate = regionUpdate->getIndices();
+    int numberNonZeroUpdate;
+    updateTwoColumnsUDensish(numberNonZeroFT,arrayFT,indexFT,
+			     numberNonZeroUpdate,arrayUpdate,indexUpdate);
+    regionFT->setNumElements ( numberNonZeroFT );
+    regionUpdate->setNumElements ( numberNonZeroUpdate );
+  } else {
+    // sparse 
+    updateColumnU ( regionFT, regionIndex);
+    updateColumnU ( regionUpdate, regionUpdate->getIndices());
+  }
+  permuteBack(regionFT,regionSparse2);
+  if (!noPermuteRegion3) {
+    permuteBack(regionUpdate,regionSparse3);
+  }
+#ifdef COIN_DEBUG
+  int n2=regionSparse2->getNumElements();
+  regionSparse1->checkClean();
+  int n2a= updateColumnFT(regionSparse1,&save2);
+  assert(n2==n2a);
+  {
+    int j;
+    double * regionA = save2.denseVector();
+    int * indexA = save2.getIndices();
+    double * regionB = regionSparse2->denseVector();
+    int * indexB = regionSparse2->getIndices();
+    for (j=0;j<n2;j++) {
+      int k = indexA[j];
+      assert (k==indexB[j]);
+      double value = regionA[j];
+      assert (value==regionB[j]);
+    }
+  }
+  updateColumn(&save3,
+	       &save3,
+	       noPermuteRegion3);
+  int n3=regionSparse3->getNumElements();
+  assert (n3==save3.getNumElements());
+  {
+    int j;
+    double * regionA = save3.denseVector();
+    int * indexA = save3.getIndices();
+    double * regionB = regionSparse3->denseVector();
+    int * indexB = regionSparse3->getIndices();
+    for (j=0;j<n3;j++) {
+      int k = indexA[j];
+      assert (k==indexB[j]);
+      double value = regionA[k];
+      assert (value==regionB[k]);
+    }
+  }
+  //*regionSparse2=save2;
+  //*regionSparse3=save3;
+  printf("REGION2 %d els\n",regionSparse2->getNumElements());
+  regionSparse2->print();
+  printf("REGION3 %d els\n",regionSparse3->getNumElements());
+  regionSparse3->print();
+#endif
+  return regionSparse2->getNumElements();
+#else
+  int returnCode= updateColumnFT(regionSparse1,
+				 regionSparse2);
+  assert (noPermuteRegion3);
+  updateColumn(regionSparse3,
+	       regionSparse3,
+	       noPermuteRegion3);
+  //printf("REGION2 %d els\n",regionSparse2->getNumElements());
+  //regionSparse2->print();
+  //printf("REGION3 %d els\n",regionSparse3->getNumElements());
+  //regionSparse3->print();
+  return returnCode;
+#endif
+}
+// Updates part of 2 columns (FTRANU) real work
+void
+CoinFactorization::updateTwoColumnsUDensish (
+					     int & numberNonZero1,
+					     double * COIN_RESTRICT region1, 
+					     int * COIN_RESTRICT index1,
+					     int & numberNonZero2,
+					     double * COIN_RESTRICT region2, 
+					     int * COIN_RESTRICT index2) const
+{
+  double tolerance = zeroTolerance_;
+  const CoinBigIndex *startColumn = startColumnU_.array();
+  const int *indexRow = indexRowU_.array();
+  const double *element = elementU_.array();
+  int numberNonZeroA = 0;
+  int numberNonZeroB = 0;
+  const int *numberInColumn = numberInColumn_.array();
+  int i;
+  const double *pivotRegion = pivotRegion_.array();
+  
+  for (i = numberU_-1 ; i >= numberSlacks_; i-- ) {
+    double pivotValue1 = region1[i];
+    double pivotValue2 = region2[i];
+    int iSwitch=0;
+    if (pivotValue1) {
+      region1[i] = 0.0;
+      if ( fabs ( pivotValue1 ) > tolerance )
+	iSwitch = 1;
+    }
+    if (pivotValue2) {
+      region2[i] = 0.0;
+      if ( fabs ( pivotValue2 ) > tolerance )
+	iSwitch |= 2;;
+    }
+    if (iSwitch) {
+      CoinBigIndex start = startColumn[i];
+      const double * thisElement = element+start;
+      const int * thisIndex = indexRow+start;
+      CoinBigIndex j;
+      //#define NO_LOAD
+      switch(iSwitch) {
+	// just region 1
+      case 1:
+	for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
+	  int iRow = thisIndex[j];
+	  double value = thisElement[j];
+#ifdef NO_LOAD
+	  region1[iRow] -= value * pivotValue1;
+#else
+	  double regionValue1 = region1[iRow];
+	  region1[iRow] = regionValue1 - value * pivotValue1;
+#endif
+	}
+	pivotValue1 *= pivotRegion[i];
+	region1[i]=pivotValue1;
+	index1[numberNonZeroA++]=i;
+	break;
+	// just region 2
+      case 2:
+	for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
+	  int iRow = thisIndex[j];
+	  double value = thisElement[j];
+#ifdef NO_LOAD
+	  region2[iRow] -= value * pivotValue2;
+#else
+	  double regionValue2 = region2[iRow];
+	  region2[iRow] = regionValue2 - value * pivotValue2;
+#endif
+	}
+	pivotValue2 *= pivotRegion[i];
+	region2[i]=pivotValue2;
+	index2[numberNonZeroB++]=i;
+	break;
+	// both
+      case 3:
+	for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
+	  int iRow = thisIndex[j];
+	  double value = thisElement[j];
+#ifdef NO_LOAD
+	  region1[iRow] -= value * pivotValue1;
+	  region2[iRow] -= value * pivotValue2;
+#else
+	  double regionValue1 = region1[iRow];
+	  double regionValue2 = region2[iRow];
+	  region1[iRow] = regionValue1 - value * pivotValue1;
+	  region2[iRow] = regionValue2 - value * pivotValue2;
+#endif
+	}
+	pivotValue1 *= pivotRegion[i];
+	pivotValue2 *= pivotRegion[i];
+	region1[i]=pivotValue1;
+	index1[numberNonZeroA++]=i;
+	region2[i]=pivotValue2;
+	index2[numberNonZeroB++]=i;
+	break;
+      }
+    }
+  }
+  // Slacks 
+    
+  for ( i = numberSlacks_-1; i>=0;i--) {
+    double value1 = region1[i];
+    if ( value1 ) {
+      region1[i]=-value1;
+      index1[numberNonZeroA]=i;
+      if ( fabs(value1) > tolerance ) 
+	numberNonZeroA++;
+      else 
+	region1[i]=0.0;
+    }
+  }
+  numberNonZero1=numberNonZeroA;
+    
+  for ( i = numberSlacks_-1; i>=0;i--) {
+    double value2 = region2[i];
+    if ( value2 ) {
+      region2[i]=-value2;
+      index2[numberNonZeroB]=i;
+      if ( fabs(value2) > tolerance ) 
+	numberNonZeroB++;
+      else 
+	region2[i]=0.0;
+    }
+  }
+  numberNonZero2=numberNonZeroB;
 }

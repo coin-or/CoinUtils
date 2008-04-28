@@ -596,14 +596,42 @@ CoinPackedMatrix::removeGaps(double removeValue)
 {
   if (removeValue<0.0) {
     if (extraGap_) {
+#if 1
+      // Small copies so faster to do simply
+      int i;
+      CoinBigIndex size=0;
+      for (i = 1; i < majorDim_+1; ++i) {
+	const CoinBigIndex si = start_[i];
+	size += length_[i-1];
+	if (si>size)
+	  break;
+      }
+      for (; i < majorDim_; ++i) {
+	const CoinBigIndex si = start_[i];
+	const int li = length_[i];
+	start_[i] = size;
+	for (CoinBigIndex j=si;j<si+li;j++) {
+	  assert (size<size_);
+	  index_[size]=index_[j];
+	  element_[size++]=element_[j];
+	}
+      }
+      assert (size==size_);
+      start_[majorDim_] = size;
+      for (i=0; i < majorDim_; ++i) {
+	assert (start_[i+1]==start_[i]+length_[i]);
+      }
+#else
       for (int i = 1; i < majorDim_; ++i) {
 	const CoinBigIndex si = start_[i];
 	const int li = length_[i];
 	start_[i] = start_[i-1] + length_[i-1];
 	CoinCopy(index_ + si, index_ + (si + li), index_ + start_[i]);
 	CoinCopy(element_ + si, element_ + (si + li), element_ + start_[i]);
+
       }
       start_[majorDim_] = size_;
+#endif
     } else {
 #ifndef NDEBUG
       for (int i = 1; i < majorDim_; ++i) {
@@ -2107,33 +2135,69 @@ CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix& rhs, int extraForMajo
    maxSize_(0)
 {
   if (!reverseOrdering) {
-    maxMajorDim_ = majorDim_ + extraForMajor;
-    maxSize_ = size_ + extraElements;
-    assert (maxMajorDim_>0);
-    assert (maxSize_>0);
-    length_ = new int[maxMajorDim_];
-    CoinMemcpyN(rhs.length_, majorDim_, length_);
-    start_ = new CoinBigIndex[maxMajorDim_+1];
-    element_ = new double[maxSize_];
-    index_ = new int[maxSize_];
-    bool hasGaps = rhs.size_<rhs.start_[rhs.majorDim_];
-    if (hasGaps) {
-      // we can't just simply memcpy these content over, because that can
-      // upset memory debuggers like purify if there were gaps and those gaps
-      // were uninitialized memory blocks
-      CoinBigIndex size=0;
-      for (int i = 0 ; i < majorDim_ ; i++) {
-	start_[i]=size;
-	CoinMemcpyN(rhs.index_ + rhs.start_[i], length_[i], index_ + size);
-	CoinMemcpyN(rhs.element_ + rhs.start_[i], length_[i], element_ + size);
-	size += length_[i];
+    if (extraForMajor>=0) {
+      maxMajorDim_ = majorDim_+ extraForMajor;
+      maxSize_ = size_ + extraElements;
+      assert (maxMajorDim_>0);
+      assert (maxSize_>0);
+      length_ = new int[maxMajorDim_];
+      CoinMemcpyN(rhs.length_, majorDim_, length_);
+      start_ = new CoinBigIndex[maxMajorDim_+1];
+      element_ = new double[maxSize_];
+      index_ = new int[maxSize_];
+      bool hasGaps = rhs.size_<rhs.start_[rhs.majorDim_];
+      if (hasGaps) {
+	// we can't just simply memcpy these content over, because that can
+	// upset memory debuggers like purify if there were gaps and those gaps
+	// were uninitialized memory blocks
+	CoinBigIndex size=0;
+	for (int i = 0 ; i < majorDim_ ; i++) {
+	  start_[i]=size;
+	  CoinMemcpyN(rhs.index_ + rhs.start_[i], length_[i], index_ + size);
+	  CoinMemcpyN(rhs.element_ + rhs.start_[i], length_[i], element_ + size);
+	  size += length_[i];
+	}
+	start_[majorDim_]=size;
+	assert (size_==size);
+      } else {
+	CoinMemcpyN(rhs.start_, majorDim_+1, start_);
+	CoinMemcpyN(rhs.index_, size_, index_);
+	CoinMemcpyN(rhs.element_, size_, element_ );
       }
-      start_[majorDim_]=size;
-      assert (size_==size);
     } else {
-      CoinMemcpyN(rhs.start_, majorDim_+1, start_);
-      CoinMemcpyN(rhs.index_, size_, index_);
-      CoinMemcpyN(rhs.element_, size_, element_ );
+      // take out small and gaps
+      maxMajorDim_ = majorDim_;
+      maxSize_ = size_;
+      if (maxMajorDim_>0) {
+	length_ = new int[maxMajorDim_];
+	start_ = new CoinBigIndex[maxMajorDim_+1];
+	if (maxSize_>0) {
+	  element_ = new double[maxSize_];
+	  index_ = new int[maxSize_];
+	}
+	CoinBigIndex size=0;
+	const double * oldElement = rhs.element_;
+	const CoinBigIndex * oldStart = rhs.start_;
+	const int * oldIndex = rhs.index_;
+	const int * oldLength = rhs.length_;
+	for (int i = 0 ; i < majorDim_ ; i++) {
+	  start_[i]=size;
+	  for (CoinBigIndex j=oldStart[i];
+	       j<oldStart[i]+oldLength[i];j++) {
+	    double value = oldElement[j];
+	    if (fabs(value)>1.0e-21) {
+	      element_[size]=value;
+	      index_[size++]=oldIndex[j];
+	    }
+	  }
+	  length_[i]=size-start_[i];
+	}
+	start_[majorDim_]=size;
+	assert (size_==size);
+      } else {
+	start_ = new CoinBigIndex[1];
+	start_[0]=0;
+      }
     }
   } else {
     // more complicated

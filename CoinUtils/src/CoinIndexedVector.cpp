@@ -182,9 +182,10 @@ CoinIndexedVector::setFull(int size, const double * elems)
   // Clear out any values presently stored
   clear();
   
+#ifndef COIN_FAST_CODE
   if (size<0)
     throw CoinError("negative number of indices", "setFull", "CoinIndexedVector");
-  
+#endif
   reserve(size);
   nElements_ = 0;
   // elements_ array is all zero
@@ -204,10 +205,12 @@ double &
 CoinIndexedVector::operator[](int index) const
 {
   assert (!packedMode_);
+#ifndef COIN_FAST_CODE
   if ( index >= capacity_ ) 
     throw CoinError("index >= capacity()", "[]", "CoinIndexedVector");
   if ( index < 0 ) 
     throw CoinError("index < 0" , "[]", "CoinIndexedVector");
+#endif
   double * where = elements_ + index;
   return *where;
   
@@ -217,10 +220,12 @@ CoinIndexedVector::operator[](int index) const
 void
 CoinIndexedVector::setElement(int index, double element)
 {
+#ifndef COIN_FAST_CODE
   if ( index >= nElements_ ) 
     throw CoinError("index >= size()", "setElement", "CoinIndexedVector");
   if ( index < 0 ) 
     throw CoinError("index < 0" , "setElement", "CoinIndexedVector");
+#endif
   elements_[indices_[index]] = element;
 }
 
@@ -229,12 +234,16 @@ CoinIndexedVector::setElement(int index, double element)
 void
 CoinIndexedVector::insert( int index, double element )
 {
+#ifndef COIN_FAST_CODE
   if ( index < 0 ) 
     throw CoinError("index < 0" , "setElement", "CoinIndexedVector");
+#endif
   if (index >= capacity_)
     reserve(index+1);
+#ifndef COIN_FAST_CODE
   if (elements_[index])
     throw CoinError("Index already exists", "insert", "CoinIndexedVector");
+#endif
   indices_[nElements_++] = index;
   elements_[index] = element;
 }
@@ -244,8 +253,10 @@ CoinIndexedVector::insert( int index, double element )
 void
 CoinIndexedVector::add( int index, double element )
 {
+#ifndef COIN_FAST_CODE
   if ( index < 0 ) 
     throw CoinError("index < 0" , "setElement", "CoinIndexedVector");
+#endif
   if (index >= capacity_)
     reserve(index+1);
   if (elements_[index]) {
@@ -510,9 +521,10 @@ CoinIndexedVector::reserve(int n)
   int i;
   // don't make allocated space smaller but do take off values
   if ( n < capacity_ ) {
+#ifndef COIN_FAST_CODE
     if (n<0) 
       throw CoinError("negative capacity", "reserve", "CoinIndexedVector");
-    
+#endif
     int nNew=0;
     for (i=0;i<nElements_;i++) {
       int indexValue=indices_[i];
@@ -943,16 +955,20 @@ void
 CoinIndexedVector::gutsOfSetVector(int size,
 				   const int * inds, const double * elems)
 {
+#ifndef COIN_FAST_CODE
   if (size<0)
     throw CoinError("negative number of indices", "setVector", "CoinIndexedVector");
+#endif    
   assert(!packedMode_);  
   // find largest
   int i;
   int maxIndex=-1;
   for (i=0;i<size;i++) {
     int indexValue = inds[i];
+#ifndef COIN_FAST_CODE
     if (indexValue<0)
       throw CoinError("negative index", "setVector", "CoinIndexedVector");
+#endif    
     if (maxIndex<indexValue)
       maxIndex = indexValue;
   }
@@ -1006,18 +1022,22 @@ CoinIndexedVector::gutsOfSetVector(int size, int numberIndices,
   
   int i;
   reserve(size);
+#ifndef COIN_FAST_CODE
   if (numberIndices<0)
     throw CoinError("negative number of indices", "setVector", "CoinIndexedVector");
+#endif    
   nElements_ = 0;
   // elements_ array is all zero
   bool needClean=false;
   int numberDuplicates=0;
   for (i=0;i<numberIndices;i++) {
     int indexValue=inds[i];
+#ifndef COIN_FAST_CODE
     if (indexValue<0) 
       throw CoinError("negative index", "setVector", "CoinIndexedVector");
     else if (indexValue>=size) 
       throw CoinError("too large an index", "setVector", "CoinIndexedVector");
+#endif    
     if (elements_[indexValue]) {
       numberDuplicates++;
       elements_[indexValue] += elems[indexValue] ;
@@ -1058,17 +1078,21 @@ CoinIndexedVector::gutsOfSetPackedVector(int size, int numberIndices,
   
   int i;
   reserve(size);
+#ifndef COIN_FAST_CODE
   if (numberIndices<0)
     throw CoinError("negative number of indices", "setVector", "CoinIndexedVector");
+#endif    
   nElements_ = 0;
   // elements_ array is all zero
   // Does not check for duplicates
   for (i=0;i<numberIndices;i++) {
     int indexValue=inds[i];
+#ifndef COIN_FAST_CODE
     if (indexValue<0) 
       throw CoinError("negative index", "setVector", "CoinIndexedVector");
     else if (indexValue>=size) 
       throw CoinError("too large an index", "setVector", "CoinIndexedVector");
+#endif    
     if (fabs(elems[i])>=COIN_INDEXED_TINY_ELEMENT) {
       elements_[nElements_]=elems[i];
       indices_[nElements_++]=indexValue;
@@ -1084,16 +1108,19 @@ CoinIndexedVector::gutsOfSetConstant(int size,
 {
 
   assert(!packedMode_);  
+#ifndef COIN_FAST_CODE
   if (size<0)
     throw CoinError("negative number of indices", "setConstant", "CoinIndexedVector");
-  
+#endif    
   // find largest
   int i;
   int maxIndex=-1;
   for (i=0;i<size;i++) {
     int indexValue = inds[i];
+#ifndef COIN_FAST_CODE
     if (indexValue<0)
       throw CoinError("negative index", "setConstant", "CoinIndexedVector");
+#endif    
     if (maxIndex<indexValue)
       maxIndex = indexValue;
   }
@@ -1151,8 +1178,10 @@ CoinIndexedVector::append(const CoinIndexedVector & caboose)
   int i;
   for (i=0;i<cs;i++) {
     int indexValue = cind[i];
+#ifndef COIN_FAST_CODE
     if (indexValue<0)
       throw CoinError("negative index", "append", "CoinIndexedVector");
+#endif    
     if (maxIndex<indexValue)
       maxIndex = indexValue;
   }
@@ -1572,7 +1601,7 @@ CoinArrayWithLength::CoinArrayWithLength(const CoinArrayWithLength & rhs)
   size_=rhs.size_;
   array_ = mallocArray(getCapacity());
   if (size_>0)
-    memcpy(array_,rhs.array_,size_);
+    CoinMemcpyN(rhs.array_,size_,array_);
 }
 
 /* Copy constructor.2 */
@@ -1582,7 +1611,7 @@ CoinArrayWithLength::CoinArrayWithLength(const CoinArrayWithLength * rhs)
   size_=rhs->size_;
   array_ = mallocArray(getCapacity());
   if (size_>0)
-    memcpy(array_,rhs->array_,size_);
+    CoinMemcpyN(rhs->array_,size_,array_);
 }
 /* Assignment operator. */
 CoinArrayWithLength & 
@@ -1603,7 +1632,7 @@ CoinArrayWithLength::operator=(const CoinArrayWithLength & rhs)
       }
       size_=rhs.size_;
       if (size_>0)
-	memcpy(array_,rhs.array_,size_);
+ CoinMemcpyN(rhs.array_,size_,array_);
     }
   }
   return *this;
@@ -1626,7 +1655,7 @@ CoinArrayWithLength::copy(const CoinArrayWithLength & rhs, int numberBytes)
       size_ = numberBytes;
     array_ = mallocArray(numberBytes);
     if (rhs.array_)
-      memcpy(array_,rhs.array_,numberBytes);
+      CoinMemcpyN(rhs.array_,numberBytes,array_);
   }
 }
 /* Assignment with length - does not copy */
@@ -1699,7 +1728,7 @@ CoinArrayWithLength::extend(int newSize)
   assert (size_>=0); // not much point otherwise
   if (newSize>size_) {
     char * temp = mallocArray(newSize);
-    memcpy(temp,array_,size_);
+    CoinMemcpyN(array_,size_,temp);
     freeArray(array_);
     array_=temp;
     size_=newSize;

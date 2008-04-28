@@ -58,7 +58,7 @@ CoinMempool::alloc()
       max_block_num_ = 2 * block_num_ + 10;
       char** old_block_heads = block_heads_;
       block_heads_ = (char**)malloc(max_block_num_ * sizeof(char*));
-      memcpy(block_heads_, old_block_heads, block_num_ * sizeof(char*));
+      CoinMemcpyN( old_block_heads,block_num_,block_heads_);
       free(old_block_heads);
     }
     // save the new block

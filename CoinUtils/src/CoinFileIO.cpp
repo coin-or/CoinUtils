@@ -113,7 +113,7 @@ public:
 	if (amount > size)
 	  amount = size;
 
-	memcpy (dest, dataStart_, amount);
+ CoinMemcpyN( dataStart_, amount, dest);
 
 	dest += amount;
 	size -= amount;

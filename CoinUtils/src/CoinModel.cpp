@@ -937,7 +937,7 @@ CoinModel::associateElement(const char * stringValue, double value)
   if (sizeAssociated_<=position) {
     int newSize = (3*position)/2+100;
     double * temp = new double[newSize];
-    memcpy(temp,associated_,sizeAssociated_*sizeof(double));
+    CoinMemcpyN(associated_,sizeAssociated_,temp);
     CoinFillN(temp+sizeAssociated_,newSize-sizeAssociated_,unsetValue());
     delete [] associated_;
     associated_ = temp;
@@ -1794,7 +1794,7 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
   if (sizeAssociated_<string_.numberItems()) {
     int newSize = string_.numberItems();
     double * temp = new double[newSize];
-    memcpy(temp,associated_,sizeAssociated_*sizeof(double));
+    CoinMemcpyN(associated_,sizeAssociated_,temp);
     CoinFillN(temp+sizeAssociated_,newSize-sizeAssociated_,unsetValue());
     delete [] associated_;
     associated_ = temp;
@@ -2601,14 +2601,14 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       bool needFill = rowLower_==NULL;
       double * tempArray;
       tempArray = new double[maximumRows];
-      memcpy(tempArray,rowLower_,numberRows_*sizeof(double));
+      CoinMemcpyN(rowLower_,numberRows_,tempArray);
 #     ifdef ZEROFAULT
       memset(tempArray+numberRows_,0,(maximumRows-numberRows_)*sizeof(double)) ;
 #     endif
       delete [] rowLower_;
       rowLower_=tempArray;
       tempArray = new double[maximumRows];
-      memcpy(tempArray,rowUpper_,numberRows_*sizeof(double));
+      CoinMemcpyN(rowUpper_,numberRows_,tempArray);
 #     ifdef ZEROFAULT
       memset(tempArray+numberRows_,0,(maximumRows-numberRows_)*sizeof(double)) ;
 #     endif
@@ -2616,7 +2616,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       rowUpper_=tempArray;
       int * tempArray2;
       tempArray2 = new int[maximumRows];
-      memcpy(tempArray2,rowType_,numberRows_*sizeof(int));
+      CoinMemcpyN(rowType_,numberRows_,tempArray2);
 #     ifdef ZEROFAULT
       memset(tempArray2+numberRows_,0,(maximumRows-numberRows_)*sizeof(int)) ;
 #     endif
@@ -2636,7 +2636,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
 	memset(tempArray2,0,(maximumRows+1)*sizeof(int)) ;
 #	endif
         if (start_) {
-          memcpy(tempArray2,start_,(numberRows_+1)*sizeof(int));
+          CoinMemcpyN(start_,(numberRows_+1),tempArray2);
           delete [] start_;
         } else {
           tempArray2[0]=0;
@@ -2659,7 +2659,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       bool needFill = columnLower_==NULL;
       double * tempArray;
       tempArray = new double[maximumColumns];
-      memcpy(tempArray,columnLower_,numberColumns_*sizeof(double));
+      CoinMemcpyN(columnLower_,numberColumns_,tempArray);
 #     ifdef ZEROFAULT
       memset(tempArray+numberColumns_,0,
 	     (maximumColumns-numberColumns_)*sizeof(double)) ;
@@ -2667,7 +2667,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       delete [] columnLower_;
       columnLower_=tempArray;
       tempArray = new double[maximumColumns];
-      memcpy(tempArray,columnUpper_,numberColumns_*sizeof(double));
+      CoinMemcpyN(columnUpper_,numberColumns_,tempArray);
 #     ifdef ZEROFAULT
       memset(tempArray+numberColumns_,0,
 	     (maximumColumns-numberColumns_)*sizeof(double)) ;
@@ -2675,7 +2675,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       delete [] columnUpper_;
       columnUpper_=tempArray;
       tempArray = new double[maximumColumns];
-      memcpy(tempArray,objective_,numberColumns_*sizeof(double));
+      CoinMemcpyN(objective_,numberColumns_,tempArray);
 #     ifdef ZEROFAULT
       memset(tempArray+numberColumns_,0,
 	     (maximumColumns-numberColumns_)*sizeof(double)) ;
@@ -2684,7 +2684,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       objective_=tempArray;
       int * tempArray2;
       tempArray2 = new int[maximumColumns];
-      memcpy(tempArray2,columnType_,numberColumns_*sizeof(int));
+      CoinMemcpyN(columnType_,numberColumns_,tempArray2);
 #     ifdef ZEROFAULT
       memset(tempArray2+numberColumns_,0,
 	     (maximumColumns-numberColumns_)*sizeof(int)) ;
@@ -2692,7 +2692,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       delete [] columnType_;
       columnType_=tempArray2;
       tempArray2 = new int[maximumColumns];
-      memcpy(tempArray2,integerType_,numberColumns_*sizeof(int));
+      CoinMemcpyN(integerType_,numberColumns_,tempArray2);
 #     ifdef ZEROFAULT
       memset(tempArray2+numberColumns_,0,
 	     (maximumColumns-numberColumns_)*sizeof(int)) ;
@@ -2713,7 +2713,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
         memset(tempArray2,0,(maximumColumns+1)*sizeof(int)) ;
 #       endif
         if (start_) {
-          memcpy(tempArray2,start_,(numberColumns_+1)*sizeof(int));
+          CoinMemcpyN(start_,(numberColumns_+1),tempArray2);
           delete [] start_;
         } else {
           tempArray2[0]=0;
@@ -2731,7 +2731,7 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
   }
   if (maximumElements>maximumElements_) {
     CoinModelTriple * tempArray = new CoinModelTriple[maximumElements];
-    memcpy(tempArray,elements_,numberElements_*sizeof(CoinModelTriple));
+    CoinMemcpyN(elements_,numberElements_,tempArray);
 #   ifdef ZEROFAULT
     memset(tempArray+numberElements_,0,
 	     (maximumElements-numberElements_)*sizeof(CoinModelTriple)) ;
@@ -3478,7 +3478,7 @@ CoinModel::setCutMarker(int size,const int * marker)
   delete [] cut_;
   cut_ = new int [maximumRows_];
   CoinZeroN(cut_,maximumRows_);
-  memcpy(cut_,marker,size*sizeof(int));
+  CoinMemcpyN(marker,size,cut_);
 }
 // Sets priority array
 void 
@@ -3487,5 +3487,5 @@ CoinModel::setPriorities(int size,const int * priorities)
   delete [] priority_;
   priority_ = new int [maximumColumns_];
   CoinZeroN(priority_,maximumColumns_);
-  memcpy(priority_,priorities,size*sizeof(int));
+  CoinMemcpyN(priorities,size,priority_);
 }

@@ -313,8 +313,42 @@ const CoinPresolveAction
 	} else if (integerType[icoly]) {
 	  integerStatus = 2;
 	}
-	if (integerStatus<0)
+	if (integerStatus<0) {
+	  // can still take in some cases
+	  bool canDo=false;
+	  double value1 = colels[krowx];
+	  double value2 = colels[krowy];
+	  double ratio;
+	  bool swap=false;
+	  double rhsRatio;
+	  if (fabs(value1)>fabs(value2)) {
+	    ratio = value1/value2;
+	    rhsRatio = rhs/value1;
+	  } else {
+	    ratio = value2/value1;
+	    rhsRatio = rhs/value2;
+	    swap=true;
+	  }
+	  ratio=fabs(ratio);
+	  if (fabs(ratio-floor(ratio+0.5))<1.0e-12) {
+	    // possible
+	    integerStatus = swap ? 2 : 1;
+	    // but check rhs
+	    if (rhsRatio==floor(rhsRatio+0.5))
+	      canDo=true;
+	  }
+	  if (canDo)
+#ifdef COIN_DEVELOP
+	    printf("Good CoinPresolveDoubleton icolx %d (%g and bounds %g %g) icoly %d (%g and bound %g %g) - rhs %g\n",
+		   icolx,colels[krowx],clo[icolx],cup[icolx],
+		   icoly,colels[krowy],clo[icoly],cup[icoly],rhs);
+	  else
+	  printf("Bad CoinPresolveDoubleton icolx %d (%g) icoly %d (%g) - rhs %g\n",
+		 icolx,colels[krowx],icoly,colels[krowy],rhs);
+#endif
+	  if (!canDo)
 	  continue;
+	}
 	if (integerStatus == 2) {
 	  CoinSwap(icoly,icolx);
 	  CoinSwap(krowy,krowx);
@@ -826,7 +860,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  rup[iRow] += yValue * bounds_factor;
 
 	acts[iRow] += yValue * bounds_factor;
-	
+
 	djy -= rowduals[iRow] * yValue;
 /*
   Link the coefficient into column y: Acquire the first free slot in the
@@ -1087,7 +1121,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	int row = hrow[k];
 	double coeff = colels[k];
 	k = link[k];
-	
+
 	if (row != irow) {
 	  
 	  // undo elim_doubleton(1)
@@ -1116,7 +1150,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	int row = hrow[k];
 	double coeff = colels[k];
 	k = link[k];
-	
+
 	if (row != irow) {
 	  djx -= rowduals[row] * coeff;
 	}
@@ -1212,7 +1246,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	int row = hrow[k];
 	double coeff = colels[k];
 	k = link[k];
-	
+
 	dj -= rowduals[row] * coeff;
       }
       if (! (fabs(rcosts[jcolx] - dj) < 100*ZTOLDP))
@@ -1229,7 +1263,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	int row = hrow[k];
 	double coeff = colels[k];
 	k = link[k];
-	
+
 	dj -= rowduals[row] * coeff;
 	//printf("b %d coeff %g dual %g dj %g\n",
 	// row,coeff,rowduals[row],dj);
@@ -1276,7 +1310,7 @@ void check_doubletons(const CoinPresolveAction * paction)
 	int icoly = daction->actions_[i].icoly;
 	double coeffx = daction->actions_[i].coeffx;
 	double coeffy = daction->actions_[i].coeffy;
-	
+
 	doubleton_mult[icoly] = -coeffx/coeffy;
 	doubleton_id[icoly] = icolx;
       }

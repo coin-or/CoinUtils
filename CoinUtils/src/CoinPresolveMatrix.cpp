@@ -98,7 +98,7 @@ CoinPresolveMatrix::~CoinPresolveMatrix()
 
   return ; }
 
-
+
 
 /*
   This routine loads a CoinPackedMatrix and proceeds to do the bulk of the

@@ -5,7 +5,7 @@
 
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveEmpty.hpp"	// for DROP_COL/DROP_ROW
-#include "CoinPresolvePsdebug.hpp"	
+#include "CoinPresolvePsdebug.hpp"
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveZeros.hpp"
 #include "CoinPresolveSubst.hpp"
@@ -571,8 +571,8 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 
 	      ap->coeffxs[k-kcs] = colels[k];
 
-	      memcpy( &ap->rowcolsxs[nel], &hcol[krs],hinrow[irow]*sizeof(int));
-	      memcpy( &ap->rowelsxs[nel], &rowels[krs],hinrow[irow]*sizeof(double));
+       CoinMemcpyN( &hcol[krs],hinrow[irow], &ap->rowcolsxs[nel]);
+       CoinMemcpyN( &rowels[krs],hinrow[irow], &ap->rowelsxs[nel]);
 	      nel += hinrow[irow];
 	    }
 	  }
@@ -786,7 +786,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 #endif
 
 	    // the addition of rows may have created zero coefficients
-	    memcpy( &zerocols[nzerocols], &hcol[mrstrt[rowy]],hinrow[rowy]*sizeof(int));
+     CoinMemcpyN( &hcol[mrstrt[rowy]],hinrow[rowy], &zerocols[nzerocols]);
 	    nzerocols += hinrow[rowy];
 	    
 	    // delete rowy in col rep

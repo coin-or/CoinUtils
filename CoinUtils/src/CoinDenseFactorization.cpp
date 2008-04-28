@@ -46,7 +46,9 @@ void CoinDenseFactorization::gutsOfInitialize()
 {
   pivotTolerance_ = 1.0e-1;
   zeroTolerance_ = 1.0e-13;
+#ifndef COIN_FAST_CODE
   slackValue_ = -1.0;
+#endif
   maximumPivots_=200;
   relaxCheck_=1.0;
   numberRows_ = 0;
@@ -78,7 +80,9 @@ void CoinDenseFactorization::gutsOfCopy(const CoinDenseFactorization &other)
 {
   pivotTolerance_ = other.pivotTolerance_;
   zeroTolerance_ = other.zeroTolerance_;
+#ifndef COIN_FAST_CODE
   slackValue_ = other.slackValue_;
+#endif
   relaxCheck_ = other.relaxCheck_;
   numberRows_ = other.numberRows_;
   numberColumns_ = other.numberColumns_;
@@ -91,9 +95,9 @@ void CoinDenseFactorization::gutsOfCopy(const CoinDenseFactorization &other)
   status_ = other.status_;
   if (other.pivotRow_) {
     pivotRow_ = new int [2*maximumRows_+maximumPivots_];
-    memcpy(pivotRow_,other.pivotRow_,(2*maximumRows_+numberPivots_)*sizeof(int));
+    CoinMemcpyN(other.pivotRow_,(2*maximumRows_+numberPivots_),pivotRow_);
     elements_ = new double [maximumSpace_];
-    memcpy(elements_,other.elements_,(maximumRows_+numberPivots_)*maximumRows_*sizeof(double));
+    CoinMemcpyN(other.elements_,(maximumRows_+numberPivots_)*maximumRows_,elements_);
     workArea_ = new double [maximumRows_];
   } else {
     elements_ = NULL;
@@ -146,7 +150,7 @@ CoinDenseFactorization::preProcess ()
       workArea_[iRow] = elements_[j];
     }
     // move to correct position
-    memcpy(elements_+put,workArea_,numberRows_*sizeof(double));
+    CoinMemcpyN(workArea_,numberRows_,elements_+put);
   }
 }
 

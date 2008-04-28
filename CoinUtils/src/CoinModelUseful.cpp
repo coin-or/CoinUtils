@@ -838,7 +838,7 @@ CoinModelLinkedList::resize(int maxMajor,int maxElements)
     int * first = new int [maxMajor+1];
     int free;
     if (maximumMajor_) {
-      memcpy(first,first_,maximumMajor_*sizeof(int));
+      CoinMemcpyN(first_,maximumMajor_,first);
 #     ifdef ZEROFAULT
       memset(first+maximumMajor_,0,(maxMajor-maximumMajor_)*sizeof(int)) ;
 #     endif
@@ -852,7 +852,7 @@ CoinModelLinkedList::resize(int maxMajor,int maxElements)
     first_=first;
     int * last = new int [maxMajor+1];
     if (maximumMajor_) {
-      memcpy(last,last_,maximumMajor_*sizeof(int));
+      CoinMemcpyN(last_,maximumMajor_,last);
 #     ifdef ZEROFAULT
       memset(last+maximumMajor_,0,(maxMajor-maximumMajor_)*sizeof(int)) ;
 #     endif
@@ -868,7 +868,7 @@ CoinModelLinkedList::resize(int maxMajor,int maxElements)
   }
   if ( maxElements>maximumElements_) {
     int * previous = new int [maxElements];
-    memcpy(previous,previous_,numberElements_*sizeof(int));
+    CoinMemcpyN(previous_,numberElements_,previous);
 #   ifdef ZEROFAULT
     memset(previous+numberElements_,0,
 	   (maxElements-numberElements_)*sizeof(int)) ;
@@ -876,7 +876,7 @@ CoinModelLinkedList::resize(int maxMajor,int maxElements)
     delete [] previous_;
     previous_=previous;
     int * next = new int [maxElements];
-    memcpy(next,next_,numberElements_*sizeof(int));
+    CoinMemcpyN(next_,numberElements_,next);
 #   ifdef ZEROFAULT
     memset(next+numberElements_,0,(maxElements-numberElements_)*sizeof(int)) ;
 #   endif

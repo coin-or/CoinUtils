@@ -390,7 +390,7 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
 	prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atUpperBound);
       else
 	prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atLowerBound); }
-	
+
   }
 
   return ;

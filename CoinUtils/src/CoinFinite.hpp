@@ -37,6 +37,23 @@
 #include <algorithm>
 
 //=============================================================================
+// Compilers can produce better code if they know about __restrict
+#ifdef COIN_USE_RESTRICT
+#define COIN_RESTRICT __restrict
+#else
+#define COIN_RESTRICT 
+#endif
+//=============================================================================
+// Switch on certain things if COIN_FAST_CODE
+#ifdef COIN_FAST_CODE
+#ifndef COIN_NOTEST_DUPLICATE
+#define COIN_NOTEST_DUPLICATE
+#endif
+#ifndef COIN_USE_EKK_SORT
+#define COIN_USE_EKK_SORT
+#endif
+#endif
+//=============================================================================
 #if COIN_BIG_INDEX==0
 typedef int CoinBigIndex;
 #elif COIN_BIG_INDEX==1

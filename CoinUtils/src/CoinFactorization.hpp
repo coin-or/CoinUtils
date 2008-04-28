@@ -234,15 +234,6 @@ public:
   { relaxCheck_ = value;}
   inline double getAccuracyCheck() const
   { return relaxCheck_;}
-  /// Whether rows increase after pivoting - dummy
-  inline bool increasingRows (  ) const 
-  { return true; }
-  /** 0 - no increasing rows - no nothing (not coded)
-      1 - no permutation (i.e. basis order in is pivot order), 
-      2 user wants slacks pivoting on own rows,
-      3 user needs to know everything as row are really increasing 
-      - OUT so dummy */
-  inline void increasingRows ( int value  ) {}
   /// Level of detail of messages
   inline int messageLevel (  ) const {
     return messageLevel_ ;
@@ -270,11 +261,13 @@ public:
     return zeroTolerance_ ;
   }
   void zeroTolerance (  double value );
+#ifndef COIN_FAST_CODE
   /// Whether slack value is +1 or -1
   inline double slackValue (  ) const {
     return slackValue_ ;
   }
   void slackValue (  double value );
+#endif
   /// Returns maximum absolute value in factorization
   double maximumCoefficient() const;
   /// true if Forrest Tomlin update, false if PFI 
@@ -282,6 +275,13 @@ public:
   { return doForrestTomlin_;}
   inline void setForrestTomlin(bool value)
   { doForrestTomlin_=value;}
+  /// True if FT update and space
+  inline bool spaceForForrestTomlin() const
+  {
+    CoinBigIndex start = startColumnU_.array()[maximumColumnsExtra_];
+    CoinBigIndex space = lengthAreaU_ - ( start + numberRowsExtra_ );
+    return (space>=0)&&doForrestTomlin_;
+  }
   //@}
 
   /**@name some simple stuff */
@@ -384,6 +384,15 @@ public:
   int updateColumn ( CoinIndexedVector * regionSparse,
 		     CoinIndexedVector * regionSparse2,
 		     bool noPermute=false) const;
+  /** Updates one column (FTRAN) from region2
+      Tries to do FT update
+      number returned is negative if no room.
+      Also updates region3
+      region1 starts as zero and is zero at end */
+  int updateTwoColumnsFT ( CoinIndexedVector * regionSparse1,
+			   CoinIndexedVector * regionSparse2,
+			   CoinIndexedVector * regionSparse3,
+			   bool noPermuteRegion3=false) ;
   /** Updates one column (BTRAN) from regionSparse2
       regionSparse starts as zero and is zero at end 
       Note - if regionSparse2 packed on input - will be packed on output
@@ -590,8 +599,16 @@ protected:
   void updateColumnUSparsish ( CoinIndexedVector * regionSparse, 
 			       int * indexIn) const;
   /// Updates part of column (FTRANU)
-  void updateColumnUDensish ( CoinIndexedVector * regionSparse, 
-			      int * indexIn) const;
+  int updateColumnUDensish ( double * COIN_RESTRICT region, 
+			     int * COIN_RESTRICT regionIndex) const;
+  /// Updates part of 2 columns (FTRANU) real work
+  void updateTwoColumnsUDensish (
+				 int & numberNonZero1,
+				 double * COIN_RESTRICT region1, 
+				 int * COIN_RESTRICT index1,
+				 int & numberNonZero2,
+				 double * COIN_RESTRICT region2, 
+				 int * COIN_RESTRICT index2) const;
   /// Updates part of column PFI (FTRAN) (after rest)
   void updateColumnPFI ( CoinIndexedVector * regionSparse) const; 
   /// Permutes back at end of updateColumn
@@ -1141,8 +1158,14 @@ protected:
   double pivotTolerance_;
   /// Zero tolerance
   double zeroTolerance_;
+#ifndef COIN_FAST_CODE
   /// Whether slack value is  +1 or -1
   double slackValue_;
+#else
+#ifndef slackValue_
+#define slackValue_ -1.0
+#endif
+#endif
   /// How much to multiply areas by
   double areaFactor_;
   /// Relax check on accuracy in replaceColumn

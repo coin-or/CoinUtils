@@ -34,7 +34,7 @@ template <typename T> void
 CoinDenseVector<T>::setVector(int size, const T * elems)
 {
    resize(size);
-   memcpy(elements_, elems, size*sizeof(T));
+   CoinMemcpyN( elems,size,elements_);
 }
 
 //#############################################################################
@@ -52,11 +52,11 @@ CoinDenseVector<T>::setConstant(int size, T value)
 template <typename T> void
 CoinDenseVector<T>::resize(int newsize, T value)
 {
-  if (newsize != nElements_){	
+  if (newsize != nElements_){
     assert(newsize > 0);
     T *newarray = new T[newsize];
     int cpysize = CoinMin(newsize, nElements_);
-    memcpy(newarray, elements_, cpysize*sizeof(T));
+    CoinMemcpyN( elements_,cpysize,newarray);
     delete[] elements_;
     elements_ = newarray;
     nElements_ = newsize;

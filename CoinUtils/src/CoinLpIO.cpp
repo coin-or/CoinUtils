@@ -1579,7 +1579,7 @@ CoinLpIO::readLp(FILE* fp)
       scan_next(buff, fp);
 
       while(is_keyword(buff) == 0) {
-	
+
 	read_sense1 = -1;
 	read_sense2 = -1;
 	int mult = 1;
@@ -1606,7 +1606,7 @@ CoinLpIO::readLp(FILE* fp)
 	  }
 	  scan_next(buff, fp);
 	}
-	
+
 	icol = findHash(buff, 1);
 	if(icol < 0) {
 	  printf("### WARNING: CoinLpIO::readLp(): Variable %s does not appear in objective function or constraints\n", buff);
@@ -1616,7 +1616,7 @@ CoinLpIO::readLp(FILE* fp)
 	    realloc_col(&collow, &colup, &is_int, &maxcol);
 	  }
 	}
-	
+
 	scan_next(buff, fp);
 	if(is_free(buff)) {
 	  collow[icol] = -lp_inf;
@@ -1739,14 +1739,14 @@ variable: %s read_sense1: %d  read_sense2: %d\n", buff, read_sense1, read_sense2
       scan_next(buff, fp);
       
       while(is_keyword(buff) == 0) {
-	
+
 	icol = findHash(buff, 1);
-	
+
 #ifdef LPIO_DEBUG
 	printf("CoinLpIO::readLp(): binary: colname: (%s)  icol: %d\n", 
 	       buff, icol);
 #endif
-	
+
 	if(icol < 0) {
 	  printf("### WARNING: CoinLpIO::readLp(): Binary variable %s does not appear in objective function or constraints\n", buff);
 	  insertHash(buff, 1);
@@ -1760,7 +1760,7 @@ variable: %s read_sense1: %d  read_sense2: %d\n", buff, read_sense1, read_sense2
 #endif
 	  
 	}
-	
+
 	is_int[icol] = 1;
 	has_int = 1;
 	if(collow[icol] < 0) {
@@ -2059,7 +2059,7 @@ CoinLpIO::startHash(char const * const * const names,
 	  // Collision; check if thisName already entered
 
 	  COINColumnIndex k = hashThis[ipos].next;
-	
+
 	  if (k == -1) {
 
 	    // thisName not found; enter it
@@ -2195,7 +2195,7 @@ CoinLpIO::insertHash(const char *thisName, int section)
       
       if ( strcmp (thisName, thisName2) != 0 ) {
 	COINColumnIndex k = hashThis[ipos].next;
-	
+
 	if (k == -1) {
 	  while (1) {
 	    ++iput;

@@ -95,11 +95,11 @@ static bool elim_tripleton(const char *msg,
 	// (1)
 	if (-PRESOLVE_INF < rlo[row])
 	  rlo[row] -= colels[kcoly] * bounds_factor;
-	
+
 	// (2)
 	if (rup[row] < PRESOLVE_INF)
 	  rup[row] -= colels[kcoly] * bounds_factor;
-	
+
 	// and solution
 	if (acts)
 	{ acts[row] -= colels[kcoly] * bounds_factor; }
@@ -234,7 +234,7 @@ static bool elim_tripleton(const char *msg,
 	hrow[kcex] = row;
 	colels[kcex] = colels[kcoly] * coeff_factorx;	// y factor is 0.0 
 	hincol[icolx]++, kcex++;	// expand the col
-	
+
 	{
 	  bool no_mem = presolve_expand_col(mcstrt,colels,hrow,hincol,clink,
 					    ncols,icolz);
@@ -480,12 +480,12 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	//printf("%d elements added, hincol %d , dups %d\n",nAdded,hincol[icoly],nDuplicate);
 	if (nAdded>1)
 	  continue;
-	
+
 	// it is possible that both x/z and y are singleton columns
 	// that can cause problems
 	if ((hincol[icolx] == 1 ||hincol[icolz] == 1) && hincol[icoly] == 1)
 	  continue;
-	
+
 	// common equations are of the form ax + by = 0, or x + y >= lo
 	{
 	  action *s = &actions[nactions];	  
@@ -511,17 +511,17 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	  s->colel	= presolve_dupmajor(colels, hrow, hincol[icoly],
 					    mcstrt[icoly]);
 	}
-	
+
 	// costs
 	// the effect of maxmin cancels out
 	cost[icolx] += cost[icoly] * cx;
 	cost[icolz] += cost[icoly] * cz;
-	
+
 	prob->change_bias(cost[icoly] * rhs / coeffy);
 	//if (cost[icoly]*rhs)
 	//printf("change %g col %d cost %g rhs %g coeff %g\n",cost[icoly]*rhs/coeffy,
 	// icoly,cost[icoly],rhs,coeffy);
-	
+
 	if (rowstat) {
 	  // update solution and basis
 	  int numberBasic=0;
@@ -773,17 +773,17 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
       free_list = link[free_list];
       if (iRow != irow) {
 	// are these tests always true???
-	
+
 	// undo elim_tripleton(1)
 	if (-PRESOLVE_INF < rlo[iRow])
 	  rlo[iRow] += yValue * bounds_factor;
-	
+
 	// undo elim_tripleton(2)
 	if (rup[iRow] < PRESOLVE_INF)
 	  rup[iRow] += yValue * bounds_factor;
-	
+
 	acts[iRow] += yValue * bounds_factor;
-	
+
 	djy -= rowduals[iRow] * yValue;
       } 
       
@@ -931,7 +931,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  (prob->getColumnStatus(jcolx) ==CoinPrePostsolveMatrix::isFree&&
            fabs(rcosts[jcolx]) <= ztoldj)) {
 	// colx or y is fine as it is - make coly basic
-	
+
 	prob->setColumnStatus(jcoly,CoinPrePostsolveMatrix::basic);
 	// this is the coefficient we need to force col y's reduced cost to 0.0;
 	// for example, this is obviously true if y is a singleton column
@@ -948,7 +948,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
       } else {
 	prob->setColumnStatus(jcolx,CoinPrePostsolveMatrix::basic);
 	prob->setColumnStatusUsingValue(jcoly);
-	
+
 	// change rowduals[jcolx] enough to cancel out rcosts[jcolx]
 	rowduals[irow] = djx / coeffx;
 	rcosts[jcolx] = 0.0;
@@ -977,7 +977,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	int row = hrow[k];
 	double coeff = colels[k];
 	k = link[k];
-	
+
 	dj -= rowduals[row] * coeff;
       }
       if (! (fabs(rcosts[jcolx] - dj) < 100*ZTOLDP))
@@ -994,7 +994,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	int row = hrow[k];
 	double coeff = colels[k];
 	k = link[k];
-	
+
 	dj -= rowduals[row] * coeff;
 	//printf("b %d coeff %g dual %g dj %g\n",
 	// row,coeff,rowduals[row],dj);
@@ -1045,7 +1045,7 @@ void check_tripletons(const CoinPresolveAction * paction)
 	int icoly = daction->actions_[i].icoly;
 	double coeffx = daction->actions_[i].coeffx;
 	double coeffy = daction->actions_[i].coeffy;
-	
+
 	tripleton_mult[icoly] = -coeffx/coeffy;
 	tripleton_id[icoly] = icolx;
       }

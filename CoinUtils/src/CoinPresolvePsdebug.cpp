@@ -282,7 +282,7 @@ void presolve_links_ok (const CoinPresolveMatrix *preObj,
 
   return ; }
 
-
+
 
 /*
   Routines to check a threaded matrix from a CoinPostsolve object.
@@ -382,7 +382,7 @@ void presolve_check_free_list (const CoinPostsolveMatrix *obj, bool chkElemCnt)
 
   return ; }
 
-
+
 
 /*
   Routines to check solution and basis composition.
@@ -758,7 +758,7 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
 	double evali = rsol[i] ;
 	double li = rlo[i] ;
 	double ui = rup[i] ;
-	
+
 	if (CoinIsnan(evali) || CoinIsnan(lhsi))
 	{ printf("NaN RSOL: %d  : lb = %g eval = %g (expected %g) ub = %g\n",
 		 i,li,evali,lhsi,ui) ; }

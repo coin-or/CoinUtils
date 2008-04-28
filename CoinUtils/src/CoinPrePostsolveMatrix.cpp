@@ -125,7 +125,7 @@ CoinPrePostsolveMatrix::~CoinPrePostsolveMatrix()
     delete handler_ ;
 }
 
-
+
 #ifndef SLIM_CLP
 /*
   Methods to set the miscellaneous parameters: max/min, objective offset, and
@@ -148,7 +148,7 @@ void CoinPrePostsolveMatrix::setDualTolerance (double dualTol)
 
 { ztoldj_ = dualTol ; }
 
-
+
 
 /*
   Methods to set the various vectors. For all methods, lenParam can be
@@ -329,7 +329,7 @@ void CoinPrePostsolveMatrix::setRowActivity (const double *rowAct, int lenParam)
 
   return ; }
 
-
+
 
 /*
   Methods to set the status vectors for a basis. Note that we need to allocate

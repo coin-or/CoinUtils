@@ -225,6 +225,7 @@ CoinCopyOfArrayOrZero( const T * array , const int size)
 
     Note JJF - the speed claim seems to be false on IA32 so I have added 
     alternative coding if USE_MEMCPY defined*/
+#ifndef COIN_USE_RESTRICT
 template <class T> inline void
 CoinMemcpyN(register const T* from, const int size, register T* to)
 {
@@ -289,6 +290,16 @@ CoinMemcpyN(register const T* from, const int size, register T* to)
     CoinCopyN(from, size, to);
 #endif
 }
+#else
+template <class T> inline void
+CoinMemcpyN(const T * COIN_RESTRICT from, int size, T* COIN_RESTRICT to)
+{
+  T * put = (T *) to;
+  const T * get = (const T *) from;
+  for ( ; 0<size ; --size)
+    *put++ = *get++;
+}
+#endif
 
 //-----------------------------------------------------------------------------
 

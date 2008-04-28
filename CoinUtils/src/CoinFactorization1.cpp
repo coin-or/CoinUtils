@@ -17,13 +17,14 @@
 //  CoinFactorization.  Constructor
 CoinFactorization::CoinFactorization (  )
 {
-  gutsOfInitialize(7);
   persistenceFlag_=0;
+  gutsOfInitialize(7);
 }
 
 /// Copy constructor 
 CoinFactorization::CoinFactorization ( const CoinFactorization &other)
 {
+  persistenceFlag_=0;
   gutsOfInitialize(3);
   persistenceFlag_=other.persistenceFlag_;
   gutsOfCopy(other);
@@ -106,25 +107,6 @@ void CoinFactorization::gutsOfDestructor(int type)
 // type - 1 bit tolerances etc, 2 rest
 void CoinFactorization::gutsOfInitialize(int type)
 {
-  if ((type&1)!=0) {
-    areaFactor_ = 0.0;
-    pivotTolerance_ = 1.0e-1;
-    zeroTolerance_ = 1.0e-13;
-    slackValue_ = 1.0;
-    messageLevel_=0;
-    maximumPivots_=200;
-    numberTrials_ = 4;
-    relaxCheck_=1.0;
-#if DENSE_CODE==1
-    denseThreshold_=31;
-    denseThreshold_=71;
-#else
-    denseThreshold_=0;
-#endif
-    biasLU_=2;
-    doForrestTomlin_=true;
-    persistenceFlag_=0;
-  }
   if ((type&2)!=0) {
     numberCompressions_ = 0;
     biggerDimension_ = 0;
@@ -165,6 +147,28 @@ void CoinFactorization::gutsOfInitialize(int type)
       workArea2_=CoinUnsignedIntArrayWithLength();
       pivotColumn_=CoinIntArrayWithLength();
     }
+  }
+  // after 2 because of persistenceFlag_
+  if ((type&1)!=0) {
+    areaFactor_ = 0.0;
+    pivotTolerance_ = 1.0e-1;
+    zeroTolerance_ = 1.0e-13;
+#ifndef COIN_FAST_CODE
+    slackValue_ = -1.0;
+#endif
+    messageLevel_=0;
+    maximumPivots_=200;
+    numberTrials_ = 4;
+    relaxCheck_=1.0;
+#if DENSE_CODE==1
+    denseThreshold_=31;
+    denseThreshold_=71;
+#else
+    denseThreshold_=0;
+#endif
+    biasLU_=2;
+    doForrestTomlin_=true;
+    persistenceFlag_=0;
   }
   if ((type&4)!=0) {
     // we need to get 1 element arrays for any with length n+1 !!
@@ -272,7 +276,7 @@ int CoinFactorization::factorize (
   if ( numberBasic > numberRows ) {
     return -2; // say too many in basis
   }
-  numberElements = 3 * numberBasic + 3 * numberElements + 10000;
+  numberElements = 3 * numberBasic + 3 * numberElements + 20000;
   getAreas ( numberRows, numberBasic, numberElements,
 	     2 * numberElements );
   //fill
@@ -424,7 +428,7 @@ CoinFactorization::factorizePart1 ( int numberOfRows,
   gutsOfInitialize(2);
   if (areaFactor)
     areaFactor_ = areaFactor;
-  CoinBigIndex numberElements = 3 * numberOfRows + 3 * numberOfElements + 10000;
+  CoinBigIndex numberElements = 3 * numberOfRows + 3 * numberOfElements + 20000;
   getAreas ( numberOfRows, numberOfRows, numberElements,
 	     2 * numberElements );
   // need to trap memory for -99 code

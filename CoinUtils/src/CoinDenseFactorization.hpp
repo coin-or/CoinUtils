@@ -116,11 +116,13 @@ public:
   }
   inline void zeroTolerance (  double value )
   { zeroTolerance_ = value;}
+#ifndef COIN_FAST_CODE
   /// Whether slack value is +1 or -1
   inline double slackValue (  ) const {
     return slackValue_ ;
   }
   void slackValue (  double value );
+#endif
   /// Returns maximum absolute value in factorization
   double maximumCoefficient() const;
   //@}
@@ -187,7 +189,7 @@ public:
   { return pivotRow_;}
   /// Returns permute in
   inline int * permute() const
-  { return pivotRow_;}
+  { return NULL;/*pivotRow_*/;}
   /// Returns permute back
   inline int * permuteBack() const
   { return pivotRow_+numberRows_;}
@@ -220,8 +222,14 @@ protected:
   double pivotTolerance_;
   /// Zero tolerance
   double zeroTolerance_;
+#ifndef COIN_FAST_CODE
   /// Whether slack value is  +1 or -1
   double slackValue_;
+#else
+#ifndef slackValue_
+#define slackValue_ -1.0
+#endif
+#endif
   /// Relax check on accuracy in replaceColumn
   double relaxCheck_;
   /// Number of Rows in factorization

@@ -314,6 +314,8 @@ public:
 
   /// Prints in readable format (for debug)
   virtual void print() const;
+  /// Returns true if full basis (for debug)
+  bool fullBasis() const;
 
 //@}
 
