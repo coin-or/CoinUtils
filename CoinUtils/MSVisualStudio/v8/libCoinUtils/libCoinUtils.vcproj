@@ -203,6 +203,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinDenseFactorization.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinDenseVector.cpp"
 				>
 				<FileConfiguration
@@ -1229,6 +1233,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinBuild.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinDenseFactorization.hpp"
 				>
 			</File>
 			<File
