@@ -605,8 +605,6 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
 	    continue; // no good
 	}
         if (nactions>=maxActions) {
-	  printf("SLKSING: growing actions from %d to %d.\n",
-		 maxActions,maxActions+CoinMin(numberLook-iLook,maxActions)) ;
           maxActions += CoinMin(numberLook-iLook,maxActions);
           action * temp = new action[maxActions];
           CoinMemcpyN(actions,nactions,temp);

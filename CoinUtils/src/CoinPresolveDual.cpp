@@ -117,9 +117,6 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   for ( j = 0; j<ncols; j++) {
     bool no_ub = (cup[j] >= ekkinf);
     bool no_lb = (clo[j] <= -ekkinf);
-    // Yes, I worry too much.   -- lh, 080429 --
-    assert(!(cup[j] > ekkinf && cup[j] < PRESOLVE_INF)) ;
-    assert(!(clo[j] < -ekkinf && clo[j] > -PRESOLVE_INF)) ;
     
     if (hincol[j] == 1 &&
 
