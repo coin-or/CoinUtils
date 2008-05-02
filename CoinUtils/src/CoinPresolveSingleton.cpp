@@ -61,6 +61,12 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   double * sol = prob->sol_;
   //  unsigned char * colstat = prob->colstat_;
 
+# if PRESOLVE_DEBUG
+  std::cout << "Entering slack_doubleton_action::presolve." << std::endl ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
   const unsigned char *integerType = prob->integerType_;
 
   const double ztolzb	= prob->ztolzb_;
@@ -282,6 +288,13 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
     printf("CoinPresolveSingleton(2) - %d rows, %d columns dropped in time %g, total %g\n",
 	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
   }
+
+# if PRESOLVE_DEBUG
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+  std::cout << "Leaving slack_doubleton_action::presolve." << std::endl ;
+# endif
+
   return (next);
 }
 
@@ -314,6 +327,10 @@ void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 
 # if PRESOLVE_DEBUG
   char *rdone		= prob->rdone_;
+
+  std::cout << "Entering slack_doubleton_action::postsolve." << std::endl ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
 # endif
   CoinBigIndex &free_list		= prob->free_list_;
 
@@ -412,6 +429,14 @@ void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
     rdone[irow] = SLACK_DOUBLETON;
 #   endif
   }
+
+# if PRESOLVE_CONSISTENCY
+  presolve_check_threads(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+  std::cout << "Leaving slack_doubleton_action::postsolve." << std::endl ;
+# endif
+
   return ; 
 }
 /*
@@ -463,10 +488,17 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
   double *dcost	= prob->cost_;
   //const double maxmin	= prob->maxmin_;
 
+# if PRESOLVE_DEBUG
+  std::cout << "Entering slack_singleton_action::presolve." << std::endl ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
   int numberLook = prob->numberColsToDo_;
   int iLook;
   int * look = prob->colsToDo_;
-  int maxActions = CoinMin(numberLook,nrows/10);
+  // Make sure we allocate at least one action
+  int maxActions = CoinMin(numberLook,nrows/10)+1;
   action * actions = new action[maxActions];
   int nactions = 0;
   int * fixed_cols = new int [numberLook];
@@ -572,7 +604,9 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
 	  if (!allInt)
 	    continue; // no good
 	}
-        if (nactions==maxActions) {
+        if (nactions>=maxActions) {
+	  printf("SLKSING: growing actions from %d to %d.\n",
+		 maxActions,maxActions+CoinMin(numberLook-iLook,maxActions)) ;
           maxActions += CoinMin(numberLook-iLook,maxActions);
           action * temp = new action[maxActions];
           CoinMemcpyN(actions,nactions,temp);
@@ -676,6 +710,13 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
     printf("CoinPresolveSingleton(3) - %d rows, %d columns dropped in time %g, total %g\n",
 	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
   }
+
+# if PRESOLVE_DEBUG
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+  std::cout << "Leaving slack_singleton_action::presolve." << std::endl ;
+# endif
+
   return (next);
 }
 
@@ -715,7 +756,12 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
 
 # if PRESOLVE_DEBUG
   char *rdone		= prob->rdone_;
+
+  std::cout << "Entering slack_singleton_action::postsolve." << std::endl ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
 # endif
+
   CoinBigIndex &free_list		= prob->free_list_;
 
   const double ztolzb	= prob->ztolzb_;
@@ -752,7 +798,8 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
       sol[iCol] += cMove;
       acts[iRow] -= cMove*coeff;
       /*
-       * Have to compute status.  At most one can be basic
+       * Have to compute status.  At most one can be basic. It's possible that
+	 both are nonbasic and nonbasic status must change.
        */
       if (colstat) {
         int numberBasic =0;
@@ -773,8 +820,15 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
         } else if (numberBasic) {
           prob->setRowStatus(iRow,CoinPrePostsolveMatrix::basic);
           prob->setColumnStatusUsingValue(iCol);
-        }
+        } else {
+          prob->setRowStatusUsingValue(iRow);
+          prob->setColumnStatusUsingValue(iCol);
+	}
       }
+#     if PRESOLVE_DEBUG
+      printf("SLKSING: %d = %g restored %d lb = %g ub = %g.\n",
+	     iCol,sol[iCol],prob->getColumnStatus(iCol),clo[iCol],cup[iCol]) ;
+#     endif
     } else {
       // must have been equality row
       assert (rlo[iRow]==rup[iRow]);
@@ -869,6 +923,13 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
     rdone[iRow] = SLACK_SINGLETON;
 #   endif
   }
+
+# if PRESOLVE_DEBUG
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+  std::cout << "Leaving slack_singleton_action::postsolve." << std::endl ;
+# endif
+
   return ; 
 }
 

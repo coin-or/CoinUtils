@@ -10,6 +10,11 @@
 #include "CoinPresolveEmpty.hpp"
 #include "CoinMessage.hpp"
 
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
+#endif
+
+
 /* \file
 
   Routines to remove/reinsert empty columns and rows.
@@ -318,6 +323,11 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
   }
 
   prob->ncols_ += nactions;
+
+# if PRESOLVE_CONSISTENCY
+  presolve_check_threads(prob) ;
+# endif
+
 }
 
 
@@ -520,5 +530,10 @@ void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
   }
 
   prob->nrows_ = prob->nrows_+nactions;
+
+# if PRESOLVE_DEBUG
+  presolve_check_threads(prob) ;
+# endif
+
 }
 

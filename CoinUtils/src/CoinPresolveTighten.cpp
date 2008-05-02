@@ -9,6 +9,11 @@
 #include "CoinPresolveUseless.hpp"
 #include "CoinHelperFunctions.hpp"
 
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
+#endif
+
+
 const char *do_tighten_action::name() const
 {
   return ("do_tighten_action");
@@ -441,6 +446,11 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
   }
   // leave until desctructor
   //  deleteAction(actions_,action *);
+
+# if PRESOLVE_CONSISTENCY
+  presolve_check_threads(prob) ;
+# endif
+
 }
 
 do_tighten_action::~do_tighten_action()

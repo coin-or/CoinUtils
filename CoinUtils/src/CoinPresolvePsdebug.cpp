@@ -17,8 +17,16 @@
   done. See also the Presolve Debug Functions module in the doxygen doc'n
   and CoinPresolvePsdebug.hpp.
 
-  The general approach is that the routines return void and abort when they
-  find a problem.
+  The general approach for the matrix consistency routines is that the
+  routines return void and abort when they find a problem. The routines
+  that check the basis and solution complain loudly but do not abort.
+
+  NOTE: The definitions for PRESOLVE_CONSISTENCY and PRESOLVE_DEBUG MUST BE
+	CONSISTENT across all CoinPresolve source files. AND OsiPresolve,
+	if you're debugging there. Otherwise, at best you'll get garbage
+	output. More likely, you'll get a core dump. Resist the temptation to
+	define these constants in individual files. In particular, cdone and
+	rdone will NOT be consistently maintained during postsolve.
 
   Hack away as your needs dictate.
 */
@@ -31,8 +39,7 @@
 */
 
 namespace { // begin unnamed file-local namespace
-  //#define PRESOLVE_CONSISTENCY 1
-  //#define PRESOLVE_DEBUG 1
+
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 /*
   Check for duplicate entries in a major vector by walking the vector. For each
@@ -314,7 +321,9 @@ void presolve_check_threads (const CoinPostsolveMatrix *obj)
 
     int lenj = hincol[j] ;
     int k ;
-    for (k = mcstrt[j] ; k != NO_LINK && lenj > 0 ; k = link[k]) lenj-- ;
+    for (k = mcstrt[j] ; k != NO_LINK && lenj > 0 ; k = link[k])
+    { assert(k >= 0 && k < obj->maxlink_) ;
+      lenj-- ; }
 
     assert(k == NO_LINK && lenj == 0) ; }
 # endif
@@ -364,19 +373,6 @@ void presolve_check_free_list (const CoinPostsolveMatrix *obj, bool chkElemCnt)
 */
   if (chkElemCnt)
   { assert(obj->nelems_+freeCnt == maxlink) ; }
-  //double *colels	= obj->colels_;
-  //int *hrow		= obj->hrow_;
-  CoinBigIndex *mcstrt	= obj->mcstrt_;
-  int *hincol		= obj->hincol_;
-  int ncols = obj->ncols_;
-  for (int jcolx=0;jcolx<ncols;jcolx++) {
-    CoinBigIndex k=mcstrt[jcolx];
-    int i;
-    for (i=0; i<hincol[jcolx]-1; ++i) {
-      k = obj->link_[k];
-      assert (k>=0);
-    }
-  }
 
 # endif
 
@@ -393,9 +389,16 @@ void presolve_check_free_list (const CoinPostsolveMatrix *obj, bool chkElemCnt)
 
   This routine performs two checks on reduced costs held in rcosts_:
     * The value held in rcosts_ is checked against the status of the
-      variable.
+      variable. Errors reported as "Bad rcost"
     * The reduced cost is calculated from scratch and compared to the
-      value held in rcosts_.
+      value held in rcosts_. Errors reported as "Inacc rcost"
+
+  Remember that postsolve has a schizophrenic attitude about maximisation. All
+  transforms assume minimisation, and that's reflected in the reduced costs we
+  see here. And you must load duals and reduced costs with the correct sign for
+  minimisation. But, as a small courtesy (and a big inconsistency), postsolve
+  will negate objective coefficients for you. Hence the rather odd use of
+  maxmin.
 
   The routine is specific to CoinPostsolveMatrix because the reduced cost
   calculation requires traversal of (threaded) matrix columns.
@@ -466,7 +469,7 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
   double *sol = postObj->sol_ ;
 
   char *cdone = postObj->cdone_ ;
-  //char *rdone = postObj->rdone_ ;
+  char *rdone = postObj->rdone_ ;
 
   const double ztoldj = postObj->ztoldj_ ;
   const double ztolzb = postObj->ztolzb_ ;
@@ -482,8 +485,9 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 */
   for (int j = 0 ; j < ncols0 ; j++)
   { if (cdone[j] == 0) continue ;
+    const char *statjstr = postObj->columnStatusString(j) ;
 /*
-  Check the stored reduced cost for accuracy.
+  Check the stored reduced cost for accuracy. See note above w.r.t. maxmin.
 */
     double dj = rcosts[j] ;
     double wrndj = warned_rcosts[j] ;
@@ -491,13 +495,13 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
     { int ndx ;
       CoinBigIndex k = mcstrt[j] ;
       int len = hincol[j] ;
-      double chkdj = postObj->maxmin_*dcost[j] ;
+      double chkdj = maxmin*dcost[j] ;
       if (j==checkCol)
         printf("dj for %d is %g - cost is %g\n",
                j,dj,chkdj);
       for (ndx = 0 ; ndx < len ; ndx++)
       { int row = hrow[k] ;
-	PRESOLVEASSERT(postObj->rdone_[row] != 0) ;
+	PRESOLVEASSERT(rdone[row] != 0) ;
 	chkdj -= rowduals[row]*colels[k] ;
         if (j==checkCol)
           printf("row %d coeff %g dual %g => dj %g\n",
@@ -506,7 +510,10 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 	k = link[k] ; }
       if (fabs(dj-chkdj) > ztoldj && wrndj != dj)
       { std::cout
-        << j <<" "<< dj<<" " << chkdj<<" " << fabs(dj-chkdj) << std::endl ; } }
+          << "Inacc rcost: " << j << " " << statjstr << " "
+	  << strMaxmin << " have " << dj
+	  << " should be " << chkdj << " err " << fabs(dj-chkdj)
+	  << std::endl ; } }
 /*
   Check the stored reduced cost for consistency with the variable's status.
   The cases are
@@ -517,31 +524,36 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
       way) but superbasic status is sufficiently exotic that it always
       deserves a message. (There should be no superbasic variables at the
       completion of postsolve.)
+  As a courtesy, show the reduced cost with the proper sign.
 */
     { double xj = sol[j] ;
       double lj = clo[j] ;
       double uj = cup[j] ;
-      const char *statjstr = postObj->columnStatusString(j) ;
 
       if (postObj->columnIsBasic(j))
       { if (fabs(dj) > ztoldj && wrndj != dj)
 	{ std::cout
-	      << j <<" "<< dj <<" "<< statjstr <<" "<< strMaxmin << std::endl ; } }
+	    << "Bad rcost: " << j << " " << maxmin*dj
+	    << " " << statjstr << " " << strMaxmin << std::endl ; } }
       else
       if (fabs(xj-uj) < ztolzb && fabs(xj-lj) > ztolzb)
       { if (dj >= ztoldj && wrndj != dj)
 	{ std::cout
-	      << j <<" "<< dj <<" "<< statjstr <<" "<< strMaxmin << std::endl ; } }
+	    << "Bad rcost: " << j << " " << maxmin*dj
+	    << " " << statjstr << " " << strMaxmin << std::endl ; } }
       else
       if (fabs(xj-lj) < ztolzb && fabs(xj-uj) > ztolzb)
       { if (dj <= -ztoldj && wrndj != dj)
 	{ std::cout
-	      << j <<" "<< dj <<" "<< statjstr <<" "<< strMaxmin << std::endl ; } }
+	    << "Bad rcost: " << j << " " << maxmin*dj
+	    << " " << statjstr << " " << strMaxmin << std::endl ; } }
       else
       if (fabs(xj-lj) > ztolzb && fabs(xj-uj) > ztolzb)
       { if (fabs(dj) > ztoldj && wrndj != dj)
         { std::cout
-	  << j <<" "<< statjstr <<" "<< dj <<" "<< lj <<" "<< xj <<" "<< uj << std::endl ; } }
+	    << "Superbasic rcost: " << j << " " << maxmin*dj
+	    << " " << statjstr << " " << strMaxmin
+	    << " lb "<< lj << " val " << xj << " ub "<< uj << std::endl ; } }
     }
 
     warned_rcosts[j] = rcosts[j] ; }
@@ -553,7 +565,10 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
   CoinPostsolveMatrix
 
   This routine checks the value and status of the dual variables. It
-  checks that the value and status fo the dual agree with the row activity.
+  checks that the value and status of the dual agree with the row activity.
+  Errors are reported as "Bad dual"
+
+  See presolve_check_reduced_costs for an explanation of the use of maxmin.
 
   Specific to CoinPostsolveMatrix due to the use of rdone. This could be fixed,
   but probably better to clone the function and specialise it for
@@ -584,11 +599,12 @@ void presolve_check_duals (const CoinPostsolveMatrix *postObj)
 /*
   Scan all processed rows. The rules are as for normal reduced costs, but
   we need to remember the various flips and inversions. In summary, the correct
-  situation at optimality is:
-    * acts[i] >= rup[i] ==> artificial NBLB ==> dual[i] < 0
-    * acts[i] <= rlo[i] ==> artificial NBUB ==> dual[i] > 0
+  situation at optimality (minimisation) is:
+    * acts[i] == rup[i] ==> artificial NBLB ==> dual[i] < 0
+    * acts[i] == rlo[i] ==> artificial NBUB ==> dual[i] > 0
 
-  We can't say much about the dual for an equality. It can go either way.
+  We can't say much about the dual for an equality. It can go either way. As a
+  courtesy, show the dual with the proper sign.
 */
   for (int i = 0 ; i < nrows0 ; i++)
   { if (rdone[i] == 0) continue ;
@@ -606,25 +622,31 @@ void presolve_check_duals (const CoinPostsolveMatrix *postObj)
     if (fabs(lhsi-li) < ztolzb)
     { if (yi < -ztoldj)
       { std::cout
-	    << i <<" "<< yi <<" "<< statistr <<" "<< strMaxmin << std::endl ; } }
+	  << "Bad dual: " << i << " " << maxmin*yi
+	  << " " << statistr << " " << strMaxmin << std::endl ; } }
     else
     if (fabs(lhsi-ui) < ztolzb)
     { if (yi > ztoldj)
       { std::cout
-	    << i <<" "<< yi <<" "<< statistr <<" "<< strMaxmin << std::endl ; } }
+	  << "Bad dual: " << i << " " << maxmin*yi
+	  << " " << statistr << " " << strMaxmin << std::endl ; } }
     else
     if (li < lhsi && lhsi < ui)
     { if (fabs(yi) > ztoldj)
       { std::cout
-	    << i <<" "<< yi <<" "<< statistr <<" "<< strMaxmin << std::endl ; } } }
+	  << "Bad dual: " << i << " " << maxmin*yi
+	  << " " << statistr << " " << strMaxmin << std::endl ; } } }
 # endif
   return ; }
 
 
 
 /*
+  CoinPresolveMatrix
+
   This routine will check the primal (column) solution for feasibility and
-  status. DON'T CALL THIS ROUTINE unless the solution is present, eh?
+  status. If there's no column solution (sol_), the routine bails out. If the
+  column solution is present, all else is assumed to be present.
 
   chkColSol:	check colum solution (primal variables)
 		0 - checks off
@@ -639,7 +661,7 @@ void presolve_check_duals (const CoinPostsolveMatrix *postObj)
 	       *1 - checks on, if colstat_ exists
 
   In general, the presolve transforms are not prepared to properly adjust the
-  row activity (reported as `inacc RSOL'). Postsolve transforms do better. On
+  row activity (reported as `Inacc RSOL'). Postsolve transforms do better. On
   the bright side, the code seems to work just fine without maintaining row
   activity.  You probably don't want to use the level 2 checks for the row
   solution, particularly in presolve.
@@ -662,6 +684,11 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
 
   int n	= preObj->ncols_ ;
   int m = preObj->nrows_ ;
+
+/*
+  If there's no column solution, bail out now.
+*/
+  if (preObj->sol_ == 0) return ;
 
   double *csol = preObj->sol_ ;
   double *acts = preObj->acts_ ;
@@ -768,7 +795,7 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
 		 i,li,evali,lhsi,ui) ; }
 	if (chkRowAct > 1)
 	{ if (fabs(evali-lhsi) > tol)
-	  { printf("inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+	  { printf("Inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
 		   i,li,evali,lhsi,ui) ; }
 	  if (evali < li-tol || lhsi < li-tol)
 	  { printf("low RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
@@ -782,6 +809,8 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
   return ; }
 
 /*
+  CoinPostsolveMatrix
+
   check_sol overload for CoinPostsolveMatrix. Parameters and functionality
   identical to check_sol immediately above, but we have to remember we're
   working with a threaded column-major representation.
@@ -901,7 +930,7 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
 	       i,li,evali,lhsi,ui) ; }
       if (chkRowAct > 1)
       { if (fabs(evali-lhsi) > tol)
-	{ printf("inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+	{ printf("Inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
 		 i,li,evali,lhsi,ui) ; }
         if (evali < li-tol || lhsi < li-tol)
 	{ printf("low RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
@@ -915,6 +944,8 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
   return ; }
 
 /*
+  CoinPostsolveMatrix
+
   Make sure that the number of basic variables is correct.
 */
 void presolve_check_nbasic (const CoinPostsolveMatrix *postObj)
@@ -930,34 +961,76 @@ void presolve_check_nbasic (const CoinPostsolveMatrix *postObj)
 
   int nbasic = 0 ;
   int ncdone = 0;
-  int nrdone = 0;
+  int nrdone = 0; 
   int ncb = 0;
   int nrb = 0;
 
   for (int j = 0 ; j < ncols0 ; j++)
   { 
     if (cdone[j] != 0 && postObj->columnIsBasic(j))
-      nbasic++ ;
+    { nbasic++ ;
+      ncb++ ; }
     if (cdone[j])
-      ncdone++;
-    if (postObj->columnIsBasic(j))
-      ncb++;
+      ncdone++ ;
   }
 
   for (int i = 0 ; i < nrows0 ; i++)
   {
     if (rdone[i] && postObj->rowIsBasic(i))
-      nbasic++ ;
+    { nbasic++ ;
+      nrb++ ; }
     if (rdone[i])
-      nrdone++;
-    if (postObj->rowIsBasic(i))
-      nrb++;
+      nrdone++ ;
   }
 
   if (nbasic != postObj->nrows_)
-  { printf("WRONG NUMBER NBASIC:  is:  %d  should be:  %d\n",
-	   nbasic, postObj->nrows_) ;
-  printf("cdone %d, cb %d, rdone %d, rb %d\n",ncdone,ncb,nrdone,nrb);
+  { printf("WRONG NUMBER NBASIC: is %d, should be %d; ",
+	   nbasic,postObj->nrows_) ;
+    printf("cdone %d, col basic %d, rdone %d, row basic %d.\n",
+	   ncdone,ncb,nrdone,nrb) ;
+    fflush(stdout) ; }
+# endif
+  return ; }
+
+
+/*
+  CoinPresolveMatrix
+
+  Overload of presolve_check_nbasic for a CoinPresolveMatrix. There may not be
+  a solution, eh?
+*/
+void presolve_check_nbasic (const CoinPresolveMatrix *preObj)
+
+{
+# if PRESOLVE_DEBUG
+
+  if (preObj->sol_ == 0) return ;
+
+  int ncols = preObj->ncols_ ;
+  int nrows = preObj->nrows_ ;
+
+  int nbasic = 0 ;
+  int ncb = 0;
+  int nrb = 0;
+
+  for (int j = 0 ; j < ncols ; j++)
+  { 
+    if (preObj->columnIsBasic(j))
+    { nbasic++ ;
+      ncb++ ; }
+  }
+
+  for (int i = 0 ; i < nrows ; i++)
+  {
+    if (preObj->rowIsBasic(i))
+    { nbasic++ ;
+      nrb++ ; }
+  }
+
+  if (nbasic != nrows)
+  { printf("WRONG NUMBER NBASIC:  is:  %d  should be:  %d;",
+	   nbasic,nrows) ;
+    printf(" cb %d, rb %d.\n",ncb,nrb);
     fflush(stdout) ; }
 # endif
   return ; }

@@ -742,6 +742,9 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 # if PRESOLVE_CONSISTENCY
   presolve_check_threads(prob) ;
 # endif
+# if PRESOLVE_DEBUG
+  presolve_check_sol(prob) ;
+# endif
 /*
   The outer loop: step through the doubletons in this array of actions.
   The first activity is to unpack the doubleton.

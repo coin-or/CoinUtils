@@ -12,15 +12,22 @@
 #include "CoinPresolveForcing.hpp"
 #include "CoinMessage.hpp"
 
+#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#include "CoinPresolvePsdebug.hpp"
+#endif
 
-/*static*/ void implied_bounds(const double *els,
-			   const double *clo, const double *cup,
-			   const int *hcol,
-			   CoinBigIndex krs, CoinBigIndex kre,
-			   double *maxupp, double *maxdownp,
-			   int jcol,
-			   double rlo, double rup,
-			   double *iclb, double *icub)
+/*
+  This just doesn't seem efficient, particularly when used to calculate row
+  bounds. Lots of extra work.
+*/
+void implied_bounds (const double *els,
+		     const double *clo, const double *cup,
+		     const int *hcol,
+		     CoinBigIndex krs, CoinBigIndex kre,
+		     double *maxupp, double *maxdownp,
+		     int jcol,
+		     double rlo, double rup,
+		     double *iclb, double *icub)
 {
   if (rlo<=-PRESOLVE_INF&&rup>=PRESOLVE_INF) {
     *iclb = -PRESOLVE_INF;
@@ -198,6 +205,7 @@ const CoinPresolveAction
   }
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
+  double *csol  = prob->sol_ ;
 
   const double *rowels	= prob->rowels_;
   const int *hcol	= prob->hcol_;
@@ -227,6 +235,11 @@ const CoinPresolveAction
   int iLook;
   int * look = prob->rowsToDo_;
   bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
+
+# if PRESOLVE_DEBUG
+  std::cout << "Entering forcing_constraint_action::presolve." << std::endl ;
+  presolve_check_sol(prob) ;
+# endif
 /*
   Open a loop to scan the constraints of interest. There must be variables
   left in the row.
@@ -246,7 +259,7 @@ const CoinPresolveAction
 			 &maxup, &maxdown);
 
       if (maxup < PRESOLVE_INF && maxup + inftol < rlo[irow]&&!fixInfeasibility) {
-	/* there is an upper bound and it can't be reached */
+	/* max row activity below the row lower bound */
 	prob->status_|= 1;
 	prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
 					     prob->messages())
@@ -256,7 +269,7 @@ const CoinPresolveAction
 					       <<CoinMessageEol;
 	break;
       } else if (-PRESOLVE_INF < maxdown && rup[irow] < maxdown - inftol&&!fixInfeasibility) {
-	/* there is a lower bound and it can't be reached */
+	/* min row activity above the row upper bound */
 	prob->status_|= 1;
 	prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
 					     prob->messages())
@@ -330,13 +343,17 @@ const CoinPresolveAction
 	    --uk;
 	    bounds[uk-krs] = clo[jcol];
 	    rowcols[uk-krs] = jcol;
-	      
+	    if (csol != 0) {
+	      csol[jcol] = cup[jcol] ;
+	    }
 	    clo[jcol] = cup[jcol];
 	  } else {
 	    bounds[lk-krs] = cup[jcol];
 	    rowcols[lk-krs] = jcol;
 	    ++lk;
-
+	    if (csol != 0) {
+	      csol[jcol] = clo[jcol] ;
+	    }
 	    cup[jcol] = clo[jcol];
 	  }
 
@@ -391,6 +408,12 @@ const CoinPresolveAction
     printf("CoinPresolveForcing(32) - %d rows, %d columns dropped in time %g, total %g\n",
 	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
   }
+
+# if PRESOLVE_DEBUG
+  presolve_check_sol(prob) ;
+  std::cout << "Leaving forcing_constraint_action::presolve." << std::endl ;
+# endif
+
   return (next);
 }
 
@@ -513,6 +536,11 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
       }
     }
   }
+
+# if PRESOLVE_CONSISTENCY
+  presolve_check_threads(prob) ;
+# endif
+
 }
 
 

@@ -123,10 +123,16 @@ void presolve_check_sol(const CoinPostsolveMatrix *postObj,
 			int chkColSol = 2, int chkRowAct = 2,
 			int chkStatus = 1) ;
 
+/*! \relates CoinPresolveMatrix
+    \brief Check for the proper number of basic variables.
+*/
+void presolve_check_nbasic(const CoinPresolveMatrix *preObj) ;
+
 /*! \relates CoinPostsolveMatrix
     \brief Check for the proper number of basic variables.
 */
 void presolve_check_nbasic(const CoinPostsolveMatrix *postObj) ;
+
 //@}
 
 #endif

@@ -35,8 +35,8 @@
   then load in the constraint matrix, vectors, and miscellaneous parameters.
   Some of this will be done from CoinPresolveMatrix or CoinPostsolveMatrix
   constructors, but in the end most of it should be pushed back to an
-  OSI-specific method. Then the knowledge of how access the required data in
-  an OSI is pushed back to the individual OSI classes where it belongs.
+  OSI-specific method. Then the knowledge of how to access the required data
+  in an OSI is pushed back to the individual OSI classes where it belongs.
 
   Thus, all vector allocation is postponed until load time.
 */

@@ -202,6 +202,9 @@ CoinPostsolveMatrix::assignPresolveToPostsolve (CoinPresolveMatrix *&preObj)
   rdone_ = new char [nrows0_] ;
   CoinFillN(rdone_,nrows_,PRESENT_IN_REDUCED) ;
   CoinZeroN(rdone_+nrows_,nrows0_-nrows_) ;
+# else
+  cdone_ = 0 ;
+  rdone_ = 0 ;
 # endif
 
 # if PRESOLVE_CONSISTENCY

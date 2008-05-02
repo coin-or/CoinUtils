@@ -8,8 +8,13 @@
 #include "CoinPresolveDual.hpp"
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
+#include "CoinFloatEqual.hpp"
 //#define PRESOLVE_TIGHTEN_DUALS 1
 //#define PRESOLVE_DEBUG 1
+
+#ifdef PRESOLVE_DEBUG
+#include "CoinPresolvePsdebug.hpp"
+#endif
 
 // this looks for "dominated columns"
 // following ekkredc
@@ -30,7 +35,10 @@
   that begins with `Gack!'. And down in the bound propagation loop, why do we
   only work with variables with u_j = infty? The corresponding section of code
   for l_j = -infty is ifdef'd away. And why exclude the code protected by
-  PRESOLVE_TIGHTEN_DUALS?
+  PRESOLVE_TIGHTEN_DUALS? And why are we using ekkinf instead of PRESOLVE_INF?
+
+  There is no postsolve action because once we've identified a variable to fix
+  we can invoke make_fixed_action.
 */
 const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 				   const CoinPresolveAction *next)
@@ -51,8 +59,11 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
+  unsigned char *colstat = prob->colstat_ ;
 
-  double *rowels	= prob->rowels_;
+  // Used only in `fix if simple' section below. Remove dec'l to avoid
+  // GCC compile warning.
+  // double *rowels	= prob->rowels_;
   int *hcol		= prob->hcol_;
   CoinBigIndex *mrstrt		= prob->mrstrt_;
   int *hinrow		= prob->hinrow_;
@@ -70,8 +81,16 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   const double ekkinf2 = 1e20;
   const double ztoldj = prob->ztoldj_;
 
+  CoinRelFltEq relEq(prob->ztolzb_) ;
+
   double *rdmin	= new double[nrows];
   double *rdmax	= new double[nrows];
+
+# if PRESOLVE_DEBUG
+  std::cout << "Entering remove_dual_action::presolve, " << nrows << " X " << ncols << "." << std::endl ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
 
   // This combines the initialization of rdmin/rdmax to extreme values
   // (PRESOLVE_INF/-PRESOLVE_INF) with a version of the next loop specialized
@@ -98,6 +117,9 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   for ( j = 0; j<ncols; j++) {
     bool no_ub = (cup[j] >= ekkinf);
     bool no_lb = (clo[j] <= -ekkinf);
+    // Yes, I worry too much.   -- lh, 080429 --
+    assert(!(cup[j] > ekkinf && cup[j] < PRESOLVE_INF)) ;
+    assert(!(clo[j] < -ekkinf && clo[j] > -PRESOLVE_INF)) ;
     
     if (hincol[j] == 1 &&
 
@@ -347,35 +369,68 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    break;
 	  } else {
 	    fixdown_cols[nfixdown_cols++] = j;
+#	    if PRESOLVE_DEBUG
+	    printf("NDUAL: fixing x<%d>",fixdown_cols[nfixdown_cols-1]) ;
+	    if (csol) printf(" = %g",csol[j]) ;
+	    printf(" at lb = %g.\n",clo[j]) ;
+#	    endif
 	    //if (csol[j]-clo[j]>1.0e-7)
 	    //printf("down %d row %d nincol %d\n",j,hrow[mcstrt[j]],hincol[j]);
 	    // User may have given us feasible solution - move if simple
-	    if (csol&&csol[j]-clo[j]>1.0e-7&&hincol[j]==1) {
-	      double value_j = colels[mcstrt[j]];
-	      double distance_j = csol[j]-clo[j];
-	      int row=hrow[mcstrt[j]];
-	      // See if another column can take value
-	      for (CoinBigIndex kk=mrstrt[row];kk<mrstrt[row]+hinrow[row];kk++) {
-		int k = hcol[kk];
-		if (hincol[k]==1&&k!=j) {
-		  double value_k = rowels[kk];
-		  double movement;
-		  if (value_k*value_j>0.0) {
-		    // k needs to increase
-		    double distance_k = cup[k]-csol[k];
-		    movement = CoinMin((distance_j*value_j)/value_k,distance_k);
-		  } else {
-		    // k needs to decrease
-		    double distance_k = clo[k]-csol[k];
-		    movement = CoinMax((distance_j*value_j)/value_k,distance_k);
+	    if (csol) {
+# if 0
+	/*
+	  Except it's not simple. The net result is that we end up with an
+	  excess of basic variables.
+	*/
+	      if (csol[j]-clo[j]>1.0e-7&&hincol[j]==1) {
+		double value_j = colels[mcstrt[j]];
+		double distance_j = csol[j]-clo[j];
+		int row=hrow[mcstrt[j]];
+		// See if another column can take value
+		for (CoinBigIndex kk=mrstrt[row];kk<mrstrt[row]+hinrow[row];kk++) {
+		  int k = hcol[kk];
+		  if (colstat[k] == CoinPrePostsolveMatrix::superBasic)
+		    continue ;
+
+		  if (hincol[k]==1&&k!=j) {
+		    double value_k = rowels[kk];
+		    double movement;
+		    if (value_k*value_j>0.0) {
+		      // k needs to increase
+		      double distance_k = cup[k]-csol[k];
+		      movement = CoinMin((distance_j*value_j)/value_k,distance_k);
+		    } else {
+		      // k needs to decrease
+		      double distance_k = clo[k]-csol[k];
+		      movement = CoinMax((distance_j*value_j)/value_k,distance_k);
+		    }
+		    if (relEq(movement,0)) continue ;
+
+		    csol[k] += movement;
+		    if (relEq(csol[k],clo[k]))
+		    { colstat[k] = CoinPrePostsolveMatrix::atLowerBound ; }
+		    else
+		    if (relEq(csol[k],cup[k]))
+		    { colstat[k] = CoinPrePostsolveMatrix::atUpperBound ; }
+		    else
+		    if (colstat[k] != CoinPrePostsolveMatrix::isFree)
+		    { colstat[k] = CoinPrePostsolveMatrix::basic ; }
+		    printf("NDUAL: x<%d> moved %g to %g; ",
+			   k,movement,csol[k]) ;
+		    printf("lb = %g, ub = %g, status now %s.\n",
+			   clo[k],cup[k],columnStatusString(colstat[k])) ;
+		    distance_j -= (movement*value_k)/value_j;
+		    csol[j] -= (movement*value_k)/value_j;
+		    if (distance_j<1.0e-7)
+		      break;
 		  }
-		  csol[k] += movement;
-		  distance_j -= (movement*value_k)/value_j;
-		  csol[j] -= (movement*value_k)/value_j;
-		  if (distance_j<1.0e-7)
-		    break;
 		}
 	      }
+# endif		// repair solution.
+
+	      csol[j] = clo[j] ;	// but the bottom line is we've changed x<j>
+	      colstat[j] = CoinPrePostsolveMatrix::atLowerBound ;
 	    }
 	  }
 	} else if (ddjhi < -ztoldj && nflagu == 0&&!prob->colProhibited2(j)) {
@@ -389,42 +444,70 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    break;
 	  } else {
 	    fixup_cols[nfixup_cols++] = j;
+#	    if PRESOLVE_DEBUG
+	    printf("NDUAL: fixing x<%d>",fixup_cols[nfixup_cols-1]) ;
+	    if (csol) printf(" = %g",csol[j]) ;
+	    printf(" at ub = %g.\n",cup[j]) ;
+#	    endif
 	    // User may have given us feasible solution - move if simple
+	    // See comments for `fix at lb' case above.
 	    //if (cup[j]-csol[j]>1.0e-7)
 	    //printf("up %d row %d nincol %d\n",j,hrow[mcstrt[j]],hincol[j]);
-	    if (csol&&cup[j]-csol[j]>1.0e-7&&hincol[j]==1) {
-	      double value_j = colels[mcstrt[j]];
-	      double distance_j = csol[j]-cup[j];
-	      int row=hrow[mcstrt[j]];
-	      // See if another column can take value
-	      for (CoinBigIndex kk=mrstrt[row];kk<mrstrt[row]+hinrow[row];kk++) {
-		int k = hcol[kk];
-		if (hincol[k]==1&&k!=j) {
-		  double value_k = rowels[kk];
-		  double movement;
-		  if (value_k*value_j<0.0) {
-		    // k needs to increase
-		    double distance_k = cup[k]-csol[k];
-		    movement = CoinMin((distance_j*value_j)/value_k,distance_k);
-		  } else {
-		    // k needs to decrease
-		    double distance_k = clo[k]-csol[k];
-		    movement = CoinMax((distance_j*value_j)/value_k,distance_k);
+	    if (csol) {
+# if 0
+	// See comments above.
+	      if (cup[j]-csol[j]>1.0e-7&&hincol[j]==1) {
+		double value_j = colels[mcstrt[j]];
+		double distance_j = csol[j]-cup[j];
+		int row=hrow[mcstrt[j]];
+		// See if another column can take value
+		for (CoinBigIndex kk=mrstrt[row];kk<mrstrt[row]+hinrow[row];kk++) {
+		  int k = hcol[kk];
+		  if (colstat[k] == CoinPrePostsolveMatrix::superBasic)
+		    continue ;
+
+		  if (hincol[k]==1&&k!=j) {
+		    double value_k = rowels[kk];
+		    double movement;
+		    if (value_k*value_j<0.0) {
+		      // k needs to increase
+		      double distance_k = cup[k]-csol[k];
+		      movement = CoinMin((distance_j*value_j)/value_k,distance_k);
+		    } else {
+		      // k needs to decrease
+		      double distance_k = clo[k]-csol[k];
+		      movement = CoinMax((distance_j*value_j)/value_k,distance_k);
+		    }
+		    if (relEq(movement,0)) continue ;
+
+		    csol[k] += movement;
+		    if (relEq(csol[k],clo[k]))
+		    { colstat[k] = CoinPrePostsolveMatrix::atLowerBound ; }
+		    else
+		    if (relEq(csol[k],cup[k]))
+		    { colstat[k] = CoinPrePostsolveMatrix::atUpperBound ; }
+		    else
+		    if (colstat[k] != CoinPrePostsolveMatrix::isFree)
+		    { colstat[k] = CoinPrePostsolveMatrix::basic ; }
+		    printf("NDUAL: x<%d> moved %g to %g; ",
+			   k,movement,csol[k]) ;
+		    printf("lb = %g, ub = %g, status now %s.\n",
+			   clo[k],cup[k],columnStatusString(colstat[k])) ;
+		    distance_j -= (movement*value_k)/value_j;
+		    csol[j] -= (movement*value_k)/value_j;
+		    if (distance_j>-1.0e-7)
+		      break;
 		  }
-		  csol[k] += movement;
-		  distance_j -= (movement*value_k)/value_j;
-		  csol[j] -= (movement*value_k)/value_j;
-		  if (distance_j>-1.0e-7)
-		    break;
 		}
 	      }
+# endif
+	      csol[j] = cup[j] ;	// but the bottom line is we've changed x<j>
+	      colstat[j] = CoinPrePostsolveMatrix::atUpperBound ;
 	    }
 	  }
 	}
       }
     }
-
-
 
     // I don't know why I stopped doing this.
 #if	PRESOLVE_TIGHTEN_DUALS
@@ -508,14 +591,18 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 
   if (nfixup_cols) {
 #if	PRESOLVE_DEBUG
-    printf("NDUAL:  %d\n", nfixup_cols);
+    printf("NDUAL: %d up", nfixup_cols);
+    for (i = 0 ; i < nfixup_cols ; i++) printf(" %d",fixup_cols[i]) ;
+    printf(".\n") ;
 #endif
     next = make_fixed_action::presolve(prob, fixup_cols, nfixup_cols, false, next);
   }
 
   if (nfixdown_cols) {
 #if	PRESOLVE_DEBUG
-    printf("NDUAL:  %d\n", nfixdown_cols);
+    printf("NDUAL: %d down", nfixdown_cols);
+    for (i = 0 ; i < nfixdown_cols ; i++) printf(" %d",fixdown_cols[i]) ;
+    printf(".\n") ;
 #endif
     next = make_fixed_action::presolve(prob, fixdown_cols, nfixdown_cols, true, next);
   }
@@ -523,7 +610,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   // Also if cost is in right direction and only one binding row for variable 
   // We may wish to think about giving preference to rows with 2 or 3 elements
 /*
-  Gack! Ok, I can appreciate the thought here, but I'm seriously sceptical
+  Gack! Ok, I can appreciate the thought here, but I'm seriously skeptical
   about writing canFix[0] before reading rdmin[0]. After that, we should be out
   of the interference zone for the typical situation where sizeof(double) is
   twice sizeof(int).
@@ -661,5 +748,12 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
     printf("CoinPresolveDual(1) - %d rows, %d columns dropped in time %g, total %g\n",
 	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
   }
+
+# if PRESOLVE_DEBUG
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+  std::cout << "Leaving remove_dual_action::presolve." << std::endl ;
+# endif
+
   return (next);
 }

@@ -49,6 +49,10 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
 
   action *actions	= new action [nuseless_rows];
 
+# if PRESOLVE_DEBUG
+  std::cout << "Entering useless_constraint_action::presolve." << std::endl ;
+  presolve_check_sol(prob) ;
+# endif
 # if PRESOLVE_SUMMARY
   printf("NUSELESS ROWS:  %d\n", nuseless_rows);
 # endif
@@ -79,6 +83,10 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
     rup[irow] = 0.0;
   }
 
+# if PRESOLVE_DEBUG
+  presolve_check_sol(prob) ;
+  std::cout << "Leaving useless_constraint_action::presolve." << std::endl ;
+# endif
 
   next = new useless_constraint_action(nuseless_rows, actions, next);
 
@@ -171,4 +179,9 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   }
 
   //deleteAction(actions_,action *);
+
+# if PRESOLVE_CONSISTENCY
+  presolve_check_threads(prob) ;
+# endif
+
 }

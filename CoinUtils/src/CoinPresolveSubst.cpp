@@ -1166,6 +1166,10 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 #   endif
   }
 
+# if PRESOLVE_CONSISTENCY
+  presolve_check_threads(prob) ;
+# endif
+
   return ;
 }
 

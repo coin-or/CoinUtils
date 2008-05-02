@@ -73,6 +73,11 @@ const remove_fixed_action*
 
   action *actions 	= new  action[nfcols+1];
 
+# if PRESOLVE_DEBUG
+  std::cout << "Entering remove_fixed_action::presolve." << std::endl ;
+  presolve_check_sol(prob) ;
+# endif
+
 /*
   Scan columns to be removed and total up the number of coefficients.
 */
@@ -236,12 +241,18 @@ const remove_fixed_action*
   delete [] mark;
   delete [] column;
   delete [] rstrt;
+
+# if PRESOLVE_DEBUG
+  presolve_check_sol(prob) ;
+  std::cout << "Leaving remove_fixed_action::presolve." << std::endl ;
+# endif
+
 /*
   Create the postsolve object, link it at the head of the list of postsolve
   objects, and return a pointer.
 */
-  return (new remove_fixed_action(nfcols,actions,
-				  els_action,rows_action,next));
+  return (new remove_fixed_action(nfcols,
+				  actions,els_action,rows_action,next));
 }
 
 
@@ -311,7 +322,14 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
 
 # if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
   char *cdone	= prob->cdone_;
+
+  std::cout << "Entering remove_fixed_action::postsolve." << std::endl ;
+  presolve_check_threads(prob) ;
+  presolve_check_free_list(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
 # endif
+
   double * els_action = colels_;
   int * rows_action = colrows_;
   int end = actions[nactions].start;
@@ -352,7 +370,7 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
       colels[k] = coeff;
       link[k] = cs;
       cs = k;
-      
+
       if (-PRESOLVE_INF < rlo[row])
 	rlo[row] += coeff * thesol;
       if (rup[row] < PRESOLVE_INF)
@@ -392,6 +410,14 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
 	prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atLowerBound); }
 
   }
+
+
+# if PRESOLVE_CONSISTENCY || PRESOLVE_DEBUG
+  presolve_check_threads(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+  std::cout << "Leaving remove_fixed_action::postsolve." << std::endl ;
+# endif
 
   return ;
 }

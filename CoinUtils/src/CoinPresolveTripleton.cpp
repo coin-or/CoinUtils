@@ -1016,6 +1016,11 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
   delete [] element1;
   delete [] index2;
   delete [] element2;
+
+# if PRESOLVE_CONSISTENCY
+  presolve_check_threads(prob) ;
+# endif
+
 }
 
 

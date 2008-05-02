@@ -71,7 +71,7 @@ inline int ALIGN_DOUBLE(int n)	{ return ALIGN(n,sizeof(double)); }
 class CoinPostsolveMatrix;
 
 // Note 77
-// "Members and bases are constructed in order of declation
+// "Members and bases are constructed in order of declaration
 //  in the class and destroyed in the reverse order."  C++PL 3d Ed. p. 307
 //
 // That's why I put integer members (such as ncols) before the array members;
@@ -86,7 +86,7 @@ class CoinPostsolveMatrix;
   modify in some useful way.  Assuming that it succeeds, the presolve object
   should create a postsolve object, <i>i.e.</i>, an object that contains
   instructions for backing out the presolve transform to recover the original
-  problem. These postsolve objects are accumlated in a linked list, with each
+  problem. These postsolve objects are accumulated in a linked list, with each
   successive presolve action adding its postsolve action to the head of the
   list. The end result of all this is a presolved problem object, and a list
   of postsolve objects. The presolved problem object is then handed to a
@@ -219,14 +219,16 @@ class CoinPresolveAction
     defined in the derived classes.
 
   When CoinPresolve is applied when reoptimising, we need to be prepared to
-  accept a basis and modify it to match the presolved problem (otherwise we
-  throw away all the advantages of warm start for reoptimization). But I'm
-  pretty well certain that the other solution components (#acts_, #rowduals_,
-  #sol_, and #rcosts_) are only useful for postsolve (to save a final
-  no-pivot call to the solver to regenerate the solution).  But moving them
-  from CoinPrePostsolveMatrix to CoinPostsolveMatrix would break a lot of
-  code.  It's not clear that it's worth it, and it would preclude upgrades to
-  the presolve side that might make use of any of these.  -- lh, 040806 --
+  accept a basis and modify it in step with the presolve actions (otherwise
+  we throw away all the advantages of warm start for reoptimization). But
+  other solution components (#acts_, #rowduals_, #sol_, and #rcosts_) are
+  needed only for postsolve, where they're used in places to determine the
+  proper action(s) when restoring rows or columns.  If presolve is provided
+  with a solution, it will modify it in step with the presolve actions.
+  Moving the solution components from CoinPrePostsolveMatrix to
+  CoinPostsolveMatrix would break a lot of code.  It's not clear that it's
+  worth it, and it would preclude upgrades to the presolve side that might
+  make use of any of these.  -- lh, 080501 --
 */
 
 class CoinPrePostsolveMatrix
@@ -525,7 +527,7 @@ class CoinPrePostsolveMatrix
     2*nelems0_.
   */
   CoinBigIndex bulk0_ ;
-  /// Ratio of bulk0- to nelems0_
+  /// Ratio of bulk0_ to nelems0_; default is 2.
   double bulkRatio_;
   //@}
 
@@ -1342,6 +1344,9 @@ class CoinPostsolveMatrix : public CoinPrePostsolveMatrix
     do not necessarily occupy a contiguous block of space. The #link_ array
     is used to maintain the threading. There is one thread for each column,
     and a single thread for all free entries in #hrow_ and #colels_.
+
+    The allocated size of #link_ must be at least as large as the allocated
+    size of #hrow_ and #colels_.
   */
   //@{
 
