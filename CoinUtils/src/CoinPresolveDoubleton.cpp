@@ -240,7 +240,7 @@ const CoinPresolveAction
         continue;
       }
       // check size
-      if (fabs(rowels[krs]) < ZTOLDP || fabs(rowels[krs+1]) < ZTOLDP)
+      if (fabs(rowels[krs]) < ZTOLDP2 || fabs(rowels[krs+1]) < ZTOLDP2)
 	continue;
       // See if prohibited for any reason
       if (prob->colProhibited(icolx) || prob->colProhibited(icolx))

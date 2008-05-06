@@ -96,7 +96,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       double acoeff = fabs(coeff);
       //      const bool singleton_col = (hincol[jcol] == 1);
 
-      if (acoeff < ZTOLDP)
+      if (acoeff < ZTOLDP2)
 	continue;
 
       // don't bother with fixed cols
@@ -511,7 +511,7 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
       int iRow=hrow[mcstrt[iCol]];
       double coeff = colels[mcstrt[iCol]];
       double acoeff = fabs(coeff);
-      if (acoeff < ZTOLDP)
+      if (acoeff < ZTOLDP2)
 	continue;
       // don't bother with fixed cols
       if (fabs(cup[iCol] - clo[iCol]) < ztolzb)

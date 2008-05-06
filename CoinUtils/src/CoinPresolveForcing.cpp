@@ -682,7 +682,7 @@ static void implied_bounds1(CoinPresolveMatrix * prob, const double *rowels,
       double coeff = rowels[k];
 
       // SHOULD GET RID OF THIS
-      if (fabs(coeff) > ZTOLDP &&
+      if (fabs(coeff) > ZTOLDP2 &&
 	  !integerType[jcol]) {
 	double maxup1 = (ub_inf_index == -1 || ub_inf_index == k
 			 ? maxup
@@ -720,7 +720,7 @@ static void implied_bounds1(CoinPresolveMatrix * prob, const double *rowels,
       double coeff = rowels[k];
 
       // SHOULD GET RID OF THIS
-      if (fabs(coeff) > ZTOLDP &&
+      if (fabs(coeff) > ZTOLDP2 &&
 	  !integerType[jcol]) {
 	double maxup1 = (ub_inf_index == -1 || ub_inf_index == k
 			 ? maxup

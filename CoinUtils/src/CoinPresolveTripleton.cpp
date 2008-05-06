@@ -359,7 +359,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
       }
       PRESOLVEASSERT(k<kre);
       coeffx = rowels[k];
-      if (fabs(coeffx) < ZTOLDP)
+      if (fabs(coeffx) < ZTOLDP2)
 	continue;
       icolx = hcol[k];
       
@@ -372,7 +372,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
       }
       PRESOLVEASSERT(k<kre);
       coeffy = rowels[k];
-      if (fabs(coeffy) < ZTOLDP)
+      if (fabs(coeffy) < ZTOLDP2)
 	continue;
       icoly = hcol[k];
       
@@ -384,7 +384,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
       }
       PRESOLVEASSERT(k<kre);
       coeffz = rowels[k];
-      if (fabs(coeffz) < ZTOLDP)
+      if (fabs(coeffz) < ZTOLDP2)
 	continue;
       icolz = hcol[k];
       

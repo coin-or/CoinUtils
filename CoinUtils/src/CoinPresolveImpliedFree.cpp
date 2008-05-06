@@ -588,7 +588,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	  // if its row is an equality constraint...
 	  if (hinrow[row] > 1 ) {
 	    if ( fabs(rlo[row] - rup[row]) < tol &&
-		 fabs(coeffj) > ZTOLDP) {
+		 fabs(coeffj) > ZTOLDP2) {
 	      possible=true;
 	    }
 	    largestElement = CoinMax(largestElement,fabs(coeffj));
@@ -603,7 +603,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	  for (k=kcs; k<kce; ++k) {
 	    int row = hrow[k];
 	    double coeffj = colels[k];
-	    if (fabs(coeffj) > ZTOLDP) {
+	    if (fabs(coeffj) > ZTOLDP2) {
 	      if (infiniteUp[row]==-1) {
 		// compute
 		CoinBigIndex krs = mrstrt[row];
@@ -892,7 +892,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	int row = hrow[k];
 	double coeffj = colels[k];
 	if ((!cost[j]||rlo[row]==rup[row])&&hinrow[row]>1&&
-	    fabs(coeffj) > ZTOLDP&&infiniteUp[row]!=-3) {
+	    fabs(coeffj) > ZTOLDP2&&infiniteUp[row]!=-3) {
 	  
 	  CoinBigIndex krs = mrstrt[row];
 	  CoinBigIndex kre = krs + hinrow[row];

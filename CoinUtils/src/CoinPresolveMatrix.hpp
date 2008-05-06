@@ -34,6 +34,8 @@
   OSL had a fixed zero tolerance; we still use that here.
 */
 const double ZTOLDP      = 1e-12;
+// But use a different one if we are doing doubletons etc
+const double ZTOLDP2      = 1e-10;
 //#define PRESOLVE_DEBUG 1
 // Debugging macros/functions
 

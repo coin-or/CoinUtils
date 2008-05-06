@@ -392,7 +392,7 @@ const CoinPresolveAction *subst_constraint_action::presolve(CoinPresolveMatrix *
 
 	// we don't clean up zeros in the middle of the routine.
 	// if there is one, skip this candidate.
-	if (fabs(coeffj) <= ZTOLDP) {
+	if (fabs(coeffj) <= ZTOLDP2) {
 	  bestrowy_size = 0;
 	  break;
 	}

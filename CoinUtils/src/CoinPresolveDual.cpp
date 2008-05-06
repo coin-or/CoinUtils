@@ -532,7 +532,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 
 	  if (no_ub) {
 	    // dj must not be negative
-	    if (coeff > ZTOLDP && djmax0 <PRESOLVE_INF && cup[icol]>=ekkinf) {
+	    if (coeff > ZTOLDP2 && djmax0 <PRESOLVE_INF && cup[icol]>=ekkinf) {
 	      double bnd = djmax0 / coeff;
 	      if (rmax > bnd) {
 #if	PRESOLVE_DEBUG
@@ -541,7 +541,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 		rdmax[i] = rmax = bnd;
 		tightened ++;;
 	      }
-	    } else if (coeff < -ZTOLDP && djmax0 <PRESOLVE_INF && cup[icol] >= ekkinf) {
+	    } else if (coeff < -ZTOLDP2 && djmax0 <PRESOLVE_INF && cup[icol] >= ekkinf) {
 	      double bnd = djmax0 / coeff ;
 	      if (rmin < bnd) {
 #if	PRESOLVE_DEBUG
@@ -553,7 +553,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    }
 	  } else {	// no_lb
 	    // dj must not be positive
-	    if (coeff > ZTOLDP && djmin0 > -PRESOLVE_INF && clo[icol]<=-ekkinf) {
+	    if (coeff > ZTOLDP2 && djmin0 > -PRESOLVE_INF && clo[icol]<=-ekkinf) {
 	      double bnd = djmin0 / coeff ;
 	      if (rmin < bnd) {
 #if	PRESOLVE_DEBUG
@@ -562,7 +562,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 		rdmin[i] = rmin = bnd;
 		tightened ++;;
 	      }
-	    } else if (coeff < -ZTOLDP && djmin0 > -PRESOLVE_INF && clo[icol] <= -ekkinf) {
+	    } else if (coeff < -ZTOLDP2 && djmin0 > -PRESOLVE_INF && clo[icol] <= -ekkinf) {
 	      double bnd = djmin0 / coeff ;
 	      if (rmax > bnd) {
 #if	PRESOLVE_DEBUG
