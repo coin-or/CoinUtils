@@ -258,13 +258,23 @@ CoinDenseFactorization::makeNonSingular(int * sequence, int numberColumns)
     }
   }
 }
+#define DENSE_PERMUTE
 // Does post processing on valid factorization - putting variables on correct rows
 void 
 CoinDenseFactorization::postProcess(const int * sequence, int * pivotVariable)
 {
   for (int i=0;i<numberRows_;i++) {
     int k = sequence[i];
+#ifdef DENSE_PERMUTE
     pivotVariable[pivotRow_[i+numberRows_]]=k;
+#else
+    //pivotVariable[pivotRow_[i]]=k;
+    //pivotVariable[pivotRow_[i]]=k;
+    pivotVariable[i]=k;
+    k=pivotRow_[i];
+    pivotRow_[i] = pivotRow_[i+numberRows_];
+    pivotRow_[i+numberRows_]=k;
+#endif
   }
 }
 /* Replaces one Column to basis,
@@ -296,7 +306,9 @@ CoinDenseFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   for (i=0;i<numberNonZero;i++) {
     int iRow = regionIndex[i];
     double value = region[i]; //*pivotValue;;
+#ifdef DENSE_PERMUTE
     iRow = pivotRow_[iRow]; // permute
+#endif
     elements[iRow] = value;;
   }
   int realPivotRow = pivotRow_[pivotRow];
@@ -374,7 +386,11 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   if (!noPermute) {
     if (!regionSparse2->packedMode()) {
       for (int j=0;j<numberRows_;j++) {
+#ifdef DENSE_PERMUTE
 	int iRow = pivotRow_[j];
+#else
+	int iRow=j;
+#endif
 	double value = region[iRow];
 	region[iRow]=0.0;
 	if (fabs(value)>zeroTolerance_) {
@@ -385,7 +401,11 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
     } else {
       // packed mode
       for (int j=0;j<numberRows_;j++) {
+#ifdef DENSE_PERMUTE
 	int iRow = pivotRow_[j];
+#else
+	int iRow=j;
+#endif
 	double value = region[iRow];
 	region[iRow]=0.0;
 	if (fabs(value)>zeroTolerance_) {
@@ -422,14 +442,22 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
   double *region = regionSparse->denseVector (  );
   if (!regionSparse2->packedMode()) {
     for (int j=0;j<numberRows_;j++) {
+#ifdef DENSE_PERMUTE
       int iRow = pivotRow_[j];
+#else
+      int iRow=j;
+#endif
       region[iRow]=region2[j];
       region2[j]=0.0;
     }
   } else {
     for (int j=0;j<numberNonZero;j++) {
       int jRow = regionIndex[j];
+#ifdef DENSE_PERMUTE
       int iRow = pivotRow_[jRow];
+#else
+      int iRow=jRow;
+#endif
       region[iRow]=region2[j];
       region2[j]=0.0;
     }
