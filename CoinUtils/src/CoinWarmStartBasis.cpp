@@ -454,9 +454,11 @@ CoinWarmStartBasis::fullBasis() const
     if (status==CoinWarmStartBasis::basic) 
       numberBasic++;
   }
+#ifdef COIN_DEVELOP
   if (numberBasic!=numArtificial_)
     printf("mismatch - basis has %d rows, %d basic\n",
 	   numArtificial_,numberBasic);
+#endif
   return numberBasic==numArtificial_;
 }
 /*
