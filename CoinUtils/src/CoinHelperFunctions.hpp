@@ -170,7 +170,7 @@ CoinCopyOfArray( const T * array, const int size)
 template <class T> inline T*
 CoinCopyOfArrayPartial( const T * array, const int size,const int copySize)
 {
-    if (array) {
+    if (array||size) {
 	T * arrayNew = new T[size];
 	assert (copySize<=size);
 	memcpy(arrayNew,array,copySize*sizeof(T));
