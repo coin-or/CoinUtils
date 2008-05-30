@@ -13,13 +13,16 @@
 
 /** A function to block the popup windows that windows creates when the code
     crashes */
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
 static inline void
 WindowsErrorPopupBlocker()
 {
-#ifdef HAVE_WINDOWS_H
   SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
-#endif
 }
+#else
+static inline void WindowsErrorPopupBlocker() {}
+#endif
 
 //-------------------------------------------------------------------
 //
