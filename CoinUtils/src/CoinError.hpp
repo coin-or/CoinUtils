@@ -15,6 +15,11 @@
     crashes */
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
+#ifdef small
+/* for some unfathomable reason (to me) rpcndr.h (pulled in by windows.h) does a
+   '#define small char' */
+#undef small
+#endif
 static inline void
 WindowsErrorPopupBlocker()
 {
