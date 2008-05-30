@@ -8,7 +8,18 @@
 #include <cassert>
 #include <cstring>
 
+#include "CoinUtilsConfig.h"
 #include "CoinPragma.hpp"
+
+/** A function to block the popup windows that windows creates when the code
+    crashes */
+static inline void
+WindowsErrorPopupBlocker()
+{
+#ifdef HAVE_WINDOWS_H
+  SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+#endif
+}
 
 //-------------------------------------------------------------------
 //
