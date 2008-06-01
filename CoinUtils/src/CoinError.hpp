@@ -13,21 +13,7 @@
 
 /** A function to block the popup windows that windows creates when the code
     crashes */
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#ifdef small
-/* for some unfathomable reason (to me) rpcndr.h (pulled in by windows.h) does a
-   '#define small char' */
-#undef small
-#endif
-static inline void
-WindowsErrorPopupBlocker()
-{
-  SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
-}
-#else
-static inline void WindowsErrorPopupBlocker() {}
-#endif
+void WindowsErrorPopupBlocker();
 
 //-------------------------------------------------------------------
 //
