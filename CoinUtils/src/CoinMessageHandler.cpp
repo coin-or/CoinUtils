@@ -6,6 +6,7 @@
 #include "CoinMessageHandler.hpp"
 #include "CoinHelperFunctions.hpp"
 #include <cassert>
+#include <cstdlib>
 #include <map>
 
 /* Default constructor. */
@@ -485,7 +486,8 @@ CoinMessageHandler::gutsOfCopy(const CoinMessageHandler& rhs)
     format_ = currentMessage_.message()+offset; }
   else
   { format_ = NULL ; }
-  strcpy(messageBuffer_,rhs.messageBuffer_);
+  std::memcpy(messageBuffer_,rhs.messageBuffer_,
+	      COIN_MESSAGE_HANDLER_MAX_BUFFER_SIZE);
   offset = rhs.messageOut_-rhs.messageBuffer_;
   messageOut_= messageBuffer_+offset;
   printStatus_= rhs.printStatus_;
