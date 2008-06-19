@@ -2181,6 +2181,7 @@ CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix& rhs, int extraForMajo
 	const CoinBigIndex * oldStart = rhs.start_;
 	const int * oldIndex = rhs.index_;
 	const int * oldLength = rhs.length_;
+	CoinBigIndex tooSmallCount=0;
 	for (int i = 0 ; i < majorDim_ ; i++) {
 	  start_[i]=size;
 	  for (CoinBigIndex j=oldStart[i];
@@ -2189,12 +2190,15 @@ CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix& rhs, int extraForMajo
 	    if (fabs(value)>1.0e-21) {
 	      element_[size]=value;
 	      index_[size++]=oldIndex[j];
+	    } else {
+	      tooSmallCount++;
 	    }
 	  }
 	  length_[i]=size-start_[i];
 	}
 	start_[majorDim_]=size;
-	assert (size_==size);
+	assert (size_==size+tooSmallCount);
+	size_ = size;
       } else {
 	start_ = new CoinBigIndex[1];
 	start_[0]=0;
