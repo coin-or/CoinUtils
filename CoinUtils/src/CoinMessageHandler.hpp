@@ -563,6 +563,7 @@ public:
 
   */
 #define COIN_NUM_LOG 4
+#define COIN_MESSAGE_HANDLER_MAX_BUFFER_SIZE 1000
 protected:
   /**@name Private member data */
   //@{
@@ -584,7 +585,7 @@ protected:
   /// Format string for message (remainder)
   char * format_;
   /// Output buffer
-  char messageBuffer_[1000];
+  char messageBuffer_[COIN_MESSAGE_HANDLER_MAX_BUFFER_SIZE];
   /// Position in output buffer
   char * messageOut_;
   /// Current source of message

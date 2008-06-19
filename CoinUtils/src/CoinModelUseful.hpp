@@ -134,12 +134,35 @@ struct symrec
      
 typedef struct symrec symrec;
 
-typedef struct {
+class CoinYacc {
+private:
+  CoinYacc(const CoinYacc& rhs);
+  CoinYacc& operator=(const CoinYacc& rhs);
+
+public:
+  CoinYacc() : symtable(NULL), symbuf(NULL), length(0), unsetValue(0) {}
+  ~CoinYacc()
+  {
+    if (length) {
+      free(symbuf);
+      symbuf = NULL;
+    }
+    symrec* s = symtable;
+    while (s) {
+      free(s->name);
+      symtable = s;
+      s = s->next;
+      free(symtable);
+    }
+  }
+    
+public:
   symrec * symtable;
   char * symbuf;
   int length;
   double unsetValue;
-} CoinYacc;
+};
+
 class CoinModelHash {
   
 public:
