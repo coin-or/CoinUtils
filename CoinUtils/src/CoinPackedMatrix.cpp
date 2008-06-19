@@ -998,8 +998,9 @@ CoinPackedMatrix::assignMatrix(const bool colordered,
      delete [] length_;
      length_ = new int[maxMajorDim_];
      std::adjacent_difference(start + 1, start + (major + 1), length_);
+     length_[0] -= start[0];
    } else {
-      length_ = len;
+     length_ = len;
    }
    elem = NULL;
    ind = NULL;
@@ -2370,6 +2371,7 @@ CoinPackedMatrix::gutsOfCopyOf(const bool colordered,
      length_ = new int[maxMajorDim_];
      if (len == 0) {
        std::adjacent_difference(start + 1, start + (major + 1), length_);
+       length_[0] -= start[0];
      } else {
        CoinMemcpyN(len, major, length_);
      }
@@ -2482,6 +2484,7 @@ CoinPackedMatrix::gutsOfOpEqual(const bool colordered,
       length_ = new int[maxMajorDim_];
       if (len == 0) {
 	 std::adjacent_difference(start + 1, start + (major + 1), length_);
+	 length_[0] -= start[0];
       } else {
 	 CoinMemcpyN(len, major, length_);
       }
