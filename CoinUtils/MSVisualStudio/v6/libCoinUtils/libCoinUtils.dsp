@@ -93,6 +93,10 @@ SOURCE=..\..\..\..\CoinUtils\src\CoinBuild.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\..\CoinUtils\src\CoinDenseFactorization.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\..\CoinUtils\src\CoinDenseVector.cpp
 # End Source File
 # Begin Source File
@@ -266,6 +270,10 @@ SOURCE=..\..\..\src\CoinAlloc.hpp
 # Begin Source File
 
 SOURCE=..\..\..\..\CoinUtils\src\CoinBuild.hpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\CoinUtils\src\CoinDenseFactorization.hpp
 # End Source File
 # Begin Source File
 
