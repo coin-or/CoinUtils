@@ -596,8 +596,10 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
 #   if PRESOLVE_SUMMARY
     printf("SINGLETON COLS:  %d\n", nactions);
 #   endif
+#ifdef COIN_DEVELOP
     printf("%d singletons, %d with costs - offset %g\n",nactions,
            nWithCosts, costOffset);
+#endif
     action *save_actions = new action[nactions];
     CoinMemcpyN(actions, nactions, save_actions);
     delete [] actions;
