@@ -24,7 +24,7 @@ using namespace std;
 /************************************************************************/
 
 CoinLpIO::CoinLpIO() :
-  problemName_(strdup("")),
+  problemName_(CoinStrdup("")),
   numberRows_(0),
   numberColumns_(0),
   numberElements_(0),
@@ -128,7 +128,7 @@ void
 CoinLpIO::setProblemName (const char *name)
 {
   free(problemName_) ;
-  problemName_ = strdup(name);
+  problemName_ = CoinStrdup(name);
 }
 
 /*************************************************************************/
@@ -497,7 +497,7 @@ CoinLpIO::setLpDataWithoutRowAndColNames(
 			      const double *rowlb, const double *rowub) {
 
   freeAll();
-  problemName_ = strdup("");
+  problemName_ = CoinStrdup("");
 
   if (m.isColOrdered()) {
     matrixByRow_ = new CoinPackedMatrix();
@@ -545,14 +545,14 @@ void CoinLpIO::setDefaultRowNames() {
 
   for(i=0; i<nrow; i++) {
     sprintf(buff, "cons%d", i);
-    defaultRowNames[i] = strdup(buff);
+    defaultRowNames[i] = CoinStrdup(buff);
   }
   sprintf(buff, "obj");
-  defaultRowNames[nrow] = strdup(buff);
+  defaultRowNames[nrow] = CoinStrdup(buff);
 
   stopHash(0);
   startHash(defaultRowNames, nrow+1, 0);
-  objName_ = strdup("obj");
+  objName_ = CoinStrdup("obj");
 
   for(i=0; i<nrow+1; i++) {
     free(defaultRowNames[i]);
@@ -570,7 +570,7 @@ void CoinLpIO::setDefaultColNames() {
 
   for(j=0; j<ncol; j++) {
     sprintf(buff, "x%d", j);
-    defaultColNames[j] = strdup(buff);
+    defaultColNames[j] = CoinStrdup(buff);
   }
   stopHash(1);
   startHash(defaultColNames, ncol, 1);
@@ -597,13 +597,13 @@ void CoinLpIO::setLpDataRowAndColNames(char const * const * const rownames,
     else {
       stopHash(0);
       startHash(rownames, nrow+1, 0);
-      objName_ = strdup(rownames[nrow]);
+      objName_ = CoinStrdup(rownames[nrow]);
       checkRowNames();
     }
   }
   else {
     if(objName_ == NULL) {
-      objName_ = strdup("obj");      
+      objName_ = CoinStrdup("obj");      
     }
   }
 
@@ -732,9 +732,9 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 
      for (j=0; j<nrow; j++) {
        sprintf(buff, "cons%d", j);
-       prowNames[j] = strdup(buff);
+       prowNames[j] = CoinStrdup(buff);
      }
-     prowNames[nrow] = strdup("obj");
+     prowNames[nrow] = CoinStrdup("obj");
      rowNames = prowNames;
    }
 
@@ -744,7 +744,7 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 
      for (j=0; j<ncol; j++) {
        sprintf(buff, "x%d", j);
-       pcolNames[j] = strdup(buff);
+       pcolNames[j] = CoinStrdup(buff);
      }
      colNames = pcolNames;
    }
@@ -1182,7 +1182,7 @@ CoinLpIO::read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt,
     printf("CoinLpIO: read_monom_obj(): obj_name: %s\n", buff);
 #endif
 
-    *obj_name = strdup(buff);
+    *obj_name = CoinStrdup(buff);
     return(0);
   }
 
@@ -1248,7 +1248,7 @@ CoinLpIO::read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt,
   }
 
   coeff[*cnt] *= mult;
-  name[*cnt] = strdup(loc_name);
+  name[*cnt] = CoinStrdup(loc_name);
 
 #ifdef LPIO_DEBUG
   printf("read_monom_obj: (%f)  (%s)\n", coeff[*cnt], name[*cnt]);
@@ -1309,7 +1309,7 @@ CoinLpIO::read_monom_row(FILE *fp, char *start_str,
   }
 
   coeff[cnt_coeff] *= mult;
-  name[cnt_coeff] = strdup(loc_name);
+  name[cnt_coeff] = CoinStrdup(loc_name);
 
 #ifdef LPIO_DEBUG
   printf("CoinLpIO: read_monom_row: (%f)  (%s)\n", 
@@ -1528,13 +1528,13 @@ CoinLpIO::readLp(FILE* fp)
       printf("CoinLpIO::readLp(): rowName[%d]: %s\n", cnt_row, buff);
 #endif
 
-      rowNames[cnt_row] = strdup(buff);
+      rowNames[cnt_row] = CoinStrdup(buff);
       scan_next(buff, fp);
     }
     else {
       char rname[15];
       sprintf(rname, "cons%d", cnt_row); 
-      rowNames[cnt_row] = strdup(rname);
+      rowNames[cnt_row] = CoinStrdup(rname);
     }
     read_row(fp, buff, 
 	     &coeff, &colNames, &cnt_coeff, &maxcoeff, rhs, rowlow, rowup, 
@@ -1836,10 +1836,10 @@ variable: %s read_sense1: %d  read_sense2: %d\n", buff, read_sense1, read_sense2
 
 
   if(objName == NULL) {
-    rowNames[cnt_row] = strdup("obj");
+    rowNames[cnt_row] = CoinStrdup("obj");
   }
   else {
-    rowNames[cnt_row] = strdup(objName);
+    rowNames[cnt_row] = CoinStrdup(objName);
   }
 
   // Hash tables for column names are already set up
@@ -2035,7 +2035,7 @@ CoinLpIO::startHash(char const * const * const names,
 	// first occurence of thisName in the parameter "names"
 
 	hashThis[ipos].index = cnt_distinct;
-	hashNames[cnt_distinct] = strdup(thisName);
+	hashNames[cnt_distinct] = CoinStrdup(thisName);
 	cnt_distinct++;
 	break;
       }
@@ -2077,7 +2077,7 @@ CoinLpIO::startHash(char const * const * const names,
 	    }
 	    hashThis[ipos].next = iput;
 	    hashThis[iput].index = cnt_distinct;
-	    hashNames[cnt_distinct] = strdup(thisName);
+	    hashNames[cnt_distinct] = CoinStrdup(thisName);
 	    cnt_distinct++;
 	    break;
 	  } 
@@ -2220,7 +2220,7 @@ CoinLpIO::insertHash(const char *thisName, int section)
     }
   }
 
-  hashNames[number] = strdup(thisName);
+  hashNames[number] = CoinStrdup(thisName);
   (numberHash_[section])++;
 
 }

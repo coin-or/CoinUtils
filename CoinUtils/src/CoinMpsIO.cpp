@@ -1398,7 +1398,7 @@ void CoinMpsIO::setInfinity(double value)
 void CoinMpsIO::setFileName(const char * name)
 {
   free(fileName_);
-  fileName_=strdup(name);
+  fileName_=CoinStrdup(name);
 }
 // Get file name
 const char * CoinMpsIO::getFileName() const
@@ -1459,7 +1459,7 @@ CoinMpsIO::dealWithFileName(const char * filename,  const char * extension,
     } else {
       // new file
       free(fileName_);
-      fileName_=strdup(newName);    
+      fileName_=CoinStrdup(newName);    
       if (strcmp(fileName_,"stdin")) {
 
 	// be clever with extensions here
@@ -1576,7 +1576,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
     ifmps = true;
     // save name of section
     free(problemName_);
-    problemName_=strdup(cardReader_->columnName());
+    problemName_=CoinStrdup(cardReader_->columnName());
   } else if ( cardReader_->whichSection (  ) == COIN_UNKNOWN_SECTION ) {
     handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
 						  <<1
@@ -1592,7 +1592,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
   } else if ( cardReader_->whichSection (  ) != COIN_EOF_SECTION ) {
     // save name of section
     free(problemName_);
-    problemName_=strdup(cardReader_->card());
+    problemName_=CoinStrdup(cardReader_->card());
     ifmps = false;
   } else {
     handler_->message(COIN_MPS_EOF,messages_)<<fileName_
@@ -1667,7 +1667,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	  gotNrow = true;
 	  // save name of section
 	  free(objectiveName_);
-	  objectiveName_=strdup(cardReader_->columnName());
+	  objectiveName_=CoinStrdup(cardReader_->columnName());
 	} else {
 	  // add to discard list
 	  if ( numberOtherFreeRows == maxFreeRows ) {
@@ -1678,7 +1678,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 				    maxFreeRows * sizeof ( char * ) );
 	  }
 	  freeRowName[numberOtherFreeRows] =
-	    strdup ( cardReader_->columnName (  ) );
+	    CoinStrdup ( cardReader_->columnName (  ) );
 	  numberOtherFreeRows++;
 	}
 	break;
@@ -1696,7 +1696,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	}
 	rowType[numberRows_] = cardReader_->mpsType (  );
 #ifndef NONAMES
-	rowName[numberRows_] = strdup ( cardReader_->columnName (  ) );
+	rowName[numberRows_] = CoinStrdup ( cardReader_->columnName (  ) );
 #endif
 	numberRows_++;
 	break;
@@ -1734,7 +1734,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 
 			      numberOtherFreeRows ) * sizeof ( char * ) );
 #ifndef NONAMES
-    rowName[numberRows_] = strdup(objectiveName_);
+    rowName[numberRows_] = CoinStrdup(objectiveName_);
     memcpy ( rowName + numberRows_ + 1, freeRowName,
 	     numberOtherFreeRows * sizeof ( char * ) );
     // now we can get rid of this array
@@ -1818,7 +1818,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    numberIntegers++;
 	  }
 #ifndef NONAMES
-	  columnName[column] = strdup ( cardReader_->columnName (  ) );
+	  columnName[column] = CoinStrdup ( cardReader_->columnName (  ) );
 #else
           columnName[column]=NULL;
 #endif
@@ -2016,7 +2016,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    strcpy ( lastColumn, cardReader_->columnName (  ) );
 	    // save name of section
 	    free(rhsName_);
-	    rhsName_=strdup(cardReader_->columnName());
+	    rhsName_=CoinStrdup(cardReader_->columnName());
 	  }
 	}
 	// get row number
@@ -2115,7 +2115,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	      strcpy ( lastColumn, cardReader_->columnName (  ) );
 	      // save name of section
 	      free(rangeName_);
-	      rangeName_=strdup(cardReader_->columnName());
+	      rangeName_=CoinStrdup(cardReader_->columnName());
 	    }
 	  }
 	  // get row number
@@ -2273,7 +2273,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    strcpy ( lastColumn, cardReader_->columnName (  ) );
 	    // save name of section
 	    free(boundName_);
-	    boundName_=strdup(cardReader_->columnName());
+	    boundName_=CoinStrdup(cardReader_->columnName());
 	  }
 	}
 	// get column number
@@ -2775,7 +2775,7 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
     objective_[iColumn]=0.0;
   }
   objectiveOffset_ = 0.0;
-  problemName_= strdup(mpl_get_prob_name(gmpl));
+  problemName_= CoinStrdup(mpl_get_prob_name(gmpl));
   bool objUsed=false;
   bool minimize=true;
   int kRow=0;
@@ -2820,7 +2820,7 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
       if (keepNames) {
         strcpy(name,mpl_get_row_name(gmpl,iRow+1));
         // could look at name?
-        names[kRow]=strdup(name);
+        names[kRow]=CoinStrdup(name);
       }
       kRow++;
       start[kRow]=numberElements_;
@@ -2896,7 +2896,7 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
     if (keepNames) {
       strcpy(name,mpl_get_col_name(gmpl,iColumn+1));
       // could look at name?
-      names[iColumn]=strdup(name);
+      names[iColumn]=CoinStrdup(name);
     }
   }
   mpl_terminate(gmpl);
@@ -3018,7 +3018,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
           *put='\0';
           assert (put-name<100);
           free(problemName_);
-          problemName_=strdup(name);
+          problemName_=CoinStrdup(name);
           next = strchr(next,';');
           assert (next);
           // backup
@@ -3092,7 +3092,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     }
     assert (*next==','||*next==';');
     cardReader_->setPosition(next+1);
-    columnName[i]=strdup(cardReader_->columnName());
+    columnName[i]=CoinStrdup(cardReader_->columnName());
     // Default is free? 
     collower_[i]=-COIN_DBL_MAX;
     // Surely not - check
@@ -3176,7 +3176,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     }
     assert (*next==','||*next==';');
     cardReader_->setPosition(next+1);
-    rowName[i]=strdup(cardReader_->columnName());
+    rowName[i]=CoinStrdup(cardReader_->columnName());
     // Default is free?
     rowlower_[i]=-COIN_DBL_MAX;
     rowupper_[i]=COIN_DBL_MAX;
@@ -3442,7 +3442,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
 	pos++;
 	sprintf(temp,"%d,%d,%s",iRow,iColumn,pos);
 	free(line);
-	stringElements_[i]=strdup(temp);
+	stringElements_[i]=CoinStrdup(temp);
       }
     }
   }
@@ -3974,7 +3974,7 @@ makeUniqueNames(char ** names,int number,char first)
             free(names[i]);
             char newName[9];
             sprintf(newName,"%c%7.7d",first,largest);
-            names[i] = strdup(newName);
+            names[i] = CoinStrdup(newName);
             largest++;
           }
         }
@@ -4868,11 +4868,11 @@ CoinMpsIO::setMpsDataWithoutRowAndColNames(
     integerType_ = NULL;
   }
     
-  problemName_ = strdup("");
-  objectiveName_ = strdup("");
-  rhsName_ = strdup("");
-  rangeName_ = strdup("");
-  boundName_ = strdup("");
+  problemName_ = CoinStrdup("");
+  objectiveName_ = CoinStrdup("");
+  rhsName_ = CoinStrdup("");
+  rangeName_ = CoinStrdup("");
+  boundName_ = CoinStrdup("");
 }
 
 
@@ -4894,7 +4894,7 @@ CoinMpsIO::setMpsDataColAndRowNames(
    if (rownames) {
      for (i = 0 ; i < numberRows_; ++i) {
        if (rownames[i]) {
-         rowNames[i] = strdup(rownames[i]);
+         rowNames[i] = CoinStrdup(rownames[i]);
        } else {
          rowNames[i] = (char *) malloc (9 * sizeof(char));
          sprintf(rowNames[i],"R%7.7d",i);
@@ -4910,7 +4910,7 @@ CoinMpsIO::setMpsDataColAndRowNames(
    if (colnames) {
      for (i = 0 ; i < numberColumns_; ++i) {
        if (colnames[i]) {
-         columnNames[i] = strdup(colnames[i]);
+         columnNames[i] = CoinStrdup(colnames[i]);
        } else {
          columnNames[i] = (char *) malloc (9 * sizeof(char));
          sprintf(columnNames[i],"C%7.7d",i);
@@ -4949,7 +4949,7 @@ CoinMpsIO::setMpsDataColAndRowNames(
    int i;
    if (rownames.size()!=0) {
      for (i = 0 ; i < numberRows_; ++i) {
-       rowNames[i] = strdup(rownames[i].c_str());
+       rowNames[i] = CoinStrdup(rownames[i].c_str());
      }
    } else {
      for (i = 0; i < numberRows_; ++i) {
@@ -4959,7 +4959,7 @@ CoinMpsIO::setMpsDataColAndRowNames(
    }
    if (colnames.size()!=0) {
      for (i = 0 ; i < numberColumns_; ++i) {
-       columnNames[i] = strdup(colnames[i].c_str());
+       columnNames[i] = CoinStrdup(colnames[i].c_str());
      }
    } else {
      for (i = 0; i < numberColumns_; ++i) {
@@ -5042,7 +5042,7 @@ CoinMpsIO::setMpsData(const CoinPackedMatrix& m, const double infinity,
 void
 CoinMpsIO::setProblemName (const char *name)
 { free(problemName_) ;
-  problemName_ = strdup(name) ; }
+  problemName_ = CoinStrdup(name) ; }
 
 //------------------------------------------------------------------
 // Return true if column is a continuous, binary, ...
@@ -5190,11 +5190,11 @@ void CoinMpsIO::releaseMatrixInformation()
 //-------------------------------------------------------------------
 CoinMpsIO::CoinMpsIO ()
 :
-problemName_(strdup("")),
-objectiveName_(strdup("")),
-rhsName_(strdup("")),
-rangeName_(strdup("")),
-boundName_(strdup("")),
+problemName_(CoinStrdup("")),
+objectiveName_(CoinStrdup("")),
+rhsName_(CoinStrdup("")),
+rangeName_(CoinStrdup("")),
+boundName_(CoinStrdup("")),
 numberRows_(0),
 numberColumns_(0),
 numberElements_(0),
@@ -5210,7 +5210,7 @@ colupper_(NULL),
 objective_(NULL),
 objectiveOffset_(0.0),
 integerType_(NULL),
-fileName_(strdup("????")),
+fileName_(CoinStrdup("????")),
 defaultBound_(1),
 infinity_(COIN_DBL_MAX),
 defaultHandler_(true),
@@ -5236,11 +5236,11 @@ stringElements_(NULL)
 //-------------------------------------------------------------------
 CoinMpsIO::CoinMpsIO(const CoinMpsIO & rhs)
 :
-problemName_(strdup("")),
-objectiveName_(strdup("")),
-rhsName_(strdup("")),
-rangeName_(strdup("")),
-boundName_(strdup("")),
+problemName_(CoinStrdup("")),
+objectiveName_(CoinStrdup("")),
+rhsName_(CoinStrdup("")),
+rangeName_(CoinStrdup("")),
+boundName_(CoinStrdup("")),
 numberRows_(0),
 numberColumns_(0),
 numberElements_(0),
@@ -5256,7 +5256,7 @@ colupper_(NULL),
 objective_(NULL),
 objectiveOffset_(0.0),
 integerType_(NULL),
-fileName_(strdup("????")),
+fileName_(CoinStrdup("????")),
 defaultBound_(1),
 infinity_(COIN_DBL_MAX),
 defaultHandler_(true),
@@ -5319,12 +5319,12 @@ void CoinMpsIO::gutsOfCopy(const CoinMpsIO & rhs)
   free(rhsName_);
   free(rangeName_);
   free(boundName_);
-  fileName_ = strdup(rhs.fileName_);
-  problemName_ = strdup(rhs.problemName_);
-  objectiveName_ = strdup(rhs.objectiveName_);
-  rhsName_ = strdup(rhs.rhsName_);
-  rangeName_ = strdup(rhs.rangeName_);
-  boundName_ = strdup(rhs.boundName_);
+  fileName_ = CoinStrdup(rhs.fileName_);
+  problemName_ = CoinStrdup(rhs.problemName_);
+  objectiveName_ = CoinStrdup(rhs.objectiveName_);
+  rhsName_ = CoinStrdup(rhs.rhsName_);
+  rangeName_ = CoinStrdup(rhs.rangeName_);
+  boundName_ = CoinStrdup(rhs.boundName_);
   numberHash_[0]=rhs.numberHash_[0];
   numberHash_[1]=rhs.numberHash_[1];
   defaultBound_=rhs.defaultBound_;
@@ -5339,7 +5339,7 @@ void CoinMpsIO::gutsOfCopy(const CoinMpsIO & rhs)
       char ** names = names_[section];
       int i;
       for (i=0;i<numberHash_[section];i++) {
-	names[i]=strdup(names2[i]);
+	names[i]=CoinStrdup(names2[i]);
       }
     }
   }
@@ -5349,7 +5349,7 @@ void CoinMpsIO::gutsOfCopy(const CoinMpsIO & rhs)
   if (numberStringElements_) {
     stringElements_ = new char * [maximumStringElements_];
     for (int i=0;i<numberStringElements_;i++)
-      stringElements_[i]=strdup(rhs.stringElements_[i]);
+      stringElements_[i]=CoinStrdup(rhs.stringElements_[i]);
   } else {
     stringElements_ = NULL;
   }
@@ -5503,7 +5503,7 @@ CoinMpsIO::readQuadraticMps(const char * filename,
     if ( cardReader_->whichSection (  ) == COIN_QUADRATIC_SECTION ) {
       // save name of section
       free(problemName_);
-      problemName_=strdup(cardReader_->columnName());
+      problemName_=CoinStrdup(cardReader_->columnName());
     } else if ( cardReader_->whichSection (  ) == COIN_EOF_SECTION ) {
       handler_->message(COIN_MPS_EOF,messages_)<<fileName_
 					       <<CoinMessageEol;
