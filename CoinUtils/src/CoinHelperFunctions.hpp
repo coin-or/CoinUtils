@@ -155,7 +155,7 @@ CoinCopyOfArray( const T * array, const int size)
 {
     if (array) {
 	T * arrayNew = new T[size];
-	memcpy(arrayNew,array,size*sizeof(T));
+	std::memcpy(arrayNew,array,size*sizeof(T));
 	return arrayNew;
     } else {
 	return NULL;
@@ -173,7 +173,7 @@ CoinCopyOfArrayPartial( const T * array, const int size,const int copySize)
     if (array) {
 	T * arrayNew = new T[size];
 	assert (copySize<=size);
-	memcpy(arrayNew,array,copySize*sizeof(T));
+	std::memcpy(arrayNew,array,copySize*sizeof(T));
 	return arrayNew;
     } else {
 	return NULL;
@@ -189,7 +189,7 @@ CoinCopyOfArray( const T * array, const int size, T value)
 {
     T * arrayNew = new T[size];
     if (array) {
-	memcpy(arrayNew,array,size*sizeof(T));
+        std::memcpy(arrayNew,array,size*sizeof(T));
     } else {
 	int i;
 	for (i=0;i<size;i++) 
@@ -208,9 +208,9 @@ CoinCopyOfArrayOrZero( const T * array , const int size)
 {
     T * arrayNew = new T[size];
     if (array) {
-	memcpy(arrayNew,array,size*sizeof(T));
+      std::memcpy(arrayNew,array,size*sizeof(T));
     } else {
-	memset(arrayNew,0,size*sizeof(T));
+      std::memset(arrayNew,0,size*sizeof(T));
     }
     return arrayNew;
 }
@@ -246,7 +246,7 @@ CoinMemcpyN(register const T* from, const int size, register T* to)
 	throw CoinError("overlapping arrays", "CoinMemcpyN", "");
 #endif
 #endif
-    memcpy(to,from,size*sizeof(T));
+    std::memcpy(to,from,size*sizeof(T));
 #else
     if (size == 0 || from == to)
 	return;
@@ -473,6 +473,21 @@ template <class T> inline void
 CoinZero(register T* first, register T* last)
 {
     CoinZeroN(first, last - first);
+}
+
+//#############################################################################
+
+/** Returns strdup or NULL if original NULL */
+inline char * CoinStrdup(const char * name)
+{
+  char* dup = NULL;
+  if (name) {
+    const int len = strlen(name);
+    dup = (char*)malloc(len+1);
+    CoinMemcpyN(name, len, dup);
+    dup[len] = 0;
+  }
+  return dup;
 }
 
 //#############################################################################

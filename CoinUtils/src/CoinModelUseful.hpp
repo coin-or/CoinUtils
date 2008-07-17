@@ -423,8 +423,5 @@ private:
   int type_;
   //@}
 };
-/// Returns strdup or NULL if original NULL
-inline char * CoinStrdup(const char * name)
-{ return (name ) ? strdup(name) : NULL;}
 
 #endif

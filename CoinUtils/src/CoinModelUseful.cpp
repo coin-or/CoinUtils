@@ -299,7 +299,7 @@ CoinModelHash::addHash(int index, const char * name)
   if (numberItems_>=maximumItems_) 
     resize(1000+3*numberItems_/2);
   assert (!names_[index]);
-  names_[index]=strdup(name);
+  names_[index]=CoinStrdup(name);
   int ipos = hashValue ( name);
   numberItems_ = CoinMax(numberItems_,index+1);
   if ( hash_[ipos].index <0 ) {

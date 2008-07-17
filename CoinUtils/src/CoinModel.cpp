@@ -56,7 +56,7 @@ CoinModel::CoinModel ()
      type_(-1),
      links_(0)
 {
-  problemName_ = strdup("");
+  problemName_ = CoinStrdup("");
 }
 /* Read a problem in MPS or GAMS format from the given filename.
  */
@@ -100,7 +100,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     type_(-1),
     links_(0)
 {
-  problemName_ = strdup("");
+  problemName_ = CoinStrdup("");
   int status=0;
   if (!strcmp(fileName,"-")||!strcmp(fileName,"stdin")) {
     // stdin
@@ -128,7 +128,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
   if (!status) {
     // set problem name
     free(problemName_);
-    problemName_=strdup(m.getProblemName());
+    problemName_=CoinStrdup(m.getProblemName());
     objectiveOffset_ = m.objectiveOffset();
     // build model
     int numberRows = m.getNumRows();
@@ -351,7 +351,7 @@ CoinModel::CoinModel (const CoinModel & rhs)
     type_(rhs.type_),
     links_(rhs.links_)
 {
-  problemName_ = strdup(rhs.problemName_);
+  problemName_ = CoinStrdup(rhs.problemName_);
   rowLower_ = CoinCopyOfArray(rhs.rowLower_,maximumRows_);
   rowUpper_ = CoinCopyOfArray(rhs.rowUpper_,maximumRows_);
   rowType_ = CoinCopyOfArray(rhs.rowType_,maximumRows_);
@@ -449,7 +449,7 @@ CoinModel::operator=(const CoinModel& rhs)
     delete [] priority_;
     delete [] cut_;
     free(problemName_);
-    problemName_ = strdup(rhs.problemName_);
+    problemName_ = CoinStrdup(rhs.problemName_);
     numberRows_ = rhs.numberRows_;
     maximumRows_ = rhs.maximumRows_;
     numberColumns_ = rhs.numberColumns_;
@@ -2978,9 +2978,9 @@ CoinModel::setProblemName (const char *name)
 { 
   free(problemName_) ;
   if (name)
-    problemName_ = strdup(name) ;
+    problemName_ = CoinStrdup(name) ;
   else
-    problemName_ = strdup("");
+    problemName_ = CoinStrdup("");
 }
 // Checks that links are consistent
 void 
