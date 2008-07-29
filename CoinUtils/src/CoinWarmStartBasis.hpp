@@ -102,8 +102,8 @@ public:
   /// Set the status of the specified structural variable.
   inline void setStructStatus(int i, Status st) {
     char& st_byte = structuralStatus_[i>>2];
-    st_byte &= ~(3 << ((i&3)<<1));
-    st_byte |= (st << ((i&3)<<1));
+    st_byte = static_cast<char>(st_byte & ~(3 << ((i&3)<<1))) ;
+    st_byte = static_cast<char>(st_byte | (st << ((i&3)<<1))) ;
   }
 
   /** Return the status array for the structural variables
@@ -134,8 +134,8 @@ public:
   /// Set the status of the specified artificial variable.
   inline void setArtifStatus(int i, Status st) {
     char& st_byte = artificialStatus_[i>>2];
-    st_byte &= ~(3 << ((i&3)<<1));
-    st_byte |= (st << ((i&3)<<1));
+    st_byte = static_cast<char>(st_byte & ~(3 << ((i&3)<<1))) ;
+    st_byte = static_cast<char>(st_byte | (st << ((i&3)<<1))) ;
   }
 
   /** \c const overload for
@@ -355,8 +355,8 @@ inline CoinWarmStartBasis::Status getStatus(const char *array, int i)  {
 
 inline void setStatus(char * array, int i, CoinWarmStartBasis::Status st) {
   char& st_byte = array[i>>2];
-  st_byte &= ~(3 << ((i&3)<<1));
-  st_byte |= (st << ((i&3)<<1));
+  st_byte = static_cast<char>(st_byte & ~(3 << ((i&3)<<1))) ;
+  st_byte = static_cast<char>(st_byte | (st << ((i&3)<<1))) ;
 }
 
 
