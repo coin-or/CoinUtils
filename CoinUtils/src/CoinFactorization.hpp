@@ -757,7 +757,7 @@ protected:
       if ( iRow != pivotRow ) {
 	indexRowL[l] = iRow;
 	elementL[l] = elementU[pivotRowPosition];
-	markRow[iRow] = l - lSave;
+	markRow[iRow] = static_cast<short>(l - lSave);
 	l++;
 	//take out of row list
 	CoinBigIndex start = startRowU[iRow];
@@ -784,7 +784,7 @@ protected:
     for ( i = startColumn; i < pivotRowPosition; i++ ) {
       int iRow = indexRowU[i];
 
-      markRow[iRow] = l - lSave;
+      markRow[iRow] = static_cast<short>(l - lSave);
       indexRowL[l] = iRow;
       elementL[l] = elementU[i];
       l++;
@@ -816,7 +816,7 @@ protected:
   for ( ; pivotRowPosition < endColumn; pivotRowPosition++ ) {
     int iRow = indexRowU[pivotRowPosition];
     
-    markRow[iRow] = l - lSave;
+    markRow[iRow] = static_cast<short>(l - lSave);
     indexRowL[l] = iRow;
     elementL[l] = elementU[pivotRowPosition];
     l++;
@@ -837,7 +837,7 @@ protected:
     numberInRow[iRow]--;
     assert (numberInRow[iRow]>=0);
   }
-  markRow[pivotRow] = largeInteger;
+  markRow[pivotRow] = static_cast<short>(largeInteger);
   //compress pivot column (move pivot to front including saved)
   numberInColumn[pivotColumn] = 0;
   //use end of L for temporary space

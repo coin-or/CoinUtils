@@ -136,9 +136,9 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
       int iWord = iPivot>>CHECK_SHIFT;
       int iBit = iPivot-(iWord<<CHECK_SHIFT);
       if (mark[iWord]) {
-	mark[iWord] |= 1<<iBit;
+	mark[iWord] = static_cast<unsigned char>(mark[iWord] | (1<<iBit));
       } else {
-	mark[iWord] = 1<<iBit;
+	mark[iWord] = static_cast<unsigned char>(1<<iBit);
       }
     }
   }
@@ -161,9 +161,9 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
 	int iWord = iRow>>CHECK_SHIFT;
 	int iBit = iRow-(iWord<<CHECK_SHIFT);
 	if (mark[iWord]) {
-	  mark[iWord] |= 1<<iBit;
+	  mark[iWord] = static_cast<unsigned char>(mark[iWord] | (1<<iBit));
 	} else {
-	  mark[iWord] = 1<<iBit;
+	  mark[iWord] = static_cast<unsigned char>(1<<iBit);
 	}
       }     
       regionIndex[numberNonZero++] = i;
@@ -196,9 +196,9 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
 	      int iWord = iRow>>CHECK_SHIFT;
 	      int iBit = iRow-(iWord<<CHECK_SHIFT);
 	      if (mark[iWord]) {
-		mark[iWord] |= 1<<iBit;
+		mark[iWord] = static_cast<unsigned char>(mark[iWord] | (1<<iBit));
 	      } else {
-		mark[iWord] = 1<<iBit;
+		mark[iWord] = static_cast<unsigned char>(1<<iBit);
 	      }
 	    }     
 	    regionIndex[numberNonZero++] = i;
@@ -1016,9 +1016,9 @@ CoinFactorization::updateColumnTransposeUSparsish
     int iWord = iPivot>>CHECK_SHIFT;
     int iBit = iPivot-(iWord<<CHECK_SHIFT);
     if (mark[iWord]) {
-      mark[iWord] |= 1<<iBit;
+      mark[iWord] = static_cast<unsigned char>(mark[iWord] | (1<<iBit));
     } else {
-      mark[iWord] = 1<<iBit;
+      mark[iWord] = static_cast<unsigned char>(1<<iBit);
     }
   }
 
@@ -1048,9 +1048,9 @@ CoinFactorization::updateColumnTransposeUSparsish
 	    int iWord = iRow>>CHECK_SHIFT;
 	    int iBit = iRow-(iWord<<CHECK_SHIFT);
 	    if (mark[iWord]) {
-	      mark[iWord] |= 1<<iBit;
+	      mark[iWord] = static_cast<unsigned char>(mark[iWord] | (1<<iBit));
 	    } else {
-	      mark[iWord] = 1<<iBit;
+	      mark[iWord] = static_cast<unsigned char>(1<<iBit);
 	    }
 	    region[iRow] -=  value * pivotValue;
 	  }     
@@ -1387,9 +1387,9 @@ CoinFactorization::updateColumnTransposeLSparsish
     int iWord = iPivot>>CHECK_SHIFT;
     int iBit = iPivot-(iWord<<CHECK_SHIFT);
     if (mark[iWord]) {
-      mark[iWord] |= 1<<iBit;
+      mark[iWord] = static_cast<unsigned char>(mark[iWord] | (1<<iBit));
     } else {
-      mark[iWord] = 1<<iBit;
+      mark[iWord] = static_cast<unsigned char>(1<<iBit);
     }
   }
   numberNonZero = 0;
@@ -1406,9 +1406,9 @@ CoinFactorization::updateColumnTransposeLSparsish
 	int iWord = iRow>>CHECK_SHIFT;
 	int iBit = iRow-(iWord<<CHECK_SHIFT);
 	if (mark[iWord]) {
-	  mark[iWord] |= 1<<iBit;
+	  mark[iWord] = static_cast<unsigned char>(mark[iWord] | (1<<iBit));
 	} else {
-	  mark[iWord] = 1<<iBit;
+	  mark[iWord] = static_cast<unsigned char>(1<<iBit);
 	}
 	region[iRow] -= pivotValue*value;
       }
@@ -1435,9 +1435,9 @@ CoinFactorization::updateColumnTransposeLSparsish
 	    int iWord = iRow>>CHECK_SHIFT;
 	    int iBit = iRow-(iWord<<CHECK_SHIFT);
 	    if (mark[iWord]) {
-	      mark[iWord] |= 1<<iBit;
+	      mark[iWord] = static_cast<unsigned char>(mark[iWord] | (1<<iBit));
 	    } else {
-	      mark[iWord] = 1<<iBit;
+	      mark[iWord] = static_cast<unsigned char>(1<<iBit);
 	    }
 	    region[iRow] -= pivotValue*value;
 	  }

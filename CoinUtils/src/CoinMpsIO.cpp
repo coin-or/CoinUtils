@@ -144,16 +144,16 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 	unsigned short thisValue=0;
 	// decode 6 bits at a time
 	for (int j=2;j>=0;j--) {
-	  thisValue = thisValue<<6;
+	  thisValue = static_cast<unsigned short>(thisValue<<6);
 	  char thisChar = ptr[j];
 	  if (thisChar >= '0' && thisChar <= '0' + 9) {
-	    thisValue |= thisChar - '0';
+	    thisValue = static_cast<unsigned short>(thisValue | (thisChar - '0'));
 	  } else if (thisChar >= 'a' && thisChar <= 'a' + 25) {
-	    thisValue |= thisChar - 'a' + 10;
+	    thisValue = static_cast<unsigned short>(thisValue | (thisChar - 'a' + 10));
 	  } else if (thisChar >= 'A' && thisChar <= 'A' + 25) {
-	    thisValue |= thisChar - 'A' + 36;
+	    thisValue = static_cast<unsigned short>(thisValue | (thisChar - 'A' + 36));
 	  } else if (thisChar >= '*' && thisChar <= '*' + 1) {
-	    thisValue |= thisChar - '*' + 62;
+	    thisValue = static_cast<unsigned short>(thisValue | (thisChar - '*' + 62));
 	  } else {
 	    // error 
 	    *output=save;
@@ -173,16 +173,16 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 	unsigned short thisValue=0;
 	// decode 6 bits at a time
 	for (int j=2;j>=0;j--) {
-	  thisValue = thisValue<<6;
+	  thisValue = static_cast<unsigned short>(thisValue<<6);
 	  char thisChar = ptr[j];
 	  if (thisChar >= '0' && thisChar <= '0' + 9) {
-	    thisValue |= thisChar - '0';
+	    thisValue = static_cast<unsigned short>(thisValue | (thisChar - '0'));
 	  } else if (thisChar >= 'a' && thisChar <= 'a' + 25) {
-	    thisValue |= thisChar - 'a' + 10;
+	    thisValue = static_cast<unsigned short>(thisValue | (thisChar - 'a' + 10));
 	  } else if (thisChar >= 'A' && thisChar <= 'A' + 25) {
-	    thisValue |= thisChar - 'A' + 36;
+	    thisValue = static_cast<unsigned short>(thisValue | (thisChar - 'A' + 36));
 	  } else if (thisChar >= '*' && thisChar <= '*' + 1) {
-	    thisValue |= thisChar - '*' + 62;
+	    thisValue = static_cast<unsigned short>(thisValue | (thisChar - '*' + 62));
 	  } else {
 	    // error 
 	    *output=save;
@@ -3825,16 +3825,16 @@ CoinConvertDouble(int section, int formatType, double value, char outputValue[24
 	unsigned short thisValue=shortValue[i];
 	// encode 6 bits at a time
 	for (int j=0;j<3;j++) {
-	  unsigned short thisPart = thisValue &63;
-	  thisValue = thisValue>>6;
+	  unsigned short thisPart = static_cast<unsigned short>(thisValue & 63);
+	  thisValue = static_cast<unsigned short>(thisValue>>6);
 	  if (thisPart < 10) {
-	    *thisChar = (char) (thisPart+'0');
+	    *thisChar = static_cast<char>(thisPart+'0');
 	  } else if (thisPart < 36) {
-	    *thisChar = (char) (thisPart-10+'a');
+	    *thisChar = static_cast<char>(thisPart-10+'a');
 	  } else if (thisPart < 62) {
-	    *thisChar = (char) (thisPart-36+'A');
+	    *thisChar = static_cast<char>(thisPart-36+'A');
 	  } else {
-	    *thisChar = (char) (thisPart-62+'*');
+	    *thisChar = static_cast<char>(thisPart-62+'*');
 	  }
 	  thisChar++;
 	}
@@ -3846,16 +3846,16 @@ CoinConvertDouble(int section, int formatType, double value, char outputValue[24
 	unsigned short thisValue=shortValue[i];
 	// encode 6 bits at a time
 	for (int j=0;j<3;j++) {
-	  unsigned short thisPart = thisValue &63;
-	  thisValue = thisValue>>6;
+	  unsigned short thisPart = static_cast<unsigned short>(thisValue & 63);
+	  thisValue = static_cast<unsigned short>(thisValue>>6);
 	  if (thisPart < 10) {
-	    *thisChar = (char) (thisPart+'0');
+	    *thisChar = static_cast<char>(thisPart+'0');
 	  } else if (thisPart < 36) {
-	    *thisChar = (char) (thisPart-10+'a');
+	    *thisChar = static_cast<char>(thisPart-10+'a');
 	  } else if (thisPart < 62) {
-	    *thisChar = (char) (thisPart-36+'A');
+	    *thisChar = static_cast<char>(thisPart-36+'A');
 	  } else {
-	    *thisChar = (char) (thisPart-62+'*');
+	    *thisChar = static_cast<char>(thisPart-62+'*');
 	  }
 	  thisChar++;
 	}
