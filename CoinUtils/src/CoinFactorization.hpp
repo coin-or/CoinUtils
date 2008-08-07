@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <cassert>
+#include <cstdio>
 #include "CoinFinite.hpp"
 #include "CoinIndexedVector.hpp"
 class CoinPackedMatrix;
