@@ -212,38 +212,6 @@ if test -z "$MY_C_ISNAN"; then
 #endif])
 fi
 
-# The above test fails with newer GCC compilers, because it insert an
-#    #ifndef std::isnan(42.42)
-# into the C-Code which is not allowed.
-# Thus, we try the following test which uses less adventurous defines,
-# but does not take care of overload resolution (see above). 
-
-if test -z "$MY_C_ISNAN"; then
-  AC_CHECK_DECL([isnan],[MY_C_ISNAN=std::isnan],,[
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif
-using namespace std;])
-fi
-
 if test -z "$MY_C_ISNAN"; then
   AC_CHECK_DECL([_isnan],[MY_C_ISNAN=_isnan],,[
 #ifdef HAVE_CMATH
