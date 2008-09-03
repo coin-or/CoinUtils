@@ -1007,12 +1007,12 @@ CoinModelLinkedList::addEasy(int majorIndex, int numberOfElements, const int * i
       }
       if (type_==0) {
         // row
-        triples[put].row=majorIndex;
+        triples[put].row=static_cast<unsigned int>(majorIndex);
         triples[put].string=0;
         triples[put].column=indices[i];
       } else {
         // column
-        triples[put].row=indices[i];
+        triples[put].row=static_cast<unsigned int>(indices[i]);
         triples[put].string=0;
         triples[put].column=majorIndex;
       }
@@ -1068,12 +1068,12 @@ CoinModelLinkedList::addHard(int minorIndex, int numberOfElements, const int * i
     int other=indices[i];
     if (type_==0) {
       // row
-      triples[put].row=other;
+      triples[put].row=static_cast<unsigned int>(other);
       triples[put].string=0;
       triples[put].column=minorIndex;
     } else {
       // column
-      triples[put].row=minorIndex;
+      triples[put].row=static_cast<unsigned int>(minorIndex);
       triples[put].string=0;
       triples[put].column=other;
     }

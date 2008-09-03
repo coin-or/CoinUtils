@@ -300,8 +300,8 @@ class CoinPrePostsolveMatrix
   inline void setRowStatus(int sequence, Status status)
   {
     unsigned char & st_byte = rowstat_[sequence];
-    st_byte &= ~7;
-    st_byte |= status;
+    st_byte = static_cast<unsigned char>(st_byte & (~7)) ;
+    st_byte = static_cast<unsigned char>(st_byte | status) ;
   }
   /// Get row status
   inline Status getRowStatus(int sequence) const
@@ -313,8 +313,8 @@ class CoinPrePostsolveMatrix
   inline void setColumnStatus(int sequence, Status status)
   {
     unsigned char & st_byte = colstat_[sequence];
-    st_byte &= ~7;
-    st_byte |= status;
+    st_byte = static_cast<unsigned char>(st_byte & (~7)) ;
+    st_byte = static_cast<unsigned char>(st_byte | status) ;
 
 #   ifdef PRESOLVE_DEBUG
     switch (status)
@@ -857,7 +857,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   */
   inline void setVariableType(int i, int variableType)
   { if (integerType_ == 0) integerType_ = new unsigned char [ncols0_] ;
-    integerType_[i] = variableType ; }
+    integerType_[i] = static_cast<unsigned char>(variableType) ; }
 
   /*! \brief Set variable type information for all variables
   
@@ -1114,16 +1114,16 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   }
   /// Mark column as not changed
   inline void unsetColChanged(int i) {
-    colChanged_[i]  &= ~1;;
+    colChanged_[i] = static_cast<unsigned char>(colChanged_[i] & (~1)) ;
   }
   /// Mark column as changed.
   inline void setColChanged(int i) {
-    colChanged_[i] |= 1;
+    colChanged_[i] = static_cast<unsigned char>(colChanged_[i] | (1)) ;
   }
   /// Mark column as changed and add to list of columns to process next
   inline void addCol(int i) {
     if ((colChanged_[i]&1)==0) {
-      colChanged_[i] |= 1;
+      colChanged_[i] = static_cast<unsigned char>(colChanged_[i] | (1)) ;
       nextColsToDo_[numberNextColsToDo_++] = i;
     }
   }
@@ -1145,7 +1145,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   }
   /// Mark column as ineligible for preprocessing
   inline void setColProhibited(int i) {
-    colChanged_[i] |= 2;
+    colChanged_[i] = static_cast<unsigned char>(colChanged_[i] | (2)) ;
   }
   /*! \brief Test if column is marked as used
   
@@ -1157,11 +1157,11 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   }
   /// Mark column as used
   inline void setColUsed(int i) {
-    colChanged_[i] |= 4;
+    colChanged_[i] = static_cast<unsigned char>(colChanged_[i] | (4)) ;
   }
   /// Mark column as unused
   inline void unsetColUsed(int i) {
-    colChanged_[i]  &= ~4;;
+    colChanged_[i] = static_cast<unsigned char>(colChanged_[i] & (~4)) ;
   }
 
   /*! \brief Initialise the row ToDo lists
@@ -1188,16 +1188,16 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   }
   /// Mark row as not changed
   inline void unsetRowChanged(int i) {
-    rowChanged_[i]  &= ~1;;
+    rowChanged_[i] = static_cast<unsigned char>(rowChanged_[i] & (~1)) ;
   }
   /// Mark row as changed
   inline void setRowChanged(int i) {
-    rowChanged_[i] |= 1;
+    rowChanged_[i] = static_cast<unsigned char>(rowChanged_[i] | (1)) ;
   }
   /// Mark row as changed and add to list of rows to process next
   inline void addRow(int i) {
     if ((rowChanged_[i]&1)==0) {
-      rowChanged_[i] |= 1;
+      rowChanged_[i] = static_cast<unsigned char>(rowChanged_[i] | (1)) ;
       nextRowsToDo_[numberNextRowsToDo_++] = i;
     }
   }
@@ -1219,7 +1219,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   }
   /// Mark row as ineligible for preprocessing
   inline void setRowProhibited(int i) {
-    rowChanged_[i] |= 2;
+    rowChanged_[i] = static_cast<unsigned char>(rowChanged_[i] | (2)) ;
   }
   /*! \brief Test if row is marked as used
 
@@ -1231,11 +1231,11 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   }
   /// Mark row as used
   inline void setRowUsed(int i) {
-    rowChanged_[i] |= 4;
+    rowChanged_[i] = static_cast<unsigned char>(rowChanged_[i] | (4)) ;
   }
   /// Mark row as unused
   inline void unsetRowUsed(int i) {
-    rowChanged_[i]  &= ~4;;
+    rowChanged_[i] = static_cast<unsigned char>(rowChanged_[i] & (~4)) ;
   }
 
 
