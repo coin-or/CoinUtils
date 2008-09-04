@@ -154,6 +154,9 @@ class CoinPresolveAction
     one passed as the parameter.
   */
   CoinPresolveAction(const CoinPresolveAction *next) : next(next) {}
+  /// modify next (when building rather than passing)
+  inline void setNext(const CoinPresolveAction *nextAction)
+  { next = nextAction;}
 
   /*! \brief A name for debug printing.
 
@@ -1077,6 +1080,8 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
       1 set if allow duplicate column tests for integer variables
       2 set to allow code to try and fix infeasibilities
       4 set to inhibit x+y+z=1 mods
+      8 not used
+      16 set to allow stuff which won't unroll easily 
   */
   int presolveOptions_;
   /*! Flag to say if any rows or columns are marked as prohibited
@@ -1085,6 +1090,24 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
     various \c set*Prohibited routines.
   */
   bool anyProhibited_;
+  /// Useful int array 3* number rows
+  int * usefulRowInt_;
+  /// Useful double array number rows
+  double * usefulRowDouble_;
+  /// Useful int array 2* number columns
+  int * usefulColumnInt_;
+  /// Useful double array number columns
+  double * usefulColumnDouble_;
+  /// Array of random numbers (max row,column)
+  double * randomNumber_;
+  /// Array giving number of infinite ups on a row
+  int * infiniteUp_;
+  /// Array giving sum of non-infinite ups on a row
+  double * sumUp_;
+  /// Array giving number of infinite downs on a row
+  int * infiniteDown_;
+  /// Array giving sum of non-infinite downs on a row
+  double * sumDown_;
   //@}
 
   /*! \name Functions to manipulate row and column processing status */
@@ -1245,6 +1268,13 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /// Set a flag for presence of prohibited rows or columns
   inline void setAnyProhibited(bool val = true)
   { anyProhibited_ = val ; }
+  /** Recompute ups and downs for a row (nonzero if infeasible).
+      If iRow -1 then recompute all */
+  int recomputeSums(int iRow);
+  /// Initialize random numbers etc (nonzero if infeasible)
+  int initializeStuff();
+  /// Delete useful arrays 
+  void deleteStuff();
   //@}
 
 };
@@ -1439,8 +1469,22 @@ inline bool presolve_expand_row(CoinBigIndex *mrstrt, double *rowels,
     used directly or via the inline wrappers presolve_find_row and
     presolve_find_col.
 */
-CoinBigIndex presolve_find_minor(int tgt, CoinBigIndex ks, CoinBigIndex ke,
-				 const int *minndxs);
+inline CoinBigIndex presolve_find_minor(int tgt, CoinBigIndex ks, CoinBigIndex ke,
+				 const int *minndxs)
+{ CoinBigIndex k ;
+  for (k = ks ; k < ke ; k++)
+#ifndef NDEBUG
+  { if (minndxs[k] == tgt)
+      return (k) ; }
+  DIE("FIND_MINOR") ;
+
+  abort () ; return -1;
+#else
+  { if (minndxs[k] == tgt)
+      break ; }
+  return (k) ;
+#endif
+}
 
 /*! \relates CoinPrePostsolveMatrix
     \brief Find position of a row in a column in a column-major matrix.
@@ -1551,13 +1595,39 @@ inline CoinBigIndex presolve_find_row3(int row, CoinBigIndex kcs, int collen,
    majlens) is decremented.  Loose packing is maintained by swapping the last
    entry in the row into the position occupied by the deleted entry.
 */
-void presolve_delete_from_major(int majndx, int minndx,
+inline void presolve_delete_from_major(int majndx, int minndx,
 				const CoinBigIndex *majstrts,
-				int *majlens, int *minndxs, double *els) ;
+				int *majlens, int *minndxs, double *els) 
+{ CoinBigIndex ks = majstrts[majndx] ;
+  CoinBigIndex ke = ks + majlens[majndx] ;
+
+  CoinBigIndex kmi = presolve_find_minor(minndx,ks,ke,minndxs) ;
+
+  minndxs[kmi] = minndxs[ke-1] ;
+  els[kmi] = els[ke-1] ;
+  majlens[majndx]-- ;
+  
+  return ; }
 // Delete all marked from major (and zero marked)
-void presolve_delete_many_from_major(int majndx, char * marked,
+inline void presolve_delete_many_from_major(int majndx, char * marked,
 				const CoinBigIndex *majstrts,
-				int *majlens, int *minndxs, double *els) ;
+				int *majlens, int *minndxs, double *els) 
+{ 
+  CoinBigIndex ks = majstrts[majndx] ;
+  CoinBigIndex ke = ks + majlens[majndx] ;
+  CoinBigIndex put=ks;
+  for (CoinBigIndex k=ks;k<ke;k++) {
+    int iMinor = minndxs[k];
+    if (!marked[iMinor]) {
+      minndxs[put]=iMinor;
+      els[put++]=els[k];
+    } else {
+      marked[iMinor]=0;
+    }
+  } 
+  majlens[majndx] = put-ks ;
+  return ;
+}
 
 /*! \relates CoinPrePostsolveMatrix
     \brief Delete the entry for row \p row from column \p col in a
@@ -1642,7 +1712,8 @@ inline void presolve_delete_from_col2(int row, int col, CoinBigIndex *mcstrt,
 */
 double *presolve_dupmajor(const double *elems, const int *indices,
 			  int length, CoinBigIndex offset, int tgt = -1);
-
+/// Initialize an array with random numbers
+void coin_init_random_vec(double *work, int n);
 //@}
 
 

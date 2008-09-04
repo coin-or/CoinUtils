@@ -325,7 +325,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 # endif
   int nactions = 0;
 
-  int *zeros	= new int[ncols];
+  int *zeros	= prob->usefulColumnInt_; //new int[ncols];
   memset(zeros,0,ncols*sizeof(int));
   int nzeros	= 0;
 
@@ -625,7 +625,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
     }
   }
 
-  delete[]zeros;
+  //delete[]zeros;
   deleteAction(actions,action*);
 
   if (prob->tuning_) {

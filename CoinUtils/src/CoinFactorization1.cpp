@@ -784,9 +784,6 @@ CoinFactorization::preProcess ( int state,
     }
   case 3:			//links and initialize pivots
     {
-      //set markRow so no rows updated
-      int * markRow = markRow_.array();
-      CoinFillN ( markRow, numberRows_, -1 );
       int *lastRow = lastRow_.array();
       int *nextRow = nextRow_.array();
       int *lastColumn = lastColumn_.array();
@@ -913,7 +910,7 @@ CoinFactorization::preProcess ( int state,
     // modified 3
     {
       //set markRow so no rows updated
-      CoinFillN ( markRow_.array(), numberRows_, -1 );
+      //CoinFillN ( markRow_.array(), numberRows_, -1 );
       int *lastColumn = lastColumn_.array();
       int *nextColumn = nextColumn_.array();
       double * pivotRegion = pivotRegion_.array();

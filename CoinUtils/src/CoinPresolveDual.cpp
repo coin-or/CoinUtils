@@ -83,8 +83,8 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 
   CoinRelFltEq relEq(prob->ztolzb_) ;
 
-  double *rdmin	= new double[nrows];
-  double *rdmax	= new double[nrows];
+  double *rdmin	= prob->usefulRowDouble_; //new double[nrows];
+  double *rdmax	= (double *) prob->usefulRowInt_; //new double[nrows];
 
 # if PRESOLVE_DEBUG
   std::cout << "Entering remove_dual_action::presolve, " << nrows << " X " << ncols << "." << std::endl ;
@@ -150,16 +150,16 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
     }
   }
 
-  int *fixup_cols	= new int[ncols];
+  int *fix_cols	= prob->usefulColumnInt_; //new int[ncols];
 
-  int *fixdown_cols	= new int[ncols];
+  //int *fixdown_cols	= new int[ncols];
 
 #if	PRESOLVE_TIGHTEN_DUALS
   double *djmin	= new double[ncols];
   double *djmax	= new double[ncols];
 #endif
   int nfixup_cols	= 0;
-  int nfixdown_cols	= 0;
+  int nfixdown_cols	= ncols;
 
   while (1) {
     int tightened = 0;
@@ -365,9 +365,9 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    prob->status_ |= 2;
 	    break;
 	  } else {
-	    fixdown_cols[nfixdown_cols++] = j;
+	    fix_cols[--nfixdown_cols] = j;
 #	    if PRESOLVE_DEBUG
-	    printf("NDUAL: fixing x<%d>",fixdown_cols[nfixdown_cols-1]) ;
+	    printf("NDUAL: fixing x<%d>",fix_cols[nfixdown_cols]) ;
 	    if (csol) printf(" = %g",csol[j]) ;
 	    printf(" at lb = %g.\n",clo[j]) ;
 #	    endif
@@ -440,9 +440,9 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    prob->status_ |= 2;
 	    break;
 	  } else {
-	    fixup_cols[nfixup_cols++] = j;
+	    fix_cols[nfixup_cols++] = j;
 #	    if PRESOLVE_DEBUG
-	    printf("NDUAL: fixing x<%d>",fixup_cols[nfixup_cols-1]) ;
+	    printf("NDUAL: fixing x<%d>",fix_cols[nfixup_cols-1]) ;
 	    if (csol) printf(" = %g",csol[j]) ;
 	    printf(" at ub = %g.\n",cup[j]) ;
 #	    endif
@@ -578,24 +578,26 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
     }
 #endif
 
-    if (tightened<100||nfixdown_cols||nfixup_cols)
+    if (tightened<100||nfixdown_cols<ncols||nfixup_cols)
       break;
 #if	PRESOLVE_TIGHTEN_DUALS
     else
       printf("DUAL TIGHTENED!  %d\n", tightened);
 #endif
   }
-
+  assert (nfixup_cols<=nfixdown_cols);
   if (nfixup_cols) {
 #if	PRESOLVE_DEBUG
     printf("NDUAL: %d up", nfixup_cols);
-    for (i = 0 ; i < nfixup_cols ; i++) printf(" %d",fixup_cols[i]) ;
+    for (i = 0 ; i < nfixup_cols ; i++) printf(" %d",fix_cols[i]) ;
     printf(".\n") ;
 #endif
-    next = make_fixed_action::presolve(prob, fixup_cols, nfixup_cols, false, next);
+    next = make_fixed_action::presolve(prob, fix_cols, nfixup_cols, false, next);
   }
 
-  if (nfixdown_cols) {
+  if (nfixdown_cols<ncols) {
+    int * fixdown_cols = fix_cols+nfixdown_cols; 
+    nfixdown_cols = ncols-nfixdown_cols;
 #if	PRESOLVE_DEBUG
     printf("NDUAL: %d down", nfixdown_cols);
     for (i = 0 ; i < nfixdown_cols ; i++) printf(" %d",fixdown_cols[i]) ;
@@ -727,11 +729,11 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
     }
   }
 
-  delete[]rdmin;
-  delete[]rdmax;
+  //delete[]rdmin;
+  //delete[]rdmax;
 
-  delete[]fixup_cols;
-  delete[]fixdown_cols;
+  //delete[]fixup_cols;
+  //delete[]fixdown_cols;
 
 #if	PRESOLVE_TIGHTEN_DUALS
   delete[]djmin;

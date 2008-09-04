@@ -9,6 +9,7 @@
 #else
 #  include <unistd.h>
 #endif
+//#define USE_MEMCPY
 
 #include <cstdlib>
 #include <cstdio>
@@ -294,10 +295,14 @@ CoinMemcpyN(register const T* from, const int size, register T* to)
 template <class T> inline void
 CoinMemcpyN(const T * COIN_RESTRICT from, int size, T* COIN_RESTRICT to)
 {
+#ifdef USE_MEMCPY
+  std::memcpy(to,from,size*sizeof(T));
+#else
   T * put = (T *) to;
   const T * get = (const T *) from;
   for ( ; 0<size ; --size)
     *put++ = *get++;
+#endif
 }
 #endif
 

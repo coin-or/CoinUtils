@@ -134,11 +134,69 @@ static void implied_row_bounds(const double *els,
 			       CoinBigIndex krs, CoinBigIndex kre,
 			       double *maxupp, double *maxdownp)
 {
-   //  int jcol;
-  double iclb, icub;
+  int jcol = hcol[krs];
+  bool posinf = false;
+  bool neginf = false;
+  double maxup = 0.0;
+  double maxdown = 0.0;
 
-  implied_bounds(els, clo, cup, hcol, krs, kre, maxupp, maxdownp,
-		 hcol[krs], 0.0, 0.0, &iclb, &icub);
+  int jcolk = -1;
+
+  // compute sum of all bounds except for jcol
+  CoinBigIndex kk;
+  for (kk=krs; kk<kre; kk++) {
+    if (hcol[kk] == jcol)
+      jcolk = kk;
+
+    // swap jcol with hcol[kre-1];
+    // that is, consider jcol last
+    // this assumes that jcol occurs in this row
+    CoinBigIndex k = (hcol[kk] == jcol
+	     ? kre-1
+	     : kk == kre-1
+	     ? jcolk
+	     : kk);
+
+    PRESOLVEASSERT(k != -1);	// i.e. jcol had better be in the row
+
+    int col = hcol[k];
+    double coeff = els[k];
+    double lb = clo[col];
+    double ub = cup[col];
+
+    if (coeff > 0.0) {
+      if (PRESOLVE_INF <= ub) {
+	posinf = true;
+	if (neginf)
+	  break;	// pointless
+      } else
+	maxup += ub * coeff;
+
+      if (lb <= -PRESOLVE_INF) {
+	neginf = true;
+	if (posinf)
+	  break;	// pointless
+      } else
+	maxdown += lb * coeff;
+    } else {
+      if (PRESOLVE_INF <= ub) {
+	neginf = true;
+	if (posinf)
+	  break;	// pointless
+      } else
+	maxdown += ub * coeff;
+
+      if (lb <= -PRESOLVE_INF) {
+	posinf = true;
+	if (neginf)
+	  break;	// pointless
+      } else
+	maxup += lb * coeff;
+    }
+  }
+  // store row bounds
+  *maxupp   = (posinf) ?  PRESOLVE_INF : maxup;
+  *maxdownp = (neginf) ? -PRESOLVE_INF : maxdown;
 }
 
 const char *forcing_constraint_action::name() const

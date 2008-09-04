@@ -75,7 +75,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
   int *hincol		= prob->hincol_;
   int ncols		= prob->ncols_;
 
-  int nrows		= prob->nrows_;
+  //int nrows		= prob->nrows_;
 
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
@@ -87,13 +87,12 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 
   const unsigned char *integerType = prob->integerType_;
 
-  int *fixup_cols	= new int[ncols];
+  int *fix_cols	= prob->usefulColumnInt_; //new int[ncols];
   int nfixup_cols	= 0;
 
-  int *fixdown_cols	= new int[ncols];
-  int nfixdown_cols	= 0;
+  int nfixdown_cols	= ncols;
 
-  int *useless_rows	= new int[nrows];
+  int *useless_rows	= prob->usefulRowInt_; //new int[nrows];
   int nuseless_rows	= 0;
   
   action *actions	= new action [ncols];
@@ -171,8 +170,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 #if	PRESOLVE_DEBUG
 	  printf("TIGHTEN UP:  %d\n", j);
 #endif
-	  fixup_cols[nfixup_cols] = j;
-	  ++nfixup_cols;
+	  fix_cols[nfixup_cols++] = j;
 
 	} else if (iflag==-1&&clo[j]>-1.0e10) {
 	  // symmetric case
@@ -182,8 +180,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	  printf("TIGHTEN DOWN:  %d\n", j);
 #endif
 
-	  fixdown_cols[nfixdown_cols] = j;
-	  ++nfixdown_cols;
+	  fix_cols[--nfixdown_cols] = j;
 
 	} else {
 #if 0
@@ -265,8 +262,8 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 
 
 #if	PRESOLVE_SUMMARY
-  if (nfixdown_cols || nfixup_cols || nuseless_rows) {
-    printf("NTIGHTENED:  %d %d %d\n", nfixdown_cols, nfixup_cols, nuseless_rows);
+  if (nfixdown_cols<ncols || nfixup_cols || nuseless_rows) {
+    printf("NTIGHTENED:  %d %d %d\n", ncols-nfixdown_cols, nfixup_cols, nuseless_rows);
   }
 #endif
 
@@ -278,21 +275,23 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 					       next);
   }
   deleteAction(actions, action*);
-  delete[]useless_rows;
+  //delete[]useless_rows;
 
-  if (nfixdown_cols) {
+  if (nfixdown_cols<ncols) {
+    int * fixdown_cols = fix_cols+nfixdown_cols; 
+    nfixdown_cols = ncols-nfixdown_cols;
     next = make_fixed_action::presolve(prob, fixdown_cols, nfixdown_cols,
 				       true,
 				       next);
   }
-  delete[]fixdown_cols;
+  //delete[]fixdown_cols;
 
   if (nfixup_cols) {
-    next = make_fixed_action::presolve(prob, fixup_cols, nfixup_cols,
+    next = make_fixed_action::presolve(prob, fix_cols, nfixup_cols,
 				       false,
 				       next);
   }
-  delete[]fixup_cols;
+  //delete[]fixup_cols;
 
   if (prob->tuning_) {
     double thisTime=CoinCpuTime();

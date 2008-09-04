@@ -79,6 +79,7 @@ class dupcol_action : public CoinPresolveAction {
 
     duprow_action is definitely a work in progress; #postsolve is
     unimplemented.
+    This doesn't matter as it uses useless_constraint.
 */
 
 class duprow_action : public CoinPresolveAction {
@@ -107,6 +108,44 @@ class duprow_action : public CoinPresolveAction {
   void postsolve(CoinPostsolveMatrix *prob) const;
 
   //~duprow_action() { delete[]actions_; }
+};
+
+/*! \class gubrow_action
+    \brief Detect and remove entries whose sum is known
+
+    If we have an equality row where all entries same then
+    For other rows where all entries for that equality row are same
+    then we can delete entries and modify rhs
+    gubrow_action is definitely a work in progress; #postsolve is
+    unimplemented.
+*/
+
+class gubrow_action : public CoinPresolveAction {
+  struct action {
+    int row;
+    double lbound;
+    double ubound;
+  };
+
+  const int nactions_;
+  const action *const actions_;
+
+  gubrow_action():CoinPresolveAction(NULL),nactions_(0),actions_(NULL) {}
+  gubrow_action(int nactions,
+		      const action *actions,
+		      const CoinPresolveAction *next) :
+    CoinPresolveAction(next),
+    nactions_(nactions), actions_(actions) {}
+
+ public:
+  const char *name() const;
+
+  static const CoinPresolveAction *presolve(CoinPresolveMatrix *prob,
+					 const CoinPresolveAction *next);
+
+  void postsolve(CoinPostsolveMatrix *prob) const;
+
+  //~gubrow_action() { delete[]actions_; }
 };
 
 #endif

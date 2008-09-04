@@ -707,6 +707,13 @@ protected:
     int appendMinor(const int number,
 		    const CoinBigIndex * starts, const int * index,
                     const double * element, int numberOther=-1);
+public:
+    /** Append a set of rows/columns to the end of the matrix. This case is
+	when we know there are no gaps and majorDim_ will not change
+        This version is harder one i.e. adding columns to row ordered */
+    void appendMinorFast(const int number,
+		    const CoinBigIndex * starts, const int * index,
+                    const double * element);
 private:
    inline CoinBigIndex getLastStart() const {
       return majorDim_ == 0 ? 0 : start_[majorDim_];

@@ -289,6 +289,7 @@ double *presolve_dupmajor (const double *elems, const int *indices,
 
   Print a tag and abort (DIE) if there's no entry for tgt.
 */
+#if 0
 CoinBigIndex presolve_find_minor (int tgt, CoinBigIndex ks,
 				  CoinBigIndex ke, const int *minndxs)
 
@@ -299,7 +300,7 @@ CoinBigIndex presolve_find_minor (int tgt, CoinBigIndex ks,
   DIE("FIND_MINOR") ;
 
   abort () ; return -1; }
-
+#endif
 /*
   As presolve_find_minor, but return a position one past the end of
   the major vector when the entry is not already present.
@@ -355,7 +356,7 @@ CoinBigIndex presolve_find_minor3 (int tgt, CoinBigIndex ks,
   as a column-major form, so only one wrapper is defined.
 */
 
-
+#if 0
 void presolve_delete_from_major (int majndx, int minndx,
 				 const CoinBigIndex *majstrts,
 				 int *majlens, int *minndxs, double *els)
@@ -391,7 +392,7 @@ void presolve_delete_many_from_major (int majndx, char * marked,
   majlens[majndx] = put-ks ;
   return ;
 }
-
+#endif
 
 /*
   Delete the entry for a minor index from a major vector in a threaded matrix.

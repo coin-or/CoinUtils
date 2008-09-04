@@ -1642,8 +1642,12 @@ int CoinFactorization::updateColumnFT ( CoinIndexedVector * regionSparse,
   }
 
   int j;
+#ifndef CLP_FACTORIZATION
   bool packed = regionSparse2->packedMode();
   if (packed) {
+#else
+    assert (regionSparse2->packedMode());
+#endif
     for ( j = 0; j < numberNonZero; j ++ ) {
       int iRow = index[j];
       double value = array[j];
@@ -1652,6 +1656,7 @@ int CoinFactorization::updateColumnFT ( CoinIndexedVector * regionSparse,
       region[iRow] = value;
       regionIndex[j] = iRow;
     }
+#ifndef CLP_FACTORIZATION
   } else {
     for ( j = 0; j < numberNonZero; j ++ ) {
       int iRow = index[j];
@@ -1662,6 +1667,7 @@ int CoinFactorization::updateColumnFT ( CoinIndexedVector * regionSparse,
       regionIndex[j] = iRow;
     }
   }
+#endif
   regionSparse->setNumElements ( numberNonZero );
   if (collectStatistics_) {
     numberFtranCounts_++;
@@ -1730,11 +1736,14 @@ int CoinFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   const int *permute = permute_.array();
   double * region = regionSparse->denseVector();
 
+#ifndef CLP_FACTORIZATION
   if (!noPermute) {
+#endif
     numberNonZero = regionSparse2->getNumElements();
     int * index = regionSparse2->getIndices();
     double * array = regionSparse2->denseVector();
     int j;
+#ifndef CLP_FACTORIZATION
     bool packed = regionSparse2->packedMode();
     if (packed) {
       for ( j = 0; j < numberNonZero; j ++ ) {
@@ -1746,6 +1755,9 @@ int CoinFactorization::updateColumn ( CoinIndexedVector * regionSparse,
 	regionIndex[j] = iRow;
       }
     } else {
+#else
+      assert (!egionSparse2->packedMode());
+#endif
       for ( j = 0; j < numberNonZero; j ++ ) {
 	int iRow = index[j];
 	double value = array[iRow];
@@ -1754,11 +1766,15 @@ int CoinFactorization::updateColumn ( CoinIndexedVector * regionSparse,
 	region[iRow] = value;
 	regionIndex[j] = iRow;
       }
+#ifndef CLP_FACTORIZATION
     }
+#endif
     regionSparse->setNumElements ( numberNonZero );
+#ifndef CLP_FACTORIZATION
   } else {
     numberNonZero = regionSparse->getNumElements();
   }
+#endif
   if (collectStatistics_) {
     numberFtranCounts_++;
     ftranCountInput_ += (double) numberNonZero;

@@ -24,11 +24,37 @@ extern "C"
                                ipfint * ipiv, ipfint *info);
 }
 #endif
+#ifndef NDEBUG
 static int counter1=0;
+#endif
 //  factorSparse.  Does sparse phase of factorization
 //return code is <0 error, 0= finished
 int
 CoinFactorization::factorSparse (  )
+{
+  int larger;
+
+  if ( numberRows_ < numberColumns_ ) {
+    larger = numberColumns_;
+  } else {
+    larger = numberRows_;
+  }
+  int returnCode;
+#define LARGELIMIT 65530
+#define SMALL_SET 65531
+#define SMALL_UNSET (SMALL_SET+1)
+#define LARGE_SET COIN_INT_MAX-10
+#define LARGE_UNSET (LARGE_SET+1)
+  if ( larger < LARGELIMIT )
+    returnCode = factorSparseSmall();
+  else
+    returnCode = factorSparseLarge();
+  return returnCode;
+}
+//  factorSparse.  Does sparse phase of factorization
+//return code is <0 error, 0= finished
+int
+CoinFactorization::factorSparseSmall (  )
 {
   int *indexRow = indexRowU_.array();
   int *indexColumn = indexColumnU_.array();
@@ -36,7 +62,9 @@ CoinFactorization::factorSparse (  )
   int count = 1;
   workArea_.conditionalNew(numberRows_);
   double * workArea = workArea_.array();
+#ifndef NDEBUG
   counter1++;
+#endif
   // when to go dense
   int denseThreshold=denseThreshold_;
 
@@ -46,13 +74,9 @@ CoinFactorization::factorSparse (  )
   workArea2_.conditionalNew(workSize);
   unsigned int * workArea2 = workArea2_.array();
 
-  int larger;
-
-  if ( numberRows_ < numberColumns_ ) {
-    larger = numberColumns_;
-  } else {
-    larger = numberRows_;
-  }
+  //set markRow so no rows updated
+  unsigned short * markRow = (unsigned short *) markRow_.array();
+  CoinFillN (  markRow, numberRows_, (unsigned short) (SMALL_UNSET));
   int status = 0;
   //do slacks first
   int * numberInRow = numberInRow_.array();
@@ -99,19 +123,28 @@ CoinFactorization::factorSparse (  )
     }
     // redo
     preProcess(4);
+    CoinFillN (  markRow, numberRows_, (unsigned short) (SMALL_UNSET));
   }
   numberSlacks_ = numberGoodU_;
   int *nextCount = nextCount_.array();
   int *firstCount = firstCount_.array();
   CoinBigIndex *startRow = startRowU_.array();
   CoinBigIndex *startColumn = startColumnU;
+  double *elementL = elementL_.array();
+  int *indexRowL = indexRowL_.array();
+  int *saveColumn = saveColumn_.array();
+  int *nextRow = nextRow_.array();
+  int *lastRow = lastRow_.array() ;
   double pivotTolerance = pivotTolerance_;
   int numberTrials = numberTrials_;
   int numberRows = numberRows_;
   // Put column singletons first - (if false)
   separateLinks(1,(biasLU_>1));
+#ifndef NDEBUG
   int counter2=0;
+#endif
   while ( count <= biggerDimension_ ) {
+#ifndef NDEBUG
     counter2++;
     int badRow=-1;
     if (counter1==-1&&counter2>=0) {
@@ -143,6 +176,7 @@ CoinFactorization::factorSparse (  )
         }
       }
     }
+#endif
     CoinBigIndex minimumCount = COIN_INT_MAX;
     double minimumCost = COIN_DBL_MAX;
 
@@ -183,13 +217,14 @@ CoinFactorization::factorSparse (  )
     while ( look >= 0 ) {
       if ( look < numberRows_ ) {
         int iRow = look;
-        
+#ifndef NDEBUG        
         if ( numberInRow[iRow] != count ) {
           printf("failed on %d entry to factorSparse and %d try\n",
                  counter1,counter2);
           printf("row %d - count %d number %d\n",iRow,count,numberInRow[iRow]);
           abort();
         }
+#endif
         look = nextCount[look];
         bool rejected = false;
         CoinBigIndex start = startRow[iRow];
@@ -315,22 +350,19 @@ CoinFactorization::factorSparse (  )
 		workArea2 = workArea2_.array();
               }
               bool goodPivot;
-              
-              if ( larger < 32766 ) {
-                //branch out to best pivot routine 
-                goodPivot = pivot ( iPivotRow, iPivotColumn,
-                                    pivotRowPosition, pivotColumnPosition,
-                                    workArea, workArea2, increment,
-                                    increment2, ( short * ) markRow_.array() ,
-                                    32767);
-              } else {
-                //might be able to do better by permuting
-                goodPivot = pivot ( iPivotRow, iPivotColumn,
-                                    pivotRowPosition, pivotColumnPosition,
-                                    workArea, workArea2, increment,
-                                    increment2, ( int * ) markRow_.array() ,
-                                    COIN_INT_MAX);
-              }
+	      //#define UGLY_COIN_FACTOR_CODING
+#ifndef UGLY_COIN_FACTOR_CODING
+	      //branch out to best pivot routine 
+	      goodPivot = pivot ( iPivotRow, iPivotColumn,
+				  pivotRowPosition, pivotColumnPosition,
+				  workArea, workArea2, increment,
+				  increment2, ( unsigned short * ) markRow_.array() ,
+				  SMALL_SET);
+#else
+#define FAC_SET SMALL_SET
+#include "CoinFactorization.hpp"
+#undef FAC_SET
+#endif
               if ( !goodPivot ) {
                 status = -99;
                 count=biggerDimension_+1;
@@ -955,4 +987,423 @@ CoinFactorization::restoreFactorization (const char * file , bool factorIt )
     }
   }
   return 0;
+}
+//  factorSparse.  Does sparse phase of factorization
+//return code is <0 error, 0= finished
+int
+CoinFactorization::factorSparseLarge (  )
+{
+  int *indexRow = indexRowU_.array();
+  int *indexColumn = indexColumnU_.array();
+  double *element = elementU_.array();
+  int count = 1;
+  workArea_.conditionalNew(numberRows_);
+  double * workArea = workArea_.array();
+#ifndef NDEBUG
+  counter1++;
+#endif
+  // when to go dense
+  int denseThreshold=denseThreshold_;
+
+  CoinZeroN ( workArea, numberRows_ );
+  //get space for bit work area
+  CoinBigIndex workSize = 1000;
+  workArea2_.conditionalNew(workSize);
+  unsigned int * workArea2 = workArea2_.array();
+
+  //set markRow so no rows updated
+  int * markRow = markRow_.array();
+  CoinFillN ( (int *) markRow, numberRows_, COIN_INT_MAX-10+1);
+  int status = 0;
+  //do slacks first
+  int * numberInRow = numberInRow_.array();
+  int * numberInColumn = numberInColumn_.array();
+  int * numberInColumnPlus = numberInColumnPlus_.array();
+  int * pivotRowL = pivotRowL_.array();
+  CoinBigIndex * startColumnU = startColumnU_.array();
+  CoinBigIndex * startColumnL = startColumnL_.array();
+  if (biasLU_<3&&numberColumns_==numberRows_) {
+    int iPivotColumn;
+    int * pivotColumn = pivotColumn_.array();
+    int * nextRow = nextRow_.array();
+    int * lastRow = lastRow_.array();
+    for ( iPivotColumn = 0; iPivotColumn < numberColumns_;
+	  iPivotColumn++ ) {
+      if ( numberInColumn[iPivotColumn] == 1 ) {
+	CoinBigIndex start = startColumnU[iPivotColumn];
+	double value = element[start];
+	if ( value == slackValue_ && numberInColumnPlus[iPivotColumn] == 0 ) {
+	  // treat as slack
+	  int iRow = indexRow[start];
+	  // but only if row not marked
+	  if (numberInRow[iRow]>0) {
+	    totalElements_ -= numberInRow[iRow];
+	    //take out this bit of indexColumnU
+	    int next = nextRow[iRow];
+	    int last = lastRow[iRow];
+	    
+	    nextRow[last] = next;
+	    lastRow[next] = last;
+	    nextRow[iRow] = numberGoodU_;	//use for permute
+	    //modify linked list for pivots
+	    deleteLink ( iRow );
+	    numberInRow[iRow]=-1;
+	    numberInColumn[iPivotColumn]=0;
+	    pivotRowL[numberGoodL_] = iRow;
+	    numberGoodL_++;
+	    startColumnL[numberGoodL_] = 0;
+	    pivotColumn[numberGoodU_] = iPivotColumn;
+	    numberGoodU_++;
+	  }
+	}
+      }
+    }
+    // redo
+    preProcess(4);
+    CoinFillN ( (int *) markRow, numberRows_, COIN_INT_MAX-10+1);
+  }
+  numberSlacks_ = numberGoodU_;
+  int *nextCount = nextCount_.array();
+  int *firstCount = firstCount_.array();
+  CoinBigIndex *startRow = startRowU_.array();
+  CoinBigIndex *startColumn = startColumnU;
+  double *elementL = elementL_.array();
+  int *indexRowL = indexRowL_.array();
+  int *saveColumn = saveColumn_.array();
+  int *nextRow = nextRow_.array();
+  int *lastRow = lastRow_.array() ;
+  double pivotTolerance = pivotTolerance_;
+  int numberTrials = numberTrials_;
+  int numberRows = numberRows_;
+  // Put column singletons first - (if false)
+  separateLinks(1,(biasLU_>1));
+#ifndef NDEBUG
+  int counter2=0;
+#endif
+  while ( count <= biggerDimension_ ) {
+#ifndef NDEBUG
+    counter2++;
+    int badRow=-1;
+    if (counter1==-1&&counter2>=0) {
+      // check counts consistent
+      for (int iCount=1;iCount<numberRows_;iCount++) {
+        int look = firstCount[iCount];
+        while ( look >= 0 ) {
+          if ( look < numberRows_ ) {
+            int iRow = look;
+            if (iRow==badRow)
+              printf("row count for row %d is %d\n",iCount,iRow);
+            if ( numberInRow[iRow] != iCount ) {
+              printf("failed debug on %d entry to factorSparse and %d try\n",
+                     counter1,counter2);
+              printf("row %d - count %d number %d\n",iRow,iCount,numberInRow[iRow]);
+              abort();
+            }
+            look = nextCount[look];
+          } else {
+            int iColumn = look - numberRows;
+            if ( numberInColumn[iColumn] != iCount ) {
+              printf("failed debug on %d entry to factorSparse and %d try\n",
+                     counter1,counter2);
+              printf("column %d - count %d number %d\n",iColumn,iCount,numberInColumn[iColumn]);
+              abort();
+            }
+            look = nextCount[look];
+          }
+        }
+      }
+    }
+#endif
+    CoinBigIndex minimumCount = COIN_INT_MAX;
+    double minimumCost = COIN_DBL_MAX;
+
+    int iPivotRow = -1;
+    int iPivotColumn = -1;
+    int pivotRowPosition = -1;
+    int pivotColumnPosition = -1;
+    int look = firstCount[count];
+    int trials = 0;
+    int * pivotColumn = pivotColumn_.array();
+
+    if ( count == 1 && firstCount[1] >= 0 &&!biasLU_) {
+      //do column singletons first to put more in U
+      while ( look >= 0 ) {
+        if ( look < numberRows_ ) {
+          look = nextCount[look];
+        } else {
+          int iColumn = look - numberRows_;
+          
+          assert ( numberInColumn[iColumn] == count );
+          CoinBigIndex start = startColumnU[iColumn];
+          int iRow = indexRow[start];
+          
+          iPivotRow = iRow;
+          pivotRowPosition = start;
+          iPivotColumn = iColumn;
+          assert (iPivotRow>=0&&iPivotColumn>=0);
+          pivotColumnPosition = -1;
+          look = -1;
+          break;
+        }
+      }			/* endwhile */
+      if ( iPivotRow < 0 ) {
+        //back to singletons
+        look = firstCount[1];
+      }
+    }
+    while ( look >= 0 ) {
+      if ( look < numberRows_ ) {
+        int iRow = look;
+#ifndef NDEBUG        
+        if ( numberInRow[iRow] != count ) {
+          printf("failed on %d entry to factorSparse and %d try\n",
+                 counter1,counter2);
+          printf("row %d - count %d number %d\n",iRow,count,numberInRow[iRow]);
+          abort();
+        }
+#endif
+        look = nextCount[look];
+        bool rejected = false;
+        CoinBigIndex start = startRow[iRow];
+        CoinBigIndex end = start + count;
+        
+        CoinBigIndex i;
+        for ( i = start; i < end; i++ ) {
+          int iColumn = indexColumn[i];
+          assert (numberInColumn[iColumn]>0);
+          double cost = ( count - 1 ) * numberInColumn[iColumn];
+          
+          if ( cost < minimumCost ) {
+            CoinBigIndex where = startColumn[iColumn];
+            double minimumValue = element[where];
+            
+            minimumValue = fabs ( minimumValue ) * pivotTolerance;
+            while ( indexRow[where] != iRow ) {
+              where++;
+            }			/* endwhile */
+            assert ( where < startColumn[iColumn] +
+                     numberInColumn[iColumn]);
+            double value = element[where];
+            
+            value = fabs ( value );
+            if ( value >= minimumValue ) {
+              minimumCost = cost;
+              minimumCount = numberInColumn[iColumn];
+              iPivotRow = iRow;
+              pivotRowPosition = -1;
+              iPivotColumn = iColumn;
+              assert (iPivotRow>=0&&iPivotColumn>=0);
+              pivotColumnPosition = i;
+              rejected=false;
+              if ( minimumCount < count ) {
+                look = -1;
+                break;
+              }
+            } else if ( iPivotRow == -1 ) {
+              rejected = true;
+            }
+          }
+        }
+        trials++;
+        if ( trials >= numberTrials && iPivotRow >= 0 ) {
+          look = -1;
+          break;
+        }
+        if ( rejected ) {
+          //take out for moment
+          //eligible when row changes
+          deleteLink ( iRow );
+          addLink ( iRow, biggerDimension_ + 1 );
+        }
+      } else {
+        int iColumn = look - numberRows;
+        
+        assert ( numberInColumn[iColumn] == count );
+        look = nextCount[look];
+        CoinBigIndex start = startColumn[iColumn];
+        CoinBigIndex end = start + numberInColumn[iColumn];
+        double minimumValue = element[start];
+        
+        minimumValue = fabs ( minimumValue ) * pivotTolerance;
+        CoinBigIndex i;
+        for ( i = start; i < end; i++ ) {
+          double value = element[i];
+          
+          value = fabs ( value );
+          if ( value >= minimumValue ) {
+            int iRow = indexRow[i];
+            int nInRow = numberInRow[iRow];
+            assert (nInRow>0);
+            double cost = ( count - 1 ) * nInRow;
+            
+            if ( cost < minimumCost ) {
+              minimumCost = cost;
+              minimumCount = nInRow;
+              iPivotRow = iRow;
+              pivotRowPosition = i;
+              iPivotColumn = iColumn;
+              assert (iPivotRow>=0&&iPivotColumn>=0);
+              pivotColumnPosition = -1;
+              if ( minimumCount <= count + 1 ) {
+                look = -1;
+                break;
+              }
+            }
+          }
+        }
+        trials++;
+        if ( trials >= numberTrials && iPivotRow >= 0 ) {
+          look = -1;
+          break;
+        }
+      }
+    }				/* endwhile */
+    if (iPivotRow>=0) {
+      if ( iPivotRow >= 0 ) {
+        int numberDoRow = numberInRow[iPivotRow] - 1;
+        int numberDoColumn = numberInColumn[iPivotColumn] - 1;
+        
+        totalElements_ -= ( numberDoRow + numberDoColumn + 1 );
+        if ( numberDoColumn > 0 ) {
+          if ( numberDoRow > 0 ) {
+            if ( numberDoColumn > 1 ) {
+              //  if (1) {
+              //need to adjust more for cache and SMP
+              //allow at least 4 extra
+              int increment = numberDoColumn + 1 + 4;
+              
+              if ( increment & 15 ) {
+                increment = increment & ( ~15 );
+                increment += 16;
+              }
+              int increment2 =
+                
+                ( increment + COINFACTORIZATION_BITS_PER_INT - 1 ) >> COINFACTORIZATION_SHIFT_PER_INT;
+              CoinBigIndex size = increment2 * numberDoRow;
+              
+              if ( size > workSize ) {
+                workSize = size;
+		workArea2_.conditionalNew(workSize);
+		workArea2 = workArea2_.array();
+              }
+              bool goodPivot;
+              
+	      //might be able to do better by permuting
+#ifndef UGLY_COIN_FACTOR_CODING
+	      //branch out to best pivot routine 
+	      goodPivot = pivot ( iPivotRow, iPivotColumn,
+				  pivotRowPosition, pivotColumnPosition,
+				  workArea, workArea2, increment,
+				  increment2, ( int * ) markRow_.array() ,
+				  LARGE_SET);
+#else
+#define FAC_SET LARGE_SET
+#include "CoinFactorization.hpp"
+#undef FAC_SET
+#endif
+              if ( !goodPivot ) {
+                status = -99;
+                count=biggerDimension_+1;
+                break;
+              }
+            } else {
+              if ( !pivotOneOtherRow ( iPivotRow, iPivotColumn ) ) {
+                status = -99;
+                count=biggerDimension_+1;
+                break;
+              }
+            }
+          } else {
+            assert (!numberDoRow);
+            if ( !pivotRowSingleton ( iPivotRow, iPivotColumn ) ) {
+              status = -99;
+              count=biggerDimension_+1;
+              break;
+            }
+          }
+        } else {
+          assert (!numberDoColumn);
+          if ( !pivotColumnSingleton ( iPivotRow, iPivotColumn ) ) {
+            status = -99;
+            count=biggerDimension_+1;
+            break;
+          }
+        }
+        pivotColumn[numberGoodU_] = iPivotColumn;
+        numberGoodU_++;
+        // This should not need to be trapped here - but be safe
+        if (numberGoodU_==numberRows_) 
+          count=biggerDimension_+1;
+      }
+#if COIN_DEBUG==2
+      checkConsistency (  );
+#endif
+#if 0
+      // Even if no dense code may be better to use naive dense
+      if (!denseThreshold_&&totalElements_>1000) {
+        int leftRows=numberRows_-numberGoodU_;
+        double full = leftRows;
+        full *= full;
+        assert (full>=0.0);
+        double leftElements = totalElements_;
+        double ratio;
+        if (leftRows>2000)
+          ratio=4.0;
+        else 
+          ratio=3.0;
+        if (ratio*leftElements>full) 
+          denseThreshold=1;
+      }
+#endif
+      if (denseThreshold) {
+        // see whether to go dense 
+        int leftRows=numberRows_-numberGoodU_;
+        double full = leftRows;
+        full *= full;
+        assert (full>=0.0);
+        double leftElements = totalElements_;
+        //if (leftRows==100)
+        //printf("at 100 %d elements\n",totalElements_);
+        double ratio;
+        if (leftRows>2000)
+          ratio=4.0;
+        else if (leftRows>800)
+          ratio=3.0;
+        else if (leftRows>256)
+          ratio=2.0;
+        else
+          ratio=1.5;
+        if ((ratio*leftElements>full&&leftRows>denseThreshold_)) {
+          //return to do dense
+          if (status!=0)
+            break;
+          int check=0;
+          for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
+            if (numberInColumn[iColumn]) 
+              check++;
+          }
+          if (check!=leftRows&&denseThreshold_) {
+            //printf("** mismatch %d columns left, %d rows\n",check,leftRows);
+            denseThreshold=0;
+          } else {
+            status=2;
+            if ((messageLevel_&4)!=0) 
+              std::cout<<"      Went dense at "<<leftRows<<" rows "<<
+                totalElements_<<" "<<full<<" "<<leftElements<<std::endl;
+            if (!denseThreshold_)
+              denseThreshold_=-check; // say how many
+            break;
+          }
+        }
+      }
+      // start at 1 again
+      count = 1;
+    } else {
+      //end of this - onto next
+      count++;
+    } 
+  }				/* endwhile */
+  workArea_.conditionalDelete() ;
+  workArea2_.conditionalDelete() ;
+  return status;
 }

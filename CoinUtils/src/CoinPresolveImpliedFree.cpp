@@ -6,8 +6,10 @@
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveSubst.hpp"
 #include "CoinPresolveIsolated.hpp"
+#include "CoinPresolveFixed.hpp"
 #include "CoinPresolveImpliedFree.hpp"
 #include "CoinPresolveUseless.hpp"
+#include "CoinPresolveForcing.hpp"
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
@@ -38,7 +40,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
   const CoinBigIndex *mcstrt	= prob->mcstrt_;
   const int *hincol	= prob->hincol_;
 
-  int *useless_rows	= new int[numberRows];
+  int *useless_rows	= prob->usefulRowInt_+numberRows; //new int[numberRows];
   int nuseless_rows	= 0;
 
   double *rowLower	= prob->rlo_;
@@ -54,12 +56,18 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 
   int iRow, iColumn;
 
-  int * markRow = new int[numberRows];
+  int * markRow = prob->usefulRowInt_; // wasnew int[numberRows];
   for (iRow=0;iRow<numberRows;iRow++) {
-    if ((rowLower[iRow]>-large||rowUpper[iRow]<large)&&rowLength[iRow]>0) 
+    if ((rowLower[iRow]>-large||rowUpper[iRow]<large)&&rowLength[iRow]>0) {
       markRow[iRow]=-1;
-    else
+    } else {
       markRow[iRow]=1;
+      if (rowLength[iRow]>0) {
+	// Row is redundant 
+	useless_rows[nuseless_rows++] = iRow;
+	prob->addRow(iRow);
+      }
+    }
   }
 #define MAXPASS 10
   bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
@@ -95,27 +103,23 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 	  double value=element[j];
 	  iColumn = column[j];
 	  if (value > 0.0) {
-	    if (columnUpper[iColumn] >= large) {
-	      ++infiniteUpper;
-	    } else {
+	    if (columnUpper[iColumn] < large) 
 	      maximumUp += columnUpper[iColumn] * value;
-	    }
-	    if (columnLower[iColumn] <= -large) {
-	      ++infiniteLower;
-	    } else {
-	      maximumDown += columnLower[iColumn] * value;
-	    }
-	  } else if (value<0.0) {
-	    if (columnUpper[iColumn] >= large) {
-	      ++infiniteLower;
-	    } else {
-	      maximumDown += columnUpper[iColumn] * value;
-	    }
-	    if (columnLower[iColumn] <= -large) {
+	    else
 	      ++infiniteUpper;
-	    } else {
+	    if (columnLower[iColumn] > -large) 
+	      maximumDown += columnLower[iColumn] * value;
+	    else
+	      ++infiniteLower;
+	  } else if (value<0.0) {
+	    if (columnUpper[iColumn] < large) 
+	      maximumDown += columnUpper[iColumn] * value;
+	    else
+	      ++infiniteLower;
+	    if (columnLower[iColumn] > -large) 
 	      maximumUp += columnLower[iColumn] * value;
-	    }
+	    else
+	      ++infiniteUpper;
 	  }
 	}
 	// Build in a margin of error
@@ -361,6 +365,27 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
     if (numberInfeasible) break;
   }
   if (!numberInfeasible) {
+    //#define NO_FORCING
+#ifdef NO_FORCING
+#define ZZ 1
+#ifdef ZZ
+    double * clo2 = CoinCopyOfArray(prob->clo_,numberColumns);
+    double * cup2 = CoinCopyOfArray(prob->cup_,numberColumns);
+#endif
+    forcing_constraint_action::action * actions = NULL;
+    int numActions=0;
+    int maxActions=0;
+    double * clo = prob->clo_;
+    double * cup = prob->cup_;
+    double *csol  = prob->sol_ ;
+    int * fixed = prob->usefulColumnInt_; 
+    for (int i=0;i<numberColumns;i++) {
+      if (cup[i]>clo[i]+tolerance)
+	fixed[i]=0;
+      else
+	fixed[i]=-1;
+    }
+#endif
     for (iRow = 0; iRow < numberRows; iRow++) {
       
       if (markRow[iRow]<0) {
@@ -379,27 +404,23 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 	  double value=element[j];
 	  iColumn = column[j];
 	  if (value > 0.0) {
-	    if (columnUpper[iColumn] >= large) {
-	      ++infiniteUpper;
-	    } else {
+	    if (columnUpper[iColumn] < large) 
 	      maximumUp += columnUpper[iColumn] * value;
-	    }
-	    if (columnLower[iColumn] <= -large) {
-	      ++infiniteLower;
-	    } else {
-	      maximumDown += columnLower[iColumn] * value;
-	    }
-	  } else if (value<0.0) {
-	    if (columnUpper[iColumn] >= large) {
-	      ++infiniteLower;
-	    } else {
-	      maximumDown += columnUpper[iColumn] * value;
-	    }
-	    if (columnLower[iColumn] <= -large) {
+	    else
 	      ++infiniteUpper;
-	    } else {
+	    if (columnLower[iColumn] > -large) 
+	      maximumDown += columnLower[iColumn] * value;
+	    else
+	      ++infiniteLower;
+	  } else if (value<0.0) {
+	    if (columnUpper[iColumn] < large) 
+	      maximumDown += columnUpper[iColumn] * value;
+	    else
+	      ++infiniteLower;
+	    if (columnLower[iColumn] > -large) 
 	      maximumUp += columnLower[iColumn] * value;
-	    }
+	    else
+	      ++infiniteUpper;
 	  }
 	}
 	// Build in a margin of error
@@ -409,25 +430,201 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 	double maxDown = maximumDown-infiniteLower*1.0e31;
 	if (maxUp <= rowUpper[iRow] + tolerance && 
 	    maxDown >= rowLower[iRow] - tolerance) {
-	  
+#ifndef NO_FORCING
 	  // Row is redundant 
 	  useless_rows[nuseless_rows++] = iRow;
 	  prob->addRow(iRow);
-	  
+#else
+	  if (maxUp <= rowUpper[iRow] - tolerance && 
+	      maxDown >= rowLower[iRow] + tolerance) {
+	    // Row is redundant 
+	    useless_rows[nuseless_rows++] = iRow;
+	    prob->addRow(iRow);
+	  } else {
+	    CoinBigIndex k;
+	    double tol2 = 10.0*tolerance;
+	    int nFree=0;
+	    bool bad=false;
+	    for ( k=rStart; k<rEnd; k++) {
+	      int jcol = column[k];
+	      if (columnUpper[jcol]-columnLower[jcol]>tol2)
+		nFree++;
+	      if (fixed[jcol]>0)
+		bad=true;
+	    }
+	    if (nFree&&!bad) {
+	      // the lower bound can just be reached, or
+	      // the upper bound can just be reached;
+	      // called a "forcing constraint" in the paper (p. 226)
+	      const int lbound_tight = (maxUp < PRESOLVE_INF &&
+					fabs(rowLower[iRow] - maxUp) < tolerance);
+	      double *bounds = new double[rowLength[iRow]];
+	      int *rowcols = new int[rowLength[iRow]];
+	      int lk = rStart;	// load fix-to-down in front
+	      int uk = rEnd;	// load fix-to-up in back
+	      for ( k=rStart; k<rEnd; k++) {
+		int jcol = column[k];
+		if (!fixed[jcol])
+		  fixed[jcol]=1;
+		prob->addCol(jcol);
+		double coeff = element[k];
+		// one of the two contributed to maxup - set the other to that
+		if (lbound_tight == (coeff > 0.0)) {
+		  --uk;
+		  bounds[uk-rStart] = clo[jcol];
+		  rowcols[uk-rStart] = jcol;
+		  if (csol != 0) {
+		    csol[jcol] = columnUpper[jcol] ;
+		  }
+#ifdef ZZ
+		  assert (columnLower[jcol]==clo[jcol]);
+		  clo[jcol] = columnUpper[jcol];
+#endif
+		  columnLower[jcol] = columnUpper[jcol];
+		} else {
+		  bounds[lk-rStart] = cup[jcol];
+		  rowcols[lk-rStart] = jcol;
+		  ++lk;
+		  if (csol != 0) {
+		    csol[jcol] = columnLower[jcol] ;
+		  }
+#ifdef ZZ
+		  assert (columnUpper[jcol]==cup[jcol]);
+		  cup[jcol] = columnLower[jcol];
+#endif
+		  columnUpper[jcol] = columnLower[jcol];
+		}
+	      }
+	      PRESOLVEASSERT(uk == lk);
+	      if (numActions==maxActions) {
+		maxActions = (11*maxActions)/10+10;
+		forcing_constraint_action::action * temp = 
+		  new forcing_constraint_action::action [maxActions];
+		for (int i=0;i<numActions;i++)
+		  temp[i]=actions[i];
+		delete [] actions;
+		actions = temp;
+	      }
+	      
+	      forcing_constraint_action::action * f = &actions[numActions];
+	      numActions++;
+	      f->row = iRow;
+	      f->nlo = lk-rStart;
+	      f->nup = rEnd-uk;
+	      f->rowcols = rowcols;
+	      f->bounds = bounds;
+	    } else if (!nFree&&!bad) {
+	      // Row is redundant 
+	      useless_rows[nuseless_rows++] = iRow;
+	      prob->addRow(iRow);
+	    }
+	  }
+#endif	  
 	}
       }
     }
+#ifdef NO_FORCING
+    if (numActions) {
+#if	PRESOLVE_SUMMARY
+      printf("NFORCED_FROM_IMPLIED:  %d\n", numActions);
+#endif
+      next = new forcing_constraint_action(numActions, 
+      				   CoinCopyOfArray(actions,numActions), next);
+      deleteAction(actions,action*);
+      actions=NULL;
+    }
+    assert (!actions);
+#endif
+    if (nuseless_rows) {
+      next = useless_constraint_action::presolve(prob,
+						 useless_rows, nuseless_rows,
+						 next);
+    }
+#ifdef NO_FORCING
+#ifdef ZZ
+    // temp
+    for (int i=0;i<numberColumns;i++) {
+      clo[i]=clo2[i];
+      cup[i]=cup2[i];
+    }
+#endif
+    //delete [] clo2;
+    //delete [] cup2;
+    if (numActions) {
+      //int * fixed = prob->usefulColumnInt_; 
+      // See if any columns fixed
+      int nFixed=0;
+      for (int i=0;i<numberColumns;i++) {
+	//if (columnUpper[i]<columnLower[i]+tolerance&&
+	//  cup[i]>clo[i]+tolerance) {
+	if (fixed[i]>0) {
+	  fixed[nFixed++]=i;
+	  assert (columnUpper[i]>columnLower[i]-10.0*tolerance);
+	}
+      }
+      if (nFixed)
+	printf("could fix %d\n",nFixed);
+      //next = remove_fixed_action::presolve(prob,fixed,nFixed,next) ; 
+    }
+#endif
+    if ((prob->presolveOptions_&16)!=0) {
+      // may not unroll
+      const unsigned char *integerType = prob->integerType_;
+      double *csol  = prob->sol_ ;
+      double * clo = prob->clo_;
+      double * cup = prob->cup_;
+      int * fixed = prob->usefulColumnInt_; 
+      int nFixed=0;
+      int nChanged=0;
+      for (int i=0;i<numberColumns;i++) {
+	if (clo[i]==cup[i])
+	  continue;
+	double lower = columnLower[i];
+	double upper = columnUpper[i];
+	if (integerType[i]) {
+	  //if (floor(upper+1.0e-4)<upper)
+	  upper=floor(upper+1.0e-4);
+	  //if (ceil(lower-1.0e-4)>lower)
+	  lower=ceil(lower-1.0e-4);
+	}
+	if (upper-lower<1.0e-8) {
+	  if (upper-lower<-tolerance)
+	    numberInfeasible++;
+	  if (CoinMin(fabs(upper),fabs(lower))<=1.0e-7) 
+	    upper=0.0;
+	  fixed[nFixed++]=i;
+	  //printf("fixing %d to %g\n",i,upper);
+	  prob->addCol(i);
+	  cup[i]=upper;
+	  clo[i]=upper;
+	  if (csol != 0) 
+	    csol[i] = upper;
+	} else {
+	  if (integerType[i]) {
+	    if (upper<cup[i]) {
+	      cup[i]=upper;
+	      nChanged++;
+	      prob->addCol(i);
+	    }
+	    if (lower>clo[i]) {
+	      clo[i]=lower;
+	      nChanged++;
+	      prob->addCol(i);
+	    }
+	  }
+	}
+      }
+#ifdef CLP_INVESTIGATE
+      if (nFixed||nChanged)
+	printf("%d fixed in impliedfree, %d changed\n",nFixed,nChanged);
+#endif
+      if (nFixed)
+	next = remove_fixed_action::presolve(prob,fixed,nFixed,next) ; 
+    }
   }
-  if (nuseless_rows) 
-    next = useless_constraint_action::presolve(prob,
-					       useless_rows, nuseless_rows,
-					       next);
-
-  delete[]useless_rows;
 
   delete [] columnLower;
   delete [] columnUpper;
-  delete [] markRow;
   return next;
 }
 
@@ -525,10 +722,10 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   int nactions = 0;
   bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
 
-  int *implied_free = new int[ncols];
+  int *implied_free = prob->usefulColumnInt_; //new int[ncols];
+  int * whichFree = implied_free+ncols;
+  int numberFree=0;
   int i;
-  for (i=0;i<ncols;i++)
-    implied_free[i]=-1;
 
   // memory for min max
   int * infiniteDown = new int [nrows];
@@ -549,13 +746,13 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   int numberLook = prob->numberColsToDo_;
   int iLook;
   int * look = prob->colsToDo_;
-  int * look2 = NULL;
+  //int * look2 = NULL;
   // if gone from 2 to 3 look at all
   // why does this loop not check for prohibited columns? -- lh, 040818 --
   // changed 040923
   if (fill_level<0) {
-    look2 = new int[ncols];
-    look=look2;
+    look = prob->usefulColumnInt_+ncols; //new int[ncols];
+    //look=look2;
     if (!prob->anyProhibited()) {
       for (iLook=0;iLook<ncols;iLook++) 
 	look[iLook]=iLook;
@@ -569,372 +766,289 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
     }
   }
   int maxLook = CoinAbs(fill_level);
-  if (maxLook==2)
-    maxLook=3;
   for (iLook=0;iLook<numberLook;iLook++) {
     int j=look[iLook];
-    if ((hincol[j]  <= maxLook)) {
-      if (hincol[j]>1) {
-	CoinBigIndex kcs = mcstrt[j];
-	CoinBigIndex kce = kcs + hincol[j];
-	bool possible = false;
-	bool singleton = false;
-	CoinBigIndex k;
-	double largestElement=0.0;
+    if (hincol[j]  <= maxLook&&hincol[j]) {
+      CoinBigIndex kcs = mcstrt[j];
+      CoinBigIndex kce = kcs + hincol[j];
+      bool singletonColumn = (hincol[j]==1);
+      bool possible = false;
+      bool singleton = false;
+      CoinBigIndex k;
+      double largestElement=0.0;
+      for (k=kcs; k<kce; ++k) {
+	int row = hrow[k];
+	double coeffj = colels[k];
+	
+	// if its row is an equality constraint...
+	if (hinrow[row] > 1 ) {
+	  if ( fabs(rlo[row] - rup[row]) < tol &&
+	       fabs(coeffj) > ZTOLDP2) {
+	    possible=true;
+	  }
+	  largestElement = CoinMax(largestElement,fabs(coeffj));
+	} else {
+	  singleton=true;
+	}
+      }
+      if (possible&&!singleton) {
+	double low=-COIN_DBL_MAX;
+	double high=COIN_DBL_MAX;
+	// get bound implied by all rows
 	for (k=kcs; k<kce; ++k) {
 	  int row = hrow[k];
 	  double coeffj = colels[k];
-	  
-	  // if its row is an equality constraint...
-	  if (hinrow[row] > 1 ) {
-	    if ( fabs(rlo[row] - rup[row]) < tol &&
-		 fabs(coeffj) > ZTOLDP2) {
-	      possible=true;
+	  if (fabs(coeffj) > ZTOLDP2) {
+	    if (infiniteUp[row]==-1) {
+	      // compute
+	      CoinBigIndex krs = mrstrt[row];
+	      CoinBigIndex kre = krs + hinrow[row];
+	      int infiniteUpper = 0;
+	      int infiniteLower = 0;
+	      double maximumUp = 0.0;
+	      double maximumDown = 0.0;
+	      CoinBigIndex kk;
+	      // Compute possible lower and upper ranges
+	      for (kk = krs; kk < kre; ++kk) {
+		double value=rowels[kk];
+		int iColumn = hcol[kk];
+		if (value > 0.0) {
+		  if (cup[iColumn] < large) 
+		    maximumUp += cup[iColumn] * value;
+		  else
+		    ++infiniteUpper;
+		  if (clo[iColumn] > -large) 
+		    maximumDown += clo[iColumn] * value;
+		  else
+		    ++infiniteLower;
+		} else if (value<0.0) {
+		  if (cup[iColumn] < large) 
+		    maximumDown += cup[iColumn] * value;
+		  else
+		    ++infiniteLower;
+		  if (clo[iColumn] > -large) 
+		    maximumUp += clo[iColumn] * value;
+		  else
+		    ++infiniteUpper;
+		}
+	      }
+	      double maxUpx = maximumUp+infiniteUpper*1.0e31;
+	      double maxDownx = maximumDown-infiniteLower*1.0e31;
+	      if (maxUpx <= rup[row] + tol && 
+		  maxDownx >= rlo[row] - tol) {
+		
+		// Row is redundant 
+		infiniteUp[row]=-3;
+		
+	      } else if (maxUpx < rlo[row] -tol &&!fixInfeasibility) {
+		/* there is an upper bound and it can't be reached */
+		prob->status_|= 1;
+		prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
+						prob->messages())
+		  <<row
+		  <<rlo[row]
+		  <<rup[row]
+		  <<CoinMessageEol;
+		infiniteUp[row]=-3;
+		break;
+	      } else if ( maxDownx > rup[row]+tol&&!fixInfeasibility) {
+		/* there is a lower bound and it can't be reached */
+		prob->status_|= 1;
+		prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
+						prob->messages())
+		  <<row
+		  <<rlo[row]
+		  <<rup[row]
+		  <<CoinMessageEol;
+		infiniteUp[row]=-3;
+		break;
+	      } else {
+		infiniteUp[row]=infiniteUpper;
+		infiniteDown[row]=infiniteLower;
+		maxUp[row]=maximumUp;
+		maxDown[row]=maximumDown;
+	      }
 	    }
-	    largestElement = CoinMax(largestElement,fabs(coeffj));
-	  } else {
-	    singleton=true;
+	    if (infiniteUp[row]>=0) {
+	      double lower = rlo[row];
+	      double upper = rup[row];
+	      double value=coeffj;
+	      double nowLower = clo[j];
+	      double nowUpper = cup[j];
+	      double newBound;
+	      int infiniteUpper=infiniteUp[row];
+	      int infiniteLower=infiniteDown[row];
+	      double maximumUp = maxUp[row];
+	      double maximumDown = maxDown[row];
+	      if (value > 0.0) {
+		// positive value
+		if (lower>-large) {
+		  if (!infiniteUpper) {
+		    assert(nowUpper < large);
+		    newBound = nowUpper + 
+		      (lower - maximumUp) / value;
+		    // relax if original was large
+		    if (fabs(maximumUp)>1.0e8&&!singletonColumn)
+		      newBound -= 1.0e-12*fabs(maximumUp);
+		  } else if (infiniteUpper==1&&nowUpper>large) {
+		    newBound = (lower -maximumUp) / value;
+		    // relax if original was large
+		    if (fabs(maximumUp)>1.0e8&&!singletonColumn)
+		      newBound -= 1.0e-12*fabs(maximumUp);
+		  } else {
+		    newBound = -COIN_DBL_MAX;
+		  }
+		  if (newBound > nowLower + 1.0e-12) {
+		    // Tighten the lower bound 
+		    // adjust
+		    double now;
+		    if (nowLower<-large) {
+		      now=0.0;
+		      infiniteLower--;
+		    } else {
+		      now = nowLower;
+		    }
+		    maximumDown += (newBound-now) * value;
+		    nowLower = newBound;
+		  }
+		  low=CoinMax(low,newBound);
+		} 
+		if (upper <large) {
+		  if (!infiniteLower) {
+		    assert(nowLower >- large);
+		    newBound = nowLower + 
+		      (upper - maximumDown) / value;
+		    // relax if original was large
+		    if (fabs(maximumDown)>1.0e8&&!singletonColumn)
+		      newBound += 1.0e-12*fabs(maximumDown);
+		  } else if (infiniteLower==1&&nowLower<-large) {
+		    newBound =   (upper - maximumDown) / value;
+		    // relax if original was large
+		    if (fabs(maximumDown)>1.0e8&&!singletonColumn)
+		      newBound += 1.0e-12*fabs(maximumDown);
+		  } else {
+		    newBound = COIN_DBL_MAX;
+		  }
+		  if (newBound < nowUpper - 1.0e-12) {
+		    // Tighten the upper bound 
+		    // adjust 
+		    double now;
+		    if (nowUpper>large) {
+		      now=0.0;
+		      infiniteUpper--;
+		    } else {
+		      now = nowUpper;
+		    }
+		    maximumUp += (newBound-now) * value;
+		    nowUpper = newBound;
+		  }
+		  high=CoinMin(high,newBound);
+		}
+	      } else {
+		// negative value
+		if (lower>-large) {
+		  if (!infiniteUpper) {
+		    assert(nowLower >- large);
+		    newBound = nowLower + 
+		      (lower - maximumUp) / value;
+		    // relax if original was large
+		    if (fabs(maximumUp)>1.0e8&&!singletonColumn)
+		      newBound += 1.0e-12*fabs(maximumUp);
+		  } else if (infiniteUpper==1&&nowLower<-large) {
+		    newBound = (lower -maximumUp) / value;
+		    // relax if original was large
+		    if (fabs(maximumUp)>1.0e8&&!singletonColumn)
+		      newBound += 1.0e-12*fabs(maximumUp);
+		  } else {
+		    newBound = COIN_DBL_MAX;
+		  }
+		  if (newBound < nowUpper - 1.0e-12) {
+		    // Tighten the upper bound 
+		    // adjust
+		    double now;
+		    if (nowUpper>large) {
+		      now=0.0;
+		      infiniteLower--;
+		    } else {
+		      now = nowUpper;
+		    }
+		    maximumDown += (newBound-now) * value;
+		    nowUpper = newBound;
+		  }
+		  high=CoinMin(high,newBound);
+		}
+		if (upper <large) {
+		  if (!infiniteLower) {
+		    assert(nowUpper < large);
+		    newBound = nowUpper + 
+		      (upper - maximumDown) / value;
+		    // relax if original was large
+		    if (fabs(maximumDown)>1.0e8&&!singletonColumn)
+		      newBound -= 1.0e-12*fabs(maximumDown);
+		  } else if (infiniteLower==1&&nowUpper>large) {
+		    newBound =   (upper - maximumDown) / value;
+		    // relax if original was large
+		    if (fabs(maximumDown)>1.0e8&&!singletonColumn)
+		      newBound -= 1.0e-12*fabs(maximumDown);
+		  } else {
+		    newBound = -COIN_DBL_MAX;
+		  }
+		  if (newBound > nowLower + 1.0e-12) {
+		    // Tighten the lower bound 
+		    // adjust
+		    double now;
+		    if (nowLower<-large) {
+		      now=0.0;
+		      infiniteUpper--;
+		    } else {
+		      now = nowLower;
+		    }
+		    maximumUp += (newBound-now) * value;
+		    nowLower = newBound;
+		  }
+		  low = CoinMax(low,newBound);
+		}
+	      }
+	    } else if (infiniteUp[row]==-3) {
+	      // give up
+	      high=COIN_DBL_MAX;
+	      low=-COIN_DBL_MAX;
+	      break;
+	    }
 	  }
 	}
-	if (possible&&!singleton) {
-	  double low=-COIN_DBL_MAX;
-	  double high=COIN_DBL_MAX;
-	  // get bound implied by all rows
+	if (clo[j] <= low && high <= cup[j]) {
+	  
+	  // both column bounds implied by the constraints of the problem
+	  // get row
+	  // If more than one equality is present, how do I know the one I
+	  // select here will be the one that actually implied tighter
+	  // bounds? Seems like I should care.  -- lh, 040818 --
+	  largestElement *= 0.1;
+	  int krow=-1;
+	  int ninrow=ncols+1;
+	  double thisValue=0.0;
 	  for (k=kcs; k<kce; ++k) {
 	    int row = hrow[k];
 	    double coeffj = colels[k];
-	    if (fabs(coeffj) > ZTOLDP2) {
-	      if (infiniteUp[row]==-1) {
-		// compute
-		CoinBigIndex krs = mrstrt[row];
-		CoinBigIndex kre = krs + hinrow[row];
-		int infiniteUpper = 0;
-		int infiniteLower = 0;
-		double maximumUp = 0.0;
-		double maximumDown = 0.0;
-		CoinBigIndex kk;
-		// Compute possible lower and upper ranges
-		for (kk = krs; kk < kre; ++kk) {
-		  double value=rowels[kk];
-		  int iColumn = hcol[kk];
-		  if (value > 0.0) {
-		    if (cup[iColumn] >= large) {
-		      ++infiniteUpper;
-		    } else {
-		      maximumUp += cup[iColumn] * value;
-		    }
-		    if (clo[iColumn] <= -large) {
-		      ++infiniteLower;
-		    } else {
-		      maximumDown += clo[iColumn] * value;
-		    }
-		  } else if (value<0.0) {
-		    if (cup[iColumn] >= large) {
-		      ++infiniteLower;
-		    } else {
-		      maximumDown += cup[iColumn] * value;
-		    }
-		    if (clo[iColumn] <= -large) {
-		      ++infiniteUpper;
-		    } else {
-		      maximumUp += clo[iColumn] * value;
-		    }
-		  }
-		}
-		double maxUpx = maximumUp+infiniteUpper*1.0e31;
-		double maxDownx = maximumDown-infiniteLower*1.0e31;
-		if (maxUpx <= rup[row] + tol && 
-		    maxDownx >= rlo[row] - tol) {
-	  
-		  // Row is redundant 
-		  infiniteUp[row]=-3;
-
-		} else if (maxUpx < rlo[row] -tol &&!fixInfeasibility) {
-		  /* there is an upper bound and it can't be reached */
-		  prob->status_|= 1;
-		  prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
-						  prob->messages())
-						    <<row
-						    <<rlo[row]
-						    <<rup[row]
-						    <<CoinMessageEol;
-		  infiniteUp[row]=-3;
-		  break;
-		} else if ( maxDownx > rup[row]+tol&&!fixInfeasibility) {
-		  /* there is a lower bound and it can't be reached */
-		  prob->status_|= 1;
-		  prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
-						  prob->messages())
-						    <<row
-						    <<rlo[row]
-						    <<rup[row]
-						    <<CoinMessageEol;
-		  infiniteUp[row]=-3;
-		  break;
-		} else {
-		  infiniteUp[row]=infiniteUpper;
-		  infiniteDown[row]=infiniteLower;
-		  maxUp[row]=maximumUp;
-		  maxDown[row]=maximumDown;
-		}
-	      } 
-	      if (infiniteUp[row]>=0) {
-		double lower = rlo[row];
-		double upper = rup[row];
-		double value=coeffj;
-		double nowLower = clo[j];
-		double nowUpper = cup[j];
-		double newBound;
-		int infiniteUpper=infiniteUp[row];
-		int infiniteLower=infiniteDown[row];
-		double maximumUp = maxUp[row];
-		double maximumDown = maxDown[row];
-		if (value > 0.0) {
-		  // positive value
-		  if (lower>-large) {
-		    if (!infiniteUpper) {
-		      assert(nowUpper < large);
-		      newBound = nowUpper + 
-			(lower - maximumUp) / value;
-		      // relax if original was large
-		      if (fabs(maximumUp)>1.0e8)
-			newBound -= 1.0e-12*fabs(maximumUp);
-		    } else if (infiniteUpper==1&&nowUpper>large) {
-		      newBound = (lower -maximumUp) / value;
-		      // relax if original was large
-		      if (fabs(maximumUp)>1.0e8)
-			newBound -= 1.0e-12*fabs(maximumUp);
-		    } else {
-		      newBound = -COIN_DBL_MAX;
-		    }
-		    if (newBound > nowLower + 1.0e-12) {
-		      // Tighten the lower bound 
-		      // adjust
-		      double now;
-		      if (nowLower<-large) {
-			now=0.0;
-			infiniteLower--;
-		      } else {
-			now = nowLower;
-		      }
-		      maximumDown += (newBound-now) * value;
-		      nowLower = newBound;
-		    }
-		    low=CoinMax(low,newBound);
-		  } 
-		  if (upper <large) {
-		    if (!infiniteLower) {
-		      assert(nowLower >- large);
-		      newBound = nowLower + 
-			(upper - maximumDown) / value;
-		      // relax if original was large
-		      if (fabs(maximumDown)>1.0e8)
-			newBound += 1.0e-12*fabs(maximumDown);
-		    } else if (infiniteLower==1&&nowLower<-large) {
-		      newBound =   (upper - maximumDown) / value;
-		      // relax if original was large
-		      if (fabs(maximumDown)>1.0e8)
-			newBound += 1.0e-12*fabs(maximumDown);
-		    } else {
-		      newBound = COIN_DBL_MAX;
-		    }
-		    if (newBound < nowUpper - 1.0e-12) {
-		      // Tighten the upper bound 
-		      // adjust 
-		      double now;
-		      if (nowUpper>large) {
-			now=0.0;
-			infiniteUpper--;
-		      } else {
-			now = nowUpper;
-		      }
-		      maximumUp += (newBound-now) * value;
-		      nowUpper = newBound;
-		    }
-		    high=CoinMin(high,newBound);
-		  }
-		} else {
-		  // negative value
-		  if (lower>-large) {
-		    if (!infiniteUpper) {
-		      assert(nowLower >- large);
-		      newBound = nowLower + 
-			(lower - maximumUp) / value;
-		      // relax if original was large
-		      if (fabs(maximumUp)>1.0e8)
-			newBound += 1.0e-12*fabs(maximumUp);
-		    } else if (infiniteUpper==1&&nowLower<-large) {
-		      newBound = (lower -maximumUp) / value;
-		      // relax if original was large
-		      if (fabs(maximumUp)>1.0e8)
-			newBound += 1.0e-12*fabs(maximumUp);
-		    } else {
-		      newBound = COIN_DBL_MAX;
-		    }
-		    if (newBound < nowUpper - 1.0e-12) {
-		      // Tighten the upper bound 
-		      // adjust
-		      double now;
-		      if (nowUpper>large) {
-			now=0.0;
-			infiniteLower--;
-		      } else {
-			now = nowUpper;
-		      }
-		      maximumDown += (newBound-now) * value;
-		      nowUpper = newBound;
-		    }
-		    high=CoinMin(high,newBound);
-		  }
-		  if (upper <large) {
-		    if (!infiniteLower) {
-		      assert(nowUpper < large);
-		      newBound = nowUpper + 
-			(upper - maximumDown) / value;
-		      // relax if original was large
-		      if (fabs(maximumDown)>1.0e8)
-			newBound -= 1.0e-12*fabs(maximumDown);
-		    } else if (infiniteLower==1&&nowUpper>large) {
-		      newBound =   (upper - maximumDown) / value;
-		      // relax if original was large
-		      if (fabs(maximumDown)>1.0e8)
-			newBound -= 1.0e-12*fabs(maximumDown);
-		    } else {
-		      newBound = -COIN_DBL_MAX;
-		    }
-		    if (newBound > nowLower + 1.0e-12) {
-		      // Tighten the lower bound 
-		      // adjust
-		      double now;
-		      if (nowLower<-large) {
-			now=0.0;
-			infiniteUpper--;
-		      } else {
-			now = nowLower;
-		      }
-		      maximumUp += (newBound-now) * value;
-		      nowLower = newBound;
-		    }
-		    low = CoinMax(low,newBound);
-		  }
-		}
-	      } else if (infiniteUp[row]==-3) {
-		// give up
-		high=COIN_DBL_MAX;
-		low=-COIN_DBL_MAX;
-		break;
+	    if ( fabs(rlo[row] - rup[row]) < tol &&
+		 fabs(coeffj) > largestElement) {
+	      if (hinrow[row]<ninrow) {
+		ninrow=hinrow[row];
+		krow=row;
+		thisValue=coeffj;
 	      }
 	    }
 	  }
-	  if (clo[j] <= low && high <= cup[j]) {
-	      
-	    // both column bounds implied by the constraints of the problem
-	    // get row
-	    // If more than one equality is present, how do I know the one I
-	    // select here will be the one that actually implied tighter
-	    // bounds? Seems like I should care.  -- lh, 040818 --
-	    largestElement *= 0.1;
-	    int krow=-1;
-	    int ninrow=ncols+1;
-	    double thisValue=0.0;
-	    for (k=kcs; k<kce; ++k) {
-	      int row = hrow[k];
-	      double coeffj = colels[k];
-	      if ( fabs(rlo[row] - rup[row]) < tol &&
-		   fabs(coeffj) > largestElement) {
-		if (hinrow[row]<ninrow) {
-		  ninrow=hinrow[row];
-		  krow=row;
-		  thisValue=coeffj;
-		}
-	      }
-	    }
-	    if (krow>=0) {
-              bool goodRow=true;
-              if (integerType[j]) {
-                // can only accept if good looking row
-		double scaleFactor = 1.0/thisValue;
-		double rhs = rlo[krow]*scaleFactor;
-                if (fabs(rhs-floor(rhs+0.5))<tol) {
-                  CoinBigIndex krs = mrstrt[krow];
-                  CoinBigIndex kre = krs + hinrow[krow];
-                  CoinBigIndex kk;
-                  bool allOnes=true;
-                  for (kk = krs; kk < kre; ++kk) {
-                    double value=rowels[kk]*scaleFactor;
-                    if (fabs(value)!=1.0)
-                      allOnes=false;
-                    int iColumn = hcol[kk];
-                    if (!integerType[iColumn]||fabs(value-floor(value+0.5))>tol) {
-                      goodRow=false;
-                      break;
-                    }
-                  }
-                  if (rlo[krow]==1.0&&hinrow[krow]>=5&&stopSomeStuff&&allOnes)
-                    goodRow=false; // may spoil SOS 
-                } else {
-                  goodRow=false;
-                }
-              }
-              if (goodRow) {
-                implied_free[j] = krow;
-                // And say row no good for further use
-                infiniteUp[krow]=-3;
-                //printf("column %d implied free by row %d hincol %d hinrow %d\n",
-                //     j,krow,hincol[j],hinrow[krow]);
-              }
-	    }
-	  }
-	}
-      } else if (hincol[j]) {
-	// singleton column
-	CoinBigIndex k = mcstrt[j];
-	int row = hrow[k];
-	double coeffj = colels[k];
-	if ((!cost[j]||rlo[row]==rup[row])&&hinrow[row]>1&&
-	    fabs(coeffj) > ZTOLDP2&&infiniteUp[row]!=-3) {
-	  
-	  CoinBigIndex krs = mrstrt[row];
-	  CoinBigIndex kre = krs + hinrow[row];
-	  
-	  double maxup, maxdown, ilow, iup;
-	  implied_bounds(rowels, clo, cup, hcol,
-			 krs, kre,
-			 &maxup, &maxdown,
-			 j, rlo[row], rup[row], &ilow, &iup);
-	  
-	  
-	  if (maxup < PRESOLVE_INF && maxup + tol < rlo[row]&&!fixInfeasibility) {
-	    /* there is an upper bound and it can't be reached */
-	    prob->status_|= 1;
-	    prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
-					    prob->messages())
-					      <<row
-					      <<rlo[row]
-					      <<rup[row]
-					      <<CoinMessageEol;
-	    break;
-	  } else if (-PRESOLVE_INF < maxdown && rup[row] < maxdown - tol&&!fixInfeasibility) {
-	    /* there is a lower bound and it can't be reached */
-	    prob->status_|= 1;
-	    prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
-					    prob->messages())
-					      <<row
-					      <<rlo[row]
-					      <<rup[row]
-					      <<CoinMessageEol;
-	    break;
-	  } else if (clo[j] <= ilow && iup <= cup[j]) {
-	    
-	    // both column bounds implied by the constraints of the problem
+	  if (krow>=0) {
 	    bool goodRow=true;
 	    if (integerType[j]) {
 	      // can only accept if good looking row
-	      double scaleFactor = 1.0/coeffj;
-	      double rhs = rlo[row]*scaleFactor;
+	      double scaleFactor = 1.0/thisValue;
+	      double rhs = rlo[krow]*scaleFactor;
 	      if (fabs(rhs-floor(rhs+0.5))<tol) {
-		CoinBigIndex krs = mrstrt[row];
-		CoinBigIndex kre = krs + hinrow[row];
+		CoinBigIndex krs = mrstrt[krow];
+		CoinBigIndex kre = krs + hinrow[krow];
 		CoinBigIndex kk;
 		bool allOnes=true;
 		for (kk = krs; kk < kre; ++kk) {
@@ -947,26 +1061,25 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		    break;
 		  }
 		}
-		if (rlo[row]==1.0&&hinrow[row]>=5&&stopSomeStuff&&allOnes)
+		if (rlo[krow]==1.0&&hinrow[krow]>=5&&stopSomeStuff&&allOnes)
 		  goodRow=false; // may spoil SOS 
 	      } else {
 		goodRow=false;
 	      }
 	    }
 	    if (goodRow) {
-	      implied_free[j] = row;
-	      infiniteUp[row]=-3;
+	      implied_free[numberFree] = krow;
+	      whichFree[numberFree++] = j;
+	      // And say row no good for further use
+	      infiniteUp[krow]=-3;
 	      //printf("column %d implied free by row %d hincol %d hinrow %d\n",
-	      //   j,row,hincol[j],hinrow[row]);
+	      //     j,krow,hincol[j],hinrow[krow]);
 	    }
 	  }
 	}
       }
     }
   }
-  // this comment is incorrect? implied_free[j] is a row index, not column
-  // length    -- lh, 040818 --
-  // implied_free[j] == hincol[j] && hincol[j] > 0 ==> j is implied free
 
   delete [] infiniteDown;
   delete [] infiniteUp;
@@ -979,9 +1092,9 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   // note that this will only deal with columns that were originally
   // singleton; it will not deal with doubleton columns that become
   // singletons as a result of dropping rows.
-  for (iLook=0;iLook<numberLook;iLook++) {
-    int j=look[iLook];
-    if (hincol[j] == 1 && implied_free[j] >=0) {
+  for (iLook=0;iLook<numberFree;iLook++) {
+    int j=whichFree[iLook];
+    if (hincol[j] == 1) {
       CoinBigIndex kcs = mcstrt[j];
       int row = hrow[kcs];
       double coeffj = colels[kcs];
@@ -1077,11 +1190,11 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
       PRESOLVE_REMOVE_LINK(clink, j);
       hincol[j] = 0;
 
-      implied_free[j] = -1;	// probably unnecessary
+      implied_free[iLook] = -1;	
     }
   }
 
-  delete [] look2;
+  //delete [] look2;
   if (nactions) {
 #   if PRESOLVE_SUMMARY
     printf("NIMPLIED FREE:  %d\n", nactions);
@@ -1100,9 +1213,11 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   }
   // try more complex ones
   if (fill_level) {
-    next = subst_constraint_action::presolve(prob, implied_free, next,fill_level);
+    next = subst_constraint_action::presolve(prob, implied_free, 
+					     whichFree,numberFree,
+					     next,fill_level);
   }
-  delete[]implied_free;
+  //delete[]implied_free;
 
   if (prob->tuning_) {
     double thisTime=CoinCpuTime();

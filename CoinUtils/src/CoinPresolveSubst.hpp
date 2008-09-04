@@ -45,9 +45,11 @@ private:
   const char *name() const;
 
   static const CoinPresolveAction *presolve(CoinPresolveMatrix * prob,
-					 int *implied_free,
-					 const CoinPresolveAction *next,
-					int & fill_level);
+					    const int *implied_free,
+					    const int * which,
+					    int numberFree,
+					    const CoinPresolveAction *next,
+					    int & fill_level);
   static const CoinPresolveAction *presolveX(CoinPresolveMatrix * prob,
 				  const CoinPresolveAction *next,
 				  int fillLevel);

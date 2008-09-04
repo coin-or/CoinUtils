@@ -41,7 +41,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt	= prob->mcstrt_;
   int *hincol		= prob->hincol_;
-  int ncols		= prob->ncols_;
+  //int ncols		= prob->ncols_;
 
   double *clo		= prob->clo_;
   double *cup		= prob->cup_;
@@ -80,7 +80,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   int nactions = 0;
   notFinished = false;
 
-  int * fixed_cols = new int [ncols];
+  int * fixed_cols = prob->usefulColumnInt_; //new int [ncols];
   int nfixed_cols	= 0;
 
   // this loop can apparently create new singleton rows;
@@ -280,7 +280,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 					 true, // arbitrary
 					 next);
   }
-  delete [] fixed_cols;
+  //delete [] fixed_cols;
   if (prob->tuning_) {
     double thisTime=CoinCpuTime();
     int droppedRows = prob->countEmptyRows() - startEmptyRows ;
@@ -507,6 +507,8 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
   double costOffset=0.0;
   for (iLook=0;iLook<numberLook;iLook++) {
     int iCol = look[iLook];
+    if (dcost[iCol])
+      continue;
     if (hincol[iCol] == 1) {
       int iRow=hrow[mcstrt[iCol]];
       double coeff = colels[mcstrt[iCol]];

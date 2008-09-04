@@ -205,10 +205,10 @@ const CoinPresolveAction
   action * actions = new action [nrows];
   int nactions = 0;
 
-  int *zeros	= new int[ncols];
+  int *zeros	= prob->usefulColumnInt_; //new int[ncols];
   int nzeros	= 0;
 
-  int *fixed	= new int[ncols];
+  int *fixed	= zeros+ncols; //new int[ncols];
   int nfixed	= 0;
 
   unsigned char *rowstat = prob->rowstat_;
@@ -672,8 +672,8 @@ const CoinPresolveAction
       next = remove_fixed_action::presolve(prob, fixed, nfixed, next);
   }
 
-  delete[]zeros;
-  delete[]fixed;
+  //delete[]zeros;
+  //delete[]fixed;
   deleteAction(actions,action*);
 
   if (prob->tuning_) {

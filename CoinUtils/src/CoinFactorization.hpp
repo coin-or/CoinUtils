@@ -484,11 +484,17 @@ public:
   /// Does most of factorization
   int factor (  );
 protected:
-  /// Does sparse phase of factorization
-  /// return code is <0 error, 0= finished
+  /** Does sparse phase of factorization
+      return code is <0 error, 0= finished */
   int factorSparse (  );
-  /// Does dense phase of factorization
-  /// return code is <0 error, 0= finished
+  /** Does sparse phase of factorization (for smaller problems)
+      return code is <0 error, 0= finished */
+  int factorSparseSmall (  );
+  /** Does sparse phase of factorization (for larger problems)
+      return code is <0 error, 0= finished */
+  int factorSparseLarge (  );
+  /** Does dense phase of factorization
+      return code is <0 error, 0= finished */
   int factorDense (  );
 
   /// Pivots when just one other row so faster?
@@ -877,7 +883,7 @@ protected:
     bool checkLargest;
     int mark = markRow[iRow];
 
-    if ( mark < 0 ) {
+    if ( mark == largeInteger+1 ) {
       largest = fabs ( value );
       positionLargest = put;
       put++;
@@ -904,7 +910,7 @@ protected:
       value = elementU[i];
       int mark = markRow[iRow];
 
-      if ( mark < 0 ) {
+      if ( mark == largeInteger+1 ) {
 	//keep
 	indexRowU[put] = iRow;
 	elementU[put] = value;
@@ -1078,7 +1084,7 @@ protected:
       }
       //put back next one in case zapped
       indexColumnU[startRowU[next]] = saveIndex;
-      markRow[iRow] = -1;
+      markRow[iRow] = largeInteger+1;
       number = end - startRowU[iRow];
       numberInRow[iRow] = number;
       deleteLink ( iRow );
@@ -1133,13 +1139,13 @@ protected:
       end += test;
     }
     indexColumnU[startRowU[next]] = saveIndex;
-    markRow[iRow] = -1;
+    markRow[iRow] = largeInteger+1;
     number = end - startRowU[iRow];
     numberInRow[iRow] = number;
     deleteLink ( iRow );
     addLink ( iRow, number );
   }
-  markRow[pivotRow] = -1;
+  markRow[pivotRow] = largeInteger+1;
   //modify linked list for pivots
   deleteLink ( pivotRow );
   deleteLink ( pivotColumn + numberRows_ );
@@ -1426,4 +1432,464 @@ typedef int ipfint;
 typedef const int cipfint;
 #endif
 #endif
+#endif
+// Extra for ugly include
+#ifdef UGLY_COIN_FACTOR_CODING
+#define FAC_UNSET (FAC_SET+1)
+{
+  goodPivot=false;
+  //store pivot columns (so can easily compress)
+  CoinBigIndex startColumnThis = startColumn[iPivotColumn];
+  CoinBigIndex endColumn = startColumnThis + numberDoColumn + 1;
+  int put = 0;
+  CoinBigIndex startRowThis = startRow[iPivotRow];
+  CoinBigIndex endRow = startRowThis + numberDoRow + 1;
+  if ( pivotColumnPosition < 0 ) {
+    for ( pivotColumnPosition = startRowThis; pivotColumnPosition < endRow; pivotColumnPosition++ ) {
+      int iColumn = indexColumn[pivotColumnPosition];
+      if ( iColumn != iPivotColumn ) {
+	saveColumn[put++] = iColumn;
+      } else {
+        break;
+      }
+    }
+  } else {
+    for (CoinBigIndex i = startRowThis ; i < pivotColumnPosition ; i++ ) {
+      saveColumn[put++] = indexColumn[i];
+    }
+  }
+  assert (pivotColumnPosition<endRow);
+  assert (indexColumn[pivotColumnPosition]==iPivotColumn);
+  pivotColumnPosition++;
+  for ( ; pivotColumnPosition < endRow; pivotColumnPosition++ ) {
+    saveColumn[put++] = indexColumn[pivotColumnPosition];
+  }
+  //take out this bit of indexColumn
+  int next = nextRow[iPivotRow];
+  int last = lastRow[iPivotRow];
+  
+  nextRow[last] = next;
+  lastRow[next] = last;
+  nextRow[iPivotRow] = numberGoodU_;	//use for permute
+  lastRow[iPivotRow] = -2;
+  numberInRow[iPivotRow] = 0;
+  //store column in L, compress in U and take column out
+  CoinBigIndex l = lengthL_;
+  // **** HORRID coding coming up but a goto seems best!
+  {
+    if ( l + numberDoColumn > lengthAreaL_ ) {
+      //need more memory
+      printf("more memory needed in middle of invert\n");
+      goto BAD_PIVOT;
+    }
+    //l+=currentAreaL_->elementByColumn-elementL;
+    CoinBigIndex lSave = l;
+    
+    pivotRowL_.array()[numberGoodL_] = iPivotRow;
+    CoinBigIndex * startColumnL = startColumnL_.array();
+    startColumnL[numberGoodL_] = l;	//for luck and first time
+    numberGoodL_++;
+    startColumnL[numberGoodL_] = l + numberDoColumn;
+    lengthL_ += numberDoColumn;
+    if ( pivotRowPosition < 0 ) {
+      for ( pivotRowPosition = startColumnThis; pivotRowPosition < endColumn; pivotRowPosition++ ) {
+	int iRow = indexRow[pivotRowPosition];
+	if ( iRow != iPivotRow ) {
+	  indexRowL[l] = iRow;
+	  elementL[l] = element[pivotRowPosition];
+	  markRow[iRow] = l - lSave;
+	  l++;
+	  //take out of row list
+	  CoinBigIndex start = startRow[iRow];
+	  CoinBigIndex end = start + numberInRow[iRow];
+	  CoinBigIndex where = start;
+	  
+	  while ( indexColumn[where] != iPivotColumn ) {
+	    where++;
+	  }			/* endwhile */
+#if DEBUG_COIN
+	  if ( where >= end ) {
+	    abort (  );
+	  }
+#endif
+	  indexColumn[where] = indexColumn[end - 1];
+	  numberInRow[iRow]--;
+	} else {
+	  break;
+	}
+      }
+    } else {
+      CoinBigIndex i;
+      
+      for ( i = startColumnThis; i < pivotRowPosition; i++ ) {
+	int iRow = indexRow[i];
+	
+	markRow[iRow] = l - lSave;
+	indexRowL[l] = iRow;
+	elementL[l] = element[i];
+	l++;
+	//take out of row list
+	CoinBigIndex start = startRow[iRow];
+	CoinBigIndex end = start + numberInRow[iRow];
+	CoinBigIndex where = start;
+	
+	while ( indexColumn[where] != iPivotColumn ) {
+	  where++;
+	}				/* endwhile */
+#if DEBUG_COIN
+	if ( where >= end ) {
+	  abort (  );
+	}
+#endif
+	indexColumn[where] = indexColumn[end - 1];
+	numberInRow[iRow]--;
+	assert (numberInRow[iRow]>=0);
+      }
+    }
+    assert (pivotRowPosition<endColumn);
+    assert (indexRow[pivotRowPosition]==iPivotRow);
+    double pivotElement = element[pivotRowPosition];
+    double pivotMultiplier = 1.0 / pivotElement;
+    
+    pivotRegion_.array()[numberGoodU_] = pivotMultiplier;
+    pivotRowPosition++;
+    for ( ; pivotRowPosition < endColumn; pivotRowPosition++ ) {
+      int iRow = indexRow[pivotRowPosition];
+      
+      markRow[iRow] = l - lSave;
+      indexRowL[l] = iRow;
+      elementL[l] = element[pivotRowPosition];
+      l++;
+      //take out of row list
+      CoinBigIndex start = startRow[iRow];
+      CoinBigIndex end = start + numberInRow[iRow];
+      CoinBigIndex where = start;
+      
+      while ( indexColumn[where] != iPivotColumn ) {
+	where++;
+      }				/* endwhile */
+#if DEBUG_COIN
+      if ( where >= end ) {
+	abort (  );
+      }
+#endif
+      indexColumn[where] = indexColumn[end - 1];
+      numberInRow[iRow]--;
+      assert (numberInRow[iRow]>=0);
+    }
+    markRow[iPivotRow] = FAC_SET;
+    //compress pivot column (move pivot to front including saved)
+    numberInColumn[iPivotColumn] = 0;
+    //use end of L for temporary space
+    int *indexL = &indexRowL[lSave];
+    double *multipliersL = &elementL[lSave];
+    
+    //adjust
+    int j;
+    
+    for ( j = 0; j < numberDoColumn; j++ ) {
+      multipliersL[j] *= pivotMultiplier;
+    }
+    //zero out fill
+    CoinBigIndex iErase;
+    for ( iErase = 0; iErase < increment2 * numberDoRow;
+	  iErase++ ) {
+      workArea2[iErase] = 0;
+    }
+    CoinBigIndex added = numberDoRow * numberDoColumn;
+    unsigned int *temp2 = workArea2;
+    int * nextColumn = nextColumn_.array();
+    
+    //pack down and move to work
+    int jColumn;
+    for ( jColumn = 0; jColumn < numberDoRow; jColumn++ ) {
+      int iColumn = saveColumn[jColumn];
+      CoinBigIndex startColumnThis = startColumn[iColumn];
+      CoinBigIndex endColumn = startColumnThis + numberInColumn[iColumn];
+      int iRow = indexRow[startColumnThis];
+      double value = element[startColumnThis];
+      double largest;
+      CoinBigIndex put = startColumnThis;
+      CoinBigIndex positionLargest = -1;
+      double thisPivotValue = 0.0;
+      
+      //compress column and find largest not updated
+      bool checkLargest;
+      int mark = markRow[iRow];
+      
+      if ( mark == FAC_UNSET ) {
+	largest = fabs ( value );
+	positionLargest = put;
+	put++;
+	checkLargest = false;
+      } else {
+	//need to find largest
+	largest = 0.0;
+	checkLargest = true;
+	if ( mark != FAC_SET ) {
+	  //will be updated
+	  workArea[mark] = value;
+	  int word = mark >> COINFACTORIZATION_SHIFT_PER_INT;
+	  int bit = mark & COINFACTORIZATION_MASK_PER_INT;
+	  
+	  temp2[word] = temp2[word] | ( 1 << bit );	//say already in counts
+	  added--;
+	} else {
+	  thisPivotValue = value;
+	}
+      }
+      CoinBigIndex i;
+      for ( i = startColumnThis + 1; i < endColumn; i++ ) {
+	iRow = indexRow[i];
+	value = element[i];
+	int mark = markRow[iRow];
+	
+	if ( mark == FAC_UNSET ) {
+	  //keep
+	  indexRow[put] = iRow;
+	  element[put] = value;
+	  if ( checkLargest ) {
+	    double absValue = fabs ( value );
+	    
+	    if ( absValue > largest ) {
+	      largest = absValue;
+	      positionLargest = put;
+	    }
+	  }
+	  put++;
+	} else if ( mark != FAC_SET ) {
+	  //will be updated
+	  workArea[mark] = value;
+	  int word = mark >> COINFACTORIZATION_SHIFT_PER_INT;
+	  int bit = mark & COINFACTORIZATION_MASK_PER_INT;
+	  
+	  temp2[word] = temp2[word] | ( 1 << bit );	//say already in counts
+	  added--;
+	} else {
+	  thisPivotValue = value;
+	}
+      }
+      //slot in pivot
+      element[put] = element[startColumnThis];
+      indexRow[put] = indexRow[startColumnThis];
+      if ( positionLargest == startColumnThis ) {
+	positionLargest = put;	//follow if was largest
+      }
+      put++;
+      element[startColumnThis] = thisPivotValue;
+      indexRow[startColumnThis] = iPivotRow;
+      //clean up counts
+      startColumnThis++;
+      numberInColumn[iColumn] = put - startColumnThis;
+      int * numberInColumnPlus = numberInColumnPlus_.array();
+      numberInColumnPlus[iColumn]++;
+      startColumn[iColumn]++;
+      //how much space have we got
+      int next = nextColumn[iColumn];
+      CoinBigIndex space;
+      
+      space = startColumn[next] - put - numberInColumnPlus[next];
+      //assume no zero elements
+      if ( numberDoColumn > space ) {
+	//getColumnSpace also moves fixed part
+	if ( !getColumnSpace ( iColumn, numberDoColumn ) ) {
+	  goto BAD_PIVOT;
+	}
+	//redo starts
+	positionLargest = positionLargest + startColumn[iColumn] - startColumnThis;
+	startColumnThis = startColumn[iColumn];
+	put = startColumnThis + numberInColumn[iColumn];
+      }
+      double tolerance = zeroTolerance_;
+      
+      int *nextCount = nextCount_.array();
+      for ( j = 0; j < numberDoColumn; j++ ) {
+	value = workArea[j] - thisPivotValue * multipliersL[j];
+	double absValue = fabs ( value );
+	
+	if ( absValue > tolerance ) {
+	  workArea[j] = 0.0;
+	  element[put] = value;
+	  indexRow[put] = indexL[j];
+	  if ( absValue > largest ) {
+	    largest = absValue;
+	    positionLargest = put;
+	  }
+	  put++;
+	} else {
+	  workArea[j] = 0.0;
+	  added--;
+	  int word = j >> COINFACTORIZATION_SHIFT_PER_INT;
+	  int bit = j & COINFACTORIZATION_MASK_PER_INT;
+	  
+	  if ( temp2[word] & ( 1 << bit ) ) {
+	    //take out of row list
+	    iRow = indexL[j];
+	    CoinBigIndex start = startRow[iRow];
+	    CoinBigIndex end = start + numberInRow[iRow];
+	    CoinBigIndex where = start;
+	    
+	    while ( indexColumn[where] != iColumn ) {
+	      where++;
+	    }			/* endwhile */
+#if DEBUG_COIN
+	    if ( where >= end ) {
+	      abort (  );
+	    }
+#endif
+	    indexColumn[where] = indexColumn[end - 1];
+	    numberInRow[iRow]--;
+	  } else {
+	    //make sure won't be added
+	    int word = j >> COINFACTORIZATION_SHIFT_PER_INT;
+	    int bit = j & COINFACTORIZATION_MASK_PER_INT;
+	    
+	    temp2[word] = temp2[word] | ( 1 << bit );	//say already in counts
+	  }
+	}
+      }
+      numberInColumn[iColumn] = put - startColumnThis;
+      //move largest
+      if ( positionLargest >= 0 ) {
+	value = element[positionLargest];
+	iRow = indexRow[positionLargest];
+	element[positionLargest] = element[startColumnThis];
+	indexRow[positionLargest] = indexRow[startColumnThis];
+	element[startColumnThis] = value;
+	indexRow[startColumnThis] = iRow;
+      }
+      //linked list for column
+      if ( nextCount[iColumn + numberRows_] != -2 ) {
+	//modify linked list
+	deleteLink ( iColumn + numberRows_ );
+	addLink ( iColumn + numberRows_, numberInColumn[iColumn] );
+      }
+      temp2 += increment2;
+    }
+    //get space for row list
+    unsigned int *putBase = workArea2;
+    int bigLoops = numberDoColumn >> COINFACTORIZATION_SHIFT_PER_INT;
+    int i = 0;
+    
+    // do linked lists and update counts
+    while ( bigLoops ) {
+      bigLoops--;
+      int bit;
+      for ( bit = 0; bit < COINFACTORIZATION_BITS_PER_INT; i++, bit++ ) {
+	unsigned int *putThis = putBase;
+	int iRow = indexL[i];
+	
+	//get space
+	int number = 0;
+	int jColumn;
+	
+	for ( jColumn = 0; jColumn < numberDoRow; jColumn++ ) {
+	  unsigned int test = *putThis;
+	  
+	  putThis += increment2;
+	  test = 1 - ( ( test >> bit ) & 1 );
+	  number += test;
+	}
+	int next = nextRow[iRow];
+	CoinBigIndex space;
+	
+	space = startRow[next] - startRow[iRow];
+	number += numberInRow[iRow];
+	if ( space < number ) {
+	  if ( !getRowSpace ( iRow, number ) ) {
+	    goto BAD_PIVOT;
+	  }
+	}
+	// now do
+	putThis = putBase;
+	next = nextRow[iRow];
+	number = numberInRow[iRow];
+	CoinBigIndex end = startRow[iRow] + number;
+	int saveIndex = indexColumn[startRow[next]];
+	
+	//add in
+	for ( jColumn = 0; jColumn < numberDoRow; jColumn++ ) {
+	  unsigned int test = *putThis;
+	  
+	  putThis += increment2;
+	  test = 1 - ( ( test >> bit ) & 1 );
+	  indexColumn[end] = saveColumn[jColumn];
+	  end += test;
+	}
+	//put back next one in case zapped
+	indexColumn[startRow[next]] = saveIndex;
+	markRow[iRow] = FAC_UNSET;
+	number = end - startRow[iRow];
+	numberInRow[iRow] = number;
+	deleteLink ( iRow );
+	addLink ( iRow, number );
+      }
+      putBase++;
+    }				/* endwhile */
+    int bit;
+    
+    for ( bit = 0; i < numberDoColumn; i++, bit++ ) {
+      unsigned int *putThis = putBase;
+      int iRow = indexL[i];
+      
+      //get space
+      int number = 0;
+      int jColumn;
+      
+      for ( jColumn = 0; jColumn < numberDoRow; jColumn++ ) {
+	unsigned int test = *putThis;
+	
+	putThis += increment2;
+	test = 1 - ( ( test >> bit ) & 1 );
+	number += test;
+      }
+      int next = nextRow[iRow];
+      CoinBigIndex space;
+      
+      space = startRow[next] - startRow[iRow];
+      number += numberInRow[iRow];
+      if ( space < number ) {
+	if ( !getRowSpace ( iRow, number ) ) {
+	  goto BAD_PIVOT;
+	}
+      }
+      // now do
+      putThis = putBase;
+      next = nextRow[iRow];
+      number = numberInRow[iRow];
+      CoinBigIndex end = startRow[iRow] + number;
+      int saveIndex;
+      
+      saveIndex = indexColumn[startRow[next]];
+      
+      //add in
+      for ( jColumn = 0; jColumn < numberDoRow; jColumn++ ) {
+	unsigned int test = *putThis;
+	
+	putThis += increment2;
+	test = 1 - ( ( test >> bit ) & 1 );
+	
+	indexColumn[end] = saveColumn[jColumn];
+	end += test;
+      }
+      indexColumn[startRow[next]] = saveIndex;
+      markRow[iRow] = FAC_UNSET;
+      number = end - startRow[iRow];
+      numberInRow[iRow] = number;
+      deleteLink ( iRow );
+      addLink ( iRow, number );
+    }
+    markRow[iPivotRow] = FAC_UNSET;
+    //modify linked list for pivots
+    deleteLink ( iPivotRow );
+    deleteLink ( iPivotColumn + numberRows_ );
+    totalElements_ += added;
+    goodPivot= true;
+    // **** UGLY UGLY UGLY
+  }
+ BAD_PIVOT:
+
+  ;
+}
+#undef FAC_UNSET
 #endif

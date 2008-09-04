@@ -355,6 +355,8 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
 
   //presolvehlink *rlink = prob->rlink_;
   bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
+  // Relax tolerance
+  double tolerance = 10.0*prob->feasibilityTolerance_;
   
 
   int i;
@@ -392,8 +394,8 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
 
 	nactions++;
 	if (rlo[i] > 0.0 || rup[i] < 0.0) {
-	  if ((rlo[i]<=prob->feasibilityTolerance_ &&
-	       rup[i]>=-prob->feasibilityTolerance_)||fixInfeasibility) {
+	  if ((rlo[i]<=tolerance &&
+	       rup[i]>=-tolerance)||fixInfeasibility) {
 	    rlo[i]=0.0;
 	    rup[i]=0.0;
 	  } else {
