@@ -193,6 +193,31 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinSimpFactorization.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\src\CoinDenseFactorization.cpp"
 				>
 				<FileConfiguration
@@ -1244,6 +1269,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinBuild.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinSimpFactorization.hpp"
 				>
 			</File>
 			<File

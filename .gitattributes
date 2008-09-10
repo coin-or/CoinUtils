@@ -27,6 +27,8 @@ CoinUtils/src/CoinDenseFactorization.cpp -text
 CoinUtils/src/CoinDenseFactorization.hpp -text
 CoinUtils/src/CoinSearchTree.cpp -text
 CoinUtils/src/CoinSearchTree.hpp -text
+CoinUtils/src/CoinSimpFactorization.cpp -text
+CoinUtils/src/CoinSimpFactorization.hpp -text
 CoinUtils/src/CoinSmartPtr.hpp -text
 CoinUtils/src/CoinSnapshot.cpp -text
 CoinUtils/src/CoinSnapshot.hpp -text
