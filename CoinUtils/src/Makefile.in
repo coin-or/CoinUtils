@@ -68,14 +68,15 @@ am__DEPENDENCIES_1 =
 am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinDenseVector.lo CoinError.lo CoinFactorization1.lo \
 	CoinFactorization2.lo CoinFactorization3.lo \
-	CoinFactorization4.lo CoinDenseFactorization.lo CoinFileIO.lo \
-	CoinIndexedVector.lo CoinLpIO.lo CoinMessage.lo \
-	CoinMessageHandler.lo CoinModel.lo CoinModelUseful.lo \
-	CoinModelUseful2.lo CoinMpsIO.lo CoinPackedMatrix.lo \
-	CoinPackedVector.lo CoinPackedVectorBase.lo CoinParam.lo \
-	CoinParamUtils.lo CoinPostsolveMatrix.lo \
-	CoinPrePostsolveMatrix.lo CoinPresolveDoubleton.lo \
-	CoinPresolveDual.lo CoinPresolveDupcol.lo CoinPresolveEmpty.lo \
+	CoinFactorization4.lo CoinSimpFactorization.lo \
+	CoinDenseFactorization.lo CoinFileIO.lo CoinIndexedVector.lo \
+	CoinLpIO.lo CoinMessage.lo CoinMessageHandler.lo CoinModel.lo \
+	CoinModelUseful.lo CoinModelUseful2.lo CoinMpsIO.lo \
+	CoinPackedMatrix.lo CoinPackedVector.lo \
+	CoinPackedVectorBase.lo CoinParam.lo CoinParamUtils.lo \
+	CoinPostsolveMatrix.lo CoinPrePostsolveMatrix.lo \
+	CoinPresolveDoubleton.lo CoinPresolveDual.lo \
+	CoinPresolveDupcol.lo CoinPresolveEmpty.lo \
 	CoinPresolveFixed.lo CoinPresolveForcing.lo \
 	CoinPresolveHelperFunctions.lo CoinPresolveImpliedFree.lo \
 	CoinPresolveIsolated.lo CoinPresolveMatrix.lo \
@@ -305,6 +306,8 @@ libCoinUtils_la_SOURCES = \
 	CoinFactorization2.cpp \
 	CoinFactorization3.cpp \
 	CoinFactorization4.cpp \
+	CoinSimpFactorization.hpp \
+	CoinSimpFactorization.cpp \
 	CoinDenseFactorization.hpp \
 	CoinDenseFactorization.cpp \
 	CoinFileIO.cpp CoinFileIO.hpp \
@@ -392,6 +395,7 @@ includecoin_HEADERS = \
 	CoinDistance.hpp \
 	CoinError.hpp \
 	CoinFactorization.hpp \
+	CoinSimpFactorization.hpp \
 	CoinDenseFactorization.hpp \
 	CoinFileIO.hpp \
 	CoinFinite.hpp \
@@ -560,6 +564,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPresolveZeros.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSearchTree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinShallowPackedVector.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSimpFactorization.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSnapshot.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartBasis.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartDual.Plo@am__quote@
