@@ -357,7 +357,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
   int * look2 = NULL;
   // if gone from 2 to 3 look at all
   if (fill_level<0) {
-    abort();
+    //abort();
     fill_level=-fill_level;
     try_fill_level=fill_level;
     look2 = new int[ncols];
