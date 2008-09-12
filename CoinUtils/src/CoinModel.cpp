@@ -611,7 +611,7 @@ CoinModel::addRow(int numberInRow, const int * columns,
     assert (put==numberElements_);
     bool doHash = hashElements_.numberItems()!=0;
     for (int i=0;i<numberInRow;i++) {
-      elements_[put].row=numberRows_;
+      elements_[put].row=static_cast<unsigned int>(numberRows_);
       elements_[put].string=0;
       elements_[put].column=sortIndices_[i];
       elements_[put].value=sortElements_[i];
@@ -749,7 +749,7 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
     for (int i=0;i<numberInColumn;i++) {
       elements_[put].column=numberColumns_;
       elements_[put].string=0;
-      elements_[put].row=sortIndices_[i];
+      elements_[put].row=static_cast<unsigned int>(sortIndices_[i]);
       elements_[put].value=sortElements_[i];
       if (doHash)
         hashElements_.addHash(put,sortIndices_[i],numberColumns_,elements_);
@@ -1427,7 +1427,7 @@ CoinModel::packRows()
     for ( i=0;i<numberElements_;i++) {
       if (elements_[i].column>=0) {
         elements_[n]=elements_[i];
-        elements_[n].row = newRow[elements_[i].row];
+        elements_[n].row = static_cast<unsigned int>(newRow[elements_[i].row]);
         n++;
       }
     }

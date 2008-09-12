@@ -861,7 +861,7 @@ static     int
                    symbuf = (char *) realloc (symbuf, length + 1);
                  }
                /* Add this character to the buffer.         */
-               symbuf[i++] = c;
+               symbuf[i++] = static_cast<char>(c);
                /* Get another character.                    */
                ipos++;
                c = line[ipos];
@@ -984,7 +984,7 @@ static double yyparse ( symrec *& symtable, const char * line, char * & symbuf, 
   yyssp++;
 
  yysetstate:
-  *yyssp = yystate;
+  *yyssp = static_cast<short>(yystate);
 
   if (yyss + yystacksize - 1 <= yyssp)
     {

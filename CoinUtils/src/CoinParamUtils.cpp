@@ -7,6 +7,7 @@
 #include "CoinParam.hpp"
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 
 #ifdef COIN_HAS_READLINE     
 #include <readline/readline.h>
