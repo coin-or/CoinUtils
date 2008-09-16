@@ -99,7 +99,7 @@ class CoinAbsFltEq
 /*! \brief Equality to a scaled tolerance
 
   Operands are considered equal if their difference is within a scaled
-  epsilon calculated as epsilon_*(1+max(|f1|,|f2|)).
+  epsilon calculated as epsilon_*(1+CoinMax(|f1|,|f2|)).
 */
 
 class CoinRelFltEq

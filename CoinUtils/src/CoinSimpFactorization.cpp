@@ -723,7 +723,7 @@ CoinSimpFactorization::preProcess ()
 	    int ind=UrowStarts_[iRow]+UrowLengths_[iRow];
 	    UrowInd_[ind]=column;
 	    Urows_[ind]=elements_[j];
-	    //maxA_=max( maxA_, fabs(Urows_[ind]) );
+	    //maxA_=CoinMax( maxA_, fabs(Urows_[ind]) );
 	    ++UrowLengths_[iRow];
 	}
     }
@@ -2441,7 +2441,7 @@ void CoinSimpFactorization::newEta(int row, int numNewElements){
 	maxEtaRows_+=minIncrease_;
     }
     if ( EtaSize_ + numNewElements > EtaMaxCap_ ){
-	int number= max(EtaSize_ + numNewElements - EtaMaxCap_, minIncrease_);
+	int number= CoinMax(EtaSize_ + numNewElements - EtaMaxCap_, minIncrease_);
 
 	int *iaux=new int[EtaMaxCap_ + number];
 	memcpy(iaux, EtaInd_, EtaSize_ * sizeof(int));
