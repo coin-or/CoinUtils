@@ -26,18 +26,6 @@ using namespace std;
 
 /************************************************************************/
 
-static std::string create_string(const char * format, ...)
-{
-  va_list valist;
-  va_start(valist,format);
-  char str[8192];
-  vsnprintf(str, 8192, format, valist);
-  va_end(valist);
-  return std::string(str);
-}
-
-/************************************************************************/
-
 CoinLpIO::CoinLpIO() :
   problemName_(CoinStrdup("")),
   numberRows_(0),
@@ -421,11 +409,9 @@ void CoinLpIO::setInfinity(const double value)
     infinity_ = value;
   } 
   else {
-    throw CoinError(create_string("\
-### ERROR: CoinLpIO::setInfinity(): value: %f\n", value
-				  ),
-		    "setInfinity", "CoinLpIO", __FILE__, __LINE__
-		    );
+    char str[8192];
+    sprintf(str,"### ERROR: value: %f\n", value);
+    throw CoinError(str, "setInfinity", "CoinLpIO", __FILE__, __LINE__);
   }
 }
 
@@ -442,11 +428,9 @@ void CoinLpIO::setEpsilon(const double value)
     epsilon_ = value;
   } 
   else {
-    throw CoinError(create_string("\
-### ERROR: CoinLpIO::setEpsilon(): value: %f\n", value
-				  ),
-		    "setEpsilon", "CoinLpIO", __FILE__, __LINE__
-		    );
+    char str[8192];
+    sprintf(str,"### ERROR: value: %f\n", value);
+    throw CoinError(str, "setEpsilon", "CoinLpIO", __FILE__, __LINE__);
   }
 }
 
@@ -463,11 +447,9 @@ void CoinLpIO::setNumberAcross(const int value)
     numberAcross_ = value;
   } 
   else {
-    throw CoinError(create_string("\
-### ERROR: CoinLpIO::setNumberAcross(): value: %d\n", value
-				  ),
-		    "setNumberAcross", "CoinLpIO", __FILE__, __LINE__
-		    );
+    char str[8192];
+    sprintf(str,"### ERROR: value: %d\n", value);
+    throw CoinError(str, "setNumberAcross", "CoinLpIO", __FILE__, __LINE__);
   }
 }
 
@@ -484,11 +466,9 @@ void CoinLpIO::setDecimals(const int value)
     decimals_ = value;
   } 
   else {
-    throw CoinError(create_string("\
-### ERROR: CoinLpIO::setDecimals(): value: %d\n", value
-				  ),
-		    "setDecimals", "CoinLpIO", __FILE__, __LINE__
-		    );
+    char str[8192];
+    sprintf(str,"### ERROR: value: %d\n", value);
+    throw CoinError(str, "setDecimals", "CoinLpIO", __FILE__, __LINE__);
   }
 }
 
@@ -690,11 +670,9 @@ CoinLpIO::writeLp(const char *filename, const double epsilon,
   FILE *fp = NULL;
   fp = fopen(filename,"w");
   if (!fp) {
-    throw CoinError(create_string("\
-### ERROR: in CoinLpIO::writeLP(): unable to open file %s\n", filename
-				  ),
-		    "writeLP", "CoinLpIO", __FILE__, __LINE__
-		    );
+    char str[8192];
+    sprintf(str,"### ERROR: in unable to open file %s\n", filename);
+    throw CoinError(str, "writeLP", "CoinLpIO", __FILE__, __LINE__);
   }
   int nerr = writeLp(fp, epsilon, numberAcross, decimals, useRowNames);
   fclose(fp);
@@ -720,11 +698,9 @@ CoinLpIO::writeLp(const char *filename, const bool useRowNames)
   FILE *fp = NULL;
   fp = fopen(filename,"w");
   if (!fp) {
-    throw CoinError(create_string("\
-### ERROR: in CoinLpIO::writeLP(): unable to open file %s\n", filename
-				  ),
-		    "writeLP", "CoinLpIO", __FILE__, __LINE__
-		    );
+    char str[8192];
+    sprintf(str,"### ERROR: unable to open file %s\n", filename);
+    throw CoinError(str, "writeLP", "CoinLpIO", __FILE__, __LINE__);
   }
   int nerr = writeLp(fp, useRowNames);
   fclose(fp);
@@ -991,11 +967,9 @@ CoinLpIO::find_obj(FILE *fp) const {
     lbuff = strlen(buff);
     
     if(feof(fp)) {
-      throw CoinError(create_string("\
-### ERROR: in CoinLpIO::find_obj(): Unable to locate objective function\n"
-				    ),
-		      "find_obj", "CoinLpIO", __FILE__, __LINE__
-		      );
+      char str[8192];
+      sprintf(str,"### ERROR: Unable to locate objective function\n");
+      throw CoinError(str, "find_obj", "CoinLpIO", __FILE__, __LINE__);
     }
   }
 
@@ -1089,18 +1063,14 @@ CoinLpIO::skip_comment(char *buff, FILE *fp) const {
 
   while(strcspn(buff, "\n") == strlen(buff)) { // end of line not read yet
     if(feof(fp)) {
-      throw CoinError(create_string("\
-### ERROR: in CoinLpIO::skip_comment(): end of file reached while skipping comment\n"
-				    ),
-		      "skip_comment", "CoinLpIO", __FILE__, __LINE__
-		      );
+      char str[8192];
+      sprintf(str,"### ERROR: end of file reached while skipping comment\n");
+      throw CoinError(str, "skip_comment", "CoinLpIO", __FILE__, __LINE__);
     }
     if(ferror(fp)) {
-      throw CoinError(create_string("\
-### ERROR: in CoinLpIO::skip_comment(): error while skipping comment\n"
-				    ),
-		      "skip_comment", "CoinLpIO", __FILE__, __LINE__
-		      );
+      char str[8192];
+      sprintf(str,"### ERROR: error while skipping comment\n");
+      throw CoinError(str, "skip_comment", "CoinLpIO", __FILE__, __LINE__);
     }
     fgets(buff, sizeof(buff), fp);    
   } 
@@ -1177,12 +1147,10 @@ CoinLpIO::are_invalid_names(char const * const * const vnames,
   const char * rSense = getRowSense();
 
   if((check_ranged) && (card_vnames != nrows+1)) {
-    throw CoinError(create_string("\
-### ERROR: CoinLpIO::are_invalid_names(): card_vnames: %d   number of rows: %d\n",
-				  card_vnames, getNumRows()
-				  ),
-		    "are_invalid_names", "CoinLpIO", __FILE__, __LINE__
-		    );
+    char str[8192];
+    sprintf(str,"### ERROR: card_vnames: %d   number of rows: %d\n",
+	    card_vnames, getNumRows());
+    throw CoinError(str, "are_invalid_names", "CoinLpIO", __FILE__, __LINE__);
   }
 
   for(i=0; i<card_vnames; i++) {
@@ -1215,11 +1183,9 @@ CoinLpIO::read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt,
   scan_next(buff, fp);
 
   if(feof(fp)) {
-    throw CoinError(create_string("\
-### ERROR: CoinLpIO::read_monom_obj(): Unable to read objective function\n"
-				  ),
-		    "read_monom_obj", "CoinLpIO", __FILE__, __LINE__
-		    );
+    char str[8192];
+    sprintf(str,"### ERROR: Unable to read objective function\n");
+    throw CoinError(str, "read_monom_obj", "CoinLpIO", __FILE__, __LINE__);
   }
 
   if(buff[strlen(buff)-1] == ':') {
@@ -1430,11 +1396,9 @@ CoinLpIO::read_row(FILE *fp, char *buff,
     scan_next(start_str, fp);
 
     if(feof(fp)) {
-      throw CoinError(create_string("\
-### ERROR: CoinLpIO::read_monom_row(): Unable to read row monomial\n"
-				    ),
-		      "read_monom_row", "CoinLpIO", __FILE__, __LINE__
-		      );
+      char str[8192];
+      sprintf(str,"### ERROR: Unable to read row monomial\n");
+      throw CoinError(str, "read_monom_row", "CoinLpIO", __FILE__, __LINE__);
     }
   }
   (*cnt_coeff)--;
@@ -1502,11 +1466,9 @@ CoinLpIO::readLp(const char *filename)
 {
   FILE *fp = fopen(filename, "r");
   if(!fp) {
-    throw CoinError(create_string("\
-### ERROR: CoinLpIO::readLp(): Unable to open file %s for reading\n",
-				  filename),
-		    "read_monom_row", "CoinLpIO", __FILE__, __LINE__
-		    );
+    char str[8192];
+    sprintf(str,"### ERROR: Unable to open file %s for reading\n", filename);
+    throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
   }
   readLp(fp);
   fclose(fp);
@@ -1565,11 +1527,9 @@ CoinLpIO::readLp(FILE* fp)
     unsigned lbuff = strlen(buff);
 
     if((lbuff != 2) || (CoinStrNCaseCmp(buff, "to", 2) != 0)) {
-      throw CoinError(create_string("\
-### ERROR: CoinLpIO::readLp(): Can not locate keyword 'Subject To'\n"
-				    ),
-		      "readLp", "CoinLpIO", __FILE__, __LINE__
-		      );
+      char str[8192];
+      sprintf(str,"### ERROR: Can not locate keyword 'Subject To'\n");
+      throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
     }
   }
   
@@ -1656,11 +1616,9 @@ CoinLpIO::readLp(FILE* fp)
 	  scan_next(buff, fp);
 	  read_sense1 = is_sense(buff);
 	  if(read_sense1 < 0) {
-	    throw CoinError(create_string("\
-### ERROR: CoinLpIO::readLp(): lost in Bounds section; expect a sense, get: %s\n", buff
-					  ),
-			    "readLp", "CoinLpIO", __FILE__, __LINE__
-			    );
+	    char str[8192];
+	    sprintf(str,"### ERROR: Bounds; expect a sense, get: %s\n", buff);
+	    throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
 	  }
 	  scan_next(buff, fp);
 	}
@@ -1703,11 +1661,10 @@ CoinLpIO::readLp(FILE* fp)
 	    }
 	    else {
 	      if (strncmp(start_str,"inf",3)&&strncmp(start_str,"Inf",3)) {
-		throw CoinError(create_string("\
-### ERROR: CoinLpIO::readLp(): lost in Bounds section; expect a number, get: %s\n", buff
-					      ),
-				"readLp", "CoinLpIO", __FILE__, __LINE__
-				);
+		char str[8192];
+		sprintf(str,"### ERROR: Bounds; expect a number, get: %s\n",
+			buff);
+		throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
 	      } else {
 		// infinity
 		bnd2 = DBL_MAX;
@@ -1718,23 +1675,18 @@ CoinLpIO::readLp(FILE* fp)
 
 	  if((read_sense1 > -1) && (read_sense2 > -1)) {
 	    if(read_sense1 != read_sense2) {
-	      throw CoinError(create_string("\
-### ERROR: CoinLpIO::readLp(): lost in Bounds section; \n\
-variable: %s read_sense1: %d  read_sense2: %d\n", buff, read_sense1, read_sense2
-					    ),
-			      "readLp", "CoinLpIO", __FILE__, __LINE__
-			      );
+	      char str[8192];
+	      sprintf(str,"### ERROR: Bounds; variable: %s read_sense1: %d  read_sense2: %d\n",
+		      buff, read_sense1, read_sense2);
+	      throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
 	    }
 	    else {
 	      if(read_sense1 == 1) {
 		if(fabs(bnd1 - bnd2) > lp_eps) {
-		  throw CoinError(create_string("\
-### ERROR: CoinLpIO::readLp(): lost in Bounds section; \n\
-variable: %s read_sense1: %d  read_sense2: %d  bnd1: %f  bnd2: %f\n", 
-						buff, read_sense1, read_sense2, bnd1, bnd2
-						),
-				  "readLp", "CoinLpIO", __FILE__, __LINE__
-				  );
+		  char str[8192];
+		  sprintf(str,"### ERROR: Bounds; variable: %s read_sense1: %d  read_sense2: %d  bnd1: %f  bnd2: %f\n", 
+			  buff, read_sense1, read_sense2, bnd1, bnd2);
+		  throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
 		}
 		collow[icol] = bnd1;
 		colup[icol] = bnd1;
@@ -1844,11 +1796,9 @@ variable: %s read_sense1: %d  read_sense2: %d  bnd1: %f  bnd2: %f\n",
     case 4: done = 1; break;
       
     default: 
-      throw CoinError(create_string("\
-### ERROR: CoinLpIO::readLp(): Lost while reading: (%s)\n", buff
-				    ),
-		      "readLp", "CoinLpIO", __FILE__, __LINE__
-		      );
+      char str[8192];
+      sprintf(str,"### ERROR: Lost while reading: (%s)\n", buff);
+      throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
       break;
     }
   }
@@ -1868,11 +1818,9 @@ variable: %s read_sense1: %d  read_sense2: %d  bnd1: %f  bnd2: %f\n",
 #endif
 
     if(ind[i] < 0) {
-      throw CoinError(create_string("\
-### ERROR: CoinLpIO::readLp(): Problem with hash tables\nCan not find name %s\n", colNames[i]
-				    ),
-		      "readLp", "CoinLpIO", __FILE__, __LINE__
-		      );
+      char str[8192];
+      sprintf(str,"### ERROR: Hash table: %s not found\n", colNames[i]);
+      throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
     }
   }
   
@@ -1885,11 +1833,9 @@ variable: %s read_sense1: %d  read_sense2: %d  bnd1: %f  bnd2: %f\n",
   for(i=0; i<cnt_obj; i++) {
     icol = findHash(colNames[i], 1);
     if(icol < 0) {
-      throw CoinError(create_string("\
-### ERROR: CoinLpIO::readLp(): Problem with hash tables\nCan not find name %s (objective function)\n", colNames[i]
-				    ),
-		      "readLp", "CoinLpIO", __FILE__, __LINE__
-		      );
+      char str[8192];
+      sprintf(str,"### ERROR: Hash table: %s (obj) not found\n", colNames[i]);
+      throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
     }
     obj[icol] = objsense * coeff[i];
   }
@@ -2119,11 +2065,9 @@ CoinLpIO::startHash(char const * const * const names,
 
 #ifdef LPIO_DEBUG
 	if(j1 > i) {
-	  throw CoinError(create_string("\
-### ERROR: CoinLpIO::startHash(): j1: %d  i: %d\n", j1, i
-					),
-			  "startHash", "CoinLpIO", __FILE__, __LINE__
-			  );
+	  char str[8192];
+	  sprintf(str,"### ERROR: Hash table: j1: %d  i: %d\n", j1, i);
+	  throw CoinError(str, "startHash", "CoinLpIO", __FILE__, __LINE__);
 	}
 #endif
 
@@ -2145,11 +2089,9 @@ CoinLpIO::startHash(char const * const * const names,
 	    while (1) {
 	      ++iput;
 	      if (iput > maxhash) {
-		throw CoinError(create_string("\
-### ERROR: CoinLpIO::startHash(): too many names\n"
-					      ),
-				"startHash", "CoinLpIO", __FILE__, __LINE__
-				);
+		char str[8192];
+		sprintf(str,"### ERROR: Hash table: too many names\n");
+		throw CoinError(str, "startHash", "CoinLpIO", __FILE__, __LINE__);
 		break;
 	      }
 	      if (hashThis[iput].index == -1) {
@@ -2281,11 +2223,9 @@ CoinLpIO::insertHash(const char *thisName, int section)
 	  while (1) {
 	    ++iput;
 	    if (iput == maxhash) {
-	      throw CoinError(create_string("\
-### ERROR: CoinLpIO::insertHash(): too many names\n"
-					    ),
-			      "insertHash", "CoinLpIO", __FILE__, __LINE__
-			      );
+	      char str[8192];
+	      sprintf(str,"### ERROR: Hash table: too many names\n");
+	      throw CoinError(str, "insertHash", "CoinLpIO", __FILE__, __LINE__);
 	      break;
 	    }
 	    if (hashThis[iput].index == -1) {
