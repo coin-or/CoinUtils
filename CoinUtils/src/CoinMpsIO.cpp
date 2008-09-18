@@ -898,7 +898,8 @@ CoinMpsCardReader::nextField (  )
     } else {
       // error
       position_ = eol_;
-      mpsType_ = COIN_UNKNOWN_MPS_TYPE;
+      if (mpsType_!=COIN_S1_BOUND&&mpsType_!=COIN_S2_BOUND)
+	mpsType_ = COIN_UNKNOWN_MPS_TYPE;
       value_ = -1.0e100;
     }
   }
