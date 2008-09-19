@@ -332,7 +332,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
             while (triple.column()>=0) {
               int iColumn = triple.column();
               assert (j==triple.row());
-              dTriple[numberElements].row = static_cast<unsigned>(j);
+              dTriple[numberElements].row = static_cast<unsigned int>(j);
               dTriple[numberElements].column=iColumn;
               dTriple[numberElements].value = triple.value();
               numberElements++;
@@ -364,7 +364,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
               int iRow = triple.row();
               assert (j==triple.column());
               dTriple[numberElements].column = j;
-              dTriple[numberElements].row=static_cast<unsigned>(iRow);
+              dTriple[numberElements].row=static_cast<unsigned int>(iRow);
               dTriple[numberElements].value = triple.value();
               numberElements++;
               triple=model.next(triple);
@@ -392,7 +392,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
               iColumn>=lastColumn[jColumn]&&iColumn<lastColumn[jColumn+1]) {
             if (CoinDrand48()<randomDelete) {
               dTriple[numberElements].column = iColumn;
-              dTriple[numberElements].row=static_cast<unsigned>(iRow);
+              dTriple[numberElements].row=static_cast<unsigned int>(iRow);
               dTriple[numberElements].value = elements[i].value;
               int position = model.deleteElement(iRow,iColumn);
               if (position>=0)

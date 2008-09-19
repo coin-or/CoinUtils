@@ -764,7 +764,7 @@ protected:
       if ( iRow != pivotRow ) {
 	indexRowL[l] = iRow;
 	elementL[l] = elementU[pivotRowPosition];
-	markRow[iRow] = static_cast<short>(l - lSave);
+	markRow[iRow] = static_cast<T>(l - lSave);
 	l++;
 	//take out of row list
 	CoinBigIndex start = startRowU[iRow];
@@ -791,7 +791,7 @@ protected:
     for ( i = startColumn; i < pivotRowPosition; i++ ) {
       int iRow = indexRowU[i];
 
-      markRow[iRow] = static_cast<short>(l - lSave);
+      markRow[iRow] = static_cast<T>(l - lSave);
       indexRowL[l] = iRow;
       elementL[l] = elementU[i];
       l++;
@@ -823,7 +823,7 @@ protected:
   for ( ; pivotRowPosition < endColumn; pivotRowPosition++ ) {
     int iRow = indexRowU[pivotRowPosition];
     
-    markRow[iRow] = static_cast<short>(l - lSave);
+    markRow[iRow] = static_cast<T>(l - lSave);
     indexRowL[l] = iRow;
     elementL[l] = elementU[pivotRowPosition];
     l++;
@@ -844,7 +844,7 @@ protected:
     numberInRow[iRow]--;
     assert (numberInRow[iRow]>=0);
   }
-  markRow[pivotRow] = static_cast<short>(largeInteger);
+  markRow[pivotRow] = static_cast<T>(largeInteger);
   //compress pivot column (move pivot to front including saved)
   numberInColumn[pivotColumn] = 0;
   //use end of L for temporary space
@@ -1085,7 +1085,7 @@ protected:
       }
       //put back next one in case zapped
       indexColumnU[startRowU[next]] = saveIndex;
-      markRow[iRow] = largeInteger+1;
+      markRow[iRow] = static_cast<T>(largeInteger+1);
       number = end - startRowU[iRow];
       numberInRow[iRow] = number;
       deleteLink ( iRow );
@@ -1140,13 +1140,13 @@ protected:
       end += test;
     }
     indexColumnU[startRowU[next]] = saveIndex;
-    markRow[iRow] = largeInteger+1;
+    markRow[iRow] = static_cast<T>(largeInteger+1);
     number = end - startRowU[iRow];
     numberInRow[iRow] = number;
     deleteLink ( iRow );
     addLink ( iRow, number );
   }
-  markRow[pivotRow] = largeInteger+1;
+  markRow[pivotRow] = static_cast<T>(largeInteger+1);
   //modify linked list for pivots
   deleteLink ( pivotRow );
   deleteLink ( pivotColumn + numberRows_ );
