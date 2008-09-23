@@ -216,7 +216,9 @@ void CoinSimpFactorization::gutsOfInitialize()
 {
   pivotTolerance_ = 1.0e-1;
   zeroTolerance_ = 1.0e-13;
+#ifndef COIN_FAST_CODE
   slackValue_ = -1.0;
+#endif
   maximumPivots_=200;
   relaxCheck_=1.0;
   numberRows_ = 0;
@@ -339,7 +341,9 @@ void CoinSimpFactorization::gutsOfCopy(const CoinSimpFactorization &other)
 {
   pivotTolerance_ = other.pivotTolerance_;
   zeroTolerance_ = other.zeroTolerance_;
+#ifndef COIN_FAST_CODE
   slackValue_ = other.slackValue_;
+#endif
   relaxCheck_ = other.relaxCheck_;
   numberRows_ = other.numberRows_;
   numberColumns_ = other.numberColumns_;

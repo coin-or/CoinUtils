@@ -298,18 +298,29 @@ CoinDenseFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   int numberNonZero = regionSparse->getNumElements (  );
   int i;
   memset(elements,0,numberRows_*sizeof(double));
-  assert (regionSparse->packedMode());
   double pivotValue = pivotCheck;
   if (fabs(pivotValue)<zeroTolerance_)
     return 2;
   pivotValue = 1.0/pivotValue;
-  for (i=0;i<numberNonZero;i++) {
-    int iRow = regionIndex[i];
-    double value = region[i]; //*pivotValue;;
+  if (regionSparse->packedMode()) {
+    for (i=0;i<numberNonZero;i++) {
+      int iRow = regionIndex[i];
+      double value = region[i];
 #ifdef DENSE_PERMUTE
-    iRow = pivotRow_[iRow]; // permute
+      iRow = pivotRow_[iRow]; // permute
 #endif
-    elements[iRow] = value;;
+      elements[iRow] = value;;
+    }
+  } else {
+    // not packed! - from user pivot?
+    for (i=0;i<numberNonZero;i++) {
+      int iRow = regionIndex[i];
+      double value = region[iRow];
+#ifdef DENSE_PERMUTE
+      iRow = pivotRow_[iRow]; // permute
+#endif
+      elements[iRow] = value;;
+    }
   }
   int realPivotRow = pivotRow_[pivotRow];
   elements[realPivotRow]=pivotValue;
