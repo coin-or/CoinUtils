@@ -161,7 +161,8 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   int nfixup_cols	= 0;
   int nfixdown_cols	= 0;
 
-  while (1) {
+  int nPass=100;
+  while (nPass-->0) {
     int tightened = 0;
     /* Perform duality tests */
     for (int j = 0; j<ncols; j++) {
