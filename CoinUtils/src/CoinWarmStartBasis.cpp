@@ -601,7 +601,6 @@ void CoinWarmStartBasis::applyDiff (const CoinWarmStartDiff *const cwsdDiff)
     CoinMemcpyN(diffA+1,sizeStruct,structStatus);
     CoinMemcpyN(diffA+1+sizeStruct,sizeArtif,artifStatus);
   }
-
   return ; }
 
 

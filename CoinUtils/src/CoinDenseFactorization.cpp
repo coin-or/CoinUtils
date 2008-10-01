@@ -13,6 +13,23 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
 #include <stdio.h>
+#undef DENSE_CODE
+//#define DENSE_CODE 2
+#ifdef DENSE_CODE
+// using simple lapack interface
+extern "C" 
+{
+  /** LAPACK Fortran subroutine DGETRF. */
+  void F77_FUNC(dgetrf,DGETRF)(ipfint * m, ipfint *n,
+                               double *A, ipfint *ldA,
+                               ipfint * ipiv, ipfint *info);
+  /** LAPACK Fortran subroutine DGETRS. */
+  void F77_FUNC(dgetrs,DGETRS)(char *trans, cipfint *n,
+                               cipfint *nrhs, const double *A, cipfint *ldA,
+                               cipfint * ipiv, double *B, cipfint *ldB, ipfint *info,
+			       int trans_len);
+}
+#endif
 //:class CoinDenseFactorization.  Deals with Factorization and Updates
 //  CoinDenseFactorization.  Constructor
 CoinDenseFactorization::CoinDenseFactorization (  )
@@ -25,6 +42,12 @@ CoinDenseFactorization::CoinDenseFactorization ( const CoinDenseFactorization &o
 {
   gutsOfInitialize();
   gutsOfCopy(other);
+}
+// Clone
+CoinSmallFactorization * 
+CoinDenseFactorization::clone() const 
+{
+  return new CoinDenseFactorization(*this);
 }
 /// The real work of constructors etc
 void CoinDenseFactorization::gutsOfDestructor()
@@ -41,6 +64,10 @@ void CoinDenseFactorization::gutsOfDestructor()
   status_ = -1;
   maximumRows_=0;
   maximumSpace_=0;
+#ifdef DENSE_CODE
+  lapackPivot_ = NULL;
+  solveMode_=0;
+#endif
 }
 void CoinDenseFactorization::gutsOfInitialize()
 {
@@ -61,6 +88,10 @@ void CoinDenseFactorization::gutsOfInitialize()
   elements_ = NULL;
   pivotRow_ = NULL;
   workArea_ = NULL;
+#ifdef DENSE_CODE
+  lapackPivot_ = NULL;
+  solveMode_=0;
+#endif
 }
 //  ~CoinDenseFactorization.  Destructor
 CoinDenseFactorization::~CoinDenseFactorization (  )
@@ -88,6 +119,7 @@ void CoinDenseFactorization::gutsOfCopy(const CoinDenseFactorization &other)
   numberColumns_ = other.numberColumns_;
   maximumRows_ = other.maximumRows_;
   maximumSpace_ = other.maximumSpace_;
+  solveMode_ = other.solveMode_;
   numberGoodU_ = other.numberGoodU_;
   maximumPivots_ = other.maximumPivots_;
   numberPivots_ = other.numberPivots_;
@@ -99,10 +131,16 @@ void CoinDenseFactorization::gutsOfCopy(const CoinDenseFactorization &other)
     elements_ = new double [maximumSpace_];
     CoinMemcpyN(other.elements_,(maximumRows_+numberPivots_)*maximumRows_,elements_);
     workArea_ = new double [maximumRows_];
+#ifdef DENSE_CODE
+    lapackPivot_ = new int [maximumRows_];
+#endif
   } else {
     elements_ = NULL;
     pivotRow_ = NULL;
     workArea_ = NULL;
+#ifdef DENSE_CODE
+    lapackPivot_ = NULL;
+#endif
   }
 }
 
@@ -129,6 +167,9 @@ CoinDenseFactorization::getAreas ( int numberOfRows,
     delete [] workArea_;
     pivotRow_ = new int [2*maximumRows_+maximumPivots_];
     workArea_ = new double [maximumRows_];
+#ifdef DENSE_CODE
+    lapackPivot_ = new int [maximumRows_];
+#endif
   }
 }
 
@@ -163,6 +204,26 @@ CoinDenseFactorization::factor ( )
     pivotRow_[j+numberRows_]=j;
   }
   status_= 0;
+#ifdef DENSE_CODE
+  if (numberRows_==numberColumns_&&solveMode_) {
+    int info;
+    F77_FUNC(dgetrf,DGETRF)(&numberRows_,&numberRows_,
+			    elements_,&numberRows_,lapackPivot_,
+			    &info);
+    // need to check size of pivots
+    if(!info) {
+      // OK
+      solveMode_=1;
+      numberGoodU_=numberRows_;
+      for (int j=0;j<numberRows_;j++) {
+	pivotRow_[j]=j;
+      }
+      return 0;
+    } else {
+      solveMode_=0;
+    }
+  }
+#endif
   double * elements = elements_;
   numberGoodU_=0;
   for (int i=0;i<numberColumns_;i++) {
@@ -363,24 +424,36 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   }
   int i;
   double * elements = elements_;
-  // base factorization L
-  for (i=0;i<numberColumns_;i++) {
-    double value = region[i];
-    for (int j=i+1;j<numberRows_;j++) {
-      region[j] -= value*elements[j];
+#ifdef DENSE_CODE
+  if (!solveMode_) {
+#endif
+    // base factorization L
+    for (i=0;i<numberColumns_;i++) {
+      double value = region[i];
+      for (int j=i+1;j<numberRows_;j++) {
+	region[j] -= value*elements[j];
+      }
+      elements += numberRows_;
     }
-    elements += numberRows_;
-  }
-  elements = elements_+numberRows_*numberRows_;
-  // base factorization U
-  for (i=numberColumns_-1;i>=0;i--) {
-    elements -= numberRows_;
-    double value = region[i]*elements[i];
-    region[i] = value;
-    for (int j=0;j<i;j++) {
-      region[j] -= value*elements[j];
+    elements = elements_+numberRows_*numberRows_;
+    // base factorization U
+    for (i=numberColumns_-1;i>=0;i--) {
+      elements -= numberRows_;
+      double value = region[i]*elements[i];
+      region[i] = value;
+      for (int j=0;j<i;j++) {
+	region[j] -= value*elements[j];
+      }
     }
+#ifdef DENSE_CODE
+  } else {
+    char trans = 'N';
+    int ione=1;
+    int info;
+    F77_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,&numberRows_,
+			      lapackPivot_,region,&numberRows_,&info,1);
   }
+#endif
   // now updates
   elements = elements_+numberRows_*numberRows_;
   for (i=0;i<numberPivots_;i++) {
@@ -488,28 +561,40 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
     }
     region[iPivot] = value*elements[iPivot];
   }
-  // base factorization U
-  elements = elements_;
-  for (i=0;i<numberColumns_;i++) {
-    //double value = region[i]*elements[i];
-    double value = region[i];
-    for (int j=0;j<i;j++) {
-      value -= region[j]*elements[j];
+#ifdef DENSE_CODE
+  if (!solveMode_) {
+#endif
+    // base factorization U
+    elements = elements_;
+    for (i=0;i<numberColumns_;i++) {
+      //double value = region[i]*elements[i];
+      double value = region[i];
+      for (int j=0;j<i;j++) {
+	value -= region[j]*elements[j];
+      }
+      //region[i] = value;
+      region[i] = value*elements[i];
+      elements += numberRows_;
     }
-    //region[i] = value;
-    region[i] = value*elements[i];
-    elements += numberRows_;
-  }
-  // base factorization L
-  elements = elements_+numberRows_*numberRows_;
-  for (i=numberColumns_-1;i>=0;i--) {
-    elements -= numberRows_;
-    double value = region[i];
-    for (int j=i+1;j<numberRows_;j++) {
-      value -= region[j]*elements[j];
+    // base factorization L
+    elements = elements_+numberRows_*numberRows_;
+    for (i=numberColumns_-1;i>=0;i--) {
+      elements -= numberRows_;
+      double value = region[i];
+      for (int j=i+1;j<numberRows_;j++) {
+	value -= region[j]*elements[j];
+      }
+      region[i] = value;
     }
-    region[i] = value;
+#ifdef DENSE_CODE
+  } else {
+    char trans = 'T';
+    int ione=1;
+    int info;
+    F77_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,&numberRows_,
+			      lapackPivot_,region,&numberRows_,&info,1);
   }
+#endif
   // permute back and get nonzeros
   numberNonZero=0;
   if (!regionSparse2->packedMode()) {
@@ -536,8 +621,88 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
   regionSparse2->setNumElements(numberNonZero);
   return 0;
 }
+// Default constructor
+CoinSmallFactorization::CoinSmallFactorization (  )
+   :  pivotTolerance_(1.0e-1),
+  zeroTolerance_(1.0e-13),
+#ifndef COIN_FAST_CODE
+  slackValue_(-1.0),
+#endif
+  relaxCheck_(1.0),
+  factorElements_(0),
+  numberRows_(0),
+  numberColumns_(0),
+  numberGoodU_(0),
+  maximumPivots_(200),
+  numberPivots_(0),
+  status_(-1)
+{
+}
+// Copy constructor 
+CoinSmallFactorization::CoinSmallFactorization ( const CoinSmallFactorization &other)
+   :  pivotTolerance_(other.pivotTolerance_),
+  zeroTolerance_(other.zeroTolerance_),
+#ifndef COIN_FAST_CODE
+  slackValue_(other.slackValue_),
+#endif
+  relaxCheck_(other.relaxCheck_),
+  factorElements_(other.factorElements_),
+  numberRows_(other.numberRows_),
+  numberColumns_(other.numberColumns_),
+  numberGoodU_(other.numberGoodU_),
+  maximumPivots_(other.maximumPivots_),
+  numberPivots_(other.numberPivots_),
+  status_(other.status_)
+{
+}
+// Destructor
+CoinSmallFactorization::~CoinSmallFactorization (  )
+{
+}
+// = copy
+CoinSmallFactorization & CoinSmallFactorization::operator = ( const CoinSmallFactorization & other )
+{
+  if (this != &other) {    
+    pivotTolerance_ = other.pivotTolerance_;
+    zeroTolerance_ = other.zeroTolerance_;
+#ifndef COIN_FAST_CODE
+    slackValue_ = other.slackValue_;
+#endif
+    relaxCheck_ = other.relaxCheck_;
+    factorElements_ = other.factorElements_;
+    numberRows_ = other.numberRows_;
+    numberColumns_ = other.numberColumns_;
+    numberGoodU_ = other.numberGoodU_;
+    maximumPivots_ = other.maximumPivots_;
+    numberPivots_ = other.numberPivots_;
+    status_ = other.status_;
+  }
+  return *this;
+}
+void CoinSmallFactorization::pivotTolerance (  double value )
+{
+  if (value>0.0&&value<=1.0) {
+    pivotTolerance_=value;
+  }
+}
+void CoinSmallFactorization::zeroTolerance (  double value )
+{
+  if (value>0.0&&value<1.0) {
+    zeroTolerance_=value;
+  }
+}
+#ifndef COIN_FAST_CODE
+void CoinSmallFactorization::slackValue (  double value )
+{
+  if (value>=0.0) {
+    slackValue_=1.0;
+  } else {
+    slackValue_=-1.0;
+  }
+}
+#endif
 void 
-CoinDenseFactorization::maximumPivots (  int value )
+CoinSmallFactorization::maximumPivots (  int value )
 {
   if (value>maximumPivots_) {
     delete [] pivotRow_;

@@ -14,6 +14,7 @@
 #include <cassert>
 #include "CoinFinite.hpp"
 #include "CoinIndexedVector.hpp"
+#include "CoinDenseFactorization.hpp"
 class CoinPackedMatrix;
 
 
@@ -34,7 +35,7 @@ public:
     ~ FactorPointers();
 };
 
-class CoinSimpFactorization {
+class CoinSimpFactorization : public CoinSmallFactorization {
    friend void CoinSimpFactorizationUnitTest( const std::string & mpsDir );
 
 public:
@@ -47,91 +48,41 @@ public:
   CoinSimpFactorization ( const CoinSimpFactorization &other);
   
   /// Destructor
-  ~CoinSimpFactorization (  );
+  virtual ~CoinSimpFactorization (  );
   /// = copy
   CoinSimpFactorization & operator = ( const CoinSimpFactorization & other );
+  /// Clone
+  virtual CoinSmallFactorization * clone() const ;
   //@}
 
   /**@name Do factorization - public */
   //@{
   /// Gets space for a factorization
-  void getAreas ( int numberRows,
+  virtual void getAreas ( int numberRows,
 		  int numberColumns,
 		  CoinBigIndex maximumL,
 		  CoinBigIndex maximumU );
   
   /// PreProcesses column ordered copy of basis
-  void preProcess ( );
+  virtual void preProcess ( );
   /** Does most of factorization returning status
       0 - OK
       -99 - needs more memory
       -1 - singular - use numberGoodColumns and redo
   */
-  int factor ( );
+  virtual int factor ( );
   /// Does post processing on valid factorization - putting variables on correct rows
-  void postProcess(const int * sequence, int * pivotVariable);
+  virtual void postProcess(const int * sequence, int * pivotVariable);
   /// Makes a non-singular basis by replacing variables
-  void makeNonSingular(int * sequence, int numberColumns);
+  virtual void makeNonSingular(int * sequence, int numberColumns);
   //@}
 
   /**@name general stuff such as status */
   //@{ 
-  /// Returns status
-  inline int status (  ) const {
-    return status_;
-  }
-  /// Sets status
-  inline void setStatus (  int value)
-  {  status_=value;  }
-  /// Returns number of pivots since factorization
-  inline int pivots (  ) const {
-    return numberPivots_;
-  }
-  /// Number of Rows
-  inline int numberRows (  ) const {
-    return numberRows_;
-  }
-  /// Total number of columns in factorization
-  inline int numberColumns (  ) const {
-    return numberColumns_;
-  }
   /// Total number of elements in factorization
-  inline int numberElements (  ) const {
+  virtual inline int numberElements (  ) const {
     return numberRows_*(numberColumns_+numberPivots_);
   }
-  /// Number of good columns in factorization
-  inline int numberGoodColumns (  ) const {
-    return numberGoodU_;
-  }
-  /// Allows change of pivot accuracy check 1.0 == none >1.0 relaxed
-  inline void relaxAccuracyCheck(double value)
-  { relaxCheck_ = value;}
-  inline double getAccuracyCheck() const
-  { return relaxCheck_;}
-  /// Maximum number of pivots between factorizations
-  inline int maximumPivots (  ) const {
-    return maximumPivots_ ;
-  }
-  void maximumPivots (  int value );
-
-  /// Pivot tolerance
-  inline double pivotTolerance (  ) const {
-    return pivotTolerance_ ;
-  }
-  void pivotTolerance (  double value );
-  /// Zero tolerance
-  inline double zeroTolerance (  ) const {
-    return zeroTolerance_ ;
-  }
-  inline void zeroTolerance (  double value )
-  { zeroTolerance_ = value;}
-#ifndef COIN_FAST_CODE
-  /// Whether slack value is +1 or -1
-  inline double slackValue (  ) const {
-    return slackValue_ ;
-  }
-  void slackValue (  double value );
-#endif
   /// Returns maximum absolute value in factorization
   double maximumCoefficient() const;
   //@}
@@ -146,7 +97,7 @@ public:
       speed considerations.  You could just do this on first iteration
       after factorization and thereafter re-factorize
    partial update already in U */
-  int replaceColumn ( CoinIndexedVector * regionSparse,
+  virtual int replaceColumn ( CoinIndexedVector * regionSparse,
 		      int pivotRow,
 		      double pivotCheck ,
 		      bool checkBeforeModifying=false);
@@ -162,33 +113,33 @@ public:
       Note - if regionSparse2 packed on input - will be packed on output
   */
 
-    int updateColumnFT ( CoinIndexedVector * regionSparse,
+    virtual int updateColumnFT ( CoinIndexedVector * regionSparse,
 			 CoinIndexedVector * regionSparse2,
 			 bool noPermute=false);
     /// does FTRAN on two columns
-    int updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
+    virtual int updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
 			   CoinIndexedVector * regionSparse2,
 			   CoinIndexedVector * regionSparse3,
 			   bool noPermute=false);
     
     /** This version has same effect as above with FTUpdate==false
 	so number returned is always >=0 */
-    int updateColumn ( CoinIndexedVector * regionSparse,
+    virtual int updateColumn ( CoinIndexedVector * regionSparse,
 		       CoinIndexedVector * regionSparse2,
-		       bool noPermute=false);// const;
+		       bool noPermute=false) const;
     /// does updatecolumn if save==true keeps column for replace column
     int upColumn ( CoinIndexedVector * regionSparse,
 		   CoinIndexedVector * regionSparse2,
-		   bool noPermute=false, bool save=false);
+		   bool noPermute=false, bool save=false) const;
     /** Updates one column (BTRAN) from regionSparse2
 	regionSparse starts as zero and is zero at end 
 	Note - if regionSparse2 packed on input - will be packed on output
     */
-    int updateColumnTranspose ( CoinIndexedVector * regionSparse,
-				CoinIndexedVector * regionSparse2); //const;
+    virtual int updateColumnTranspose ( CoinIndexedVector * regionSparse,
+				CoinIndexedVector * regionSparse2) const;
     /// does updateColumnTranspose, the other is a wrapper
     int upColumnTranspose ( CoinIndexedVector * regionSparse,
-				CoinIndexedVector * regionSparse2); //const;
+				CoinIndexedVector * regionSparse2) const;
     //@}
     /// *** Below this user may not want to know about
 
@@ -198,30 +149,12 @@ public:
   /// Get rid of all memory
   inline void clearArrays()
   { gutsOfDestructor();}
-  /// Returns array to put basis elements in
-  inline double * elements() const
-  { return elements_;}
   /// Returns array to put basis indices in
   inline int * indices() const
   { return (int *) (elements_+numberRows_*numberRows_);}
-  /// Returns array to put basis starts in
-  inline CoinBigIndex * starts() const
-  { return (CoinBigIndex *) pivotRow_;}
-  /// Returns pivot row 
-  inline int * pivotRow() const
-  { return pivotRow_;}
   /// Returns permute in
-  inline int * permute() const
+  virtual inline int * permute() const
   { return pivotRow_;}
-  /// Returns permute back
-  inline int * permuteBack() const
-  { return pivotRow_+numberRows_;}
-  /// Returns work area
-  inline double * workArea() const
-  { return workArea_;}
-  /// Returns int work area
-  inline int * intWorkArea() const
-  { return (int *) workArea_;}
   //@}
 
   /// The real work of destructor 
@@ -292,17 +225,17 @@ public:
     /// initializes some numbers
     void initialSomeNumbers();
     /// solves L x = b
-    void Lxeqb(double *b);
+    void Lxeqb(double *b) const;
     /// same as above but with two rhs
-    void Lxeqb2(double *b1, double *b2);
+    void Lxeqb2(double *b1, double *b2) const;
     /// solves U x = b
-    void Uxeqb(double *b, double *sol);
+    void Uxeqb(double *b, double *sol) const;
     /// same as above but with two rhs
-    void Uxeqb2(double *b1, double *sol1, double *sol2, double *b2);
+    void Uxeqb2(double *b1, double *sol1, double *sol2, double *b2) const;
     /// solves x L = b
-    void xLeqb(double *b);
+    void xLeqb(double *b) const;
     /// solves x U = b
-    void xUeqb(double *b, double *sol);
+    void xUeqb(double *b, double *sol) const;
     /// updates factorization after a Simplex iteration
     int LUupdate(int newBasicCol);
     /// creates a new eta vector
@@ -310,17 +243,17 @@ public:
     /// makes a copy of row permutations
     void copyRowPermutations();
     /// solves H x = b, where H is a product of eta matrices
-    void Hxeqb(double *b);
+    void Hxeqb(double *b) const;
     /// same as above but with two rhs
-    void Hxeqb2(double *b1, double *b2);
+    void Hxeqb2(double *b1, double *b2) const;
     /// solves x H = b
-    void xHeqb(double *b);
+    void xHeqb(double *b) const;
     /// does FTRAN
-    void ftran(double *b, double *sol, bool save);
+    void ftran(double *b, double *sol, bool save) const;
     /// same as above but with two columns
-    void ftran2(double *b1, double *sol1, double *b2, double *sol2);
+    void ftran2(double *b1, double *sol1, double *b2, double *sol2) const;
     /// does BTRAN
-    void btran(double *b, double *sol);
+    void btran(double *b, double *sol) const;
    ///---------------------------------------
 
 
@@ -335,47 +268,6 @@ protected:
 
   /**@name data */
   //@{
-  /// Pivot tolerance
-  double pivotTolerance_;
-  /// Zero tolerance
-  double zeroTolerance_;
-#ifndef COIN_FAST_CODE
-  /// Whether slack value is  +1 or -1
-  double slackValue_;
-#else
-#ifndef slackValue_
-#define slackValue_ -1.0
-#endif
-#endif
-  /// Relax check on accuracy in replaceColumn
-  double relaxCheck_;
-  /// Number of Rows in factorization
-  int numberRows_;
-  /// Number of Columns in factorization
-  int numberColumns_;
-  /// Maximum rows ever (i.e. use to copy arrays etc)
-  int maximumRows_;
-  /// Maximum length of iterating area
-  CoinBigIndex maximumSpace_;
-  /// Number factorized in U (not row singletons)
-  int numberGoodU_;
-  /// Maximum number of pivots before factorization
-  int maximumPivots_;
-  /// Number pivots since last factorization
-  int numberPivots_;
-  /// Number of elements after factorization
-  CoinBigIndex factorElements_;
-  /// Pivot row 
-  int * pivotRow_;
-  /// Status of factorization
-  int status_;
-  /** Elements of factorization and updates
-      length is maxR*maxR+maxSpace
-      will always be long enough so can have nR*nR ints in maxSpace 
-  */
-    double * elements_;
-    /// Work area of numberRows_ 
-    double * workArea_;
     /// work array (should be initialized to zero)
     double *denseVector_;
     /// work array 
@@ -397,7 +289,7 @@ protected:
     /// indices of this vector
     int *indKeep_;
     /// number of nonzeros
-    int keepSize_;
+    mutable int keepSize_;
 
     
 
