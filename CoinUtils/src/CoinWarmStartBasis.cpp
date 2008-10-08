@@ -461,6 +461,50 @@ CoinWarmStartBasis::fullBasis() const
 #endif
   return numberBasic==numArtificial_;
 }
+// Returns true if full basis and fixes up (for debug)
+bool 
+CoinWarmStartBasis::fixFullBasis() 
+{
+  int i ;
+  int numberBasic=0;
+  for (i=0;i<numStructural_;i++) {
+    Status status = getStructStatus(i);
+    if (status==CoinWarmStartBasis::basic) 
+      numberBasic++;
+  }
+  for (i=0;i<numArtificial_;i++) {
+    Status status = getArtifStatus(i);
+    if (status==CoinWarmStartBasis::basic) 
+      numberBasic++;
+  }
+#ifdef COIN_DEVELOP
+  if (numberBasic!=numArtificial_)
+    printf("mismatch - basis has %d rows, %d basic\n",
+	   numArtificial_,numberBasic);
+#endif
+  bool returnCode = (numberBasic==numArtificial_);
+  if (numberBasic>numArtificial_) {
+    for (i=0;i<numStructural_;i++) {
+      Status status = getStructStatus(i);
+      if (status==CoinWarmStartBasis::basic) 
+	setStructStatus(i,atLowerBound);
+	numberBasic--;
+	if (numberBasic==numArtificial_)
+	  break;
+    }
+  } else if (numberBasic<numArtificial_) {
+    for (i=0;i<numArtificial_;i++) {
+      Status status = getArtifStatus(i);
+      if (status!=CoinWarmStartBasis::basic) {
+	setArtifStatus(i,basic);
+	numberBasic++;
+	if (numberBasic==numArtificial_)
+	  break;
+      }
+    }
+  }
+  return returnCode;
+}
 /*
   Generate a diff that'll convert oldCWS into the basis pointed to by this.
 

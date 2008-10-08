@@ -316,6 +316,8 @@ public:
   virtual void print() const;
   /// Returns true if full basis (for debug)
   bool fullBasis() const;
+  /// Returns true if full basis and fixes up (for debug)
+  bool fixFullBasis();
 
 //@}
 

@@ -187,6 +187,11 @@ public:
   virtual int updateColumn ( CoinIndexedVector * regionSparse,
 		     CoinIndexedVector * regionSparse2,
 		     bool noPermute=false) const = 0;
+    /// does FTRAN on two columns
+    virtual int updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
+			   CoinIndexedVector * regionSparse2,
+			   CoinIndexedVector * regionSparse3,
+			   bool noPermute=false) = 0;
   /** Updates one column (BTRAN) from regionSparse2
       regionSparse starts as zero and is zero at end 
       Note - if regionSparse2 packed on input - will be packed on output
@@ -340,6 +345,11 @@ public:
   virtual int updateColumn ( CoinIndexedVector * regionSparse,
 		     CoinIndexedVector * regionSparse2,
 		     bool noPermute=false) const;
+    /// does FTRAN on two columns
+    virtual int updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
+			   CoinIndexedVector * regionSparse2,
+			   CoinIndexedVector * regionSparse3,
+			   bool noPermute=false);
   /** Updates one column (BTRAN) from regionSparse2
       regionSparse starts as zero and is zero at end 
       Note - if regionSparse2 packed on input - will be packed on output
@@ -380,8 +390,6 @@ protected:
 
   /**@name data */
   //@{
-  // temp array
-  int * lapackPivot_;
   //@}
 };
 #endif

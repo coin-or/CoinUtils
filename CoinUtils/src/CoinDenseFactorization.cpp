@@ -13,8 +13,7 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
 #include <stdio.h>
-#undef DENSE_CODE
-//#define DENSE_CODE 2
+//#undef DENSE_CODE
 #ifdef DENSE_CODE
 // using simple lapack interface
 extern "C" 
@@ -64,10 +63,7 @@ void CoinDenseFactorization::gutsOfDestructor()
   status_ = -1;
   maximumRows_=0;
   maximumSpace_=0;
-#ifdef DENSE_CODE
-  lapackPivot_ = NULL;
   solveMode_=0;
-#endif
 }
 void CoinDenseFactorization::gutsOfInitialize()
 {
@@ -88,10 +84,7 @@ void CoinDenseFactorization::gutsOfInitialize()
   elements_ = NULL;
   pivotRow_ = NULL;
   workArea_ = NULL;
-#ifdef DENSE_CODE
-  lapackPivot_ = NULL;
   solveMode_=0;
-#endif
 }
 //  ~CoinDenseFactorization.  Destructor
 CoinDenseFactorization::~CoinDenseFactorization (  )
@@ -107,6 +100,11 @@ CoinDenseFactorization & CoinDenseFactorization::operator = ( const CoinDenseFac
   }
   return *this;
 }
+#ifdef DENSE_CODE
+#define WORK_MULT 2
+#else
+#define WORK_MULT 2
+#endif
 void CoinDenseFactorization::gutsOfCopy(const CoinDenseFactorization &other)
 {
   pivotTolerance_ = other.pivotTolerance_;
@@ -130,17 +128,12 @@ void CoinDenseFactorization::gutsOfCopy(const CoinDenseFactorization &other)
     CoinMemcpyN(other.pivotRow_,(2*maximumRows_+numberPivots_),pivotRow_);
     elements_ = new double [maximumSpace_];
     CoinMemcpyN(other.elements_,(maximumRows_+numberPivots_)*maximumRows_,elements_);
-    workArea_ = new double [maximumRows_];
-#ifdef DENSE_CODE
-    lapackPivot_ = new int [maximumRows_];
-#endif
+    workArea_ = new double [maximumRows_*WORK_MULT];
+    CoinZeroN(workArea_,maximumRows_*WORK_MULT);
   } else {
     elements_ = NULL;
     pivotRow_ = NULL;
     workArea_ = NULL;
-#ifdef DENSE_CODE
-    lapackPivot_ = NULL;
-#endif
   }
 }
 
@@ -166,10 +159,7 @@ CoinDenseFactorization::getAreas ( int numberOfRows,
     delete [] pivotRow_;
     delete [] workArea_;
     pivotRow_ = new int [2*maximumRows_+maximumPivots_];
-    workArea_ = new double [maximumRows_];
-#ifdef DENSE_CODE
-    lapackPivot_ = new int [maximumRows_];
-#endif
+    workArea_ = new double [maximumRows_*WORK_MULT];
   }
 }
 
@@ -200,30 +190,39 @@ int
 CoinDenseFactorization::factor ( )
 {
   numberPivots_=0;
-  for (int j=0;j<numberRows_;j++) {
-    pivotRow_[j+numberRows_]=j;
-  }
   status_= 0;
 #ifdef DENSE_CODE
   if (numberRows_==numberColumns_&&solveMode_) {
     int info;
     F77_FUNC(dgetrf,DGETRF)(&numberRows_,&numberRows_,
-			    elements_,&numberRows_,lapackPivot_,
+			    elements_,&numberRows_,pivotRow_,
 			    &info);
     // need to check size of pivots
     if(!info) {
       // OK
       solveMode_=1;
       numberGoodU_=numberRows_;
-      for (int j=0;j<numberRows_;j++) {
-	pivotRow_[j]=j;
+      CoinZeroN(workArea_,2*numberRows_);
+#ifndef NDEBUG
+      const double * column = elements_;
+      double smallest=COIN_DBL_MAX;
+      for (int i=0;i<numberRows_;i++) {
+	if (fabs(column[i])<smallest)
+	  smallest = fabs(column[i]);
+	column += numberRows_;
       }
+      if (smallest<1.0e-8)
+	printf("small el %g\n");
+#endif
       return 0;
     } else {
       solveMode_=0;
     }
   }
 #endif
+  for (int j=0;j<numberRows_;j++) {
+    pivotRow_[j+numberRows_]=j;
+  }
   double * elements = elements_;
   numberGoodU_=0;
   for (int i=0;i<numberColumns_;i++) {
@@ -324,19 +323,31 @@ CoinDenseFactorization::makeNonSingular(int * sequence, int numberColumns)
 void 
 CoinDenseFactorization::postProcess(const int * sequence, int * pivotVariable)
 {
-  for (int i=0;i<numberRows_;i++) {
-    int k = sequence[i];
-#ifdef DENSE_PERMUTE
-    pivotVariable[pivotRow_[i+numberRows_]]=k;
-#else
-    //pivotVariable[pivotRow_[i]]=k;
-    //pivotVariable[pivotRow_[i]]=k;
-    pivotVariable[i]=k;
-    k=pivotRow_[i];
-    pivotRow_[i] = pivotRow_[i+numberRows_];
-    pivotRow_[i+numberRows_]=k;
+#ifdef DENSE_CODE
+  if (!solveMode_) {
 #endif
+    for (int i=0;i<numberRows_;i++) {
+      int k = sequence[i];
+#ifdef DENSE_PERMUTE
+      pivotVariable[pivotRow_[i+numberRows_]]=k;
+#else
+      //pivotVariable[pivotRow_[i]]=k;
+      //pivotVariable[pivotRow_[i]]=k;
+      pivotVariable[i]=k;
+      k=pivotRow_[i];
+      pivotRow_[i] = pivotRow_[i+numberRows_];
+      pivotRow_[i+numberRows_]=k;
+#endif
+    }
+#ifdef DENSE_CODE
+  } else {
+    // lapack
+    for (int i=0;i<numberRows_;i++) {
+      int k = sequence[i];
+      pivotVariable[i]=k;
+    }
   }
+#endif
 }
 /* Replaces one Column to basis,
    returns 0=OK, 1=Probably OK, 2=singular, 3=no room
@@ -363,29 +374,53 @@ CoinDenseFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   if (fabs(pivotValue)<zeroTolerance_)
     return 2;
   pivotValue = 1.0/pivotValue;
-  if (regionSparse->packedMode()) {
-    for (i=0;i<numberNonZero;i++) {
-      int iRow = regionIndex[i];
-      double value = region[i];
-#ifdef DENSE_PERMUTE
-      iRow = pivotRow_[iRow]; // permute
+#ifdef DENSE_CODE
+  if (!solveMode_) {
 #endif
-      elements[iRow] = value;;
+    if (regionSparse->packedMode()) {
+      for (i=0;i<numberNonZero;i++) {
+	int iRow = regionIndex[i];
+	double value = region[i];
+#ifdef DENSE_PERMUTE
+	iRow = pivotRow_[iRow]; // permute
+#endif
+	elements[iRow] = value;;
+      }
+    } else {
+      // not packed! - from user pivot?
+      for (i=0;i<numberNonZero;i++) {
+	int iRow = regionIndex[i];
+	double value = region[iRow];
+#ifdef DENSE_PERMUTE
+	iRow = pivotRow_[iRow]; // permute
+#endif
+	elements[iRow] = value;;
+      }
     }
+    int realPivotRow = pivotRow_[pivotRow];
+    elements[realPivotRow]=pivotValue;
+    pivotRow_[2*numberRows_+numberPivots_]=realPivotRow;
+#ifdef DENSE_CODE
   } else {
-    // not packed! - from user pivot?
-    for (i=0;i<numberNonZero;i++) {
-      int iRow = regionIndex[i];
-      double value = region[iRow];
-#ifdef DENSE_PERMUTE
-      iRow = pivotRow_[iRow]; // permute
-#endif
-      elements[iRow] = value;;
+    // lapack
+    if (regionSparse->packedMode()) {
+      for (i=0;i<numberNonZero;i++) {
+	int iRow = regionIndex[i];
+	double value = region[i];
+	elements[iRow] = value;;
+      }
+    } else {
+      // not packed! - from user pivot?
+      for (i=0;i<numberNonZero;i++) {
+	int iRow = regionIndex[i];
+	double value = region[iRow];
+	elements[iRow] = value;;
+      }
     }
+    elements[pivotRow]=pivotValue;
+    pivotRow_[2*numberRows_+numberPivots_]=pivotRow;
   }
-  int realPivotRow = pivotRow_[pivotRow];
-  elements[realPivotRow]=pivotValue;
-  pivotRow_[2*numberRows_+numberPivots_]=realPivotRow;
+#endif
   numberPivots_++;
   return 0;
 }
@@ -401,27 +436,54 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   int *regionIndex = regionSparse2->getIndices (  );
   int numberNonZero = regionSparse2->getNumElements (  );
   double *region = regionSparse->denseVector (  );
-  if (!regionSparse2->packedMode()) {
-    if (!noPermute) {
-      for (int j=0;j<numberRows_;j++) {
-	int iRow = pivotRow_[j+numberRows_];
-	region[j]=region2[iRow];
-	region2[iRow]=0.0;
+#ifdef DENSE_CODE
+  if (!solveMode_) {
+#endif
+    if (!regionSparse2->packedMode()) {
+      if (!noPermute) {
+	for (int j=0;j<numberRows_;j++) {
+	  int iRow = pivotRow_[j+numberRows_];
+	  region[j]=region2[iRow];
+	  region2[iRow]=0.0;
+	}
+      } else {
+	// can't due to check mode assert (regionSparse==regionSparse2);
+	region = regionSparse2->denseVector (  );
       }
     } else {
-      // can't due to check mode assert (regionSparse==regionSparse2);
-      region = regionSparse2->denseVector (  );
+      // packed mode
+      assert (!noPermute);
+      for (int j=0;j<numberNonZero;j++) {
+	int jRow = regionIndex[j];
+	int iRow = pivotRow_[jRow];
+	region[iRow]=region2[j];
+	region2[j]=0.0;
+      }
     }
+#ifdef DENSE_CODE
   } else {
-    // packed mode
-    assert (!noPermute);
-    for (int j=0;j<numberNonZero;j++) {
-      int jRow = regionIndex[j];
-      int iRow = pivotRow_[jRow];
-      region[iRow]=region2[j];
-      region2[j]=0.0;
+    // lapack
+    if (!regionSparse2->packedMode()) {
+      if (!noPermute) {
+	for (int j=0;j<numberRows_;j++) {
+	  region[j]=region2[j];
+	  region2[j]=0.0;
+	}
+      } else {
+	// can't due to check mode assert (regionSparse==regionSparse2);
+	region = regionSparse2->denseVector (  );
+      }
+    } else {
+      // packed mode
+      assert (!noPermute);
+      for (int j=0;j<numberNonZero;j++) {
+	int jRow = regionIndex[j];
+	region[jRow]=region2[j];
+	region2[j]=0.0;
+      }
     }
   }
+#endif
   int i;
   double * elements = elements_;
 #ifdef DENSE_CODE
@@ -451,7 +513,7 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
     int ione=1;
     int info;
     F77_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,&numberRows_,
-			      lapackPivot_,region,&numberRows_,&info,1);
+			      pivotRow_,region,&numberRows_,&info,1);
   }
 #endif
   // now updates
@@ -467,50 +529,229 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   }
   // permute back and get nonzeros
   numberNonZero=0;
-  if (!noPermute) {
+#ifdef DENSE_CODE
+  if (!solveMode_) {
+#endif
+    if (!noPermute) {
+      if (!regionSparse2->packedMode()) {
+	for (int j=0;j<numberRows_;j++) {
+#ifdef DENSE_PERMUTE
+	  int iRow = pivotRow_[j];
+#else
+	  int iRow=j;
+#endif
+	  double value = region[iRow];
+	  region[iRow]=0.0;
+	  if (fabs(value)>zeroTolerance_) {
+	    region2[j] = value;
+	    regionIndex[numberNonZero++]=j;
+	  }
+	}
+      } else {
+	// packed mode
+	for (int j=0;j<numberRows_;j++) {
+#ifdef DENSE_PERMUTE
+	  int iRow = pivotRow_[j];
+#else
+	  int iRow=j;
+#endif
+	  double value = region[iRow];
+	  region[iRow]=0.0;
+	  if (fabs(value)>zeroTolerance_) {
+	    region2[numberNonZero] = value;
+	    regionIndex[numberNonZero++]=j;
+	  }
+	}
+      }
+    } else {
+      for (int j=0;j<numberRows_;j++) {
+	double value = region[j];
+	if (fabs(value)>zeroTolerance_) {
+	  regionIndex[numberNonZero++]=j;
+	} else {
+	  region[j]=0.0;
+	}
+      }
+    }
+#ifdef DENSE_CODE
+  } else {
+    // lapack
+    if (!noPermute) {
+      if (!regionSparse2->packedMode()) {
+	for (int j=0;j<numberRows_;j++) {
+	  double value = region[j];
+	  region[j]=0.0;
+	  if (fabs(value)>zeroTolerance_) {
+	    region2[j] = value;
+	    regionIndex[numberNonZero++]=j;
+	  }
+	}
+      } else {
+	// packed mode
+	for (int j=0;j<numberRows_;j++) {
+	  double value = region[j];
+	  region[j]=0.0;
+	  if (fabs(value)>zeroTolerance_) {
+	    region2[numberNonZero] = value;
+	    regionIndex[numberNonZero++]=j;
+	  }
+	}
+      }
+    } else {
+      for (int j=0;j<numberRows_;j++) {
+	double value = region[j];
+	if (fabs(value)>zeroTolerance_) {
+	  regionIndex[numberNonZero++]=j;
+	} else {
+	  region[j]=0.0;
+	}
+      }
+    }
+  }
+#endif
+  regionSparse2->setNumElements(numberNonZero);
+  return 0;
+}
+
+
+int 
+CoinDenseFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
+					  CoinIndexedVector * regionSparse2,
+					  CoinIndexedVector * regionSparse3,
+					  bool noPermute)
+{
+#ifdef DENSE_CODE
+#if 0
+  CoinIndexedVector s2(*regionSparse2);
+  CoinIndexedVector s3(*regionSparse3);
+  updateColumn(regionSparse1,&s2);
+  updateColumn(regionSparse1,&s3);
+#endif
+  if (!solveMode_) {
+#endif
+    updateColumn(regionSparse1,regionSparse2);
+    updateColumn(regionSparse1,regionSparse3);
+#ifdef DENSE_CODE
+  } else {
+    // lapack
+    assert (numberRows_==numberColumns_);
+    double *region2 = regionSparse2->denseVector (  );
+    int *regionIndex2 = regionSparse2->getIndices (  );
+    int numberNonZero2 = regionSparse2->getNumElements (  );
+    double * regionW2 = workArea_;
     if (!regionSparse2->packedMode()) {
       for (int j=0;j<numberRows_;j++) {
-#ifdef DENSE_PERMUTE
-	int iRow = pivotRow_[j];
-#else
-	int iRow=j;
-#endif
-	double value = region[iRow];
-	region[iRow]=0.0;
+	regionW2[j]=region2[j];
+	region2[j]=0.0;
+      }
+    } else {
+      // packed mode
+      for (int j=0;j<numberNonZero2;j++) {
+	int jRow = regionIndex2[j];
+	regionW2[jRow]=region2[j];
+	region2[j]=0.0;
+      }
+    }
+    double *region3 = regionSparse3->denseVector (  );
+    int *regionIndex3 = regionSparse3->getIndices (  );
+    int numberNonZero3 = regionSparse3->getNumElements (  );
+    double *regionW3 = workArea_+numberRows_;
+    if (!regionSparse3->packedMode()) {
+      for (int j=0;j<numberRows_;j++) {
+	regionW3[j]=region3[j];
+	region3[j]=0.0;
+      }
+    } else {
+      // packed mode
+      for (int j=0;j<numberNonZero3;j++) {
+	int jRow = regionIndex3[j];
+	regionW3[jRow]=region3[j];
+	region3[j]=0.0;
+      }
+    }
+    int i;
+    double * elements = elements_;
+    char trans = 'N';
+    int itwo=2;
+    int info;
+    F77_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&itwo,elements_,&numberRows_,
+			    pivotRow_,workArea_,&numberRows_,&info,1);
+    // now updates
+    elements = elements_+numberRows_*numberRows_;
+    for (i=0;i<numberPivots_;i++) {
+      int iPivot = pivotRow_[i+2*numberRows_];
+      double value2 = regionW2[iPivot]*elements[iPivot];
+      double value3 = regionW3[iPivot]*elements[iPivot];
+      for (int j=0;j<numberRows_;j++) {
+	regionW2[j] -= value2*elements[j];
+	regionW3[j] -= value3*elements[j];
+      }
+      regionW2[iPivot] = value2;
+      regionW3[iPivot] = value3;
+      elements += numberRows_;
+    }
+    // permute back and get nonzeros
+    numberNonZero2=0;
+    if (!regionSparse2->packedMode()) {
+      for (int j=0;j<numberRows_;j++) {
+	double value = regionW2[j];
+	regionW2[j]=0.0;
 	if (fabs(value)>zeroTolerance_) {
 	  region2[j] = value;
-	  regionIndex[numberNonZero++]=j;
+	  regionIndex2[numberNonZero2++]=j;
 	}
       }
     } else {
       // packed mode
       for (int j=0;j<numberRows_;j++) {
-#ifdef DENSE_PERMUTE
-	int iRow = pivotRow_[j];
-#else
-	int iRow=j;
-#endif
-	double value = region[iRow];
-	region[iRow]=0.0;
+	double value = regionW2[j];
+	regionW2[j]=0.0;
 	if (fabs(value)>zeroTolerance_) {
-	  region2[numberNonZero] = value;
-	  regionIndex[numberNonZero++]=j;
+	  region2[numberNonZero2] = value;
+	  regionIndex2[numberNonZero2++]=j;
 	}
       }
     }
-  } else {
-    for (int j=0;j<numberRows_;j++) {
-      double value = region[j];
-      if (fabs(value)>zeroTolerance_) {
-	regionIndex[numberNonZero++]=j;
-      } else {
-	region[j]=0.0;
+    regionSparse2->setNumElements(numberNonZero2);
+    numberNonZero3=0;
+    if (!regionSparse3->packedMode()) {
+      for (int j=0;j<numberRows_;j++) {
+	double value = regionW3[j];
+	regionW3[j]=0.0;
+	if (fabs(value)>zeroTolerance_) {
+	  region3[j] = value;
+	  regionIndex3[numberNonZero3++]=j;
+	}
+      }
+    } else {
+      // packed mode
+      for (int j=0;j<numberRows_;j++) {
+	double value = regionW3[j];
+	regionW3[j]=0.0;
+	if (fabs(value)>zeroTolerance_) {
+	  region3[numberNonZero3] = value;
+	  regionIndex3[numberNonZero3++]=j;
+	}
       }
     }
+    regionSparse3->setNumElements(numberNonZero3);
+#if 0
+    printf("Good2==\n");
+    s2.print();
+    printf("Bad2==\n");
+    regionSparse2->print();
+    printf("======\n");
+    printf("Good3==\n");
+    s3.print();
+    printf("Bad3==\n");
+    regionSparse3->print();
+    printf("======\n");
+#endif
   }
-  regionSparse2->setNumElements(numberNonZero);
+#endif
   return 0;
 }
+
 /* Updates one column (BTRAN) from regionSparse2
    regionSparse starts as zero and is zero at end 
    Note - if regionSparse2 packed on input - will be packed on output
@@ -524,28 +765,48 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
   int *regionIndex = regionSparse2->getIndices (  );
   int numberNonZero = regionSparse2->getNumElements (  );
   double *region = regionSparse->denseVector (  );
-  if (!regionSparse2->packedMode()) {
-    for (int j=0;j<numberRows_;j++) {
-#ifdef DENSE_PERMUTE
-      int iRow = pivotRow_[j];
-#else
-      int iRow=j;
+#ifdef DENSE_CODE
+  if (!solveMode_) {
 #endif
-      region[iRow]=region2[j];
-      region2[j]=0.0;
+    if (!regionSparse2->packedMode()) {
+      for (int j=0;j<numberRows_;j++) {
+#ifdef DENSE_PERMUTE
+	int iRow = pivotRow_[j];
+#else
+	int iRow=j;
+#endif
+	region[iRow]=region2[j];
+	region2[j]=0.0;
+      }
+    } else {
+      for (int j=0;j<numberNonZero;j++) {
+	int jRow = regionIndex[j];
+#ifdef DENSE_PERMUTE
+	int iRow = pivotRow_[jRow];
+#else
+	int iRow=jRow;
+#endif
+	region[iRow]=region2[j];
+	region2[j]=0.0;
+      }
     }
+#ifdef DENSE_CODE
   } else {
-    for (int j=0;j<numberNonZero;j++) {
-      int jRow = regionIndex[j];
-#ifdef DENSE_PERMUTE
-      int iRow = pivotRow_[jRow];
-#else
-      int iRow=jRow;
-#endif
-      region[iRow]=region2[j];
-      region2[j]=0.0;
+    // lapack
+    if (!regionSparse2->packedMode()) {
+      for (int j=0;j<numberRows_;j++) {
+	region[j]=region2[j];
+	region2[j]=0.0;
+      }
+    } else {
+      for (int j=0;j<numberNonZero;j++) {
+	int jRow = regionIndex[j];
+	region[jRow]=region2[j];
+	region2[j]=0.0;
+      }
     }
   }
+#endif
   int i;
   double * elements = elements_+numberRows_*(numberRows_+numberPivots_);
   // updates
@@ -592,32 +853,59 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
     int ione=1;
     int info;
     F77_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,&numberRows_,
-			      lapackPivot_,region,&numberRows_,&info,1);
+			      pivotRow_,region,&numberRows_,&info,1);
   }
 #endif
   // permute back and get nonzeros
   numberNonZero=0;
-  if (!regionSparse2->packedMode()) {
-    for (int j=0;j<numberRows_;j++) {
-      int iRow = pivotRow_[j+numberRows_];
-      double value = region[j];
-      region[j]=0.0;
-      if (fabs(value)>zeroTolerance_) {
-	region2[iRow] = value;
-	regionIndex[numberNonZero++]=iRow;
+#ifdef DENSE_CODE
+  if (!solveMode_) {
+#endif
+    if (!regionSparse2->packedMode()) {
+      for (int j=0;j<numberRows_;j++) {
+	int iRow = pivotRow_[j+numberRows_];
+	double value = region[j];
+	region[j]=0.0;
+	if (fabs(value)>zeroTolerance_) {
+	  region2[iRow] = value;
+	  regionIndex[numberNonZero++]=iRow;
+	}
+      }
+    } else {
+      for (int j=0;j<numberRows_;j++) {
+	int iRow = pivotRow_[j+numberRows_];
+	double value = region[j];
+	region[j]=0.0;
+	if (fabs(value)>zeroTolerance_) {
+	  region2[numberNonZero] = value;
+	  regionIndex[numberNonZero++]=iRow;
+	}
       }
     }
+#ifdef DENSE_CODE
   } else {
-    for (int j=0;j<numberRows_;j++) {
-      int iRow = pivotRow_[j+numberRows_];
-      double value = region[j];
-      region[j]=0.0;
-      if (fabs(value)>zeroTolerance_) {
-	region2[numberNonZero] = value;
-	regionIndex[numberNonZero++]=iRow;
+    // lapack
+    if (!regionSparse2->packedMode()) {
+      for (int j=0;j<numberRows_;j++) {
+	double value = region[j];
+	region[j]=0.0;
+	if (fabs(value)>zeroTolerance_) {
+	  region2[j] = value;
+	  regionIndex[numberNonZero++]=j;
+	}
+      }
+    } else {
+      for (int j=0;j<numberRows_;j++) {
+	double value = region[j];
+	region[j]=0.0;
+	if (fabs(value)>zeroTolerance_) {
+	  region2[numberNonZero] = value;
+	  regionIndex[numberNonZero++]=j;
+	}
       }
     }
   }
+#endif
   regionSparse2->setNumElements(numberNonZero);
   return 0;
 }

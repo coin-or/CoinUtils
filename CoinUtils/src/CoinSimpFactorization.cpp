@@ -1547,7 +1547,7 @@ void CoinSimpFactorization::updateCurrentRow(const int pivotRow,
     // add the new nonzeros to the columns
     for ( int i=0; i<numNew; ++i){
 	const int column=newCols[i];
-#if 0
+#if 1
 	if ( UcolLengths_[column] + 1 > UcolCapacities_[column] ){
 	  abort();
 	    increaseColSize(column, UcolLengths_[column] + 1, false);
@@ -1604,6 +1604,7 @@ void CoinSimpFactorization::increaseColSize(const int column,
 					   const int newSize,
 					   const bool ifElements)
 {
+  abort();
     assert( newSize > UcolCapacities_[column] );
     const int newNumElements=newSize+minIncrease_;
     if ( UcolMaxCap_ < UcolEnd_ + newNumElements ){

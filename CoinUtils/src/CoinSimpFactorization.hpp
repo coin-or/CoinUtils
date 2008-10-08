@@ -116,17 +116,17 @@ public:
     virtual int updateColumnFT ( CoinIndexedVector * regionSparse,
 			 CoinIndexedVector * regionSparse2,
 			 bool noPermute=false);
-    /// does FTRAN on two columns
-    virtual int updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
-			   CoinIndexedVector * regionSparse2,
-			   CoinIndexedVector * regionSparse3,
-			   bool noPermute=false);
     
     /** This version has same effect as above with FTUpdate==false
 	so number returned is always >=0 */
     virtual int updateColumn ( CoinIndexedVector * regionSparse,
 		       CoinIndexedVector * regionSparse2,
 		       bool noPermute=false) const;
+    /// does FTRAN on two columns
+    virtual int updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
+			   CoinIndexedVector * regionSparse2,
+			   CoinIndexedVector * regionSparse3,
+			   bool noPermute=false);
     /// does updatecolumn if save==true keeps column for replace column
     int upColumn ( CoinIndexedVector * regionSparse,
 		   CoinIndexedVector * regionSparse2,
