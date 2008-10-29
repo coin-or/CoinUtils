@@ -322,81 +322,80 @@ CoinFactorization::factorSparseSmall (  )
       }
     }				/* endwhile */
     if (iPivotRow>=0) {
-      if ( iPivotRow >= 0 ) {
-        int numberDoRow = numberInRow[iPivotRow] - 1;
-        int numberDoColumn = numberInColumn[iPivotColumn] - 1;
-        
-        totalElements_ -= ( numberDoRow + numberDoColumn + 1 );
-        if ( numberDoColumn > 0 ) {
-          if ( numberDoRow > 0 ) {
-            if ( numberDoColumn > 1 ) {
-              //  if (1) {
-              //need to adjust more for cache and SMP
-              //allow at least 4 extra
-              int increment = numberDoColumn + 1 + 4;
-              
-              if ( increment & 15 ) {
-                increment = increment & ( ~15 );
-                increment += 16;
-              }
-              int increment2 =
-                
-                ( increment + COINFACTORIZATION_BITS_PER_INT - 1 ) >> COINFACTORIZATION_SHIFT_PER_INT;
-              CoinBigIndex size = increment2 * numberDoRow;
-              
-              if ( size > workSize ) {
-                workSize = size;
-		workArea2_.conditionalNew(workSize);
-		workArea2 = workArea2_.array();
-              }
-              bool goodPivot;
-	      //#define UGLY_COIN_FACTOR_CODING
+      assert (iPivotRow<numberRows_);
+      int numberDoRow = numberInRow[iPivotRow] - 1;
+      int numberDoColumn = numberInColumn[iPivotColumn] - 1;
+      
+      totalElements_ -= ( numberDoRow + numberDoColumn + 1 );
+      if ( numberDoColumn > 0 ) {
+	if ( numberDoRow > 0 ) {
+	  if ( numberDoColumn > 1 ) {
+	    //  if (1) {
+	    //need to adjust more for cache and SMP
+	    //allow at least 4 extra
+	    int increment = numberDoColumn + 1 + 4;
+            
+	    if ( increment & 15 ) {
+	      increment = increment & ( ~15 );
+	      increment += 16;
+	    }
+	    int increment2 =
+	      
+	      ( increment + COINFACTORIZATION_BITS_PER_INT - 1 ) >> COINFACTORIZATION_SHIFT_PER_INT;
+	    CoinBigIndex size = increment2 * numberDoRow;
+            
+	    if ( size > workSize ) {
+	      workSize = size;
+	      workArea2_.conditionalNew(workSize);
+	      workArea2 = workArea2_.array();
+	    }
+	    bool goodPivot;
+	    //#define UGLY_COIN_FACTOR_CODING
 #ifndef UGLY_COIN_FACTOR_CODING
-	      //branch out to best pivot routine 
-	      goodPivot = pivot ( iPivotRow, iPivotColumn,
-				  pivotRowPosition, pivotColumnPosition,
-				  workArea, workArea2, increment,
-				  increment2, ( unsigned short * ) markRow_.array() ,
-				  SMALL_SET);
+	    //branch out to best pivot routine 
+	    goodPivot = pivot ( iPivotRow, iPivotColumn,
+				pivotRowPosition, pivotColumnPosition,
+				workArea, workArea2, increment,
+				increment2, ( unsigned short * ) markRow_.array() ,
+				SMALL_SET);
 #else
 #define FAC_SET SMALL_SET
 #include "CoinFactorization.hpp"
 #undef FAC_SET
 #endif
-              if ( !goodPivot ) {
-                status = -99;
-                count=biggerDimension_+1;
-                break;
-              }
-            } else {
-              if ( !pivotOneOtherRow ( iPivotRow, iPivotColumn ) ) {
-                status = -99;
-                count=biggerDimension_+1;
-                break;
-              }
-            }
-          } else {
-            assert (!numberDoRow);
-            if ( !pivotRowSingleton ( iPivotRow, iPivotColumn ) ) {
-              status = -99;
-              count=biggerDimension_+1;
-              break;
-            }
-          }
-        } else {
-          assert (!numberDoColumn);
-          if ( !pivotColumnSingleton ( iPivotRow, iPivotColumn ) ) {
-            status = -99;
-            count=biggerDimension_+1;
-            break;
-          }
-        }
-        pivotColumn[numberGoodU_] = iPivotColumn;
-        numberGoodU_++;
-        // This should not need to be trapped here - but be safe
-        if (numberGoodU_==numberRows_) 
-          count=biggerDimension_+1;
+	    if ( !goodPivot ) {
+	      status = -99;
+	      count=biggerDimension_+1;
+	      break;
+	    }
+	  } else {
+	    if ( !pivotOneOtherRow ( iPivotRow, iPivotColumn ) ) {
+	      status = -99;
+	      count=biggerDimension_+1;
+	      break;
+	    }
+	  }
+	} else {
+	  assert (!numberDoRow);
+	  if ( !pivotRowSingleton ( iPivotRow, iPivotColumn ) ) {
+	    status = -99;
+	    count=biggerDimension_+1;
+	    break;
+	  }
+	}
+      } else {
+	assert (!numberDoColumn);
+	if ( !pivotColumnSingleton ( iPivotRow, iPivotColumn ) ) {
+	  status = -99;
+	  count=biggerDimension_+1;
+	  break;
+	}
       }
+      pivotColumn[numberGoodU_] = iPivotColumn;
+      numberGoodU_++;
+      // This should not need to be trapped here - but be safe
+      if (numberGoodU_==numberRows_) 
+	count=biggerDimension_+1;
 #if COIN_DEBUG==2
       checkConsistency (  );
 #endif

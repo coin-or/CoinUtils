@@ -746,7 +746,8 @@ protected:
 
   if ( l + numberInPivotColumn > lengthAreaL_ ) {
     //need more memory
-    printf("more memory needed in middle of invert\n");
+    if ((messageLevel_&4)!=0) 
+      printf("more memory needed in middle of invert\n");
     return false;
   }
   //l+=currentAreaL_->elementByColumn-elementL;
@@ -1480,7 +1481,8 @@ typedef const int cipfint;
   {
     if ( l + numberDoColumn > lengthAreaL_ ) {
       //need more memory
-      printf("more memory needed in middle of invert\n");
+      if ((messageLevel_&4)!=0) 
+	printf("more memory needed in middle of invert\n");
       goto BAD_PIVOT;
     }
     //l+=currentAreaL_->elementByColumn-elementL;
