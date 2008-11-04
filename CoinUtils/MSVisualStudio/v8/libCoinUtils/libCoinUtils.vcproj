@@ -115,6 +115,7 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\BuildTools\headers"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				RuntimeTypeInfo="true"
@@ -169,31 +170,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinBuild.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\src\CoinSimpFactorization.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -1205,6 +1181,31 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinSimpFactorization.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinWarmStartBasis.cpp"
 				>
 				<FileConfiguration
@@ -1269,10 +1270,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinBuild.hpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\CoinSimpFactorization.hpp"
 				>
 			</File>
 			<File
@@ -1429,6 +1426,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinShallowPackedVector.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinSimpFactorization.hpp"
 				>
 			</File>
 			<File
