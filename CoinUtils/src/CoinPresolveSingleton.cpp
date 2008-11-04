@@ -648,7 +648,7 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
           if ((sol[iCol] < cup[iCol]-ztolzb&&
 	       sol[iCol] > clo[iCol]+ztolzb)||prob->columnIsBasic(iCol))
             prob->setRowStatus(iRow,CoinPrePostsolveMatrix::basic);
-          prob->setColumnStatusUsingValue(CoinPrePostsolveMatrix::atLowerBound);
+          prob->setColumnStatusUsingValue(iCol);
         }
         // Force column to zero
         clo[iCol]=0.0;
