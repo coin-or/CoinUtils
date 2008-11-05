@@ -80,11 +80,11 @@ CoinFactorization::updateColumnUDensish ( double * COIN_RESTRICT region,
   double tolerance = zeroTolerance_;
   const CoinBigIndex *startColumn = startColumnU_.array();
   const int *indexRow = indexRowU_.array();
-  const double *element = elementU_.array();
+  const CoinFactorizationDouble *element = elementU_.array();
   int numberNonZero = 0;
   const int *numberInColumn = numberInColumn_.array();
   int i;
-  const double *pivotRegion = pivotRegion_.array();
+  const CoinFactorizationDouble *pivotRegion = pivotRegion_.array();
 #ifdef COIN_DEVELOP
   ncall_DZ++;
   nrow_DZ += numberRows_;
@@ -93,7 +93,7 @@ CoinFactorization::updateColumnUDensish ( double * COIN_RESTRICT region,
 #endif
   
   for (i = numberU_-1 ; i >= numberSlacks_; i-- ) {
-    double pivotValue = region[i];
+    CoinFactorizationDouble pivotValue = region[i];
     if (pivotValue) {
 #ifdef COIN_DEVELOP
       nnz_DZ++;
@@ -101,7 +101,7 @@ CoinFactorization::updateColumnUDensish ( double * COIN_RESTRICT region,
       region[i] = 0.0;
       if ( fabs ( pivotValue ) > tolerance ) {
 	CoinBigIndex start = startColumn[i];
-	const double * thisElement = element+start;
+	const CoinFactorizationDouble * thisElement = element+start;
 	const int * thisIndex = indexRow+start;
 	CoinBigIndex j;
 #ifdef COIN_DEVELOP
@@ -109,8 +109,8 @@ CoinFactorization::updateColumnUDensish ( double * COIN_RESTRICT region,
 #endif
 	for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
 	  int iRow = thisIndex[j];
-	  double regionValue = region[iRow];
-	  double value = thisElement[j];
+	  CoinFactorizationDouble regionValue = region[iRow];
+	  CoinFactorizationDouble value = thisElement[j];
 	  region[iRow] = regionValue - value * pivotValue;
 	}
 	pivotValue *= pivotRegion[i];
@@ -209,8 +209,8 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
   double tolerance = zeroTolerance_;
   const CoinBigIndex *startColumn = startColumnU_.array();
   const int *indexRow = indexRowU_.array();
-  const double *element = elementU_.array();
-  const double *pivotRegion = pivotRegion_.array();
+  const CoinFactorizationDouble *element = elementU_.array();
+  const CoinFactorizationDouble *pivotRegion = pivotRegion_.array();
   // use sparse_ as temporary area
   // mark known to be zero
   int * stack = sparse_.array();  /* pivot */
@@ -360,7 +360,7 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
   for (i=nList-1;i>=0;i--) {
     iPivot = list[i];
     mark[iPivot]=0;
-    double pivotValue = region[iPivot];
+    CoinFactorizationDouble pivotValue = region[iPivot];
     region[iPivot]=0.0;
     if ( fabs ( pivotValue ) > tolerance ) {
       CoinBigIndex start = startColumn[iPivot];
@@ -368,7 +368,7 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
       
       CoinBigIndex j;
       for ( j = start; j < start+number; j++ ) {
-	double value = element[j];
+	CoinFactorizationDouble value = element[j];
 	int iRow = indexRow[j];
 	region[iRow] -=  value * pivotValue;
       }
@@ -383,7 +383,7 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
     for (;put<putLast;put++) {
       int iPivot = *put;
       mark[iPivot]=0;
-      double pivotValue = region[iPivot];
+      CoinFactorizationDouble pivotValue = region[iPivot];
       region[iPivot]=0.0;
       if ( fabs ( pivotValue ) > tolerance ) {
 	region[iPivot]=pivotValue;
@@ -395,7 +395,7 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
     for (;put<putLast;put++) {
       int iPivot = *put;
       mark[iPivot]=0;
-      double pivotValue = region[iPivot];
+      CoinFactorizationDouble pivotValue = region[iPivot];
       region[iPivot]=0.0;
       if ( fabs ( pivotValue ) > tolerance ) {
 	region[iPivot]=-pivotValue;
@@ -446,8 +446,8 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
   double tolerance = zeroTolerance_;
   const CoinBigIndex *startColumn = startColumnU_.array();
   const int *indexRow = indexRowU_.array();
-  const double *element = elementU_.array();
-  const double *pivotRegion = pivotRegion_.array();
+  const CoinFactorizationDouble *element = elementU_.array();
+  const CoinFactorizationDouble *pivotRegion = pivotRegion_.array();
 #ifdef COIN_DEVELOP
   ncall_SZ++;
   nrow_SZ += numberRows_;
@@ -471,14 +471,14 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
   CoinBigIndex jLast = (numberU_-1)>>CHECK_SHIFT;
   jLast = CoinMax((jLast<<CHECK_SHIFT),(CoinBigIndex) numberSlacks_);
   for (i = numberU_-1 ; i >= jLast; i-- ) {
-    double pivotValue = region[i];
+    CoinFactorizationDouble pivotValue = region[i];
     region[i] = 0.0;
     if ( fabs ( pivotValue ) > tolerance ) {
 #ifdef COIN_DEVELOP
       nnz_SZ ++;
 #endif
       CoinBigIndex start = startColumn[i];
-      const double * thisElement = element+start;
+      const CoinFactorizationDouble * thisElement = element+start;
       const int * thisIndex = indexRow+start;
       
       CoinBigIndex j;
@@ -487,8 +487,8 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 #endif
       for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
 	int iRow0 = thisIndex[j];
-	double regionValue0 = region[iRow0];
-	double value0 = thisElement[j];
+	CoinFactorizationDouble regionValue0 = region[iRow0];
+	CoinFactorizationDouble value0 = thisElement[j];
 	int iWord = iRow0>>CHECK_SHIFT;
 	int iBit = iRow0-(iWord<<CHECK_SHIFT);
 	if (mark[iWord]) {
@@ -515,7 +515,7 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 	int iLast = k<<CHECK_SHIFT;
 	i = iLast+BITS_PER_CHECK-1;
 	for ( ; i >= iLast; i-- ) {
-	  double pivotValue = region[i];
+	  CoinFactorizationDouble pivotValue = region[i];
 	  if (pivotValue) {
 #ifdef COIN_DEVELOP
 	    nnz_SZ ++;
@@ -523,7 +523,7 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 	    region[i] = 0.0;
 	    if ( fabs ( pivotValue ) > tolerance ) {
 	      CoinBigIndex start = startColumn[i];
-	      const double * thisElement = element+start;
+	      const CoinFactorizationDouble * thisElement = element+start;
 	      const int * thisIndex = indexRow+start;
 	      
 	      CoinBigIndex j;
@@ -532,8 +532,8 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 #endif
 	      for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
 		int iRow0 = thisIndex[j];
-		double regionValue0 = region[iRow0];
-		double value0 = thisElement[j];
+		CoinFactorizationDouble regionValue0 = region[iRow0];
+		CoinFactorizationDouble value0 = thisElement[j];
 		int iWord = iRow0>>CHECK_SHIFT;
 		int iBit = iRow0-(iWord<<CHECK_SHIFT);
 		if (mark[iWord]) {
@@ -556,14 +556,14 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
     i = (kLast<<CHECK_SHIFT)-1;
   }
   for ( ; i >= numberSlacks_; i-- ) {
-    double pivotValue = region[i];
+    CoinFactorizationDouble pivotValue = region[i];
     region[i] = 0.0;
     if ( fabs ( pivotValue ) > tolerance ) {
 #ifdef COIN_DEVELOP
       nnz_SZ ++;
 #endif
       CoinBigIndex start = startColumn[i];
-      const double * thisElement = element+start;
+      const CoinFactorizationDouble * thisElement = element+start;
       const int * thisIndex = indexRow+start;
       
       CoinBigIndex j;
@@ -572,8 +572,8 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 #endif
       for (j=numberInColumn[i]-1 ; j >=0; j-- ) {
 	int iRow0 = thisIndex[j];
-	double regionValue0 = region[iRow0];
-	double value0 = thisElement[j];
+	CoinFactorizationDouble regionValue0 = region[iRow0];
+	CoinFactorizationDouble value0 = thisElement[j];
 	int iWord = iRow0>>CHECK_SHIFT;
 	int iBit = iRow0-(iWord<<CHECK_SHIFT);
 	if (mark[iWord]) {
@@ -698,7 +698,7 @@ CoinFactorization & CoinFactorization::operator = ( const CoinFactorization & ot
 }
 void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
 {
-  elementU_.allocate(other.elementU_, other.lengthAreaU_ *sizeof(double));
+  elementU_.allocate(other.elementU_, other.lengthAreaU_ *sizeof(CoinFactorizationDouble));
   indexRowU_.allocate(other.indexRowU_, other.lengthAreaU_*sizeof(int) );
   indexColumnU_.allocate(other.indexColumnU_, other.lengthAreaU_*sizeof(int) );
   convertRowToColumnU_.allocate(other.convertRowToColumnU_, other.lengthAreaU_*sizeof(CoinBigIndex) );
@@ -707,7 +707,7 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
     indexColumnL_.allocate(other.indexColumnL_, other.lengthAreaL_ );
     startRowL_.allocate(other.startRowL_,other.numberRows_+1);
   }
-  elementL_.allocate(other.elementL_, other.lengthAreaL_*sizeof(double) );
+  elementL_.allocate(other.elementL_, other.lengthAreaL_*sizeof(CoinFactorizationDouble) );
   indexRowL_.allocate(other.indexRowL_, other.lengthAreaL_*sizeof(int) );
   startColumnL_.allocate(other.startColumnL_,(other.numberRows_ + 1)*sizeof(CoinBigIndex) );
   int extraSpace;
@@ -721,7 +721,7 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   numberInRow_.allocate(other.numberInRow_, (other.maximumRowsExtra_ + 1 )*sizeof(int));
   nextRow_.allocate(other.nextRow_,(other.maximumRowsExtra_ + 1)*sizeof(int));
   lastRow_.allocate( other.lastRow_,(other.maximumRowsExtra_ + 1 )*sizeof(int));
-  pivotRegion_.allocate(other.pivotRegion_, (other.maximumRowsExtra_ + 1 )*sizeof(double));
+  pivotRegion_.allocate(other.pivotRegion_, (other.maximumRowsExtra_ + 1 )*sizeof(CoinFactorizationDouble));
   permuteBack_.allocate(other.permuteBack_,(other.maximumRowsExtra_ + 1)*sizeof(int));
   permute_.allocate(other.permute_,(other.maximumRowsExtra_ + 1)*sizeof(int));
   pivotColumnBack_.allocate(other.pivotColumnBack_,(other.maximumRowsExtra_ + 1)*sizeof(int));
@@ -892,11 +892,11 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 
   const CoinBigIndex * startColumn = startColumnR_.array()-numberRows_;
   const int * indexRow = indexRowR_;
-  const double * element = elementR_;
+  const CoinFactorizationDouble * element = elementR_;
   const int * permute = permute_.array();
 
   int iRow;
-  double pivotValue;
+  CoinFactorizationDouble pivotValue;
   int i;
 
   // Work out very dubious idea of what would be fastest
@@ -952,7 +952,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
       CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
       char * mark = (char *) (next + maximumRowsExtra_);
       // we have another copy of R in R
-      double * elementR = elementR_ + lengthAreaR_;
+      CoinFactorizationDouble * elementR = elementR_ + lengthAreaR_;
       int * indexRowR = indexRowR_ + lengthAreaR_;
       CoinBigIndex * startR = startColumnR_.array()+maximumPivots_+1;
       int k,nStack;
@@ -1035,7 +1035,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	  CoinBigIndex j;
 	  for (j=start ; j < end; j ++ ) {
 	    int iRow = indexRowR[j];
-	    double value = elementR[j];
+	    CoinFactorizationDouble value = elementR[j];
 	    region[iRow] -= value * pivotValue;
 	  }     
 	  regionIndex[numberNonZero++] = iPivot;
@@ -1059,7 +1059,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	mark[iRow]=1;
       }
       // we have another copy of R in R
-      double * elementR = elementR_ + lengthAreaR_;
+      CoinFactorizationDouble * elementR = elementR_ + lengthAreaR_;
       int * indexRowR = indexRowR_ + lengthAreaR_;
       CoinBigIndex * startR = startColumnR_.array()+maximumPivots_+1;
       // For current list order does not matter as
@@ -1077,7 +1077,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	  CoinBigIndex start=startR[iRow];
 	  CoinBigIndex end = start+number;
 	  for ( j = start; j < end; j ++ ) {
-	    double value = elementR[j];
+	    CoinFactorizationDouble value = elementR[j];
 	    int jRow = indexRowR[j];
 	    region[jRow] -= pivotValue*value;
 	  }
@@ -1099,7 +1099,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	  CoinBigIndex start=startR[i];
 	  CoinBigIndex end = start+number;
 	  for ( j = start; j < end; j ++ ) {
-	    double value = elementR[j];
+	    CoinFactorizationDouble value = elementR[j];
 	    int jRow = indexRowR[j];
 	    region[jRow] -= pivotValue*value;
 	  }
@@ -1115,7 +1115,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
     {
       // no sparse region
       // we have another copy of R in R
-      double * elementR = elementR_ + lengthAreaR_;
+      CoinFactorizationDouble * elementR = elementR_ + lengthAreaR_;
       int * indexRowR = indexRowR_ + lengthAreaR_;
       CoinBigIndex * startR = startColumnR_.array()+maximumPivots_+1;
       // For current list order does not matter as
@@ -1130,7 +1130,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	  CoinBigIndex start=startR[iRow];
 	  CoinBigIndex end = start+number;
 	  for ( j = start; j < end; j ++ ) {
-	    double value = elementR[j];
+	    CoinFactorizationDouble value = elementR[j];
 	    int jRow = indexRowR[j];
 	    region[jRow] -= pivotValue*value;
 	  }
@@ -1150,7 +1150,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 	  CoinBigIndex start=startR[i];
 	  CoinBigIndex end = start+number;
 	  for ( j = start; j < end; j ++ ) {
-	    double value = elementR[j];
+	    CoinFactorizationDouble value = elementR[j];
 	    int jRow = indexRowR[j];
 	    region[jRow] -= pivotValue*value;
 	  }
@@ -1173,7 +1173,7 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
 
 	CoinBigIndex j;
 	for ( j = start; j < end; j ++ ) {
-	  double value = element[j];
+	  CoinFactorizationDouble value = element[j];
 	  int jRow = indexRow[j];
 	  value *= region[jRow];
 	  pivotValue -= value;
@@ -1218,11 +1218,11 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
     
     const CoinBigIndex * startColumn = startColumnR_.array()-numberRows_;
     const int * indexRow = indexRowR_;
-    const double * element = elementR_;
+    const CoinFactorizationDouble * element = elementR_;
     const int * permute = permute_.array();
     
     int iRow;
-    double pivotValue;
+    CoinFactorizationDouble pivotValue;
     
     int i;
     // Work out very dubious idea of what would be fastest
@@ -1285,7 +1285,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	  mark[iRow]=1;
 	}
 	// we have another copy of R in R
-	double * elementR = elementR_ + lengthAreaR_;
+	CoinFactorizationDouble * elementR = elementR_ + lengthAreaR_;
 	int * indexRowR = indexRowR_ + lengthAreaR_;
 	CoinBigIndex * startR = startColumnR_.array()+maximumPivots_+1;
 	//save in U
@@ -1296,7 +1296,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	CoinBigIndex start = startColumnU[iColumn];
   
 	//int * putIndex = indexRowU_ + start;
-	double * putElement = elementU_.array() + start;
+	CoinFactorizationDouble * putElement = elementU_.array() + start;
 	// For current list order does not matter as
 	// only affects end
 	int newNumber=0;
@@ -1315,7 +1315,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	    CoinBigIndex start=startR[iRow];
 	    CoinBigIndex end = start+number;
 	    for ( j = start; j < end; j ++ ) {
-	      double value = elementR[j];
+	      CoinFactorizationDouble value = elementR[j];
 	      int jRow = indexRowR[j];
 	      region[jRow] -= pivotValue*value;
 	    }
@@ -1340,7 +1340,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	    CoinBigIndex start=startR[i];
 	    CoinBigIndex end = start+number;
 	    for ( j = start; j < end; j ++ ) {
-	      double value = elementR[j];
+	      CoinFactorizationDouble value = elementR[j];
 	      int jRow = indexRowR[j];
 	      region[jRow] -= pivotValue*value;
 	    }
@@ -1357,7 +1357,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
       {
 	// no sparse region
 	// we have another copy of R in R
-	double * elementR = elementR_ + lengthAreaR_;
+	CoinFactorizationDouble * elementR = elementR_ + lengthAreaR_;
 	int * indexRowR = indexRowR_ + lengthAreaR_;
 	CoinBigIndex * startR = startColumnR_.array()+maximumPivots_+1;
 	// For current list order does not matter as
@@ -1372,7 +1372,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	    CoinBigIndex start=startR[iRow];
 	    CoinBigIndex end = start+number;
 	    for ( j = start; j < end; j ++ ) {
-	      double value = elementR[j];
+	      CoinFactorizationDouble value = elementR[j];
 	      int jRow = indexRowR[j];
 	      region[jRow] -= pivotValue*value;
 	    }
@@ -1392,7 +1392,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	    CoinBigIndex start=startR[i];
 	    CoinBigIndex end = start+number;
 	    for ( j = start; j < end; j ++ ) {
-	      double value = elementR[j];
+	      CoinFactorizationDouble value = elementR[j];
 	      int jRow = indexRowR[j];
 	      region[jRow] -= pivotValue*value;
 	    }
@@ -1415,7 +1415,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
 	  
 	  CoinBigIndex j;
 	  for ( j = start; j < end; j ++ ) {
-	    double value = element[j];
+	    CoinFactorizationDouble value = element[j];
 	    int jRow = indexRow[j];
 	    value *= region[jRow];
 	    pivotValue -= value;
@@ -1443,7 +1443,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
       CoinBigIndex start = startColumnU[iColumn];
       
       int * putIndex = indexRowU_.array() + start;
-      double * putElement = elementU_.array() + start;
+      CoinFactorizationDouble * putElement = elementU_.array() + start;
       for (i=0;i<n;i++) {
 	int indexValue = regionIndex[i];
 	double value = region[indexValue];
@@ -1472,7 +1472,7 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
     startColumnU[maximumColumnsExtra_] = start + numberNonZero;
     
     int * putIndex = indexRowU_.array() + start;
-    double * putElement = elementU_.array() + start;
+    CoinFactorizationDouble * putElement = elementU_.array() + start;
     int i;
     for (i=0;i<numberNonZero;i++) {
       int indexValue = regionIndex[i];
@@ -1497,12 +1497,12 @@ CoinFactorization::updateColumnTransposeRDensish
   
   
   const int *indexRow = indexRowR_;
-  const double *element = elementR_;
+  const CoinFactorizationDouble *element = elementR_;
   const CoinBigIndex * startColumn = startColumnR_.array()-numberRows_;
   //move using permute_ (stored in inverse fashion)
   const int * permute = permute_.array();
   int putRow;
-  double pivotValue;
+  CoinFactorizationDouble pivotValue;
   
   for ( i = last ; i >= numberRows_; i-- ) {
     putRow = permute[i];
@@ -1512,7 +1512,7 @@ CoinFactorization::updateColumnTransposeRDensish
     if ( pivotValue ) {
       CoinBigIndex j;
       for ( j = startColumn[i]; j < startColumn[i+1]; j++ ) {
-	double value = element[j];
+	CoinFactorizationDouble value = element[j];
 	int iRow = indexRow[j];
 	region[iRow] -= value * pivotValue;
       }
@@ -1541,12 +1541,12 @@ CoinFactorization::updateColumnTransposeRSparse
   
   
   const int *indexRow = indexRowR_;
-  const double *element = elementR_;
+  const CoinFactorizationDouble *element = elementR_;
   const CoinBigIndex * startColumn = startColumnR_.array()-numberRows_;
   //move using permute_ (stored in inverse fashion)
   const int * permute = permute_.array();
   int putRow;
-  double pivotValue;
+  CoinFactorizationDouble pivotValue;
     
   // we can use sparse_ as temporary array
   int * spare = sparse_.array();
@@ -1563,10 +1563,10 @@ CoinFactorization::updateColumnTransposeRSparse
     if ( pivotValue ) {
       CoinBigIndex j;
       for ( j = startColumn[i]; j < startColumn[i+1]; j++ ) {
-	double value = element[j];
+	CoinFactorizationDouble value = element[j];
 	int iRow = indexRow[j];
-	double oldValue = region[iRow];
-	double newValue = oldValue - value * pivotValue;
+	CoinFactorizationDouble oldValue = region[iRow];
+	CoinFactorizationDouble newValue = oldValue - value * pivotValue;
 	if (oldValue) {
 	  if (!newValue)
 	    newValue=COIN_INDEXED_REALLY_TINY_ELEMENT;
@@ -1890,7 +1890,7 @@ CoinFactorization::goSparse ( )
   CoinBigIndex * startRowL = startRowL_.array();
   CoinZeroN(startRowL,numberRows_);
   CoinBigIndex * startColumnL = startColumnL_.array();
-  double * elementL = elementL_.array();
+  CoinFactorizationDouble * elementL = elementL_.array();
   int * indexRowL = indexRowL_.array();
   int i;
   for (i=baseL_;i<baseL_+numberL_;i++) {
@@ -1909,7 +1909,7 @@ CoinFactorization::goSparse ( )
   }
   startRowL[numberRows_]=count;
   // now insert
-  double * elementByRowL = elementByRowL_.array();
+  CoinFactorizationDouble * elementByRowL = elementByRowL_.array();
   int * indexColumnL = indexColumnL_.array();
   for (i=baseL_+numberL_-1;i>=baseL_;i--) {
     CoinBigIndex j;
@@ -2024,9 +2024,9 @@ CoinFactorization::replaceRow ( int whichRow, int iNumberInRow,
 #endif
   int numberNow = numberInRow[whichRow];
   const CoinBigIndex * startRowU = startRowU_.array();
-  double * pivotRegion = pivotRegion_.array();
+  CoinFactorizationDouble * pivotRegion = pivotRegion_.array();
   CoinBigIndex start = startRowU[whichRow];
-  double * elementU = elementU_.array();
+  CoinFactorizationDouble * elementU = elementU_.array();
   CoinBigIndex *convertRowToColumnU = convertRowToColumnU_.array();
   if (numberNow&&numberNow<100) {
     int ind[100];
@@ -2045,8 +2045,8 @@ CoinFactorization::replaceRow ( int whichRow, int iNumberInRow,
 	printf("new column %d not in current\n",jColumn);
       } else {
 	k=convertRowToColumnU[start+k];
-	double oldValue = elementU[k];
-	double newValue = elements[i]*pivotRegion[jColumn];
+	CoinFactorizationDouble oldValue = elementU[k];
+	CoinFactorizationDouble newValue = elements[i]*pivotRegion[jColumn];
 	if (fabs(oldValue-newValue)>1.0e-3)
 	  printf("column %d, old value %g new %g (el %g, piv %g)\n",jColumn,oldValue,
 		 newValue,elements[i],pivotRegion[jColumn]);
@@ -2078,7 +2078,7 @@ CoinFactorization::replaceRow ( int whichRow, int iNumberInRow,
       int iColumn = indicesColumn[i];
       indexColumnU[start+i]=iColumn;
       assert (iColumn>whichRow);
-      double value  = elements[i]*pivotRegion[iColumn];
+      CoinFactorizationDouble value  = elements[i]*pivotRegion[iColumn];
 #if 0
       int k;
       bool found=false;
@@ -2139,13 +2139,13 @@ CoinFactorization::emptyRows(int numberToEmpty, const int which[])
   int * delRow = new int [maximumRowsExtra_];
   int * indexRowU = indexRowU_.array();
 #ifndef NDEBUG
-  double * pivotRegion = pivotRegion_.array();
+  CoinFactorizationDouble * pivotRegion = pivotRegion_.array();
 #endif
   for (i=0;i<maximumRowsExtra_;i++)
     delRow[i]=0;
   int * numberInRow = numberInRow_.array();
   int * numberInColumn = numberInColumn_.array();
-  double * elementU = elementU_.array();
+  CoinFactorizationDouble * elementU = elementU_.array();
   const CoinBigIndex * startColumnU = startColumnU_.array();
   for (i=0;i<numberToEmpty;i++) {
     int iRow = which[i];
@@ -2208,7 +2208,7 @@ CoinFactorization::updateColumnPFI ( CoinIndexedVector * regionSparse) const
   double tolerance = zeroTolerance_;
   const CoinBigIndex *startColumn = startColumnU_.array()+numberRows_;
   const int *indexRow = indexRowU_.array();
-  const double *element = elementU_.array();
+  const CoinFactorizationDouble *element = elementU_.array();
   int numberNonZero = regionSparse->getNumElements();
   int i;
 #ifdef COIN_DEBUG
@@ -2218,18 +2218,18 @@ CoinFactorization::updateColumnPFI ( CoinIndexedVector * regionSparse) const
     assert (region[iRow]);
   }
 #endif
-  const double *pivotRegion = pivotRegion_.array()+numberRows_;
+  const CoinFactorizationDouble *pivotRegion = pivotRegion_.array()+numberRows_;
   const int *pivotColumn = pivotColumn_.array()+numberRows_;
 
   for (i = 0 ; i <numberPivots_; i++ ) {
     int pivotRow=pivotColumn[i];
-    double pivotValue = region[pivotRow];
+    CoinFactorizationDouble pivotValue = region[pivotRow];
     if (pivotValue) {
       if ( fabs ( pivotValue ) > tolerance ) {
 	for (CoinBigIndex  j= startColumn[i] ; j < startColumn[i+1]; j++ ) {
 	  int iRow = indexRow[j];
-	  double oldValue = region[iRow];
-	  double value = oldValue - pivotValue*element[j];
+	  CoinFactorizationDouble oldValue = region[iRow];
+	  CoinFactorizationDouble value = oldValue - pivotValue*element[j];
 	  if (!oldValue) {
 	    if (fabs(value)>tolerance) {
 	      region[iRow]=value;
@@ -2269,19 +2269,19 @@ CoinFactorization::updateColumnTransposePFI ( CoinIndexedVector * regionSparse) 
   }
 #endif
   const int * pivotColumn = pivotColumn_.array()+numberRows_;
-  const double *pivotRegion = pivotRegion_.array()+numberRows_;
+  const CoinFactorizationDouble *pivotRegion = pivotRegion_.array()+numberRows_;
   double tolerance = zeroTolerance_;
   
   const CoinBigIndex *startColumn = startColumnU_.array()+numberRows_;
   const int *indexRow = indexRowU_.array();
-  const double *element = elementU_.array();
+  const CoinFactorizationDouble *element = elementU_.array();
 
   for (i=numberPivots_-1 ; i>=0; i-- ) {
     int pivotRow = pivotColumn[i];
-    double pivotValue = region[pivotRow]*pivotRegion[i];
+    CoinFactorizationDouble pivotValue = region[pivotRow]*pivotRegion[i];
     for (CoinBigIndex  j= startColumn[i] ; j < startColumn[i+1]; j++ ) {
       int iRow = indexRow[j];
-      double value = element[j];
+      CoinFactorizationDouble value = element[j];
       pivotValue -= value * region[iRow];
     }       
     //pivotValue *= pivotRegion[i];
@@ -2308,8 +2308,8 @@ CoinFactorization::replaceColumnPFI ( CoinIndexedVector * regionSparse,
 {
   CoinBigIndex *startColumn=startColumnU_.array()+numberRows_;
   int *indexRow=indexRowU_.array();
-  double *element=elementU_.array();
-  double * pivotRegion = pivotRegion_.array()+numberRows_;
+  CoinFactorizationDouble *element=elementU_.array();
+  CoinFactorizationDouble * pivotRegion = pivotRegion_.array()+numberRows_;
   // This has incoming column
   const double *region = regionSparse->denseVector (  );
   const int * index = regionSparse->getIndices();
@@ -2341,7 +2341,7 @@ CoinFactorization::replaceColumnPFI ( CoinIndexedVector * regionSparse,
     if (fabs(alpha)<1.0e-8)
       return 2;
   }
-  double pivotValue = 1.0/alpha;
+  CoinFactorizationDouble pivotValue = 1.0/alpha;
   pivotRegion[iColumn]=pivotValue;
   double tolerance = zeroTolerance_;
   const int * pivotColumn = pivotColumn_.array();

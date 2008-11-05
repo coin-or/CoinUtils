@@ -365,9 +365,9 @@ void CoinSimpFactorization::gutsOfCopy(const CoinSimpFactorization &other)
   if (other.pivotRow_) {
     pivotRow_ = new int [2*maximumRows_+maximumPivots_];
     memcpy(pivotRow_,other.pivotRow_,(2*maximumRows_+numberPivots_)*sizeof(int));
-    elements_ = new double [maximumSpace_];
-    memcpy(elements_,other.elements_,(maximumRows_+numberPivots_)*maximumRows_*sizeof(double));
-    workArea_ = new double [maximumRows_];
+    elements_ = new CoinFactorizationDouble [maximumSpace_];
+    memcpy(elements_,other.elements_,(maximumRows_+numberPivots_)*maximumRows_*sizeof(CoinFactorizationDouble));
+    workArea_ = new CoinFactorizationDouble [maximumRows_];
   } else {
     elements_ = NULL;
     pivotRow_ = NULL;
@@ -657,7 +657,7 @@ CoinSimpFactorization::getAreas ( int numberOfRows,
   CoinBigIndex size = numberRows_*(numberRows_+CoinMax(maximumPivots_,(numberRows_+1)>>1));
   if (size>maximumSpace_) {
     delete [] elements_;
-    elements_ = new double [size];
+    elements_ = new CoinFactorizationDouble [size];
     maximumSpace_ = size;
   }
   if (numberRows_>maximumRows_) {
@@ -665,7 +665,7 @@ CoinSimpFactorization::getAreas ( int numberOfRows,
     delete [] pivotRow_;
     delete [] workArea_;
     pivotRow_ = new int [2*maximumRows_+maximumPivots_];
-    workArea_ = new double [maximumRows_];    
+    workArea_ = new CoinFactorizationDouble [maximumRows_];    
     allocateSomeArrays(); 
   }
 }

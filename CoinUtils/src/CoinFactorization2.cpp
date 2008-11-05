@@ -58,10 +58,10 @@ CoinFactorization::factorSparseSmall (  )
 {
   int *indexRow = indexRowU_.array();
   int *indexColumn = indexColumnU_.array();
-  double *element = elementU_.array();
+  CoinFactorizationDouble *element = elementU_.array();
   int count = 1;
   workArea_.conditionalNew(numberRows_);
-  double * workArea = workArea_.array();
+  CoinFactorizationDouble * workArea = workArea_.array();
 #ifndef NDEBUG
   counter1++;
 #endif
@@ -94,7 +94,7 @@ CoinFactorization::factorSparseSmall (  )
 	  iPivotColumn++ ) {
       if ( numberInColumn[iPivotColumn] == 1 ) {
 	CoinBigIndex start = startColumnU[iPivotColumn];
-	double value = element[start];
+	CoinFactorizationDouble value = element[start];
 	if ( value == slackValue_ && numberInColumnPlus[iPivotColumn] == 0 ) {
 	  // treat as slack
 	  int iRow = indexRow[start];
@@ -130,7 +130,7 @@ CoinFactorization::factorSparseSmall (  )
   int *firstCount = firstCount_.array();
   CoinBigIndex *startRow = startRowU_.array();
   CoinBigIndex *startColumn = startColumnU;
-  //double *elementL = elementL_.array();
+  //CoinFactorizationDouble *elementL = elementL_.array();
   //int *indexRowL = indexRowL_.array();
   //int *saveColumn = saveColumn_.array();
   //int *nextRow = nextRow_.array();
@@ -246,7 +246,7 @@ CoinFactorization::factorSparseSmall (  )
             }			/* endwhile */
             assert ( where < startColumn[iColumn] +
                      numberInColumn[iColumn]);
-            double value = element[where];
+            CoinFactorizationDouble value = element[where];
             
             value = fabs ( value );
             if ( value >= minimumValue ) {
@@ -285,12 +285,12 @@ CoinFactorization::factorSparseSmall (  )
         look = nextCount[look];
         CoinBigIndex start = startColumn[iColumn];
         CoinBigIndex end = start + numberInColumn[iColumn];
-        double minimumValue = element[start];
+        CoinFactorizationDouble minimumValue = element[start];
         
         minimumValue = fabs ( minimumValue ) * pivotTolerance;
         CoinBigIndex i;
         for ( i = start; i < end; i++ ) {
-          double value = element[i];
+          CoinFactorizationDouble value = element[i];
           
           value = fabs ( value );
           if ( value >= minimumValue ) {
@@ -498,7 +498,7 @@ int CoinFactorization::factorDense()
   for (i=0;i<numberRows_;i++)
     lastRow[i]=0;
   int * indexRow = indexRowU_.array();
-  double * element = elementU_.array();
+  CoinFactorizationDouble * element = elementU_.array();
   for ( i=0;i<numberGoodU_;i++) {
     int iRow=pivotRowL[i];
     lastRow[iRow]=-1;
@@ -514,7 +514,7 @@ int CoinFactorization::factorDense()
   } 
   //for L part
   CoinBigIndex * startColumnL = startColumnL_.array();
-  double * elementL = elementL_.array();
+  CoinFactorizationDouble * elementL = elementL_.array();
   int * indexRowL = indexRowL_.array();
   CoinBigIndex endL=startColumnL[numberGoodL_];
   //take out of U
@@ -522,7 +522,7 @@ int CoinFactorization::factorDense()
   int rowsDone=0;
   int iColumn=0;
   int * pivotColumn = pivotColumn_.array();
-  double * pivotRegion = pivotRegion_.array();
+  CoinFactorizationDouble * pivotRegion = pivotRegion_.array();
   CoinBigIndex * startColumnU = startColumnU_.array();
   for (iColumn=0;iColumn<numberColumns_;iColumn++) {
     if (numberInColumn[iColumn]) {
@@ -602,13 +602,13 @@ int CoinFactorization::factorDense()
       std::cout << "more memory needed in middle of invert" << std::endl;
     return -99;
   }
-  double *elementU = elementU_.array();
+  CoinFactorizationDouble *elementU = elementU_.array();
   for (iDense=0;iDense<numberToDo;iDense++) {
     int iRow;
     int jDense;
     int pivotRow=-1;
     double * element = denseArea_+iDense*numberDense_;
-    double largest = 1.0e-12;
+    CoinFactorizationDouble largest = 1.0e-12;
     for (iRow=iDense;iRow<numberDense_;iRow++) {
       if (fabs(element[iRow])>largest) {
 	largest = fabs(element[iRow]);
@@ -617,7 +617,7 @@ int CoinFactorization::factorDense()
     }
     if ( pivotRow >= 0 ) {
       iColumn = pivotColumnConst[base+iDense];
-      double pivotElement=element[pivotRow];
+      CoinFactorizationDouble pivotElement=element[pivotRow];
       // get original row
       int originalRow = densePermute_[pivotRow];
       // do nextRow
@@ -626,12 +626,12 @@ int CoinFactorization::factorDense()
       densePermute_[pivotRow]=densePermute_[iDense];
       densePermute_[iDense] = originalRow;
       for (jDense=iDense;jDense<numberDense_;jDense++) {
-	double value = element[iDense];
+	CoinFactorizationDouble value = element[iDense];
 	element[iDense] = element[pivotRow];
 	element[pivotRow] = value;
 	element += numberDense_;
       }
-      double pivotMultiplier = 1.0 / pivotElement;
+      CoinFactorizationDouble pivotMultiplier = 1.0 / pivotElement;
       //printf("pivotMultiplier %g\n",pivotMultiplier);
       pivotRegion[numberGoodU_] = pivotMultiplier;
       // Do L
@@ -639,7 +639,7 @@ int CoinFactorization::factorDense()
       CoinBigIndex l = lengthL_;
       startColumnL[numberGoodL_] = l;	//for luck and first time
       for (iRow=iDense+1;iRow<numberDense_;iRow++) {
-	double value = element[iRow]*pivotMultiplier;
+	CoinFactorizationDouble value = element[iRow]*pivotMultiplier;
 	element[iRow] = value;
 	if (fabs(value)>tolerance) {
 	  indexRowL[l] = densePermute_[iRow];
@@ -663,7 +663,7 @@ int CoinFactorization::factorDense()
       // update other columns
       double * element2 = element+numberDense_;
       for (jDense=iDense+1;jDense<numberToDo;jDense++) {
-	double value = element2[iDense];
+	CoinFactorizationDouble value = element2[iDense];
 	for (iRow=iDense+1;iRow<numberDense_;iRow++) {
 	  //double oldValue=element2[iRow];
 	  element2[iRow] -= value*element[iRow];
@@ -843,7 +843,7 @@ CoinFactorization::restoreFactorization (const char * file , bool factorIt )
       return 1;
     CoinBigIndex space = lengthAreaL_ - lengthL_;
     // Now arrays
-    double *elementU = elementU_.array();
+    CoinFactorizationDouble *elementU = elementU_.array();
     if (CoinFromFile(elementU,lengthAreaU_ , fp, newSize )==1)
       return 1;
     assert (newSize==lengthAreaU_);
@@ -859,7 +859,7 @@ CoinFactorization::restoreFactorization (const char * file , bool factorIt )
     if (CoinFromFile(convertRowToColumnU,lengthAreaU_ , fp, newSize )==1)
       return 1;
     assert (newSize==lengthAreaU_||(newSize==0&&!convertRowToColumnU_.array()));
-    double * elementByRowL = elementByRowL_.array();
+    CoinFactorizationDouble * elementByRowL = elementByRowL_.array();
     if (CoinFromFile(elementByRowL,lengthAreaL_ , fp, newSize )==1)
       return 1;
     assert (newSize==lengthAreaL_||(newSize==0&&!elementByRowL_.array()));
@@ -871,7 +871,7 @@ CoinFactorization::restoreFactorization (const char * file , bool factorIt )
     if (CoinFromFile(startRowL , numberRows_+1, fp, newSize )==1)
       return 1;
     assert (newSize==numberRows_+1||(newSize==0&&!startRowL_.array()));
-    double * elementL = elementL_.array();
+    CoinFactorizationDouble * elementL = elementL_.array();
     if (CoinFromFile(elementL,lengthAreaL_ , fp, newSize )==1)
       return 1;
     assert (newSize==lengthAreaL_);
@@ -911,7 +911,7 @@ CoinFactorization::restoreFactorization (const char * file , bool factorIt )
     if (CoinFromFile(lastRow,maximumRowsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumRowsExtra_+1);
-    double * pivotRegion = pivotRegion_.array();
+    CoinFactorizationDouble * pivotRegion = pivotRegion_.array();
     if (CoinFromFile(pivotRegion,maximumRowsExtra_ + 1 , fp, newSize )==1)
       return 1;
     assert (newSize==maximumRowsExtra_+1);
@@ -994,10 +994,10 @@ CoinFactorization::factorSparseLarge (  )
 {
   int *indexRow = indexRowU_.array();
   int *indexColumn = indexColumnU_.array();
-  double *element = elementU_.array();
+  CoinFactorizationDouble *element = elementU_.array();
   int count = 1;
   workArea_.conditionalNew(numberRows_);
-  double * workArea = workArea_.array();
+  CoinFactorizationDouble * workArea = workArea_.array();
 #ifndef NDEBUG
   counter1++;
 #endif
@@ -1030,7 +1030,7 @@ CoinFactorization::factorSparseLarge (  )
 	  iPivotColumn++ ) {
       if ( numberInColumn[iPivotColumn] == 1 ) {
 	CoinBigIndex start = startColumnU[iPivotColumn];
-	double value = element[start];
+	CoinFactorizationDouble value = element[start];
 	if ( value == slackValue_ && numberInColumnPlus[iPivotColumn] == 0 ) {
 	  // treat as slack
 	  int iRow = indexRow[start];
@@ -1174,7 +1174,7 @@ CoinFactorization::factorSparseLarge (  )
           
           if ( cost < minimumCost ) {
             CoinBigIndex where = startColumn[iColumn];
-            double minimumValue = element[where];
+            CoinFactorizationDouble minimumValue = element[where];
             
             minimumValue = fabs ( minimumValue ) * pivotTolerance;
             while ( indexRow[where] != iRow ) {
@@ -1182,7 +1182,7 @@ CoinFactorization::factorSparseLarge (  )
             }			/* endwhile */
             assert ( where < startColumn[iColumn] +
                      numberInColumn[iColumn]);
-            double value = element[where];
+            CoinFactorizationDouble value = element[where];
             
             value = fabs ( value );
             if ( value >= minimumValue ) {
@@ -1221,12 +1221,12 @@ CoinFactorization::factorSparseLarge (  )
         look = nextCount[look];
         CoinBigIndex start = startColumn[iColumn];
         CoinBigIndex end = start + numberInColumn[iColumn];
-        double minimumValue = element[start];
+        CoinFactorizationDouble minimumValue = element[start];
         
         minimumValue = fabs ( minimumValue ) * pivotTolerance;
         CoinBigIndex i;
         for ( i = start; i < end; i++ ) {
-          double value = element[i];
+          CoinFactorizationDouble value = element[i];
           
           value = fabs ( value );
           if ( value >= minimumValue ) {

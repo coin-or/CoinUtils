@@ -601,6 +601,60 @@ public:
   { CoinArrayWithLength::operator=(rhs);  return *this;}
   //@}
 };
+/// CoinFactorizationDouble * version
+
+class CoinFactorizationDoubleArrayWithLength : public CoinArrayWithLength {
+  
+public:
+  /**@name Get methods. */
+  //@{
+  /// Get the size
+  inline int getSize() const 
+  { return size_/sizeof(CoinFactorizationDouble); }
+  /// Get Array
+  inline CoinFactorizationDouble * array() const 
+  { return (CoinFactorizationDouble *) ((size_>-2) ? array_ : NULL); }
+  //@}
+  
+  /**@name Set methods */
+  //@{
+  /// Set the size
+  inline void setSize(int value) 
+  { size_ = value*sizeof(CoinFactorizationDouble); }
+  //@}
+  
+  /**@name Condition methods */
+  //@{
+  /// Conditionally gets new array
+  inline CoinFactorizationDouble * conditionalNew(int sizeWanted)
+  { return (CoinFactorizationDouble *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(CoinFactorizationDouble)) : -1); }
+  //@}
+  
+  /**@name Constructors and destructors */
+  //@{
+  /** Default constructor - NULL*/
+  inline CoinFactorizationDoubleArrayWithLength()
+  { array_=NULL; size_=-1;}
+  /** Alternate Constructor - length in bytes - size_ -1 */
+  inline CoinFactorizationDoubleArrayWithLength(int size)
+  { array_=new char [size*sizeof(CoinFactorizationDouble)]; size_=-1;}
+  /** Alternate Constructor - length in bytes 
+      mode -  0 size_ set to size
+      1 size_ set to size and zeroed
+  */
+  inline CoinFactorizationDoubleArrayWithLength(int size, int mode)
+    : CoinArrayWithLength(size*sizeof(CoinFactorizationDouble),mode) {}
+  /** Copy constructor. */
+  inline CoinFactorizationDoubleArrayWithLength(const CoinFactorizationDoubleArrayWithLength & rhs)
+    : CoinArrayWithLength(rhs) {}
+  /** Copy constructor.2 */
+  inline CoinFactorizationDoubleArrayWithLength(const CoinFactorizationDoubleArrayWithLength * rhs)
+    : CoinArrayWithLength(rhs) {}
+  /** Assignment operator. */
+  inline CoinFactorizationDoubleArrayWithLength& operator=(const CoinFactorizationDoubleArrayWithLength & rhs)
+  { CoinArrayWithLength::operator=(rhs);  return *this;}
+  //@}
+};
 /// int * version
 
 class CoinIntArrayWithLength : public CoinArrayWithLength {

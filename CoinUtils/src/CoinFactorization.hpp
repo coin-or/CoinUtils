@@ -42,7 +42,6 @@ class CoinPackedMatrix;
  */
 
 
-
 class CoinFactorization {
    friend void CoinFactorizationUnitTest( const std::string & mpsDir );
 
@@ -113,7 +112,7 @@ public:
 		       CoinBigIndex estimateNumberElements,
 		       int * indicesRow[],
 		       int * indicesColumn[],
-		       double * elements[],
+		       CoinFactorizationDouble * elements[],
 		  double areaFactor = 0.0);
   /** This is part two of factorization
       Arrays belong to factorization and were returned by part 1
@@ -152,7 +151,7 @@ public:
     return pivotColumn_.array();
   }
   /// Returns address of pivot region
-  inline double *pivotRegion (  ) const {
+  inline CoinFactorizationDouble *pivotRegion (  ) const {
     return pivotRegion_.array();
   }
   /// Returns address of permuteBack region
@@ -180,7 +179,7 @@ public:
   { return indexRowL_.array();}
 
   /// Elements in L (row copy)
-  inline double * elementByRowL() const
+  inline CoinFactorizationDouble * elementByRowL() const
   { return elementByRowL_.array();}
 
   /// Number of Rows after iterating
@@ -325,7 +324,7 @@ public:
   inline int * numberInColumn() const
   { return numberInColumn_.array();}
   /// Elements of U
-  inline double * elementU() const
+  inline CoinFactorizationDouble * elementU() const
   { return elementU_.array();}
   /// Row indices of U
   inline int * indexRowU() const
@@ -683,7 +682,7 @@ protected:
 	  int pivotColumn,
 	  CoinBigIndex pivotRowPosition,
 	  CoinBigIndex pivotColumnPosition,
-	  double work[],
+	  CoinFactorizationDouble work[],
 	  unsigned int workArea2[],
 	  int increment,
 	  int increment2,
@@ -693,11 +692,11 @@ protected:
   int *indexColumnU = indexColumnU_.array();
   CoinBigIndex *startColumnU = startColumnU_.array();
   int *numberInColumn = numberInColumn_.array();
-  double *elementU = elementU_.array();
+  CoinFactorizationDouble *elementU = elementU_.array();
   int *indexRowU = indexRowU_.array();
   CoinBigIndex *startRowU = startRowU_.array();
   int *numberInRow = numberInRow_.array();
-  double *elementL = elementL_.array();
+  CoinFactorizationDouble *elementL = elementL_.array();
   int *indexRowL = indexRowL_.array();
   int *saveColumn = saveColumn_.array();
   int *nextRow = nextRow_.array();
@@ -816,8 +815,8 @@ protected:
   }
   assert (pivotRowPosition<endColumn);
   assert (indexRowU[pivotRowPosition]==pivotRow);
-  double pivotElement = elementU[pivotRowPosition];
-  double pivotMultiplier = 1.0 / pivotElement;
+  CoinFactorizationDouble pivotElement = elementU[pivotRowPosition];
+  CoinFactorizationDouble pivotMultiplier = 1.0 / pivotElement;
 
   pivotRegion_.array()[numberGoodU_] = pivotMultiplier;
   pivotRowPosition++;
@@ -850,7 +849,7 @@ protected:
   numberInColumn[pivotColumn] = 0;
   //use end of L for temporary space
   int *indexL = &indexRowL[lSave];
-  double *multipliersL = &elementL[lSave];
+  CoinFactorizationDouble *multipliersL = &elementL[lSave];
 
   //adjust
   int j;
@@ -875,11 +874,11 @@ protected:
     CoinBigIndex startColumn = startColumnU[iColumn];
     CoinBigIndex endColumn = startColumn + numberInColumn[iColumn];
     int iRow = indexRowU[startColumn];
-    double value = elementU[startColumn];
+    CoinFactorizationDouble value = elementU[startColumn];
     double largest;
     CoinBigIndex put = startColumn;
     CoinBigIndex positionLargest = -1;
-    double thisPivotValue = 0.0;
+    CoinFactorizationDouble thisPivotValue = 0.0;
 
     //compress column and find largest not updated
     bool checkLargest;
@@ -1275,7 +1274,7 @@ protected:
   CoinIntArrayWithLength pivotRowL_;
 
   /// Inverses of pivot values
-  CoinDoubleArrayWithLength pivotRegion_;
+  CoinFactorizationDoubleArrayWithLength pivotRegion_;
 
   /// Number of slacks at beginning of U
   int numberSlacks_;
@@ -1296,7 +1295,7 @@ protected:
   CoinBigIndex lengthAreaU_;
 
 /// Elements of U
-  CoinDoubleArrayWithLength elementU_;
+  CoinFactorizationDoubleArrayWithLength elementU_;
 
 /// Row indices of U
   CoinIntArrayWithLength indexRowU_;
@@ -1320,7 +1319,7 @@ protected:
   CoinBigIndex lengthAreaL_;
 
   /// Elements of L
-  CoinDoubleArrayWithLength elementL_;
+  CoinFactorizationDoubleArrayWithLength elementL_;
 
   /// Row indices of L
   CoinIntArrayWithLength indexRowL_;
@@ -1341,7 +1340,7 @@ protected:
   CoinBigIndex lengthAreaR_;
 
   /// Elements of R
-  double *elementR_;
+  CoinFactorizationDouble *elementR_;
 
   /// Row indices for R
   int *indexRowR_;
@@ -1362,7 +1361,7 @@ protected:
   int denseThreshold_;
 
   /// First work area
-  CoinDoubleArrayWithLength workArea_;
+  CoinFactorizationDoubleArrayWithLength workArea_;
 
   /// Second work area
   CoinUnsignedIntArrayWithLength workArea2_;
@@ -1408,7 +1407,7 @@ protected:
   CoinIntArrayWithLength indexColumnL_;
 
   /// Elements in L (row copy)
-  CoinDoubleArrayWithLength elementByRowL_;
+  CoinFactorizationDoubleArrayWithLength elementByRowL_;
 
   /// Sparse regions
   mutable CoinIntArrayWithLength sparse_;
@@ -1551,8 +1550,8 @@ typedef const int cipfint;
     }
     assert (pivotRowPosition<endColumn);
     assert (indexRow[pivotRowPosition]==iPivotRow);
-    double pivotElement = element[pivotRowPosition];
-    double pivotMultiplier = 1.0 / pivotElement;
+    CoinFactorizationDouble pivotElement = element[pivotRowPosition];
+    CoinFactorizationDouble pivotMultiplier = 1.0 / pivotElement;
     
     pivotRegion_.array()[numberGoodU_] = pivotMultiplier;
     pivotRowPosition++;
@@ -1585,7 +1584,7 @@ typedef const int cipfint;
     numberInColumn[iPivotColumn] = 0;
     //use end of L for temporary space
     int *indexL = &indexRowL[lSave];
-    double *multipliersL = &elementL[lSave];
+    CoinFactorizationDouble *multipliersL = &elementL[lSave];
     
     //adjust
     int j;
@@ -1610,11 +1609,11 @@ typedef const int cipfint;
       CoinBigIndex startColumnThis = startColumn[iColumn];
       CoinBigIndex endColumn = startColumnThis + numberInColumn[iColumn];
       int iRow = indexRow[startColumnThis];
-      double value = element[startColumnThis];
+      CoinFactorizationDouble value = element[startColumnThis];
       double largest;
       CoinBigIndex put = startColumnThis;
       CoinBigIndex positionLargest = -1;
-      double thisPivotValue = 0.0;
+      CoinFactorizationDouble thisPivotValue = 0.0;
       
       //compress column and find largest not updated
       bool checkLargest;

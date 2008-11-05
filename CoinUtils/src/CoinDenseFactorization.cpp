@@ -13,7 +13,9 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
 #include <stdio.h>
-//#undef DENSE_CODE
+#if COIN_BIG_DOUBLE==1
+#undef DENSE_CODE
+#endif
 #ifdef DENSE_CODE
 // using simple lapack interface
 extern "C" 
@@ -126,9 +128,9 @@ void CoinDenseFactorization::gutsOfCopy(const CoinDenseFactorization &other)
   if (other.pivotRow_) {
     pivotRow_ = new int [2*maximumRows_+maximumPivots_];
     CoinMemcpyN(other.pivotRow_,(2*maximumRows_+numberPivots_),pivotRow_);
-    elements_ = new double [maximumSpace_];
+    elements_ = new CoinFactorizationDouble [maximumSpace_];
     CoinMemcpyN(other.elements_,(maximumRows_+numberPivots_)*maximumRows_,elements_);
-    workArea_ = new double [maximumRows_*WORK_MULT];
+    workArea_ = new CoinFactorizationDouble [maximumRows_*WORK_MULT];
     CoinZeroN(workArea_,maximumRows_*WORK_MULT);
   } else {
     elements_ = NULL;
@@ -151,7 +153,7 @@ CoinDenseFactorization::getAreas ( int numberOfRows,
   CoinBigIndex size = numberRows_*(numberRows_+CoinMax(maximumPivots_,(numberRows_+1)>>1));
   if (size>maximumSpace_) {
     delete [] elements_;
-    elements_ = new double [size];
+    elements_ = new CoinFactorizationDouble [size];
     maximumSpace_ = size;
   }
   if (numberRows_>maximumRows_) {
@@ -159,7 +161,7 @@ CoinDenseFactorization::getAreas ( int numberOfRows,
     delete [] pivotRow_;
     delete [] workArea_;
     pivotRow_ = new int [2*maximumRows_+maximumPivots_];
-    workArea_ = new double [maximumRows_*WORK_MULT];
+    workArea_ = new CoinFactorizationDouble [maximumRows_*WORK_MULT];
   }
 }
 
@@ -174,7 +176,7 @@ CoinDenseFactorization::preProcess ()
   put = numberRows_*numberColumns_;
   for (int i=numberColumns_-1;i>=0;i--) {
     put -= numberRows_;
-    memset(workArea_,0,numberRows_*sizeof(double));
+    memset(workArea_,0,numberRows_*sizeof(CoinFactorizationDouble));
     assert (starts[i]<=put);
     for (CoinBigIndex j=starts[i];j<starts[i+1];j++) {
       int iRow = indexRow[j];
@@ -204,7 +206,7 @@ CoinDenseFactorization::factor ( )
       numberGoodU_=numberRows_;
       CoinZeroN(workArea_,2*numberRows_);
 #ifndef NDEBUG
-      const double * column = elements_;
+      const CoinFactorizationDouble * column = elements_;
       double smallest=COIN_DBL_MAX;
       for (int i=0;i<numberRows_;i++) {
 	if (fabs(column[i])<smallest)
@@ -223,7 +225,7 @@ CoinDenseFactorization::factor ( )
   for (int j=0;j<numberRows_;j++) {
     pivotRow_[j+numberRows_]=j;
   }
-  double * elements = elements_;
+  CoinFactorizationDouble * elements = elements_;
   numberGoodU_=0;
   for (int i=0;i<numberColumns_;i++) {
     int iRow = -1;
@@ -240,10 +242,10 @@ CoinDenseFactorization::factor ( )
       if (iRow!=i) {
 	// swap
 	assert (iRow>i);
-	double * elementsA = elements_;
+	CoinFactorizationDouble * elementsA = elements_;
 	for (int k=0;k<=i;k++) {
 	  // swap
-	  double value = elementsA[i];
+	  CoinFactorizationDouble value = elementsA[i];
 	  elementsA[i]=elementsA[iRow];
 	  elementsA[iRow]=value;
 	  elementsA += numberRows_;
@@ -252,22 +254,22 @@ CoinDenseFactorization::factor ( )
 	pivotRow_[i+numberRows_]=pivotRow_[iRow+numberRows_];
 	pivotRow_[iRow+numberRows_]=iPivot;
       }
-      double pivotValue = 1.0/elements[i];
+      CoinFactorizationDouble pivotValue = 1.0/elements[i];
       elements[i]=pivotValue;
       for (int j=i+1;j<numberRows_;j++) {
 	elements[j] *= pivotValue;
       }
       // Update rest
-      double * elementsA = elements;
+      CoinFactorizationDouble * elementsA = elements;
       for (int k=i+1;k<numberColumns_;k++) {
 	elementsA += numberRows_;
 	// swap
 	if (iRow!=i) {
-	  double value = elementsA[i];
+	  CoinFactorizationDouble value = elementsA[i];
 	  elementsA[i]=elementsA[iRow];
 	  elementsA[iRow]=value;
 	}
-	double value = elementsA[i];
+	CoinFactorizationDouble value = elementsA[i];
 	for (int j=i+1;j<numberRows_;j++) {
 	  elementsA[j] -= value * elements[j];
 	}
@@ -364,13 +366,13 @@ CoinDenseFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 {
   if (numberPivots_==maximumPivots_)
     return 3;
-  double * elements = elements_ + numberRows_*(numberColumns_+numberPivots_);
+  CoinFactorizationDouble * elements = elements_ + numberRows_*(numberColumns_+numberPivots_);
   double *region = regionSparse->denseVector (  );
   int *regionIndex = regionSparse->getIndices (  );
   int numberNonZero = regionSparse->getNumElements (  );
   int i;
-  memset(elements,0,numberRows_*sizeof(double));
-  double pivotValue = pivotCheck;
+  memset(elements,0,numberRows_*sizeof(CoinFactorizationDouble));
+  CoinFactorizationDouble pivotValue = pivotCheck;
   if (fabs(pivotValue)<zeroTolerance_)
     return 2;
   pivotValue = 1.0/pivotValue;
@@ -485,7 +487,7 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   }
 #endif
   int i;
-  double * elements = elements_;
+  CoinFactorizationDouble * elements = elements_;
 #ifdef DENSE_CODE
   if (!solveMode_) {
 #endif
@@ -501,7 +503,7 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
     // base factorization U
     for (i=numberColumns_-1;i>=0;i--) {
       elements -= numberRows_;
-      double value = region[i]*elements[i];
+      CoinFactorizationDouble value = region[i]*elements[i];
       region[i] = value;
       for (int j=0;j<i;j++) {
 	region[j] -= value*elements[j];
@@ -520,7 +522,7 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   elements = elements_+numberRows_*numberRows_;
   for (i=0;i<numberPivots_;i++) {
     int iPivot = pivotRow_[i+2*numberRows_];
-    double value = region[iPivot]*elements[iPivot];
+    CoinFactorizationDouble value = region[iPivot]*elements[iPivot];
     for (int j=0;j<numberRows_;j++) {
       region[j] -= value*elements[j];
     }
@@ -638,7 +640,7 @@ CoinDenseFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
     double *region2 = regionSparse2->denseVector (  );
     int *regionIndex2 = regionSparse2->getIndices (  );
     int numberNonZero2 = regionSparse2->getNumElements (  );
-    double * regionW2 = workArea_;
+    CoinFactorizationDouble * regionW2 = workArea_;
     if (!regionSparse2->packedMode()) {
       for (int j=0;j<numberRows_;j++) {
 	regionW2[j]=region2[j];
@@ -655,7 +657,7 @@ CoinDenseFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
     double *region3 = regionSparse3->denseVector (  );
     int *regionIndex3 = regionSparse3->getIndices (  );
     int numberNonZero3 = regionSparse3->getNumElements (  );
-    double *regionW3 = workArea_+numberRows_;
+    CoinFactorizationDouble *regionW3 = workArea_+numberRows_;
     if (!regionSparse3->packedMode()) {
       for (int j=0;j<numberRows_;j++) {
 	regionW3[j]=region3[j];
@@ -670,7 +672,7 @@ CoinDenseFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
       }
     }
     int i;
-    double * elements = elements_;
+    CoinFactorizationDouble * elements = elements_;
     char trans = 'N';
     int itwo=2;
     int info;
@@ -680,8 +682,8 @@ CoinDenseFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
     elements = elements_+numberRows_*numberRows_;
     for (i=0;i<numberPivots_;i++) {
       int iPivot = pivotRow_[i+2*numberRows_];
-      double value2 = regionW2[iPivot]*elements[iPivot];
-      double value3 = regionW3[iPivot]*elements[iPivot];
+      CoinFactorizationDouble value2 = regionW2[iPivot]*elements[iPivot];
+      CoinFactorizationDouble value3 = regionW3[iPivot]*elements[iPivot];
       for (int j=0;j<numberRows_;j++) {
 	regionW2[j] -= value2*elements[j];
 	regionW3[j] -= value3*elements[j];
@@ -808,12 +810,12 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
   }
 #endif
   int i;
-  double * elements = elements_+numberRows_*(numberRows_+numberPivots_);
+  CoinFactorizationDouble * elements = elements_+numberRows_*(numberRows_+numberPivots_);
   // updates
   for (i=numberPivots_-1;i>=0;i--) {
     elements -= numberRows_;
     int iPivot = pivotRow_[i+2*numberRows_];
-    double value = region[iPivot]; //*elements[iPivot];
+    CoinFactorizationDouble value = region[iPivot]; //*elements[iPivot];
     for (int j=0;j<iPivot;j++) {
       value -= region[j]*elements[j];
     }
@@ -828,8 +830,8 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
     // base factorization U
     elements = elements_;
     for (i=0;i<numberColumns_;i++) {
-      //double value = region[i]*elements[i];
-      double value = region[i];
+      //CoinFactorizationDouble value = region[i]*elements[i];
+      CoinFactorizationDouble value = region[i];
       for (int j=0;j<i;j++) {
 	value -= region[j]*elements[j];
       }
@@ -841,7 +843,7 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
     elements = elements_+numberRows_*numberRows_;
     for (i=numberColumns_-1;i>=0;i--) {
       elements -= numberRows_;
-      double value = region[i];
+      CoinFactorizationDouble value = region[i];
       for (int j=i+1;j<numberRows_;j++) {
 	value -= region[j]*elements[j];
       }

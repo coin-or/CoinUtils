@@ -99,13 +99,13 @@ public:
   void slackValue (  double value );
 #endif
   /// Returns array to put basis elements in
-  inline double * elements() const
+  inline CoinFactorizationDouble * elements() const
   { return elements_;}
   /// Returns pivot row 
   inline int * pivotRow() const
   { return pivotRow_;}
   /// Returns work area
-  inline double * workArea() const
+  inline CoinFactorizationDouble * workArea() const
   { return workArea_;}
   /// Returns int work area
   inline int * intWorkArea() const
@@ -243,9 +243,9 @@ protected:
       length is maxR*maxR+maxSpace
       will always be long enough so can have nR*nR ints in maxSpace 
   */
-  double * elements_;
+  CoinFactorizationDouble * elements_;
   /// Work area of numberRows_ 
-  double * workArea_;
+  CoinFactorizationDouble * workArea_;
   /// Solve mode e.g. 0 C++ code, 1 Lapack, -1 choose
   int solveMode_;
   //@}

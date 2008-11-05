@@ -63,6 +63,18 @@ typedef long long CoinBigIndex;
 #endif
 
 //=============================================================================
+#ifndef COIN_BIG_DOUBLE 
+#define COIN_BIG_DOUBLE 0
+#endif
+#if COIN_BIG_DOUBLE==0
+typedef double CoinFactorizationDouble;
+#elif COIN_BIG_DOUBLE==1
+typedef long double CoinFactorizationDouble;
+#else
+typedef double CoinFactorizationDouble;
+#endif
+
+//=============================================================================
 // Plus infinity (double and int)
 #ifndef COIN_DBL_MAX
 #define COIN_DBL_MAX DBL_MAX
