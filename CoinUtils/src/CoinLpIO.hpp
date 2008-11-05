@@ -1,4 +1,4 @@
-// Last edit: 2/10/07
+// Last edit: 11/5/08
 //
 // Name:     CoinLpIO.hpp; Support for Lp files
 // Author:   Francois Margot
@@ -32,6 +32,7 @@ typedef int COINColumnIndex;
  0 <= x1 <= 3 <BR>
  1 >= x2 <BR>
  x3 = 1 <BR>
+ -2 <= x4 <= Inf
  xyr free <BR>
  Integers <BR>
  x0 <BR>
@@ -43,7 +44,7 @@ typedef int COINColumnIndex;
 
 Notes: <UL>
  <LI> Keywords are: Min, Max, Minimize, Maximize, s.t., Subject To, 
-      Bounds, Integers, Generals, Binaries, End, Free. 
+      Bounds, Integers, Generals, Binaries, End, Free, Inf. 
  <LI> Keywords are not case sensitive and may be in plural or singular form.
       They should not be used as objective, row or column names.
  <LI> Bounds, Integers, Generals, Binaries sections are optional.
@@ -608,6 +609,10 @@ protected:
   /// Return 1 if buff is the keyword "free" or one of its variants.
   /// Return 0 otherwise.
   int is_free(const char *buff) const;
+  
+  /// Return 1 if buff is the keyword "inf" or one of its variants.
+  /// Return 0 otherwise.
+  int is_inf(const char *buff) const;
   
   /// Return an integer indicating the inequality sense read.
   /// Return 0 if buff is '<='.

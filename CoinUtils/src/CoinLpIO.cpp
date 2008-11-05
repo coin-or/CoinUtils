@@ -1,4 +1,4 @@
-// Last edit: 2/10/07
+// Last edit: 11/5/08
 //
 // Name:     CoinLpIO.cpp; Support for Lp files
 // Author:   Francois Margot
@@ -671,7 +671,7 @@ CoinLpIO::writeLp(const char *filename, const double epsilon,
   fp = fopen(filename,"w");
   if (!fp) {
     char str[8192];
-    sprintf(str,"### ERROR: in unable to open file %s\n", filename);
+    sprintf(str,"### ERROR: unable to open file %s\n", filename);
     throw CoinError(str, "writeLP", "CoinLpIO", __FILE__, __LINE__);
   }
   int nerr = writeLp(fp, epsilon, numberAcross, decimals, useRowNames);
@@ -1049,6 +1049,18 @@ CoinLpIO::is_free(const char *buff) const {
 
 /*************************************************************************/
 int 
+CoinLpIO::is_inf(const char *buff) const {
+
+  unsigned lbuff = strlen(buff);
+
+  if((lbuff == 3) && (CoinStrNCaseCmp(buff, "inf", 3) == 0)) {
+    return(1);
+  }
+  return(0);
+} /* is_inf */
+
+/*************************************************************************/
+int 
 CoinLpIO::is_comment(const char *buff) const {
 
   if((buff[0] == '/') || (buff[0] == '\\')) {
@@ -1129,7 +1141,7 @@ CoinLpIO::is_invalid_name(const char *name,
     return(3);
   }
 
-  if((is_keyword(name)) || (is_free(name))) {
+  if((is_keyword(name)) || (is_free(name) || (is_inf(name)))) {
     return(4);
   }
 
@@ -1163,7 +1175,7 @@ CoinLpIO::are_invalid_names(char const * const * const vnames,
     }
     flag = is_invalid_name(vnames[i], is_ranged);
     if(flag) {
-      printf("### WARNING: CoinLpIO::are_invalid_names(): invalid name: vnames[%d]: %s\n",
+      printf("### WARNING: CoinLpIO::are_invalid_names(): Invalid name: vnames[%d]: %s\n",
 	     i, vnames[i]);
       invalid = flag;
     }
@@ -1611,8 +1623,18 @@ CoinLpIO::readLp(FILE* fp)
 	  }
 	}
 
+	int scan_sense = 0;
 	if(first_is_number(start_str)) {
 	  bnd1 = mult * atof(start_str);
+	  scan_sense = 1;
+	}
+	else {
+	  if(is_inf(start_str)) {
+	    bnd1 = mult * lp_inf;
+	    scan_sense = 1;
+	  }
+	}
+	if(scan_sense) {
 	  scan_next(buff, fp);
 	  read_sense1 = is_sense(buff);
 	  if(read_sense1 < 0) {
@@ -1660,15 +1682,15 @@ CoinLpIO::readLp(FILE* fp)
 	      scan_next(buff, fp);
 	    }
 	    else {
-	      if (strncmp(start_str,"inf",3)&&strncmp(start_str,"Inf",3)) {
+	      if(is_inf(start_str)) {
+		bnd2 = mult * lp_inf;
+		scan_next(buff, fp);
+	      }
+	      else {
 		char str[8192];
 		sprintf(str,"### ERROR: Bounds; expect a number, get: %s\n",
 			buff);
 		throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
-	      } else {
-		// infinity
-		bnd2 = DBL_MAX;
-		scan_next(buff, fp);
 	      }
 	    }
 	  }
@@ -1730,7 +1752,7 @@ CoinLpIO::readLp(FILE* fp)
 	icol = findHash(buff, 1);
 
 #ifdef LPIO_DEBUG
-	printf("CoinLpIO::readLp(): integer: colname: (%s)  icol: %d\n", 
+	printf("CoinLpIO::readLp(): Integer: colname: (%s)  icol: %d\n", 
 	       buff, icol);
 #endif
 
@@ -1743,7 +1765,7 @@ CoinLpIO::readLp(FILE* fp)
 	  }
 	  
 #ifdef LPIO_DEBUG
-	  printf("CoinLpIO::readLp(): integer: colname: (%s)  icol: %d\n", 
+	  printf("CoinLpIO::readLp(): Integer: colname: (%s)  icol: %d\n", 
 		 buff, icol);
 #endif
 	  
