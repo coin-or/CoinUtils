@@ -324,8 +324,10 @@ protected:
     int *UrowStarts_;
     /// Lengths of the rows of U
     int *UrowLengths_;
+#ifdef COIN_SIMP_CAPACITY
     /// Capacities of the rows of U
     int *UrowCapacities_;
+#endif
     /// U by rows
     double *Urows_;
     /// Indices in the rows of U
@@ -347,8 +349,10 @@ protected:
     int *UcolStarts_;
     /// Lengths of the columns of U
     int *UcolLengths_;
+#ifdef COIN_SIMP_CAPACITY
     /// Capacities of the columns of U
     int *UcolCapacities_;
+#endif
     /// U by columns
     double *Ucolumns_;
     /// Indices in the columns of U
