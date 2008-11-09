@@ -32,7 +32,7 @@ typedef int COINColumnIndex;
  0 <= x1 <= 3 <BR>
  1 >= x2 <BR>
  x3 = 1 <BR>
- -2 <= x4 <= Inf
+ -2 <= x4 <= Inf <BR>
  xyr free <BR>
  Integers <BR>
  x0 <BR>
