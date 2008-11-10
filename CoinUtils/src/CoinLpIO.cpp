@@ -1612,8 +1612,8 @@ CoinLpIO::readLp(FILE* fp)
 	int mult = 1;
 	char *start_str = buff;
 
-	if(buff[0] == '-') {
-	  mult = -1;
+	if(buff[0] == '-' || buff[0] == '+') {
+	  mult = (buff[0] == '-') ? -1 : +1;
 	  if(strlen(buff) == 1) {
 	    scan_next(buff, fp);
 	    start_str = buff;
