@@ -370,16 +370,20 @@ public:
   CoinPlainFileOutput (const std::string &fileName): 
     CoinFileOutput (fileName), f_ (0)
   {
-    f_ = fopen (fileName.c_str (), "w");
-    if (f_ == 0)
-      throw CoinError ("Could not open file for writing!",
-		       "CoinPlainFileOutput",
-		       "CoinPlainFileOutput");
+    if (fileName == "-" || fileName == "stdout") {
+      f_ = stdout;
+    } else {
+      f_ = fopen (fileName.c_str (), "w");
+      if (f_ == 0)
+	throw CoinError ("Could not open file for writing!",
+			 "CoinPlainFileOutput",
+			 "CoinPlainFileOutput");
+    }
   }
 
   virtual ~CoinPlainFileOutput () 
   {
-    if (f_ != 0)
+    if (f_ != 0 && f_ != stdout)
       fclose (f_);
   }
 
