@@ -530,6 +530,9 @@ public:
     /// Set problem name
     void setProblemName(const char *name) ;
 
+    /// Set objective name
+    void setObjectiveName(const char *name) ;
+
 //@}
 
 /** @name Parameter set/get methods

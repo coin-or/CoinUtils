@@ -4111,8 +4111,12 @@ CoinMpsIO::writeMps(const char *filename, int compression,
        assert (x[0]==0);
      }
    }
-   // finish off name and do ROWS card and objective 
-   line.append("\nROWS\n N  OBJROW\n");
+   // finish off name and do ROWS card and objective
+   char* objrow =
+     CoinStrdup(strcmp(objectiveName_,"")==0 ? "OBJROW" : objectiveName_);
+   line.append("\nROWS\n N  ");
+   line.append(objrow);
+   line.append("\n");
    writeString(output, line.c_str());
 
    // Rows section
@@ -4197,7 +4201,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
        int numberFields=0;
        if (objective[i]) {
 	 convertDouble(0,formatType,objective[i],outputValue[0],
-		       "OBJROW",outputRow[0]);
+		       objrow,outputRow[0]);
 	 numberFields=1;
 	 if (stringRow[numberRows_]) {
 	   assert (objective[i]==STRING_VALUE);
@@ -4279,7 +4283,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    if (objectiveOffset_ ) {
      convertDouble(1,formatType,objectiveOffset_,
 		   outputValue[0],
-		   "OBJROW",
+		   objrow,
 		   outputRow[0]);
      numberFields++;
      if (numberFields==numberAcross) {
@@ -5044,6 +5048,11 @@ void
 CoinMpsIO::setProblemName (const char *name)
 { free(problemName_) ;
   problemName_ = CoinStrdup(name) ; }
+
+void
+CoinMpsIO::setObjectiveName (const char *name)
+{ free(objectiveName_) ;
+  objectiveName_ = CoinStrdup(name) ; }
 
 //------------------------------------------------------------------
 // Return true if column is a continuous, binary, ...
