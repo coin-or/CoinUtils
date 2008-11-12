@@ -337,8 +337,8 @@ const CoinPresolveAction
 	    if (rhsRatio==floor(rhsRatio+0.5))
 	      canDo=true;
 	  }
-	  if (canDo)
 #ifdef COIN_DEVELOP
+	  if (canDo)
 	    printf("Good CoinPresolveDoubleton icolx %d (%g and bounds %g %g) icoly %d (%g and bound %g %g) - rhs %g\n",
 		   icolx,colels[krowx],clo[icolx],cup[icolx],
 		   icoly,colels[krowy],clo[icoly],cup[icoly],rhs);
