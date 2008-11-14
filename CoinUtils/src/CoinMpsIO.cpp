@@ -4611,6 +4611,8 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 
    writeString(output, "ENDATA\n");
 
+   free(objrow);
+
    delete output;
    return 0;
 }
