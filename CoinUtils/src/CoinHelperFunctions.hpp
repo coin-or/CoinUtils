@@ -493,7 +493,7 @@ inline char * CoinStrdup(const char * name)
 {
   char* dup = NULL;
   if (name) {
-    const int len = strlen(name);
+    const int len = static_cast<int>(strlen(name));
     dup = (char*)malloc(len+1);
     CoinMemcpyN(name, len, dup);
     dup[len] = 0;
