@@ -214,7 +214,7 @@ CoinDenseFactorization::factor ( )
 	column += numberRows_;
       }
       if (smallest<1.0e-8)
-	printf("small el %g\n");
+	printf("small el %g\n",smallest);
 #endif
       return 0;
     } else {

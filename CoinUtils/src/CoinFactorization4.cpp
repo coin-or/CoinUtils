@@ -811,7 +811,7 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
     CoinMemcpyN ( other.numberInRow_.array(), numberRowsExtra_ + 1, numberInRow_.array() );
     CoinMemcpyN ( other.nextRow_.array(), numberRowsExtra_ + 1, nextRow_.array() );
     CoinMemcpyN ( other.lastRow_.array(), numberRowsExtra_ + 1, lastRow_.array() );
-    CoinMemcpyN ( other.pivotRegion_.array(), numberRowsExtra_ + 1, pivotRegion_.array() );
+    CoinMemcpyN ( other.pivotRegion_.array(), numberRowsExtra_ , pivotRegion_.array() );
     CoinMemcpyN ( other.permuteBack_.array(), numberRowsExtra_ + 1, permuteBack_.array() );
     CoinMemcpyN ( other.permute_.array(), numberRowsExtra_ + 1, permute_.array() );
     CoinMemcpyN ( other.pivotColumnBack_.array(), numberRowsExtra_ + 1, pivotColumnBack_.array() );
