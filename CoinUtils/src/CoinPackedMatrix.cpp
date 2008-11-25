@@ -595,7 +595,7 @@ void
 CoinPackedMatrix::removeGaps(double removeValue)
 {
   if (removeValue<0.0) {
-    if (extraGap_) {
+    if (size_<start_[majorDim_]) {
 #if 1
       // Small copies so faster to do simply
       int i;
