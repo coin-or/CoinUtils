@@ -1862,6 +1862,12 @@ CoinLpIO::readLp(FILE* fp)
     obj[icol] = objsense * coeff[i];
   }
 
+  if (objsense == -1) {
+    printf("### WARNING: CoinLpIO::readLp(): Maximization problem reformulated as minimization\n");
+    objectiveOffset_ = -objectiveOffset_;
+  }
+
+
   for(i=0; i<cnt_row+1; i++) {
     start[i] -= cnt_obj;
   }
