@@ -37,6 +37,7 @@ CoinModel::CoinModel ()
      columnType_(NULL),
      start_(NULL),
      elements_(NULL),
+     packedMatrix_(NULL),
      quadraticElements_(NULL),
      sortIndices_(NULL),
      sortElements_(NULL),
@@ -56,7 +57,9 @@ CoinModel::CoinModel ()
      type_(-1),
      links_(0)
 {
-  problemName_ = CoinStrdup("");
+  problemName_ = "";
+  rowBlockName_ = "master_row";
+  columnBlockName_ = "master_column";
 }
 /* Read a problem in MPS or GAMS format from the given filename.
  */
@@ -81,6 +84,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     columnType_(NULL),
     start_(NULL),
     elements_(NULL),
+    packedMatrix_(NULL),
     quadraticElements_(NULL),
     sortIndices_(NULL),
     sortElements_(NULL),
@@ -100,7 +104,9 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     type_(-1),
     links_(0)
 {
-  problemName_ = CoinStrdup("");
+  problemName_ = "";
+  rowBlockName_ = "master_row";
+  columnBlockName_ = "master_column";
   int status=0;
   if (!strcmp(fileName,"-")||!strcmp(fileName,"stdin")) {
     // stdin
@@ -127,8 +133,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
   }
   if (!status) {
     // set problem name
-    free(problemName_);
-    problemName_=CoinStrdup(m.getProblemName());
+    problemName_=m.getProblemName();
     objectiveOffset_ = m.objectiveOffset();
     // build model
     int numberRows = m.getNumRows();
@@ -320,6 +325,60 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     }
   }
 }
+// From arrays
+CoinModel::CoinModel(int numberRows, int numberColumns,
+	    const CoinPackedMatrix * matrix,
+	    const double * rowLower, const double * rowUpper,
+	    const double * columnLower, const double * columnUpper,
+	    const double * objective)
+  :  numberRows_(numberRows),
+     maximumRows_(numberRows),
+     numberColumns_(numberColumns),
+     maximumColumns_(numberColumns),
+     numberElements_(matrix->getNumElements()),
+     maximumElements_(matrix->getNumElements()),
+     numberQuadraticElements_(0),
+     maximumQuadraticElements_(0),
+     optimizationDirection_(1.0),
+     objectiveOffset_(0.0),
+     rowType_(NULL),
+     integerType_(NULL),
+     columnType_(NULL),
+     start_(NULL),
+     elements_(NULL),
+     packedMatrix_(NULL),
+     quadraticElements_(NULL),
+     sortIndices_(NULL),
+     sortElements_(NULL),
+     sortSize_(0),
+     sizeAssociated_(0),
+     associated_(NULL),
+     numberSOS_(0),
+     startSOS_(NULL),
+     memberSOS_(NULL),
+     typeSOS_(NULL),
+     prioritySOS_(NULL),
+     referenceSOS_(NULL),
+     priority_(NULL),
+     cut_(NULL),
+     moreInfo_(NULL),
+     logLevel_(0),
+     type_(-1),
+     links_(0)
+{
+  problemName_ = "";
+  rowBlockName_ = "";
+  columnBlockName_ = "";
+  assert (numberRows_>=matrix->getNumRows());
+  assert (numberColumns_>=matrix->getNumCols());
+  type_ = 3;
+  packedMatrix_ = new CoinPackedMatrix(*matrix);
+  rowLower_ = CoinCopyOfArray(rowLower,numberRows_);
+  rowUpper_ = CoinCopyOfArray(rowUpper,numberRows_);
+  objective_ = CoinCopyOfArray(objective,numberColumns_);
+  columnLower_ = CoinCopyOfArray(columnLower,numberColumns_);
+  columnUpper_ = CoinCopyOfArray(columnUpper,numberColumns_);
+}
 
 //-------------------------------------------------------------------
 // Copy constructor 
@@ -351,7 +410,9 @@ CoinModel::CoinModel (const CoinModel & rhs)
     type_(rhs.type_),
     links_(rhs.links_)
 {
-  problemName_ = CoinStrdup(rhs.problemName_);
+  problemName_ = rhs.problemName_;
+  rowBlockName_ = rhs.rowBlockName_;
+  columnBlockName_ = rhs.columnBlockName_;
   rowLower_ = CoinCopyOfArray(rhs.rowLower_,maximumRows_);
   rowUpper_ = CoinCopyOfArray(rhs.rowUpper_,maximumRows_);
   rowType_ = CoinCopyOfArray(rhs.rowType_,maximumRows_);
@@ -366,6 +427,10 @@ CoinModel::CoinModel (const CoinModel & rhs)
   priority_ = CoinCopyOfArray(rhs.priority_,maximumColumns_);
   cut_ = CoinCopyOfArray(rhs.cut_,maximumRows_);
   moreInfo_ = rhs.moreInfo_;
+  if (rhs.packedMatrix_)
+    packedMatrix_ = new CoinPackedMatrix(*rhs.packedMatrix_);
+  else
+    packedMatrix_ = NULL;
   if (numberSOS_) {
     startSOS_ = CoinCopyOfArray(rhs.startSOS_,numberSOS_+1);
     int numberMembers = startSOS_[numberSOS_];
@@ -417,7 +482,7 @@ CoinModel::~CoinModel ()
   delete [] referenceSOS_;
   delete [] priority_;
   delete [] cut_;
-  free(problemName_);
+  delete packedMatrix_;
 }
 
 //----------------------------------------------------------------
@@ -448,8 +513,10 @@ CoinModel::operator=(const CoinModel& rhs)
     delete [] referenceSOS_;
     delete [] priority_;
     delete [] cut_;
-    free(problemName_);
-    problemName_ = CoinStrdup(rhs.problemName_);
+    delete packedMatrix_;
+    problemName_ = rhs.problemName_;
+    rowBlockName_ = rhs.rowBlockName_;
+    columnBlockName_ = rhs.columnBlockName_;
     numberRows_ = rhs.numberRows_;
     maximumRows_ = rhs.maximumRows_;
     numberColumns_ = rhs.numberColumns_;
@@ -486,6 +553,10 @@ CoinModel::operator=(const CoinModel& rhs)
     priority_ = CoinCopyOfArray(rhs.priority_,maximumColumns_);
     cut_ = CoinCopyOfArray(rhs.cut_,maximumRows_);
     moreInfo_ = rhs.moreInfo_;
+    if (rhs.packedMatrix_)
+      packedMatrix_ = new CoinPackedMatrix(*rhs.packedMatrix_);
+    else
+      packedMatrix_ = NULL;
     if (numberSOS_) {
       startSOS_ = CoinCopyOfArray(rhs.startSOS_,numberSOS_+1);
       int numberMembers = startSOS_[numberSOS_];
@@ -528,6 +599,8 @@ CoinModel::addRow(int numberInRow, const int * columns,
   } else if (type_==1) {
     // mixed - do linked lists for rows
     createList(1);
+  } else if (type_==3) {
+    badType();
   }
   int newColumn=-1;
   if (numberInRow>0) {
@@ -659,6 +732,8 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
   } else if (type_==0) {
     // mixed - do linked lists for columns
     createList(2);
+  } else if (type_==3) {
+    badType();
   }
   int newRow=-1;
   if (numberInColumn>0) {
@@ -788,6 +863,8 @@ CoinModel::setElement(int i,int j,double value)
     type_=0;
     resize(100,100,1000);
     createList(2);
+  } else if (type_==3) {
+    badType();
   } else if (!links_) {
     if (type_==0||type_==2) {
       createList(1);
@@ -861,6 +938,8 @@ CoinModel::setElement(int i,int j,const char * value)
     type_=0;
     resize(100,100,1000);
     createList(2);
+  } else if (type_==3) {
+    badType();
   } else if (!links_) {
     if (type_==0||type_==2) {
       createList(1);
@@ -1343,6 +1422,8 @@ CoinModel::deleteColumn(int whichColumn)
       assert (!hashElements_.numberItems());
       delete [] start_;
       start_=NULL;
+    } else if (type_==3) {
+      badType();
     }
     if ((links_&2)==0) {
       createList(2);
@@ -1387,6 +1468,8 @@ CoinModel::deleteThisElement(int row, int column,int position)
 int 
 CoinModel::packRows()
 {
+  if (type_==3) 
+    badType();
   int * newRow = new int[numberRows_];
   memset(newRow,0,numberRows_*sizeof(int));
   int iRow;
@@ -1491,6 +1574,8 @@ CoinModel::packRows()
 int 
 CoinModel::packColumns()
 {
+  if (type_==3) 
+    badType();
   int * newColumn = new int[numberColumns_];
   memset(newColumn,0,numberColumns_*sizeof(int));
   int iColumn;
@@ -1604,10 +1689,13 @@ CoinModel::pack()
   // For now do slowly (obvious overheads)
   return packRows()+packColumns();
 }
-// Creates a packed matrix - return snumber of errors
+// Creates a packed matrix - return sumber of errors
 int 
-CoinModel::createPackedMatrix(CoinPackedMatrix & matrix, const double * associated)
+CoinModel::createPackedMatrix(CoinPackedMatrix & matrix, 
+			      const double * associated)
 {
+  if (type_==3) 
+    badType();
   // Set to say all parts
   type_=2;
   resize(numberRows_,numberColumns_,numberElements_);
@@ -1676,6 +1764,8 @@ int
 CoinModel::countPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * startNegative,
                              const double * associated)
 {
+  if (type_==3) 
+    badType();
   memset(startPositive,0,numberColumns_*sizeof(int));
   memset(startNegative,0,numberColumns_*sizeof(int));
   // Set to say all parts
@@ -1722,6 +1812,8 @@ CoinModel::createPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * start
                               int * indices,
                               const double * associated)
 {
+  if (type_==3) 
+    badType();
   CoinBigIndex size=0;
   int iColumn;
   for (iColumn=0;iColumn<numberColumns_;iColumn++) {
@@ -1885,7 +1977,11 @@ CoinModel::writeMps(const char *filename, int compression,
                                  objective, integerType,associated);
   }
   CoinPackedMatrix matrix;
-  createPackedMatrix(matrix,associated);
+  if (type_!=3) {
+    createPackedMatrix(matrix,associated);
+  } else {
+    matrix = *packedMatrix_;
+  }
   char* integrality = new char[numberColumns_];
   bool hasInteger = false;
   for (int i = 0; i < numberColumns_; i++) {
@@ -1923,7 +2019,7 @@ CoinModel::writeMps(const char *filename, int compression,
       printf("%d string elements had no values associated with them\n",numberErrors);
   }
   writer.setObjectiveOffset(objectiveOffset_);
-  writer.setProblemName(problemName_);
+  writer.setProblemName(problemName_.c_str());
   if (keepStrings&&string_.numberItems()) {
     // load up strings - sorted by column and row
     writer.copyStringElements(this);
@@ -2511,7 +2607,7 @@ CoinModel::getRowUpper(int whichRow) const
   else
     return COIN_DBL_MAX;
 }
-/* Gets name (if row does not exist then "")
+/* Gets name (if row does not exist then NULL)
  */
 const char * 
 CoinModel::getRowName(int whichRow) const
@@ -2555,7 +2651,7 @@ CoinModel::getColumnObjective(int whichColumn) const
   else
     return 0.0;
 }
-/* Gets name (if column does not exist then "")
+/* Gets name (if column does not exist then NULL)
  */
 const char * 
 CoinModel::getColumnName(int whichColumn) const
@@ -2651,6 +2747,8 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
         fillRows(save,true);
       }
     }
+  } else if (type_==3) {
+    badType();
   }
   if (type_==1||type_==2) {
     // need to redo column stuff
@@ -2729,6 +2827,8 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       }
     }
   }
+  if (type_==3) 
+    badType();
   if (maximumElements>maximumElements_) {
     CoinModelTriple * tempArray = new CoinModelTriple[maximumElements];
     CoinMemcpyN(elements_,numberElements_,tempArray);
@@ -2765,10 +2865,16 @@ CoinModel::fillRows(int whichRow, bool forceCreation,bool fromAddRow)
       // need to set all
       whichRow = numberRows_-1;
       numberRows_=0;
-      resize(CoinMax(100,whichRow+1),0,0);
+      if (type_!=3)
+	resize(CoinMax(100,whichRow+1),0,0);
+      else
+	resize(CoinMax(1,whichRow+1),0,0);
     }
     if (whichRow>=maximumRows_) {
+      if (type_!=3)
       resize(CoinMax((3*maximumRows_)/2,whichRow+1),0,0);
+      else
+	resize(CoinMax(1,whichRow+1),0,0);
     }
   }
   if (whichRow>=numberRows_&&rowLower_) {
@@ -2807,10 +2913,16 @@ CoinModel::fillColumns(int whichColumn,bool forceCreation,bool fromAddColumn)
       // need to set all
       whichColumn = numberColumns_-1;
       numberColumns_=0;
-      resize(0,CoinMax(100,whichColumn+1),0);
+      if (type_!=3)
+	resize(0,CoinMax(100,whichColumn+1),0);
+      else
+	resize(0,CoinMax(1,whichColumn+1),0);
     }
     if (whichColumn>=maximumColumns_) {
-      resize(0,CoinMax((3*maximumColumns_)/2,whichColumn+1),0);
+      if (type_!=3)
+	resize(0,CoinMax((3*maximumColumns_)/2,whichColumn+1),0);
+      else
+	resize(0,CoinMax(1,whichColumn+1),0);
     }
   }
   if (whichColumn>=numberColumns_&&objective_) {
@@ -2976,11 +3088,10 @@ CoinModel::setLogLevel(int value)
 void
 CoinModel::setProblemName (const char *name)
 { 
-  free(problemName_) ;
   if (name)
-    problemName_ = CoinStrdup(name) ;
+    problemName_ = name ;
   else
-    problemName_ = CoinStrdup("");
+    problemName_ = "";
 }
 // Checks that links are consistent
 void 
@@ -3488,4 +3599,371 @@ CoinModel::setPriorities(int size,const int * priorities)
   priority_ = new int [maximumColumns_];
   CoinZeroN(priority_,maximumColumns_);
   CoinMemcpyN(priorities,size,priority_);
+}
+/* Sets columnObjective array
+ */
+void 
+CoinModel::setObjective(int numberColumns,const double * objective) 
+{
+  fillColumns(numberColumns,true,true);
+  for (int i=0;i<numberColumns;i++) {
+    objective_[i]=objective[i];
+    columnType_[i] &= ~4;
+  }
+}
+/* Sets columnLower array
+ */
+void 
+CoinModel::setColumnLower(int numberColumns,const double * columnLower)
+{
+  fillColumns(numberColumns,true,true);
+  for (int i=0;i<numberColumns;i++) {
+    columnLower_[i]=columnLower[i];
+    columnType_[i] &= ~1;
+  }
+}
+/* Sets columnUpper array
+ */
+void 
+CoinModel::setColumnUpper(int numberColumns,const double * columnUpper)
+{
+  fillColumns(numberColumns,true,true);
+  for (int i=0;i<numberColumns;i++) {
+    columnUpper_[i]=columnUpper[i];
+    columnType_[i] &= ~2;
+  }
+}
+/* Sets rowLower array
+ */
+void 
+CoinModel::setRowLower(int numberRows,const double * rowLower)
+{
+  fillColumns(numberRows,true,true);
+  for (int i=0;i<numberRows;i++) {
+    rowLower_[i]=rowLower[i];
+    rowType_[i] &= ~1;
+  }
+}
+/* Sets rowUpper array
+ */
+void 
+CoinModel::setRowUpper(int numberRows,const double * rowUpper)
+{
+  fillColumns(numberRows,true,true);
+  for (int i=0;i<numberRows;i++) {
+    rowUpper_[i]=rowUpper[i];
+    rowType_[i] &= ~2;
+  }
+}
+// Pass in CoinPackedMatrix (and switch off element updates)
+void 
+CoinModel::passInMatrix(const CoinPackedMatrix & matrix)
+{
+  type_=3;
+  packedMatrix_ = new CoinPackedMatrix(matrix);
+}
+// Convert elements to CoinPackedMatrix (and switch off element updates)
+int 
+CoinModel::convertMatrix()
+{
+  int numberErrors=0;
+  // If strings then do copies
+  if (string_.numberItems()) {
+    numberErrors = createArrays(rowLower_, rowUpper_, 
+				    columnLower_, columnUpper_,
+				    objective_, integerType_,associated_);
+  }
+  CoinPackedMatrix matrix;
+  createPackedMatrix(matrix,associated_);
+  packedMatrix_ = new CoinPackedMatrix(matrix);
+  type_=3;
+  return numberErrors;
+}
+// Aborts with message about packedMatrix
+void 
+CoinModel::badType() const
+{
+  fprintf(stderr,"******** operation not allowed when in block mode ****\n");
+  abort();
+}
+
+//#############################################################################
+// Methods to input a problem
+//#############################################################################
+/** A function to convert from the lb/ub style of constraint
+    definition to the sense/rhs/range style */
+void
+convertBoundToSense(const double lower, const double upper,
+					char& sense, double& right,
+					double& range) 
+{
+  double inf = 1.0e-30;
+  range = 0.0;
+  if (lower > -inf) {
+    if (upper < inf) {
+      right = upper;
+      if (upper==lower) {
+        sense = 'E';
+      } else {
+        sense = 'R';
+        range = upper - lower;
+      }
+    } else {
+      sense = 'G';
+      right = lower;
+    }
+  } else {
+    if (upper < inf) {
+      sense = 'L';
+      right = upper;
+    } else {
+      sense = 'N';
+      right = 0.0;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+/** A function to convert from the sense/rhs/range style of
+    constraint definition to the lb/ub style */
+void
+convertSenseToBound(const char sense, const double right,
+					const double range,
+					double& lower, double& upper) 
+{
+  double inf=COIN_DBL_MAX;
+  switch (sense) {
+  case 'E':
+    lower = upper = right;
+    break;
+  case 'L':
+    lower = -inf;
+    upper = right;
+    break;
+  case 'G':
+    lower = right;
+    upper = inf;
+    break;
+  case 'R':
+    lower = right - range;
+    upper = right;
+    break;
+  case 'N':
+    lower = -inf;
+    upper = inf;
+    break;
+  }
+}
+
+void
+CoinModel::loadBlock(const CoinPackedMatrix& matrix,
+				   const double* collb, const double* colub,   
+				   const double* obj,
+				   const double* rowlb, const double* rowub)
+{
+  passInMatrix(matrix);
+  int numberRows=matrix.getNumRows();
+  int numberColumns=matrix.getNumCols();
+  setObjective(numberColumns,obj);
+  setRowLower(numberRows,rowlb);
+  setRowUpper(numberRows,rowub);
+  setColumnLower(numberColumns,collb);
+  setColumnUpper(numberColumns,colub);
+}
+
+//-----------------------------------------------------------------------------
+
+void
+CoinModel::loadBlock(const CoinPackedMatrix& matrix,
+				   const double* collb, const double* colub,
+				   const double* obj,
+				   const char* rowsen, const double* rowrhs,   
+				   const double* rowrng)
+{
+  // If any of Rhs NULLs then create arrays
+  int numrows = matrix.getNumRows();
+  const char * rowsenUse = rowsen;
+  if (!rowsen) {
+    char * rowsen = new char [numrows];
+    for (int i=0;i<numrows;i++)
+      rowsen[i]='G';
+    rowsenUse = rowsen;
+  } 
+  const double * rowrhsUse = rowrhs;
+  if (!rowrhs) {
+    double * rowrhs = new double [numrows];
+    for (int i=0;i<numrows;i++)
+      rowrhs[i]=0.0;
+    rowrhsUse = rowrhs;
+  }
+  const double * rowrngUse = rowrng;
+  if (!rowrng) {
+    double * rowrng = new double [numrows];
+    for (int i=0;i<numrows;i++)
+      rowrng[i]=0.0;
+    rowrngUse = rowrng;
+  }
+  double * rowlb = new double[numrows];
+  double * rowub = new double[numrows];
+  for (int i = numrows-1; i >= 0; --i) {   
+    convertSenseToBound(rowsenUse[i],rowrhsUse[i],rowrngUse[i],rowlb[i],rowub[i]);
+  }
+  if (rowsen!=rowsenUse)
+    delete [] rowsenUse;
+  if (rowrhs!=rowrhsUse)
+    delete [] rowrhsUse;
+  if (rowrng!=rowrngUse)
+    delete [] rowrngUse;
+  loadBlock(matrix, collb, colub, obj, rowlb, rowub);
+  delete [] rowlb;
+  delete [] rowub;
+}
+
+//-----------------------------------------------------------------------------
+
+void
+CoinModel::loadBlock(const int numcols, const int numrows,
+		     const CoinBigIndex * start, const int* index,
+		     const double* value,
+		     const double* collb, const double* colub,
+		     const double* obj,
+		     const double* rowlb, const double* rowub)
+{
+  int numberElements = start[numcols];
+  int * length = new int [numcols];
+  for (int i=0;i<numcols;i++) 
+    length[i]=start[i+1]-start[i];
+  CoinPackedMatrix matrix(true,numrows,numcols,numberElements,value,
+			  index,start,length,0.0,0.0);
+  loadBlock(matrix, collb, colub, obj, rowlb, rowub);
+  delete [] length;
+}
+//-----------------------------------------------------------------------------
+
+void
+CoinModel::loadBlock(const int numcols, const int numrows,
+		     const CoinBigIndex * start, const int* index,
+		     const double* value,
+		     const double* collb, const double* colub,
+		     const double* obj,
+		     const char* rowsen, const double* rowrhs,   
+		     const double* rowrng)
+{
+  // If any of Rhs NULLs then create arrays
+  const char * rowsenUse = rowsen;
+  if (!rowsen) {
+    char * rowsen = new char [numrows];
+    for (int i=0;i<numrows;i++)
+      rowsen[i]='G';
+    rowsenUse = rowsen;
+  } 
+  const double * rowrhsUse = rowrhs;
+  if (!rowrhs) {
+    double * rowrhs = new double [numrows];
+    for (int i=0;i<numrows;i++)
+      rowrhs[i]=0.0;
+    rowrhsUse = rowrhs;
+  }
+  const double * rowrngUse = rowrng;
+  if (!rowrng) {
+    double * rowrng = new double [numrows];
+    for (int i=0;i<numrows;i++)
+      rowrng[i]=0.0;
+    rowrngUse = rowrng;
+  }
+  double * rowlb = new double[numrows];
+  double * rowub = new double[numrows];
+  for (int i = numrows-1; i >= 0; --i) {   
+    convertSenseToBound(rowsenUse[i],rowrhsUse[i],rowrngUse[i],rowlb[i],rowub[i]);
+  }
+  if (rowsen!=rowsenUse)
+    delete [] rowsenUse;
+  if (rowrhs!=rowrhsUse)
+    delete [] rowrhsUse;
+  if (rowrng!=rowrngUse)
+    delete [] rowrngUse;
+  int numberElements = start[numcols];
+  int * length = new int [numcols];
+  for (int i=0;i<numcols;i++) 
+    length[i]=start[i+1]-start[i];
+  CoinPackedMatrix matrix(true,numrows,numcols,numberElements,value,
+			  index,start,length,0.0,0.0);
+  loadBlock(matrix, collb, colub, obj, rowlb, rowub);
+  delete [] length;
+  delete[] rowlb;
+  delete[] rowub;
+}
+/* Returns which parts of model are set
+   1 - matrix
+   2 - rhs
+   4 - row names
+   8 - column bounds and/or objective
+   16 - column names
+   32 - integer types
+*/
+int 
+CoinModel::whatIsSet() const
+{
+  int type = (numberElements_) ? 1 : 0;
+  bool defaultValues=true;
+  if (rowLower_) {
+    for (int i=0;i<numberRows_;i++) {
+      if (rowLower_[i]!=-COIN_DBL_MAX) {
+	defaultValues=false;
+	break;
+      }
+      if (rowUpper_[i]!=COIN_DBL_MAX) {
+	defaultValues=false;
+	break;
+      }
+    }
+  }
+  if (!defaultValues)
+    type |= 2;
+  if (rowName_.numberItems())
+    type |= 4;
+  defaultValues=true;
+  if (columnLower_) {
+    for (int i=0;i<numberColumns_;i++) {
+      if (objective_[i]!=0.0) {
+	defaultValues=false;
+	break;
+      }
+      if (columnLower_[i]!=0.0) {
+	defaultValues=false;
+	break;
+      }
+      if (columnUpper_[i]!=COIN_DBL_MAX) {
+	defaultValues=false;
+	break;
+      }
+    }
+  }
+  if (!defaultValues)
+    type |= 8;
+  if (columnName_.numberItems())
+    type |= 16;
+  defaultValues=true;
+  if (integerType_) {
+    for (int i=0;i<numberColumns_;i++) {
+      if (integerType_[i]) {
+	defaultValues=false;
+	break;
+      }
+    }
+  }
+  if (!defaultValues)
+    type |= 32;
+  return type;
+}
+// For decomposition set original row and column indices
+void 
+CoinModel::setOriginalIndices(const int * row, const int * column)
+{
+  if (!rowType_)
+    rowType_ = new int [numberRows_];
+  memcpy(rowType_,row,numberRows_*sizeof(int));
+  if (!columnType_)
+    columnType_ = new int [numberColumns_];
+  memcpy(columnType_,column,numberColumns_*sizeof(int));
 }

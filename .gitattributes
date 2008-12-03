@@ -32,6 +32,8 @@ CoinUtils/src/CoinSimpFactorization.hpp -text
 CoinUtils/src/CoinSmartPtr.hpp -text
 CoinUtils/src/CoinSnapshot.cpp -text
 CoinUtils/src/CoinSnapshot.hpp -text
+CoinUtils/src/CoinStructuredModel.cpp -text
+CoinUtils/src/CoinStructuredModel.hpp -text
 CoinUtils/src/CoinWarmStartPrimalDual.cpp -text
 CoinUtils/src/CoinWarmStartPrimalDual.hpp -text
 CoinUtils/src/CoinWarmStartVector.cpp -text

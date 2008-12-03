@@ -245,6 +245,30 @@ public:
       returns number of rows+columns deleted. */
   int pack();
 
+  /** Sets columnObjective array
+  */
+  void setObjective(int numberColumns,const double * objective) ;
+  /** Sets columnLower array
+  */
+  void setColumnLower(int numberColumns,const double * columnLower);
+  /** Sets columnLower array
+  */
+  inline void setColLower(int numberColumns,const double * columnLower)
+  { setColumnLower( numberColumns, columnLower);} 
+  /** Sets columnUpper array
+  */
+  void setColumnUpper(int numberColumns,const double * columnUpper);
+  /** Sets columnUpper array
+  */
+  inline void setColUpper(int numberColumns,const double * columnUpper)
+  { setColumnUpper( numberColumns, columnUpper);} 
+  /** Sets rowLower array
+  */
+  void setRowLower(int numberRows,const double * rowLower);
+  /** Sets rowUpper array
+  */
+  void setRowUpper(int numberRows,const double * rowUpper);
+
   /** Write the problem in MPS format to a file with the given filename.
       
   \param compression can be set to three values to indicate what kind
@@ -278,6 +302,25 @@ public:
       May modify both models by cleaning up
   */
   int differentModel(CoinModel & other, bool ignoreNames);
+   //@}
+
+
+  /**@name For structured models */
+   //@{
+  /// Pass in CoinPackedMatrix (and switch off element updates)
+  void passInMatrix(const CoinPackedMatrix & matrix);
+  /** Convert elements to CoinPackedMatrix (and switch off element updates).
+      Returns number of errors */
+  int convertMatrix();
+  /// Return a pointer to CoinPackedMatrix (or NULL)
+  inline const CoinPackedMatrix * packedMatrix() const
+  { return packedMatrix_;}
+  /// Return pointers to original rows (for decomposition)
+  inline const int * originalRows() const
+  { return rowType_;}
+  /// Return pointers to original columns (for decomposition)
+  inline const int * originalColumns() const
+  { return columnType_;}
    //@}
 
 
@@ -364,7 +407,7 @@ public:
   /** Gets rowUpper (if row does not exist then +COIN_DBL_MAX)
   */
   double  getRowUpper(int whichRow) const ; 
-  /** Gets name (if row does not exist then "")
+  /** Gets name (if row does not exist then NULL)
   */
   const char * getRowName(int whichRow) const ; 
   inline double  rowLower(int whichRow) const
@@ -373,7 +416,7 @@ public:
   */
   inline double  rowUpper(int whichRow) const
   { return getRowUpper(whichRow) ;}
-  /** Gets name (if row does not exist then "")
+  /** Gets name (if row does not exist then NULL)
   */
   inline const char * rowName(int whichRow) const
   { return getRowName(whichRow);}
@@ -386,7 +429,7 @@ public:
   /** Gets columnObjective (if column does not exist then 0.0)
   */
   double  getColumnObjective(int whichColumn) const ; 
-  /** Gets name (if column does not exist then "")
+  /** Gets name (if column does not exist then NULL)
   */
   const char * getColumnName(int whichColumn) const ; 
   /** Gets if integer (if column does not exist then false)
@@ -408,7 +451,7 @@ public:
   */
   inline double  objective(int whichColumn) const
   { return getColumnObjective(whichColumn);}
-  /** Gets name (if column does not exist then "")
+  /** Gets name (if column does not exist then NULL)
   */
   inline const char * columnName(int whichColumn) const
   { return getColumnName(whichColumn);}
@@ -432,7 +475,7 @@ public:
   */
   inline double  getColObjective(int whichColumn) const
   { return getColumnObjective(whichColumn);}
-  /** Gets name (if column does not exist then "")
+  /** Gets name (if column does not exist then NULL)
   */
   inline const char * getColName(int whichColumn) const
   { return getColumnName(whichColumn);}
@@ -507,9 +550,23 @@ public:
   void setLogLevel(int value);
   /// Return the problem name
   inline const char * getProblemName() const
-  { return problemName_;}
+  { return problemName_.c_str();}
   /// Set problem name
   void setProblemName(const char *name) ;
+  /// Set problem name
+  void setProblemName(const std::string &name) ;
+  /// Return the row block name
+  inline const std::string & getRowBlock() const
+  { return rowBlockName_;}
+  /// Set row block name
+  inline void setRowBlock(const std::string &name) 
+  { rowBlockName_ = name;}
+  /// Return the column block name
+  inline const std::string & getColumnBlock() const
+  { return columnBlockName_;}
+  /// Set column block name
+  inline void setColumnBlock(const std::string &name) 
+  { columnBlockName_ = name;}
   /// Returns type
   inline int type() const
   { return type_;}
@@ -517,7 +574,8 @@ public:
   inline double unsetValue() const
   { return -1.23456787654321e-97;}
   /// Creates a packed matrix - return number of errors
-  int createPackedMatrix(CoinPackedMatrix & matrix, const double * associated);
+  int createPackedMatrix(CoinPackedMatrix & matrix, 
+			 const double * associated);
   /** Fills in startPositive and startNegative with counts for +-1 matrix.
       If not +-1 then startPositive[0]==-1 otherwise counts and
       startPositive[numberColumns]== size
@@ -584,6 +642,99 @@ public:
   /// Set pointer to more information
   inline void setMoreInfo(void * info)
   { moreInfo_ = info;}
+  /** Returns which parts of model are set
+      1 - matrix
+      2 - rhs
+      4 - row names
+      8 - column bounds and/or objective
+      16 - column names
+      32 - integer types
+  */
+  int whatIsSet() const;
+   //@}
+
+  /**@name for block models - matrix will be CoinPackedMatrix */
+   //@{
+  /*! \brief Load in a problem by copying the arguments. The constraints on
+    the rows are given by lower and upper bounds.
+    
+    If a pointer is 0 then the following values are the default:
+    <ul>
+    <li> <code>colub</code>: all columns have upper bound infinity
+    <li> <code>collb</code>: all columns have lower bound 0 
+    <li> <code>rowub</code>: all rows have upper bound infinity
+    <li> <code>rowlb</code>: all rows have lower bound -infinity
+    <li> <code>obj</code>: all variables have 0 objective coefficient
+    </ul>
+    
+    Note that the default values for rowub and rowlb produce the
+    constraint -infty <= ax <= infty. This is probably not what you want.
+  */
+  void loadBlock (const CoinPackedMatrix& matrix,
+		  const double* collb, const double* colub,   
+		  const double* obj,
+		  const double* rowlb, const double* rowub) ;
+  /*! \brief Load in a problem by copying the arguments.
+    The constraints on the rows are given by sense/rhs/range triplets.
+    
+    If a pointer is 0 then the following values are the default:
+    <ul>
+    <li> <code>colub</code>: all columns have upper bound infinity
+    <li> <code>collb</code>: all columns have lower bound 0 
+    <li> <code>obj</code>: all variables have 0 objective coefficient
+    <li> <code>rowsen</code>: all rows are >=
+    <li> <code>rowrhs</code>: all right hand sides are 0
+    <li> <code>rowrng</code>: 0 for the ranged rows
+    </ul>
+    
+    Note that the default values for rowsen, rowrhs, and rowrng produce the
+    constraint ax >= 0.
+  */
+  void loadBlock (const CoinPackedMatrix& matrix,
+		  const double* collb, const double* colub,
+		  const double* obj,
+		  const char* rowsen, const double* rowrhs,   
+		  const double* rowrng) ;
+  
+  /*! \brief Load in a problem by copying the arguments. The constraint
+    matrix is is specified with standard column-major
+    column starts / row indices / coefficients vectors. 
+    The constraints on the rows are given by lower and upper bounds.
+    
+    The matrix vectors must be gap-free. Note that <code>start</code> must
+    have <code>numcols+1</code> entries so that the length of the last column
+    can be calculated as <code>start[numcols]-start[numcols-1]</code>.
+    
+    See the previous loadBlock method using rowlb and rowub for default
+    argument values.
+  */
+  void loadBlock (const int numcols, const int numrows,
+		  const CoinBigIndex * start, const int* index,
+		  const double* value,
+		  const double* collb, const double* colub,   
+		  const double* obj,
+		  const double* rowlb, const double* rowub) ;
+  
+  /*! \brief Load in a problem by copying the arguments. The constraint
+    matrix is is specified with standard column-major
+    column starts / row indices / coefficients vectors. 
+    The constraints on the rows are given by sense/rhs/range triplets.
+    
+    The matrix vectors must be gap-free. Note that <code>start</code> must
+    have <code>numcols+1</code> entries so that the length of the last column
+    can be calculated as <code>start[numcols]-start[numcols-1]</code>.
+    
+    See the previous loadBlock method using sense/rhs/range for default
+    argument values.
+  */
+  void loadBlock (const int numcols, const int numrows,
+		  const CoinBigIndex * start, const int* index,
+		  const double* value,
+		  const double* collb, const double* colub,   
+		  const double* obj,
+		  const char* rowsen, const double* rowrhs,   
+		  const double* rowrng) ;
+
    //@}
 
   /**@name Constructors, destructor */
@@ -597,8 +748,14 @@ public:
 	NOTE - as I can't work out configure etc the source code is in Cbc_ampl.cpp!
     */
     CoinModel( int nonLinear, const char * fileName,const void * info);
+  /// From arrays
+  CoinModel(int numberRows, int numberColumns,
+	    const CoinPackedMatrix * matrix,
+	    const double * rowLower, const double * rowUpper,
+	    const double * columnLower, const double * columnUpper,
+	    const double * objective);
    /** Destructor */
-   ~CoinModel();
+   virtual ~CoinModel();
    //@}
 
    /**@name Copy method */
@@ -672,6 +829,8 @@ public:
   /// priorities (given for all columns (-1 if not integer)
   inline const int * priorities() const
   { return priority_;}
+  /// For decomposition set original row and column indices
+  void setOriginalIndices(const int * row, const int * column);
   
 private:
   /** Read a problem from AMPL nl file
@@ -680,6 +839,8 @@ private:
   void gdb( int nonLinear, const char * fileName, const void * info);
   /// returns jColumn (-2 if linear term, -1 if unknown) and coefficient
   int decodeBit(char * phrase, char * & nextPhrase, double & coefficient, bool ifFirst) const;
+  /// Aborts with message about packedMatrix
+  void badType() const;
   /**@name Data members */
    //@{
   /// Current number of rows
@@ -703,7 +864,11 @@ private:
   /// Objective offset to be passed on
   double objectiveOffset_;
   /// Problem name
-  char * problemName_;
+  std::string problemName_;
+  /// Rowblock name
+  std::string rowBlockName_;
+  /// Columnblock name
+  std::string columnBlockName_;
   /// Row lower 
   double * rowLower_;
   /// Row upper 
@@ -714,6 +879,8 @@ private:
       Has information - at present
       bit 0 - rowLower is a string
       bit 1 - rowUpper is a string
+      NOTE - if converted to CoinPackedMatrix - may be indices of 
+      original rows (i.e. when decomposed)
   */
   int * rowType_;
   /// Objective
@@ -734,12 +901,16 @@ private:
       bit 1 - columnUpper is a string
       bit 2 - objective is a string
       bit 3 - integer setting is a string
+      NOTE - if converted to CoinPackedMatrix - may be indices of 
+      original columns (i.e. when decomposed)
   */
   int * columnType_;
   /// If simple then start of each row/column
   int * start_;
   /// Actual elements
   CoinModelTriple * elements_;
+  /// Actual elements as CoinPackedMatrix
+  CoinPackedMatrix * packedMatrix_;
   /// Hash for elements
   mutable CoinModelHash2 hashElements_;
   /// Linked list for rows
@@ -795,6 +966,7 @@ private:
       0 for row, 
       1 for column,
       2 linked.
+      3 matrix is CoinPackedMatrix (and at present can't be modified);
   */
   mutable int type_;
   /** Links present (could be tested by sizes of objects)

@@ -50,6 +50,7 @@ libCoinUtils_la_SOURCES = \
 	CoinMessage.cpp CoinMessage.hpp \
 	CoinMessageHandler.cpp CoinMessageHandler.hpp \
 	CoinModel.cpp CoinModel.hpp \
+	CoinStructuredModel.cpp CoinStructuredModel.hpp \
 	CoinModelUseful.cpp CoinModelUseful.hpp \
 	CoinModelUseful2.cpp \
 	CoinMpsIO.cpp CoinMpsIO.hpp \
@@ -140,6 +141,7 @@ includecoin_HEADERS = \
 	CoinMessage.hpp \
 	CoinMessageHandler.hpp \
 	CoinModel.hpp \
+	CoinStructuredModel.hpp \
 	CoinModelUseful.hpp \
 	CoinMpsIO.hpp \
 	CoinPackedMatrix.hpp \

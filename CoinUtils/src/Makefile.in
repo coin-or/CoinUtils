@@ -71,8 +71,8 @@ am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinFactorization4.lo CoinSimpFactorization.lo \
 	CoinDenseFactorization.lo CoinFileIO.lo CoinIndexedVector.lo \
 	CoinLpIO.lo CoinMessage.lo CoinMessageHandler.lo CoinModel.lo \
-	CoinModelUseful.lo CoinModelUseful2.lo CoinMpsIO.lo \
-	CoinPackedMatrix.lo CoinPackedVector.lo \
+	CoinStructuredModel.lo CoinModelUseful.lo CoinModelUseful2.lo \
+	CoinMpsIO.lo CoinPackedMatrix.lo CoinPackedVector.lo \
 	CoinPackedVectorBase.lo CoinParam.lo CoinParamUtils.lo \
 	CoinPostsolveMatrix.lo CoinPrePostsolveMatrix.lo \
 	CoinPresolveDoubleton.lo CoinPresolveDual.lo \
@@ -319,6 +319,7 @@ libCoinUtils_la_SOURCES = \
 	CoinMessage.cpp CoinMessage.hpp \
 	CoinMessageHandler.cpp CoinMessageHandler.hpp \
 	CoinModel.cpp CoinModel.hpp \
+	CoinStructuredModel.cpp CoinStructuredModel.hpp \
 	CoinModelUseful.cpp CoinModelUseful.hpp \
 	CoinModelUseful2.cpp \
 	CoinMpsIO.cpp CoinMpsIO.hpp \
@@ -406,6 +407,7 @@ includecoin_HEADERS = \
 	CoinMessage.hpp \
 	CoinMessageHandler.hpp \
 	CoinModel.hpp \
+	CoinStructuredModel.hpp \
 	CoinModelUseful.hpp \
 	CoinMpsIO.hpp \
 	CoinPackedMatrix.hpp \
@@ -566,6 +568,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinShallowPackedVector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSimpFactorization.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSnapshot.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinStructuredModel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartBasis.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartDual.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartPrimalDual.Plo@am__quote@
