@@ -1818,6 +1818,12 @@ variable: %s read_sense1: %d  read_sense2: %d\n", buff, read_sense1, read_sense2
     obj[icol] = objsense * coeff[i];
   }
 
+  if (objsense == -1) {
+    printf("### WARNING: CoinLpIO::readLp(): Maximization problem reformulated as minimization\n");
+    objectiveOffset_ = -objectiveOffset_;
+  }
+
+
   for(i=0; i<cnt_row+1; i++) {
     start[i] -= cnt_obj;
   }
