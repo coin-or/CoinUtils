@@ -127,6 +127,26 @@
 				RelativePath="..\..\..\src\CoinAlloc.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\..\CoinUtils\src\CoinStructuredModel.cpp">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinBuild.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -959,6 +979,9 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\..\..\..\CoinUtils\src\CoinStructuredModel.hpp">
+			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\Coin_C_defines.h">
 			</File>

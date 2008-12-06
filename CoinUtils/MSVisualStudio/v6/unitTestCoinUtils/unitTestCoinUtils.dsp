@@ -129,6 +129,10 @@ SOURCE=..\..\..\..\CoinUtils\test\unitTest.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=..\..\..\src\CoinStructuredModel.hpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\..\CoinUtils\src\CoinDenseVector.hpp
 # End Source File
 # Begin Source File

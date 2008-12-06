@@ -438,6 +438,10 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath="..\..\..\..\CoinUtils\src\CoinStructuredModel.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinDenseVector.hpp"
 				>
 			</File>

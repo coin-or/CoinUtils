@@ -85,6 +85,10 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=..\..\..\src\CoinStructuredModel.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\CoinAlloc.cpp
 # End Source File
 # Begin Source File
@@ -263,6 +267,10 @@ SOURCE=..\..\..\..\CoinUtils\src\CoinWarmStartDual.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=..\..\..\src\CoinStructuredModel.hpp
+# End Source File
 # Begin Source File
 
 SOURCE=..\..\..\..\CoinUtils\src\Coin_C_defines.h
