@@ -16,6 +16,9 @@ CoinUtils/MSVisualStudio/v8/libCoinUtils/libCoinUtils.vcproj -text
 CoinUtils/MSVisualStudio/v8/unitTestCoinUtils/unitTestCoinUtils.ncb -text
 CoinUtils/MSVisualStudio/v8/unitTestCoinUtils/unitTestCoinUtils.suo -text
 CoinUtils/MSVisualStudio/v8/unitTestCoinUtils/unitTestCoinUtils.vcproj -text
+CoinUtils/MSVisualStudio/v9/CoinUtils.sln -text
+CoinUtils/MSVisualStudio/v9/libCoinUtils/libCoinUtils.vcproj -text
+CoinUtils/MSVisualStudio/v9/unitTestCoinUtils/unitTestCoinUtils.vcproj -text
 CoinUtils/README -text
 CoinUtils/coinutils_addlibs.txt.in -text
 CoinUtils/configure -text
