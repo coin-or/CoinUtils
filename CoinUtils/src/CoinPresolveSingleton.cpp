@@ -765,14 +765,36 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
   CoinBigIndex &free_list		= prob->free_list_;
 
   const double ztolzb	= prob->ztolzb_;
-
+#ifdef CHECK_ONE_ROW
+  {
+    double act=0.0;
+    for (int i=0;i<prob->ncols_;i++) {
+      double solV = sol[i];
+      assert (solV>=clo[i]-ztolzb&&solV<=cup[i]+ztolzb);
+      int j=mcstrt[i];
+      for (int k=0;k<hincol[i];k++) {
+	if (hrow[j]==CHECK_ONE_ROW) {
+	  act += colels[j]*solV;
+	}
+	j=link[j];
+      }
+    }
+    assert (act>=rlo[CHECK_ONE_ROW]-ztolzb&&act<=rup[CHECK_ONE_ROW]+ztolzb);
+    printf("start %g %g %g %g\n",rlo[CHECK_ONE_ROW],act,acts[CHECK_ONE_ROW],rup[CHECK_ONE_ROW]);
+  }
+#endif
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
     int iRow = f->row;
     double lo0 = f->clo;
     double up0 = f->cup;
     double coeff = f->coeff;
     int iCol = f->col;
-
+    assert (!hincol[iCol]);
+#ifdef CHECK_ONE_ROW
+    if (iRow==CHECK_ONE_ROW)
+      printf("Col %d coeff %g old bounds %g,%g new %g,%g - new rhs %g,%g - act %g\n",
+	     iCol,coeff,clo[iCol],cup[iCol],lo0,up0,f->rlo,f->rup,acts[CHECK_ONE_ROW]);
+#endif
     rlo[iRow] = f->rlo;
     rup[iRow] = f->rup;
 
@@ -796,7 +818,7 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
       else if (sol[iCol]<clo[iCol]-ztolzb) 
         cMove = clo[iCol]-sol[iCol];
       sol[iCol] += cMove;
-      acts[iRow] -= cMove*coeff;
+      acts[iRow] += cMove*coeff;
       /*
        * Have to compute status.  At most one can be basic. It's possible that
 	 both are nonbasic and nonbasic status must change.
@@ -917,7 +939,26 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
       mcstrt[iCol] = k;
     }
     hincol[iCol]++;	// right?
-
+#ifdef CHECK_ONE_ROW
+    {
+      double act=0.0;
+      for (int i=0;i<prob->ncols_;i++) {
+	double solV = sol[i];
+	assert (solV>=clo[i]-ztolzb&&solV<=cup[i]+ztolzb);
+	int j=mcstrt[i];
+	for (int k=0;k<hincol[i];k++) {
+	  if (hrow[j]==CHECK_ONE_ROW) {
+	    //printf("c %d el %g sol %g old act %g new %g\n",
+	    //   i,colels[j],solV,act, act+colels[j]*solV);
+	    act += colels[j]*solV;
+	  }
+	  j=link[j];
+	}
+      }
+      assert (act>=rlo[CHECK_ONE_ROW]-ztolzb&&act<=rup[CHECK_ONE_ROW]+ztolzb);
+      printf("rhs now %g %g %g %g\n",rlo[CHECK_ONE_ROW],act,acts[CHECK_ONE_ROW],rup[CHECK_ONE_ROW]);
+    }
+#endif
 
 #   if PRESOLVE_DEBUG
     rdone[iRow] = SLACK_SINGLETON;
