@@ -151,7 +151,7 @@ public:
   { gutsOfDestructor();}
   /// Returns array to put basis indices in
   inline int * indices() const
-  { return (int *) (elements_+numberRows_*numberRows_);}
+  { return reinterpret_cast<int *> (elements_+numberRows_*numberRows_);}
   /// Returns permute in
   virtual inline int * permute() const
   { return pivotRow_;}

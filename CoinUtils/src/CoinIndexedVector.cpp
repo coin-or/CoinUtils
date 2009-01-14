@@ -305,7 +305,7 @@ void CoinIndexedVector::checkClear()
     assert(!elements_[i]);
   }
   // check mark array zeroed
-  char * mark = (char *) (indices_+capacity_);
+  char * mark = reinterpret_cast<char *> (indices_+capacity_);
   for (i=0;i<capacity_;i++) {
     assert(!mark[i]);
   }
@@ -356,7 +356,7 @@ void CoinIndexedVector::checkClean()
   }
 #ifndef NDEBUG
   // check mark array zeroed
-  char * mark = (char *) (indices_+capacity_);
+  char * mark = reinterpret_cast<char *> (indices_+capacity_);
   for (i=0;i<capacity_;i++) {
     assert(!mark[i]);
   }
@@ -1414,12 +1414,12 @@ CoinIndexedVector::cleanAndPackSafe( double tolerance )
       // can find room without new
       gotMemory=false;
       // But may need to align on 8 byte boundary
-      char * tempC = (char *) (indices_+number);
+      char * tempC = reinterpret_cast<char *> (indices_+number);
       CoinInt64 xx = reinterpret_cast<CoinInt64>(tempC);
       CoinInt64 iBottom = xx & 7;
       if (iBottom)
 	tempC += 8-iBottom;
-      temp = (double *) tempC;
+      temp = reinterpret_cast<double *> (tempC);
       xx = reinterpret_cast<CoinInt64>(temp);
       iBottom = xx & 7;
       assert(!iBottom);
@@ -1563,7 +1563,7 @@ static char * mallocArray(long size)
 }
 static void freeArray(void * array)
 {
-  char * charArray = (char *) array;
+  char * charArray = reinterpret_cast<char *> (array);
   delete [] charArray;
 }
 // Conditionally gets new array
@@ -1577,7 +1577,7 @@ CoinArrayWithLength::conditionalNew(long sizeWanted)
     setCapacity();
     if (sizeWanted>size_) {
       freeArray(array_);
-      size_ = (int) (sizeWanted*1.01)+64;
+      size_ = static_cast<int> (sizeWanted*1.01)+64;
       array_ = mallocArray(size_);
     }
   }
@@ -1712,7 +1712,7 @@ CoinArrayWithLength::setPersistence(int flag,int currentLength)
 void 
 CoinArrayWithLength::swap(CoinArrayWithLength & other)
 {
-  assert (size_==other.size_);
+  assert (size_==other.size_||size_==-1||other.size_==-1);
   char * swapArray = other.array_;
   other.array_=array_;
   array_=swapArray;

@@ -179,6 +179,9 @@ static bool elim_tripleton(const char *msg,
 	      return (true);
 	    
 	    // have to adjust various induction variables
+ 	    kcolx = mcstrt[icolx] + (kcolx - kcsx);
+ 	    kcsx = mcstrt[icolx];			
+ 	    kcex = mcstrt[icolx] + hincol[icolx];
 	    kcoly = mcstrt[icoly] + (kcoly - kcs);
 	    kcs = mcstrt[icoly];			// do this for ease of debugging
 	    kce = mcstrt[icoly] + hincol[icoly];
@@ -1044,7 +1047,7 @@ void check_tripletons(const CoinPresolveAction * paction)
     check_tripletons(paction->next);
     
     if (strcmp(paction0->name(), "tripleton_action") == 0) {
-      const tripleton_action *daction = (const tripleton_action *)paction0;
+      const tripleton_action *daction = reinterpret_cast<const tripleton_action *>(paction0);
       for (int i=daction->nactions_-1; i>=0; --i) {
 	int icolx = daction->actions_[i].icolx;
 	int icoly = daction->actions_[i].icoly;

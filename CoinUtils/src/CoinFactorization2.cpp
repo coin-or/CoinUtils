@@ -75,14 +75,13 @@ CoinFactorization::factorSparseSmall (  )
   unsigned int * workArea2 = workArea2_.array();
 
   //set markRow so no rows updated
-  unsigned short * markRow = (unsigned short *) markRow_.array();
-  CoinFillN (  markRow, numberRows_, (unsigned short) (SMALL_UNSET));
+  unsigned short * markRow = reinterpret_cast<unsigned short *> (markRow_.array());
+  CoinFillN (  markRow, numberRows_, static_cast<unsigned short> (SMALL_UNSET));
   int status = 0;
   //do slacks first
   int * numberInRow = numberInRow_.array();
   int * numberInColumn = numberInColumn_.array();
   int * numberInColumnPlus = numberInColumnPlus_.array();
-  int * pivotRowL = pivotRowL_.array();
   CoinBigIndex * startColumnU = startColumnU_.array();
   CoinBigIndex * startColumnL = startColumnL_.array();
   if (biasLU_<3&&numberColumns_==numberRows_) {
@@ -108,11 +107,11 @@ CoinFactorization::factorSparseSmall (  )
 	    nextRow[last] = next;
 	    lastRow[next] = last;
 	    nextRow[iRow] = numberGoodU_;	//use for permute
+	    lastRow[iRow] = -2; //mark
 	    //modify linked list for pivots
 	    deleteLink ( iRow );
 	    numberInRow[iRow]=-1;
 	    numberInColumn[iPivotColumn]=0;
-	    pivotRowL[numberGoodL_] = iRow;
 	    numberGoodL_++;
 	    startColumnL[numberGoodL_] = 0;
 	    pivotColumn[numberGoodU_] = iPivotColumn;
@@ -123,7 +122,7 @@ CoinFactorization::factorSparseSmall (  )
     }
     // redo
     preProcess(4);
-    CoinFillN (  markRow, numberRows_, (unsigned short) (SMALL_UNSET));
+    CoinFillN (  markRow, numberRows_, static_cast<unsigned short> (SMALL_UNSET));
   }
   numberSlacks_ = numberGoodU_;
   int *nextCount = nextCount_.array();
@@ -356,7 +355,7 @@ CoinFactorization::factorSparseSmall (  )
 	    goodPivot = pivot ( iPivotRow, iPivotColumn,
 				pivotRowPosition, pivotColumnPosition,
 				workArea, workArea2, increment,
-				increment2, ( unsigned short * ) markRow_.array() ,
+				increment2,  markRow ,
 				SMALL_SET);
 #else
 #define FAC_SET SMALL_SET
@@ -391,6 +390,7 @@ CoinFactorization::factorSparseSmall (  )
 	  break;
 	}
       }
+      assert (nextRow_.array()[iPivotRow]==numberGoodU_);
       pivotColumn[numberGoodU_] = iPivotColumn;
       numberGoodU_++;
       // This should not need to be trapped here - but be safe
@@ -487,7 +487,6 @@ int CoinFactorization::factorDense()
   denseArea_= new double [full];
   CoinZeroN(denseArea_,full);
   densePermute_= new int [numberDense_];
-  int * pivotRowL = pivotRowL_.array();
   int * indexRowU = indexRowU_.array();
   //mark row lookup using lastRow
   int i;
@@ -495,14 +494,12 @@ int CoinFactorization::factorDense()
   int * lastRow = lastRow_.array();
   int * numberInColumn = numberInColumn_.array();
   int * numberInColumnPlus = numberInColumnPlus_.array();
-  for (i=0;i<numberRows_;i++)
-    lastRow[i]=0;
+  for (i=0;i<numberRows_;i++) {
+    if (lastRow[i]>=0)
+      lastRow[i]=0;
+  }
   int * indexRow = indexRowU_.array();
   CoinFactorizationDouble * element = elementU_.array();
-  for ( i=0;i<numberGoodU_;i++) {
-    int iRow=pivotRowL[i];
-    lastRow[iRow]=-1;
-  } 
   int which=0;
   for (i=0;i<numberRows_;i++) {
     if (!lastRow[i]) {
@@ -533,13 +530,15 @@ int CoinFactorization::factorDense()
       for (CoinBigIndex i=start;i<end;i++) {
         int iRow=indexRow[i];
         iRow=lastRow[iRow];
+	assert (iRow>=0&&iRow<numberDense_);
         column[iRow]=element[i];
       } /* endfor */
       column+=numberDense_;
       while (lastRow[rowsDone]<0) {
         rowsDone++;
       } /* endwhile */
-      pivotRowL[numberGoodU_]=rowsDone;
+      nextRow[rowsDone]=numberGoodU_;
+      rowsDone++;
       startColumnL[numberGoodU_+1]=endL;
       numberInColumn[iColumn]=0;
       pivotColumn[numberGoodU_]=iColumn;
@@ -592,7 +591,7 @@ int CoinFactorization::factorDense()
   }
   // Fill in ?
   for (iColumn=numberGoodU_+numberToDo;iColumn<numberRows_;iColumn++) {
-    pivotRowL[iColumn]=iColumn;
+    nextRow[iColumn]=iColumn;
     startColumnL[iColumn+1]=endL;
     pivotRegion[iColumn]=1.0;
   } 
@@ -622,6 +621,7 @@ int CoinFactorization::factorDense()
       int originalRow = densePermute_[pivotRow];
       // do nextRow
       nextRow[originalRow] = numberGoodU_;
+      lastRow[originalRow] = -2; //mark
       // swap
       densePermute_[pivotRow]=densePermute_[iDense];
       densePermute_[iDense] = originalRow;
@@ -646,7 +646,7 @@ int CoinFactorization::factorDense()
 	  elementL[l++] = value;
 	}
       }
-      pivotRowL[numberGoodL_++] = originalRow;
+      numberGoodL_++;
       lengthL_ = l;
       startColumnL[numberGoodL_] = l;
       // update U column
@@ -748,8 +748,8 @@ CoinFactorization::saveFactorization (const char * file  ) const
   FILE * fp = fopen(file,"wb");
   if (fp) {
     // Save so we can pick up scalars
-    const char * first = (const char *) &pivotTolerance_;
-    const char * last = (const char *) &biasLU_;
+    const char * first = reinterpret_cast<const char *> ( &pivotTolerance_);
+    const char * last = reinterpret_cast<const char *> ( &biasLU_);
     // increment
     last += sizeof(int);
     if (fwrite(first,last-first,1,fp)!=1)
@@ -835,8 +835,8 @@ CoinFactorization::restoreFactorization (const char * file , bool factorIt )
     gutsOfDestructor();
     int newSize=0; // for checking - should be same
     // Restore so we can pick up scalars
-    char * first = (char *) &pivotTolerance_;
-    char * last = (char *) &biasLU_;
+    char * first = reinterpret_cast<char *> ( &pivotTolerance_);
+    char * last = reinterpret_cast<char *> ( &biasLU_);
     // increment
     last += sizeof(int);
     if (fread(first,last-first,1,fp)!=1)
@@ -1012,13 +1012,12 @@ CoinFactorization::factorSparseLarge (  )
 
   //set markRow so no rows updated
   int * markRow = markRow_.array();
-  CoinFillN ( (int *) markRow, numberRows_, COIN_INT_MAX-10+1);
+  CoinFillN ( markRow, numberRows_, COIN_INT_MAX-10+1);
   int status = 0;
   //do slacks first
   int * numberInRow = numberInRow_.array();
   int * numberInColumn = numberInColumn_.array();
   int * numberInColumnPlus = numberInColumnPlus_.array();
-  int * pivotRowL = pivotRowL_.array();
   CoinBigIndex * startColumnU = startColumnU_.array();
   CoinBigIndex * startColumnL = startColumnL_.array();
   if (biasLU_<3&&numberColumns_==numberRows_) {
@@ -1044,11 +1043,11 @@ CoinFactorization::factorSparseLarge (  )
 	    nextRow[last] = next;
 	    lastRow[next] = last;
 	    nextRow[iRow] = numberGoodU_;	//use for permute
+	    lastRow[iRow] = -2; //mark
 	    //modify linked list for pivots
 	    deleteLink ( iRow );
 	    numberInRow[iRow]=-1;
 	    numberInColumn[iPivotColumn]=0;
-	    pivotRowL[numberGoodL_] = iRow;
 	    numberGoodL_++;
 	    startColumnL[numberGoodL_] = 0;
 	    pivotColumn[numberGoodU_] = iPivotColumn;
@@ -1059,7 +1058,7 @@ CoinFactorization::factorSparseLarge (  )
     }
     // redo
     preProcess(4);
-    CoinFillN ( (int *) markRow, numberRows_, COIN_INT_MAX-10+1);
+    CoinFillN ( markRow, numberRows_, COIN_INT_MAX-10+1);
   }
   numberSlacks_ = numberGoodU_;
   int *nextCount = nextCount_.array();
@@ -1293,7 +1292,7 @@ CoinFactorization::factorSparseLarge (  )
 	      goodPivot = pivot ( iPivotRow, iPivotColumn,
 				  pivotRowPosition, pivotColumnPosition,
 				  workArea, workArea2, increment,
-				  increment2, ( int * ) markRow_.array() ,
+				  increment2, markRow ,
 				  LARGE_SET);
 #else
 #define FAC_SET LARGE_SET
@@ -1328,6 +1327,7 @@ CoinFactorization::factorSparseLarge (  )
             break;
           }
         }
+	assert (nextRow_.array()[iPivotRow]==numberGoodU_);
         pivotColumn[numberGoodU_] = iPivotColumn;
         numberGoodU_++;
         // This should not need to be trapped here - but be safe

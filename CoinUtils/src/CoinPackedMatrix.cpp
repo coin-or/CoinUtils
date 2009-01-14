@@ -595,7 +595,7 @@ void
 CoinPackedMatrix::removeGaps(double removeValue)
 {
   if (removeValue<0.0) {
-    if (extraGap_) {
+    if (size_<start_[majorDim_]) {
 #if 1
       // Small copies so faster to do simply
       int i;
@@ -762,7 +762,7 @@ CoinPackedMatrix::submatrixOf(const CoinPackedMatrix& matrix,
 
    colOrdered_ = matrix.colOrdered_;
    maxMajorDim_ = int(numMajor * (1+extraMajor_) + 1);
-   maxSize_ = (CoinBigIndex) (nzcnt * (1+extraMajor_) * (1+extraGap_) + 100);
+   maxSize_ = static_cast<CoinBigIndex> (nzcnt * (1+extraMajor_) * (1+extraGap_) + 100);
    length_ = new int[maxMajorDim_];
    start_ = new CoinBigIndex[maxMajorDim_+1];
    start_[0]=0;
@@ -2368,7 +2368,7 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs,
       throw CoinError("bad major entries", 
 		      "subset constructor", "CoinPackedMatrix");
     // now create arrays
-    maxSize_=CoinMax((CoinBigIndex) 1,size_);
+    maxSize_=CoinMax(static_cast<CoinBigIndex> (1),size_);
     start_ = new CoinBigIndex [numberColumns+1];
     length_ = new int [numberColumns];
     index_ = new int[maxSize_];
@@ -2814,9 +2814,9 @@ CoinPackedMatrix::isEquivalent2(const CoinPackedMatrix& rhs) const
 	  std::cerr<<j<<"( "<<inds[j]<<", "<<elems[j]<<"), rhs ( "<<
 	    inds2[j]<<", "<<elems2[j]<<") diff "<<
 	    diff<<std::endl;
-	  const int * xx = (const int *) (elems+j);
+	  const int * xx = reinterpret_cast<const int *> (elems+j);
 	  printf("%x %x",xx[0],xx[1]);
-	  xx = (const int *) (elems2+j);
+	  xx = reinterpret_cast<const int *> (elems2+j);
 	  printf(" %x %x\n",xx[0],xx[1]);
 	}
       }
@@ -3196,7 +3196,8 @@ CoinPackedMatrix::appendMinorFast(const int number,
     packType=1;
   CoinBigIndex n = 0;
   if (packType) {
-    double slack = ((double) (maxSize_-size_-numberAdded))/(double) majorDim_;
+    double slack = (static_cast<double> (maxSize_-size_-numberAdded))/
+      static_cast<double> (majorDim_);
     slack  = CoinMax(0.0,slack-0.01);
     if (!slack) {
       for (int i = 0; i < majorDim_; ++i) {
@@ -3215,7 +3216,7 @@ CoinPackedMatrix::appendMinorFast(const int number,
 	  extra = floor(added);
 	  added -= extra;
 	}
-	n += length_[i] + thisCount+ (int) extra;
+	n += length_[i] + thisCount+ static_cast<int> (extra);
       }
     }
     newStart[majorDim_]=n;

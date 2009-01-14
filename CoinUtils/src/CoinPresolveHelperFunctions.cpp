@@ -207,10 +207,10 @@ bool presolve_expand_major (CoinBigIndex *majstrts, double *els,
   Moving the vector requires three actions. First we move the data, then
   update the packed matrix vector start, then relink the storage order list,
 */
-    memcpy((void*)&minndxs[newkcsx],
-	   (void*)&minndxs[kcsx],majlens[k]*sizeof(int)) ;
-    memcpy((void*)&els[newkcsx],
-	   (void*)&els[kcsx],majlens[k]*sizeof(double)) ;
+    memcpy(reinterpret_cast<void *>(&minndxs[newkcsx]),
+	   reinterpret_cast<void *>(&minndxs[kcsx]),majlens[k]*sizeof(int)) ;
+    memcpy(reinterpret_cast<void *>(&els[newkcsx]),
+	   reinterpret_cast<void *>(&els[kcsx]),majlens[k]*sizeof(double)) ;
     majstrts[k] = newkcsx ;
     PRESOLVE_REMOVE_LINK(majlinks,k) ;
     PRESOLVE_INSERT_LINK(majlinks,k,lastcol) ; }

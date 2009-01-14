@@ -109,10 +109,10 @@ public:
   { return workArea_;}
   /// Returns int work area
   inline int * intWorkArea() const
-  { return (int *) workArea_;}
+  { return reinterpret_cast<int *> (workArea_);}
   /// Returns array to put basis starts in
   inline CoinBigIndex * starts() const
-  { return (CoinBigIndex *) pivotRow_;}
+  { return reinterpret_cast<CoinBigIndex *> (pivotRow_);}
   /// Returns permute back
   inline int * permuteBack() const
   { return pivotRow_+numberRows_;}
@@ -367,7 +367,7 @@ public:
   { gutsOfDestructor();}
   /// Returns array to put basis indices in
   virtual inline int * indices() const
-  { return (int *) (elements_+numberRows_*numberRows_);}
+  { return reinterpret_cast<int *> (elements_+numberRows_*numberRows_);}
   /// Returns permute in
   virtual inline int * permute() const
   { return NULL;/*pivotRow_*/;}

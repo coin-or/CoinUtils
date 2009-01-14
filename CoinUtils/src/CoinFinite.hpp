@@ -81,7 +81,11 @@ typedef double CoinFactorizationDouble;
 #endif
 
 #ifndef COIN_INT_MAX
-#define COIN_INT_MAX ((int)((~((unsigned int)0)) >> 1))
+#define COIN_INT_MAX (static_cast<int>((~(static_cast<unsigned int>(0))) >> 1))
+#endif
+
+#ifndef COIN_INT_MAX_AS_DOUBLE
+#define COIN_INT_MAX_AS_DOUBLE (static_cast<double>((~(static_cast<unsigned int>(0))) >> 1))
 #endif
 
 //=============================================================================

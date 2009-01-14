@@ -214,7 +214,7 @@ CoinLpIO::convertBoundToSense(const double lower, const double upper,
 {
   if(rowsense_  == NULL) {
     int nr=numberRows_;
-    rowsense_ = (char *) malloc(nr*sizeof(char));
+    rowsense_ = reinterpret_cast<char *> (malloc(nr*sizeof(char)));
     
     double dum1,dum2;
     int i;
@@ -230,7 +230,7 @@ const double * CoinLpIO::getRightHandSide() const
 {
   if(rhs_==NULL) {
     int nr=numberRows_;
-    rhs_ = (double *) malloc(nr*sizeof(double));
+    rhs_ = reinterpret_cast<double *> (malloc(nr*sizeof(double)));
 
     char dum1;
     double dum2;
@@ -247,7 +247,7 @@ const double * CoinLpIO::getRowRange() const
 {
   if (rowrange_ == NULL) {
     int nr=numberRows_;
-    rowrange_ = (double *) malloc(nr*sizeof(double));
+    rowrange_ = reinterpret_cast<double *> (malloc(nr*sizeof(double)));
     std::fill(rowrange_,rowrange_+nr,0.0);
 
     char dum1;
@@ -516,11 +516,11 @@ CoinLpIO::setLpDataWithoutRowAndColNames(
   numberColumns_ = matrixByRow_->getNumCols();
   numberRows_ = matrixByRow_->getNumRows();
   
-  rowlower_ = (double *) malloc (numberRows_ * sizeof(double));
-  rowupper_ = (double *) malloc (numberRows_ * sizeof(double));
-  collower_ = (double *) malloc (numberColumns_ * sizeof(double));
-  colupper_ = (double *) malloc (numberColumns_ * sizeof(double));
-  objective_ = (double *) malloc (numberColumns_ * sizeof(double));
+  rowlower_ = reinterpret_cast<double *> (malloc (numberRows_ * sizeof(double)));
+  rowupper_ = reinterpret_cast<double *> (malloc (numberRows_ * sizeof(double)));
+  collower_ = reinterpret_cast<double *> (malloc (numberColumns_ * sizeof(double)));
+  colupper_ = reinterpret_cast<double *> (malloc (numberColumns_ * sizeof(double)));
+  objective_ = reinterpret_cast<double *> (malloc (numberColumns_ * sizeof(double)));
   std::copy(rowlb, rowlb + numberRows_, rowlower_);
   std::copy(rowub, rowub + numberRows_, rowupper_);
   std::copy(collb, collb + numberColumns_, collower_);
@@ -528,7 +528,7 @@ CoinLpIO::setLpDataWithoutRowAndColNames(
   std::copy(obj_coeff, obj_coeff + numberColumns_, objective_);
 
   if (is_integer) {
-    integerType_ = (char *) malloc (numberColumns_ * sizeof(char));
+    integerType_ = reinterpret_cast<char *> (malloc (numberColumns_ * sizeof(char)));
     std::copy(is_integer, is_integer + numberColumns_, integerType_);
   } 
   else {
@@ -547,7 +547,7 @@ CoinLpIO::setLpDataWithoutRowAndColNames(
 void CoinLpIO::setDefaultRowNames() {
 
   int i, nrow = getNumRows();
-  char **defaultRowNames = (char **) malloc ((nrow+1) * sizeof(char *));
+  char **defaultRowNames = reinterpret_cast<char **> (malloc ((nrow+1) * sizeof(char *)));
   char buff[1024];
 
   for(i=0; i<nrow; i++) {
@@ -572,7 +572,7 @@ void CoinLpIO::setDefaultRowNames() {
 void CoinLpIO::setDefaultColNames() {
 
   int j, ncol = getNumCols();
-  char **defaultColNames = (char **) malloc (ncol * sizeof(char *));
+  char **defaultColNames = reinterpret_cast<char **> (malloc (ncol * sizeof(char *)));
   char buff[256];
 
   for(j=0; j<ncol; j++) {
@@ -735,7 +735,7 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 
    if(rowNames == NULL) {
      loc_row_names = 1;
-     prowNames = (char **) malloc ((nrow+1) * sizeof(char *));
+     prowNames = reinterpret_cast<char **> (malloc ((nrow+1) * sizeof(char *)));
 
      for (j=0; j<nrow; j++) {
        sprintf(buff, "cons%d", j);
@@ -747,7 +747,7 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 
    if(colNames == NULL) {
      loc_col_names = 1;
-     pcolNames = (char **) malloc (ncol * sizeof(char *));
+     pcolNames = reinterpret_cast<char **> (malloc (ncol * sizeof(char *)));
 
      for (j=0; j<ncol; j++) {
        sprintf(buff, "x%d", j);
@@ -1350,8 +1350,8 @@ CoinLpIO::realloc_coeff(double **coeff, char ***colNames,
   
   *maxcoeff *= 5;
 
-  *colNames = (char **) realloc ((*colNames), (*maxcoeff+1) * sizeof(char *));
-  *coeff = (double *) realloc ((*coeff), (*maxcoeff+1) * sizeof(double));
+  *colNames = reinterpret_cast<char **> (realloc ((*colNames), (*maxcoeff+1) * sizeof(char *)));
+  *coeff = reinterpret_cast<double *> (realloc ((*coeff), (*maxcoeff+1) * sizeof(double)));
 
 } /* realloc_coeff */
 
@@ -1361,11 +1361,11 @@ CoinLpIO::realloc_row(char ***rowNames, int **start, double **rhs,
 		      double **rowlow, double **rowup, int *maxrow) const {
 
   *maxrow *= 5;
-  *rowNames = (char **) realloc ((*rowNames), (*maxrow+1) * sizeof(char *));
-  *start = (int *) realloc ((*start), (*maxrow+1) * sizeof(int));
-  *rhs = (double *) realloc ((*rhs), (*maxrow+1) * sizeof(double));
-  *rowlow = (double *) realloc ((*rowlow), (*maxrow+1) * sizeof(double));
-  *rowup = (double *) realloc ((*rowup), (*maxrow+1) * sizeof(double));
+  *rowNames = reinterpret_cast<char **> (realloc ((*rowNames), (*maxrow+1) * sizeof(char *)));
+  *start = reinterpret_cast<int *> (realloc ((*start), (*maxrow+1) * sizeof(int)));
+  *rhs = reinterpret_cast<double *> (realloc ((*rhs), (*maxrow+1) * sizeof(double)));
+  *rowlow = reinterpret_cast<double *> (realloc ((*rowlow), (*maxrow+1) * sizeof(double)));
+  *rowup = reinterpret_cast<double *> (realloc ((*rowup), (*maxrow+1) * sizeof(double)));
 
 } /* realloc_row */
 
@@ -1375,9 +1375,9 @@ CoinLpIO::realloc_col(double **collow, double **colup, char **is_int,
 		      int *maxcol) const {
   
   *maxcol += 100;
-  *collow = (double *) realloc ((*collow), (*maxcol+1) * sizeof(double));
-  *colup = (double *) realloc ((*colup), (*maxcol+1) * sizeof(double));
-  *is_int = (char *) realloc ((*is_int), (*maxcol+1) * sizeof(char));
+  *collow = reinterpret_cast<double *> (realloc ((*collow), (*maxcol+1) * sizeof(double)));
+  *colup = reinterpret_cast<double *> (realloc ((*colup), (*maxcol+1) * sizeof(double)));
+  *is_int = reinterpret_cast<char *> (realloc ((*is_int), (*maxcol+1) * sizeof(char)));
 
 } /* realloc_col */
 
@@ -1509,14 +1509,14 @@ CoinLpIO::readLp(FILE* fp)
   int objsense, cnt_coeff = 0, cnt_row = 0, cnt_obj = 0;
   char *objName = NULL;
 
-  char **colNames = (char **) malloc ((maxcoeff+1) * sizeof(char *));
-  double *coeff = (double *) malloc ((maxcoeff+1) * sizeof(double));
+  char **colNames = reinterpret_cast<char **> (malloc ((maxcoeff+1) * sizeof(char *)));
+  double *coeff = reinterpret_cast<double *> (malloc ((maxcoeff+1) * sizeof(double)));
 
-  char **rowNames = (char **) malloc ((maxrow+1) * sizeof(char *));
-  int *start = (int *) malloc ((maxrow+1) * sizeof(int));
-  double *rhs = (double *) malloc ((maxrow+1) * sizeof(double));
-  double *rowlow = (double *) malloc ((maxrow+1) * sizeof(double));
-  double *rowup = (double *) malloc ((maxrow+1) * sizeof(double));
+  char **rowNames = reinterpret_cast<char **> (malloc ((maxrow+1) * sizeof(char *)));
+  int *start = reinterpret_cast<int *> (malloc ((maxrow+1) * sizeof(int)));
+  double *rhs = reinterpret_cast<double *> (malloc ((maxrow+1) * sizeof(double)));
+  double *rowlow = reinterpret_cast<double *> (malloc ((maxrow+1) * sizeof(double)));
+  double *rowup = reinterpret_cast<double *> (malloc ((maxrow+1) * sizeof(double)));
 
   int i;
 
@@ -1586,9 +1586,9 @@ CoinLpIO::readLp(FILE* fp)
 
   int maxcol = numberHash_[1] + 100;
 
-  double *collow = (double *) malloc ((maxcol+1) * sizeof(double));
-  double *colup = (double *) malloc ((maxcol+1) * sizeof(double));
-  char *is_int = (char *) malloc ((maxcol+1) * sizeof(char));
+  double *collow = reinterpret_cast<double *> (malloc ((maxcol+1) * sizeof(double)));
+  double *colup = reinterpret_cast<double *> (malloc ((maxcol+1) * sizeof(double)));
+  char *is_int = reinterpret_cast<char *> (malloc ((maxcol+1) * sizeof(char)));
   int has_int = 0;
 
   for (i=0; i<maxcol; i++) {
@@ -1829,7 +1829,7 @@ CoinLpIO::readLp(FILE* fp)
   printf("CoinLpIO::readLp(): Done with reading the Lp file\n");
 #endif
 
-  int *ind = (int *) malloc ((maxcoeff+1) * sizeof(int));
+  int *ind = reinterpret_cast<int *> (malloc ((maxcoeff+1) * sizeof(int)));
 
   for(i=0; i<cnt_coeff; i++) {
     ind[i] = findHash(colNames[i], 1);
@@ -1849,7 +1849,7 @@ CoinLpIO::readLp(FILE* fp)
   numberColumns_ = numberHash_[1];
   numberElements_ = cnt_coeff - start[0];
 
-  double *obj = (double *) malloc (numberColumns_ * sizeof(double));
+  double *obj = reinterpret_cast<double *> (malloc (numberColumns_ * sizeof(double)));
   memset(obj, 0, numberColumns_ * sizeof(double));
 
   for(i=0; i<cnt_obj; i++) {
@@ -2033,7 +2033,7 @@ CoinLpIO::startHash(char const * const * const names,
   int maxhash = maxHash_[section];
   COINColumnIndex i, ipos, iput;
 
-  names_[section] = (char **) malloc(maxhash * sizeof(char *));
+  names_[section] = reinterpret_cast<char **> (malloc(maxhash * sizeof(char *)));
   hash_[section] = new CoinHashLink[maxhash];
   
   CoinHashLink * hashThis = hash_[section];

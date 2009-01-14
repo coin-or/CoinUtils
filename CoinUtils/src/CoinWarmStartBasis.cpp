@@ -516,15 +516,17 @@ CoinWarmStartBasis::fixFullBasis()
 
 CoinWarmStartDiff*
 CoinWarmStartBasis::generateDiff (const CoinWarmStart *const oldCWS) const
-{ 
+{
 /*
   Make sure the parameter is CoinWarmStartBasis or derived class.
 */
   const CoinWarmStartBasis *oldBasis =
       dynamic_cast<const CoinWarmStartBasis *>(oldCWS) ;
+#ifndef NDEBUG 
   if (!oldBasis)
   { throw CoinError("Old basis not derived from CoinWarmStartBasis.",
 		    "generateDiff","CoinWarmStartBasis") ; }
+#endif
   const CoinWarmStartBasis *newBasis = this ;
 /*
   Make sure newBasis is equal or bigger than oldBasis. Calculate the worst case
@@ -598,7 +600,7 @@ CoinWarmStartBasis::generateDiff (const CoinWarmStart *const oldCWS) const
 */
   delete[] diffNdx ;
 
-  return (dynamic_cast<CoinWarmStartDiff *>(diff)) ; }
+  return (static_cast<CoinWarmStartDiff *>(diff)) ; }
 
 
 /*
@@ -612,9 +614,11 @@ void CoinWarmStartBasis::applyDiff (const CoinWarmStartDiff *const cwsdDiff)
 */
   const CoinWarmStartBasisDiff *diff =
     dynamic_cast<const CoinWarmStartBasisDiff *>(cwsdDiff) ;
+#ifndef NDEBUG 
   if (!diff)
   { throw CoinError("Diff not derived from CoinWarmStartBasisDiff.",
 		    "applyDiff","CoinWarmStartBasis") ; }
+#endif
 /*
   Application is by straighforward replacement of words in the status arrays.
   Index entries for logicals (aka artificials) are tagged with 0x80000000.
@@ -638,7 +642,7 @@ void CoinWarmStartBasis::applyDiff (const CoinWarmStartDiff *const cwsdDiff)
   } else {
     // just replace
     const unsigned int * diffA = diff->difference_ -1;
-    const int artifCnt = (int) diffA[0];
+    const int artifCnt = static_cast<int> (diffA[0]);
     const int structCnt = -numberChanges;
     int sizeArtif = (artifCnt+15)>>4 ;
     int sizeStruct = (structCnt+15)>>4 ;
@@ -681,9 +685,9 @@ CoinWarmStartBasisDiff::CoinWarmStartBasisDiff (const CoinWarmStartBasis * rhs)
   difference_ = new unsigned int [maxBasisLength+1];
   difference_[0]=artifCnt;
   difference_++;
-  CoinMemcpyN((const unsigned int *) rhs->getStructuralStatus(),sizeStruct,
+  CoinMemcpyN(reinterpret_cast<const unsigned int *> (rhs->getStructuralStatus()),sizeStruct,
 	      difference_);
-  CoinMemcpyN((const unsigned int *) rhs->getArtificialStatus(),sizeArtif,
+  CoinMemcpyN(reinterpret_cast<const unsigned int *> (rhs->getArtificialStatus()),sizeArtif,
 	      difference_+sizeStruct);
 }
 
@@ -699,7 +703,7 @@ CoinWarmStartBasisDiff::CoinWarmStartBasisDiff
     { difference_ = CoinCopyOfArray(rhs.difference_,2*sze_); }
   else if (sze_<0) {
     const unsigned int * diff = rhs.difference_ -1;
-    const int artifCnt = (int) diff[0];
+    const int artifCnt = static_cast<int> (diff[0]);
     const int structCnt = -sze_;
     int sizeArtif = (artifCnt+15)>>4 ;
     int sizeStruct = (structCnt+15)>>4 ;
@@ -729,7 +733,7 @@ CoinWarmStartBasisDiff::operator= (const CoinWarmStartBasisDiff &rhs)
       { difference_ = CoinCopyOfArray(rhs.difference_,2*sze_); }
     else if (sze_<0) {
       const unsigned int * diff = rhs.difference_ -1;
-      const int artifCnt = (int) diff[0];
+      const int artifCnt = static_cast<int> (diff[0]);
       const int structCnt = -sze_;
       int sizeArtif = (artifCnt+15)>>4 ;
       int sizeStruct = (structCnt+15)>>4 ;

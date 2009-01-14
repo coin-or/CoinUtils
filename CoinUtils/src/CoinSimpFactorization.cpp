@@ -691,8 +691,8 @@ void
 CoinSimpFactorization::preProcess ()
 {
     CoinBigIndex put = numberRows_*numberRows_;
-    int *indexRow = (int *) (elements_+put);
-    CoinBigIndex * starts = (CoinBigIndex *) pivotRow_; 
+    int *indexRow = reinterpret_cast<int *> (elements_+put);
+    CoinBigIndex * starts = reinterpret_cast<CoinBigIndex *> (pivotRow_); 
     initialSomeNumbers();
 
     // compute sizes for Urows_ and Ucolumns_
@@ -795,8 +795,8 @@ void CoinSimpFactorization::factorize(int numberOfRows,
     getAreas ( numberOfRows, numberOfColumns, maximumL, maximumU );
 
     CoinBigIndex put = numberRows_*numberRows_;
-    int *indexRow = (int *) (elements_+put);
-    CoinBigIndex * starts = (CoinBigIndex *) pivotRow_; 
+    int *indexRow = reinterpret_cast<int *> (elements_+put);
+    CoinBigIndex * starts = reinterpret_cast<CoinBigIndex *> (pivotRow_); 
     for ( int column=0; column <= numberColumns_; ++column ){
 	starts[column]=colStarts[column];
     }
@@ -859,7 +859,7 @@ void
 CoinSimpFactorization::makeNonSingular(int * sequence, int numberColumns)
 {
   // Replace bad ones by correct slack
-    int * workArea= (int *) workArea_;
+  int * workArea= reinterpret_cast<int *> (workArea_);
   int i;
   for ( i=0;i<numberRows_;i++) 
     workArea[i]=-1;
@@ -1232,7 +1232,7 @@ int CoinSimpFactorization::findPivot(FactorPointers &pointers, int &r,
 	    }
 	    if ( minRow != -1 ){
 		++numCandidates;
-		double MarkowitzCount=(double)(minRowLength-1)*(length-1);
+		double MarkowitzCount=static_cast<double>(minRowLength-1)*(length-1);
 		if ( MarkowitzCount < bestMarkowitzCount ){
 		    r=minRow; s=column;
 		    bestMarkowitzCount=MarkowitzCount;
@@ -1259,7 +1259,7 @@ int CoinSimpFactorization::findPivot(FactorPointers &pointers, int &r,
 	    }
 	    if ( minCol != -1 ){
 		++numCandidates;
-		double MarkowitzCount=(double)(minColLength-1)*(length-1);
+		double MarkowitzCount=static_cast<double>(minColLength-1)*(length-1);
 		if ( MarkowitzCount < bestMarkowitzCount ){
 		    r=row; s=minCol;
 		    bestMarkowitzCount=MarkowitzCount;
@@ -1344,7 +1344,7 @@ int CoinSimpFactorization::findShortRow(const int column,
     const int colBeg=UcolStarts_[column];
     const int colEnd=colBeg+UcolLengths_[column];
     minRow=-1;
-    minRowLength=COIN_INT_MAX;
+    minRowLength= COIN_INT_MAX;
     for ( int j=colBeg; j<colEnd; ++j ){
 	int row=UcolInd_[j];
 	if ( UrowLengths_[row] >= minRowLength ) continue;

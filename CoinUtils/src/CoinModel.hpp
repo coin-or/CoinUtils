@@ -5,6 +5,109 @@
 
 #include "CoinModelUseful.hpp"
 #include "CoinPackedMatrix.hpp"
+class CoinBaseModel {
+
+public:
+
+
+  /**@name Constructors, destructor */
+   //@{
+  /// Default Constructor 
+  CoinBaseModel ();
+
+  /// Copy constructor 
+  CoinBaseModel ( const CoinBaseModel &rhs);
+   
+  /// Assignment operator 
+  CoinBaseModel & operator=( const CoinBaseModel& rhs);
+
+  /// Clone
+  virtual CoinBaseModel * clone() const=0;
+
+  /// Destructor 
+  virtual ~CoinBaseModel () ;
+   //@}
+
+  /**@name For getting information */
+   //@{
+   /// Return number of rows
+  inline int numberRows() const
+  { return numberRows_;}
+   /// Return number of columns
+  inline int numberColumns() const
+  { return numberColumns_;}
+   /// Return number of elements
+  virtual CoinBigIndex numberElements() const = 0;
+  /** Returns the (constant) objective offset
+      This is the RHS entry for the objective row
+  */
+  inline double objectiveOffset() const
+  { return objectiveOffset_;}
+  /// Set objective offset
+  inline void setObjectiveOffset(double value)
+  { objectiveOffset_=value;}
+  /// Direction of optimization (1 - minimize, -1 - maximize, 0 - ignore
+  inline double optimizationDirection() const {
+    return  optimizationDirection_;
+  }
+  /// Set direction of optimization (1 - minimize, -1 - maximize, 0 - ignore
+  inline void setOptimizationDirection(double value)
+  { optimizationDirection_=value;}
+  /// Get print level 0 - off, 1 - errors, 2 - more
+  inline int logLevel() const
+  { return logLevel_;}
+  /// Set print level 0 - off, 1 - errors, 2 - more
+  void setLogLevel(int value);
+  /// Return the problem name
+  inline const char * getProblemName() const
+  { return problemName_.c_str();}
+  /// Set problem name
+  void setProblemName(const char *name) ;
+  /// Set problem name
+  void setProblemName(const std::string &name) ;
+  /// Return the row block name
+  inline const std::string & getRowBlock() const
+  { return rowBlockName_;}
+  /// Set row block name
+  inline void setRowBlock(const std::string &name) 
+  { rowBlockName_ = name;}
+  /// Return the column block name
+  inline const std::string & getColumnBlock() const
+  { return columnBlockName_;}
+  /// Set column block name
+  inline void setColumnBlock(const std::string &name) 
+  { columnBlockName_ = name;}
+   //@}
+  
+protected:
+  /**@name Data members */
+   //@{
+  /// Current number of rows
+  int numberRows_;
+  /// Current number of columns
+  int numberColumns_;
+  /// Direction of optimization (1 - minimize, -1 - maximize, 0 - ignore
+  double optimizationDirection_;
+  /// Objective offset to be passed on
+  double objectiveOffset_;
+  /// Problem name
+  std::string problemName_;
+  /// Rowblock name
+  std::string rowBlockName_;
+  /// Columnblock name
+  std::string columnBlockName_;
+  /** Print level.
+      I could have gone for full message handling but this should normally
+      be silent and lightweight.  I can always change.
+      0 - no output
+      1 - on errors
+      2 - more detailed
+  */
+  int logLevel_;
+   //@}
+  /// data
+
+};
 
 /** 
     This is a simple minded model which is stored in a format which makes
@@ -42,7 +145,7 @@
     B)  This class could be useful for modeling.
 */
 
-class CoinModel {
+class CoinModel : public CoinBaseModel {
   
 public:
   /**@name Useful methods for building model */
@@ -326,12 +429,6 @@ public:
 
   /**@name For getting information */
    //@{
-   /// Return number of rows or maximum found so far
-  inline int numberRows() const
-  { return numberRows_;}
-   /// Return number of columns or maximum found so far
-  inline int numberColumns() const
-  { return numberColumns_;}
    /// Return number of elements
   inline CoinBigIndex numberElements() const
   { return numberElements_;}
@@ -535,38 +632,6 @@ public:
   int row(const char * rowName) const;
   /// Column index from column name (-1 if no names or no match)
   int column(const char * columnName) const;
-  /** Returns the (constant) objective offset
-      This is the RHS entry for the objective row
-  */
-  inline double objectiveOffset() const
-  { return objectiveOffset_;}
-  /// Set objective offset
-  inline void setObjectiveOffset(double value)
-  { objectiveOffset_=value;}
-  /// Get print level 0 - off, 1 - errors, 2 - more
-  inline int logLevel() const
-  { return logLevel_;}
-  /// Set print level 0 - off, 1 - errors, 2 - more
-  void setLogLevel(int value);
-  /// Return the problem name
-  inline const char * getProblemName() const
-  { return problemName_.c_str();}
-  /// Set problem name
-  void setProblemName(const char *name) ;
-  /// Set problem name
-  void setProblemName(const std::string &name) ;
-  /// Return the row block name
-  inline const std::string & getRowBlock() const
-  { return rowBlockName_;}
-  /// Set row block name
-  inline void setRowBlock(const std::string &name) 
-  { rowBlockName_ = name;}
-  /// Return the column block name
-  inline const std::string & getColumnBlock() const
-  { return columnBlockName_;}
-  /// Set column block name
-  inline void setColumnBlock(const std::string &name) 
-  { columnBlockName_ = name;}
   /// Returns type
   inline int type() const
   { return type_;}
@@ -754,6 +819,9 @@ public:
 	    const double * rowLower, const double * rowUpper,
 	    const double * columnLower, const double * columnUpper,
 	    const double * objective);
+  /// Clone
+  virtual CoinBaseModel * clone() const;
+
    /** Destructor */
    virtual ~CoinModel();
    //@}
@@ -843,12 +911,8 @@ private:
   void badType() const;
   /**@name Data members */
    //@{
-  /// Current number of rows
-  int numberRows_;
   /// Maximum number of rows
   int maximumRows_;
-  /// Current number of columns
-  int numberColumns_;
   /// Maximum number of columns
   int maximumColumns_;
   /// Current number of elements
@@ -859,16 +923,6 @@ private:
   int numberQuadraticElements_;
   /// Maximum number of quadratic elements
   int maximumQuadraticElements_;
-  /// Direction of optimization (1 - minimize, -1 - maximize, 0 - ignore
-  double optimizationDirection_;
-  /// Objective offset to be passed on
-  double objectiveOffset_;
-  /// Problem name
-  std::string problemName_;
-  /// Rowblock name
-  std::string rowBlockName_;
-  /// Columnblock name
-  std::string columnBlockName_;
   /// Row lower 
   double * rowLower_;
   /// Row upper 
@@ -953,14 +1007,6 @@ private:
   int * cut_;
   /// Pointer to more information
   void * moreInfo_;
-  /** Print level.
-      I could have gone for full message handling but this should normally
-      be silent and lightweight.  I can always change.
-      0 - no output
-      1 - on errors
-      2 - more detailed
-  */
-  int logLevel_;
   /** Type of build -
       -1 unset,
       0 for row, 

@@ -81,7 +81,7 @@ CoinBuild::CoinBuild (const CoinBuild & rhs)
   if (numberItems_) {
     firstItem_=NULL;
     buildFormat * lastItem = NULL;
-    buildFormat * currentItem = (buildFormat *) rhs.firstItem_;
+    buildFormat * currentItem = reinterpret_cast<buildFormat *> ( rhs.firstItem_);
     for (int iItem=0;iItem<numberItems_;iItem++) {
       buildFormat * item = currentItem;
       assert (item);
@@ -94,13 +94,13 @@ CoinBuild::CoinBuild (const CoinBuild & rhs)
         firstItem_ = copyOfItem;
       } else {
         // update pointer
-        lastItem->next = (buildFormat *) copyOfItem;
+        lastItem->next = reinterpret_cast<buildFormat *> ( copyOfItem);
       }
       currentItem = currentItem->next; // on to next
-      lastItem = (buildFormat *) copyOfItem;
+      lastItem = reinterpret_cast<buildFormat *> ( copyOfItem);
     }
     currentItem_=firstItem_;
-    lastItem_=(double *) lastItem;
+    lastItem_=reinterpret_cast<double *> ( lastItem);
   } else {
     currentItem_=NULL;
     firstItem_=NULL;
@@ -113,9 +113,9 @@ CoinBuild::CoinBuild (const CoinBuild & rhs)
 //-------------------------------------------------------------------
 CoinBuild::~CoinBuild ()
 {
-  buildFormat * item = (buildFormat *) firstItem_;
+  buildFormat * item = reinterpret_cast<buildFormat *> ( firstItem_);
   for (int iItem=0;iItem<numberItems_;iItem++) {
-    double * array = (double *) item;
+    double * array = reinterpret_cast<double *> ( item);
     item = item->next;
     delete [] array;
   }
@@ -128,9 +128,9 @@ CoinBuild &
 CoinBuild::operator=(const CoinBuild& rhs)
 {
   if (this != &rhs) {
-    buildFormat * item = (buildFormat *) firstItem_;
+    buildFormat * item = reinterpret_cast<buildFormat *> ( firstItem_);
     for (int iItem=0;iItem<numberItems_;iItem++) {
-      double * array = (double *) item;
+      double * array = reinterpret_cast<double *> ( item);
       item = item->next;
       delete [] array;
     }
@@ -141,7 +141,7 @@ CoinBuild::operator=(const CoinBuild& rhs)
     if (numberItems_) {
       firstItem_=NULL;
       buildFormat * lastItem = NULL;
-      buildFormat * currentItem = (buildFormat *) rhs.firstItem_;
+      buildFormat * currentItem = reinterpret_cast<buildFormat *> ( rhs.firstItem_);
       for (int iItem=0;iItem<numberItems_;iItem++) {
         buildFormat * item = currentItem;
         assert (item);
@@ -154,13 +154,13 @@ CoinBuild::operator=(const CoinBuild& rhs)
           firstItem_ = copyOfItem;
         } else {
           // update pointer
-          lastItem->next = (buildFormat *) copyOfItem;
+          lastItem->next = reinterpret_cast<buildFormat *> ( copyOfItem);
         }
         currentItem = currentItem->next; // on to next
-        lastItem = (buildFormat *) copyOfItem;
+        lastItem = reinterpret_cast<buildFormat *> ( copyOfItem);
       }
       currentItem_=firstItem_;
-      lastItem_=(double *) lastItem;
+      lastItem_=reinterpret_cast<double *> ( lastItem);
     } else {
       currentItem_=NULL;
       firstItem_=NULL;
@@ -278,7 +278,7 @@ CoinBuild::addItem(int numberInItem, const int * indices,
                   double itemLower, 
                   double itemUpper, double objectiveValue)
 {
-  buildFormat * lastItem = (buildFormat *) lastItem_;
+  buildFormat * lastItem = reinterpret_cast<buildFormat *> ( lastItem_);
   int length = sizeof(buildFormat)+(numberInItem-1)*(sizeof(double)+sizeof(int));
   int doubles = (length + sizeof(double)-1)/sizeof(double);
   double * newItem = new double [doubles];
@@ -286,14 +286,14 @@ CoinBuild::addItem(int numberInItem, const int * indices,
     firstItem_ = newItem;
   } else {
     // update pointer
-    lastItem->next = (buildFormat *) newItem;
+    lastItem->next = reinterpret_cast<buildFormat *> ( newItem);
   }
   lastItem_=newItem;
   currentItem_=newItem;
   // now fill in
-  buildFormat * item = (buildFormat *) newItem;
+  buildFormat * item = reinterpret_cast<buildFormat *> ( newItem);
   double * els = &item->restDouble[0];
-  int * cols = (int *) (els+numberInItem);
+  int * cols = reinterpret_cast<int *> (els+numberInItem);
   item->next=NULL;
   item->itemNumber=numberItems_;
   numberItems_++;
@@ -328,11 +328,11 @@ CoinBuild::currentItem(double & itemLower, double & itemUpper,
                        double & objectiveValue, 
                        const int * & indices, const double * & elements) const
 {
-  buildFormat * item = (buildFormat *) currentItem_;
+  buildFormat * item = reinterpret_cast<buildFormat *> ( currentItem_);
   if (item) {
     int numberElements = item->numberElements;
     elements = &item->restDouble[0];
-    indices = (const int *) (elements+numberElements);
+    indices = reinterpret_cast<const int *> (elements+numberElements);
     objectiveValue=item->objective;
     itemLower = item->lower;
     itemUpper=item->upper;
@@ -353,9 +353,9 @@ CoinBuild::setMutableCurrent(int whichItem) const
 {
   if (whichItem>=0&&whichItem<numberItems_) {
     int nSkip = whichItem-1;
-    buildFormat * item = (buildFormat *) firstItem_;
+    buildFormat * item = reinterpret_cast<buildFormat *> ( firstItem_);
     // if further on then we can start from where we are
-    buildFormat * current = (buildFormat *) currentItem_;
+    buildFormat * current = reinterpret_cast<buildFormat *> ( currentItem_);
     if (current->itemNumber<=whichItem) {
       item=current;
       nSkip = whichItem-current->itemNumber;
@@ -364,14 +364,14 @@ CoinBuild::setMutableCurrent(int whichItem) const
       item = item->next;
     }
     assert (whichItem==item->itemNumber);
-    currentItem_ = (double *) item;
+    currentItem_ = reinterpret_cast<double *> ( item);
   }
 }
 // Returns current item number
 int 
 CoinBuild::currentItem() const
 {
-  buildFormat * item = (buildFormat *) currentItem_;
+  buildFormat * item = reinterpret_cast<buildFormat *> ( currentItem_);
   if (item)
     return item->itemNumber;
   else

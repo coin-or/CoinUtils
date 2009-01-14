@@ -171,8 +171,8 @@ CoinDenseFactorization::preProcess ()
 {
   // could do better than this but this only a demo
   CoinBigIndex put = numberRows_*numberRows_;
-  int *indexRow = (int *) (elements_+put);
-  CoinBigIndex * starts = (CoinBigIndex *) pivotRow_; 
+  int *indexRow = reinterpret_cast<int *> (elements_+put);
+  CoinBigIndex * starts = reinterpret_cast<CoinBigIndex *> (pivotRow_); 
   put = numberRows_*numberColumns_;
   for (int i=numberColumns_-1;i>=0;i--) {
     put -= numberRows_;
@@ -292,7 +292,7 @@ void
 CoinDenseFactorization::makeNonSingular(int * sequence, int numberColumns)
 {
   // Replace bad ones by correct slack
-  int * workArea = (int *) workArea_;
+  int * workArea = reinterpret_cast<int *> (workArea_);
   int i;
   for ( i=0;i<numberRows_;i++) 
     workArea[i]=-1;

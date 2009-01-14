@@ -23,8 +23,8 @@ void coin_init_random_vec(double *work, int n)
 
   for (int i = 0; i < n; ++i) {
     deseed *= 16807.;
-    int jseed = (int) (deseed /    DSEED2);
-    deseed -= (double) jseed * DSEED2;
+    int jseed = static_cast<int> (deseed /    DSEED2);
+    deseed -= static_cast<double> (jseed) * DSEED2;
     double random = deseed /  DSEED2;
 
     work[i]=random;
@@ -1058,7 +1058,7 @@ const CoinPresolveAction
   int *which = prob->usefulRowInt_;
   int * number = which + nrows;
   double * els = prob->usefulRowDouble_;
-  char * markCol = (char *) prob->usefulColumnInt_;
+  char * markCol = reinterpret_cast<char *> (prob->usefulColumnInt_);
   memset(markCol,0,ncols);
   CoinZeroN(els,nrows);
   for (int i = 0 ; i < nrows ; i++) {

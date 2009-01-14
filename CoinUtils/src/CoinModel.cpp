@@ -16,17 +16,87 @@
 //-------------------------------------------------------------------
 // Default Constructor 
 //-------------------------------------------------------------------
-CoinModel::CoinModel () 
+CoinBaseModel::CoinBaseModel () 
   :  numberRows_(0),
-     maximumRows_(0),
      numberColumns_(0),
+     optimizationDirection_(1.0),
+     objectiveOffset_(0.0),
+     logLevel_(0)
+{
+  problemName_ = "";
+  rowBlockName_ = "row_master";
+  columnBlockName_ = "column_master";
+}
+
+//-------------------------------------------------------------------
+// Copy constructor 
+//-------------------------------------------------------------------
+CoinBaseModel::CoinBaseModel (const CoinBaseModel & rhs) 
+  : numberRows_(rhs.numberRows_),
+    numberColumns_(rhs.numberColumns_),
+    optimizationDirection_(rhs.optimizationDirection_),
+    objectiveOffset_(rhs.objectiveOffset_),
+    logLevel_(rhs.logLevel_)
+{
+  problemName_ = rhs.problemName_;
+  rowBlockName_ = rhs.rowBlockName_;
+  columnBlockName_ = rhs.columnBlockName_;
+}
+
+//-------------------------------------------------------------------
+// Destructor 
+//-------------------------------------------------------------------
+CoinBaseModel::~CoinBaseModel ()
+{
+}
+
+//----------------------------------------------------------------
+// Assignment operator 
+//-------------------------------------------------------------------
+CoinBaseModel &
+CoinBaseModel::operator=(const CoinBaseModel& rhs)
+{
+  if (this != &rhs) {
+    problemName_ = rhs.problemName_;
+    rowBlockName_ = rhs.rowBlockName_;
+    columnBlockName_ = rhs.columnBlockName_;
+    numberRows_ = rhs.numberRows_;
+    numberColumns_ = rhs.numberColumns_;
+    optimizationDirection_ = rhs.optimizationDirection_;
+    objectiveOffset_ = rhs.objectiveOffset_;
+    logLevel_ = rhs.logLevel_;
+  }
+  return *this;
+}
+void 
+CoinBaseModel::setLogLevel(int value)
+{
+  if (value>=0&&value<3)
+    logLevel_=value;
+}
+void
+CoinBaseModel::setProblemName (const char *name)
+{ 
+  if (name)
+    problemName_ = name ;
+  else
+    problemName_ = "";
+}
+//#############################################################################
+// Constructors / Destructor / Assignment
+//#############################################################################
+
+//-------------------------------------------------------------------
+// Default Constructor 
+//-------------------------------------------------------------------
+CoinModel::CoinModel () 
+  :  CoinBaseModel(),
+     maximumRows_(0),
      maximumColumns_(0),
      numberElements_(0),
      maximumElements_(0),
      numberQuadraticElements_(0),
      maximumQuadraticElements_(0),
-     optimizationDirection_(1.0),
-     objectiveOffset_(0.0),
      rowLower_(NULL),
      rowUpper_(NULL),
      rowType_(NULL),
@@ -53,27 +123,20 @@ CoinModel::CoinModel ()
      priority_(NULL),
      cut_(NULL),
      moreInfo_(NULL),
-     logLevel_(0),
      type_(-1),
      links_(0)
 {
-  problemName_ = "";
-  rowBlockName_ = "master_row";
-  columnBlockName_ = "master_column";
 }
 /* Read a problem in MPS or GAMS format from the given filename.
  */
 CoinModel::CoinModel(const char *fileName, int allowStrings)
- :  numberRows_(0),
+  : CoinBaseModel(),
     maximumRows_(0),
-    numberColumns_(0),
     maximumColumns_(0),
     numberElements_(0),
     maximumElements_(0),
     numberQuadraticElements_(0),
     maximumQuadraticElements_(0),
-    optimizationDirection_(1.0),
-    objectiveOffset_(0.0),
     rowLower_(NULL),
     rowUpper_(NULL),
     rowType_(NULL),
@@ -100,13 +163,11 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     priority_(NULL),
     cut_(NULL),
     moreInfo_(NULL),
-    logLevel_(0),
     type_(-1),
     links_(0)
 {
-  problemName_ = "";
-  rowBlockName_ = "master_row";
-  columnBlockName_ = "master_column";
+  rowBlockName_ = "row_master";
+  columnBlockName_ = "column_master";
   int status=0;
   if (!strcmp(fileName,"-")||!strcmp(fileName,"stdin")) {
     // stdin
@@ -331,16 +392,13 @@ CoinModel::CoinModel(int numberRows, int numberColumns,
 	    const double * rowLower, const double * rowUpper,
 	    const double * columnLower, const double * columnUpper,
 	    const double * objective)
-  :  numberRows_(numberRows),
+  :  CoinBaseModel(),
      maximumRows_(numberRows),
-     numberColumns_(numberColumns),
      maximumColumns_(numberColumns),
      numberElements_(matrix->getNumElements()),
      maximumElements_(matrix->getNumElements()),
      numberQuadraticElements_(0),
      maximumQuadraticElements_(0),
-     optimizationDirection_(1.0),
-     objectiveOffset_(0.0),
      rowType_(NULL),
      integerType_(NULL),
      columnType_(NULL),
@@ -362,13 +420,11 @@ CoinModel::CoinModel(int numberRows, int numberColumns,
      priority_(NULL),
      cut_(NULL),
      moreInfo_(NULL),
-     logLevel_(0),
      type_(-1),
      links_(0)
 {
-  problemName_ = "";
-  rowBlockName_ = "";
-  columnBlockName_ = "";
+  numberRows_ = numberRows;
+  numberColumns_ = numberColumns;
   assert (numberRows_>=matrix->getNumRows());
   assert (numberColumns_>=matrix->getNumCols());
   type_ = 3;
@@ -384,16 +440,13 @@ CoinModel::CoinModel(int numberRows, int numberColumns,
 // Copy constructor 
 //-------------------------------------------------------------------
 CoinModel::CoinModel (const CoinModel & rhs) 
-  : numberRows_(rhs.numberRows_),
+  : CoinBaseModel(rhs),
     maximumRows_(rhs.maximumRows_),
-    numberColumns_(rhs.numberColumns_),
     maximumColumns_(rhs.maximumColumns_),
     numberElements_(rhs.numberElements_),
     maximumElements_(rhs.maximumElements_),
     numberQuadraticElements_(rhs.numberQuadraticElements_),
     maximumQuadraticElements_(rhs.maximumQuadraticElements_),
-    optimizationDirection_(rhs.optimizationDirection_),
-    objectiveOffset_(rhs.objectiveOffset_),
     rowName_(rhs.rowName_),
     columnName_(rhs.columnName_),
     string_(rhs.string_),
@@ -406,13 +459,9 @@ CoinModel::CoinModel (const CoinModel & rhs)
     quadraticColumnList_(rhs.quadraticColumnList_),
     sizeAssociated_(rhs.sizeAssociated_),
     numberSOS_(rhs.numberSOS_),
-    logLevel_(rhs.logLevel_),
     type_(rhs.type_),
     links_(rhs.links_)
 {
-  problemName_ = rhs.problemName_;
-  rowBlockName_ = rhs.rowBlockName_;
-  columnBlockName_ = rhs.columnBlockName_;
   rowLower_ = CoinCopyOfArray(rhs.rowLower_,maximumRows_);
   rowUpper_ = CoinCopyOfArray(rhs.rowUpper_,maximumRows_);
   rowType_ = CoinCopyOfArray(rhs.rowType_,maximumRows_);
@@ -484,6 +533,13 @@ CoinModel::~CoinModel ()
   delete [] cut_;
   delete packedMatrix_;
 }
+// Clone
+CoinBaseModel *
+CoinModel::clone() const
+{
+  return new CoinModel(*this);
+}
+
 
 //----------------------------------------------------------------
 // Assignment operator 
@@ -492,6 +548,7 @@ CoinModel &
 CoinModel::operator=(const CoinModel& rhs)
 {
   if (this != &rhs) {
+    CoinBaseModel::operator=(rhs);
     delete [] rowLower_;
     delete [] rowUpper_;
     delete [] rowType_;
@@ -514,19 +571,12 @@ CoinModel::operator=(const CoinModel& rhs)
     delete [] priority_;
     delete [] cut_;
     delete packedMatrix_;
-    problemName_ = rhs.problemName_;
-    rowBlockName_ = rhs.rowBlockName_;
-    columnBlockName_ = rhs.columnBlockName_;
-    numberRows_ = rhs.numberRows_;
     maximumRows_ = rhs.maximumRows_;
-    numberColumns_ = rhs.numberColumns_;
     maximumColumns_ = rhs.maximumColumns_;
     numberElements_ = rhs.numberElements_;
     maximumElements_ = rhs.maximumElements_;
     numberQuadraticElements_ = rhs.numberQuadraticElements_;
     maximumQuadraticElements_ = rhs.maximumQuadraticElements_;
-    optimizationDirection_ = rhs.optimizationDirection_;
-    objectiveOffset_ = rhs.objectiveOffset_;
     sortSize_ = rhs.sortSize_;
     rowName_ = rhs.rowName_;
     columnName_ = rhs.columnName_;
@@ -540,7 +590,6 @@ CoinModel::operator=(const CoinModel& rhs)
     sizeAssociated_= rhs.sizeAssociated_;
     numberSOS_ = rhs.numberSOS_;
     type_ = rhs.type_;
-    logLevel_ = rhs.logLevel_;
     links_ = rhs.links_;
     rowLower_ = CoinCopyOfArray(rhs.rowLower_,maximumRows_);
     rowUpper_ = CoinCopyOfArray(rhs.rowUpper_,maximumRows_);
@@ -1278,7 +1327,7 @@ CoinModel::getRowLowerAsString(int whichRow) const
   assert (whichRow>=0);
   if (whichRow<numberRows_&&rowLower_) {
     if ((rowType_[whichRow]&1)!=0) {
-      int position = (int) rowLower_[whichRow];
+      int position = static_cast<int> (rowLower_[whichRow]);
       return string_.name(position);
     } else {
       return numeric;
@@ -1295,7 +1344,7 @@ CoinModel::getRowUpperAsString(int whichRow) const
   assert (whichRow>=0);
   if (whichRow<numberRows_&&rowUpper_) {
     if ((rowType_[whichRow]&2)!=0) {
-      int position = (int) rowUpper_[whichRow];
+      int position = static_cast<int> (rowUpper_[whichRow]);
       return string_.name(position);
     } else {
       return numeric;
@@ -1312,7 +1361,7 @@ CoinModel::getColumnLowerAsString(int whichColumn) const
   assert (whichColumn>=0);
   if (whichColumn<numberColumns_&&columnLower_) {
     if ((columnType_[whichColumn]&1)!=0) {
-      int position = (int) columnLower_[whichColumn];
+      int position = static_cast<int> (columnLower_[whichColumn]);
       return string_.name(position);
     } else {
       return numeric;
@@ -1329,7 +1378,7 @@ CoinModel::getColumnUpperAsString(int whichColumn) const
   assert (whichColumn>=0);
   if (whichColumn<numberColumns_&&columnUpper_) {
     if ((columnType_[whichColumn]&2)!=0) {
-      int position = (int) columnUpper_[whichColumn];
+      int position = static_cast<int> (columnUpper_[whichColumn]);
       return string_.name(position);
     } else {
       return numeric;
@@ -1346,7 +1395,7 @@ CoinModel::getColumnObjectiveAsString(int whichColumn) const
   assert (whichColumn>=0);
   if (whichColumn<numberColumns_&&objective_) {
     if ((columnType_[whichColumn]&4)!=0) {
-      int position = (int) objective_[whichColumn];
+      int position = static_cast<int> (objective_[whichColumn]);
       return string_.name(position);
     } else {
       return numeric;
@@ -1450,7 +1499,8 @@ void
 CoinModel::deleteThisElement(int row, int column,int position)
 {
   assert (row<numberRows_&&column<numberColumns_);
-  assert (row==(int) elements_[position].row&&column==elements_[position].column);
+  assert (row==static_cast<int> (elements_[position].row)&&
+	  column==static_cast<int>(elements_[position].column));
   if ((links_&1)==0) {
     createList(1);
   } 
@@ -1485,7 +1535,7 @@ CoinModel::packRows()
   int i;
   for ( i=0;i<numberElements_;i++) {
     if (elements_[i].column>=0) {
-      iRow = (int) elements_[i].row;
+      iRow = static_cast<int> (elements_[i].row);
       assert (iRow>=0&&iRow<numberRows_);
       newRow[iRow]++;
     }
@@ -1528,7 +1578,7 @@ CoinModel::packRows()
       int last=-1;
       if (type_==0) {
         for (i=0;i<numberElements_;i++) {
-          int now = (int) elements_[i].row;
+          int now = static_cast<int> (elements_[i].row);
           assert (now>=last);
           if (now>last) {
             start_[last+1]=numberElements_;
@@ -1593,7 +1643,7 @@ CoinModel::packColumns()
   int i;
   for ( i=0;i<numberElements_;i++) {
     if (elements_[i].column>=0) {
-      iColumn = (int) elements_[i].column;
+      iColumn = static_cast<int> (elements_[i].column);
       assert (iColumn>=0&&iColumn<numberColumns_);
       newColumn[iColumn]++;
     }
@@ -1638,7 +1688,7 @@ CoinModel::packColumns()
       int last=-1;
       if (type_==0) {
         for (i=0;i<numberElements_;i++) {
-          int now = (int) elements_[i].row;
+          int now = static_cast<int> (elements_[i].row);
           assert (now>=last);
           if (now>last) {
             start_[last+1]=numberElements_;
@@ -1695,7 +1745,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix,
 			      const double * associated)
 {
   if (type_==3) 
-    badType();
+    return 0; // badType();
   // Set to say all parts
   type_=2;
   resize(numberRows_,numberColumns_,numberElements_);
@@ -1726,7 +1776,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix,
     if (column>=0) {
       double value = elements_[i].value;
       if (elements_[i].string) {
-        int position = (int) value;
+        int position = static_cast<int> (value);
         assert (position<sizeAssociated_);
         value = associated[position];
         if (value==unsetValue()) {
@@ -1737,7 +1787,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix,
       if (value) {
         numberElements++;
         int put=start[column]+length[column];
-        row[put]=(int) elements_[i].row;
+        row[put]=static_cast<int> (elements_[i].row);
         element[put]=value;
         length[column]++;
       }
@@ -1778,7 +1828,7 @@ CoinModel::countPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * startN
     if (column>=0) {
       double value = elements_[i].value;
       if (elements_[i].string) {
-        int position = (int) value;
+        int position = static_cast<int> (value);
         assert (position<sizeAssociated_);
         value = associated[position];
         if (value==unsetValue()) {
@@ -1830,11 +1880,11 @@ CoinModel::createPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * start
     if (column>=0) {
       double value = elements_[i].value;
       if (elements_[i].string) {
-        int position = (int) value;
+        int position = static_cast<int> (value);
         assert (position<sizeAssociated_);
         value = associated[position];
       }
-      int iRow=(int) elements_[i].row;
+      int iRow=static_cast<int> (elements_[i].row);
       if (value==1.0) {
         CoinBigIndex position = startPositive[column];
         indices[position]=iRow;
@@ -1899,7 +1949,7 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
   rowUpper = CoinCopyOfArray( rowUpper_,numberRows_);
   for (int iRow=0;iRow<numberRows_;iRow++) {
     if ((rowType_[iRow]&1)!=0) {
-      int position = (int) rowLower[iRow];
+      int position = static_cast<int> (rowLower[iRow]);
       assert (position<sizeAssociated_);
       double value = associated[position];
       if (value!=unsetValue()) {
@@ -1907,7 +1957,7 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       }
     }
     if ((rowType_[iRow]&2)!=0) {
-      int position = (int) rowUpper[iRow];
+      int position = static_cast<int> (rowUpper[iRow]);
       assert (position<sizeAssociated_);
       double value = associated[position];
       if (value!=unsetValue()) {
@@ -1921,7 +1971,7 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
   integerType = CoinCopyOfArray( integerType_,numberColumns_);
   for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
     if ((columnType_[iColumn]&1)!=0) {
-      int position = (int) columnLower[iColumn];
+      int position = static_cast<int> (columnLower[iColumn]);
       assert (position<sizeAssociated_);
       double value = associated[position];
       if (value!=unsetValue()) {
@@ -1929,7 +1979,7 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       }
     }
     if ((columnType_[iColumn]&2)!=0) {
-      int position = (int) columnUpper[iColumn];
+      int position = static_cast<int> (columnUpper[iColumn]);
       assert (position<sizeAssociated_);
       double value = associated[position];
       if (value!=unsetValue()) {
@@ -1937,7 +1987,7 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       }
     }
     if ((columnType_[iColumn]&4)!=0) {
-      int position = (int) objective[iColumn];
+      int position = static_cast<int> (objective[iColumn]);
       assert (position<sizeAssociated_);
       double value = associated[position];
       if (value!=unsetValue()) {
@@ -1949,7 +1999,7 @@ CoinModel::createArrays(double * & rowLower, double * &  rowUpper,
       assert (position<sizeAssociated_);
       double value = associated[position];
       if (value!=unsetValue()) {
-        integerType[iColumn]=(int) value;
+        integerType[iColumn]=static_cast<int> (value);
       }
     }
   }
@@ -2220,7 +2270,7 @@ CoinModel::getElementAsString(int i,int j) const
   int position = hashElements_.hash(i,j,elements_);
   if (position>=0) {
     if (elements_[position].string) {
-      int iString =  (int) elements_[position].value;
+      int iString =  static_cast<int> (elements_[position].value);
       assert (iString>=0&&iString<string_.numberItems());
       return string_.name(iString);
     } else {
@@ -2278,7 +2328,7 @@ CoinModel::firstInRow(int whichRow) const
         link.setRow(whichRow);
         link.setPosition(position);
         link.setColumn(elements_[position].column);
-        assert (whichRow==(int) elements_[position].row);
+        assert (whichRow==static_cast<int> (elements_[position].row));
         link.setValue(elements_[position].value);
       }
     } else {
@@ -2288,7 +2338,7 @@ CoinModel::firstInRow(int whichRow) const
         link.setRow(whichRow);
         link.setPosition(position);
         link.setColumn(elements_[position].column);
-        assert (whichRow==(int) elements_[position].row);
+        assert (whichRow==static_cast<int> (elements_[position].row));
         link.setValue(elements_[position].value);
       }
     }
@@ -2311,7 +2361,7 @@ CoinModel::lastInRow(int whichRow) const
         link.setRow(whichRow);
         link.setPosition(position);
         link.setColumn(elements_[position].column);
-        assert (whichRow==(int) elements_[position].row);
+        assert (whichRow==static_cast<int> (elements_[position].row));
         link.setValue(elements_[position].value);
       }
     } else {
@@ -2321,7 +2371,7 @@ CoinModel::lastInRow(int whichRow) const
         link.setRow(whichRow);
         link.setPosition(position);
         link.setColumn(elements_[position].column);
-        assert (whichRow==(int) elements_[position].row);
+        assert (whichRow==static_cast<int> (elements_[position].row));
         link.setValue(elements_[position].value);
       }
     }
@@ -2344,7 +2394,7 @@ CoinModel::firstInColumn(int whichColumn) const
         link.setColumn(whichColumn);
         link.setPosition(position);
         link.setRow(elements_[position].row);
-        assert (whichColumn==(int) elements_[position].column);
+        assert (whichColumn==static_cast<int> (elements_[position].column));
         link.setValue(elements_[position].value);
       }
     } else {
@@ -2359,7 +2409,7 @@ CoinModel::firstInColumn(int whichColumn) const
         link.setColumn(whichColumn);
         link.setPosition(position);
         link.setRow(elements_[position].row);
-        assert (whichColumn==(int) elements_[position].column);
+        assert (whichColumn==static_cast<int> (elements_[position].column));
         link.setValue(elements_[position].value);
       }
     }
@@ -2382,7 +2432,7 @@ CoinModel::lastInColumn(int whichColumn) const
         link.setColumn(whichColumn);
         link.setPosition(position);
         link.setRow(elements_[position].row);
-        assert (whichColumn==(int) elements_[position].column);
+        assert (whichColumn==static_cast<int> (elements_[position].column));
         link.setValue(elements_[position].value);
       }
     } else {
@@ -2392,7 +2442,7 @@ CoinModel::lastInColumn(int whichColumn) const
         link.setColumn(whichColumn);
         link.setPosition(position);
         link.setRow(elements_[position].row);
-        assert (whichColumn==(int) elements_[position].column);
+        assert (whichColumn==static_cast<int> (elements_[position].column));
         link.setValue(elements_[position].value);
       }
     }
@@ -2418,7 +2468,7 @@ CoinModel::next(CoinModelLink & current) const
         if (position<start_[whichRow+1]) {
           link.setPosition(position);
           link.setColumn(elements_[position].column);
-          assert (whichRow==(int) elements_[position].row);
+          assert (whichRow==static_cast<int> (elements_[position].row));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2433,7 +2483,7 @@ CoinModel::next(CoinModelLink & current) const
         if (position>=0) {
           link.setPosition(position);
           link.setColumn(elements_[position].column);
-          assert (whichRow==(int) elements_[position].row);
+          assert (whichRow==static_cast<int> (elements_[position].row));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2452,7 +2502,7 @@ CoinModel::next(CoinModelLink & current) const
         if (position<start_[whichColumn+1]) {
           link.setPosition(position);
           link.setRow(elements_[position].row);
-          assert (whichColumn==(int) elements_[position].column);
+          assert (whichColumn==static_cast<int> (elements_[position].column));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2467,7 +2517,7 @@ CoinModel::next(CoinModelLink & current) const
         if (position>=0) {
           link.setPosition(position);
           link.setRow(elements_[position].row);
-          assert (whichColumn==(int) elements_[position].column);
+          assert (whichColumn==static_cast<int> (elements_[position].column));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2500,7 +2550,7 @@ CoinModel::previous(CoinModelLink & current) const
         if (position>=start_[whichRow]) {
           link.setPosition(position);
           link.setColumn(elements_[position].column);
-          assert (whichRow==(int) elements_[position].row);
+          assert (whichRow==static_cast<int> (elements_[position].row));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2515,7 +2565,7 @@ CoinModel::previous(CoinModelLink & current) const
         if (position>=0) {
           link.setPosition(position);
           link.setColumn(elements_[position].column);
-          assert (whichRow==(int) elements_[position].row);
+          assert (whichRow==static_cast<int> (elements_[position].row));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2534,7 +2584,7 @@ CoinModel::previous(CoinModelLink & current) const
         if (position>=start_[whichColumn]) {
           link.setPosition(position);
           link.setRow(elements_[position].row);
-          assert (whichColumn==(int) elements_[position].column);
+          assert (whichColumn==static_cast<int> (elements_[position].column));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2549,7 +2599,7 @@ CoinModel::previous(CoinModelLink & current) const
         if (position>=0) {
           link.setPosition(position);
           link.setRow(elements_[position].row);
-          assert (whichColumn==(int) elements_[position].column);
+          assert (whichColumn==static_cast<int> (elements_[position].column));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -3078,20 +3128,6 @@ CoinModel::createList(int type) const
     }
     links_ |= 2;
   }
-}
-void 
-CoinModel::setLogLevel(int value)
-{
-  if (value>=0&&value<3)
-    logLevel_=value;
-}
-void
-CoinModel::setProblemName (const char *name)
-{ 
-  if (name)
-    problemName_ = name ;
-  else
-    problemName_ = "";
 }
 // Checks that links are consistent
 void 
@@ -3667,16 +3703,18 @@ int
 CoinModel::convertMatrix()
 {
   int numberErrors=0;
-  // If strings then do copies
-  if (string_.numberItems()) {
-    numberErrors = createArrays(rowLower_, rowUpper_, 
-				    columnLower_, columnUpper_,
-				    objective_, integerType_,associated_);
+  if (type_!=3) {
+    // If strings then do copies
+    if (string_.numberItems()) {
+      numberErrors = createArrays(rowLower_, rowUpper_, 
+				  columnLower_, columnUpper_,
+				  objective_, integerType_,associated_);
+    }
+    CoinPackedMatrix matrix;
+    createPackedMatrix(matrix,associated_);
+    packedMatrix_ = new CoinPackedMatrix(matrix);
+    type_=3;
   }
-  CoinPackedMatrix matrix;
-  createPackedMatrix(matrix,associated_);
-  packedMatrix_ = new CoinPackedMatrix(matrix);
-  type_=3;
   return numberErrors;
 }
 // Aborts with message about packedMatrix

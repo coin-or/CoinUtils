@@ -21,8 +21,8 @@
 //-----------------------------------------------------------------------------
 
 #if (defined(__GNUC__) && defined(__linux__))
-   typedef typeof(SIG_DFL) CoinSighandler_t;
-#  define CoinSighandler_t_defined
+  typedef sighandler_t CoinSighandler_t;
+# define CoinSighandler_t_defined
 #endif
 
 //-----------------------------------------------------------------------------

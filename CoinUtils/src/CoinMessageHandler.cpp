@@ -113,16 +113,16 @@ CoinMessages::CoinMessages(const CoinMessages & rhs)
       message_=NULL;
     }
   } else {
-    char * temp = CoinCopyOfArray((char *) rhs.message_,lengthMessages_);
-    message_ = (CoinOneMessage **) temp;
-    long int offset = temp - (char *) rhs.message_;
+    char * temp = CoinCopyOfArray(reinterpret_cast<char *> (rhs.message_),lengthMessages_);
+    message_ = reinterpret_cast<CoinOneMessage **> (temp);
+    long int offset = temp - reinterpret_cast<char *> (rhs.message_);
     int i;
     //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
     for (i=0;i<numberMessages_;i++) {
       if (message_[i]) {
-	char * newAddress = ((char *) message_[i]) + offset;
+	char * newAddress = (reinterpret_cast<char *> (message_[i])) + offset;
 	assert (newAddress-temp<lengthMessages_);
-	message_[i] = (CoinOneMessage *) newAddress;
+	message_[i] = reinterpret_cast<CoinOneMessage *> (newAddress);
 	//printf("message %d at %x is %s\n",i,message_[i],message_[i]->message());
 	//printf("message %d at %x wass %s\n",i,rhs.message_[i],rhs.message_[i]->message());
       }
@@ -158,16 +158,16 @@ CoinMessages::operator=(const CoinMessages & rhs)
 	message_=NULL;
       }
     } else {
-      char * temp = CoinCopyOfArray((char *) rhs.message_,lengthMessages_);
-      message_ = (CoinOneMessage **) temp;
-      long int offset = temp - (char *) rhs.message_;
+      char * temp = CoinCopyOfArray(reinterpret_cast<char *> (rhs.message_),lengthMessages_);
+      message_ = reinterpret_cast<CoinOneMessage **> (temp);
+      long int offset = temp - reinterpret_cast<char *> (rhs.message_);
       int i;
       //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
       for (i=0;i<numberMessages_;i++) {
 	if (message_[i]) {
-	  char * newAddress = ((char *) message_[i]) + offset;
+	  char * newAddress = (reinterpret_cast<char *> (message_[i])) + offset;
 	  assert (newAddress-temp<lengthMessages_);
-	  message_[i] = (CoinOneMessage *) newAddress;
+	  message_[i] = reinterpret_cast<CoinOneMessage *> (newAddress);
 	  //printf("message %d at %x is %s\n",i,message_[i],message_[i]->message());
 	  //printf("message %d at %x wass %s\n",i,rhs.message_[i],rhs.message_[i]->message());
 	}
@@ -285,7 +285,7 @@ CoinMessages::toCompact()
       if (message_[i]) {
 	int length = strlen(message_[i]->message());
 	length = (message_[i]->message()+length+1)-
-	  (char *) message_[i];
+	  reinterpret_cast<char *> (message_[i]);
 	assert (length<1000);
 	int leftOver = length %8;
 	if (leftOver)
@@ -295,7 +295,7 @@ CoinMessages::toCompact()
     }
     // space
     char * temp = new char [lengthMessages_];
-    CoinOneMessage ** newMessage = (CoinOneMessage **) temp;
+    CoinOneMessage ** newMessage = reinterpret_cast<CoinOneMessage **> (temp);
     temp += numberMessages_*sizeof(CoinOneMessage *);
     CoinOneMessage message;
     //printf("new address %x(%x) - length %d\n",newMessage,temp,lengthMessages_);
@@ -305,11 +305,11 @@ CoinMessages::toCompact()
 	message = *message_[i];
 	int length = strlen(message.message());
 	length = (message.message()+length+1)-
-	  (char *) (&message);
+	  reinterpret_cast<char *> (&message);
 	assert (length<1000);
 	int leftOver = length %8;
 	memcpy(temp,&message,length);
-	newMessage[i]=(CoinOneMessage *) temp;
+	newMessage[i]=reinterpret_cast<CoinOneMessage *> (temp);
 	//printf("message %d at %x is %s\n",i,newMessage[i],newMessage[i]->message());
 	if (leftOver)
 	  length += 8-leftOver;
@@ -610,7 +610,7 @@ CoinMessageHandler::finish()
   format_ = NULL;
   messageBuffer_[0]='\0';
   messageOut_=messageBuffer_;
-  printStatus_=true;
+  printStatus_=0;
   return 0;
 }
 /* Gets position of next field in format

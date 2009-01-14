@@ -158,8 +158,10 @@ public:
   inline int *permuteBack (  ) const {
     return permuteBack_.array();
   }
-  /// Returns address of pivotColumnBack region (also used for permuting)
+  /** Returns address of pivotColumnBack region (also used for permuting)
+      Now uses firstCount to save memory allocation */
   inline int *pivotColumnBack (  ) const {
+    //return firstCount_.array();
     return pivotColumnBack_.array();
   }
   /// Start of each row in L
@@ -514,6 +516,9 @@ protected:
   bool getColumnSpace ( int iColumn,
 			int extraNeeded );
 
+  /** Reorders U so contiguous and in order (if there is space)
+      Returns true if it could */
+  bool reorderU();
   /**  getColumnSpaceIterateR.  Gets space for one extra R element in Column
        may have to do compression  (returns true)
        also moves existing vector */
@@ -752,7 +757,6 @@ protected:
   //l+=currentAreaL_->elementByColumn-elementL;
   CoinBigIndex lSave = l;
 
-  pivotRowL_.array()[numberGoodL_] = pivotRow;
   CoinBigIndex * startColumnL = startColumnL_.array();
   startColumnL[numberGoodL_] = l;	//for luck and first time
   numberGoodL_++;
@@ -1487,7 +1491,6 @@ typedef const int cipfint;
     //l+=currentAreaL_->elementByColumn-elementL;
     CoinBigIndex lSave = l;
     
-    pivotRowL_.array()[numberGoodL_] = iPivotRow;
     CoinBigIndex * startColumnL = startColumnL_.array();
     startColumnL[numberGoodL_] = l;	//for luck and first time
     numberGoodL_++;

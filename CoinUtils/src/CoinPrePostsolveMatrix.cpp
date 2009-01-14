@@ -85,7 +85,7 @@ CoinPrePostsolveMatrix::CoinPrePostsolveMatrix
 
 { handler_ = new CoinMessageHandler() ;
   defaultHandler_ = true ;
-  bulk0_ = (CoinBigIndex) (bulkRatio_*nelems_alloc);
+  bulk0_ = static_cast<CoinBigIndex> (bulkRatio_*nelems_alloc);
 
   return ; }
 

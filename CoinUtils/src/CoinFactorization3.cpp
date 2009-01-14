@@ -124,7 +124,7 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
 #endif
   // mark known to be zero
   int nInBig = sizeof(CoinBigIndex)/sizeof(int);
-  CoinCheckZero * mark = (CoinCheckZero *) (sparse_.array()+(2+nInBig)*maximumRowsExtra_);
+  CoinCheckZero * mark = reinterpret_cast<CoinCheckZero *> (sparse_.array()+(2+nInBig)*maximumRowsExtra_);
   int smallestIndex = numberRowsExtra_;
   // do easy ones
   for (k=0;k<number;k++) {
@@ -266,8 +266,8 @@ CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse ,
   // mark known to be zero
   int * stack = sparse_.array();  /* pivot */
   int * list = stack + maximumRowsExtra_;  /* final list */
-  CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
-  char * mark = (char *) (next + maximumRowsExtra_);
+  CoinBigIndex * next = reinterpret_cast<CoinBigIndex *> (list + maximumRowsExtra_);  /* jnext */
+  char * mark = reinterpret_cast<char *> (next + maximumRowsExtra_);
   int nList;
 #ifdef COIN_DEBUG
   for (i=0;i<maximumRowsExtra_;i++) {
@@ -343,7 +343,7 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse,
     // Guess at number at end
     if (sparseThreshold_>0) {
       if (ftranAverageAfterL_) {
-	int newNumber = (int) (number*ftranAverageAfterL_);
+	int newNumber = static_cast<int> (number*ftranAverageAfterL_);
 	if (newNumber< sparseThreshold_&&(numberL_<<2)>newNumber)
 	  goSparse = 2;
 	else if (newNumber< sparseThreshold2_&&(numberL_<<1)>newNumber)
@@ -671,7 +671,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
   permute_.array()[numberRowsExtra_ + 1] = 0;
 
   pivotColumn_.array()[pivotRow] = numberRowsExtra_;
-  pivotColumnBack_.array()[numberRowsExtra_] = pivotRow;
+  pivotColumnBack()[numberRowsExtra_] = pivotRow;
   startColumn = startColumnU;
   indexRow = indexRowU_.array();
   element = elementU_.array();
@@ -811,7 +811,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 	elementR[put]=region[iRow];
 	//add 4 for luck
 	if (next==maximumColumnsExtra_)
-	  startR[maximumColumnsExtra_] = CoinMin((CoinBigIndex) (put + 4) ,lengthAreaR_);
+	  startR[maximumColumnsExtra_] = CoinMin(static_cast<CoinBigIndex> (put + 4) ,lengthAreaR_);
       } else {
 	// no space - do we shuffle?
 	if (!getColumnSpaceIterateR(iRow,region[iRow],pivotRow)) {
@@ -871,7 +871,7 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   regionSparse->setNumElements ( numberNonZero );
   if (collectStatistics_) {
     numberBtranCounts_++;
-    btranCountInput_ += (double) numberNonZero;
+    btranCountInput_ += static_cast<double> (numberNonZero);
   }
   if (!doForrestTomlin_) {
     // Do PFI before everything else
@@ -891,7 +891,7 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   }
   updateColumnTransposeU ( regionSparse,smallestIndex );
   if (collectStatistics_) 
-    btranCountAfterU_ += (double) regionSparse->getNumElements();
+    btranCountAfterU_ += static_cast<double> (regionSparse->getNumElements());
   //permute extra
   //row bits here
   updateColumnTransposeR ( regionSparse );
@@ -899,8 +899,8 @@ CoinFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse,
   updateColumnTransposeL ( regionSparse );
   numberNonZero = regionSparse->getNumElements (  );
   if (collectStatistics_) 
-    btranCountAfterL_ += (double) numberNonZero;
-  const int * permuteBack = pivotColumnBack_.array();
+    btranCountAfterL_ += static_cast<double> (numberNonZero);
+  const int * permuteBack = pivotColumnBack();
   int number=0;
   if (packed) {
     for (i=0;i<numberNonZero;i++) {
@@ -1011,7 +1011,7 @@ CoinFactorization::updateColumnTransposeUSparsish
   
   // mark known to be zero
   int nInBig = sizeof(CoinBigIndex)/sizeof(int);
-  CoinCheckZero * mark = (CoinCheckZero *) (sparse_.array()+(2+nInBig)*maximumRowsExtra_);
+  CoinCheckZero * mark = reinterpret_cast<CoinCheckZero *> (sparse_.array()+(2+nInBig)*maximumRowsExtra_);
 
   for (i=0;i<numberNonZero;i++) {
     int iPivot=regionIndex[i];
@@ -1121,8 +1121,8 @@ CoinFactorization::updateColumnTransposeUSparse (
   // mark known to be zero
   int * stack = sparse_.array();  /* pivot */
   int * list = stack + maximumRowsExtra_;  /* final list */
-  CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
-  char * mark = (char *) (next + maximumRowsExtra_);
+  CoinBigIndex * next = reinterpret_cast<CoinBigIndex *> (list + maximumRowsExtra_);  /* jnext */
+  char * mark = reinterpret_cast<char *> (next + maximumRowsExtra_);
   int nList;
   int iPivot;
 #ifdef COIN_DEBUG
@@ -1210,7 +1210,7 @@ CoinFactorization::updateColumnTransposeU ( CoinIndexedVector * regionSparse,
   // Guess at number at end
   if (sparseThreshold_>0) {
     if (btranAverageAfterU_) {
-      int newNumber = (int) (number*btranAverageAfterU_);
+      int newNumber = static_cast<int> (number*btranAverageAfterU_);
       if (newNumber< sparseThreshold_)
 	goSparse = 2;
       else if (newNumber< sparseThreshold2_)
@@ -1383,7 +1383,7 @@ CoinFactorization::updateColumnTransposeLSparsish
   CoinBigIndex j;
   // mark known to be zero
   int nInBig = sizeof(CoinBigIndex)/sizeof(int);
-  CoinCheckZero * mark = (CoinCheckZero *) (sparse_.array()+(2+nInBig)*maximumRowsExtra_);
+  CoinCheckZero * mark = reinterpret_cast<CoinCheckZero *> (sparse_.array()+(2+nInBig)*maximumRowsExtra_);
   for (i=0;i<numberNonZero;i++) {
     int iPivot=regionIndex[i];
     int iWord = iPivot>>CHECK_SHIFT;
@@ -1480,8 +1480,8 @@ CoinFactorization::updateColumnTransposeLSparse
   // mark known to be zero
   int * stack = sparse_.array();  /* pivot */
   int * list = stack + maximumRowsExtra_;  /* final list */
-  CoinBigIndex * next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
-  char * mark = (char *) (next + maximumRowsExtra_);
+  CoinBigIndex * next = reinterpret_cast<CoinBigIndex *> (list + maximumRowsExtra_);  /* jnext */
+  char * mark = reinterpret_cast<char *> (next + maximumRowsExtra_);
   int nList;
   int number = numberNonZero;
   int k, iPivot;
@@ -1558,7 +1558,7 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
   // we may need to rethink on dense
   if (sparseThreshold_>0) {
     if (btranAverageAfterL_) {
-      int newNumber = (int) (number*btranAverageAfterL_);
+      int newNumber = static_cast<int> (number*btranAverageAfterL_);
       if (newNumber< sparseThreshold_)
 	goSparse = 2;
       else if (newNumber< sparseThreshold2_)
@@ -1784,7 +1784,7 @@ CoinFactorization::getColumnSpaceIterateR ( int iColumn, double value,
   indexRowR[put++]=iRow;
   numberInColumnPlus[iColumn]++;
   //add 4 for luck
-  startR[maximumColumnsExtra_] = CoinMin((CoinBigIndex) (put + 4) ,lengthAreaR_);
+  startR[maximumColumnsExtra_] = CoinMin(static_cast<CoinBigIndex> (put + 4) ,lengthAreaR_);
   return true;
 }
 /*  getColumnSpaceIterate.  Gets space for one extra U element in Column
@@ -1930,7 +1930,7 @@ CoinFactorization::getColumnSpaceIterate ( int iColumn, double value,
       indexRowU[put]=iRow;
       numberInColumn[iColumn]++;
       //add 4 for luck
-      startColumnU[maximumColumnsExtra_] = CoinMin((CoinBigIndex) (put + 4) ,lengthAreaU_);
+      startColumnU[maximumColumnsExtra_] = CoinMin(static_cast<CoinBigIndex> (put + 4) ,lengthAreaU_);
     } else {
       // no room
       put=-1;
@@ -2043,23 +2043,23 @@ CoinFactorization::updateTwoColumnsFT ( CoinIndexedVector * regionSparse1,
   regionFT->setNumElements ( numberNonZero );
   if (collectStatistics_) {
     numberFtranCounts_+=2;
-    ftranCountInput_ += (double) regionFT->getNumElements()+
-    (double) regionUpdate->getNumElements();
+    ftranCountInput_ += regionFT->getNumElements()+
+      regionUpdate->getNumElements();
   }
     
   //  ******* L
   updateColumnL ( regionFT, regionIndex );
   updateColumnL ( regionUpdate, regionUpdate->getIndices() );
   if (collectStatistics_) 
-    ftranCountAfterL_ += (double) regionFT->getNumElements()+
-      (double) regionUpdate->getNumElements();
+    ftranCountAfterL_ += regionFT->getNumElements()+
+      regionUpdate->getNumElements();
   //permute extra
   //row bits here
   updateColumnRFT ( regionFT, regionIndex );
   updateColumnR ( regionUpdate );
   if (collectStatistics_) 
-    ftranCountAfterR_ += (double) regionFT->getNumElements()+
-    (double) regionUpdate->getNumElements();
+    ftranCountAfterR_ += regionFT->getNumElements()+
+    regionUpdate->getNumElements();
   //  ******* U - see if densish
   // Guess at number at end
   int goSparse=0;
@@ -2067,7 +2067,7 @@ CoinFactorization::updateTwoColumnsFT ( CoinIndexedVector * regionSparse1,
     int numberNonZero = (regionUpdate->getNumElements (  )+
 			 regionFT->getNumElements())>>1;
     if (ftranAverageAfterR_) {
-      int newNumber = (int) (numberNonZero*ftranAverageAfterU_);
+      int newNumber = static_cast<int> (numberNonZero*ftranAverageAfterU_);
       if (newNumber< sparseThreshold_)
 	goSparse = 2;
       else if (newNumber< sparseThreshold2_)

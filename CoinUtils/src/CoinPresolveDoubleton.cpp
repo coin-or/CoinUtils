@@ -998,7 +998,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
     } else {
       int ncolx=f->ncolx-1;
       double multiplier = -coeffy/coeffx;
-      int * indx = (int *) (f->colel+ncolx);
+      int * indx = reinterpret_cast<int *> (f->colel+ncolx);
       //printf("Current colx %d\n",jcolx);
 /*
   Scan existing column x to find the end. While we're at it, accumulate part
@@ -1307,7 +1307,8 @@ void check_doubletons(const CoinPresolveAction * paction)
     check_doubletons(paction->next);
     
     if (strcmp(paction0->name(), "doubleton_action") == 0) {
-      const doubleton_action *daction = (const doubleton_action *)paction0;
+      const doubleton_action *daction = 
+	reinterpret_cast<const doubleton_action *>(paction0);
       for (int i=daction->nactions_-1; i>=0; --i) {
 	int icolx = daction->actions_[i].icolx;
 	int icoly = daction->actions_[i].icoly;

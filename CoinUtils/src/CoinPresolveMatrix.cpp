@@ -163,7 +163,7 @@ void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
   ncols_ = numCols ;
   nrows_ = mtx->getNumRows() ;
   nelems_ = mtx->getNumElements() ;
-  bulk0_ = (CoinBigIndex) (bulkRatio_*nelems0_) ;
+  bulk0_ = static_cast<CoinBigIndex> (bulkRatio_*nelems0_) ;
 
   if (mcstrt_ == 0) mcstrt_ = new CoinBigIndex [ncols0_+1] ;
   if (hincol_ == 0) hincol_ = new int [ncols0_+1] ;

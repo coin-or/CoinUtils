@@ -229,7 +229,7 @@ typedef short yysigned_char;
 #define YYMAXUTOK   261
 
 #define YYTRANSLATE(YYX) 						\
-  ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
+  (static_cast<unsigned int> ((YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK))
 
 /* YYTRANSLATE[YYLEX] -- Bison symbol number corresponding to YYLEX.  */
 static const unsigned char yytranslate[] =
@@ -712,12 +712,12 @@ static     symrec *
      putsym ( symrec * & symtable, char const *sym_name, int sym_type)
      {
        symrec *ptr;
-       ptr = (symrec *) malloc (sizeof (symrec));
-       ptr->name = (char *) malloc (strlen (sym_name) + 1);
+       ptr = reinterpret_cast<symrec *> (malloc (sizeof (symrec)));
+       ptr->name = reinterpret_cast<char *> (malloc (strlen (sym_name) + 1));
        strcpy (ptr->name,sym_name);
        ptr->type = sym_type;
        ptr->value.var = 0; /* Set value to 0 even if fctn.  */
-       ptr->next = (struct symrec *)symtable;
+       ptr->next = reinterpret_cast<struct symrec *>(symtable);
        symtable = ptr;
        return ptr;
      }
@@ -726,8 +726,8 @@ static     symrec *
      getsym ( symrec *symtable,char const *sym_name)
      {
        symrec *ptr;
-       for (ptr = symtable; ptr != (symrec *) 0;
-            ptr = (symrec *)ptr->next)
+       for (ptr = symtable; ptr != NULL;
+            ptr = reinterpret_cast<symrec *>(ptr->next))
          if (strcmp (ptr->name,sym_name) == 0)
            return ptr;
        return 0;
@@ -737,9 +737,9 @@ static     void
      freesym ( symrec *symtable)
      {
        symrec *ptr;
-       for (ptr = symtable; ptr != (symrec *) NULL;) {
+       for (ptr = symtable; ptr != NULL;) {
          free (ptr->name);
-         symrec * ptrNext = (symrec *)ptr->next ;
+         symrec * ptrNext = reinterpret_cast<symrec *> (ptr->next) ;
          free (ptr);
          ptr=ptrNext;
        }
@@ -849,7 +849,7 @@ static     int
            /* Initially make the buffer long enough
               for a 40-character symbol name.  */
            if (length == 0)
-             length = 40, symbuf = (char *)malloc (length + 1);
+             length = 40, symbuf = reinterpret_cast<char *>(malloc (length + 1));
      
            i = 0;
            do
@@ -858,7 +858,7 @@ static     int
                if (i == length)
                  {
                    length *= 2;
-                   symbuf = (char *) realloc (symbuf, length + 1);
+                   symbuf = reinterpret_cast<char *> (realloc (symbuf, length + 1));
                  }
                /* Add this character to the buffer.         */
                symbuf[i++] = static_cast<char>(c);
@@ -1027,7 +1027,7 @@ static double yyparse ( symrec *& symtable, const char * line, char * & symbuf, 
       {
 	short *yyss1 = yyss;
 	union yyalloc *yyptr =
-	  (union yyalloc *) YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize));
+	  reinterpret_cast<union yyalloc *> (YYSTACK_ALLOC (YYSTACK_BYTES (yystacksize)));
 	if (! yyptr)
 	  goto yyoverflowlab;
 	YYSTACK_RELOCATE (yyss);
@@ -1092,7 +1092,7 @@ yybackup:
     }
   else
     {
-      yytoken = YYTRANSLATE (yychar);
+      yytoken = static_cast<int>(YYTRANSLATE (yychar));
       YYDSYMPRINTF ("Next token is", yytoken, &yylval, &yylloc);
     }
 

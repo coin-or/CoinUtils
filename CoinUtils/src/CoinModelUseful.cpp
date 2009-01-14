@@ -411,12 +411,12 @@ CoinModelHash::hashValue(const char * name) const
     103387, 101021, 98639, 96179, 93911, 91583, 89317, 86939, 84521,
     82183, 79939, 77587, 75307, 72959, 70793, 68447, 66103
   };
-  static int lengthMult = (int) (sizeof(mmult) / sizeof(int));
+  static int lengthMult = static_cast<int> (sizeof(mmult) / sizeof(int));
   int n = 0;
   int j;
-  int length =  (int) strlen(name);
+  int length =  static_cast<int> (strlen(name));
   // may get better spread with unsigned
-  const unsigned char * name2 = (const unsigned char *) name;
+  const unsigned char * name2 = reinterpret_cast<const unsigned char *> (name);
   while (length) {
     int length2 = CoinMin( length,lengthMult);
     for ( j = 0; j < length2; ++j ) {
@@ -516,7 +516,7 @@ CoinModelHash2::resize(int maxItems, const CoinModelTriple * triples,bool forceR
    * collide with it are not entered.
    */
   for ( i = 0; i < numberItems_; ++i ) {
-    int row = (int) triples[i].row;
+    int row = static_cast<int> (triples[i].row);
     int column = triples[i].column;
     if (column>=0) {
       ipos = hashValue ( row, column);
@@ -534,7 +534,7 @@ CoinModelHash2::resize(int maxItems, const CoinModelTriple * triples,bool forceR
    */
   lastSlot_ = -1;
   for ( i = 0; i < numberItems_; ++i ) {
-    int row = (int) triples[i].row;
+    int row = static_cast<int> (triples[i].row);
     int column = triples[i].column;
     if (column>=0) {
       ipos = hashValue ( row, column);
@@ -545,7 +545,7 @@ CoinModelHash2::resize(int maxItems, const CoinModelTriple * triples,bool forceR
         if ( j1 == i )
           break;
         else {
-          int row2 = (int) triples[j1].row;
+          int row2 = static_cast<int> (triples[j1].row);
           int column2 = triples[j1].column;
           if ( row==row2&&column==column2 ) {
             printf ( "** duplicate entry %d %d\n", row,column );
@@ -596,7 +596,7 @@ CoinModelHash2::hash(int row, int column, const CoinModelTriple * triples) const
     int j1 = hash_[ipos].index;
 
     if ( j1 >= 0 ) {
-      int row2 = (int) triples[j1].row;
+      int row2 = static_cast<int> (triples[j1].row);
       int column2 = triples[j1].column;
       if ( row!=row2||column!=column2 ) {
 	int k = hash_[ipos].next;
@@ -640,7 +640,7 @@ CoinModelHash2::addHash(int index, int row, int column, const CoinModelTriple * 
 	break; // duplicate??
       } else {
         if (j1 >=0 ) {
-          int row2 = (int) triples[j1].row;
+          int row2 = static_cast<int> (triples[j1].row);
           int column2 = triples[j1].column;
           if ( row==row2&&column==column2 ) {
             printf ( "** duplicate entry %d %d\n", row, column );
@@ -709,7 +709,7 @@ CoinModelHash2::hashValue(int row, int column) const
     unsigned char tempChar[4];
     
     unsigned int n = 0;
-    int * temp = (int *) tempChar;
+    int * temp = reinterpret_cast<int *> (tempChar);
     *temp=row;
     n += mmult[0] * tempChar[0];
     n += mmult[1] * tempChar[1];
@@ -727,7 +727,7 @@ CoinModelHash2::hashValue(int row, int column) const
     
     int n = 0;
     unsigned int j;
-    int * temp = (int *) tempChar;
+    int * temp = reinterpret_cast<int *> (tempChar);
     *temp=row;
     for ( j = 0; j < sizeof(int); ++j ) {
       int itemp = tempChar[j];
@@ -928,10 +928,10 @@ CoinModelLinkedList::create(int maxMajor,int maxElements,
       int iMinor;
       if (!type_) {
         // for rows
-        iMajor=(int) triples[i].row;
+        iMajor=static_cast<int> (triples[i].row);
         iMinor=triples[i].column;
       } else {
-        iMinor=(int) triples[i].row;
+        iMinor=static_cast<int> (triples[i].row);
         iMajor=triples[i].column;
       }
       assert (iMajor<numberMajor);
@@ -1018,7 +1018,7 @@ CoinModelLinkedList::addEasy(int majorIndex, int numberOfElements, const int * i
       }
       triples[put].value=elements[i];
       if (doHash)
-        hash.addHash(put,(int) triples[put].row,triples[put].column,triples);
+        hash.addHash(put,static_cast<int> (triples[put].row),triples[put].column,triples);
       if (last>=0) {
         next_[last]=put;
       } else {
@@ -1079,7 +1079,7 @@ CoinModelLinkedList::addHard(int minorIndex, int numberOfElements, const int * i
     }
     triples[put].value=elements[i];
     if (doHash)
-      hash.addHash(put,(int) triples[put].row,triples[put].column,triples);
+      hash.addHash(put,static_cast<int> (triples[put].row),triples[put].column,triples);
     if (other>=numberMajor_) {
       // Need to fill in null values
       fill(numberMajor_,other+1);
@@ -1129,7 +1129,7 @@ CoinModelLinkedList::addHard(int first, const CoinModelTriple * triples,
       // column
       other=triples[put].column;
       if (minorIndex>=0)
-        assert((int) triples[put].row==minorIndex);
+        assert(static_cast<int> (triples[put].row)==minorIndex);
       else
         minorIndex=triples[put].row;
     }
@@ -1165,7 +1165,7 @@ CoinModelLinkedList::deleteSame(int which, CoinModelTriple * triples,
     while (put>=0) {
       if (hash.numberItems()) {
         // take out of hash
-        hash.deleteHash(put, (int) triples[put].row,triples[put].column);
+        hash.deleteHash(put, static_cast<int> (triples[put].row),triples[put].column);
       }
       if (zapTriples) {
         triples[put].column=-1;
@@ -1213,7 +1213,7 @@ CoinModelLinkedList::updateDeleted(int which, CoinModelTriple * triples,
     int iMajor;
     if (!type_) {
       // for rows
-      iMajor=(int) triples[lastFree].row;
+      iMajor=static_cast<int> (triples[lastFree].row);
     } else {
       iMajor=triples[lastFree].column;
     }
@@ -1226,7 +1226,7 @@ CoinModelLinkedList::updateDeleted(int which, CoinModelTriple * triples,
         int iTest;
         if (!type_) {
           // for rows
-          iTest=(int) triples[previousThis].row;
+          iTest=static_cast<int> (triples[previousThis].row);
         } else {
           iTest=triples[previousThis].column;
         }
@@ -1240,7 +1240,7 @@ CoinModelLinkedList::updateDeleted(int which, CoinModelTriple * triples,
         int iTest;
         if (!type_) {
           // for rows
-          iTest=(int) triples[nextThis].row;
+          iTest=static_cast<int> (triples[nextThis].row);
         } else {
           iTest=triples[nextThis].column;
         }
@@ -1259,7 +1259,7 @@ CoinModelLinkedList::updateDeleted(int which, CoinModelTriple * triples,
       if (previous>=0) {
         if (!type_) {
           // for rows
-          iMajor=(int) triples[previous].row;
+          iMajor=static_cast<int> (triples[previous].row);
         } else {
           iMajor=triples[previous].column;
         }
@@ -1272,7 +1272,7 @@ CoinModelLinkedList::updateDeleted(int which, CoinModelTriple * triples,
             int iTest;
             if (!type_) {
               // for rows
-              iTest=(int) triples[previousThis].row;
+              iTest=static_cast<int> (triples[previousThis].row);
             } else {
               iTest=triples[previousThis].column;
             }
@@ -1286,7 +1286,7 @@ CoinModelLinkedList::updateDeleted(int which, CoinModelTriple * triples,
             int iTest;
             if (!type_) {
               // for rows
-              iTest=(int) triples[nextThis].row;
+              iTest=static_cast<int> (triples[nextThis].row);
             } else {
               iTest=triples[nextThis].column;
             }
@@ -1324,7 +1324,7 @@ CoinModelLinkedList::deleteRowOne(int position, CoinModelTriple * triples,
   assert (row<numberMajor_);
   if (hash.numberItems()) {
     // take out of hash
-    hash.deleteHash(position, (int) triples[position].row,triples[position].column);
+    hash.deleteHash(position, static_cast<int> (triples[position].row),triples[position].column);
   }
   int previous = previous_[position];
   int next = next_[position];
@@ -1427,10 +1427,10 @@ CoinModelLinkedList::validateLinks(const CoinModelTriple * triples) const
         assert (next_[previous_[position]]==position);
       if (!type_) {
         // for rows
-        iMajor=(int) triples[position].row;
+        iMajor=static_cast<int> (triples[position].row);
         iMinor=triples[position].column;
       } else {
-        iMinor=(int) triples[position].row;
+        iMinor=static_cast<int> (triples[position].row);
         iMajor=triples[position].column;
       }
       assert (triples[position].column>=0);

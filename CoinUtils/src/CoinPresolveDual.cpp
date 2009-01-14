@@ -84,7 +84,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   CoinRelFltEq relEq(prob->ztolzb_) ;
 
   double *rdmin	= prob->usefulRowDouble_; //new double[nrows];
-  double *rdmax	= (double *) prob->usefulRowInt_; //new double[nrows];
+  double *rdmax	= reinterpret_cast<double *> (prob->usefulRowInt_); //new double[nrows];
 
 # if PRESOLVE_DEBUG
   std::cout << "Entering remove_dual_action::presolve, " << nrows << " X " << ncols << "." << std::endl ;
@@ -615,7 +615,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   of the interference zone for the typical situation where sizeof(double) is
   twice sizeof(int).
 */
-  int * canFix = (int *) rdmin;
+  int * canFix = reinterpret_cast<int *> (rdmin);
   for ( i = 0; i < nrows; i++) {
     bool no_lb = (rlo[i] <= -ekkinf);
     bool no_ub = (rup[i] >= ekkinf);

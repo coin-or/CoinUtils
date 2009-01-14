@@ -809,17 +809,16 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
     See OSI code for the definition.
   */
   CoinPresolveMatrix(int ncols0,
-		    double maxmin,
-		    // end prepost members
-
-		    OsiSolverInterface * si,
-
-		    // rowrep
-		    int nrows,
-		    CoinBigIndex nelems,
-		 bool doStatus,
-		 double nonLinearVariable,
-                     const char * prohibited);
+		     double maxmin,
+		     // end prepost members
+		     OsiSolverInterface * si,
+		     // rowrep
+		     int nrows,
+		     CoinBigIndex nelems,
+		     bool doStatus,
+		     double nonLinearVariable,
+                     const char * prohibited,
+		     const char * rowProhibited=NULL);
 
   /*! \brief Update the model held by a generic OSI */
   void update_model(OsiSolverInterface * si,

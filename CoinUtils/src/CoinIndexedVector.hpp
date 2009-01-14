@@ -559,7 +559,7 @@ public:
   { return size_/sizeof(double); }
   /// Get Array
   inline double * array() const 
-  { return (double *) ((size_>-2) ? array_ : NULL); }
+  { return reinterpret_cast<double *> ((size_>-2) ? array_ : NULL); }
   //@}
   
   /**@name Set methods */
@@ -573,7 +573,7 @@ public:
   //@{
   /// Conditionally gets new array
   inline double * conditionalNew(int sizeWanted)
-  { return (double *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(double)) : -1); }
+  { return reinterpret_cast<double *> ( CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> ((sizeWanted)*sizeof(double)) : -1)); }
   //@}
   
   /**@name Constructors and destructors */
@@ -613,7 +613,7 @@ public:
   { return size_/sizeof(CoinFactorizationDouble); }
   /// Get Array
   inline CoinFactorizationDouble * array() const 
-  { return (CoinFactorizationDouble *) ((size_>-2) ? array_ : NULL); }
+  { return reinterpret_cast<CoinFactorizationDouble *> ((size_>-2) ? array_ : NULL); }
   //@}
   
   /**@name Set methods */
@@ -627,7 +627,7 @@ public:
   //@{
   /// Conditionally gets new array
   inline CoinFactorizationDouble * conditionalNew(int sizeWanted)
-  { return (CoinFactorizationDouble *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(CoinFactorizationDouble)) : -1); }
+  { return reinterpret_cast<CoinFactorizationDouble *> (CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> (( sizeWanted)*sizeof(CoinFactorizationDouble)) : -1)); }
   //@}
   
   /**@name Constructors and destructors */
@@ -667,7 +667,7 @@ public:
   { return size_/sizeof(int); }
   /// Get Array
   inline int * array() const 
-  { return (int *) ((size_>-2) ? array_ : NULL); }
+  { return reinterpret_cast<int *> ((size_>-2) ? array_ : NULL); }
   //@}
   
   /**@name Set methods */
@@ -681,7 +681,7 @@ public:
   //@{
   /// Conditionally gets new array
   inline int * conditionalNew(int sizeWanted)
-  { return (int *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(int)) : -1); }
+  { return reinterpret_cast<int *> (CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> (( sizeWanted)*sizeof(int)) : -1)); }
   //@}
   
   /**@name Constructors and destructors */
@@ -721,7 +721,7 @@ public:
   { return size_/sizeof(CoinBigIndex); }
   /// Get Array
   inline CoinBigIndex * array() const 
-  { return (CoinBigIndex *) ((size_>-2) ? array_ : NULL); }
+  { return reinterpret_cast<CoinBigIndex *> ((size_>-2) ? array_ : NULL); }
   //@}
   
   /**@name Set methods */
@@ -735,7 +735,7 @@ public:
   //@{
   /// Conditionally gets new array
   inline CoinBigIndex * conditionalNew(int sizeWanted)
-  { return (CoinBigIndex *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(CoinBigIndex)) : -1); }
+  { return reinterpret_cast<CoinBigIndex *> (CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> (( sizeWanted)*sizeof(CoinBigIndex)) : -1)); }
   //@}
   
   /**@name Constructors and destructors */
@@ -775,7 +775,7 @@ public:
   { return size_/sizeof(unsigned int); }
   /// Get Array
   inline unsigned int * array() const 
-  { return (unsigned int *) ((size_>-2) ? array_ : NULL); }
+  { return reinterpret_cast<unsigned int *> ((size_>-2) ? array_ : NULL); }
   //@}
   
   /**@name Set methods */
@@ -789,7 +789,7 @@ public:
   //@{
   /// Conditionally gets new array
   inline unsigned int * conditionalNew(int sizeWanted)
-  { return (unsigned int *) CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? (long) (((long) sizeWanted)*sizeof(unsigned int)) : -1); }
+  { return reinterpret_cast<unsigned int *> (CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> (( sizeWanted)*sizeof(unsigned int)) : -1)); }
   //@}
   
   /**@name Constructors and destructors */

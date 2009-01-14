@@ -298,8 +298,8 @@ CoinMemcpyN(const T * COIN_RESTRICT from, int size, T* COIN_RESTRICT to)
 #ifdef USE_MEMCPY
   std::memcpy(to,from,size*sizeof(T));
 #else
-  T * put = (T *) to;
-  const T * get = (const T *) from;
+  T * COIN_RESTRICT put =  to;
+  const T * COIN_RESTRICT get = from;
   for ( ; 0<size ; --size)
     *put++ = *get++;
 #endif
@@ -499,7 +499,7 @@ inline char * CoinStrdup(const char * name)
   char* dup = NULL;
   if (name) {
     const int len = static_cast<int>(strlen(name));
-    dup = (char*)malloc(len+1);
+    dup = static_cast<char*>(malloc(len+1));
     CoinMemcpyN(name, len, dup);
     dup[len] = 0;
   }
@@ -734,7 +734,7 @@ inline double CoinDrand48(bool isSeed = false, unsigned int seed=1)
     last = seed;
   } else {
     last = 1664525*last+1013904223;
-    return (((double) last)/4294967296.0);
+    return ((static_cast<double> (last))/4294967296.0);
   }
   return(0.0);
 }
@@ -925,7 +925,7 @@ public:
   {
     double retVal;
     seed_ = 1664525*(seed_)+1013904223;
-    retVal = (((double) seed_)/4294967296.0);
+    retVal = ((static_cast<double> (seed_))/4294967296.0);
     return retVal;
   }
   //@}
