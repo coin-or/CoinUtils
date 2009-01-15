@@ -2851,9 +2851,9 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
   // Now do columns
   collower_ = reinterpret_cast<double *> (malloc ( numberColumns_ * sizeof ( double )));
   colupper_ = reinterpret_cast<double *> (malloc ( numberColumns_ * sizeof ( double )));
-  integerType_ = reinterpret_cast<char *> (malloc (numberColumns_*sizeof(char));
+  integerType_ = reinterpret_cast<char *> (malloc (numberColumns_*sizeof(char)));
   if (keepNames) {
-    names = reinterpret_cast<char **> (malloc(numberColumns_*sizeof(char *));
+    names = reinterpret_cast<char **> (malloc(numberColumns_*sizeof(char *)));
     names_[1] = names;
     numberHash_[1] = numberColumns_;
   }
