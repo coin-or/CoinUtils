@@ -13,19 +13,19 @@
     unsigned int matrix:1; // nonzero if matrix exists
     unsigned int rhs:1; // nonzero if non default rhs exists
     unsigned int rowName:1; // nonzero if row names exists
-    unsigned int rowBlock:29; // Which row block
     unsigned int integer:1; // nonzero if integer information exists
     unsigned int bounds:1; // nonzero if non default bounds/objective exists
     unsigned int columnName:1; // nonzero if column names exists
-    unsigned int columnBlock:29; // Which column block
+    int rowBlock; // Which row block
+    int columnBlock; // Which column block
     CoinModelInfo2() : 
       matrix(0),
       rhs(0),
       rowName(0),
-      rowBlock(0),
       integer(0),
       bounds(0),
       columnName(0),
+      rowBlock(0),
       columnBlock(0)
     {}
 } CoinModelBlockInfo;

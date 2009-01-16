@@ -454,6 +454,8 @@ CoinStructuredModel::coinModelBlock(CoinModelBlockInfo & info)
 	}
     }
   }
+  delete [] rowBlockInfo;
+  delete [] columnBlockInfo;
   CoinPackedMatrix matrix(true,row,column,element,numberElements);
   if (numberElements)
     info.matrix=1;
