@@ -76,6 +76,7 @@ const remove_fixed_action*
 # if PRESOLVE_DEBUG
   std::cout << "Entering remove_fixed_action::presolve." << std::endl ;
   presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
 # endif
 
 /*
@@ -602,6 +603,12 @@ void make_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
 	{ prob->setColumnStatus(icol,
 				CoinPrePostsolveMatrix::atUpperBound) ; } } } }
 
+# if PRESOLVE_CONSISTENCY || PRESOLVE_DEBUG
+  presolve_check_threads(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+  std::cout << "Leaving make_fixed_action::postsolve." << std::endl ;
+# endif
   return ; }
 
 /*!

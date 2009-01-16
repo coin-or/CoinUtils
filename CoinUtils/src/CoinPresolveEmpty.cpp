@@ -438,6 +438,7 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
     prob->nrows_ = nrows2;
 
 #if	PRESOLVE_DEBUG
+    presolve_check_nbasic(prob) ;
     if (nactions)
       printf("\ndropped %d rows\n", nactions);
 #endif

@@ -225,8 +225,10 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	int basisChoice=0;
 	int numberBasic=0;
 	double movement = 0 ;
-	if (prob->columnIsBasic(jcol))
+	if (prob->columnIsBasic(jcol)) {
 	  numberBasic++;
+	  basisChoice=2; // move to row to keep consistent
+	}
 	if (prob->rowIsBasic(irow))
 	  numberBasic++;
 	if (sol[jcol] <= clo[jcol]+ztolzb) {
@@ -240,8 +242,10 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	} else {
 	  basisChoice=1;
 	}
-	if (numberBasic>1||basisChoice)
+	if (numberBasic>1||basisChoice==1)
 	  prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic);
+	else if (basisChoice==2)
+	  prob->setRowStatus(irow,CoinPrePostsolveMatrix::basic);
 	if (movement) {
 	  CoinBigIndex k;
 	  for (k = mcstrt[jcol] ; k < mcstrt[jcol]+hincol[jcol] ; k++) {
