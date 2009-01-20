@@ -1289,6 +1289,483 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
     delete [] columnUp ; 
     delete [] rowLo ; 
     delete [] rowUp ; 
+  } else if (type==2) {
+    // Try master at beginning and end
+    bool goodBenders=true;
+    // get row copy
+    CoinPackedMatrix rowCopy = matrix;
+    rowCopy.reverseOrdering();
+    const int * row = matrix.getIndices();
+    const int * columnLength = matrix.getVectorLengths();
+    const CoinBigIndex * columnStart = matrix.getVectorStarts();
+    //const double * elementByColumn = matrix.getElements();
+    const int * column = rowCopy.getIndices();
+    const int * rowLength = rowCopy.getVectorLengths();
+    const CoinBigIndex * rowStart = rowCopy.getVectorStarts();
+    //const double * elementByRow = rowCopy.getElements();
+    int numberColumns = matrix.getNumCols();
+    int * columnBlock = new int[numberColumns+1];
+    int iColumn;
+    // Column counts (maybe look at long columns for master)
+    CoinZeroN(columnBlock,numberColumns+1);
+    for (iColumn=0;iColumn<numberColumns;iColumn++) {
+      int length = columnLength[iColumn];
+      columnBlock[length]++;
+    }
+    for (iColumn=0;iColumn<numberColumns+1;iColumn++) {
+      if (columnBlock[iColumn])
+	printf("%d columns have %d elements\n",columnBlock[iColumn],iColumn);
+    }
+    bool newWay=false;
+    // to say if row looked at
+    int numberRows = matrix.getNumRows();
+    int * rowBlock = new int[numberRows];
+    int iRow;
+    int * whichRow = new int [numberRows];
+    int * whichColumn = new int [numberColumns];
+    int * stack = new int [numberColumns];
+    if (newWay) {
+      //double best2[3]={COIN_DBL_MAX,COIN_DBL_MAX,COIN_DBL_MAX};
+      double best2[3]={0.0,0.0,0.0};
+      int column2[3]={-1,-1,-1};
+      // try forward and backward and sorted
+      for (int iWay=0;iWay<3;iWay++) {
+	if (iWay==0) {
+	  // forwards
+	  for (int i=0;i<numberColumns;i++)
+	    stack[i]=i;
+	} else if (iWay==1) {
+	  // backwards
+	  for (int i=0;i<numberColumns;i++)
+	    stack[i]=numberColumns-1-i;
+	} else {
+	  // sparsest first
+	  for (int i=0;i<numberColumns;i++) {
+	    columnBlock[i]=columnLength[i];
+	    stack[i]=i;
+	  }
+	  CoinSort_2(columnBlock,columnBlock+numberColumns,stack);
+	}
+	CoinFillN(columnBlock,numberColumns,-1);
+	columnBlock[numberColumns]=0;
+	CoinFillN(whichColumn,numberColumns,-1);
+	CoinFillN(rowBlock,numberRows,-1);
+	CoinFillN(whichRow,numberRows,-1);
+	int numberMarkedRows = 0;
+	numberBlocks=0;
+	int bestColumn = -1;
+	int maximumInBlock = 0;
+	int columnsDone=0;
+	int checkAfterColumns = (5*numberColumns)/10+1;
+#ifdef OSL_WAY
+	double best = COIN_DBL_MAX;
+	int bestColumnsDone=-1;
+#else
+	double best = 0.0; //COIN_DBL_MAX;
+#endif
+	int numberGoodBlocks=0;
+	
+	for (int kColumn=0;kColumn<numberColumns;kColumn++) {
+	  iColumn = stack[kColumn];
+	  CoinBigIndex start = columnStart[iColumn];
+	  CoinBigIndex end = start+columnLength[iColumn];
+	  int iBlock=-1;
+	  for (CoinBigIndex j=start;j<end;j++) {
+	    int iRow = row[j];
+	    if (rowBlock[iRow]>=0) {
+	      // already marked
+	      if (iBlock<0) {
+		iBlock = rowBlock[iRow];
+	      } else if (iBlock != rowBlock[iRow]) {
+		// join two blocks
+		int jBlock = rowBlock[iRow];
+		numberGoodBlocks--;
+		// Increase count of iBlock
+		columnBlock[iBlock] += columnBlock[jBlock];
+		columnBlock[jBlock]=0;
+		// First row of block jBlock
+		int jRow = whichColumn[jBlock];
+		while (jRow>=0) {
+		  rowBlock[jRow]=iBlock;
+		  iRow = jRow;
+		  jRow = whichRow[jRow];
+		}
+		whichRow[iRow] = whichColumn[iBlock];
+		whichColumn[iBlock] = whichColumn[jBlock];
+		whichColumn[jBlock]=-1;
+	      }
+	    }
+	  }
+	  int n=end-start;
+	  // If not in block - then start one
+	  if (iBlock<0) {
+	    // unless null column
+	    if (n) {
+	      iBlock = numberBlocks;
+	      numberBlocks++;
+	      numberGoodBlocks++;
+	      int jRow = row[start];
+	      rowBlock[jRow]=iBlock;
+	      whichColumn[iBlock]=jRow;
+	      numberMarkedRows += n;
+	      columnBlock[iBlock] = n;
+	      for (CoinBigIndex j=start+1;j<end;j++) {
+		int iRow = row[j];
+		rowBlock[iRow]=iBlock;
+		whichRow[jRow]=iRow;
+		jRow=iRow;
+	      }
+	    } else {
+	      columnBlock[numberColumns]++;
+	    }
+	  } else {
+	    // add all to this block if not already in
+	    int jRow = whichColumn[iBlock];
+	    for (CoinBigIndex j=start;j<end;j++) {
+	      int iRow = row[j];
+	      if (rowBlock[iRow]<0) {
+		numberMarkedRows++;
+		columnBlock[iBlock]++;
+		rowBlock[iRow]=iBlock;
+		whichRow[iRow]=jRow;
+		jRow=iRow;
+	      }
+	    }
+	    whichColumn[iBlock]=jRow;
+	  }
+	  columnsDone++;
+	  if (iBlock>=0) 
+	    maximumInBlock = CoinMax(maximumInBlock,columnBlock[iBlock]);
+	  if (columnsDone>=checkAfterColumns) {
+	    assert (numberGoodBlocks>0);
+	    double averageSize = static_cast<double>(numberMarkedRows)/
+	      static_cast<double>(numberGoodBlocks);
+#ifndef OSL_WAY
+	    double notionalBlocks = static_cast<double>(numberMarkedRows)/
+	      averageSize;
+	    if (maximumInBlock<3*averageSize&&numberGoodBlocks>2) {
+	      if(best*(numberColumns-columnsDone) < notionalBlocks) {
+		best = notionalBlocks/
+		  static_cast<double> (numberColumns-columnsDone); 
+		bestColumn = kColumn;
+	      }
+	    }
+#else
+	    if (maximumInBlock*10<numberRows*11&&numberGoodBlocks>1) {
+	      double test = maximumInBlock + 0.0*averageSize;
+	      if(best*static_cast<double>(columnsDone) > test) {
+		best = test/static_cast<double> (columnsDone); 
+		bestColumn = kColumn;
+		bestColumnsDone=columnsDone;
+	      }
+	    }
+#endif
+	  }	      
+	}
+#ifndef OSL_WAY
+	best2[iWay]=best;
+#else
+	best2[iWay]=-(numberColumns-bestColumnsDone);
+#endif
+	column2[iWay]=bestColumn;
+      }
+      // mark columns
+      int nMaster;
+      CoinFillN(columnBlock,numberColumns,-2);
+      if (best2[2]<best2[0]||best2[2]<best2[1]) {
+	int iColumn1;
+	int iColumn2;
+	if (best2[0]>best2[1]) {
+	  // End columns in master
+	  iColumn1=column2[0]+1;
+	  iColumn2=numberColumns;
+	} else {
+	  // Beginning columns in master
+	  iColumn1=0;
+	  iColumn2=numberColumns-column2[1];
+	}
+	nMaster = iColumn2-iColumn1;
+	CoinFillN(columnBlock+iColumn1,nMaster,-1);
+      } else {
+	// sorted
+	// End columns in master (in order)
+	int iColumn1=column2[2]+1;
+	nMaster = numberColumns-iColumn1;
+	for (int i=iColumn1;i<numberColumns;i++)
+	  columnBlock[stack[i]]=-1;
+      }
+      if (nMaster*2>numberColumns) {
+	goodBenders=false;
+	printf("%d columns out of %d would be in master - no good\n",
+	       nMaster,numberColumns);
+	delete [] rowBlock;
+	delete [] columnBlock;
+	delete [] whichRow;
+	delete [] whichColumn;
+	delete [] stack;
+	CoinModel model(numberRows,numberColumns,&matrix, rowLower, rowUpper,
+			columnLower,columnUpper,objective);
+	model.setObjectiveOffset(objectiveOffset);
+	addBlock("row_master","column_master",model);
+	return 0;
+      }
+    } else {
+      for (iColumn=0;iColumn<numberColumns;iColumn++)
+	columnBlock[iColumn]=-2;
+      // these are master columns
+      if (numberColumns==2426) {
+	// ken-7 dual
+	for (iColumn=2401;iColumn<numberColumns;iColumn++)
+	  columnBlock[iColumn]=-1;
+      }
+    }
+    numberBlocks=0;
+    CoinFillN(rowBlock,numberRows,-2);
+    for (iRow=0;iRow<numberRows;iRow++) {
+      int kstart = rowStart[iRow];
+      int kend = rowStart[iRow]+rowLength[iRow];
+      if (rowBlock[iRow]==-2) {
+	// row not allocated
+	int j;
+	int nstack=0;
+	for (j=kstart;j<kend;j++) {
+	  int iColumn= column[j];
+	  if (columnBlock[iColumn]!=-1) {
+	    assert(columnBlock[iColumn]==-2);
+	    columnBlock[iColumn]=numberBlocks; // mark
+	    stack[nstack++] = iColumn;
+	  }
+	}
+	if (nstack) {
+	  // new block - put all connected in
+	  numberBlocks++;
+	  rowBlock[iRow]=numberBlocks-1;
+	  while (nstack) {
+	    int iColumn = stack[--nstack];
+	    int k;
+	    for (k=columnStart[iColumn];k<columnStart[iColumn]+columnLength[iColumn];k++) {
+	      int iRow = row[k];
+	      int kkstart = rowStart[iRow];
+	      int kkend = kkstart + rowLength[iRow];
+	      if (rowBlock[iRow]==-2) {
+		rowBlock[iRow]=numberBlocks-1; // mark
+		// row not allocated
+		int jj;
+		for (jj=kkstart;jj<kkend;jj++) {
+		  int jColumn= column[jj];
+		  if (columnBlock[jColumn]==-2) {
+		    columnBlock[jColumn]=numberBlocks-1;
+		    stack[nstack++]=jColumn;
+		  }
+		}
+	      } else {
+		assert (rowBlock[iRow]==numberBlocks-1);
+	      }
+	    }
+	  }
+	} else {
+	  // Only in master
+	  rowBlock[iRow]=-1;
+	}
+      }
+    }
+    delete [] stack;
+    int numberMasterColumns=0;
+    for (iColumn=0;iColumn<numberColumns;iColumn++) {
+      int iBlock = columnBlock[iColumn];
+      if (iBlock==-1)
+	numberMasterColumns++;
+    }
+    int numberMasterRows=0;
+    for (iRow=0;iRow<numberRows;iRow++) {
+      int iBlock = rowBlock[iRow];
+      if (iBlock==-1)
+	numberMasterRows++;
+    }
+    if (numberBlocks<=maxBlocks)
+      printf("%d blocks found - %d columns, %d rows in master\n",
+	     numberBlocks,numberMasterColumns,numberMasterRows);
+    else
+      printf("%d blocks found (reduced to %d) - %d columns, %d rows in master\n",
+	     numberBlocks,maxBlocks,numberMasterColumns,numberMasterRows);
+    if (numberBlocks) {
+      if (numberBlocks>maxBlocks) {
+	int iBlock;
+	for (iColumn=0;iColumn<numberColumns;iColumn++) {
+	  iBlock = columnBlock[iColumn];
+	  if (iBlock>=0)
+	    columnBlock[iColumn] = iBlock%maxBlocks;
+	}
+	for (iRow=0;iRow<numberRows;iRow++) {
+	  iBlock = rowBlock[iRow];
+	  if (iBlock>=0)
+	    rowBlock[iRow] = iBlock%maxBlocks;
+	}
+	numberBlocks=maxBlocks;
+      }
+    }
+    // make up problems
+    // Create all sub problems
+    // Space for creating
+    double * obj = new double [numberColumns];
+    double * rowLo = new double [numberRows];
+    double * rowUp = new double [numberRows];
+    double * columnLo = new double [numberColumns];
+    double * columnUp = new double [numberColumns];
+    // Counts
+    int * columnCount = reinterpret_cast<int *>(columnLo);
+    CoinZeroN(columnCount,numberBlocks);
+    for (int i=0;i<numberColumns;i++) {
+      int iBlock=columnBlock[i];
+      if (iBlock>=0)
+	columnCount[iBlock]++;
+    }
+    // allocate empty columns
+    for (int i=0;i<numberColumns;i++) {
+      int iBlock=columnBlock[i];
+      if (iBlock==-2) {
+	// find block with smallest count
+	int iSmall=-1;
+	int smallest = numberColumns;
+	for (int j=0;j<numberBlocks;j++) {
+	  if (columnCount[j]<smallest) {
+	    iSmall=j;
+	    smallest=columnCount[j];
+	  }
+	}
+	columnBlock[i]=iSmall;
+	columnCount[iSmall]++;
+      }
+    }
+    int * rowCount = reinterpret_cast<int *>(columnUp);
+    CoinZeroN(rowCount,numberBlocks);
+    for (int i=0;i<numberRows;i++) {
+      int iBlock=rowBlock[i];
+      if (iBlock>=0)
+	rowCount[iBlock]++;
+    }
+    int maximumSize=0;
+    for (int i=0;i<numberBlocks;i++) {
+      printf("Block %d has %d columns and %d rows\n",i,
+	     columnCount[i],rowCount[i]);
+      int k=2*columnCount[i]+rowCount[i];
+      maximumSize = CoinMax(maximumSize,k);
+    }
+    if (maximumSize*10>4*(2*numberColumns+numberRows)) {
+      // No good
+      printf("Doesn't look good\n");
+      delete [] rowBlock;
+      delete [] columnBlock;
+      delete [] whichRow;
+      delete [] whichColumn;
+      delete [] obj ; 
+      delete [] columnLo ; 
+      delete [] columnUp ; 
+      delete [] rowLo ; 
+      delete [] rowUp ; 
+      CoinModel model(numberRows,numberColumns,&matrix, rowLower, rowUpper,
+		      columnLower,columnUpper,objective);
+      model.setObjectiveOffset(objectiveOffset);
+      addBlock("row_master","column_master",model);
+      return 0;
+    }
+    // Name for master so at beginning
+    addColumnBlock(numberMasterColumns,"column_master");
+    // Arrays
+    // get full matrix
+    CoinPackedMatrix fullMatrix = matrix;
+    int numberRow2,numberColumn2;
+    int iBlock;
+    for (iBlock=0;iBlock<numberBlocks;iBlock++) {
+      char rowName[20];
+      sprintf(rowName,"row_%d",iBlock);
+      char columnName[20];
+      sprintf(columnName,"column_%d",iBlock);
+      numberRow2=0;
+      numberColumn2=0;
+      for (iColumn=0;iColumn<numberColumns;iColumn++) {
+	if (iBlock==columnBlock[iColumn]) {
+	  obj[numberColumn2]=objective[iColumn];
+	  columnLo[numberColumn2]=columnLower[iColumn];
+	  columnUp[numberColumn2]=columnUpper[iColumn];
+	  whichColumn[numberColumn2++]=iColumn;
+	}
+      }
+      for (iRow=0;iRow<numberRows;iRow++) {
+	if (iBlock==rowBlock[iRow]) {
+	  rowLo[numberRow2]=rowLower[iRow];
+	  rowUp[numberRow2]=rowUpper[iRow];
+	  whichRow[numberRow2++]=iRow;
+	}
+      }
+      // Diagonal block
+      CoinPackedMatrix mat(fullMatrix,
+			   numberRow2,whichRow,
+			   numberColumn2,whichColumn);
+      // make sure correct dimensions
+      mat.setDimensions(numberRow2,numberColumn2);
+      CoinModel * block = new CoinModel(numberRow2,numberColumn2,&mat,
+					rowLo,rowUp,columnLo,columnUp,obj);
+      block->setOriginalIndices(whichRow,whichColumn);
+      addBlock(rowName,columnName,block); // takes ownership
+      // and beginning block
+      numberColumn2=0;
+      // get beginning matrix
+      for (iColumn=0;iColumn<numberColumns;iColumn++) {
+	int iBlock = columnBlock[iColumn];
+	if (iBlock==-1) {
+	  whichColumn[numberColumn2++]=iColumn;
+	}
+      }
+      CoinPackedMatrix beginning(fullMatrix,
+			   numberRow2,whichRow,
+			   numberColumn2,whichColumn);
+      // make sure correct dimensions *********
+      beginning.setDimensions(numberRow2,numberColumn2);
+      block = new CoinModel(numberRow2,numberMasterColumns,&beginning,
+			    NULL,NULL,NULL,NULL,NULL);
+      block->setOriginalIndices(whichRow,whichColumn);
+      addBlock(rowName,"column_master",block); // takes ownership
+    }
+    // and master
+    numberRow2=0;
+    numberColumn2=0;
+    for (iColumn=0;iColumn<numberColumns;iColumn++) {
+      int iBlock = columnBlock[iColumn];
+      if (iBlock==-1) {
+	obj[numberColumn2]=objective[iColumn];
+	columnLo[numberColumn2]=columnLower[iColumn];
+	columnUp[numberColumn2]=columnUpper[iColumn];
+	whichColumn[numberColumn2++]=iColumn;
+      }
+    }
+    for (iRow=0;iRow<numberRows;iRow++) {
+      int iBlock = rowBlock[iRow];
+      if (iBlock<0) {
+	rowLo[numberRow2]=rowLower[iRow];
+	rowUp[numberRow2]=rowUpper[iRow];
+	whichRow[numberRow2++]=iRow;
+      }
+    }
+    delete [] rowBlock;
+    delete [] columnBlock;
+    CoinPackedMatrix beginning(fullMatrix,
+			 numberRow2,whichRow,
+			 numberColumn2,whichColumn);
+    // make sure correct dimensions
+    beginning.setDimensions(numberRow2,numberColumn2);
+    CoinModel * block = new CoinModel(numberRow2,numberColumn2,&beginning,
+				      rowLo,rowUp,
+				      columnLo,columnUp,obj);
+    block->setOriginalIndices(whichRow,whichColumn);
+    addBlock("row_master","column_master",block); // takes ownership
+    delete [] whichRow;
+    delete [] whichColumn;
+    delete [] obj ; 
+    delete [] columnLo ; 
+    delete [] columnUp ; 
+    delete [] rowLo ; 
+    delete [] rowUp ; 
   } else {
     abort();
   }
