@@ -286,7 +286,7 @@ CoinMessages::toCompact()
 	int length = strlen(message_[i]->message());
 	length = (message_[i]->message()+length+1)-
 	  reinterpret_cast<char *> (message_[i]);
-	assert (length<1000);
+	assert (length<COIN_MESSAGE_HANDLER_MAX_BUFFER_SIZE);
 	int leftOver = length %8;
 	if (leftOver)
 	  length += 8-leftOver;
@@ -306,7 +306,7 @@ CoinMessages::toCompact()
 	int length = strlen(message.message());
 	length = (message.message()+length+1)-
 	  reinterpret_cast<char *> (&message);
-	assert (length<1000);
+	assert (length<COIN_MESSAGE_HANDLER_MAX_BUFFER_SIZE);
 	int leftOver = length %8;
 	memcpy(temp,&message,length);
 	newMessage[i]=reinterpret_cast<CoinOneMessage *> (temp);
@@ -611,6 +611,10 @@ CoinMessageHandler::finish()
   messageBuffer_[0]='\0';
   messageOut_=messageBuffer_;
   printStatus_=0;
+  doubleValue_.clear();
+  longValue_.clear();
+  charValue_.clear();
+  stringValue_.clear();
   return 0;
 }
 /* Gets position of next field in format
@@ -794,7 +798,7 @@ CoinMessageHandler::operator<< (char charvalue)
 {
   if (printStatus_==3)
     return *this; // not doing this message
-  longValue_.push_back(charvalue);
+  charValue_.push_back(charvalue);
   if (printStatus_<2) {
     if (format_) {
       //format is at % (but changed to 0)
