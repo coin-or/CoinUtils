@@ -90,15 +90,35 @@ inline double CoinWallclockTime(double callType = 0)
 
 //#############################################################################
 
+//#define HAVE_SDK // if SDK under Win32 is installed, for CPU instead of elapsed time under Win 
+#ifdef HAVE_SDK
+#include <windows.h>
+#ifdef small
+/* for some unfathomable reason (to me) rpcndr.h (pulled in by windows.h) does a
+   '#define small char' */
+#undef small
+#endif
+#define TWO_TO_THE_THIRTYTWO 4294967296.0
+#endif
+
 static inline double CoinCpuTime()
 {
   double cpu_temp;
 #if defined(_MSC_VER) || defined(__MSVCRT__)
+#ifdef HAVE_SDK
+  FILETIME creation;
+  FILETIME exit;
+  FILETIME kernel;
+  FILETIME user;
+  GetProcessTimes(GetCurrentProcess(), &creation, &exit, &kernel, &user);
+  double t = user.dwHighDateTime * TWO_TO_THE_THIRTYTWO + user.dwLowDateTime;
+  return t/10000000.0;
+#else
   unsigned int ticksnow;        /* clock_t is same as int */
-  
   ticksnow = (unsigned int)clock();
-  
   cpu_temp = (double)((double)ticksnow/CLOCKS_PER_SEC);
+#endif
+
 #else
   struct rusage usage;
 # ifdef ZEROFAULT
@@ -113,6 +133,8 @@ static inline double CoinCpuTime()
 }
 
 //#############################################################################
+
+
 
 static inline double CoinSysTime()
 {
