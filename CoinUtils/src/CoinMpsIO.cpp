@@ -1773,7 +1773,6 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
     COINColumnIndex column = -1;
     bool inIntegerSet = false;
     COINColumnIndex numberIntegers = 0;
-    const double tinyElement = 1.0e-14;
 
     while ( cardReader_->nextField (  ) == COIN_COLUMN_SECTION ) {
       switch ( cardReader_->mpsType (  ) ) {
@@ -1790,7 +1789,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    for ( i = k; i < numberElements_; i++ ) {
 	      COINRowIndex irow = row[i];
 #if 0
-	      if ( fabs ( element[i] ) > tinyElement ) {
+	      if ( fabs ( element[i] ) > smallElement_ ) {
 		element[k++] = element[i];
 	      }
 #endif
@@ -1828,7 +1827,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	  start[column] = numberElements_;
 	  numberColumns_++;
 	}
-	if ( fabs ( cardReader_->value (  ) ) > tinyElement ) {
+	if ( fabs ( cardReader_->value (  ) ) > smallElement_ ) {
 	  if ( numberElements_ == maxElements ) {
 	    maxElements = ( 3 * maxElements ) / 2 + 1000;
 	    row = reinterpret_cast<COINRowIndex *>
@@ -1860,7 +1859,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 		objUsed = true;
 	      }
 	      value += objective_[column];
-	      if ( fabs ( value ) <= tinyElement )
+	      if ( fabs ( value ) <= smallElement_ )
 		value = 0.0;
 	      objective_[column] = value;
 	    } else if ( irow < numberRows_ ) {
@@ -2302,7 +2301,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    } else if ( columnType[icolumn] == COIN_LO_BOUND ) {
 	      if ( value < collower_[icolumn] ) {
 		ifError = true;
-	      } else if ( value < collower_[icolumn] + tinyElement ) {
+	      } else if ( value < collower_[icolumn] + smallElement_ ) {
 		value = collower_[icolumn];
 	      }
 	    } else if ( columnType[icolumn] == COIN_MI_BOUND ) {
@@ -2329,7 +2328,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 			columnType[icolumn] == COIN_UI_BOUND ) {
 	      if ( value > colupper_[icolumn] ) {
 		ifError = true;
-	      } else if ( value > colupper_[icolumn] - tinyElement ) {
+	      } else if ( value > colupper_[icolumn] - smallElement_ ) {
 		value = colupper_[icolumn];
 	      }
 	    } else {
@@ -2414,7 +2413,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    } else if ( columnType[icolumn] == COIN_LO_BOUND ) {
 	      if ( value < collower_[icolumn] ) {
 		ifError = true;
-	      } else if ( value < collower_[icolumn] + tinyElement ) {
+	      } else if ( value < collower_[icolumn] + smallElement_ ) {
 		value = collower_[icolumn];
 	      }
 	    } else {
@@ -2433,7 +2432,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
                            columnType[icolumn] == COIN_MI_BOUND ) {
 		  if ( value < collower_[icolumn] ) {
 		     ifError = true;
-		  } else if ( value < collower_[icolumn] + tinyElement ) {
+		  } else if ( value < collower_[icolumn] + smallElement_ ) {
 		     value = collower_[icolumn];
 		  }
 	       } else {
@@ -2465,7 +2464,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 			columnType[icolumn] == COIN_UI_BOUND ) {
 	      if ( value > colupper_[icolumn] ) {
 		ifError = true;
-	      } else if ( value > colupper_[icolumn] - tinyElement ) {
+	      } else if ( value > colupper_[icolumn] - smallElement_ ) {
 		value = colupper_[icolumn];
 	      }
 	    } else {
@@ -3184,7 +3183,6 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
     rowType[i]=COIN_N_ROW;
   }
   startHash ( rowName, numberRows_ , 0 );
-  const double tinyElement = 1.0e-14;
   const double largeElement = 1.0e14;
   int numberTiny=0;
   int numberLarge=0;
@@ -3214,7 +3212,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
       if (iColumn>=0) {
 	column[numberElements_]=iColumn;
 	double value = cardReader_->value();
-	if (fabs(value)<tinyElement)
+	if (fabs(value)<smallElement_)
 	  numberTiny++;
 	else if (fabs(value)>largeElement)
 	  numberLarge++;
@@ -3468,7 +3466,7 @@ int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
 					    <<CoinMessageEol;
   if (numberTiny||numberLarge)
     printf("There were %d coefficients < %g and %d > %g\n",
-           numberTiny,tinyElement,numberLarge,largeElement);
+           numberTiny,smallElement_,numberLarge,largeElement);
   return numberErrors;
 }
 /* Read a basis in MPS format from the given filename.
@@ -5237,6 +5235,7 @@ integerType_(NULL),
 fileName_(CoinStrdup("????")),
 defaultBound_(1),
 infinity_(COIN_DBL_MAX),
+smallElement_(1.0e-14),
 defaultHandler_(true),
 cardReader_(NULL),
 convertObjective_(false),
@@ -5283,6 +5282,7 @@ integerType_(NULL),
 fileName_(CoinStrdup("????")),
 defaultBound_(1),
 infinity_(COIN_DBL_MAX),
+smallElement_(1.0e-14),
 defaultHandler_(true),
 cardReader_(NULL),
 allowStringElements_(rhs.allowStringElements_),
@@ -5353,6 +5353,7 @@ void CoinMpsIO::gutsOfCopy(const CoinMpsIO & rhs)
   numberHash_[1]=rhs.numberHash_[1];
   defaultBound_=rhs.defaultBound_;
   infinity_=rhs.infinity_;
+  smallElement_ = rhs.smallElement_;
   objectiveOffset_=rhs.objectiveOffset_;
   int section;
   for (section=0;section<2;section++) {
@@ -5553,12 +5554,10 @@ CoinMpsIO::readQuadraticMps(const char * filename,
   startHash(1);
   int numberElements=0;
 
-  const double tinyElement = 1.0e-14;
-  
   while ( cardReader_->nextField (  ) == COIN_QUADRATIC_SECTION ) {
     switch ( cardReader_->mpsType (  ) ) {
     case COIN_BLANK_COLUMN:
-      if ( fabs ( cardReader_->value (  ) ) > tinyElement ) {
+      if ( fabs ( cardReader_->value (  ) ) > smallElement_ ) {
 	if ( numberElements == maximumNonZeros ) {
 	  maximumNonZeros = ( 3 * maximumNonZeros ) / 2 + 1000;
 	  column = reinterpret_cast<COINColumnIndex * >

@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "CoinFinite.hpp"
+#include "CoinFloatEqual.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinTypes.hpp"
@@ -1277,9 +1278,10 @@ CoinIndexedVector::operator==(const CoinIndexedVector & rhs) const
     return false;
   int i;
   bool okay=true;
+  CoinRelFltEq eq(1.0e-8);
   for (i=0;i<cs;i++) {
     int iRow = cind[i];
-    if (celem[iRow]!=elements_[iRow]) {
+    if (!eq(celem[iRow],elements_[iRow])) {
       okay=false;
       break;
     }
@@ -1578,6 +1580,8 @@ CoinArrayWithLength::conditionalNew(long sizeWanted)
     if (sizeWanted>size_) {
       freeArray(array_);
       size_ = static_cast<int> (sizeWanted*1.01)+64;
+      // round to multiple of 16
+      size_ -= size_%16;
       array_ = mallocArray(size_);
     }
   }
@@ -1712,7 +1716,10 @@ CoinArrayWithLength::setPersistence(int flag,int currentLength)
 void 
 CoinArrayWithLength::swap(CoinArrayWithLength & other)
 {
-  assert (size_==other.size_||size_==-1||other.size_==-1);
+#ifdef COIN_DEVELOP
+  if (!(size_==other.size_||size_==-1||other.size_==-1))
+    printf("Two arrays have sizes - %d and %d\n",size_,other.size_);
+#endif
   char * swapArray = other.array_;
   other.array_=array_;
   array_=swapArray;

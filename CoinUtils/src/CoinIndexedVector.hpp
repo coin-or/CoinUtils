@@ -468,6 +468,9 @@ public:
   /// Get the size
   inline int getSize() const 
   { return size_; }
+  /// Get the size
+  inline int rawSize() const 
+  { return size_; }
   /// See if persistence already on
   inline bool switchedOn() const 
   { return size_!=-1; }

@@ -129,11 +129,14 @@ CoinFactorization::factorSparseSmall (  )
   int *firstCount = firstCount_.array();
   CoinBigIndex *startRow = startRowU_.array();
   CoinBigIndex *startColumn = startColumnU;
-  //CoinFactorizationDouble *elementL = elementL_.array();
-  //int *indexRowL = indexRowL_.array();
-  //int *saveColumn = saveColumn_.array();
-  //int *nextRow = nextRow_.array();
-  //int *lastRow = lastRow_.array() ;
+  //#define UGLY_COIN_FACTOR_CODING
+#ifdef UGLY_COIN_FACTOR_CODING
+  CoinFactorizationDouble *elementL = elementL_.array();
+  int *indexRowL = indexRowL_.array();
+  int *saveColumn = saveColumn_.array();
+  int *nextRow = nextRow_.array();
+  int *lastRow = lastRow_.array() ;
+#endif
   double pivotTolerance = pivotTolerance_;
   int numberTrials = numberTrials_;
   int numberRows = numberRows_;
@@ -349,7 +352,6 @@ CoinFactorization::factorSparseSmall (  )
 	      workArea2 = workArea2_.array();
 	    }
 	    bool goodPivot;
-	    //#define UGLY_COIN_FACTOR_CODING
 #ifndef UGLY_COIN_FACTOR_CODING
 	    //branch out to best pivot routine 
 	    goodPivot = pivot ( iPivotRow, iPivotColumn,
@@ -361,6 +363,7 @@ CoinFactorization::factorSparseSmall (  )
 #define FAC_SET SMALL_SET
 #include "CoinFactorization.hpp"
 #undef FAC_SET
+#undef UGLY_COIN_FACTOR_CODING
 #endif
 	    if ( !goodPivot ) {
 	      status = -99;

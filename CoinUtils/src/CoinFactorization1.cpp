@@ -556,7 +556,7 @@ CoinFactorization::getAreas ( int numberOfRows,
 			 CoinBigIndex maximumL,
 			 CoinBigIndex maximumU )
 {
-
+  
   numberRows_ = numberOfRows;
   numberColumns_ = numberOfColumns;
   maximumRowsExtra_ = numberRows_ + maximumPivots_;
@@ -1464,6 +1464,7 @@ CoinFactorization::getRowSpace ( int iRow,
   return true;
 }
 
+#if COIN_ONE_ETA_COPY
 /* Reorders U so contiguous and in order (if there is space)
    Returns true if it could */
 bool 
@@ -1542,16 +1543,23 @@ CoinFactorization::reorderU()
   return true;
 #endif
 }
+#endif
 //  cleanup.  End of factorization
 void
 CoinFactorization::cleanup (  )
 {
+#if COIN_ONE_ETA_COPY
   bool compressDone = reorderU();
   if (!compressDone) {
     getColumnSpace ( 0, COIN_INT_MAX >> 1 );	//compress
     // swap arrays
     numberInColumn_.swap(numberInColumnPlus_);
   }
+#else
+  getColumnSpace ( 0, COIN_INT_MAX >> 1 );	//compress
+  // swap arrays
+    numberInColumn_.swap(numberInColumnPlus_);
+#endif
   CoinBigIndex * startColumnU = startColumnU_.array();
   CoinBigIndex lastU = startColumnU[maximumColumnsExtra_];
 
@@ -1618,7 +1626,9 @@ CoinFactorization::cleanup (  )
     assert (permuteBack[i]>=0&&permuteBack[i]<numberRows_);
   }
 #endif
+#if COIN_ONE_ETA_COPY
   if (!compressDone) {
+#endif
     // Redo total elements
     totalElements_=0;
     for ( i = 0; i < numberColumns_; i++ ) {
@@ -1626,15 +1636,9 @@ CoinFactorization::cleanup (  )
       totalElements_ += number;
       startColumnU[i] -= number;
     }
+#if COIN_ONE_ETA_COPY
   }
-  if ( (messageLevel_ & 8)) {
-    std::cout<<"        length of U "<<totalElements_<<", length of L "<<lengthL_;
-    if (numberDense_)
-      std::cout<<" plus "<<numberDense_*numberDense_<<" from "<<numberDense_<<" dense rows";
-    std::cout<<std::endl;
-  }
-  // and add L and dense
-  totalElements_ += numberDense_*numberDense_+lengthL_;
+#endif
   int numberU = 0;
 
   pivotColumnBack_.conditionalNew( maximumRowsExtra_ + 1);
@@ -1647,7 +1651,9 @@ CoinFactorization::cleanup (  )
   CoinBigIndex *startColumn = startColumnU;
   int *indexRowU = indexRowU_.array();
   CoinFactorizationDouble *elementU = elementU_.array();
+#if COIN_ONE_ETA_COPY
   if (!compressDone) {
+#endif
     for ( i = 0; i < numberColumns_; i++ ) {
       int iColumn = pivotColumn[i];
       
@@ -1727,6 +1733,7 @@ CoinFactorization::cleanup (  )
       k += numberInColumn[i];
     }
     maximumU_=k;
+#if COIN_ONE_ETA_COPY
   } else {
     // U already OK
     for ( i = 0; i < numberColumns_; i++ ) {
@@ -1737,10 +1744,19 @@ CoinFactorization::cleanup (  )
       numberInColumn[numberRows_-1];
     numberU=numberRows_;
   }
+#endif
+  if ( (messageLevel_ & 8)) {
+    std::cout<<"        length of U "<<totalElements_<<", length of L "<<lengthL_;
+    if (numberDense_)
+      std::cout<<" plus "<<numberDense_*numberDense_<<" from "<<numberDense_<<" dense rows";
+    std::cout<<std::endl;
+  }
+  // and add L and dense
+  totalElements_ += numberDense_*numberDense_+lengthL_;
   int * nextColumn = nextColumn_.array();
   int * lastColumn = lastColumn_.array();
   // See whether to have extra copy of R
-  if (maximumU_>10*numberRows_) {
+  if (maximumU_>10*numberRows_||numberRows_<200) {
     // NO
     numberInColumnPlus_.conditionalDelete() ;
   } else {
@@ -1765,12 +1781,14 @@ CoinFactorization::cleanup (  )
     }
   }
 #endif
+  CoinFactorizationDouble * pivotRegion = pivotRegion_.array();
   for ( i = numberSlacks_; i < numberU; i++ ) {
     CoinBigIndex start = startColumnU[i];
     CoinBigIndex end = start + numberInColumn[i];
 
     totalElements_ += numberInColumn[i];
     CoinBigIndex j;
+
     for ( j = start; j < end; j++ ) {
       int iRow = indexRowU[j];
       iRow = permute[iRow];
@@ -1778,53 +1796,72 @@ CoinFactorization::cleanup (  )
       numberInRow[iRow]++;
     }
   }
-  //space for cross reference
-  convertRowToColumnU_.conditionalNew( lengthAreaU_ );
-  CoinBigIndex *convertRowToColumn = convertRowToColumnU_.array();
-  CoinBigIndex j = 0;
-  CoinBigIndex *startRow = startRowU_.array();
+#if COIN_ONE_ETA_COPY
+  if (numberRows_>=COIN_ONE_ETA_COPY) {
+#endif
+    //space for cross reference
+    convertRowToColumnU_.conditionalNew( lengthAreaU_ );
+    CoinBigIndex *convertRowToColumn = convertRowToColumnU_.array();
+    CoinBigIndex j = 0;
+    CoinBigIndex *startRow = startRowU_.array();
+    
+    int iRow;
+    for ( iRow = 0; iRow < numberRows_; iRow++ ) {
+      startRow[iRow] = j;
+      j += numberInRow[iRow];
+    }
+    CoinBigIndex numberInU = j;
+    
+    CoinZeroN ( numberInRow_.array(), numberRows_ );
+    
+    for ( i = numberSlacks_; i < numberRows_; i++ ) {
+      CoinBigIndex start = startColumnU[i];
+      CoinBigIndex end = start + numberInColumn[i];
+      
+      CoinFactorizationDouble pivotValue = pivotRegion[i];
 
-  int iRow;
-  for ( iRow = 0; iRow < numberRows_; iRow++ ) {
-    startRow[iRow] = j;
-    j += numberInRow[iRow];
-  }
-  CoinBigIndex numberInU = j;
-
-  CoinZeroN ( numberInRow_.array(), numberRows_ );
-  CoinFactorizationDouble * pivotRegion = pivotRegion_.array();
-
-  for ( i = numberSlacks_; i < numberRows_; i++ ) {
-    CoinBigIndex start = startColumnU[i];
-    CoinBigIndex end = start + numberInColumn[i];
-
-    CoinFactorizationDouble pivotValue = pivotRegion[i];
-
-    CoinBigIndex j;
-    for ( j = start; j < end; j++ ) {
-      int iRow = indexRowU[j];
-      int iLook = numberInRow[iRow];
-
-      numberInRow[iRow] = iLook + 1;
-      CoinBigIndex k = startRow[iRow] + iLook;
-
-      indexColumnU[k] = i;
-      convertRowToColumn[k] = j;
-      //multiply by pivot
-      elementU[j] *= pivotValue;
+      CoinBigIndex j;
+      for ( j = start; j < end; j++ ) {
+	int iRow = indexRowU[j];
+	int iLook = numberInRow[iRow];
+	
+	numberInRow[iRow] = iLook + 1;
+	CoinBigIndex k = startRow[iRow] + iLook;
+	
+	indexColumnU[k] = i;
+	convertRowToColumn[k] = j;
+	//multiply by pivot
+	elementU[j] *= pivotValue;
+      }
+    }
+    int * nextRow = nextRow_.array();
+    int * lastRow = lastRow_.array();
+    for ( j = 0; j < numberRows_; j++ ) {
+      lastRow[j] = j - 1;
+      nextRow[j] = j + 1;
+    }
+    nextRow[numberRows_ - 1] = maximumRowsExtra_;
+    lastRow[maximumRowsExtra_] = numberRows_ - 1;
+    nextRow[maximumRowsExtra_] = 0;
+    lastRow[0] = maximumRowsExtra_;
+    startRow[maximumRowsExtra_] = numberInU;
+#if COIN_ONE_ETA_COPY
+  } else {
+    // no row copy
+    for ( i = numberSlacks_; i < numberU; i++ ) {
+      CoinBigIndex start = startColumnU[i];
+      CoinBigIndex end = start + numberInColumn[i];
+      
+      CoinBigIndex j;
+      CoinFactorizationDouble pivotValue = pivotRegion[i];
+      
+      for ( j = start; j < end; j++ ) {
+	//multiply by pivot
+	elementU[j] *= pivotValue;
+      }
     }
   }
-  int * nextRow = nextRow_.array();
-  int * lastRow = lastRow_.array();
-  for ( j = 0; j < numberRows_; j++ ) {
-    lastRow[j] = j - 1;
-    nextRow[j] = j + 1;
-  }
-  nextRow[numberRows_ - 1] = maximumRowsExtra_;
-  lastRow[maximumRowsExtra_] = numberRows_ - 1;
-  nextRow[maximumRowsExtra_] = 0;
-  lastRow[0] = maximumRowsExtra_;
-  startRow[maximumRowsExtra_] = numberInU;
+#endif
 
   int firstReal = numberRows_;
 

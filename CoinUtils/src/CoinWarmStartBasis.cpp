@@ -392,6 +392,7 @@ CoinWarmStartBasis::print() const
     if (status==CoinWarmStartBasis::basic) 
       numberBasic++;
   }
+  int numberStructBasic = numberBasic;
   for (i=0;i<numArtificial_;i++) {
     Status status = getArtifStatus(i);
     if (status==CoinWarmStartBasis::basic) 
@@ -399,7 +400,8 @@ CoinWarmStartBasis::print() const
   }
   std::cout<<"Basis "<<this<<" has "<<numArtificial_<<" rows and "
 	   <<numStructural_<<" columns, "
-	   <<numberBasic<<" basic"<<std::endl;
+	   <<numberBasic<<" basic, of which "<<numberStructBasic
+	   <<" were columns"<<std::endl;
   std::cout<<"Rows:"<<std::endl;
   char type[]={'F','B','U','L'};
 

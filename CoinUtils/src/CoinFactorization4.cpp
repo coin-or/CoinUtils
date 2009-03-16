@@ -700,13 +700,6 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
 {
   elementU_.allocate(other.elementU_, other.lengthAreaU_ *sizeof(CoinFactorizationDouble));
   indexRowU_.allocate(other.indexRowU_, other.lengthAreaU_*sizeof(int) );
-  indexColumnU_.allocate(other.indexColumnU_, other.lengthAreaU_*sizeof(int) );
-  convertRowToColumnU_.allocate(other.convertRowToColumnU_, other.lengthAreaU_*sizeof(CoinBigIndex) );
-  if (other.sparseThreshold_) {
-    elementByRowL_.allocate(other.elementByRowL_, other.lengthAreaL_ );
-    indexColumnL_.allocate(other.indexColumnL_, other.lengthAreaL_ );
-    startRowL_.allocate(other.startRowL_,other.numberRows_+1);
-  }
   elementL_.allocate(other.elementL_, other.lengthAreaL_*sizeof(CoinFactorizationDouble) );
   indexRowL_.allocate(other.indexRowL_, other.lengthAreaL_*sizeof(int) );
   startColumnL_.allocate(other.startColumnL_,(other.numberRows_ + 1)*sizeof(CoinBigIndex) );
@@ -717,10 +710,6 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
     extraSpace = other.maximumPivots_ + 1 ;
   }
   startColumnR_.allocate(other.startColumnR_,extraSpace*sizeof(CoinBigIndex));
-  startRowU_.allocate(other.startRowU_,(other.maximumRowsExtra_ + 1)*sizeof(CoinBigIndex));
-  numberInRow_.allocate(other.numberInRow_, (other.maximumRowsExtra_ + 1 )*sizeof(int));
-  nextRow_.allocate(other.nextRow_,(other.maximumRowsExtra_ + 1)*sizeof(int));
-  lastRow_.allocate( other.lastRow_,(other.maximumRowsExtra_ + 1 )*sizeof(int));
   pivotRegion_.allocate(other.pivotRegion_, (other.maximumRowsExtra_ + 1 )*sizeof(CoinFactorizationDouble));
   permuteBack_.allocate(other.permuteBack_,(other.maximumRowsExtra_ + 1)*sizeof(int));
   permute_.allocate(other.permute_,(other.maximumRowsExtra_ + 1)*sizeof(int));
@@ -731,6 +720,24 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   pivotColumn_.allocate(other.pivotColumn_,(other.maximumColumnsExtra_ + 1)*sizeof(int));
   nextColumn_.allocate(other.nextColumn_, (other.maximumColumnsExtra_ + 1 )*sizeof(int));
   lastColumn_.allocate(other.lastColumn_, (other.maximumColumnsExtra_ + 1 )*sizeof(int));
+  indexColumnU_.allocate(other.indexColumnU_, other.lengthAreaU_*sizeof(int) );
+  nextRow_.allocate(other.nextRow_,(other.maximumRowsExtra_ + 1)*sizeof(int));
+  lastRow_.allocate( other.lastRow_,(other.maximumRowsExtra_ + 1 )*sizeof(int));
+  const CoinBigIndex * convertUOther = other.convertRowToColumnU_.array();
+#if COIN_ONE_ETA_COPY
+  if (convertUOther) {
+#endif
+    convertRowToColumnU_.allocate(other.convertRowToColumnU_, other.lengthAreaU_*sizeof(CoinBigIndex) );
+    startRowU_.allocate(other.startRowU_,(other.maximumRowsExtra_ + 1)*sizeof(CoinBigIndex));
+    numberInRow_.allocate(other.numberInRow_, (other.maximumRowsExtra_ + 1 )*sizeof(int));
+#if COIN_ONE_ETA_COPY
+  }
+#endif
+  if (other.sparseThreshold_) {
+    elementByRowL_.allocate(other.elementByRowL_, other.lengthAreaL_ );
+    indexColumnL_.allocate(other.indexColumnL_, other.lengthAreaL_ );
+    startRowL_.allocate(other.startRowL_,other.numberRows_+1);
+  }
   numberTrials_ = other.numberTrials_;
   biggerDimension_ = other.biggerDimension_;
   relaxCheck_ = other.relaxCheck_;
@@ -808,10 +815,11 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   //now copy everything
   //assuming numberRowsExtra==numberColumnsExtra
   if (numberRowsExtra_) {
-    CoinMemcpyN ( other.startRowU_.array(), numberRowsExtra_ + 1, startRowU_.array() );
-    CoinMemcpyN ( other.numberInRow_.array(), numberRowsExtra_ + 1, numberInRow_.array() );
-    CoinMemcpyN ( other.nextRow_.array(), numberRowsExtra_ + 1, nextRow_.array() );
-    CoinMemcpyN ( other.lastRow_.array(), numberRowsExtra_ + 1, lastRow_.array() );
+    if (convertUOther) {
+      CoinMemcpyN ( other.startRowU_.array(), numberRowsExtra_ + 1, startRowU_.array() );
+      CoinMemcpyN ( other.numberInRow_.array(), numberRowsExtra_ + 1, numberInRow_.array() );
+      startRowU_.array()[maximumRowsExtra_] = other.startRowU_.array()[maximumRowsExtra_];
+    }
     CoinMemcpyN ( other.pivotRegion_.array(), numberRowsExtra_ , pivotRegion_.array() );
     CoinMemcpyN ( other.permuteBack_.array(), numberRowsExtra_ + 1, permuteBack_.array() );
     CoinMemcpyN ( other.permute_.array(), numberRowsExtra_ + 1, permute_.array() );
@@ -829,7 +837,8 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
       other.startColumnU_.array()[maximumColumnsExtra_];
     nextColumn_.array()[maximumColumnsExtra_] = other.nextColumn_.array()[maximumColumnsExtra_];
     lastColumn_.array()[maximumColumnsExtra_] = other.lastColumn_.array()[maximumColumnsExtra_];
-    startRowU_.array()[maximumRowsExtra_] = other.startRowU_.array()[maximumRowsExtra_];
+    CoinMemcpyN ( other.nextRow_.array(), numberRowsExtra_ + 1, nextRow_.array() );
+    CoinMemcpyN ( other.lastRow_.array(), numberRowsExtra_ + 1, lastRow_.array() );
     nextRow_.array()[maximumRowsExtra_] = other.nextRow_.array()[maximumRowsExtra_];
     lastRow_.array()[maximumRowsExtra_] = other.lastRow_.array()[maximumRowsExtra_];
   }
@@ -851,24 +860,31 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   assert (maximumU_>=maxU);
 #endif
   CoinMemcpyN ( other.elementU_.array() , maximumU_, elementU_.array() );
-  const CoinBigIndex * convertUOther = other.convertRowToColumnU_.array();
-  const int * indexColumnUOther = other.indexColumnU_.array();
+#if COIN_ONE_ETA_COPY
+  if (convertUOther) {
+#endif
+    const int * indexColumnUOther = other.indexColumnU_.array();
+    CoinBigIndex * convertU = convertRowToColumnU_.array();
+    int * indexColumnU = indexColumnU_.array();
+    const CoinBigIndex * startRowU = startRowU_.array();
+    const int * numberInRow = numberInRow_.array();
+    for ( iRow = 0; iRow < numberRowsExtra_; iRow++ ) {
+      //row
+      CoinBigIndex start = startRowU[iRow];
+      int numberIn = numberInRow[iRow];
+      
+      CoinMemcpyN ( indexColumnUOther + start, numberIn, indexColumnU + start );
+      CoinMemcpyN (convertUOther + start , numberIn,   convertU + start );
+    }
+#if COIN_ONE_ETA_COPY
+  }
+#endif
   const int * indexRowUOther = other.indexRowU_.array();
-  CoinBigIndex * convertU = convertRowToColumnU_.array();
-  int * indexColumnU = indexColumnU_.array();
   int * indexRowU = indexRowU_.array();
-  const CoinBigIndex * startRowU = startRowU_.array();
-  const int * numberInRow = numberInRow_.array();
   for ( iRow = 0; iRow < numberRowsExtra_; iRow++ ) {
-    //row
-    CoinBigIndex start = startRowU[iRow];
-    int numberIn = numberInRow[iRow];
-
-    CoinMemcpyN ( indexColumnUOther + start, numberIn, indexColumnU + start );
-    CoinMemcpyN (convertUOther + start , numberIn,   convertU + start );
     //column
-    start = startColumnU[iRow];
-    numberIn = numberInColumn[iRow];
+    CoinBigIndex start = startColumnU[iRow];
+    int numberIn = numberInColumn[iRow];
     CoinMemcpyN ( indexRowUOther + start, numberIn, indexRowU + start );
   }
   // L is contiguous

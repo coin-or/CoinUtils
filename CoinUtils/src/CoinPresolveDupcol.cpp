@@ -1063,7 +1063,7 @@ const CoinPresolveAction
   CoinZeroN(els,nrows);
   for (int i = 0 ; i < nrows ; i++) {
     int nInRow = hinrow[i];
-    if (nInRow &&!prob->rowProhibited2(i)&&rlo[i]==rup[i]) {
+    if (nInRow>1 &&!prob->rowProhibited2(i)&&rlo[i]==rup[i]) {
       CoinBigIndex rStart = mrstrt[i];
       CoinBigIndex k = rStart;
       CoinBigIndex rEnd = rStart+nInRow;

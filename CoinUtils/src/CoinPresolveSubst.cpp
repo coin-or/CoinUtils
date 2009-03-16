@@ -1144,6 +1144,12 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	    PRESOLVEASSERT(rlo[jrowx] - prob->ztolzb_ <= actx 
 			   && actx <= rup[jrowx] + prob->ztolzb_);
 	    acts[jrowx] = actx;
+	    if (prob->getRowStatus(jrowx)!=CoinPrePostsolveMatrix::basic) {
+	      if (actx-rlo[jrowx]<rup[jrowx]-actx)
+		prob->setRowStatus(jrowx,CoinPrePostsolveMatrix::atLowerBound);
+	      else
+		prob->setRowStatus(jrowx,CoinPrePostsolveMatrix::atUpperBound);
+	    }
 	  }
 	  rowcolsx += ninrowx;
 	  rowelsx += ninrowx;

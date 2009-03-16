@@ -957,7 +957,10 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
 #ifndef OSL_WAY
 	best2[iWay]=best;
 #else
-	best2[iWay]=-(numberRows-bestRowsDone);
+	if (bestRowsDone<numberRows)
+	  best2[iWay]=-(numberRows-bestRowsDone);
+	else
+	  best2[iWay]=-numberRows;
 #endif
 	row2[iWay]=bestRow;
       }
@@ -1465,7 +1468,10 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
 #ifndef OSL_WAY
 	best2[iWay]=best;
 #else
-	best2[iWay]=-(numberColumns-bestColumnsDone);
+	if (bestColumnsDone<numberColumns)
+	  best2[iWay]=-(numberColumns-bestColumnsDone);
+	else
+	  best2[iWay]=-numberColumns;
 #endif
 	column2[iWay]=bestColumn;
       }

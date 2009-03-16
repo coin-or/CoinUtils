@@ -664,16 +664,18 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
           costOffset += currentLower*rowObjective[iRow];
           prob->dobias_ -= currentLower*rowObjective[iRow];
         }
-        double movement;
-        if (fabs(sol[iCol]-clo[iCol])<fabs(sol[iCol]-cup[iCol])) {
-          movement = clo[iCol]-sol[iCol] ;
-          sol[iCol]=clo[iCol];
-        } else {
-          movement = cup[iCol]-sol[iCol] ;
-          sol[iCol]=cup[iCol];
-        }
-        if (movement) 
-          acts[iRow] += movement*coeff;
+	if (sol) {
+	  double movement;
+	  if (fabs(sol[iCol]-clo[iCol])<fabs(sol[iCol]-cup[iCol])) {
+	    movement = clo[iCol]-sol[iCol] ;
+	    sol[iCol]=clo[iCol];
+	  } else {
+	    movement = cup[iCol]-sol[iCol] ;
+	    sol[iCol]=cup[iCol];
+	  }
+	  if (movement) 
+	    acts[iRow] += movement*coeff;
+	}
         /*
           Remove the row from this col in the col rep.and delink it.
         */

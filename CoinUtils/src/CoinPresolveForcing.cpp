@@ -490,11 +490,13 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
+  double *rlo	= prob->rlo_;
+  double *rup	= prob->rup_;
 
   const double *sol	= prob->sol_;
   double *rcosts	= prob->rcosts_;
 
-  //double *acts	= prob->acts_;
+  double *acts	= prob->acts_;
   double *rowduals = prob->rowduals_;
 
   const double ztoldj	= prob->ztoldj_;
@@ -583,7 +585,10 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
     if (whacked != -1) {
       prob->setColumnStatus(whacked,CoinPrePostsolveMatrix::basic);
-      prob->setRowStatus(irow,CoinPrePostsolveMatrix::atLowerBound);
+      if (acts[irow]-rlo[irow]<rup[irow]-acts[irow])
+	prob->setRowStatus(irow,CoinPrePostsolveMatrix::atLowerBound);
+      else
+	prob->setRowStatus(irow,CoinPrePostsolveMatrix::atUpperBound);
       rowduals[irow] = whack;
 
       for (k=0; k<ninrow; k++) {

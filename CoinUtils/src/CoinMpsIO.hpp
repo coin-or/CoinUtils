@@ -558,6 +558,12 @@ public:
     /// Whether to allow string elements (0 no, 1 yes, 2 yes and try flip)
     inline void setAllowStringElements(int yesNo)
     { allowStringElements_ = yesNo;}
+    /** Small element value - elements less than this set to zero on input
+        default is 1.0e-14 */
+    inline double getSmallElementValue() const
+    { return smallElement_;}
+    inline void setSmallElementValue(double value)
+    { smallElement_=value;} 
 //@}
 
 
@@ -994,6 +1000,8 @@ protected:
 
       /// Value to use for infinity
       double infinity_;
+      /// Small element value
+      double smallElement_;
 
       /// Message handler
       CoinMessageHandler * handler_;

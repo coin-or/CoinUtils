@@ -9,6 +9,7 @@
  */
 #ifndef CoinFactorization_H
 #define CoinFactorization_H
+//#define COIN_ONE_ETA_COPY 100
 
 #include <iostream>
 #include <string>
@@ -368,6 +369,13 @@ public:
 		      int pivotRow,
 		      double pivotCheck ,
 		      bool checkBeforeModifying=false);
+  /** Combines BtranU and delete elements
+      If deleted is NULL then delete elements
+      otherwise store where elements are
+  */
+  void replaceColumnU ( CoinIndexedVector * regionSparse,
+			CoinBigIndex * deleted,
+			int internalPivotRow);
   //@}
 
   /**@name various uses of factorization (return code number elements) 
@@ -643,6 +651,10 @@ protected:
   /** Updates part of column transpose (BTRANU) when sparse,
       assumes index is sorted i.e. region is correct */
   void updateColumnTransposeUSparse ( CoinIndexedVector * region) const;
+  /** Updates part of column transpose (BTRANU) by column
+      assumes index is sorted i.e. region is correct */
+  void updateColumnTransposeUByColumn ( CoinIndexedVector * region,
+					int smallestIndex) const;
 
   /// Updates part of column transpose (BTRANR)
   void updateColumnTransposeR ( CoinIndexedVector * region ) const;

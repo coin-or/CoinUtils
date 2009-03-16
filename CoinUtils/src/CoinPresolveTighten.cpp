@@ -433,8 +433,11 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
       if (fabs(sol[jcol] - clo[jcol]) > ZTOLDP &&
           fabs(sol[jcol] - cup[jcol]) > ZTOLDP) {
         
-        prob->setRowStatus(last_corrected,CoinPrePostsolveMatrix::atLowerBound);
         prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic);
+	if (acts[last_corrected]-rlo[last_corrected]<rup[last_corrected]-acts[last_corrected])
+	  prob->setRowStatus(last_corrected,CoinPrePostsolveMatrix::atLowerBound);
+	else
+	  prob->setRowStatus(last_corrected,CoinPrePostsolveMatrix::atUpperBound);
       }
     }
 
