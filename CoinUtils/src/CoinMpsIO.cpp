@@ -94,7 +94,7 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 	  ptr++;
 	}
 	int value3 = 0;
-	while (value3<100) {
+	while (value3<1000) {
 	  thisChar = *ptr;
 	  ptr++;
 	  if (thisChar>='0'&&thisChar<='9') {
@@ -103,7 +103,7 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 	    break;
 	  }
 	}
-	if (value3<200) {
+	if (value3<300) {
 	  value3 *= sign2; // power of 10
 	  if (abs(value3)<10) {
 	    // do most common by lookup (for accuracy?)
@@ -111,8 +111,10 @@ double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type)
 	  } else {
 	    value *= pow(10.0,value3);
 	  }
+	} else if (sign2<0.0) {
+	  value = 0.0; // force zero
 	} else {
-	  thisChar='x'; // force error
+	  value = COIN_DBL_MAX;
 	}
       } 
       if (thisChar==0||thisChar=='\t'||thisChar==' ') {
