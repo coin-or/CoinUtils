@@ -5,7 +5,6 @@
 	Name="libCoinUtils"
 	ProjectGUID="{C4867F15-438D-4FF8-8388-62FBAAA9786C}"
 	RootNamespace="libCoinUtils"
-	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -1207,6 +1206,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinSnapshot.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinStructuredModel.cpp"
 				>
 				<FileConfiguration
@@ -1280,6 +1283,14 @@
 						BasicRuntimeChecks="3"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinWarmStartPrimalDual.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinWarmStartVector.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter

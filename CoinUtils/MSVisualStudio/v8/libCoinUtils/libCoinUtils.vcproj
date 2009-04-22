@@ -169,31 +169,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\CoinUtils\src\CoinStructuredModel.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BasicRuntimeChecks="3"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinBuild.cpp"
 				>
 				<FileConfiguration
@@ -1231,6 +1206,35 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinSnapshot.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\CoinUtils\src\CoinStructuredModel.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinWarmStartBasis.cpp"
 				>
 				<FileConfiguration
@@ -1280,15 +1284,19 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath="..\..\..\src\CoinWarmStartPrimalDual.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinWarmStartVector.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath="..\..\..\..\CoinUtils\src\CoinStructuredModel.hpp"
-				>
-			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\Coin_C_defines.h"
 				>
@@ -1463,6 +1471,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinSort.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\CoinUtils\src\CoinStructuredModel.hpp"
 				>
 			</File>
 			<File
