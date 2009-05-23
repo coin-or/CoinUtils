@@ -66,6 +66,21 @@ typedef long long CoinBigIndex;
 #ifndef COIN_BIG_DOUBLE 
 #define COIN_BIG_DOUBLE 0
 #endif
+// See if we want the ability to have long double work arrays
+#if COIN_BIG_DOUBLE==2
+#undef COIN_BIG_DOUBLE 
+#define COIN_BIG_DOUBLE 0
+#define COIN_LONG_WORK 1
+typedef long double CoinWorkDouble;
+#elif COIN_BIG_DOUBLE==3
+#undef COIN_BIG_DOUBLE 
+#define COIN_BIG_DOUBLE 1
+#define COIN_LONG_WORK 1
+typedef long double CoinWorkDouble;
+#else
+#define COIN_LONG_WORK 0
+typedef double CoinWorkDouble;
+#endif
 #if COIN_BIG_DOUBLE==0
 typedef double CoinFactorizationDouble;
 #elif COIN_BIG_DOUBLE==1

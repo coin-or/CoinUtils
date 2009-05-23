@@ -3036,6 +3036,13 @@ CoinPackedMatrix::appendMajor(const int number,
   }
   majorDim_ += number;
   size_ += numberElements;
+#ifndef NDEBUG
+  int checkSize=0;
+  for (int i=0;i<majorDim_;i++) {
+    checkSize += length_[i];
+  }
+  assert (checkSize==size_);
+#endif
   return numberErrors;
 }
 /* Append a set of rows/columns to the end of the matrix. Returns number of errors
@@ -3124,6 +3131,13 @@ CoinPackedMatrix::appendMinor(const int number,
     ++minorDim_;
   }
   size_ += starts[number];
+#ifndef NDEBUG
+  int checkSize=0;
+  for (int i=0;i<majorDim_;i++) {
+    checkSize += length_[i];
+  }
+  assert (checkSize==size_);
+#endif
   return numberErrors;
 }
 //#define ADD_ROW_ANALYZE
@@ -3280,4 +3294,11 @@ CoinPackedMatrix::appendMinorFast(const int number,
     ++minorDim_;
   }
   size_ += starts[number];
+#ifndef NDEBUG
+  int checkSize=0;
+  for (int i=0;i<majorDim_;i++) {
+    checkSize += length_[i];
+  }
+  assert (checkSize==size_);
+#endif
 }
