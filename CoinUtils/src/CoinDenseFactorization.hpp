@@ -99,27 +99,31 @@ public:
   void slackValue (  double value );
 #endif
   /// Returns array to put basis elements in
-  inline CoinFactorizationDouble * elements() const
-  { return elements_;}
+  virtual CoinFactorizationDouble * elements() const;
   /// Returns pivot row 
-  inline int * pivotRow() const
-  { return pivotRow_;}
+  virtual int * pivotRow() const;
   /// Returns work area
-  inline CoinFactorizationDouble * workArea() const
-  { return workArea_;}
+  virtual CoinFactorizationDouble * workArea() const;
   /// Returns int work area
-  inline int * intWorkArea() const
-  { return reinterpret_cast<int *> (workArea_);}
+  virtual int * intWorkArea() const;
+  /// Number of entries in each row
+  virtual int * numberInRow() const;
+  /// Number of entries in each column
+  virtual int * numberInColumn() const;
   /// Returns array to put basis starts in
-  inline CoinBigIndex * starts() const
-  { return reinterpret_cast<CoinBigIndex *> (pivotRow_);}
+  virtual CoinBigIndex * starts() const;
   /// Returns permute back
-  inline int * permuteBack() const
-  { return pivotRow_+numberRows_;}
-  /// Get solve mode e.g. 0 C++ code, 1 Lapack, -1 choose
+  virtual int * permuteBack() const;
+  /** Get solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
+      If 10 set then values pass
+      if 100 set then has iterated
+  */
   inline int solveMode() const
   { return solveMode_ ;}
-  /// Set solve mode e.g. 0 C++ code, 1 Lapack, -1 choose
+  /** Set solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
+      If 10 set then values pass
+      if 100 set then has iterated
+  */
   inline void setSolveMode(int value)
   { solveMode_ = value;}
   //@}
@@ -246,7 +250,10 @@ protected:
   CoinFactorizationDouble * elements_;
   /// Work area of numberRows_ 
   CoinFactorizationDouble * workArea_;
-  /// Solve mode e.g. 0 C++ code, 1 Lapack, -1 choose
+  /** Solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
+      If 10 set then values pass
+      if 100 set then has iterated
+  */
   int solveMode_;
   //@}
 };

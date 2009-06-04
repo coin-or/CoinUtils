@@ -194,7 +194,7 @@ CoinDenseFactorization::factor ( )
   numberPivots_=0;
   status_= 0;
 #ifdef DENSE_CODE
-  if (numberRows_==numberColumns_&&solveMode_) {
+  if (numberRows_==numberColumns_&&(solveMode_%10)!=0) {
     int info;
     F77_FUNC(dgetrf,DGETRF)(&numberRows_,&numberRows_,
 			    elements_,&numberRows_,pivotRow_,
@@ -202,7 +202,7 @@ CoinDenseFactorization::factor ( )
     // need to check size of pivots
     if(!info) {
       // OK
-      solveMode_=1;
+      solveMode_=1+10*(solveMode_/10);
       numberGoodU_=numberRows_;
       CoinZeroN(workArea_,2*numberRows_);
 #ifndef NDEBUG
@@ -218,7 +218,7 @@ CoinDenseFactorization::factor ( )
 #endif
       return 0;
     } else {
-      solveMode_=0;
+      solveMode_=10*(solveMode_/10);
     }
   }
 #endif
@@ -326,7 +326,7 @@ void
 CoinDenseFactorization::postProcess(const int * sequence, int * pivotVariable)
 {
 #ifdef DENSE_CODE
-  if (!solveMode_) {
+  if ((solveMode_%10)==0) {
 #endif
     for (int i=0;i<numberRows_;i++) {
       int k = sequence[i];
@@ -377,7 +377,7 @@ CoinDenseFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
     return 2;
   pivotValue = 1.0/pivotValue;
 #ifdef DENSE_CODE
-  if (!solveMode_) {
+  if ((solveMode_%10)==0) {
 #endif
     if (regionSparse->packedMode()) {
       for (i=0;i<numberNonZero;i++) {
@@ -439,7 +439,7 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   int numberNonZero = regionSparse2->getNumElements (  );
   double *region = regionSparse->denseVector (  );
 #ifdef DENSE_CODE
-  if (!solveMode_) {
+  if ((solveMode_%10)==0) {
 #endif
     if (!regionSparse2->packedMode()) {
       if (!noPermute) {
@@ -489,7 +489,7 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   int i;
   CoinFactorizationDouble * elements = elements_;
 #ifdef DENSE_CODE
-  if (!solveMode_) {
+  if ((solveMode_%10)==0) {
 #endif
     // base factorization L
     for (i=0;i<numberColumns_;i++) {
@@ -532,7 +532,7 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   // permute back and get nonzeros
   numberNonZero=0;
 #ifdef DENSE_CODE
-  if (!solveMode_) {
+  if ((solveMode_%10)==0) {
 #endif
     if (!noPermute) {
       if (!regionSparse2->packedMode()) {
@@ -629,7 +629,7 @@ CoinDenseFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
   updateColumn(regionSparse1,&s2);
   updateColumn(regionSparse1,&s3);
 #endif
-  if (!solveMode_) {
+  if ((solveMode_%10)==0) {
 #endif
     updateColumn(regionSparse1,regionSparse2);
     updateColumn(regionSparse1,regionSparse3);
@@ -768,7 +768,7 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
   int numberNonZero = regionSparse2->getNumElements (  );
   double *region = regionSparse->denseVector (  );
 #ifdef DENSE_CODE
-  if (!solveMode_) {
+  if ((solveMode_%10)==0) {
 #endif
     if (!regionSparse2->packedMode()) {
       for (int j=0;j<numberRows_;j++) {
@@ -825,7 +825,7 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
     region[iPivot] = value*elements[iPivot];
   }
 #ifdef DENSE_CODE
-  if (!solveMode_) {
+  if ((solveMode_%10)==0) {
 #endif
     // base factorization U
     elements = elements_;
@@ -861,7 +861,7 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
   // permute back and get nonzeros
   numberNonZero=0;
 #ifdef DENSE_CODE
-  if (!solveMode_) {
+  if ((solveMode_%10)==0) {
 #endif
     if (!regionSparse2->packedMode()) {
       for (int j=0;j<numberRows_;j++) {
@@ -914,18 +914,19 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
 // Default constructor
 CoinSmallFactorization::CoinSmallFactorization (  )
    :  pivotTolerance_(1.0e-1),
-  zeroTolerance_(1.0e-13),
+      zeroTolerance_(1.0e-13),
 #ifndef COIN_FAST_CODE
-  slackValue_(-1.0),
+      slackValue_(-1.0),
 #endif
-  relaxCheck_(1.0),
-  factorElements_(0),
-  numberRows_(0),
-  numberColumns_(0),
-  numberGoodU_(0),
-  maximumPivots_(200),
-  numberPivots_(0),
-  status_(-1)
+      relaxCheck_(1.0),
+      factorElements_(0),
+      numberRows_(0),
+      numberColumns_(0),
+      numberGoodU_(0),
+      maximumPivots_(200),
+      numberPivots_(0),
+      status_(-1),
+      solveMode_(0)
 {
 }
 // Copy constructor 
@@ -942,7 +943,8 @@ CoinSmallFactorization::CoinSmallFactorization ( const CoinSmallFactorization &o
   numberGoodU_(other.numberGoodU_),
   maximumPivots_(other.maximumPivots_),
   numberPivots_(other.numberPivots_),
-  status_(other.status_)
+      status_(other.status_),
+      solveMode_(other.solveMode_)
 {
 }
 // Destructor
@@ -966,6 +968,7 @@ CoinSmallFactorization & CoinSmallFactorization::operator = ( const CoinSmallFac
     maximumPivots_ = other.maximumPivots_;
     numberPivots_ = other.numberPivots_;
     status_ = other.status_;
+    solveMode_ = other.solveMode_;
   }
   return *this;
 }
@@ -1000,3 +1003,35 @@ CoinSmallFactorization::maximumPivots (  int value )
   }
   maximumPivots_ = value;
 }
+// Number of entries in each row
+int * 
+CoinSmallFactorization::numberInRow() const
+{ return reinterpret_cast<int *> (workArea_);}
+// Number of entries in each column
+int * 
+CoinSmallFactorization::numberInColumn() const
+{ return (reinterpret_cast<int *> (workArea_))+numberRows_;}
+// Returns array to put basis starts in
+CoinBigIndex * 
+CoinSmallFactorization::starts() const
+{ return reinterpret_cast<CoinBigIndex *> (pivotRow_);}
+// Returns array to put basis elements in
+CoinFactorizationDouble * 
+CoinSmallFactorization::elements() const
+{ return elements_;}
+// Returns pivot row 
+int * 
+CoinSmallFactorization::pivotRow() const
+{ return pivotRow_;}
+// Returns work area
+CoinFactorizationDouble * 
+CoinSmallFactorization::workArea() const
+{ return workArea_;}
+// Returns int work area
+int * 
+CoinSmallFactorization::intWorkArea() const
+{ return reinterpret_cast<int *> (workArea_);}
+// Returns permute back
+int * 
+CoinSmallFactorization::permuteBack() const
+{ return pivotRow_+numberRows_;}
