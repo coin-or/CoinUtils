@@ -79,7 +79,7 @@ public:
     return maximumPivots_ ;
   }
   /// Set maximum pivots
-  void maximumPivots (  int value );
+  virtual void maximumPivots (  int value );
 
   /// Pivot tolerance
   inline double pivotTolerance (  ) const {
@@ -115,17 +115,24 @@ public:
   /// Returns permute back
   virtual int * permuteBack() const;
   /** Get solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
-      If 10 set then values pass
-      if 100 set then has iterated
+      If 4 set then values pass
+      if 8 set then has iterated
   */
   inline int solveMode() const
   { return solveMode_ ;}
   /** Set solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
-      If 10 set then values pass
-      if 100 set then has iterated
+      If 4 set then values pass
+      if 8 set then has iterated
   */
   inline void setSolveMode(int value)
   { solveMode_ = value;}
+  /// Returns true if wants tableauColumn in replaceColumn
+  virtual bool wantsTableauColumn() const;
+  /** Useful information for factorization
+      0 - iteration number
+      whereFrom is 0 for factorize and 1 for replaceColumn
+  */
+  virtual void setUsefulInformation(const int * info,int whereFrom);
   //@}
   /**@name virtual general stuff such as permutation */
   //@{ 
@@ -251,8 +258,8 @@ protected:
   /// Work area of numberRows_ 
   CoinFactorizationDouble * workArea_;
   /** Solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
-      If 10 set then values pass
-      if 100 set then has iterated
+      If 4 set then values pass
+      if 8 set then has iterated
   */
   int solveMode_;
   //@}

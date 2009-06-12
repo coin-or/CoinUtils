@@ -1035,3 +1035,14 @@ CoinSmallFactorization::intWorkArea() const
 int * 
 CoinSmallFactorization::permuteBack() const
 { return pivotRow_+numberRows_;}
+// Returns true if wants tableauColumn in replaceColumn
+bool
+CoinSmallFactorization::wantsTableauColumn() const
+{ return true;}
+/* Useful information for factorization
+   0 - iteration number
+   whereFrom is 0 for factorize and 1 for replaceColumn
+*/
+void 
+CoinSmallFactorization::setUsefulInformation(const int * info,int whereFrom)
+{ }
