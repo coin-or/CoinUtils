@@ -1101,7 +1101,7 @@ CoinFactorization::updateColumnTransposeLDensish
       if ( fabs ( pivotValue ) > tolerance ) {
 	region[i] = pivotValue;
 	regionIndex[numberNonZero++] = i;
-      } else {
+      } else { 
 	region[i] = 0.0;
       }       
     }       
