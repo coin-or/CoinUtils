@@ -368,7 +368,8 @@ public:
   int replaceColumn ( CoinIndexedVector * regionSparse,
 		      int pivotRow,
 		      double pivotCheck ,
-		      bool checkBeforeModifying=false);
+		      bool checkBeforeModifying=false,
+		      double acceptablePivot=1.0e-8);
   /** Combines BtranU and delete elements
       If deleted is NULL then delete elements
       otherwise store where elements are

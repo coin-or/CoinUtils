@@ -45,7 +45,7 @@ CoinDenseFactorization::CoinDenseFactorization ( const CoinDenseFactorization &o
   gutsOfCopy(other);
 }
 // Clone
-CoinSmallFactorization * 
+CoinOtherFactorization * 
 CoinDenseFactorization::clone() const 
 {
   return new CoinDenseFactorization(*this);
@@ -362,7 +362,8 @@ int
 CoinDenseFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 					int pivotRow,
 					double pivotCheck ,
-					bool checkBeforeModifying)
+					bool checkBeforeModifying,
+				       double acceptablePivot)
 {
   if (numberPivots_==maximumPivots_)
     return 3;
@@ -912,7 +913,7 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
   return 0;
 }
 // Default constructor
-CoinSmallFactorization::CoinSmallFactorization (  )
+CoinOtherFactorization::CoinOtherFactorization (  )
    :  pivotTolerance_(1.0e-1),
       zeroTolerance_(1.0e-13),
 #ifndef COIN_FAST_CODE
@@ -930,7 +931,7 @@ CoinSmallFactorization::CoinSmallFactorization (  )
 {
 }
 // Copy constructor 
-CoinSmallFactorization::CoinSmallFactorization ( const CoinSmallFactorization &other)
+CoinOtherFactorization::CoinOtherFactorization ( const CoinOtherFactorization &other)
    :  pivotTolerance_(other.pivotTolerance_),
   zeroTolerance_(other.zeroTolerance_),
 #ifndef COIN_FAST_CODE
@@ -948,11 +949,11 @@ CoinSmallFactorization::CoinSmallFactorization ( const CoinSmallFactorization &o
 {
 }
 // Destructor
-CoinSmallFactorization::~CoinSmallFactorization (  )
+CoinOtherFactorization::~CoinOtherFactorization (  )
 {
 }
 // = copy
-CoinSmallFactorization & CoinSmallFactorization::operator = ( const CoinSmallFactorization & other )
+CoinOtherFactorization & CoinOtherFactorization::operator = ( const CoinOtherFactorization & other )
 {
   if (this != &other) {    
     pivotTolerance_ = other.pivotTolerance_;
@@ -972,20 +973,20 @@ CoinSmallFactorization & CoinSmallFactorization::operator = ( const CoinSmallFac
   }
   return *this;
 }
-void CoinSmallFactorization::pivotTolerance (  double value )
+void CoinOtherFactorization::pivotTolerance (  double value )
 {
   if (value>0.0&&value<=1.0) {
     pivotTolerance_=value;
   }
 }
-void CoinSmallFactorization::zeroTolerance (  double value )
+void CoinOtherFactorization::zeroTolerance (  double value )
 {
   if (value>0.0&&value<1.0) {
     zeroTolerance_=value;
   }
 }
 #ifndef COIN_FAST_CODE
-void CoinSmallFactorization::slackValue (  double value )
+void CoinOtherFactorization::slackValue (  double value )
 {
   if (value>=0.0) {
     slackValue_=1.0;
@@ -995,7 +996,7 @@ void CoinSmallFactorization::slackValue (  double value )
 }
 #endif
 void 
-CoinSmallFactorization::maximumPivots (  int value )
+CoinOtherFactorization::maximumPivots (  int value )
 {
   if (value>maximumPivots_) {
     delete [] pivotRow_;
@@ -1005,44 +1006,44 @@ CoinSmallFactorization::maximumPivots (  int value )
 }
 // Number of entries in each row
 int * 
-CoinSmallFactorization::numberInRow() const
+CoinOtherFactorization::numberInRow() const
 { return reinterpret_cast<int *> (workArea_);}
 // Number of entries in each column
 int * 
-CoinSmallFactorization::numberInColumn() const
+CoinOtherFactorization::numberInColumn() const
 { return (reinterpret_cast<int *> (workArea_))+numberRows_;}
 // Returns array to put basis starts in
 CoinBigIndex * 
-CoinSmallFactorization::starts() const
+CoinOtherFactorization::starts() const
 { return reinterpret_cast<CoinBigIndex *> (pivotRow_);}
 // Returns array to put basis elements in
 CoinFactorizationDouble * 
-CoinSmallFactorization::elements() const
+CoinOtherFactorization::elements() const
 { return elements_;}
 // Returns pivot row 
 int * 
-CoinSmallFactorization::pivotRow() const
+CoinOtherFactorization::pivotRow() const
 { return pivotRow_;}
 // Returns work area
 CoinFactorizationDouble * 
-CoinSmallFactorization::workArea() const
+CoinOtherFactorization::workArea() const
 { return workArea_;}
 // Returns int work area
 int * 
-CoinSmallFactorization::intWorkArea() const
+CoinOtherFactorization::intWorkArea() const
 { return reinterpret_cast<int *> (workArea_);}
 // Returns permute back
 int * 
-CoinSmallFactorization::permuteBack() const
+CoinOtherFactorization::permuteBack() const
 { return pivotRow_+numberRows_;}
 // Returns true if wants tableauColumn in replaceColumn
 bool
-CoinSmallFactorization::wantsTableauColumn() const
+CoinOtherFactorization::wantsTableauColumn() const
 { return true;}
 /* Useful information for factorization
    0 - iteration number
    whereFrom is 0 for factorize and 1 for replaceColumn
 */
 void 
-CoinSmallFactorization::setUsefulInformation(const int * info,int whereFrom)
+CoinOtherFactorization::setUsefulInformation(const int * info,int whereFrom)
 { }

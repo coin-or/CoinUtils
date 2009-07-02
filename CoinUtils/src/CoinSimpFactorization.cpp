@@ -83,7 +83,7 @@ CoinSimpFactorization::CoinSimpFactorization ( const CoinSimpFactorization &othe
   gutsOfCopy(other);
 }
 // Clone
-CoinSmallFactorization * 
+CoinOtherFactorization * 
 CoinSimpFactorization::clone() const 
 {
   return new CoinSimpFactorization(*this);
@@ -907,7 +907,8 @@ int
 CoinSimpFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 				      int pivotRow,
 				      double pivotCheck ,
-				      bool checkBeforeModifying)
+				       bool checkBeforeModifying,
+				       double acceptablePivot)
 {
     if (numberPivots_==maximumPivots_) 
 	return 3; 

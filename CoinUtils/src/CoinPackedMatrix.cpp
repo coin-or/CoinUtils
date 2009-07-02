@@ -996,6 +996,30 @@ CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix& rhs)
      CoinBigIndex last = first + length[i]; 
      CoinBigIndex j = first;
      first = start[i+1];
+#if 0
+     if (((last-j)&1)!=0) {
+       const int ind = index[j];
+       CoinBigIndex put = start_[ind];
+       start_[ind] = put +1;
+       element_[put] = element[j];
+       index_[put] = i;
+       j++;
+     }
+     for (; j != last; j+=2) {
+       const int ind0 = index[j];
+       CoinBigIndex put0 = start_[ind0];
+       double value0=element[j];
+       const int ind1 = index[j+1];
+       CoinBigIndex put1 = start_[ind1];
+       double value1=element[j+1];
+       start_[ind0] = put0 +1;
+       start_[ind1] = put1 +1;
+       element_[put0] = value0;
+       index_[put0] = i;
+       element_[put1] = value1;
+       index_[put1] = i;
+     }
+#else
      for (; j != last; ++j) {
        const int ind = index[j];
        CoinBigIndex put = start_[ind];
@@ -1003,6 +1027,7 @@ CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix& rhs)
        element_[put] = element[j];
        index_[put] = i;
      }
+#endif
    }
    // and re-adjust start_
    for (i = 0; i < majorDim_; ++i) {
@@ -1587,17 +1612,11 @@ void
 CoinPackedMatrix::deleteMajorVectors(const int numDel,
 				    const int * indDel)
 {
-   int *sortedDelPtr = CoinTestIndexSet(numDel, indDel, majorDim_,
-				       "deleteMajorVectors");
-   const int * sortedDel = sortedDelPtr == 0 ? indDel : sortedDelPtr;
-
    if (numDel == majorDim_) {
       // everything is deleted
       majorDim_ = 0;
       minorDim_ = 0;
       size_ = 0;
-      if (sortedDelPtr)
-	 delete[] sortedDelPtr;
       // Get rid of memory as well
       maxMajorDim_ = 0;
       delete [] length_;
@@ -1613,41 +1632,76 @@ CoinPackedMatrix::deleteMajorVectors(const int numDel,
       return;
    }
 
-   CoinBigIndex deleted = 0;
-   const int last = numDel - 1;
-   for (int i = 0; i < last; ++i) {
-      const int ind = sortedDel[i];
-      const int ind1 = sortedDel[i+1];
-      deleted += length_[ind];
-      if (ind1 - ind > 1) {
+   if (!extraGap_&&!extraMajor_) {
+     // See if this is faster
+     char * keep = new char[majorDim_];
+     memset(keep,1,majorDim_);
+     for (int i=0;i<numDel;i++) {
+       int k=indDel[i];
+       assert (k>=0&&k<majorDim_&&keep[k]);
+       keep[k]=0;
+     }
+     int n;
+     // find first
+     for (n=0;n<majorDim_;n++) {
+       if (!keep[n])
+	 break;
+     }
+     size_=start_[n];
+     for (int i=n;i<majorDim_;i++) {
+       if (keep[i]) {
+	 int length = length_[i];
+	 length_[n]=length;
+	 for (CoinBigIndex j=start_[i];j<start_[i+1];j++) {
+	   element_[size_]=element_[j];
+	   index_[size_++]=index_[j];
+	 }
+	 start_[++n]=size_;
+       }
+     }
+     majorDim_=n;
+     delete [] keep;
+   } else {
+     int *sortedDelPtr = CoinTestIndexSet(numDel, indDel, majorDim_,
+					  "deleteMajorVectors");
+     const int * sortedDel = sortedDelPtr == 0 ? indDel : sortedDelPtr;
+     
+     CoinBigIndex deleted = 0;
+     const int last = numDel - 1;
+     for (int i = 0; i < last; ++i) {
+       const int ind = sortedDel[i];
+       const int ind1 = sortedDel[i+1];
+       deleted += length_[ind];
+       if (ind1 - ind > 1) {
 	 CoinCopy(start_ + (ind + 1), start_ + ind1, start_ + (ind - i));
 	 CoinCopy(length_ + (ind + 1), length_ + ind1, length_ + (ind - i));
-      }
+       }
+     }
+     
+     // copy the last block of length_ and start_
+     const int ind = sortedDel[last];
+     deleted += length_[ind];
+     if (sortedDel[last] != majorDim_ - 1) {
+       const int ind1 = majorDim_;
+       CoinCopy(start_ + (ind + 1), start_ + ind1, start_ + (ind - last));
+       CoinCopy(length_ + (ind + 1), length_ + ind1, length_ + (ind - last));
+     }
+     majorDim_ -= numDel;
+     const int lastlength = CoinLengthWithExtra(length_[majorDim_-1], extraGap_);
+     start_[majorDim_] = CoinMin(start_[majorDim_-1] + lastlength, maxSize_);
+     size_ -= deleted;
+     
+     // if the very first major vector was deleted then copy the new first major
+     // vector to the beginning to make certain that start_[0] is 0. This may
+     // not be necessary, but better safe than sorry...
+     if (sortedDel[0] == 0) {
+       CoinCopyN(index_ + start_[0], length_[0], index_);
+       CoinCopyN(element_ + start_[0], length_[0], element_);
+       start_[0] = 0;
+     }
+     
+     delete[] sortedDelPtr;
    }
-
-   // copy the last block of length_ and start_
-   const int ind = sortedDel[last];
-   deleted += length_[ind];
-   if (sortedDel[last] != majorDim_ - 1) {
-      const int ind1 = majorDim_;
-      CoinCopy(start_ + (ind + 1), start_ + ind1, start_ + (ind - last));
-      CoinCopy(length_ + (ind + 1), length_ + ind1, length_ + (ind - last));
-   }
-   majorDim_ -= numDel;
-   const int lastlength = CoinLengthWithExtra(length_[majorDim_-1], extraGap_);
-   start_[majorDim_] = CoinMin(start_[majorDim_-1] + lastlength, maxSize_);
-   size_ -= deleted;
-
-   // if the very first major vector was deleted then copy the new first major
-   // vector to the beginning to make certain that start_[0] is 0. This may
-   // not be necessary, but better safe than sorry...
-   if (sortedDel[0] == 0) {
-      CoinCopyN(index_ + start_[0], length_[0], index_);
-      CoinCopyN(element_ + start_[0], length_[0], element_);
-      start_[0] = 0;
-   }
-
-   delete[] sortedDelPtr;
 }
 
 //#############################################################################
@@ -1716,26 +1770,46 @@ CoinPackedMatrix::deleteMinorVectors(const int numDel,
     }
   }
 #endif
-  int deleted = 0;
-  for (i = 0; i < majorDim_; ++i) {
-    int * index = index_ + start_[i];
-    double * elem = element_ + start_[i];
-    const int length_i = length_[i];
-    for (j = 0, k = 0; j < length_i; ++j) {
-      const int ind = newindex[index[j]];
-      if (ind != -1) {
-	index[k] = ind;
-	elem[k++] = elem[j];
+  if (!extraGap_) {
+    // pack down
+    size_=0;
+    for (i = 0; i < majorDim_; ++i) {
+      int * index = index_ + start_[i];
+      double * elem = element_ + start_[i];
+      start_[i]=size_;
+      const int length_i = length_[i];
+      for (j = 0; j < length_i; ++j) {
+	const int ind = newindex[index[j]];
+	if (ind >= 0) {
+	  index_[size_] = ind;
+	  element_[size_++] = elem[j];
+	}
       }
+      length_[i] = size_-start_[i];
     }
-    deleted += length_i - k;
-    length_[i] = k;
+    start_[majorDim_]=size_;
+  } else {
+    int deleted = 0;
+    for (i = 0; i < majorDim_; ++i) {
+      int * index = index_ + start_[i];
+      double * elem = element_ + start_[i];
+      const int length_i = length_[i];
+      for (j = 0, k = 0; j < length_i; ++j) {
+	const int ind = newindex[index[j]];
+	if (ind != -1) {
+	  index[k] = ind;
+	  elem[k++] = elem[j];
+	}
+      }
+      deleted += length_i - k;
+      length_[i] = k;
+    }
+    size_ -= deleted;
   }
 
   delete[] newindexPtr;
 
   minorDim_ -= numDel;
-  size_ -= deleted;
 }
 
 //#############################################################################
@@ -2321,6 +2395,7 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs,
     // and array for duplicating rows
     int * duplicateRow = new int [numberRows];
     int numberBad=0;
+    int numberDuplicate=0;
     for (iRow=0;iRow<numberRows;iRow++) {
       duplicateRow[iRow] = -1;
       int kRow = whichRow[iRow];
@@ -2330,6 +2405,7 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs,
 	  newRow[kRow]=iRow;
 	} else {
 	  // duplicate
+	  numberDuplicate++;
 	  int lastRow = newRow[kRow];
 	  newRow[kRow]=iRow;
 	  duplicateRow[iRow] = lastRow;
@@ -2347,50 +2423,133 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs,
     size_ = 0;
     int iColumn;
     numberBad=0;
-    for (iColumn=0;iColumn<numberColumns;iColumn++) {
-      int kColumn = whichColumn[iColumn];
-      if (kColumn>=0  && kColumn <rhs.majorDim_) {
+    if (!numberDuplicate) {
+      // No duplicates so can do faster
+      // If not much smaller then use original size
+      if (3*majorDim_>2*rhs.majorDim_&&
+	  3*minorDim_>2*rhs.minorDim_) {
+	// now create arrays
+	maxSize_=CoinMax(static_cast<CoinBigIndex> (1),rhs.size_);
+	start_ = new CoinBigIndex [numberColumns+1];
+	length_ = new int [numberColumns];
+	index_ = new int[maxSize_];
+	element_ = new double [maxSize_];
+	// and fill them
+	size_ = 0;
+	start_[0]=0;
+	for (iColumn=0;iColumn<numberColumns;iColumn++) {
+	  int kColumn = whichColumn[iColumn];
+	  if (kColumn>=0  && kColumn <rhs.majorDim_) {
+	    CoinBigIndex i;
+	    for (i=start1[kColumn];i<start1[kColumn]+length1[kColumn];i++) {
+	      int kRow = index1[i];
+	      double value = element1[i];
+	      kRow = newRow[kRow];
+	      if (kRow>=0) {
+		index_[size_] = kRow;
+		element_[size_++] = value;
+	      }
+	    }
+	  } else {
+	    // bad column
+	    numberBad++;
+	  }
+	  start_[iColumn+1] = size_;
+	  length_[iColumn] = size_ - start_[iColumn];
+	}
+	if (numberBad)
+	  throw CoinError("bad major entries", 
+			  "subset constructor", "CoinPackedMatrix");
+      } else {
+	for (iColumn=0;iColumn<numberColumns;iColumn++) {
+	  int kColumn = whichColumn[iColumn];
+	  if (kColumn>=0  && kColumn <rhs.majorDim_) {
+	    CoinBigIndex i;
+	    for (i=start1[kColumn];i<start1[kColumn]+length1[kColumn];i++) {
+	      int kRow = index1[i];
+	      kRow = newRow[kRow];
+	      if (kRow>=0)
+		size_++;
+	    }
+	  } else {
+	    // bad column
+	    numberBad++;
+	  }
+	}
+	if (numberBad)
+	  throw CoinError("bad major entries", 
+			  "subset constructor", "CoinPackedMatrix");
+	// now create arrays
+	maxSize_=CoinMax(static_cast<CoinBigIndex> (1),size_);
+	start_ = new CoinBigIndex [numberColumns+1];
+	length_ = new int [numberColumns];
+	index_ = new int[maxSize_];
+	element_ = new double [maxSize_];
+	// and fill them
+	size_ = 0;
+	start_[0]=0;
+	for (iColumn=0;iColumn<numberColumns;iColumn++) {
+	  int kColumn = whichColumn[iColumn];
+	  CoinBigIndex i;
+	  for (i=start1[kColumn];i<start1[kColumn]+length1[kColumn];i++) {
+	    int kRow = index1[i];
+	    double value = element1[i];
+	    kRow = newRow[kRow];
+	    if (kRow>=0) {
+	      index_[size_] = kRow;
+	      element_[size_++] = value;
+	    }
+	  }
+	  start_[iColumn+1] = size_;
+	  length_[iColumn] = size_ - start_[iColumn];
+	}
+      }
+    } else {
+      for (iColumn=0;iColumn<numberColumns;iColumn++) {
+	int kColumn = whichColumn[iColumn];
+	if (kColumn>=0  && kColumn <rhs.majorDim_) {
+	  CoinBigIndex i;
+	  for (i=start1[kColumn];i<start1[kColumn]+length1[kColumn];i++) {
+	    int kRow = index1[i];
+	    kRow = newRow[kRow];
+	    while (kRow>=0) {
+	      size_++;
+	      kRow = duplicateRow[kRow];
+	    }
+	  }
+	} else {
+	  // bad column
+	  numberBad++;
+	}
+      }
+      if (numberBad)
+	throw CoinError("bad major entries", 
+			"subset constructor", "CoinPackedMatrix");
+      // now create arrays
+      maxSize_=CoinMax(static_cast<CoinBigIndex> (1),size_);
+      start_ = new CoinBigIndex [numberColumns+1];
+      length_ = new int [numberColumns];
+      index_ = new int[maxSize_];
+      element_ = new double [maxSize_];
+      // and fill them
+      size_ = 0;
+      start_[0]=0;
+      for (iColumn=0;iColumn<numberColumns;iColumn++) {
+	int kColumn = whichColumn[iColumn];
 	CoinBigIndex i;
 	for (i=start1[kColumn];i<start1[kColumn]+length1[kColumn];i++) {
 	  int kRow = index1[i];
+	  double value = element1[i];
 	  kRow = newRow[kRow];
 	  while (kRow>=0) {
-	    size_++;
+	    index_[size_] = kRow;
+	    element_[size_++] = value;
 	    kRow = duplicateRow[kRow];
 	  }
 	}
-      } else {
-	// bad column
-	numberBad++;
+	start_[iColumn+1] = size_;
+	length_[iColumn] = size_ - start_[iColumn];
       }
-    }
-    if (numberBad)
-      throw CoinError("bad major entries", 
-		      "subset constructor", "CoinPackedMatrix");
-    // now create arrays
-    maxSize_=CoinMax(static_cast<CoinBigIndex> (1),size_);
-    start_ = new CoinBigIndex [numberColumns+1];
-    length_ = new int [numberColumns];
-    index_ = new int[maxSize_];
-    element_ = new double [maxSize_];
-    // and fill them
-    size_ = 0;
-    start_[0]=0;
-    for (iColumn=0;iColumn<numberColumns;iColumn++) {
-      int kColumn = whichColumn[iColumn];
-      CoinBigIndex i;
-      for (i=start1[kColumn];i<start1[kColumn]+length1[kColumn];i++) {
-	int kRow = index1[i];
-	double value = element1[i];
-	kRow = newRow[kRow];
-	while (kRow>=0) {
-	  index_[size_] = kRow;
-	  element_[size_++] = value;
-	  kRow = duplicateRow[kRow];
-	}
-      }
-      start_[iColumn+1] = size_;
-      length_[iColumn] = size_ - start_[iColumn];
     }
     delete [] newRow;
     delete [] duplicateRow;
@@ -2551,56 +2710,78 @@ CoinPackedMatrix::gutsOfOpEqual(const bool colordered,
    majorDim_ = major;
    minorDim_ = minor;
    size_ = numels;
-
-   maxMajorDim_ = CoinLengthWithExtra(majorDim_, extraMajor_);
-
-   int i;
-   if (maxMajorDim_ > 0) {
-     delete [] length_;
-      length_ = new int[maxMajorDim_];
-      if (len == 0) {
+   if (numels==start[major]&&!start[0]&&!len) {
+     // No gaps - do faster
+     if (major>maxMajorDim_||!start_) {
+       maxMajorDim_ = major;
+       delete [] length_;
+       length_ = new int[maxMajorDim_];
+       delete [] start_;
+       start_ = new CoinBigIndex[maxMajorDim_+1];
+     }
+     CoinMemcpyN(start,major+1,start_);
+     std::adjacent_difference(start + 1, start + (major + 1), length_);
+     if (numels>maxSize_||!element_) {
+       maxSize_=numels;
+       delete [] element_;
+       delete [] index_;
+       element_ = new double[maxSize_];
+       index_ = new int[maxSize_];
+     }
+     CoinMemcpyN(ind,numels,index_);
+     CoinMemcpyN(elem,numels,element_);
+   } else {
+     
+     maxMajorDim_ = CoinLengthWithExtra(majorDim_, extraMajor_);
+     
+     int i;
+     if (maxMajorDim_ > 0) {
+       delete [] length_;
+       length_ = new int[maxMajorDim_];
+       if (len == 0) {
 	 std::adjacent_difference(start + 1, start + (major + 1), length_);
 	 length_[0] -= start[0];
-      } else {
+       } else {
 	 CoinMemcpyN(len, major, length_);
-      }
-      delete [] start_;
-      start_ = new CoinBigIndex[maxMajorDim_+1];
-      start_[0] = 0;
-      if (extraGap_ == 0) {
+       }
+       delete [] start_;
+       start_ = new CoinBigIndex[maxMajorDim_+1];
+       start_[0] = 0;
+       if (extraGap_ == 0) {
 	 for (i = 0; i < major; ++i)
-	    start_[i+1] = start_[i] + length_[i];
-      } else {
-	const double extra_gap = extraGap_;
-	for (i = 0; i < major; ++i)
-	  start_[i+1] = start_[i] + CoinLengthWithExtra(length_[i], extra_gap);
-      }
-   } else {
-     // empty matrix
-     delete [] start_;
-     start_ = new CoinBigIndex[1];
-     start_[0] = 0;
-   }
-
-   maxSize_ = maxMajorDim_ > 0 ? start_[major] : 0;
-   maxSize_ = CoinLengthWithExtra(maxSize_, extraMajor_);
-
-   if (maxSize_ > 0) {
-     delete [] element_;
-     delete [] index_;
-     element_ = new double[maxSize_];
-     index_ = new int[maxSize_];
-     assert (maxSize_>=start_[majorDim_-1]+length_[majorDim_-1]);
-     // we can't just simply memcpy these content over, because that can
-     // upset memory debuggers like purify if there were gaps and those gaps
-     // were uninitialized memory blocks
-     for (i = majorDim_ - 1; i >= 0; --i) {
-       CoinMemcpyN(ind + start[i], length_[i], index_ + start_[i]);
-       CoinMemcpyN(elem + start[i], length_[i], element_ + start_[i]);
+	   start_[i+1] = start_[i] + length_[i];
+       } else {
+	 const double extra_gap = extraGap_;
+	 for (i = 0; i < major; ++i)
+	   start_[i+1] = start_[i] + CoinLengthWithExtra(length_[i], extra_gap);
+       }
+     } else {
+       // empty matrix
+       delete [] start_;
+       start_ = new CoinBigIndex[1];
+       start_[0] = 0;
+     }
+     
+     maxSize_ = maxMajorDim_ > 0 ? start_[major] : 0;
+     maxSize_ = CoinLengthWithExtra(maxSize_, extraMajor_);
+     
+     if (maxSize_ > 0) {
+       delete [] element_;
+       delete [] index_;
+       element_ = new double[maxSize_];
+       index_ = new int[maxSize_];
+       assert (maxSize_>=start_[majorDim_-1]+length_[majorDim_-1]);
+       // we can't just simply memcpy these content over, because that can
+       // upset memory debuggers like purify if there were gaps and those gaps
+       // were uninitialized memory blocks
+       for (i = majorDim_ - 1; i >= 0; --i) {
+	 CoinMemcpyN(ind + start[i], length_[i], index_ + start_[i]);
+	 CoinMemcpyN(elem + start[i], length_[i], element_ + start_[i]);
+       }
      }
    }
 #ifndef NDEBUG
-   for ( i = majorDim_ - 1; i >= 0; --i) {
+   for (int i = majorDim_ - 1; i >= 0; --i) {
      const CoinBigIndex last = getVectorLast(i);
      for (CoinBigIndex j = getVectorFirst(i); j < last; ++j) {
        int index = index_[j];
@@ -2657,6 +2838,7 @@ CoinPackedMatrix::resizeForAddingMajorVectors(const int numVec,
   index_   = newIndex;
   element_ = newElem;
 }
+
 
 //#############################################################################
 
@@ -2901,11 +3083,52 @@ CoinPackedMatrix::appendMajor(const int number,
     // we got to resize before we add. note that the resizing method
     // properly fills out start_ and length_ for the major-dimension
     // vectors to be added!
-    int * length = new int[number];
-    for (i=0;i<number;i++)
-      length[i]=starts[i+1]-starts[i];
-    resizeForAddingMajorVectors(number, length);
-    delete [] length;
+    if (!extraGap_&&!extraMajor_&&numberOther<=0) {
+      // can do faster
+      if (majorDim_+number>maxMajorDim_) {
+	maxMajorDim_ = majorDim_+number;
+	int * newLength = new int[maxMajorDim_];
+	CoinMemcpyN(length_, majorDim_, newLength);
+	delete [] length_;
+	length_  = newLength;
+	CoinBigIndex * newStart = new CoinBigIndex[maxMajorDim_ + 1];
+	CoinMemcpyN(start_, majorDim_+1, newStart);
+	delete [] start_;
+	start_   = newStart;
+      }
+      if (size_+numberElements>maxSize_) {
+	maxSize_ = size_+numberElements;
+	double * newElem = new double[maxSize_];
+	CoinMemcpyN(element_,size_,newElem);
+	delete [] element_;
+	element_ = newElem;
+	int * newIndex = new int[maxSize_];
+	CoinMemcpyN(index_,size_,newIndex);
+	delete [] index_;
+	index_ = newIndex;
+      }
+      CoinMemcpyN(index,numberElements,index_+size_);
+      CoinMemcpyN(element,numberElements,element_+size_);
+      i=majorDim_;
+      starts -= majorDim_;
+      majorDim_ += number;
+      int iStart=0;
+      for (;i<majorDim_;i++) {
+	int next = starts[i+1];
+	int length = next-iStart;
+	length_[i]=length;
+	iStart=next;
+	size_ += length;
+	start_[i+1]=size_;
+      }
+      return 0;
+    } else {
+      int * length = new int[number];
+      for (i=0;i<number;i++)
+	length[i]=starts[i+1]-starts[i];
+      resizeForAddingMajorVectors(number, length);
+      delete [] length;
+    }
     if (numberOther>0) {
       char * which = new char[numberOther];
       memset(which,0,numberOther);
@@ -3161,14 +3384,11 @@ CoinPackedMatrix::appendMinorFast(const int number,
   CoinBigIndex * newStart = new CoinBigIndex [majorDim_+1];
   CoinZeroN(newStart,majorDim_);
   // no checking
-  for (int i = 0; i < number; i++) {
-    CoinBigIndex j;
-    for ( j=starts[i];j<starts[i+1];j++) {
-      int iIndex = index[j];
-      newStart[iIndex]++;
-    }
-  }
   int numberAdded = starts[number];
+  for (CoinBigIndex j = 0; j < numberAdded; j++) {
+    int iIndex = index[j];
+    newStart[iIndex]++;
+  }
   int packType=0;
 #ifdef ADD_ROW_ANALYZE
   int nBad=0;

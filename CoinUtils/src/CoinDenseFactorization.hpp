@@ -18,24 +18,24 @@
 #include "CoinFactorization.hpp"
 class CoinPackedMatrix;
 /// Abstract base class which also has some scalars so can be used from Dense or Simp
-class CoinSmallFactorization {
+class CoinOtherFactorization {
 
 public:
 
   /**@name Constructors and destructor and copy */
   //@{
   /// Default constructor
-  CoinSmallFactorization (  );
+  CoinOtherFactorization (  );
   /// Copy constructor 
-  CoinSmallFactorization ( const CoinSmallFactorization &other);
+  CoinOtherFactorization ( const CoinOtherFactorization &other);
   
   /// Destructor
-  virtual ~CoinSmallFactorization (  );
+  virtual ~CoinOtherFactorization (  );
   /// = copy
-  CoinSmallFactorization & operator = ( const CoinSmallFactorization & other );
+  CoinOtherFactorization & operator = ( const CoinOtherFactorization & other );
  
   /// Clone
-  virtual CoinSmallFactorization * clone() const = 0;
+  virtual CoinOtherFactorization * clone() const = 0;
   //@}
 
   /**@name general stuff such as status */
@@ -133,6 +133,8 @@ public:
       whereFrom is 0 for factorize and 1 for replaceColumn
   */
   virtual void setUsefulInformation(const int * info,int whereFrom);
+  /// Get rid of all memory
+  virtual void clearArrays() {}
   //@}
   /**@name virtual general stuff such as permutation */
   //@{ 
@@ -178,7 +180,8 @@ public:
   virtual int replaceColumn ( CoinIndexedVector * regionSparse,
 		      int pivotRow,
 		      double pivotCheck ,
-		      bool checkBeforeModifying=false) = 0;
+			      bool checkBeforeModifying=false,
+			      double acceptablePivot=1.0e-8)=0;
   //@}
 
   /**@name various uses of factorization (return code number elements) 
@@ -273,7 +276,7 @@ protected:
 
 
 
-class CoinDenseFactorization : public CoinSmallFactorization {
+class CoinDenseFactorization : public CoinOtherFactorization {
    friend void CoinDenseFactorizationUnitTest( const std::string & mpsDir );
 
 public:
@@ -290,7 +293,7 @@ public:
   /// = copy
   CoinDenseFactorization & operator = ( const CoinDenseFactorization & other );
   /// Clone
-  virtual CoinSmallFactorization * clone() const ;
+  virtual CoinOtherFactorization * clone() const ;
   //@}
 
   /**@name Do factorization - public */
@@ -338,7 +341,8 @@ public:
   virtual int replaceColumn ( CoinIndexedVector * regionSparse,
 		      int pivotRow,
 		      double pivotCheck ,
-		      bool checkBeforeModifying=false);
+			      bool checkBeforeModifying=false,
+			      double acceptablePivot=1.0e-8);
   //@}
 
   /**@name various uses of factorization (return code number elements) 

@@ -230,7 +230,8 @@ int
 CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
                                  int pivotRow,
 				  double pivotCheck ,
-				  bool checkBeforeModifying)
+				   bool checkBeforeModifying,
+				   double acceptablePivot)
 {
   assert (numberU_<=numberRowsExtra_);
   CoinBigIndex * COIN_RESTRICT startColumnU = startColumnU_.array();

@@ -35,7 +35,7 @@ public:
     ~ FactorPointers();
 };
 
-class CoinSimpFactorization : public CoinSmallFactorization {
+class CoinSimpFactorization : public CoinOtherFactorization {
    friend void CoinSimpFactorizationUnitTest( const std::string & mpsDir );
 
 public:
@@ -52,7 +52,7 @@ public:
   /// = copy
   CoinSimpFactorization & operator = ( const CoinSimpFactorization & other );
   /// Clone
-  virtual CoinSmallFactorization * clone() const ;
+  virtual CoinOtherFactorization * clone() const ;
   //@}
 
   /**@name Do factorization - public */
@@ -100,7 +100,8 @@ public:
   virtual int replaceColumn ( CoinIndexedVector * regionSparse,
 		      int pivotRow,
 		      double pivotCheck ,
-		      bool checkBeforeModifying=false);
+			      bool checkBeforeModifying=false,
+			      double acceptablePivot=1.0e-8);
   //@}
 
   /**@name various uses of factorization (return code number elements) 

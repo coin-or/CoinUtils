@@ -28,9 +28,11 @@ CoinCopyN(register const T* from, const int size, register T* to)
     if (size == 0 || from == to)
 	return;
 
+#ifndef NDEBUG
     if (size < 0)
 	throw CoinError("trying to copy negative number of entries",
 			"CoinCopyN", "");
+#endif
 
     register int n = (size + 7) / 8;
     if (to > from) {
@@ -94,9 +96,11 @@ CoinDisjointCopyN(register const T* from, const int size, register T* to)
     if (size == 0 || from == to)
 	return;
 
+#ifndef NDEBUG
     if (size < 0)
 	throw CoinError("trying to copy negative number of entries",
 			"CoinDisjointCopyN", "");
+#endif
 
 #if 0
     /* There is no point to do this test. If to and from are from different
@@ -253,9 +257,11 @@ CoinMemcpyN(register const T* from, const int size, register T* to)
     if (size == 0 || from == to)
 	return;
 
+#ifndef NDEBUG
     if (size < 0)
 	throw CoinError("trying to copy negative number of entries",
 			"CoinMemcpyN", "");
+#endif
 
 #if 0
     /* There is no point to do this test. If to and from are from different
@@ -333,10 +339,11 @@ CoinFillN(register T* to, const int size, register const T value)
     if (size == 0)
 	return;
 
+#ifndef NDEBUG
     if (size < 0)
 	throw CoinError("trying to fill negative number of entries",
 			"CoinFillN", "");
-
+#endif
 #if 1
     for (register int n = size / 8; n > 0; --n, to += 8) {
 	to[0] = value;
@@ -411,9 +418,11 @@ CoinZeroN(register T* to, const int size)
     if (size == 0)
 	return;
 
+#ifndef NDEBUG
     if (size < 0)
 	throw CoinError("trying to fill negative number of entries",
 			"CoinZeroN", "");
+#endif
 #if 1
     for (register int n = size / 8; n > 0; --n, to += 8) {
 	to[0] = 0;
@@ -550,9 +559,10 @@ CoinIsSorted(register const T* first, const int size)
     if (size == 0)
 	return true;
 
+#ifndef NDEBUG
     if (size < 0)
 	throw CoinError("negative number of entries", "CoinIsSorted", "");
-
+#endif
 #if 1
     // size1 is the number of comparisons to be made
     const int size1 = size  - 1;
@@ -609,9 +619,10 @@ CoinIotaN(register T* first, const int size, register T init)
     if (size == 0)
 	return;
 
+#ifndef NDEBUG
     if (size < 0)
 	throw CoinError("negative number of entries", "CoinIotaN", "");
-
+#endif
 #if 1
     for (register int n = size / 8; n > 0; --n, first += 8, init += 8) {
 	first[0] = init;
