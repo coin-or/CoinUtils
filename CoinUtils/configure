@@ -28329,9 +28329,10 @@ if test "${with_coin_instdir+set}" = set; then
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
 		   fi
-		   { echo "$as_me:$LINENO: WARNING: Cannot verify availability of CoinUtils with --with-coin-instdir flag.  Project manager needs to provide name of header to look for" >&5
-echo "$as_me: WARNING: Cannot verify availability of CoinUtils with --with-coin-instdir flag.  Project manager needs to provide name of header to look for" >&2;}
-
+		   if test -r $withval/share/doc/coin/CoinUtils/README; then
+		     coin_has_coinutils=installed
+		     COINUTILSINSTDIR=`cd $withval; pwd`
+		   fi
 fi;
     fi
 
@@ -28393,13 +28394,30 @@ fi
 if test $coin_has_coinutils = installed; then
   echo "$as_me:$LINENO: result: installed in $COINUTILSINSTDIR" >&5
 echo "${ECHO_T}installed in $COINUTILSINSTDIR" >&6
-  # Check for header
+  if test -r $COINUTILSINSTDIR/share/doc/coin/CoinUtils/README; then
 
-  # Check for library (this is not qo reliable)
+  :
+else
+  { { echo "$as_me:$LINENO: error: $COINUTILSINSTDIR/share/doc/coin/CoinUtils/README should be available if CoinUtils is installed" >&5
+echo "$as_me: error: $COINUTILSINSTDIR/share/doc/coin/CoinUtils/README should be available if CoinUtils is installed" >&2;}
+   { (exit 1); exit 1; }; }
+  :
+fi
 
 else
   echo "$as_me:$LINENO: result: $coin_has_coinutils" >&5
 echo "${ECHO_T}$coin_has_coinutils" >&6
+  if test $coin_has_coinutils != notGiven &&
+     test $coin_has_coinutils != skipping; then
+    echo "$as_me:$LINENO: checking for source code location of CoinUtils" >&5
+echo $ECHO_N "checking for source code location of CoinUtils... $ECHO_C" >&6
+    echo "$as_me:$LINENO: result: $COINUTILSSRCDIR" >&5
+echo "${ECHO_T}$COINUTILSSRCDIR" >&6
+    echo "$as_me:$LINENO: checking for object code location of CoinUtils" >&5
+echo $ECHO_N "checking for object code location of CoinUtils... $ECHO_C" >&6
+    echo "$as_me:$LINENO: result: $COINUTILSOBJDIR" >&5
+echo "${ECHO_T}$COINUTILSOBJDIR" >&6
+  fi
 fi
 
 
