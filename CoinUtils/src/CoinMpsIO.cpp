@@ -289,13 +289,13 @@ int CoinMpsCardReader::cleanCard()
     }
     *(lastNonBlank+1)='\0';
     if (tabs&&section_ == COIN_BOUNDS_SECTION&&!freeFormat_&&eightChar_) {
-      int length=lastNonBlank+1-reinterpret_cast<unsigned char *>(card_);
+      size_t length=lastNonBlank+1-reinterpret_cast<unsigned char *>(card_);
       assert (length<81);
       memcpy(card_+82,card_,length);
       int pos[]={1,4,14,24,1000};
       int put=0;
       int tab=0;
-      for (int i=0;i<length;i++) {
+      for (size_t i=0;i<length;i++) {
         char look = card_[i+82];
         if (look!='\t') {
           card_[put++]=look;
@@ -466,9 +466,9 @@ CoinMpsCardReader::~CoinMpsCardReader (  )
 void
 CoinMpsCardReader::strcpyAndCompress ( char *to, const char *from )
 {
-  int n = strlen ( from );
-  int i;
-  int nto = 0;
+  size_t n = strlen ( from );
+  size_t i;
+  size_t nto = 0;
 
   for ( i = 0; i < n; i++ ) {
     if ( from[i] != ' ' ) {
@@ -524,7 +524,7 @@ CoinMpsCardReader::nextField (  )
       }
       if ( next != eol_ ) {
 	char *nextBlank = nextBlankOr ( next );
-	int nchar;
+	long nchar;
 
 	if ( nextBlank ) {
 	  nchar = nextBlank - next;
@@ -973,7 +973,7 @@ CoinMpsCardReader::nextGmsField ( int expectedType )
                  &&*next!='\t'&&*next!='-'&&*next!='+'&&*next>=32)
             next++;
           if (next) {
-            int length = next-position_;
+            size_t length = next-position_;
             strncpy(columnName_,position_,length);
             columnName_[length]='\0';
           } else {
@@ -1006,7 +1006,7 @@ CoinMpsCardReader::nextGmsField ( int expectedType )
                  &&*next!='\t'&&*next>=32)
             next++;
           if (next) {
-            int length = next-position_;
+            size_t length = next-position_;
             strncpy(rowName_,position_,length);
             rowName_[length]='\0';
           } else {
@@ -1079,7 +1079,7 @@ CoinMpsCardReader::nextGmsField ( int expectedType )
             if (next2&&next2-position_<next-position_) {
               next=next2;
             }
-            int length = next-position_;
+            size_t length = next-position_;
             strncpy(rowName_,position_,length);
             rowName_[length]='\0';
             value_=-1.0e100;
@@ -1105,7 +1105,7 @@ CoinMpsCardReader::nextGmsField ( int expectedType )
               (nextChar>='A'&&nextChar<='Z')) {
             char * next = nextBlankOr(position_);
             if (next) {
-              int length = next-position_;
+              size_t length = next-position_;
               strncpy(columnName_,position_,length);
               columnName_[length]='\0';
             } else {
@@ -1136,7 +1136,7 @@ CoinMpsCardReader::nextGmsField ( int expectedType )
 	if (nextChar=='=') {
           returnCode=0;
           char * next = nextBlankOr(position_);
-          int length = next-position_;
+          size_t length = next-position_;
           strncpy(rowName_,position_,length);
           rowName_[length]='\0';
           position_=next;
@@ -1177,7 +1177,7 @@ CoinMpsCardReader::nextGmsField ( int expectedType )
 //#############################################################################
 
 static int
-hash ( const char *name, int maxsiz, int length )
+hash ( const char *name, int maxsiz, size_t length )
 {
   static int mmult[] = {
     262139, 259459, 256889, 254291, 251701, 249133, 246709, 244247,
@@ -1192,7 +1192,7 @@ hash ( const char *name, int maxsiz, int length )
     82183, 79939, 77587, 75307, 72959, 70793, 68447, 66103
   };
   int n = 0;
-  int j;
+  size_t j;
 
   for ( j = 0; j < length; ++j ) {
     int iname = name[j];
@@ -1239,7 +1239,7 @@ CoinMpsIO::startHash ( int section ) const
    */
   for ( i = 0; i < number; ++i ) {
     char *thisName = names[i];
-    int length = strlen ( thisName );
+    size_t length = strlen ( thisName );
 
     ipos = hash ( thisName, maxhash, length );
     if ( hashThis[ipos].index == -1 ) {
@@ -1256,7 +1256,7 @@ CoinMpsIO::startHash ( int section ) const
   iput = -1;
   for ( i = 0; i < number; ++i ) {
     char *thisName = names[i];
-    int length = strlen ( thisName );
+    size_t length = strlen ( thisName );
 
     ipos = hash ( thisName, maxhash, length );
 
@@ -1320,7 +1320,7 @@ CoinMpsIO::findHash ( const char *name , int section ) const
   /* default if we don't find anything */
   if ( !maxhash )
     return -1;
-  int length = strlen ( name );
+  size_t length = strlen ( name );
 
   ipos = hash ( name, maxhash, length );
   while ( 1 ) {
@@ -1433,7 +1433,7 @@ CoinMpsIO::dealWithFileName(const char * filename,  const char * extension,
     if (strcmp(filename,"stdin")&&strcmp(filename,"-")) {
       if (extension&&strlen(extension)) {
 	// There was an extension - but see if user gave .xxx
-	int i = strlen(filename)-1;
+	long i = strlen(filename)-1;
 	strcpy(newName,filename);
 	bool foundDot=false; 
 	for (;i>=0;i--) {
@@ -3745,8 +3745,8 @@ CoinConvertDouble(int section, int formatType, double value, char outputValue[24
 	  outputValue[12]='\0';
 	} else {
 	  // e take out 0s
-	  int j= (e-outputValue)+1;
-	  int put = j+1;
+	  long j= (e-outputValue)+1;
+	  long put = j+1;
 	  assert(outputValue[j]=='-'||outputValue[j]=='+');
 	  for ( j = put ; j < 14 ; j++) {
 	    if (outputValue[j]!='0')
@@ -4045,7 +4045,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    const char * const * const rowNames = names_[0];
    const char * const * const columnNames = names_[1];
    int i;
-   unsigned int length = 8;
+   size_t length = 8;
    bool freeFormat = (formatType==1);
    // Check names for uniqueness if default
    int nChanged;
@@ -5835,7 +5835,7 @@ CoinMpsIO::addString(int iRow,int iColumn, const char * value)
 {
   char id [20];
   sprintf(id,"%d,%d,",iRow,iColumn);
-  int n = strlen(id)+strlen(value);
+  size_t n = strlen(id)+strlen(value);
   if (numberStringElements_==maximumStringElements_) {
     maximumStringElements_ = 2*maximumStringElements_+100;
     char ** temp = new char * [maximumStringElements_];

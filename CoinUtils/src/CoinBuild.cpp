@@ -86,8 +86,8 @@ CoinBuild::CoinBuild (const CoinBuild & rhs)
       buildFormat * item = currentItem;
       assert (item);
       int numberElements = item->numberElements;
-      int length = sizeof(buildFormat)+(numberElements-1)*(sizeof(double)+sizeof(int));
-      int doubles = (length + sizeof(double)-1)/sizeof(double);
+      size_t length = sizeof(buildFormat)+(numberElements-1)*(sizeof(double)+sizeof(int));
+      size_t doubles = (length + sizeof(double)-1)/sizeof(double);
       double * copyOfItem = new double [doubles];
       memcpy(copyOfItem,item,length);
       if (!firstItem_) {
@@ -146,8 +146,8 @@ CoinBuild::operator=(const CoinBuild& rhs)
         buildFormat * item = currentItem;
         assert (item);
         int numberElements = item->numberElements;
-        int length = sizeof(buildFormat)+(numberElements-1)*(sizeof(double)+sizeof(int));
-        int doubles = (length + sizeof(double)-1)/sizeof(double);
+        size_t length = sizeof(buildFormat)+(numberElements-1)*(sizeof(double)+sizeof(int));
+        size_t doubles = (length + sizeof(double)-1)/sizeof(double);
         double * copyOfItem = new double [doubles];
         memcpy(copyOfItem,item,length);
         if (!firstItem_) {
@@ -279,8 +279,8 @@ CoinBuild::addItem(int numberInItem, const int * indices,
                   double itemUpper, double objectiveValue)
 {
   buildFormat * lastItem = reinterpret_cast<buildFormat *> ( lastItem_);
-  int length = sizeof(buildFormat)+(numberInItem-1)*(sizeof(double)+sizeof(int));
-  int doubles = (length + sizeof(double)-1)/sizeof(double);
+  size_t length = sizeof(buildFormat)+(numberInItem-1)*(sizeof(double)+sizeof(int));
+  size_t doubles = (length + sizeof(double)-1)/sizeof(double);
   double * newItem = new double [doubles];
   if (!firstItem_) {
     firstItem_ = newItem;

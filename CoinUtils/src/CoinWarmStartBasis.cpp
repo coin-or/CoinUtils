@@ -274,8 +274,8 @@ CoinWarmStartBasis::deleteRows (int rawTgtCnt, const int *rawTgts)
     int *endUnique ;
     std::sort(first,last) ;
     endUnique = std::unique(first,last) ;
-    int tgtCnt = endUnique-first ;
-    compressRows(tgtCnt,tgts) ;
+    long tgtCnt = endUnique-first ;
+    compressRows((int)tgtCnt,tgts) ;
     delete [] tgts ;
   }
   return  ; }

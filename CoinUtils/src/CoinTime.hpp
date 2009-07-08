@@ -68,7 +68,7 @@ inline double CoinGetTimeOfDay()
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec + tv.tv_usec/1000000.0;
+    return (double)tv.tv_sec + (double)tv.tv_usec/1000000.0;
 }
 
 #endif // _MSC_VER
@@ -126,7 +126,7 @@ static inline double CoinCpuTime()
   usage.ru_utime.tv_usec = 0 ;
 # endif
   getrusage(RUSAGE_SELF,&usage);
-  cpu_temp = usage.ru_utime.tv_sec;
+  cpu_temp = (double)usage.ru_utime.tv_sec;
   cpu_temp += 1.0e-6*(static_cast<double> (usage.ru_utime.tv_usec));
 #endif
   return cpu_temp;
@@ -148,7 +148,7 @@ static inline double CoinSysTime()
   usage.ru_utime.tv_usec = 0 ;
 # endif
   getrusage(RUSAGE_SELF,&usage);
-  sys_temp = usage.ru_stime.tv_sec;
+  sys_temp = (double)usage.ru_stime.tv_sec;
   sys_temp += 1.0e-6*(static_cast<double> (usage.ru_stime.tv_usec));
 #endif
   return sys_temp;
@@ -168,7 +168,7 @@ static inline double CoinCpuTimeJustChildren()
   usage.ru_utime.tv_usec = 0 ;
 # endif
   getrusage(RUSAGE_CHILDREN,&usage);
-  cpu_temp = usage.ru_utime.tv_sec;
+  cpu_temp = (double)usage.ru_utime.tv_sec;
   cpu_temp += 1.0e-6*(static_cast<double> (usage.ru_utime.tv_usec));
 #endif
   return cpu_temp;

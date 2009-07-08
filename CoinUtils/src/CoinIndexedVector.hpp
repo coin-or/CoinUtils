@@ -559,7 +559,7 @@ public:
   //@{
   /// Get the size
   inline int getSize() const 
-  { return size_/sizeof(double); }
+  { return size_/((int)sizeof(double)); }
   /// Get Array
   inline double * array() const 
   { return reinterpret_cast<double *> ((size_>-2) ? array_ : NULL); }
@@ -569,7 +569,7 @@ public:
   //@{
   /// Set the size
   inline void setSize(int value) 
-  { size_ = value*sizeof(double); }
+  { size_ = value*(int)sizeof(double); }
   //@}
   
   /**@name Condition methods */
@@ -592,7 +592,7 @@ public:
       1 size_ set to size and zeroed
   */
   inline CoinDoubleArrayWithLength(int size, int mode)
-    : CoinArrayWithLength(size*sizeof(double),mode) {}
+    : CoinArrayWithLength(size*(int)sizeof(double),mode) {}
   /** Copy constructor. */
   inline CoinDoubleArrayWithLength(const CoinDoubleArrayWithLength & rhs)
     : CoinArrayWithLength(rhs) {}
@@ -613,7 +613,7 @@ public:
   //@{
   /// Get the size
   inline int getSize() const 
-  { return size_/sizeof(CoinFactorizationDouble); }
+  { return size_/(int)sizeof(CoinFactorizationDouble); }
   /// Get Array
   inline CoinFactorizationDouble * array() const 
   { return reinterpret_cast<CoinFactorizationDouble *> ((size_>-2) ? array_ : NULL); }
@@ -623,7 +623,7 @@ public:
   //@{
   /// Set the size
   inline void setSize(int value) 
-  { size_ = value*sizeof(CoinFactorizationDouble); }
+  { size_ = value*(int)sizeof(CoinFactorizationDouble); }
   //@}
   
   /**@name Condition methods */
@@ -646,7 +646,7 @@ public:
       1 size_ set to size and zeroed
   */
   inline CoinFactorizationDoubleArrayWithLength(int size, int mode)
-    : CoinArrayWithLength(size*sizeof(CoinFactorizationDouble),mode) {}
+    : CoinArrayWithLength(size*(int)sizeof(CoinFactorizationDouble),mode) {}
   /** Copy constructor. */
   inline CoinFactorizationDoubleArrayWithLength(const CoinFactorizationDoubleArrayWithLength & rhs)
     : CoinArrayWithLength(rhs) {}
@@ -667,7 +667,7 @@ public:
   //@{
   /// Get the size
   inline int getSize() const 
-  { return size_/sizeof(int); }
+  { return size_/(int)sizeof(int); }
   /// Get Array
   inline int * array() const 
   { return reinterpret_cast<int *> ((size_>-2) ? array_ : NULL); }
@@ -677,7 +677,7 @@ public:
   //@{
   /// Set the size
   inline void setSize(int value) 
-  { size_ = value*sizeof(int); }
+  { size_ = value*(int)sizeof(int); }
   //@}
   
   /**@name Condition methods */
@@ -700,7 +700,7 @@ public:
       1 size_ set to size and zeroed
   */
   inline CoinIntArrayWithLength(int size, int mode)
-    : CoinArrayWithLength(size*sizeof(int),mode) {}
+    : CoinArrayWithLength(size*(int)sizeof(int),mode) {}
   /** Copy constructor. */
   inline CoinIntArrayWithLength(const CoinIntArrayWithLength & rhs)
     : CoinArrayWithLength(rhs) {}
@@ -721,7 +721,7 @@ public:
   //@{
   /// Get the size
   inline int getSize() const 
-  { return size_/sizeof(CoinBigIndex); }
+  { return size_/(int)sizeof(CoinBigIndex); }
   /// Get Array
   inline CoinBigIndex * array() const 
   { return reinterpret_cast<CoinBigIndex *> ((size_>-2) ? array_ : NULL); }
@@ -731,7 +731,7 @@ public:
   //@{
   /// Set the size
   inline void setSize(int value) 
-  { size_ = value*sizeof(CoinBigIndex); }
+  { size_ = value*(int)sizeof(CoinBigIndex); }
   //@}
   
   /**@name Condition methods */
@@ -754,7 +754,7 @@ public:
       1 size_ set to size and zeroed
   */
   inline CoinBigIndexArrayWithLength(int size, int mode)
-    : CoinArrayWithLength(size*sizeof(CoinBigIndex),mode) {}
+    : CoinArrayWithLength(size*(int)sizeof(CoinBigIndex),mode) {}
   /** Copy constructor. */
   inline CoinBigIndexArrayWithLength(const CoinBigIndexArrayWithLength & rhs)
     : CoinArrayWithLength(rhs) {}
@@ -775,7 +775,7 @@ public:
   //@{
   /// Get the size
   inline int getSize() const 
-  { return size_/sizeof(unsigned int); }
+  { return size_/(int)sizeof(unsigned int); }
   /// Get Array
   inline unsigned int * array() const 
   { return reinterpret_cast<unsigned int *> ((size_>-2) ? array_ : NULL); }
@@ -785,7 +785,7 @@ public:
   //@{
   /// Set the size
   inline void setSize(int value) 
-  { size_ = value*sizeof(unsigned int); }
+  { size_ = value*(int)sizeof(unsigned int); }
   //@}
   
   /**@name Condition methods */
@@ -808,7 +808,7 @@ public:
       1 size_ set to size and zeroed
   */
   inline CoinUnsignedIntArrayWithLength(int size, int mode)
-    : CoinArrayWithLength(size*sizeof(unsigned int),mode) {}
+    : CoinArrayWithLength(size*(int)sizeof(unsigned int),mode) {}
   /** Copy constructor. */
   inline CoinUnsignedIntArrayWithLength(const CoinUnsignedIntArrayWithLength & rhs)
     : CoinArrayWithLength(rhs) {}

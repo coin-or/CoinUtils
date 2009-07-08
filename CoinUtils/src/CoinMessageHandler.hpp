@@ -401,7 +401,7 @@ public:
     and can be retrieved using this function.
   */
   inline int intValue(int position) const
-  { return longValue_[position];}
+  { return (int)longValue_[position];}
   /*! \brief Number of integer fields already processed.
 
     Incremented each time a field of type integer is processed.

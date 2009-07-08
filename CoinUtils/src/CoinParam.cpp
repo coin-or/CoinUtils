@@ -279,9 +279,9 @@ void CoinParam::processName()
 */
 int CoinParam::matches (std::string input) const
 {
-  unsigned int inputLen = input.length() ;
+  size_t inputLen = input.length() ;
   if (inputLen <= lengthName_)
-  { unsigned int i ;
+  { size_t i ;
     for (i = 0 ; i < inputLen ; i++)
     { if (tolower(name_[i]) != tolower(input[i])) 
 	break ; }
@@ -382,10 +382,10 @@ int CoinParam::kwdIndex (std::string input) const
   assert (type_ == coinParamKwd) ;
 
   int whichItem = -1 ;
-  int numberItems = definedKwds_.size() ;
+  size_t numberItems = definedKwds_.size() ;
   if (numberItems > 0)
-  { unsigned int inputLen = input.length() ;
-    int it ;
+  { size_t inputLen = input.length() ;
+    size_t it ;
 /*
   Open a loop to check each keyword against the input string. We don't record
   the match length for keywords, so we need to check each one for an `!' and
@@ -395,8 +395,8 @@ int CoinParam::kwdIndex (std::string input) const
     for (it = 0 ; it < numberItems ; it++)
     { std::string kwd = definedKwds_[it] ;
       std::string::size_type shriekPos = kwd.find('!') ;
-      unsigned int kwdLen = kwd.length() ;
-      unsigned int matchLen = kwdLen ;
+      size_t kwdLen = kwd.length() ;
+      size_t matchLen = kwdLen ;
       if (shriekPos != std::string::npos)
       { matchLen = shriekPos ;
 	kwd = kwd.substr(0,shriekPos)+kwd.substr(shriekPos+1) ;
@@ -406,12 +406,12 @@ int CoinParam::kwdIndex (std::string input) const
   must match and the match must exceed the minimum length.
 */
       if (inputLen <= kwdLen)
-      { unsigned int i ;
+      { size_t i ;
 	for (i = 0 ; i < inputLen ; i++)
 	{ if (tolower(kwd[i]) != tolower(input[i])) 
 	    break ; }
 	if (i >= inputLen && i >= matchLen)
-	{ whichItem = it ;
+	{ whichItem = (int)it ;
 	  break ; } } } }
 
   return (whichItem) ;

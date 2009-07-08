@@ -136,7 +136,7 @@ CoinSort_2(Iter_S sfirst, Iter_S slast, Iter_T tfirst, const CoinCompare2& pc)
 {
   typedef typename std::iterator_traits<Iter_S>::value_type S;
   typedef typename std::iterator_traits<Iter_T>::value_type T;
-  const int len = coinDistance(sfirst, slast);
+  const size_t len = coinDistance(sfirst, slast);
   if (len <= 1)
     return;
 
@@ -146,7 +146,7 @@ CoinSort_2(Iter_S sfirst, Iter_S slast, Iter_T tfirst, const CoinCompare2& pc)
   memset(x,0,(len*sizeof(ST_pair))) ;
 # endif
 
-  int i = 0;
+  size_t i = 0;
   Iter_S scurrent = sfirst;
   Iter_T tcurrent = tfirst;
   while (scurrent != slast) {
@@ -178,7 +178,7 @@ CoinSort_2(Iter_S sfirst, Iter_S slast, Iter_T tfirst)
 template <class S, class T, class CoinCompare2> void
 CoinSort_2(S* sfirst, S* slast, T* tfirst, const CoinCompare2& pc)
 {
-  const int len = coinDistance(sfirst, slast);
+  const size_t len = coinDistance(sfirst, slast);
   if (len <= 1)
     return;
 
@@ -190,7 +190,7 @@ CoinSort_2(S* sfirst, S* slast, T* tfirst, const CoinCompare2& pc)
   memset(x,0,(len*sizeof(ST_pair))) ;
 # endif
 
-  int i = 0;
+  size_t i = 0;
   S* scurrent = sfirst;
   T* tcurrent = tfirst;
   while (scurrent != slast) {
@@ -483,7 +483,7 @@ CoinSort_3(Iter_S sfirst, Iter_S slast, Iter_T tfirst, Iter_U, ufirst,
   typedef typename std::iterator_traits<Iter_S>::value_type S;
   typedef typename std::iterator_traits<Iter_T>::value_type T;
   typedef typename std::iterator_traits<Iter_U>::value_type U;
-  const int len = coinDistance(sfirst, slast);
+  const size_t len = coinDistance(sfirst, slast);
   if (len <= 1)
     return;
 
@@ -491,7 +491,7 @@ CoinSort_3(Iter_S sfirst, Iter_S slast, Iter_T tfirst, Iter_U, ufirst,
   STU_triple* x =
     static_cast<STU_triple*>(::operator new(len * sizeof(STU_triple)));
 
-  int i = 0;
+  size_t i = 0;
   Iter_S scurrent = sfirst;
   Iter_T tcurrent = tfirst;
   Iter_U ucurrent = ufirst;

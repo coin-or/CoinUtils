@@ -302,9 +302,9 @@ int lookupParam (std::string name, CoinParamVec &paramVec,
   special cases: If the whole string is `?'s, one and three are commands as
   is, while 2 and 4 or more are queries about `?' or `???'.
 */
-  int numQuery = 0 ;
-  { int length = name.length() ;
-    int i ;
+  size_t numQuery = 0 ;
+  { size_t length = name.length() ;
+    long i ;
     for (i = length-1 ; i >= 0 && name[i] == '?' ; i--)
     { numQuery++ ; }
     if (numQuery == length)
@@ -321,7 +321,7 @@ int lookupParam (std::string name, CoinParamVec &paramVec,
 	  break ; } } }
     name = name.substr(0,length-numQuery) ;
     if (queryCntp != 0)
-    { *queryCntp = numQuery ; } }
+    { *queryCntp = (int)numQuery ; } }
 /*
   See if we can match the parameter name. On return, matchNdx is set to the
   last match satisfying the minimal match criteria, or -1 if there's no
@@ -370,7 +370,7 @@ int lookupParam (std::string name, CoinParamVec &paramVec,
       The match may or may not be short.
 */
   if (matchCnt+shortCnt == 1)
-  { CoinParamUtils::shortOrHelpOne(paramVec,matchNdx,name,numQuery) ;
+  { CoinParamUtils::shortOrHelpOne(paramVec,matchNdx,name,(int)numQuery) ;
     return (retval) ; }
 /*
   The final case: multiple matches. Most commonly this will be multiple short
@@ -386,7 +386,7 @@ int lookupParam (std::string name, CoinParamVec &paramVec,
   std::cout
     << "Multiple matches for `" << name << "'; possible completions:"
     << std::endl ;
-  CoinParamUtils::shortOrHelpMany(paramVec,name,numQuery) ;
+  CoinParamUtils::shortOrHelpMany(paramVec,name,(int)numQuery) ;
 
   return (retval) ; }
 
@@ -529,18 +529,18 @@ int matchParam (const CoinParamVec &paramVec, std::string name,
 		int &matchNdx, int &shortCnt)
 
 { 
-  int vecLen = paramVec.size() ;
+  size_t vecLen = paramVec.size() ;
   int matchCnt = 0 ;
 
   matchNdx = -1 ;
   shortCnt = 0 ;
 
-  for (int i = 0 ; i < vecLen  ; i++)
+  for (size_t i = 0 ; i < vecLen  ; i++)
   { CoinParam *param =  paramVec[i] ;
     if (param == 0) continue ;
     int match = paramVec[i]->matches(name) ;
     if (match == 1)
-    { matchNdx = i ;
+    { matchNdx = (int)i ;
       matchCnt++ ;
       if (name == "?")
       { matchCnt = 1 ;
@@ -565,9 +565,9 @@ int matchParam (const CoinParamVec &paramVec, std::string name,
 
 void printIt (const char *msg)
 
-{ int length = strlen(msg) ;
+{ size_t length = strlen(msg) ;
   char temp[101] ;
-  int i ;
+  size_t i ;
   int n = 0 ;
   for (i = 0 ; i < length ; i++)
   { if (msg[i] == '\n' ||
@@ -596,9 +596,9 @@ void printIt (const char *msg)
 void shortOrHelpOne (CoinParamVec &paramVec,
 		     int matchNdx, std::string name, int numQuery)
 
-{ int i ;
-  int numParams = paramVec.size() ;
-  int lclNdx = -1 ;
+{ size_t i ;
+  size_t numParams = paramVec.size() ;
+  long lclNdx = -1 ;
 /*
   For a short match, we need to look up the parameter again. This should find
   a short match, given the conditions where this routine is called. But be
@@ -655,20 +655,20 @@ void shortOrHelpOne (CoinParamVec &paramVec,
 
 void shortOrHelpMany (CoinParamVec &paramVec, std::string name, int numQuery)
 
-{ int numParams = paramVec.size() ;
+{ size_t numParams = paramVec.size() ;
 /*
   Scan the parameter list. For each match, print just the name, or the name
   and short help.
 */
-  int lineLen = 0 ;
+  size_t lineLen = 0 ;
   bool printed = false ;
-  for (int i = 0 ; i < numParams ; i++)
+  for (size_t i = 0 ; i < numParams ; i++)
   { CoinParam *param = paramVec[i] ;
     if (param == 0) continue ;
     int match = param->matches(name) ;
     if (match > 0)
     { std::string nme = param->matchName() ;
-      int len = nme.length() ;
+      size_t len = nme.length() ;
       if (numQuery >= 2) 
       { std::cout << nme << " : " << param->shortHelp() ;
 	std::cout << std::endl ; }
@@ -743,17 +743,17 @@ void printHelp (CoinParamVec &paramVec, int firstParam, int lastParam,
 
 { bool noHelp = !(shortHelp || longHelp) ;
   int i ;
-  int pfxLen = prefix.length() ;
+  size_t pfxLen = prefix.length() ;
   bool printed = false ;
 
   if (noHelp)
-  { int lineLen = 0 ;
+  { size_t lineLen = 0 ;
     for (i = firstParam ; i <= lastParam ; i++)
     { CoinParam *param = paramVec[i] ;
       if (param == 0) continue ;
       if (param->display() || hidden)
       { std::string nme = param->matchName() ;
-	int len = nme.length() ;
+	size_t len = nme.length() ;
 	if (!printed)
 	{ std::cout << std::endl << prefix ;
 	  lineLen += pfxLen ;

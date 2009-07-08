@@ -698,38 +698,38 @@ CoinFactorization & CoinFactorization::operator = ( const CoinFactorization & ot
 }
 void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
 {
-  elementU_.allocate(other.elementU_, other.lengthAreaU_ *sizeof(CoinFactorizationDouble));
-  indexRowU_.allocate(other.indexRowU_, other.lengthAreaU_*sizeof(int) );
-  elementL_.allocate(other.elementL_, other.lengthAreaL_*sizeof(CoinFactorizationDouble) );
-  indexRowL_.allocate(other.indexRowL_, other.lengthAreaL_*sizeof(int) );
-  startColumnL_.allocate(other.startColumnL_,(other.numberRows_ + 1)*sizeof(CoinBigIndex) );
+  elementU_.allocate(other.elementU_, other.lengthAreaU_ *(int)sizeof(CoinFactorizationDouble));
+  indexRowU_.allocate(other.indexRowU_, other.lengthAreaU_*(int)sizeof(int) );
+  elementL_.allocate(other.elementL_, other.lengthAreaL_*(int)sizeof(CoinFactorizationDouble) );
+  indexRowL_.allocate(other.indexRowL_, other.lengthAreaL_*(int)sizeof(int) );
+  startColumnL_.allocate(other.startColumnL_,(other.numberRows_ + 1)*(int)sizeof(CoinBigIndex) );
   int extraSpace;
   if (other.numberInColumnPlus_.array()) {
     extraSpace = other.maximumPivots_ + 1 + other.maximumColumnsExtra_ + 1;
   } else {
     extraSpace = other.maximumPivots_ + 1 ;
   }
-  startColumnR_.allocate(other.startColumnR_,extraSpace*sizeof(CoinBigIndex));
-  pivotRegion_.allocate(other.pivotRegion_, (other.maximumRowsExtra_ + 1 )*sizeof(CoinFactorizationDouble));
-  permuteBack_.allocate(other.permuteBack_,(other.maximumRowsExtra_ + 1)*sizeof(int));
-  permute_.allocate(other.permute_,(other.maximumRowsExtra_ + 1)*sizeof(int));
-  pivotColumnBack_.allocate(other.pivotColumnBack_,(other.maximumRowsExtra_ + 1)*sizeof(int));
-  firstCount_.allocate(other.firstCount_,(other.maximumRowsExtra_ + 1)*sizeof(int));
-  startColumnU_.allocate(other.startColumnU_, (other.maximumColumnsExtra_ + 1 )*sizeof(CoinBigIndex));
-  numberInColumn_.allocate(other.numberInColumn_, (other.maximumColumnsExtra_ + 1 )*sizeof(int));
-  pivotColumn_.allocate(other.pivotColumn_,(other.maximumColumnsExtra_ + 1)*sizeof(int));
-  nextColumn_.allocate(other.nextColumn_, (other.maximumColumnsExtra_ + 1 )*sizeof(int));
-  lastColumn_.allocate(other.lastColumn_, (other.maximumColumnsExtra_ + 1 )*sizeof(int));
-  indexColumnU_.allocate(other.indexColumnU_, other.lengthAreaU_*sizeof(int) );
-  nextRow_.allocate(other.nextRow_,(other.maximumRowsExtra_ + 1)*sizeof(int));
-  lastRow_.allocate( other.lastRow_,(other.maximumRowsExtra_ + 1 )*sizeof(int));
+  startColumnR_.allocate(other.startColumnR_,extraSpace*(int)sizeof(CoinBigIndex));
+  pivotRegion_.allocate(other.pivotRegion_, (other.maximumRowsExtra_ + 1 )*(int)sizeof(CoinFactorizationDouble));
+  permuteBack_.allocate(other.permuteBack_,(other.maximumRowsExtra_ + 1)*(int)sizeof(int));
+  permute_.allocate(other.permute_,(other.maximumRowsExtra_ + 1)*(int)sizeof(int));
+  pivotColumnBack_.allocate(other.pivotColumnBack_,(other.maximumRowsExtra_ + 1)*(int)sizeof(int));
+  firstCount_.allocate(other.firstCount_,(other.maximumRowsExtra_ + 1)*(int)sizeof(int));
+  startColumnU_.allocate(other.startColumnU_, (other.maximumColumnsExtra_ + 1 )*(int)sizeof(CoinBigIndex));
+  numberInColumn_.allocate(other.numberInColumn_, (other.maximumColumnsExtra_ + 1 )*(int)sizeof(int));
+  pivotColumn_.allocate(other.pivotColumn_,(other.maximumColumnsExtra_ + 1)*(int)sizeof(int));
+  nextColumn_.allocate(other.nextColumn_, (other.maximumColumnsExtra_ + 1 )*(int)sizeof(int));
+  lastColumn_.allocate(other.lastColumn_, (other.maximumColumnsExtra_ + 1 )*(int)sizeof(int));
+  indexColumnU_.allocate(other.indexColumnU_, other.lengthAreaU_*(int)sizeof(int) );
+  nextRow_.allocate(other.nextRow_,(other.maximumRowsExtra_ + 1)*(int)sizeof(int));
+  lastRow_.allocate( other.lastRow_,(other.maximumRowsExtra_ + 1 )*(int)sizeof(int));
   const CoinBigIndex * convertUOther = other.convertRowToColumnU_.array();
 #if COIN_ONE_ETA_COPY
   if (convertUOther) {
 #endif
-    convertRowToColumnU_.allocate(other.convertRowToColumnU_, other.lengthAreaU_*sizeof(CoinBigIndex) );
-    startRowU_.allocate(other.startRowU_,(other.maximumRowsExtra_ + 1)*sizeof(CoinBigIndex));
-    numberInRow_.allocate(other.numberInRow_, (other.maximumRowsExtra_ + 1 )*sizeof(int));
+    convertRowToColumnU_.allocate(other.convertRowToColumnU_, other.lengthAreaU_*(int)sizeof(CoinBigIndex) );
+    startRowU_.allocate(other.startRowU_,(other.maximumRowsExtra_ + 1)*(int)sizeof(CoinBigIndex));
+    numberInRow_.allocate(other.numberInRow_, (other.maximumRowsExtra_ + 1 )*(int)sizeof(int));
 #if COIN_ONE_ETA_COPY
   }
 #endif
@@ -1889,9 +1889,9 @@ CoinFactorization::goSparse ( )
   if (!sparseThreshold_)
     return;
   // allow for stack, list, next and char map of mark
-  int nRowIndex = (maximumRowsExtra_+sizeof(int)-1)/
-    sizeof(char);
-  int nInBig = sizeof(CoinBigIndex)/sizeof(int);
+  int nRowIndex = (maximumRowsExtra_+(int)sizeof(int)-1)/
+    (int)sizeof(char);
+  int nInBig = (int)sizeof(CoinBigIndex)/(int)sizeof(int);
   assert (nInBig>=1);
   sparse_.conditionalNew( (2+nInBig)*maximumRowsExtra_ + nRowIndex );
   // zero out mark

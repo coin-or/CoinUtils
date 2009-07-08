@@ -1579,7 +1579,7 @@ CoinArrayWithLength::conditionalNew(long sizeWanted)
     setCapacity();
     if (sizeWanted>size_) {
       freeArray(array_);
-      size_ = static_cast<int> (sizeWanted*1.01)+64;
+      size_ = static_cast<int> (sizeWanted + sizeWanted/100)+64;
       // round to multiple of 16
       size_ -= size_%16;
       array_ = mallocArray(size_);

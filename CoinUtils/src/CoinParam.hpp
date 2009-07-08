@@ -366,11 +366,13 @@ private:
   std::string name_ ;
 
   /// Length of parameter name
+  //FIXME: change to size_t
   unsigned int lengthName_ ;
 
   /*! \brief  Minimum length required to declare a match for the parameter
 	      name.
   */
+  //FIXME change to size_t
   unsigned int lengthMatch_ ;
 
   /// Lower bound on value for a double parameter

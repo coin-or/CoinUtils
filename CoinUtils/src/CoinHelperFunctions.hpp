@@ -23,7 +23,7 @@
     handled correctly. */
 
 template <class T> inline void
-CoinCopyN(register const T* from, const int size, register T* to)
+CoinCopyN(register const T* from, const long size, register T* to)
 {
     if (size == 0 || from == to)
 	return;
@@ -32,7 +32,7 @@ CoinCopyN(register const T* from, const int size, register T* to)
 	throw CoinError("trying to copy negative number of entries",
 			"CoinCopyN", "");
 
-    register int n = (size + 7) / 8;
+    register size_t n = (size_t)((size + 7) / 8);
     if (to > from) {
 	register const T* downfrom = from + size;
 	register T* downto = to + size;
@@ -821,9 +821,9 @@ template <class T> inline void CoinSwap (T &x, T &y)
 */
 
 template <class T> inline int
-CoinToFile( const T* array, int size, FILE * fp)
+CoinToFile( const T* array, size_t size, FILE * fp)
 {
-    int numberWritten;
+    size_t numberWritten;
     if (array&&size) {
 	numberWritten = fwrite(&size,sizeof(int),1,fp);
 	if (numberWritten!=1)
@@ -849,19 +849,20 @@ CoinToFile( const T* array, int size, FILE * fp)
 */
 
 template <class T> inline int
-CoinFromFile( T* &array, int size, FILE * fp,int & newSize)
+CoinFromFile( T* &array, size_t size, FILE * fp,int & newSize)
 {
-    int numberRead;
+    assert(newSize >= 0);
+    size_t numberRead;
     numberRead = fread(&newSize,sizeof(int),1,fp);
     if (numberRead!=1)
 	return 1;
     int returnCode=0;
-    if (size!=newSize&&(newSize||array))
+    if (size!=(size_t)newSize&&(newSize||array))
 	returnCode=2;
     if (newSize) {
 	array = new T [newSize];
 	numberRead = fread(array,sizeof(T),newSize,fp);
-	if (numberRead!=newSize)
+	if (numberRead!=(size_t)newSize)
 	    returnCode=1;
     } else {
 	array = NULL;

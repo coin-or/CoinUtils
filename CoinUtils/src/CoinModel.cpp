@@ -245,9 +245,9 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	assert (strlen(m.columnName(iColumn))<100);
 	char temp[100];
 	strcpy(temp,m.columnName(iColumn));
-	int n=strlen(temp);
+	size_t n=strlen(temp);
 	bool changed=false;
-	for (int i=0;i<n;i++) {
+	for (size_t i=0;i<n;i++) {
 	  if (temp[i]=='-') {
 	    temp[i]='_';
 	    changed=true;
@@ -332,7 +332,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	  for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
 	    char temp[20000];
 	    temp[0]='\0';
-	    int put=0;
+	    size_t put=0;
 	    int n=0;
 	    bool ifFirst=true;
 	    double value = getColumnObjective(iColumn);
@@ -3424,7 +3424,7 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
 	  setElement(rowNumber,i,linearRow[i]);
       } else {
 	char temp[10000];
-	int put=0;
+	size_t put=0;
 	char temp2[30];
 	bool first=true;
 	if (linearRow[i]) {
@@ -3439,7 +3439,7 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
 	    sprintf(temp2,"%g*c%7.7d",value,jColumn);
 	  else
 	    sprintf(temp2,"+%g*c%7.7d",value,jColumn);
-	  int nextPut = put + strlen(temp2);
+	  size_t nextPut = put + strlen(temp2);
 	  assert (nextPut<10000);
 	  strcpy(temp+put,temp2);
 	  put = nextPut;
@@ -3471,7 +3471,7 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
 	  setColumnObjective(i,linearRow[i]);
       } else {
 	char temp[10000];
-	int put=0;
+	size_t put=0;
 	char temp2[30];
 	bool first=true;
 	if (linearRow[i]) {
@@ -3486,7 +3486,7 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
 	    sprintf(temp2,"%g*c%7.7d",value,jColumn);
 	  else
 	    sprintf(temp2,"+%g*c%7.7d",value,jColumn);
-	  int nextPut = put + strlen(temp2);
+	  size_t nextPut = put + strlen(temp2);
 	  assert (nextPut<10000);
 	  strcpy(temp+put,temp2);
 	  put = nextPut;

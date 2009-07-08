@@ -124,9 +124,10 @@ int
 CoinPackedVectorBase::findIndex(int i) const
 {   
    const int * inds = getIndices();
-   int retVal = std::find(inds, inds + getNumElements(), i) - inds;
-   if (retVal == getNumElements() ) retVal = -1;
-   return retVal;
+   size_t retVal = std::find(inds, inds + getNumElements(), i) - inds;
+   if (retVal == (size_t)getNumElements() )
+     return -1;
+   return (int)retVal;
 }
 
 //#############################################################################
