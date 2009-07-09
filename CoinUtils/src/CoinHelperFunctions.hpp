@@ -228,7 +228,7 @@ CoinCopyOfArrayOrZero( const T * array , const int size)
     alternative coding if USE_MEMCPY defined*/
 #ifndef COIN_USE_RESTRICT
 template <class T> inline void
-CoinMemcpyN(register const T* from, const int size, register T* to)
+CoinMemcpyN(register const T* from, const long size, register T* to)
 {
 #ifndef _MSC_VER
 #ifdef USE_MEMCPY
@@ -266,7 +266,7 @@ CoinMemcpyN(register const T* from, const int size, register T* to)
 	throw CoinError("overlapping arrays", "CoinMemcpyN", "");
 #endif
 
-    for (register int n = size / 8; n > 0; --n, from += 8, to += 8) {
+    for (register size_t n = (size_t)size / 8; n > 0; --n, from += 8, to += 8) {
 	to[0] = from[0];
 	to[1] = from[1];
 	to[2] = from[2];
