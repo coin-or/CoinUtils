@@ -853,6 +853,7 @@ CoinFactorization::preProcess ( int state,
 	  CoinBigIndex end = first+number;
 	  for (  ; k < end; k++ ) {
 	    int iRow = indexRow[k];
+	    assert (iRow<numberRows_);
 	    CoinFactorizationDouble value = element[k];
 	    if (numberInRow[iRow]>=0) {
 	      numberInRow[iRow]++;
@@ -1877,8 +1878,8 @@ CoinFactorization::cleanup (  )
       CoinBigIndex j;
       for ( j = start; j < end; j++ ) {
 	int iRow = indexRowL[j];
-
 	iRow = permute[iRow];
+	assert (iRow>firstReal);
 	indexRowL[j] = iRow;
       }
     }

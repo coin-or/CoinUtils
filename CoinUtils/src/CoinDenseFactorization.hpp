@@ -356,7 +356,7 @@ public:
   */
   virtual inline int updateColumnFT ( CoinIndexedVector * regionSparse,
 				      CoinIndexedVector * regionSparse2,
-				      bool noPermute=false)
+				      bool = false)
   { return updateColumn(regionSparse,regionSparse2);}
   /** This version has same effect as above with FTUpdate==false
       so number returned is always >=0 */

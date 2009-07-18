@@ -434,7 +434,7 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
   int kkLast = (numberRows_+BITS_PER_CHECK-1)>>CHECK_SHIFT;
   CoinZeroN(mark+kLast,kkLast-kLast);
   regionSparse->setNumElements ( numberNonZero );
-} 
+}
 // Updates part of column (FTRANL) when sparse
 void 
 CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse ,
@@ -467,6 +467,8 @@ CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse ,
   for (int k=0;k<number;k++) {
     int kPivot=regionIndex[k];
     if (kPivot>=baseL_) {
+      assert (kPivot<numberRowsExtra_);
+      //if (kPivot>=numberRowsExtra_) abort();
       if(!mark[kPivot]) {
 	stack[0]=kPivot;
 	CoinBigIndex j=startColumn[kPivot+1]-1;
@@ -475,7 +477,8 @@ CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse ,
 	  /* take off stack */
 	  if (j>=startColumn[kPivot]) {
 	    int jPivot=indexRow[j--];
-	    assert (jPivot>=baseL_);
+	    assert (jPivot>=baseL_&&jPivot<numberRowsExtra_);
+	    //if (jPivot<baseL_||jPivot>=numberRowsExtra_) abort();
 	    /* put back on stack */
 	    next[nStack] =j;
 	    if (!mark[jPivot]) {
@@ -483,6 +486,8 @@ CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse ,
 	      kPivot=jPivot;
 	      j = startColumn[kPivot+1]-1;
 	      stack[++nStack]=kPivot;
+	      assert (kPivot<numberRowsExtra_);
+	      //if (kPivot>=numberRowsExtra_) abort();
 	      mark[kPivot]=1;
 	      next[nStack]=j;
 	    }
@@ -493,6 +498,7 @@ CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse ,
 	    --nStack;
 	    if (nStack>=0) {
 	      kPivot=stack[nStack];
+	      assert (kPivot<numberRowsExtra_);
 	      j=next[nStack];
 	    }
 	  }

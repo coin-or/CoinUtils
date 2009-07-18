@@ -467,6 +467,81 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\..\CoinUtils\src\CoinOslFactorization.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\..\CoinUtils\src\CoinOslFactorization2.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\..\CoinUtils\src\CoinOslFactorization3.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions=""
+						BasicRuntimeChecks="3"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinPackedMatrix.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -1035,6 +1110,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinMpsIO.hpp">
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinOslFactorization.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinOslC.h"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinPackedMatrix.hpp">
