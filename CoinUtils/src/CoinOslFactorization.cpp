@@ -12,6 +12,7 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
+#include "CoinTypes.hpp"
 #include <stdio.h>
 static void c_ekksmem(EKKfactinfo *fact,int numberRows,int maximumPivots);
 static void c_ekksmem_copy(EKKfactinfo *fact,const EKKfactinfo * rhsFact);
@@ -832,7 +833,7 @@ void clp_free(void * oldArray)
 static void * clp_align (void * memory)
 {
   if (sizeof(int)==sizeof(void *)&&ALIGNMENT) {
-    int k = reinterpret_cast<int> (memory);
+    CoinInt64 k = reinterpret_cast<int> (memory);
     if ((k&(ALIGNMENT-1))!=0) {
       k &= ~(ALIGNMENT-1);
       k += ALIGNMENT;
