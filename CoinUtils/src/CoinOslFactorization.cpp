@@ -833,7 +833,7 @@ void clp_free(void * oldArray)
 static void * clp_align (void * memory)
 {
   if (sizeof(int)==sizeof(void *)&&ALIGNMENT) {
-    CoinInt64 k = reinterpret_cast<int> (memory);
+    CoinInt64 k = reinterpret_cast<CoinInt64> (memory);
     if ((k&(ALIGNMENT-1))!=0) {
       k &= ~(ALIGNMENT-1);
       k += ALIGNMENT;
