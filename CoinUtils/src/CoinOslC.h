@@ -77,10 +77,14 @@ typedef struct _EKKfactinfo {
 #define CLP_OSL 0
 #endif
 #define C_EKK_GO_SPARSE 200
+
+#ifdef HAVE_ENDIAN_H
 #include <endian.h>
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 #define INTEL
 #endif
+#endif
+
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
