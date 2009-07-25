@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2003, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -57,7 +58,7 @@
  * In the row rep, irow will be eliminated entirely, but not here;
  * icoly is removed from the rows it occurs in.
  */
-static bool elim_tripleton(const char *msg,
+static bool elim_tripleton(const char */*msg*/,
 			   CoinBigIndex *mcstrt, 
 			   double *rlo, double * acts, double *rup,
 			   double *colels,

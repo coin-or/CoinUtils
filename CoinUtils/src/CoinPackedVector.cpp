@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2000, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #if defined(_MSC_VER)
@@ -403,7 +404,7 @@ CoinPackedVector::CoinPackedVector(int size,
 
 CoinPackedVector::CoinPackedVector(int capacity, int size,
  				   int *&inds, double *&elems,
-				   bool testForDuplicateIndex) :
+				   bool /*testForDuplicateIndex*/) :
     CoinPackedVectorBase(),
     indices_(inds),
     elements_(elems),

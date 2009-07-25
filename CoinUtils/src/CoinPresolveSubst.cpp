@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #include <stdio.h>
@@ -1026,7 +1027,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	if (col != icol)
 	  for (int i = 0; i<nincoly; ++i) {
 	    if (rows[i] != jrowy)
-	      presolve_delete_from_col2(rows[i],col,mcstrt,hincol,hrow,colels,
+	      presolve_delete_from_col2(rows[i],col,mcstrt,hincol,hrow,/*colels,*/
 					link,&free_list) ;
 	  }
       }

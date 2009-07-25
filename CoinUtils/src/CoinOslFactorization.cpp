@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 1987, 2009, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #if defined(_MSC_VER)
@@ -20,12 +21,14 @@ static void c_ekksmem_delete(EKKfactinfo *fact);
 //:class CoinOslFactorization.  Deals with Factorization and Updates
 //  CoinOslFactorization.  Constructor
 CoinOslFactorization::CoinOslFactorization (  )
+  : CoinOtherFactorization()
 {
   gutsOfInitialize();
 }
 
 /// Copy constructor 
 CoinOslFactorization::CoinOslFactorization ( const CoinOslFactorization &other)
+  : CoinOtherFactorization(other)
 {
   gutsOfInitialize();
   gutsOfCopy(other);
@@ -359,7 +362,7 @@ int
 CoinOslFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 					int pivotRow,
 					double pivotCheck ,
-				      bool checkBeforeModifying,
+				      bool /*checkBeforeModifying*/,
 				       double acceptablePivot)
 {
   if (numberPivots_+1==maximumPivots_)
@@ -395,7 +398,7 @@ CoinOslFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 int 
 CoinOslFactorization::updateColumn ( CoinIndexedVector * regionSparse,
 				       CoinIndexedVector * regionSparse2,
-				       bool noPermute) const
+				     bool /*noPermute*/) const
 {
 #ifndef NDEBUG
   {
@@ -416,7 +419,6 @@ CoinOslFactorization::updateColumn ( CoinIndexedVector * regionSparse,
   // Stuff is put one up so won't get illegal read
   assert (!region[numberRows_]);
   assert (!regionSparse2->packedMode());
-  assert (!noPermute);
 #if 0
   int first=numberRows_;
   for (int j=0;j<numberNonZero;j++) {
@@ -441,9 +443,8 @@ CoinOslFactorization::updateColumn ( CoinIndexedVector * regionSparse,
 int 
 CoinOslFactorization::updateColumnFT ( CoinIndexedVector * regionSparse,
 				      CoinIndexedVector * regionSparse2,
-				      bool noPermute)
+				       bool /*noPermute*/)
 {
-  assert(!noPermute);
   assert (numberRows_==numberColumns_);
   double *region2 = regionSparse2->denseVector (  );
   int *regionIndex2 = regionSparse2->getIndices (  );
@@ -469,7 +470,7 @@ int
 CoinOslFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
 					  CoinIndexedVector * regionSparse2,
 					  CoinIndexedVector * regionSparse3,
-					  bool noPermute)
+					 bool /*noPermute*/)
 {
 #if 1
   // probably best to merge on a LU part by part
@@ -487,7 +488,6 @@ CoinOslFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
   // Stuff is put one up so won't get illegal read
   assert (!region[numberRows_]);
   assert (!regionSparse3->packedMode());
-  assert (!noPermute);
   // packed mode
   //double *dpermu = factInfo_.kadrpm;
 #if 0
@@ -651,7 +651,7 @@ CoinOslFactorization::wantsTableauColumn() const
    whereFrom is 0 for factorize and 1 for replaceColumn
 */
 void 
-CoinOslFactorization::setUsefulInformation(const int * info,int whereFrom)
+CoinOslFactorization::setUsefulInformation(const int * info,int /*whereFrom*/)
 { factInfo_.iterno=info[0]; }
 
 // Get rid of all memory

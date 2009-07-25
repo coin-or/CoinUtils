@@ -1,3 +1,4 @@
+/* $Id$ */
 /* Copyright (C) 1987, 2009, International Business Machines
    Corporation and others.  All Rights Reserved. */
 /*
@@ -863,8 +864,7 @@ static void c_ekkbtjl( register const EKKfactinfo *fact,
 
 static int c_ekkbtjl_sparse( register const EKKfactinfo *fact,
 		   double *dwork1, 
-		   int * mpt , int nincol,
-		   int * spare)
+		   int * mpt , int nincol)
 {
   const double * dluval = fact->R_etas_element;
   const int * hrowi = fact->R_etas_index;
@@ -1403,7 +1403,7 @@ static int c_ekkbtrn0_new( register const EKKfactinfo *fact,
       c_ekkbtjl_sparse(fact,
 		     dpermu,
 		     mpt, 
-		     nincol,spare);
+		     nincol);
     for(i=0;i<nincol;i++) {
       int j=mpt[i+1];
       nonzero[j]=0;
@@ -3644,7 +3644,6 @@ static int c_ekkftjup_pack( register const EKKfactinfo *fact,
   return (mptX-mptY);
 }
 static int c_ekkftju_sparse_a( register const EKKfactinfo *fact,
-			    double * dwork1, 
 			    int * mpt,
 			    int nincol,int * spare)
 {
@@ -3838,7 +3837,6 @@ int c_ekkftrn_ft( register EKKfactinfo *fact,
 			       &mpt_ft[1]);
       } else {
 	nincol= c_ekkftju_sparse_a(fact,
-				 dpermu_ft, 
 				 mpt_ft+1,
 				 nincol, spare);
 	nincol = c_ekkftju_sparse_b(fact,
@@ -4000,7 +3998,6 @@ void c_ekkftrn2( register EKKfactinfo *fact, double *dwork1,
 			   dwork1,lastSlack, dwork1_ft+1, &mpt_ft[1]);
   } else {
     nincol= c_ekkftju_sparse_a(fact,
-			     dwork1, 
 			     mpt_ft+1,
 			     nincol, spare);
     nincol = c_ekkftju_sparse_b(fact,

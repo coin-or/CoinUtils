@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Common Public License.
 //
-// $Id: IpReferenced.hpp 735 2006-06-04 06:10:05Z andreasw $
+// $Id$
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 // Removed lots of debugging stuff and reformatted: Laszlo Ladanyi, IBM

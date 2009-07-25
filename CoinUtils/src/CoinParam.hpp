@@ -1,3 +1,4 @@
+/* $Id$ */
 #ifndef CoinParam_H
 #define CoinParam_H
 

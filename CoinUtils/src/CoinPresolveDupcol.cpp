@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #include <stdio.h>
@@ -40,7 +41,7 @@ namespace {	// begin unnamed file-local namespace
   The sums are returned in the corresponding entries of majsums.
 */
 
-void compute_sums (int n, const int *majlens, const CoinBigIndex *majstrts,
+  void compute_sums (int /*n*/, const int *majlens, const CoinBigIndex *majstrts,
 		   int *minndxs, double *elems, const double *minmuls,
 		   int *majcands, double *majsums, int nlook)
 
@@ -1008,7 +1009,7 @@ const CoinPresolveAction
   return (next);
 }
 
-void duprow_action::postsolve(CoinPostsolveMatrix *prob) const
+void duprow_action::postsolve(CoinPostsolveMatrix *) const
 {
   printf("STILL NO POSTSOLVE FOR DUPROW!\n");
   abort();
@@ -1149,7 +1150,7 @@ const CoinPresolveAction
   return (next);
 }
 
-void gubrow_action::postsolve(CoinPostsolveMatrix *prob) const
+void gubrow_action::postsolve(CoinPostsolveMatrix *) const
 {
   printf("STILL NO POSTSOLVE FOR GUBROW!\n");
   abort();

@@ -1,3 +1,4 @@
+/* $Id$ */
 #ifndef CoinUtility_h_
 #define CoinUtility_h_
 

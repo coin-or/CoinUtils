@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -16,7 +17,7 @@ namespace {	// begin unnamed file-local namespace
 
 // Sees how many zeros there are
 static int count_col_zeros (int ncheckcols, const int * checkcols,
-                            const CoinBigIndex *mcstrt, double *colels, int *hrow,
+                            const CoinBigIndex *mcstrt, double *colels,// int *hrow,
                             int *hincol)
 {
   int nactions = 0;
@@ -137,7 +138,7 @@ const CoinPresolveAction
  
   //  int i;
   int nzeros = count_col_zeros(ncheckcols,checkcols,
-                               mcstrt,colels,hrow,hincol);
+                               mcstrt,colels,/*hrow,*/hincol);
   if (nzeros == 0) {
     return (next);
   } else {

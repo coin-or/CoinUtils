@@ -1,3 +1,4 @@
+/* $Id$ */
 
 #include <cassert>
 #include <cerrno>
@@ -66,7 +67,7 @@ std::string nextField (const char *prompt)
     { where = fgets(line,1000,readSrc) ; }
 #else
     if (readSrc == stdin)
-    { fprintf(stdout,prompt) ;
+      { fprintf(stdout,"%s",prompt) ;
       fflush(stdout) ; }
     where = fgets(line,1000,readSrc) ;
 #endif

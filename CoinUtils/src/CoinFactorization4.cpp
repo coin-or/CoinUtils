@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -231,7 +232,7 @@ CoinFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
                                  int pivotRow,
 				  double pivotCheck ,
 				   bool checkBeforeModifying,
-				   double acceptablePivot)
+				   double )
 {
   assert (numberU_<=numberRowsExtra_);
   CoinBigIndex * COIN_RESTRICT startColumnU = startColumnU_.array();

@@ -1,3 +1,4 @@
+/* $Id$ */
 #ifndef CoinSearchTree_H
 #define CoinSearchTree_H
 

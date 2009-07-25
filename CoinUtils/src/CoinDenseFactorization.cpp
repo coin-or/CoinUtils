@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2008, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #if defined(_MSC_VER)
@@ -34,12 +35,14 @@ extern "C"
 //:class CoinDenseFactorization.  Deals with Factorization and Updates
 //  CoinDenseFactorization.  Constructor
 CoinDenseFactorization::CoinDenseFactorization (  )
+  : CoinOtherFactorization()
 {
   gutsOfInitialize();
 }
 
 /// Copy constructor 
 CoinDenseFactorization::CoinDenseFactorization ( const CoinDenseFactorization &other)
+  : CoinOtherFactorization(other)
 {
   gutsOfInitialize();
   gutsOfCopy(other);
@@ -144,8 +147,8 @@ void CoinDenseFactorization::gutsOfCopy(const CoinDenseFactorization &other)
 void
 CoinDenseFactorization::getAreas ( int numberOfRows,
 			 int numberOfColumns,
-			 CoinBigIndex maximumL,
-			 CoinBigIndex maximumU )
+			 CoinBigIndex ,
+			 CoinBigIndex  )
 {
 
   numberRows_ = numberOfRows;
@@ -362,8 +365,8 @@ int
 CoinDenseFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 					int pivotRow,
 					double pivotCheck ,
-					bool checkBeforeModifying,
-				       double acceptablePivot)
+					bool /*checkBeforeModifying*/,
+				       double /*acceptablePivot*/)
 {
   if (numberPivots_==maximumPivots_)
     return 3;
@@ -621,7 +624,7 @@ int
 CoinDenseFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
 					  CoinIndexedVector * regionSparse2,
 					  CoinIndexedVector * regionSparse3,
-					  bool noPermute)
+					   bool /*noPermute*/)
 {
 #ifdef DENSE_CODE
 #if 0
@@ -1045,5 +1048,5 @@ CoinOtherFactorization::wantsTableauColumn() const
    whereFrom is 0 for factorize and 1 for replaceColumn
 */
 void 
-CoinOtherFactorization::setUsefulInformation(const int * info,int whereFrom)
+CoinOtherFactorization::setUsefulInformation(const int * ,int )
 { }

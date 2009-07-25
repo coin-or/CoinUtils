@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2005, COIN-OR.  All Rights Reserved.
 #ifndef CoinFileIO_H
 #define CoinFileIO_H
