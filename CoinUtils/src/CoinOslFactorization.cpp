@@ -249,11 +249,16 @@ CoinOslFactorization::factor ( )
   if (factInfo_.eta_size>factInfo_.last_eta_size) {
     factInfo_.areaFactor *= factInfo_.eta_size;
     factInfo_.areaFactor /= factInfo_.last_eta_size;
+#ifdef CLP_INVESTIGATE
+    printf("areaFactor increased to %g\n",factInfo_.areaFactor);
+#endif
   }
   if (irtcod==5) {
     status_=-99;
     assert (factInfo_.eta_size>factInfo_.last_eta_size) ;
+#ifdef CLP_INVESTIGATE
     printf("need more memory\n");
+#endif
   } else if (irtcod) {
     status_=-1;
     //printf("singular %d\n",irtcod);
@@ -752,7 +757,7 @@ static void clp_adjust(void * temp,int size,int type)
   malloc_times ++;
   malloc_total += size;
   malloc_current += size;
-  malloc_max=CoinOslMax(malloc_max,malloc_current);
+  malloc_max=CoinMax(malloc_max,malloc_current);
   for (i=0;i<malloc_n;i++) {
     if ((int) size<=malloc_amount[i]) {
       malloc_counts[i]++;
@@ -1066,7 +1071,12 @@ static void c_ekksmem(EKKfactinfo *fact,int nrow,int maximumPivots)
       }
     }
   }
-  assert (nnetas);
+  if (!nnetas) {
+    char msg[100];
+    sprintf(msg,"Unable to allocate factorization memory for %d elements",
+	   nnetas);
+    throw(msg);
+  }
   /*c_ekklplp->nnetas=nnetas;*/
   fact->nnetas=nnetas;
   clp_adjust_pointers(fact, -1);
