@@ -106,8 +106,8 @@ libCoinUtils_la_DEPENDENCIES = $(COINUTILS_LIBADD)
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
 AM_CPPFLAGS =
-if COIN_HAS_GMPL
-  AM_CPPFLAGS += -I`$(CYGPATH_W) $(GMPLINCDIR)`
+if COIN_HAS_GLPK
+  AM_CPPFLAGS += $(GLPK_CFLAGS)
 endif
 
 # This line is necessary to allow VPATH compilation with MS compilers

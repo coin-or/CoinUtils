@@ -2711,10 +2711,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 					    <<CoinMessageEol;
   return numberErrors;
 }
-#ifdef COIN_HAS_GMPL
-extern "C" {
-#include "glpmpl.h"
-}
+#ifdef COIN_HAS_GLPK
+#include "glpk.h"
 #endif
 /* Read a problem in GMPL (subset of AMPL)  format from the given filenames.
    Thanks to Ted Ralphs - I just looked at his coding rather than look at the GMPL documentation.
@@ -2722,48 +2720,40 @@ extern "C" {
 int 
 CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
 {
-#ifdef COIN_HAS_GMPL
+#ifdef COIN_HAS_GLPK
   int returnCode;
   gutsOfDestructor();
   // initialize
-  MPL * gmpl = mpl_initialize();  
+  glp_tran* tran = glp_mpl_alloc_wksp();
   // read model
   char name[2000]; // should be long enough
   assert (strlen(modelName)<2000&&(!dataName||strlen(dataName)<2000));
   strcpy(name,modelName);
-  returnCode = mpl_read_model(gmpl,name,false);
+  returnCode = glp_mpl_read_model(tran,name,false);
   if (returnCode==1&&dataName) {
     // read data
     strcpy(name,dataName);
-    returnCode = mpl_read_data(gmpl,name);
+    returnCode = glp_mpl_read_data(tran,name);
   }
   if (returnCode!=2) {
     // errors
-    mpl_terminate(gmpl);
+    glp_mpl_free_wksp(tran);
     return 1;
   }
   // generate model
-  returnCode = mpl_generate(gmpl,NULL);
+  returnCode = glp_mpl_generate(tran,NULL);
   if (returnCode!=3) {
     // errors
-    mpl_terminate(gmpl);
+    glp_mpl_free_wksp(tran);
     return 2;
   }
-  // Get number of rows and elements
-  numberRows_=mpl_get_num_rows(gmpl);
-  int numberObj=0;
-  numberElements_=0;
-  int iRow;
-  // Remember Fortran conventions
-  for (iRow=0; iRow<numberRows_;iRow++) {
-    int rowType = mpl_get_row_kind(gmpl, iRow+1);
-    if (rowType==MPL_ST)
-      numberElements_ += mpl_get_mat_row(gmpl,iRow+1,NULL,NULL);
-    else
-      numberObj++;
-  }
-  numberRows_ -= numberObj;
-  numberColumns_ = mpl_get_num_cols(gmpl);
+  glp_prob* prob = glp_create_prob();
+  glp_mpl_build_prob(tran, prob);
+  // Get number of rows, columns, and elements
+  numberRows_=glp_get_num_rows(prob);
+  numberColumns_ = glp_get_num_cols(prob);
+  numberElements_=glp_get_num_nz(prob);
+  int iRow, iColumn;
   CoinBigIndex * start = new CoinBigIndex [numberRows_+1];
   int * index = new int [numberElements_];
   double * element = new double[numberElements_];
@@ -2772,14 +2762,7 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
   rowupper_ = reinterpret_cast<double *> (malloc ( numberRows_ * sizeof ( double )));
   // and objective
   objective_ = reinterpret_cast<double *> (malloc ( numberColumns_ * sizeof ( double )));
-  int iColumn;
-  for (iColumn=0; iColumn<numberColumns_;iColumn++) {
-    objective_[iColumn]=0.0;
-  }
-  objectiveOffset_ = 0.0;
-  problemName_= CoinStrdup(mpl_get_prob_name(gmpl));
-  bool objUsed=false;
-  bool minimize=true;
+  problemName_= CoinStrdup(glp_get_prob_name(prob));
   int kRow=0;
   start[0]=0;
   numberElements_=0;
@@ -2792,56 +2775,52 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
     names_[0] = names;
     numberHash_[0] = numberRows_;
   }
-  for (iRow=0; iRow<numberRows_+numberObj;iRow++) {
-    int rowType = mpl_get_row_kind(gmpl, iRow+1);
-    int number = mpl_get_mat_row(gmpl,iRow+1,ind-1,el-1);
-    if (rowType==MPL_ST) {
-      double rowLower,rowUpper;
-      rowType = mpl_get_row_bnds(gmpl, iRow+1, &rowLower,&rowUpper); 
-      switch(rowType) {                                           
-      case MPL_LO: 
-        rowUpper =  COIN_DBL_MAX;
-        break;	 
-      case MPL_UP:
-        rowLower = -COIN_DBL_MAX;
-        break;
-      case MPL_FR:
-        rowLower = -COIN_DBL_MAX;
-        rowUpper =  COIN_DBL_MAX;
-        break;
-      default:
-        break;
-      }
-      rowlower_[kRow]=rowLower;
-      rowupper_[kRow]=rowUpper;
-      for (int i=0;i<number;i++) {
-        iColumn = ind[i]-1;
-        index[numberElements_]=iColumn;
-        element[numberElements_++]=el[i];
-      }
-      if (keepNames) {
-        strcpy(name,mpl_get_row_name(gmpl,iRow+1));
-        // could look at name?
-        names[kRow]=CoinStrdup(name);
-      }
-      kRow++;
-      start[kRow]=numberElements_;
-    } else {
-      if (!objUsed) {
-        objUsed=true;
-        if (rowType==MPL_MAX)
-          minimize=false; // not used but ...
-        // sign correct?
-        objectiveOffset_ = mpl_get_row_c0(gmpl,iRow+1);
-        for (int i=0;i<number;i++) {
-          iColumn = ind[i]-1;
-          objective_[iColumn]=el[i];
-        }
-      }
+  for (iRow=0; iRow<numberRows_;iRow++) {
+    int number = glp_get_mat_row(prob,iRow+1,ind-1,el-1);
+    double rowLower,rowUpper;
+    int rowType;
+    rowLower = glp_get_row_lb(prob, iRow+1);
+    rowUpper = glp_get_row_ub(prob, iRow+1);
+    rowType  = glp_get_row_type(prob, iRow+1); 
+    switch(rowType) {                                           
+    case GLP_LO: 
+      rowUpper =  COIN_DBL_MAX;
+      break;	 
+    case GLP_UP:
+      rowLower = -COIN_DBL_MAX;
+      break;
+    case GLP_FR:
+      rowLower = -COIN_DBL_MAX;
+       rowUpper =  COIN_DBL_MAX;
+     break;
+    default:
+      break;
     }
+    rowlower_[kRow]=rowLower;
+    rowupper_[kRow]=rowUpper;
+    for (int i=0;i<number;i++) {
+      iColumn = ind[i]-1;
+      index[numberElements_]=iColumn;
+      element[numberElements_++]=el[i];
+    }
+    if (keepNames) {
+      strcpy(name,glp_get_row_name(prob,iRow+1));
+      // could look at name?
+      names[kRow]=CoinStrdup(name);
+    }
+    kRow++;
+    start[kRow]=numberElements_;
   }
   delete [] el;
   delete [] ind;
+
+   // FIXME why this variable is not used?
+  bool minimize=(glp_get_obj_dir(prob)==GLP_MAX ? false : true);
+   // sign correct?
+  objectiveOffset_ = glp_get_obj_coef(prob, 0);
+  for (int i=0;i<numberColumns_;i++)
+    objective_[i]=glp_get_obj_coef(prob, i+1);
+
   // Matrix
   matrixByColumn_ = new CoinPackedMatrix(false,numberColumns_,numberRows_,numberElements_,
                                   element,index,start,NULL);
@@ -2860,16 +2839,17 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
   }
   int numberIntegers=0;
   for (iColumn=0; iColumn<numberColumns_;iColumn++) {
-    double columnLower,columnUpper;
-    int columnType = mpl_get_col_bnds(gmpl, iColumn+1, &columnLower,&columnUpper); 
+    double columnLower = glp_get_col_lb(prob, iColumn+1);
+    double columnUpper = glp_get_col_ub(prob, iColumn+1);
+    int columnType = glp_get_col_type(prob, iColumn+1);
     switch(columnType) {                                           
-    case MPL_LO: 
+    case GLP_LO: 
       columnUpper =  COIN_DBL_MAX;
       break;	 
-    case MPL_UP:
+    case GLP_UP:
       columnLower = -COIN_DBL_MAX;
       break;
-    case MPL_FR:
+    case GLP_FR:
       columnLower = -COIN_DBL_MAX;
       columnUpper =  COIN_DBL_MAX;
       break;
@@ -2878,8 +2858,8 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
     }
     collower_[iColumn]=columnLower;
     colupper_[iColumn]=columnUpper;
-    columnType = mpl_get_col_kind(gmpl,iColumn+1);
-    if (columnType==MPL_INT) {
+    columnType = glp_get_col_kind(prob,iColumn+1);
+    if (columnType==GLP_IV) {
       integerType_[iColumn]=1;
       numberIntegers++;
       //assert ( collower_[iColumn] >= -MAX_INTEGER );
@@ -2887,7 +2867,7 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
         collower_[iColumn] = -MAX_INTEGER;
       if ( colupper_[iColumn] > MAX_INTEGER ) 
         colupper_[iColumn] = MAX_INTEGER;
-    } else if (columnType==MPL_BIN) {
+    } else if (columnType==GLP_BV) {
       numberIntegers++;
       integerType_[iColumn]=1;
       collower_[iColumn]=0.0;
@@ -2896,12 +2876,13 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
       integerType_[iColumn]=0;
     }
     if (keepNames) {
-      strcpy(name,mpl_get_col_name(gmpl,iColumn+1));
+      strcpy(name,glp_get_col_name(prob,iColumn+1));
       // could look at name?
       names[iColumn]=CoinStrdup(name);
     }
   }
-  mpl_terminate(gmpl);
+  glp_free(prob);
+  glp_mpl_free_wksp(tran);
   if ( !numberIntegers ) {
     free(integerType_);
     integerType_ = NULL;
@@ -2913,7 +2894,7 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
 					    <<CoinMessageEol;
   return 0;
 #else
-  printf("GMPL not being used\n");
+  printf("GLPK is not available\n");
   abort();
   return 1;
 #endif

@@ -27,22 +27,29 @@ unitTest_SOURCES = \
 	unitTest.cpp
 
 # List libraries of COIN projects
-unitTest_LDADD = $(COINUTILSOBJDIR)/src/libCoinUtils.la
+unitTest_LDADD = ../src/libCoinUtils.la
 
 # List additional libraries
 LIBS += $(ADDLIBS)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
-AM_CPPFLAGS = \
-        -I`$(CYGPATH_W) $(COINUTILSSRCDIR)/src`
+AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src`
 
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 
+unittestflags =
+if COIN_HAS_SAMPLE
+  unittestflags += -mpsDir=$(SAMPLE_DATA)
+endif
+if COIN_HAS_NETLIB
+  unittestflags += -netlibDir=$(NETLIB_DATA) -testModel=adlittle.mps
+endif
+
 test: unitTest$(EXEEXT)
-	./unitTest$(EXEEXT)
+	./unitTest$(EXEEXT) $(unittestflags)
 
 .PHONY: test
 

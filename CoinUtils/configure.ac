@@ -1,4 +1,4 @@
-# Copyright (C) 2006 International Business Machines.
+# Copyright (C) 2006,2009 International Business Machines.
 # All Rights Reserved.
 # This file is distributed under the Common Public License.
 
@@ -435,79 +435,19 @@ AC_CHECK_HEADERS([windows.h])
 #                              COIN components                              #
 #############################################################################
 
-AC_COIN_HAS_PROJECT(CoinUtils)
+AC_COIN_HAS_PKGCONFIG
 
-#############################################################################
-#                             Other dependencies                            #
-#############################################################################
-
-# For Gnu Mathprog (GMPL), supplied by glpk.
-
-AC_COIN_HAS_GLPK(Gmpl)
-if test x"$use_thirdpartyglpk" = xbuild; then
-  COINUTILS_LIBADD="../../ThirdParty/Glpk/libcoinglpk.la $COINUTILS_LIBADD"
-fi
-
-#############################################################################
-#                       Other third party software                          #
-#############################################################################
-
-# Ampl Solver library
-AC_COIN_HAS_ASL
-
-# Check for BLAS and LAPACK. If there's no Fortran compiler available, skip
-# this entirely, otherwise configuration will fail when we try to do a Fortran
-# link. The check cannot be embedded in AC_COIN_HAS_BLAS because the offending
-# macro is AC_REQUIRE'd from somewhere inside AC_TRY_LINK and ends up out in
-# front of all the code in AC_COIN_HAS_BLAS.  This will need to be revisited if
-# we run up against a situation where a prebuilt BLAS/LAPACK is linkable but
-# there's no Fortran compiler. This code has the unfortunate property that
-# calls to AM_CONDITIONAL are exposed here and still occur in AC_COIN_HAS_BLAS
-# and AC_COIN_HAS_LAPACK. With some thought, it should be possible to separate
-# BLAS and LAPACK configuration into two steps that would maintain information
-# hiding and still avoid attempting a Fortran link when no compiler is
-# present.
-
-if test "$F77" = unavailable ; then
-  coin_has_blas=no
-  AM_CONDITIONAL([COIN_HAS_BLAS],[false])
-  AM_CONDITIONAL([COIN_BUILD_BLAS],[false])
-  coin_has_lapack=no
-  AM_CONDITIONAL([COIN_HAS_LAPACK],[false])
-  AM_CONDITIONAL([COIN_BUILD_LAPACK],[false])
-else
-
-  #######################
-  #        BLAS         #
-  #######################
-
-  AC_COIN_HAS_BLAS
-  if test $coin_has_blas = no; then
-    AC_MSG_WARN([Cannot find BLAS - no dense factorization])
-  fi
-  if test "$use_blas" = BUILD; then
-    COINUTILS_LIBADD="../../ThirdParty/Blas/libcoinblas.la $COINUTILS_LIBADD"
-  fi
-
-  #######################
-  #       LAPACK        #
-  #######################
-
-  AC_COIN_HAS_LAPACK
-  if test $coin_has_lapack = no; then
-    AC_MSG_WARN([Cannot find LAPACK - no dense factorization])
-  fi
-  if test "$use_lapack" = BUILD; then
-    COINUTILS_LIBADD="../../ThirdParty/Lapack/libcoinlapack.la $COINUTILS_LIBADD"
-  fi
-fi
-
-# For now, we just add the lapack and blas libraries here in case they are
-# compiled in ThirdParty.  On the long run, we need a different solution
-AC_SUBST(COINUTILS_LIBADD)
+AC_COIN_HAS_PROJECT2(CoinUtils)
+AC_COIN_HAS_PROJECT2(Blas,ThirdParty,[daxpy.f])
+AC_COIN_HAS_PROJECT2(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
+AC_COIN_HAS_PROJECT2(Glpk,ThirdParty,[glpk/src/glplpx01.c])
+AC_COIN_HAS_PROJECT2(Sample,Data)
+AC_COIN_HAS_PROJECT2(Netlib,Data)
 
 AC_COIN_CHECK_GNU_ZLIB
 AC_COIN_CHECK_GNU_BZLIB
+
+AC_SUBST(ADDLIBS)
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #
@@ -518,7 +458,8 @@ AC_COIN_CHECK_GNU_BZLIB
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  test/Makefile
-		 coinutils_addlibs.txt])
+		 coinutils_addlibs.txt
+                 coinutils.pc coinutils-uninstalled.pc])
 
 # Here put the location and name of the configuration header file
 AC_CONFIG_HEADER([inc/config_coinutils.h])
