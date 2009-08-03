@@ -899,6 +899,8 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		  } else {
 		    newBound = -COIN_DBL_MAX;
 		  }
+		  if (newBound<=-large)
+		    newBound = -COIN_DBL_MAX;
 		  if (newBound > nowLower + 1.0e-12) {
 		    // Tighten the lower bound 
 		    // adjust
@@ -930,6 +932,8 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		  } else {
 		    newBound = COIN_DBL_MAX;
 		  }
+		  if (newBound>=large)
+		    newBound = COIN_DBL_MAX;
 		  if (newBound < nowUpper - 1.0e-12) {
 		    // Tighten the upper bound 
 		    // adjust 
@@ -963,6 +967,8 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		  } else {
 		    newBound = COIN_DBL_MAX;
 		  }
+		  if (newBound>=large)
+		    newBound = COIN_DBL_MAX;
 		  if (newBound < nowUpper - 1.0e-12) {
 		    // Tighten the upper bound 
 		    // adjust
@@ -994,6 +1000,8 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 		  } else {
 		    newBound = -COIN_DBL_MAX;
 		  }
+		  if (newBound<=-large)
+		    newBound = -COIN_DBL_MAX;
 		  if (newBound > nowLower + 1.0e-12) {
 		    // Tighten the lower bound 
 		    // adjust
