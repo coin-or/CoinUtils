@@ -674,7 +674,7 @@ CoinOslFactorization::maximumPivots (  int value )
 }
 #define CLP_FILL 15
 /*#undef NDEBUG*/
-/*#define CLP_DEBUG_MALLOC 1*/
+//#define CLP_DEBUG_MALLOC 1000000
 #if CLP_DEBUG_MALLOC
 static int malloc_number=0;
 static int malloc_check=-1;
@@ -775,8 +775,9 @@ double * clp_double(int number_entries)
   double * temp = reinterpret_cast<double *>( malloc((number_entries+extra)*sizeof(double)));
   clp_adjust(temp,number_entries*sizeof(double),1);
 #if CLP_DEBUG_MALLOC>1
-  printf("WWW %x malloced by double %d - size %d\n",
-	 temp+extra,malloc_number,number_entries);
+  if (number_entries*sizeof(double)>=CLP_DEBUG_MALLOC)
+    printf("WWW %x malloced by double %d - size %d\n",
+	   temp+extra,malloc_number,number_entries);
 #endif
   return temp+extra;
 #endif
@@ -789,8 +790,9 @@ int * clp_int(int number_entries)
   double * temp = reinterpret_cast<double *>( malloc(((number_entries+1)/2+extra)*sizeof(double)));
   clp_adjust(temp,number_entries*sizeof(int),2);
 #if CLP_DEBUG_MALLOC>1
-  printf("WWW %x malloced by int %d - size %d\n",
-	 temp+extra,malloc_number,number_entries);
+  if (number_entries*sizeof(int)>=CLP_DEBUG_MALLOC)
+    printf("WWW %x malloced by int %d - size %d\n",
+	   temp+extra,malloc_number,number_entries);
 #endif
   return reinterpret_cast<int *>( (temp+extra));
 #endif
@@ -803,8 +805,9 @@ void * clp_malloc(int number_entries)
   double * temp = reinterpret_cast<double *>( malloc(number_entries+extra*sizeof(double)));
   clp_adjust(temp,number_entries,0);
 #if CLP_DEBUG_MALLOC>1
-  printf("WWW %x malloced by void %d - size %d\n",
-	 temp+extra,malloc_number,number_entries);
+  if (number_entries>=CLP_DEBUG_MALLOC)
+    printf("WWW %x malloced by void %d - size %d\n",
+	   temp+extra,malloc_number,number_entries);
 #endif
   return (void *) (temp+extra);
 #endif
@@ -823,6 +826,7 @@ void clp_free(void * oldArray)
     next->previous=previous;
     malloc_current -= itemp->size;
 #if CLP_DEBUG_MALLOC>1
+    if (itemp->size>=CLP_DEBUG_MALLOC)
     printf("WWW %x freed by free %d - old length %d - type %d\n",
 	   oldArray,itemp->when,itemp->size,itemp->type);
 #endif
