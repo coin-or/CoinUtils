@@ -461,7 +461,7 @@ CoinOslFactorization::updateColumnFT ( CoinIndexedVector * regionSparse,
   // Use region instead of dpermu
   double * save =factInfo_.kadrpm;
   factInfo_.kadrpm=regionSparse->denseVector()-1;
-  int nuspike=c_ekkftrn_ft(&factInfo_, region2-1,regionIndex2-1,
+  int nuspike=c_ekkftrn_ft(&factInfo_, region2,regionIndex2,
 			 &numberNonZero);
   factInfo_.kadrpm=save;
   regionSparse2->setNumElements(numberNonZero);
@@ -496,13 +496,13 @@ CoinOslFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
   // packed mode
   //double *dpermu = factInfo_.kadrpm;
 #if 0
-  factInfo_.nuspike=c_ekkftrn_ft(&factInfo_, region2-1,regionIndex2-1,
+  factInfo_.nuspike=c_ekkftrn_ft(&factInfo_, region2,regionIndex2,
 			       &numberNonZero2);
   numberNonZero3=c_ekkftrn(&factInfo_,
 			region3-1,region,regionIndex3,numberNonZero3);
 #else
   c_ekkftrn2(&factInfo_,region3-1,region,regionIndex3,&numberNonZero3,
-  region2-1,regionIndex2-1,&numberNonZero2);
+  region2,regionIndex2,&numberNonZero2);
 #endif
   regionSparse2->setNumElements(numberNonZero2);
   regionSparse3->setNumElements(numberNonZero3);
