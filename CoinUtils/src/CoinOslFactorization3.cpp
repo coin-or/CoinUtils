@@ -67,7 +67,7 @@ int c_ekktria(EKKfactinfo *fact,
 	    int *xnewcop, int *xnewrop,
 	    int *nlrowtp,
 	    const int ninbas);
-
+#if 0
 static void c_ekkafpv(int *hentry, int *hcoli,
 	     double *dluval, int *mrstrt,
 	     int *hinrow, int nentry)
@@ -132,6 +132,7 @@ static void c_ekkafpv(int *hentry, int *hcoli,
     SWAP(double, els[koff], els[0]);
   }
 } /* c_ekkafpv */
+#endif
 
 /*     Uwe H. Suhl, March 1987 */
 /*     This routine processes col singletons during the LU-factorization. */
@@ -692,10 +693,6 @@ void c_ekkprpv(EKKfactinfo *fact,
   
   for (k = kipis; k <= kipie; ++k) {
     int j = hcoli[k];
-    int n = hincol[j];
-    int kcs = mcstrt[j];
-    int kce = kcs + hincol[j] - 1;
-    int kcx = kcs + (n & -4);
     
     if ((xrejct == 0) ||
 	! (clink[j].pre > nrow)) {
@@ -703,37 +700,14 @@ void c_ekkprpv(EKKfactinfo *fact,
     }
     
     --hincol[j];
+    int kcs = mcstrt[j];
+    int kce = kcs + hincol[j];
     
-    for (kc = kcs; kc <= kcx - 1; kc += 4) {
-      if (hrowi[kc] == ipivot) {
-	goto L420;
-      }
-      if (hrowi[kc + 1] == ipivot) {
-	goto L411;
-      }
-      if (hrowi[kc + 2] == ipivot) {
-	goto L412;
-      }
-      if (hrowi[kc + 3] == ipivot) {
-	goto L413;
-      }
+    for (kc = kcs; kc < kce ; kc ++) {
+      if (hrowi[kc] == ipivot) 
+	break;
     }
-    for (kc = kcx; kc <= kce; ++kc) {
-      if (hrowi[kc] == ipivot) {
-	goto L420;
-      }
-    }
-    abort();
-    
-  L411:
-    ++kc;
-    goto L420;
-  L412:
-    kc += 2;
-    goto L420;
-  L413:
-    kc += 3;
-  L420:
+    assert (kc<kce||hrowi[kce]==ipivot);
     hrowi[kc] = hrowi[kce];
     hrowi[kce] = 0;
     if (j == jpivot) {
@@ -1239,12 +1213,14 @@ int c_ekkford(const EKKfactinfo *fact,const int *hinrow, const int *hincol,
   /*     Uwe H. Suhl, August 1986 */
   /*     Builds linked lists of rows and cols of nucleus for efficient */
   /*     pivot searching. */
-  
+
+  memset(hpivro+1,0,nrow*sizeof(int));
+  memset(hpivco+1,0,nrow*sizeof(int));
   for (i = 1; i <= nrow; ++i) {
-    hpivro[i] = 0;
-    hpivco[i] = 0;
-    rlink[i].suc = 0;
-    clink[i].suc = 0;
+    //hpivro[i] = 0;
+    //hpivco[i] = 0;
+    assert(rlink[i].suc == 0);
+    assert(clink[i].suc == 0);
   }
   
   /*     Generate double linked list of rows having equal numbers of */

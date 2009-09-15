@@ -238,7 +238,7 @@ void clp_free(void * oldArray);
   int i, j, k;
   double d1;
   int j1, j2;
-  int jj, kk, nn, kr, nz, jj1, jj2, kce, kcs, kqq, npr;
+  int jj, kk, kr, nz, jj1, jj2, kce, kcs, kqq, npr;
   int fill, naft;
   int enpr;
   int nres, npre;
@@ -486,7 +486,7 @@ void clp_free(void * oldArray);
 #endif
       kstart = knpre;
       fill = kfill;
-
+      
       if (cancel) {
 	/* KSTART is used as a stack pointer for nonzeros in factored row */
 	kstart = knprs - 1;
@@ -522,128 +522,159 @@ void clp_free(void * oldArray);
 	}
       }
       else {
-      naft = mwork[npr].suc;
-      kqq = mrstrt[naft] - knpre - 1;
-
-      if (fill > kqq) {
-	/* Fill-in exceeds space left. Check if there is enough */
-	/* space in row file for the new row. */
-	nznpr = enpr + fill;
-	if (! (xnewro + nznpr + 1 < lstart)) {
-	  if (! (nnentu + nznpr + 1 < lstart)) {
-	    irtcod = -5;
-	    goto L1050;
-	  }
-	  /* idea 1 is to compress every time xnewro increases by x thousand */
-	  /* idea 2 is to copy nucleus rows with a reasonable gap */
-	  /* then copy each row down when used */
-	  /* compressions would just be 1 remainder which eventually will */
-	  /* fit in cache */
-	  {
-	    int iput = c_ekkrwcs(fact,dluval, hcoli, mrstrt, hinrow, mwork, nfirst);
-	    kmxeta += xnewro - iput ;
-	    xnewro = iput - 1;
-	    ++ncompactions;
-	  }
-
-	  kipis = mrstrt[ipivot] + 1;
-	  kipie = kipis + epivr1 - 1;
-	  knprs = mrstrt[npr];
-	}
-
-	/* I think this assignment should be inside the previous if-stmt */
-	/* otherwise, it does nothing */
-	/*assert(knpre == knprs + enpr - 1);*/
-	knpre = knprs + enpr - 1; 
-
-	/*
-	 * copy this row to the end of the row file and adjust its links.
-	 * The links keep track of the order of rows in memory.
-	 * Rows are only moved from the middle all the way to the end.
-	 */
-	if (npr != nlast) {
-	  npre = mwork[npr].pre;
-	  if (npr == nfirst) {
-	    nfirst = naft;
-	  }
-	  /*             take out of chain */
-	  mwork[naft].pre = npre;
-	  mwork[npre].suc = naft;
-	  /*             and put in at end */
-	  mwork[nfirst].pre = npr;
-	  mwork[nlast].suc = npr;
-	  mwork[npr].pre = nlast;
-	  mwork[npr].suc = nfirst;
-	  nlast = npr;
-	  kstart = xnewro;
-	  mrstrt[npr] = kstart + 1;
-	  nmove = knpre - knprs + 1;
-	  ibase = kstart + 1 - knprs;
-	  for (kr = knprs; kr <= knpre; ++kr) {
-	    dluval[ibase + kr] = dluval[kr];
-	    hcoli[ibase + kr] = hcoli[kr];
-	  }
-	  kstart += nmove;
-	} else {
-	  kstart = knpre;
-	}
-
-	/* extra space ? */
-	/*
-	 * The mystery of iadd32.
-	 * This code assigns to xnewro, possibly using iadd32.
-	 * However, in that case xnewro is assigned to just after
-	 * the for-loop below, and there is no intervening reference.
-	 * Therefore, I believe that this code can be entirely eliminated;
-	 * it is the leftover of an interrupted or dropped experiment.
-	 * Presumably, this was trying to implement the ideas about
-	 * padding expressed above.
-	 */
-	if (iadd32 != 0) {
-	  xnewro += iadd32;
-	} else {
-	  if (kstart + (nrow << 1) + 100 < lstart) {
-	    ileft = ((nrow - fact->npivots + 32) & -32);
-	    if (kstart + ileft * ileft + 32 < lstart) {
-	      iadd32 = ileft;
-	      xnewro = CoinMax(kstart,xnewro);
-	      xnewro = (xnewro & -32) + ileft;
-	    } else {
-	      xnewro = ((kstart + 31) & -32);
+	naft = mwork[npr].suc;
+	kqq = mrstrt[naft] - knpre - 1;
+	
+	if (fill > kqq) {
+	  /* Fill-in exceeds space left. Check if there is enough */
+	  /* space in row file for the new row. */
+	  nznpr = enpr + fill;
+	  if (! (xnewro + nznpr + 1 < lstart)) {
+	    if (! (nnentu + nznpr + 1 < lstart)) {
+	      irtcod = -5;
+	      goto L1050;
 	    }
-	  } else {
-	    xnewro = kstart;
+	    /* idea 1 is to compress every time xnewro increases by x thousand */
+	    /* idea 2 is to copy nucleus rows with a reasonable gap */
+	    /* then copy each row down when used */
+	    /* compressions would just be 1 remainder which eventually will */
+	    /* fit in cache */
+	    {
+	      int iput = c_ekkrwcs(fact,dluval, hcoli, mrstrt, hinrow, mwork, nfirst);
+	      kmxeta += xnewro - iput ;
+	      xnewro = iput - 1;
+	      ++ncompactions;
+	    }
+	    
+	    kipis = mrstrt[ipivot] + 1;
+	    kipie = kipis + epivr1 - 1;
+	    knprs = mrstrt[npr];
 	  }
+	  
+	  /* I think this assignment should be inside the previous if-stmt */
+	  /* otherwise, it does nothing */
+	  /*assert(knpre == knprs + enpr - 1);*/
+	  knpre = knprs + enpr - 1; 
+	  
+	  /*
+	   * copy this row to the end of the row file and adjust its links.
+	   * The links keep track of the order of rows in memory.
+	   * Rows are only moved from the middle all the way to the end.
+	   */
+	  if (npr != nlast) {
+	    npre = mwork[npr].pre;
+	    if (npr == nfirst) {
+	      nfirst = naft;
+	    }
+	    /*             take out of chain */
+	    mwork[naft].pre = npre;
+	    mwork[npre].suc = naft;
+	    /*             and put in at end */
+	    mwork[nfirst].pre = npr;
+	    mwork[nlast].suc = npr;
+	    mwork[npr].pre = nlast;
+	    mwork[npr].suc = nfirst;
+	    nlast = npr;
+	    kstart = xnewro;
+	    mrstrt[npr] = kstart + 1;
+	    nmove = knpre - knprs + 1;
+	    ibase = kstart + 1 - knprs;
+	    for (kr = knprs; kr <= knpre; ++kr) {
+	      dluval[ibase + kr] = dluval[kr];
+	      hcoli[ibase + kr] = hcoli[kr];
+	    }
+	    kstart += nmove;
+	  } else {
+	    kstart = knpre;
+	  }
+	  
+	  /* extra space ? */
+	  /*
+	   * The mystery of iadd32.
+	   * This code assigns to xnewro, possibly using iadd32.
+	   * However, in that case xnewro is assigned to just after
+	   * the for-loop below, and there is no intervening reference.
+	   * Therefore, I believe that this code can be entirely eliminated;
+	   * it is the leftover of an interrupted or dropped experiment.
+	   * Presumably, this was trying to implement the ideas about
+	   * padding expressed above.
+	   */
+	  if (iadd32 != 0) {
+	    xnewro += iadd32;
+	  } else {
+	    if (kstart + (nrow << 1) + 100 < lstart) {
+	      ileft = ((nrow - fact->npivots + 32) & -32);
+	      if (kstart + ileft * ileft + 32 < lstart) {
+		iadd32 = ileft;
+		xnewro = CoinMax(kstart,xnewro);
+		xnewro = (xnewro & -32) + ileft;
+	      } else {
+		xnewro = ((kstart + 31) & -32);
+	      }
+	    } else {
+	      xnewro = kstart;
+	    }
+	  }
+	  
+	  hinrow[npr] = enpr;
+	} else if (! (nnentu + kqq + 2 < lstart)) {
+	  irtcod = -5;
+	  goto L1050;
 	}
-
-	hinrow[npr] = enpr;
-      } else if (! (nnentu + kqq + 2 < lstart)) {
-	irtcod = -5;
-	goto L1050;
-      }
-
-      /* Scan pivot row again to generate fill in. */
-      for (kr = kipis; kr <= kipie; ++kr) {
-	j = hcoli[kr];
-	jj = maction[j];
-	if (jj >0) {
-	  elemnt = multip * dvalpv[jj];
-	  if (fabs(elemnt) > fact->zeroTolerance) {
-	    ++kstart;
-	    dluval[kstart] = elemnt;
-	    hcoli[kstart] = j;
-	    ++nnentu;
-	    nz = hincol[j];
-	    kcs = mcstrt[j];
-	    kce = kcs + nz - 1;
-	    if (kce == xnewco) {
-	      if (xnewco + 1 >= lstart) {
+	/* Scan pivot row again to generate fill in. */
+	for (kr = kipis; kr <= kipie; ++kr) {
+	  j = hcoli[kr];
+	  jj = maction[j];
+	  if (jj >0) {
+	    elemnt = multip * dvalpv[jj];
+	    if (fabs(elemnt) > fact->zeroTolerance) {
+	      ++kstart;
+	      dluval[kstart] = elemnt;
+	      //printf("pivot %d at %d col %d el %g\n",
+	      // npr,kstart,j,elemnt);
+	      hcoli[kstart] = j;
+	      ++nnentu;
+	      nz = hincol[j];
+	      kcs = mcstrt[j];
+	      kce = kcs + nz - 1;
+	      if (kce == xnewco) {
+		if (xnewco + 1 >= lstart) {
+		  if (xnewco + nz + 1 >= lstart) {
+		    /*                  Compress column file */
+		    if (nnentu + nz + 1 < lstart) {
+		      xnewco = c_ekkclco(fact,hrowi, mcstrt, hincol, xnewco);
+		      ++ncompactions;
+		      
+		      kcpiv = mcstrt[jpivot] - 1;
+		      kcs = mcstrt[j];
+		      /*                  HINCOL MAY HAVE CHANGED? (JJHF) ??? */
+		      nz = hincol[j];
+		      kce = kcs + nz - 1;
+		    } else {
+		      irtcod = -5;
+		      goto L1050;
+		    }
+		  }
+		  /*              Copy column */
+		  mcstrt[j] = xnewco + 1;
+		  ibase = mcstrt[j] - kcs;
+		  for (kk = kcs; kk <= kce; ++kk) {
+		    hrowi[ibase + kk] = hrowi[kk];
+		    hrowi[kk] = 0;
+		  }
+		  kce = xnewco + kce - kcs + 1;
+		  xnewco = kce + 1;
+		} else {
+		  ++xnewco;
+		}
+	      } else if (hrowi[kce + 1] != 0) {
+		/* here we use the fact that hrowi entries not "in use" are zeroed */
 		if (xnewco + nz + 1 >= lstart) {
-		  /*                  Compress column file */
+		  /* Compress column file */
 		  if (nnentu + nz + 1 < lstart) {
 		    xnewco = c_ekkclco(fact,hrowi, mcstrt, hincol, xnewco);
 		    ++ncompactions;
-
+		    
 		    kcpiv = mcstrt[jpivot] - 1;
 		    kcs = mcstrt[j];
 		    /*                  HINCOL MAY HAVE CHANGED? (JJHF) ??? */
@@ -654,7 +685,7 @@ void clp_free(void * oldArray);
 		    goto L1050;
 		  }
 		}
-		/*              Copy column */
+		/* move the column to the end of the column file */
 		mcstrt[j] = xnewco + 1;
 		ibase = mcstrt[j] - kcs;
 		for (kk = kcs; kk <= kce; ++kk) {
@@ -663,63 +694,33 @@ void clp_free(void * oldArray);
 		}
 		kce = xnewco + kce - kcs + 1;
 		xnewco = kce + 1;
-	      } else {
-		++xnewco;
 	      }
-	    } else if (hrowi[kce + 1] != 0) {
-	      /* here we use the fact that hrowi entries not "in use" are zeroed */
-	      if (xnewco + nz + 1 >= lstart) {
-		/* Compress column file */
-		if (nnentu + nz + 1 < lstart) {
-		  xnewco = c_ekkclco(fact,hrowi, mcstrt, hincol, xnewco);
-		  ++ncompactions;
-
-		  kcpiv = mcstrt[jpivot] - 1;
-		  kcs = mcstrt[j];
-		  /*                  HINCOL MAY HAVE CHANGED? (JJHF) ??? */
-		  nz = hincol[j];
-		  kce = kcs + nz - 1;
-		} else {
-		  irtcod = -5;
-		  goto L1050;
-		}
-	      }
-	      /* move the column to the end of the column file */
-	      mcstrt[j] = xnewco + 1;
-	      ibase = mcstrt[j] - kcs;
-	      for (kk = kcs; kk <= kce; ++kk) {
-		hrowi[ibase + kk] = hrowi[kk];
-		hrowi[kk] = 0;
-	      }
-	      kce = xnewco + kce - kcs + 1;
-	      xnewco = kce + 1;
+	      /* store element */
+	      hrowi[kce + 1] = npr;
+	      hincol[j] = nz + 1;
 	    }
-	    /* store element */
-	    hrowi[kce + 1] = npr;
-	    hincol[j] = nz + 1;
+	  } else {
+	    maction[j] = static_cast<MACTION_T>(-maction[j]);
 	  }
-	} else {
-	  maction[j] = static_cast<MACTION_T>(-maction[j]);
 	}
-      }
-      if (fill > kqq) {
-	xnewro = kstart;
-      }
+	if (fill > kqq) {
+	  xnewro = kstart;
+	}
       }
       hinrow[npr] = kstart - mrstrt[npr] + 1;
       /* Check if row or column file needs compression */
       if (! (xnewco + 1 < lstart)) {
 	xnewco = c_ekkclco(fact,hrowi, mcstrt, hincol, xnewco);
 	++ncompactions;
-
-	  kcpiv = mcstrt[jpivot] - 1;
+	
+	kcpiv = mcstrt[jpivot] - 1;
       }
       if (! (xnewro + 1 < lstart)) {
 	int iput = c_ekkrwcs(fact,dluval, hcoli, mrstrt, hinrow, mwork, nfirst);
 	kmxeta += xnewro - iput ;
 	xnewro = iput - 1;
 	++ncompactions;
-
+	
 	kipis = mrstrt[ipivot] + 1;
 	kipie = kipis + epivr1 - 1;
       }
@@ -728,8 +729,72 @@ void clp_free(void * oldArray);
       --nnentu;
       --lstart;
       dluval[lstart] = multip;
-
+      
       hrowi[lstart] = SHIFT_INDEX(npr);
+#define INLINE_AFPV 3
+      /* We could do this while computing values but
+	 it makes it much more complex.  At least we should get
+	 reasonable cache behavior by doing it each row */
+#if INLINE_AFPV
+      {
+	int j;
+	int nel, krs;
+	int koff;
+	int * index;
+	double * els;
+	nel = hinrow[npr];
+	krs = mrstrt[npr];
+	index=&hcoli[krs];
+	els=&dluval[krs];
+#if INLINE_AFPV<3
+#if INLINE_AFPV==1
+	double maxaij = 0.0;
+	koff = 0;
+	j=0;
+	while (j<nel) {
+	  double d = fabs(els[j]);
+	  if (maxaij < d) {
+	    maxaij = d;
+	    koff=j;
+	  }
+	  j++;
+	}
+#else
+	assert (nel);
+	koff=0;
+	double maxaij=fabs(els[0]);
+	for (j=1;j<nel;j++) {
+	  double d = fabs(els[j]);
+	  if (maxaij < d) {
+	    maxaij = d;
+	    koff=j;
+	  }
+	}
+#endif
+#else
+	double maxaij = 0.0;
+	koff = 0;
+	j=0;
+	if ((nel&1)!=0) {
+	  maxaij=fabs(els[0]);
+	  j=1;
+	}
+	
+	while (j<nel) {
+	  UNROLL_LOOP_BODY2({
+	      double d = fabs(els[j]);
+	      if (maxaij < d) {
+		maxaij = d;
+		koff=j;
+	      }
+	      j++;
+	    });
+	}
+#endif
+	SWAP(int, index[koff], index[0]);
+	SWAP(double, els[koff], els[0]);
+      }
+#endif
 
       {
 	int nzi = hinrow[npr];
@@ -740,8 +805,10 @@ void clp_free(void * oldArray);
     }
 
     /* after pivot move biggest to first in each row */
-    nn = mcstrt[fact->xnetal] - lstart + 1;
+#if INLINE_AFPV==0
+    int nn = mcstrt[fact->xnetal] - lstart + 1;
     c_ekkafpv(hrowi+lstart, hcoli, dluval, mrstrt, hinrow, nn);
+#endif
 
     /* Restore work array */
     for (k = kipis; k <= kipie; ++k) {

@@ -1006,19 +1006,6 @@ static void c_ekksmem(EKKfactinfo *fact,int nrow,int maximumPivots)
     fact->kw1adr=reinterpret_cast<double *>( clp_align(fact->trueStart));
     clp_alloc_memory(fact,0,&length);
   }
-  /* sensible guess as to size of factorization */
-  if (!fact->eta_size) {
-    fact->eta_size=15*nrow+10000;
-    fact->eta_size += 1000000; /* TEMP */
-    if (fact->maxNNetas) {
-      if (fact->maxNNetas<0) {
-	fact->maxNNetas=-fact->maxNNetas;
-	fact->eta_size=fact->maxNNetas;
-      } else if(fact->eta_size> fact->maxNNetas) {
-	fact->eta_size=fact->maxNNetas;
-      }
-    }
-  } /* endif */
   /*if (!fact->iterno) fact->eta_size+=1000000;*//* TEMP*/
   if (nnetas>fact->last_eta_size||(!fact->xe2adr&&fact->if_sparse_update)) {
     fact->last_eta_size = nnetas;
