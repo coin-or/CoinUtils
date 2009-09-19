@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -406,7 +407,7 @@ CoinMessageHandler::setLogLevel(int which,int value)
 {
   if (which>=0&&which<COIN_NUM_LOG) {
     if (value>=-1)
-      logLevel_=value;
+      logLevels_[which]=value;
   }
 }
 void 
@@ -434,7 +435,7 @@ CoinMessageHandler::CoinMessageHandler() :
   fp_(stdout)
 {
   for (int i=0;i<COIN_NUM_LOG;i++)
-    logLevels_[i]=1;
+    logLevels_[i]=-1000;
   messageBuffer_[0]='\0';
   messageOut_ = messageBuffer_;
   source_="Unk";
@@ -451,7 +452,7 @@ CoinMessageHandler::CoinMessageHandler(FILE * fp) :
   fp_(fp)
 {
   for (int i=0;i<COIN_NUM_LOG;i++)
-    logLevels_[i]=1;
+    logLevels_[i]=-1000;
   messageBuffer_[0]='\0';
   messageOut_ = messageBuffer_;
   source_="Unk";
@@ -534,11 +535,15 @@ CoinMessageHandler::message(int messageNumber,
   // do we print
   int detail = currentMessage_.detail_;
   printStatus_=0;
-  if (detail>=8&&logLevel_>=0) {
-    // bit setting - debug
-    if ((detail&logLevel_)==0)
+  if (logLevels_[0]==-1000) {
+    if (detail>=8&&logLevel_>=0) {
+      // bit setting - debug
+      if ((detail&logLevel_)==0)
+	printStatus_ = 3;
+    } else if (logLevel_<detail) {
       printStatus_ = 3;
-  } else if (logLevel_<detail) {
+    }
+  } else if (logLevels_[normalMessage.class_]<detail) {
     printStatus_ = 3;
   }
   if (!printStatus_) {
