@@ -2414,12 +2414,12 @@ void c_ekkshfv(EKKfactinfo *fact,
     const int lstart	= nrow + maxinv + 5;
     int n=xnetal-lstart ;	/* number of L entries */
     int add,iel;
-    int * hpivco_L = &hpivco[lstart-1];
-    int * mcstrt_L = &mcstrt[lstart-1];
+    int * hpivco_L = &hpivco[lstart];
+    int * mcstrt_L = &mcstrt[lstart];
     if (nnentl) {
       /* elements of L were stored in descending order in dluval/hcoli */
-      int kle = mcstrt_L[1];
-      int kls = mcstrt_L[n+1]+1;
+      int kle = mcstrt_L[0];
+      int kls = mcstrt_L[n]+1;
       
       if(if_sparse_update) {
 	int i2,iel;
@@ -2452,8 +2452,8 @@ void c_ekkshfv(EKKfactinfo *fact,
 	  mrstrt2[i]=ibase;
 	  fact->firstDoRow = firstDoRow;
 	}
-	i2=mcstrt_L[n+1];
-	for (i = n; i >= 1; --i) {
+	i2=mcstrt_L[n];
+	for (i = n-1; i >= 0; --i) {
 	  int i1 = mcstrt_L[i];
 	  int ipiv=hpivco_L[i];
 	  ipiv=mpermu[ipiv];
@@ -2470,7 +2470,7 @@ void c_ekkshfv(EKKfactinfo *fact,
       } else {
 	/* just permute row numbers */
 	
-	for (j = 1; j <= n; ++j) {
+	for (j = 0; j < n; ++j) {
 	  hpivco_L[j] = mpermu[hpivco_L[j]];
 	}
 	for (iel = kls; iel <= kle; ++iel) {
@@ -2479,31 +2479,34 @@ void c_ekkshfv(EKKfactinfo *fact,
 	}
       }
       
-      add=hpivco_L[n]-hpivco_L[1]-n+1;
+      add=hpivco_L[n-1]-hpivco_L[0]-n+1;
       if (add) {
 	int i;
-	int last = hpivco_L[n];
-	int laststart = mcstrt_L[n+1];
-	int base=hpivco_L[1]-1;
+	int last = hpivco_L[n-1];
+	int laststart = mcstrt_L[n];
+	int base=hpivco_L[0]-1;
 	/* adjust so numbers match */
 	mcstrt_L-=base;
 	hpivco_L-=base;
-	mcstrt_L[last+1]=laststart;
-	for (i=n;i>=1;i--) {
+	mcstrt_L[last]=laststart;
+	for (i=n-1;i>=0;i--) {
 	  int ipiv=hpivco_L[i+base];
 	  while (ipiv<last) {
-	    mcstrt_L[last]=laststart;
-	    hpivco_L[last]=last;
+	    mcstrt_L[last-1]=laststart;
+	    hpivco_L[last-1]=last;
 	    last--;
 	  }
 	  laststart=mcstrt_L[i+base];
-	  mcstrt_L[last]=laststart;
-	  hpivco_L[last]=last;
+	  mcstrt_L[last-1]=laststart;
+	  hpivco_L[last-1]=last;
 	  last--;
 	}
 	xnetal+=add;
       }
     }
+    //int lstart=fact->lstart;
+    //const int * COIN_RESTRICT hpivco	= fact->kcpadr;
+    fact->firstLRow = hpivco[lstart];
   }
   fact->nnentu = nnentu;
   fact->xnetal = xnetal;

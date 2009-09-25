@@ -127,11 +127,15 @@ static int c_ekkshfpo_scan2zero(COIN_REGISTER const EKKfactinfo * COIN_RESTRICT2
  *   worki[i] = 0.0;
  * }
  */
-static int c_ekkshfpi_list(const int *COIN_RESTRICT mpermu, double *COIN_RESTRICT worki, double *COIN_RESTRICT worko,
-		  const int * COIN_RESTRICT mptr, int nincol)
+static int c_ekkshfpi_list(const int *COIN_RESTRICT mpermu, 
+			   double *COIN_RESTRICT worki, 
+			   double *COIN_RESTRICT worko,
+			   const int * COIN_RESTRICT mptr, int nincol,
+			   int * lastNonZero)
 {
   int i,k,irow0,irow1;
   int first=COIN_INT_MAX;
+  int last=0;
   /* worko was zeroed out outside */
   k = nincol;
   i = 0;
@@ -139,6 +143,7 @@ static int c_ekkshfpi_list(const int *COIN_RESTRICT mpermu, double *COIN_RESTRIC
     int ipt=mptr[i];
     irow0=mpermu[ipt];
     first = CoinMin(irow0,first);
+    last = CoinMax(irow0,last);
     i++;
     worko[irow0]=*worki;
     *worki++=0.0;
@@ -151,13 +156,16 @@ static int c_ekkshfpi_list(const int *COIN_RESTRICT mpermu, double *COIN_RESTRIC
     irow1 = mpermu[ipt1];
     i+=2;
     first = CoinMin(irow0,first);
+    last = CoinMax(irow0,last);
     first = CoinMin(irow1,first);
+    last = CoinMax(irow1,last);
     worko[irow0] = worki[0];
     worko[irow1] = worki[1];
     worki[0]=0.0;
     worki[1]=0.0;
     worki+=2;
   }
+  *lastNonZero=last;
   return first;
 }
 /*
@@ -171,11 +179,13 @@ static int c_ekkshfpi_list(const int *COIN_RESTRICT mpermu, double *COIN_RESTRIC
  * }
  */
 static int c_ekkshfpi_list2(const int *COIN_RESTRICT mpermu, double *COIN_RESTRICT worki, double *COIN_RESTRICT worko,
-		  const int * COIN_RESTRICT mptr, int nincol)
+			    const int * COIN_RESTRICT mptr, int nincol,
+			   int * lastNonZero)
 {
 #if 1
   int i,k,irow0,irow1;
   int first=COIN_INT_MAX;
+  int last=0;
   /* worko was zeroed out outside */
   k = nincol;
   i = 0;
@@ -183,6 +193,7 @@ static int c_ekkshfpi_list2(const int *COIN_RESTRICT mpermu, double *COIN_RESTRI
     int ipt=mptr[i];
     irow0=mpermu[ipt];
     first = CoinMin(irow0,first);
+    last = CoinMax(irow0,last);
     i++;
     worko[irow0]=worki[ipt];
     worki[ipt]=0.0;
@@ -195,7 +206,9 @@ static int c_ekkshfpi_list2(const int *COIN_RESTRICT mpermu, double *COIN_RESTRI
     irow1 = mpermu[ipt1];
     i+=2;
     first = CoinMin(irow0,first);
+    last = CoinMax(irow0,last);
     first = CoinMin(irow1,first);
+    last = CoinMax(irow1,last);
     worko[irow0] = worki[ipt0];
     worko[irow1] = worki[ipt1];
     worki[ipt0]=0.0;
@@ -203,15 +216,18 @@ static int c_ekkshfpi_list2(const int *COIN_RESTRICT mpermu, double *COIN_RESTRI
   }
 #else
   int first=COIN_INT_MAX;
+  int last=0;
   /* worko was zeroed out outside */
   for (int i=0; i<nincol; i++) {
     int ipt = mptr[i];
     int irow = mpermu[ipt];
     first = CoinMin(irow,first);
+    last = CoinMax(irow,last);
     worko[irow] = worki[ipt];
     worki[ipt]=0.0;
   }
 #endif
+  *lastNonZero=last;
   return first;
 }
 /*
@@ -266,11 +282,11 @@ static int c_ekkscmv(COIN_REGISTER const EKKfactinfo * COIN_RESTRICT2 fact,int n
   double * COIN_RESTRICT dwhere = dwork+1;
   if ((n&1)!=0) {
     if (NOT_ZERO(*dwhere)) {
-      if (fabs(*dwhere) < tolerance) {
-	*dwhere = 0.0;
-      } else {
+      if (fabs(*dwhere) >= tolerance) {
 	*++dwork2 = *dwhere;
 	*++mptr = SHIFT_INDEX(1);
+      } else {
+	*dwhere = 0.0;
       }
     }
     dwhere++;
@@ -281,19 +297,19 @@ static int c_ekkscmv(COIN_REGISTER const EKKfactinfo * COIN_RESTRICT2 fact,int n
   for (n=n>>1;n;n--) {
     int second = NOT_ZERO(*(dwhere+1));
     if (NOT_ZERO(*dwhere)) {
-      if (fabs(*dwhere) < tolerance) {
-	*dwhere = 0.0;
-      } else {
+      if (fabs(*dwhere) >= tolerance) {
 	*++dwork2 = *dwhere;
 	*++mptr = SHIFT_INDEX(irow);
+      } else {
+	*dwhere = 0.0;
       }
     }
     if (second) {
-      if (fabs(*(dwhere+1)) < tolerance) {
-	*(dwhere+1) = 0.0;
-      } else {
+      if (fabs(*(dwhere+1)) >= tolerance) {
 	*++dwork2 = *(dwhere+1);
 	*++mptr = SHIFT_INDEX(irow+1);
+      } else {
+	*(dwhere+1) = 0.0;
       }
     }
     dwhere+=2;
@@ -361,10 +377,10 @@ int c_ekkputl2( const EKKfactinfo * COIN_RESTRICT2 fact,
   int * COIN_RESTRICT mptrX=hrowiR;
   for (i = 1; i <= nrow; ++i) {
     if (dwork1[i] != 0.) {
-      if (fabs(dwork1[i]) < tolerance) {
-	dwork1[i] = 0.f;
-      } else {
+      if (fabs(dwork1[i]) >= tolerance) {
 	*(mptrX--) = SHIFT_INDEX(i);
+      } else {
+	dwork1[i] = 0.0;
       }
     }
   }
@@ -914,6 +930,7 @@ static int c_ekkbtju_aux(const double * COIN_RESTRICT dluval,
 			 double * COIN_RESTRICT dwork1,
 			 int ipiv, int loop_end)
 {
+#define UNROLL2 2
 #ifndef UNROLL2
 #if CLP_OSL==2||CLP_OSL==3
 #define UNROLL2 2
@@ -930,7 +947,6 @@ static int c_ekkbtju_aux(const double * COIN_RESTRICT dluval,
     
     double dv = dwork1[ipiv];	/* rhs */
 #if UNROLL2>1
-    double dv1=0.0;
     const int * hrowi2=hrowi+kx;
     const int * hrowi2end=hrowi2+nel;
     const double * dluval2=dluval+kx;
@@ -962,7 +978,7 @@ static int c_ekkbtju_aux(const double * COIN_RESTRICT dluval,
     if ((nel&1)!=0) {
       int irow = *hrowi2;
       double dval=*dluval2;
-      dv1 = -SHIFT_REF(dwork1, irow) * dval;
+      dv -= SHIFT_REF(dwork1, irow) * dval;
       hrowi2++;
       dluval2++;
     }
@@ -974,10 +990,9 @@ static int c_ekkbtju_aux(const double * COIN_RESTRICT dluval,
       double d0=SHIFT_REF(dwork1, irow0);
       double d1=SHIFT_REF(dwork1, irow1);
       dv -= d0 * dval0;
-      dv1 -= d1 * dval1;
+      dv -= d1 * dval1;
     }
-    
-    dwork1[ipiv] = (dv+dv1) * dpiv;	/* divide by the pivot */
+    dwork1[ipiv] = dv * dpiv;	/* divide by the pivot */
 #endif
     
     ipiv=hpivco[ipiv];
@@ -1121,11 +1136,7 @@ static int c_ekkbtju_sparse(COIN_REGISTER2 const EKKfactinfo * COIN_RESTRICT2 fa
       if (nonzero[kPivot]!=1) {
 	ninrow = hinrow[kPivot];
 	j=next[nStack];
-	if (j==ninrow) {
-	  /* finished so mark */
-	  list[nList++]=kPivot;
-	  nonzero[kPivot]=1;
-	} else {
+	if (j!=ninrow) {
 	  kx = mrstrt[kPivot];
 	  kPivot=hcoli[kx+j];
 	  /* put back on stack */
@@ -1136,6 +1147,10 @@ static int c_ekkbtju_sparse(COIN_REGISTER2 const EKKfactinfo * COIN_RESTRICT2 fa
 	    nonzero[kPivot]=2;
 	    next[nStack++]=0;
 	  }
+	} else {
+	  /* finished so mark */
+	  list[nList++]=kPivot;
+	  nonzero[kPivot]=1;
 	}
       }
     }
@@ -1231,10 +1246,10 @@ int c_ekkbtrn(COIN_REGISTER3 const EKKfactinfo * COIN_RESTRICT2 fact,
     if (i==lastSlack) {
       /* but if there isn't... */
       for (;i<nrow;i++) {
-	if (dpermu[ipiv]) {
-	  break;
-	} else {
+	if (!dpermu[ipiv]) {
 	  ipiv=hpivco_new[ipiv];
+	} else {
+	  break;
 	}
       }
     } else {
@@ -1320,7 +1335,7 @@ static int c_ekkbtrn0_new(COIN_REGISTER3 const EKKfactinfo * COIN_RESTRICT2 fact
   
   /* the vector may have more nonzero elements now */
   /*       DO ROW ETAS IN L */
-#define DENSE_THRESHOLD (nincol*6+500)
+#define DENSE_THRESHOLD (nincol*10+100)
   if (DENSE_THRESHOLD>nrow) {
     doSparse=0;
     c_ekkbtjl(fact, dpermu); 
@@ -1932,16 +1947,12 @@ int c_ekketsj(COIN_REGISTER2 /*const*/ EKKfactinfo * COIN_RESTRICT2 fact,
 	int nel = hinrow[irow]-1;
 	hinrow[irow]=nel;
 	int jlast = kx + nel ;
-	for (int iel=kx;iel<jlast;iel++) {
-	  if (kpivrw==hcoli[iel]) {
-	    hcoli[iel] = hcoli[jlast];
+	for (;kx<jlast;kx++) {
+	  if (kpivrw==hcoli[kx]) {
+	    hcoli[kx] = hcoli[jlast];
 	    break;
 	  }
 	}
-	//assert (iel<=jlast);
-	//int iel = c_ekkfrst2(&hcoli[kx], nel, kpivrw);
-	//assert (iel>=0); 
-	//iel += kx;
       }
     }
     
@@ -2189,15 +2200,17 @@ int c_ekketsj(COIN_REGISTER2 /*const*/ EKKfactinfo * COIN_RESTRICT2 fact,
 	  /* Find first nonzero */
 	  int ipiv = hpivco_new[kpivrw];
 	  while(ipiv<=nrow) {
-	    if (dwork1[ipiv] != 0.) {
-	      /*       DO U */
-	      /* now compute r', the new R transform */
-	      c_ekkbtju(fact, dwork1,
-		      ipiv);
-	      break;
-	    } else {
+	    if (!dwork1[ipiv]) {
 	      ipiv=hpivco_new[ipiv];
+	    } else {
+	      break;
 	    }
+	  }
+	  if (ipiv<=nrow) {
+	    /*       DO U */
+	    /* now compute r', the new R transform */
+	    c_ekkbtju(fact, dwork1,
+		      ipiv);
 	  }
 	}
       }
@@ -2568,6 +2581,7 @@ static void c_ekkftj4p(COIN_REGISTER2 const EKKfactinfo * COIN_RESTRICT2 fact,
   if (firstNonZero>firstLRow) {
     lstart += firstNonZero-firstLRow;
   }
+  assert (firstLRow==fact->firstLRow);
   int jpiv=hpivco[lstart];
   const double * COIN_RESTRICT dluval	= fact->xeeadr;
   const int * COIN_RESTRICT hrowi	= fact->xeradr;
@@ -2580,7 +2594,6 @@ static void c_ekkftj4p(COIN_REGISTER2 const EKKfactinfo * COIN_RESTRICT2 fact,
     if (dwork1[i+jpiv]!=0.0)
       break;
   }
-  
   for (; i < ndo; ++i) {
     double dv = dwork1[i+jpiv];
     
@@ -2896,6 +2909,7 @@ static void c_ekkftjl(COIN_REGISTER2 const EKKfactinfo * COIN_RESTRICT2 fact,
       int ipiv = hpivco[i];
       double dv = dwork1[ipiv];
       int iel;
+      //#define UNROLL3 2
 #ifndef UNROLL3
 #if CLP_OSL==2||CLP_OSL==3
 #define UNROLL3 2
@@ -3585,23 +3599,19 @@ static int c_ekkftjup_pack(COIN_REGISTER3 const EKKfactinfo * COIN_RESTRICT2 fac
 			 &mptX );
   /* adjust dworko */
   dworko += (mptX-mpt);
-  if (ipiv!=0) {
+  while (ipiv!=0) {
     double dv = dwork1[ipiv];
-    do {
-      int next_ipiv = back[ipiv];
-      double next_dv=dwork1[next_ipiv];
-      
-      dwork1[ipiv]=0.0;
-      
-      if (fabs(dv)>=tolerance) {
-	int iput=hpivro[ipiv];
-	*dworko++=-dv;
-	*mptX++=iput-1;
-      }
-      
-      ipiv = next_ipiv;
-      dv = next_dv;
-    } while (ipiv!=0);
+    int next_ipiv = back[ipiv];
+    
+    dwork1[ipiv]=0.0;
+    
+    if (fabs(dv)>=tolerance) {
+      int iput=hpivro[ipiv];
+      *dworko++=-dv;
+      *mptX++=iput-1;
+    }
+    
+    ipiv = next_ipiv;
   }
   
   return (mptX-mptY);
@@ -3712,9 +3722,10 @@ int c_ekkftrn(COIN_REGISTER const EKKfactinfo * COIN_RESTRICT2 fact,
 	    double * COIN_RESTRICT dpermu, int * COIN_RESTRICT mpt,int numberNonZero)
 {
   const int * COIN_RESTRICT mpermu = fact->mpermu;
+  int lastNonZero;
   int firstNonZero = c_ekkshfpi_list2(mpermu+1, dwork1+1, dpermu, mpt,
-				    numberNonZero);
-  if (fact->nnentl) {
+				      numberNonZero,&lastNonZero);
+  if (fact->nnentl&&lastNonZero>=fact->firstLRow) {
     /* dpermu = (L^-1)dpermu */
     c_ekkftj4p(fact, dpermu, firstNonZero);
   }
@@ -3810,8 +3821,10 @@ int c_ekkftrn_ft(COIN_REGISTER EKKfactinfo * COIN_RESTRICT2 fact,
       }
     }
   } else {
-    int firstNonZero = c_ekkshfpi_list(mpermu+1, dwork1_ft, dpermu_ft, mpt_ft, nincol);
-    if (fact->nnentl) {
+    int lastNonZero;
+    int firstNonZero = c_ekkshfpi_list(mpermu+1, dwork1_ft, dpermu_ft, 
+				       mpt_ft, nincol,&lastNonZero);
+    if (fact->nnentl&&lastNonZero>=fact->firstLRow) {
       /* dpermu_ft = (L^-1)dpermu_ft */
       c_ekkftj4p(fact, dpermu_ft, firstNonZero);
     }
@@ -3876,8 +3889,10 @@ void c_ekkftrn2(COIN_REGISTER EKKfactinfo * COIN_RESTRICT2 fact, double * COIN_R
   
   /* say F-T will be sorted */
   fact->sortedEta=1;
-  int firstNonZero = c_ekkshfpi_list2(mpermu+1, dwork1+1, dpermu1, mpt1, *nincolp);
-  if (fact->nnentl) {
+  int lastNonZero;
+  int firstNonZero = c_ekkshfpi_list2(mpermu+1, dwork1+1, dpermu1, 
+				      mpt1, *nincolp,&lastNonZero);
+  if (fact->nnentl&&lastNonZero>=fact->firstLRow) {
     /* dpermu1 = (L^-1)dpermu1 */
     c_ekkftj4p(fact, dpermu1, firstNonZero);
   }
@@ -3918,8 +3933,10 @@ void c_ekkftrn2(COIN_REGISTER EKKfactinfo * COIN_RESTRICT2 fact, double * COIN_R
       }
     }
   } else {
-    int firstNonZero = c_ekkshfpi_list(mpermu+1, dwork1_ft, dwork1, mpt_ft, nincol);
-    if (fact->nnentl) {
+    int lastNonZero;
+    int firstNonZero = c_ekkshfpi_list(mpermu+1, dwork1_ft, dwork1, 
+				       mpt_ft, nincol,&lastNonZero);
+    if (fact->nnentl&&lastNonZero>=fact->firstLRow) {
       /* dpermu_ft = (L^-1)dpermu_ft */
       c_ekkftj4p(fact, dwork1, firstNonZero);
     }

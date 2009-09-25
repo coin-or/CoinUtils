@@ -39,6 +39,7 @@ typedef struct _EKKfactinfo {
   int nrow;
   int nrowmx;
   int firstDoRow;
+  int firstLRow;
   int maxinv;
   int nnetas;
   int iterin;
