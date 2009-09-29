@@ -17,8 +17,11 @@ extern int ets_check;
 #define COIN_REGISTER register
 #define COIN_REGISTER2
 #define COIN_REGISTER3 register
-#define COIN_RESTRICT2 __restrict
-//#define COIN_RESTRICT2
+#ifdef COIN_USE_RESTRICT
+# define COIN_RESTRICT2 __RESTRICT
+#else
+# define COIN_RESTRICT2
+#endif
 static int c_ekkshfpo_scan2zero(COIN_REGISTER const EKKfactinfo * COIN_RESTRICT2 fact,const int * COIN_RESTRICT mpermu,
 		       double *COIN_RESTRICT worki, double *COIN_RESTRICT worko, int * COIN_RESTRICT mptr)
 {
