@@ -18,7 +18,7 @@ extern int ets_check;
 #define COIN_REGISTER2
 #define COIN_REGISTER3 register
 #ifdef COIN_USE_RESTRICT
-# define COIN_RESTRICT2 __RESTRICT
+# define COIN_RESTRICT2 __restrict
 #else
 # define COIN_RESTRICT2
 #endif
