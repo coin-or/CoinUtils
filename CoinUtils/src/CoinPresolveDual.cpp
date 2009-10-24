@@ -75,6 +75,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   double *rup	= prob->rup_;
 
   double *dcost	= prob->cost_;
+  const unsigned char *integerType = prob->integerType_;
 
   const double maxmin	= prob->maxmin_;
 
@@ -116,6 +117,8 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   // Take the min of the maxes and max of the mins
   int j;
   for ( j = 0; j<ncols; j++) {
+    if (integerType[j])
+      continue; // even if it has infinite bound now ....
     bool no_ub = (cup[j] >= ekkinf);
     bool no_lb = (clo[j] <= -ekkinf);
     
@@ -144,7 +147,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	//		==> dprice is an upper bound on dj if no *lb*
 	if (rdmax[row] > dprice)	// reduced cost may be positive
 	  rdmax[row] = dprice;
-      } else {			// no lower bound
+      } else if ((coeff < 0.0) == no_lb) { // no lower bound
 	if (rdmin[row] < dprice) 	// reduced cost may be negative
 	  rdmin[row] = dprice;
       }
@@ -212,113 +215,137 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	  }
 	}
 	// See if we may be able to tighten a dual
-	if (cup[j]>ekkinf) {
-	  // dj can not be negative
-	  if (nflagu==1&&ddjhi<-ztoldj) {
-	    // We can make bound finite one way
-	    for (CoinBigIndex k = kcs; k < kce; k++) {
-	      int i = hrow[k];
-	      double coeff = colels[k];
-	      
-	      if (coeff > 0.0&&rdmin[i] < -ekkinf2) {
-		// rdmax[i] has upper bound
-		if (ddjhi<rdmax[i]*coeff-ztoldj) {
-		  double newValue = ddjhi/coeff;
-		  // re-compute lo
-		  if (rdmax[i] > ekkinf2 && newValue <= ekkinf2) {
-		    nflagl--;
-		    ddjlo -= coeff * newValue;
-		  } else if (rdmax[i] <= ekkinf2) {
-		    ddjlo -= coeff * (newValue-rdmax[i]);
+	if (!integerType[j]) {
+	  if (cup[j]>ekkinf) {
+	    // dj can not be negative
+	    if (nflagu==1&&ddjhi<-ztoldj) {
+	      // We can make bound finite one way
+	      for (CoinBigIndex k = kcs; k < kce; k++) {
+		int i = hrow[k];
+		double coeff = colels[k];
+		
+		if (coeff > 0.0&&rdmin[i] < -ekkinf2) {
+		  // rdmax[i] has upper bound
+		  if (ddjhi<rdmax[i]*coeff-ztoldj) {
+		    double newValue = ddjhi/coeff;
+		    // re-compute lo
+		    if (rdmax[i] > ekkinf2 && newValue <= ekkinf2) {
+		      nflagl--;
+		      ddjlo -= coeff * newValue;
+		    } else if (rdmax[i] <= ekkinf2) {
+		      ddjlo -= coeff * (newValue-rdmax[i]);
+		    }
+		    rdmax[i] = newValue;
+		    tightened++;
+#if	PRESOLVE_DEBUG
+		    printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
+#endif
 		  }
-		  rdmax[i] = newValue;
+		} else if (coeff < 0.0 && rdmax[i] > ekkinf2) {
+		  // rdmin[i] has lower bound
+		  if (ddjhi<rdmin[i]*coeff-ztoldj) {
+		    double newValue = ddjhi/coeff;
+		    // re-compute lo
+		    if (rdmin[i] < -ekkinf2 && newValue >= -ekkinf2) {
+		      nflagl--;
+		      ddjlo -= coeff * newValue;
+		    } else if (rdmax[i] >= -ekkinf2) {
+		      ddjlo -= coeff * (newValue-rdmin[i]);
+		    }
+		    rdmin[i] = newValue;
+		    tightened++;
+#if	PRESOLVE_DEBUG
+		    printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
+#endif
+		    ddjlo = 0.0;
+		  }
+		}
+	      }
+	    } else if (nflagl==0&&nordl==1&&ddjlo<-ztoldj) {
+	      // We may be able to tighten
+	      for (CoinBigIndex k = kcs; k < kce; k++) {
+		int i = hrow[k];
+		double coeff = colels[k];
+		
+		if (coeff > 0.0) {
+		  rdmax[i] += ddjlo/coeff;
+		  ddjlo =0.0;
 		  tightened++;
 #if	PRESOLVE_DEBUG
 		  printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
 #endif
-		}
-	      } else if (coeff < 0.0 && rdmax[i] > ekkinf2) {
-		// rdmin[i] has lower bound
-		if (ddjhi<rdmin[i]*coeff-ztoldj) {
-		  double newValue = ddjhi/coeff;
-		  // re-compute lo
-		  if (rdmin[i] < -ekkinf2 && newValue >= -ekkinf2) {
-		    nflagl--;
-		    ddjlo -= coeff * newValue;
-		  } else if (rdmax[i] >= -ekkinf2) {
-		    ddjlo -= coeff * (newValue-rdmin[i]);
-		  }
-		  rdmin[i] = newValue;
+		} else if (coeff < 0.0 ) {
+		  rdmin[i] += ddjlo/coeff;
+		  ddjlo =0.0;
 		  tightened++;
 #if	PRESOLVE_DEBUG
 		  printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
 #endif
-		  ddjlo = 0.0;
 		}
 	      }
 	    }
-	  } else if (nflagl==0&&nordl==1&&ddjlo<-ztoldj) {
-	    // We may be able to tighten
-	    for (CoinBigIndex k = kcs; k < kce; k++) {
-	      int i = hrow[k];
-	      double coeff = colels[k];
-	      
-	      if (coeff > 0.0) {
-		rdmax[i] += ddjlo/coeff;
-		ddjlo =0.0;
-		tightened++;
-#if	PRESOLVE_DEBUG
-		printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
-#endif
-	      } else if (coeff < 0.0 ) {
-		rdmin[i] += ddjlo/coeff;
-		ddjlo =0.0;
-		tightened++;
-#if	PRESOLVE_DEBUG
-		printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
-#endif
-	      }
-	    }
 	  }
-	}
 #if 0
-	if (clo[j]<-ekkinf) {
-	  // dj can not be positive
-	  if (ddjlo>ztoldj&&nflagl==1) {
-	    // We can make bound finite one way
-	    for (CoinBigIndex k = kcs; k < kce; k++) {
-	      int i = hrow[k];
-	      double coeff = colels[k];
-	      
-	      if (coeff < 0.0&&rdmin[i] < -ekkinf2) {
-		// rdmax[i] has upper bound
-		if (ddjlo>rdmax[i]*coeff+ztoldj) {
-		  double newValue = ddjlo/coeff;
-		  // re-compute hi
-		  if (rdmax[i] > ekkinf2 && newValue <= ekkinf2) {
-		    nflagu--;
-		    ddjhi -= coeff * newValue;
-		  } else if (rdmax[i] <= ekkinf2) {
-		    ddjhi -= coeff * (newValue-rdmax[i]);
+	  if (clo[j]<-ekkinf) {
+	    // dj can not be positive
+	    if (ddjlo>ztoldj&&nflagl==1) {
+	      // We can make bound finite one way
+	      for (CoinBigIndex k = kcs; k < kce; k++) {
+		int i = hrow[k];
+		double coeff = colels[k];
+		
+		if (coeff < 0.0&&rdmin[i] < -ekkinf2) {
+		  // rdmax[i] has upper bound
+		  if (ddjlo>rdmax[i]*coeff+ztoldj) {
+		    double newValue = ddjlo/coeff;
+		    // re-compute hi
+		    if (rdmax[i] > ekkinf2 && newValue <= ekkinf2) {
+		      nflagu--;
+		      ddjhi -= coeff * newValue;
+		    } else if (rdmax[i] <= ekkinf2) {
+		      ddjhi -= coeff * (newValue-rdmax[i]);
+		    }
+		    rdmax[i] = newValue;
+		    tightened++;
+#if	PRESOLVE_DEBUG
+		    printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
+#endif
 		  }
-		  rdmax[i] = newValue;
+		} else if (coeff > 0.0 && rdmax[i] > ekkinf2) {
+		  // rdmin[i] has lower bound
+		  if (ddjlo>rdmin[i]*coeff+ztoldj) {
+		    double newValue = ddjlo/coeff;
+		    // re-compute lo
+		    if (rdmin[i] < -ekkinf2 && newValue >= -ekkinf2) {
+		      nflagu--;
+		      ddjhi -= coeff * newValue;
+		    } else if (rdmax[i] >= -ekkinf2) {
+		      ddjhi -= coeff * (newValue-rdmin[i]);
+		    }
+		    rdmin[i] = newValue;
+		    tightened++;
+#if	PRESOLVE_DEBUG
+		    printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
+#endif
+		  }
+		}
+	      }
+	    } else if (nflagu==0&&nordu==1&&ddjhi>ztoldj) {
+	      // We may be able to tighten
+	      for (CoinBigIndex k = kcs; k < kce; k++) {
+		int i = hrow[k];
+		double coeff = colels[k];
+		
+		if (coeff < 0.0) {
+		  rdmax[i] += ddjhi/coeff;
+		  ddjhi =0.0;
 		  tightened++;
 #if	PRESOLVE_DEBUG
 		  printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
 #endif
-		}
-	      } else if (coeff > 0.0 && rdmax[i] > ekkinf2) {
-		// rdmin[i] has lower bound
-		if (ddjlo>rdmin[i]*coeff+ztoldj) {
-		  double newValue = ddjlo/coeff;
-		  // re-compute lo
-		  if (rdmin[i] < -ekkinf2 && newValue >= -ekkinf2) {
-		    nflagu--;
-		    ddjhi -= coeff * newValue;
-		  } else if (rdmax[i] >= -ekkinf2) {
-		    ddjhi -= coeff * (newValue-rdmin[i]);
-		  }
-		  rdmin[i] = newValue;
+		} else if (coeff > 0.0 ) {
+		  rdmin[i] += ddjhi/coeff;
+		  ddjhi =0.0;
 		  tightened++;
 #if	PRESOLVE_DEBUG
 		  printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
@@ -326,31 +353,9 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 		}
 	      }
 	    }
-	  } else if (nflagu==0&&nordu==1&&ddjhi>ztoldj) {
-	    // We may be able to tighten
-	    for (CoinBigIndex k = kcs; k < kce; k++) {
-	      int i = hrow[k];
-	      double coeff = colels[k];
-	      
-	      if (coeff < 0.0) {
-		rdmax[i] += ddjhi/coeff;
-		ddjhi =0.0;
-		tightened++;
-#if	PRESOLVE_DEBUG
-		printf("Col %d, row %d max pi now %g\n",j,i,rdmax[i]);
-#endif
-	      } else if (coeff > 0.0 ) {
-		rdmin[i] += ddjhi/coeff;
-		ddjhi =0.0;
-		tightened++;
-#if	PRESOLVE_DEBUG
-		printf("Col %d, row %d min pi now %g\n",j,i,rdmin[i]);
-#endif
-	      }
-	    }
 	  }
-	}
 #endif
+	}
 
 #if	PRESOLVE_TIGHTEN_DUALS
 	djmin[j] = (nflagl ?  -PRESOLVE_INF : ddjlo);
@@ -636,6 +641,8 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   for (j = 0; j<ncols; j++) {
     if (hincol[j]<=1)
       continue;
+    if (integerType[j]) 
+      continue; // even if it has infinite bound now ....
     CoinBigIndex kcs = mcstrt[j];
     CoinBigIndex kce = kcs + hincol[j];
     int bindingUp=-1;
@@ -706,7 +713,6 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
   //const int *hcol	= prob->hcol_;
   //const CoinBigIndex *mrstrt	= prob->mrstrt_;
   //int *hinrow	= prob->hinrow_;
-  const unsigned char *integerType = prob->integerType_;
   for ( i = 0; i < nrows; i++) {
     if (abs(canFix[i])==1) {
       CoinBigIndex krs = mrstrt[i];

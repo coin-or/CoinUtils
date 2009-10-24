@@ -932,12 +932,18 @@ public:
   { 
     seed_ = seed;
   }
+  /** Get seed. */
+  inline unsigned int getSeed() const
+  { 
+    return seed_;
+  }
   /// return a random number
   inline double randomDouble() const
   {
     double retVal;
     seed_ = 1664525*(seed_)+1013904223;
     retVal = ((static_cast<double> (seed_))/4294967296.0);
+    printf("SEED %d\n",seed_);
     return retVal;
   }
   //@}
