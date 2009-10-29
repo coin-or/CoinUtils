@@ -893,6 +893,7 @@ const CoinPresolveAction
 
   int nuseless_rows = 0;
   bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
+  bool allowIntersection = ( prob->presolveOptions_&16)!=0;
   double tolerance = prob->feasibilityTolerance_;
 
   double dval = workrow[0];
@@ -930,11 +931,6 @@ const CoinPresolveAction
 	      sort[jj-1]=ithis;
 	      sort[jj]=ilast;
 	    } else {
-	      /* overlapping - could merge */
-#	      if PRESOLVE_DEBUG
-	      printf("overlapping duplicate row %g %g, %g %g\n",
-		     rlo1,rup1,rlo2,rup2);
-#	      endif
 	      if (rup1<rlo2-tolerance&&!fixInfeasibility) {
 		// infeasible
 		prob->status_|= 1;
@@ -946,10 +942,19 @@ const CoinPresolveAction
 						  <<rup[ithis]
 						  <<CoinMessageEol;
 		break;
+	      } else if (allowIntersection) {
+		/* overlapping - could merge */
+#ifdef CLP_INVESTIGATE2
+		printf("overlapping duplicate row %g %g, %g %g\n",
+		       rlo1,rup1,rlo2,rup2);
+#	      endif
+		// pretend this is stricter than last
+		idelete=ilast;
+		rup[ithis]=rup1;
 	      }
 	    }
 	  } else {
-	    // rlo2<=rlo1
+	    // rlo1>rlo2
 	    if (rup1<=rup2) {
 	      /* last is strictly tighter than this */
 	      idelete=ithis;
@@ -958,10 +963,8 @@ const CoinPresolveAction
 	      sort[jj]=ilast;
 	    } else {
 	      /* overlapping - could merge */
-#	      if PRESOLVE_DEBUG
-	      printf("overlapping duplicate row %g %g, %g %g\n",
-		     rlo1,rup1,rlo2,rup2);
-#	      endif
+	      // rlo1>rlo2
+	      // rup1>rup2 
 	      if (rup2<rlo1-tolerance&&!fixInfeasibility) {
 		// infeasible
 		prob->status_|= 1;
@@ -973,6 +976,14 @@ const CoinPresolveAction
 						  <<rup[ithis]
 						  <<CoinMessageEol;
 		break;
+	      } else if (allowIntersection) {
+#ifdef CLP_INVESTIGATE2
+		printf("overlapping duplicate row %g %g, %g %g\n",
+		       rlo1,rup1,rlo2,rup2);
+#	      endif
+		// pretend this is stricter than last
+		idelete=ilast;
+		rlo[ithis]=rlo1;
 	      }
 	    }
 	  }
