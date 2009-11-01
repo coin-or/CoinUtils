@@ -15,25 +15,22 @@
 /* Define to the debug verbosity level (0 is no output) */
 #undef COIN_COINUTILS_VERBOSITY
 
-/* Define to 1 if the Blas package is used */
+/* If defined, the BLAS Library is available. */
 #undef COIN_HAS_BLAS
 
 /* Define to 1 if bzlib is available */
 #undef COIN_HAS_BZLIB
 
-/* Define to 1 if the CoinUtils package is used */
-#undef COIN_HAS_COINUTILS
-
 /* Define to 1 if the Glpk package is used */
 #undef COIN_HAS_GLPK
 
-/* Define to 1 if the Lapack package is used */
+/* If defined, the LAPACK Library is available. */
 #undef COIN_HAS_LAPACK
 
-/* Define to 1 if the Netlib package is used */
+/* Define to 1 if the Netlib module is available */
 #undef COIN_HAS_NETLIB
 
-/* Define to 1 if the Sample package is used */
+/* Define to 1 if the Sample module is available */
 #undef COIN_HAS_SAMPLE
 
 /* Define to 1 if zlib is available */

@@ -475,6 +475,7 @@ ac_includes_default="\
 
 ac_subdirs_all="$ac_subdirs_all CoinUtils"
 ac_subdirs_all="$ac_subdirs_all Data/Sample"
+ac_subdirs_all="$ac_subdirs_all Data/Netlib"
 ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os CDEFS ADD_CFLAGS DBG_CFLAGS OPT_CFLAGS sol_cc_compiler CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT MPICC CXXDEFS ADD_CXXFLAGS DBG_CXXFLAGS OPT_CXXFLAGS CXX CXXFLAGS ac_ct_CXX MPICXX ADD_FFLAGS DBG_FFLAGS OPT_FFLAGS F77 FFLAGS ac_ct_F77 MPIF77 EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT LIBTOOLM4 have_autoconf have_automake have_svn BUILDTOOLSDIR AUX_DIR abs_source_dir abs_lib_dir abs_include_dir abs_bin_dir HAVE_EXTERNALS_TRUE HAVE_EXTERNALS_FALSE host host_cpu host_vendor host_os LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP LIBTOOL ac_c_preproc_warn_flag ac_cxx_preproc_warn_flag RPATH_FLAGS LT_LDFLAGS PKG_CONFIG ac_pt_PKG_CONFIG COIN_SKIP_PROJECTS subdirs LIBEXT VPATH_DISTCLEANFILES LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
@@ -1135,13 +1136,12 @@ Optional Packages:
                           CoinUtils
   --with-coin-instdir     prefix of installation directory for precompiled
                           COIN packages
-  --with-coinutils prefix of installation directory for precompiled CoinUtils
-                          package
   --with-sample-lib linker flags for using project Sample
   --with-sample-incdir directory with header files for using project Sample
   --with-sample-datadir directory with data files for using project Sample
-  --with-sample prefix of installation directory for precompiled Sample
-                          package
+  --with-netlib-lib linker flags for using project Netlib
+  --with-netlib-incdir directory with header files for using project Netlib
+  --with-netlib-datadir directory with data files for using project Netlib
 
 Some influential environment variables:
   CDEFS       Additional -D flags to be used when compiling C code.
@@ -20827,6 +20827,10 @@ fi
 #         Check which subprojects might need to be configured               #
 #############################################################################
 
+#fake that no pkgconfig exists
+#AC_COIN_HAS_PKGCONFIG
+#PKG_CONFIG=""
+
 
 
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
@@ -20942,15 +20946,13 @@ fi
 
 
 
-
-
-echo "$as_me:$LINENO: checking for project CoinUtils" >&5
-echo $ECHO_N "checking for project CoinUtils... $ECHO_C" >&6
-# First check, if the sub-project is actually available
+echo "$as_me:$LINENO: checking whether project CoinUtils is available" >&5
+echo $ECHO_N "checking whether project CoinUtils is available... $ECHO_C" >&6
 
 coin_has_coinutils=notGiven
 
 # check if user wants to skip project in any case
+
 if test x"$COIN_SKIP_PROJECTS" != x; then
   for dir in $COIN_SKIP_PROJECTS; do
     if test $dir = "CoinUtils"; then
@@ -20990,42 +20992,26 @@ fi;
 fi
 
 if test $coin_has_coinutils = notGiven; then
+  #only if pkg-config is available:
   #see if user gives directory where project might be installed: assemble search path for pkg-config
-  coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+  if test -n "$PKG_CONFIG" ; then
+    coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
   withval="$with_coin_instdir"
   if test -d "$withval"; then : ; else
-       { { echo "$as_me:$LINENO: error: argument for --with-coin-instdir not a directory" >&5
+         { { echo "$as_me:$LINENO: error: argument for --with-coin-instdir not a directory" >&5
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
-     fi
-     PKG_CONFIG_PATH="$withval/lib//pkgconfig:$PKG_CONFIG_PATH"
-
-fi;
-
-
-# Check whether --with-m4_tolower(CoinUtils) or --without-m4_tolower(CoinUtils) was given.
-if test "${with_coinutils+set}" = set; then
-  withval="$with_coinutils"
-  if test -d "$withval"; then : ; else
-       { { echo "$as_me:$LINENO: error: argument for --with-coinutils not a directory" >&5
-echo "$as_me: error: argument for --with-coinutils not a directory" >&2;}
-   { (exit 1); exit 1; }; }
-     fi
-     # maybe the user points directly to the directory with the .pc file
-     PKG_CONFIG_PATH="$withval:$PKG_CONFIG_PATH"
-     # maybe the user points to a project main directory
-     if test -d "$withval/lib//pkgconfig"; then
+       fi
        PKG_CONFIG_PATH="$withval/lib//pkgconfig:$PKG_CONFIG_PATH"
-     fi
 
 fi;
 
-  # let pkgconfig check if the project is already installed somewhere
-  # need to export variable to be sure that the following pkg-config call gets these values
-  export PKG_CONFIG_PATH
+    # let pkgconfig check if the project is already installed somewhere
+    # need to export variable to be sure that the following pkg-config call gets these values
+    export PKG_CONFIG_PATH
 
 if test -n "$PKG_CONFIG" ; then
   if $PKG_CONFIG --exists "coinutils"; then
@@ -21042,7 +21028,8 @@ echo "$as_me: error: \"Cannot check for existance of module CoinUtils without pk
 fi
 
 
-  PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
+    PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
+  fi
 fi
 
 # if not found yet, check if project is available in present directory
@@ -21084,14 +21071,13 @@ echo "${ECHO_T}no" >&6
 fi
 
 
-
-echo "$as_me:$LINENO: checking for project Sample" >&5
-echo $ECHO_N "checking for project Sample... $ECHO_C" >&6
-# First check, if the sub-project is actually available
+echo "$as_me:$LINENO: checking whether project Sample is available" >&5
+echo $ECHO_N "checking whether project Sample is available... $ECHO_C" >&6
 
 coin_has_sample=notGiven
 
 # check if user wants to skip project in any case
+
 if test x"$COIN_SKIP_PROJECTS" != x; then
   for dir in $COIN_SKIP_PROJECTS; do
     if test $dir = "Sample"; then
@@ -21131,42 +21117,26 @@ fi;
 fi
 
 if test $coin_has_sample = notGiven; then
+  #only if pkg-config is available:
   #see if user gives directory where project might be installed: assemble search path for pkg-config
-  coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+  if test -n "$PKG_CONFIG" ; then
+    coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
   withval="$with_coin_instdir"
   if test -d "$withval"; then : ; else
-       { { echo "$as_me:$LINENO: error: argument for --with-coin-instdir not a directory" >&5
+         { { echo "$as_me:$LINENO: error: argument for --with-coin-instdir not a directory" >&5
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
-     fi
-     PKG_CONFIG_PATH="$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
-
-fi;
-
-
-# Check whether --with-m4_tolower(Sample) or --without-m4_tolower(Sample) was given.
-if test "${with_sample+set}" = set; then
-  withval="$with_sample"
-  if test -d "$withval"; then : ; else
-       { { echo "$as_me:$LINENO: error: argument for --with-sample not a directory" >&5
-echo "$as_me: error: argument for --with-sample not a directory" >&2;}
-   { (exit 1); exit 1; }; }
-     fi
-     # maybe the user points directly to the directory with the .pc file
-     PKG_CONFIG_PATH="$withval:$PKG_CONFIG_PATH"
-     # maybe the user points to a project main directory
-     if test -d "$withval/lib/Data/pkgconfig"; then
+       fi
        PKG_CONFIG_PATH="$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
-     fi
 
 fi;
 
-  # let pkgconfig check if the project is already installed somewhere
-  # need to export variable to be sure that the following pkg-config call gets these values
-  export PKG_CONFIG_PATH
+    # let pkgconfig check if the project is already installed somewhere
+    # need to export variable to be sure that the following pkg-config call gets these values
+    export PKG_CONFIG_PATH
 
 if test -n "$PKG_CONFIG" ; then
   if $PKG_CONFIG --exists "sample"; then
@@ -21183,7 +21153,8 @@ echo "$as_me: error: \"Cannot check for existance of module Sample without pkg-c
 fi
 
 
-  PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
+    PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
+  fi
 fi
 
 # if not found yet, check if project is available in present directory
@@ -21214,6 +21185,131 @@ echo "${ECHO_T}yes" >&6
 
 
 subdirs="$subdirs Data/Sample"
+
+  else
+    echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+  fi
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+
+echo "$as_me:$LINENO: checking whether project Netlib is available" >&5
+echo $ECHO_N "checking whether project Netlib is available... $ECHO_C" >&6
+
+coin_has_netlib=notGiven
+
+# check if user wants to skip project in any case
+
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "Netlib"; then
+      coin_has_netlib=skipping
+    fi
+    if test $dir = "Data/Netlib"; then
+      coin_has_netlib=skipping
+    fi
+  done
+fi
+
+if test $coin_has_netlib != skipping; then
+  if test $PACKAGE_TARNAME = netlib; then
+    coin_has_netlib=.
+  fi
+
+
+# Check whether --with-m4_tolower(Netlib)-lib or --without-m4_tolower(Netlib)-lib was given.
+if test "${with_netlib_lib+set}" = set; then
+  withval="$with_netlib_lib"
+  coin_has_netlib=installed
+fi;
+
+
+# Check whether --with-m4_tolower(Netlib)-incdir or --without-m4_tolower(Netlib)-incdir was given.
+if test "${with_netlib_incdir+set}" = set; then
+  withval="$with_netlib_incdir"
+  coin_has_netlib=installed
+fi;
+
+
+# Check whether --with-m4_tolower(Netlib)-datadir or --without-m4_tolower(Netlib)-datadir was given.
+if test "${with_netlib_datadir+set}" = set; then
+  withval="$with_netlib_datadir"
+  coin_has_netlib=installed
+fi;
+fi
+
+if test $coin_has_netlib = notGiven; then
+  #only if pkg-config is available:
+  #see if user gives directory where project might be installed: assemble search path for pkg-config
+  if test -n "$PKG_CONFIG" ; then
+    coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+
+# Check whether --with-coin-instdir or --without-coin-instdir was given.
+if test "${with_coin_instdir+set}" = set; then
+  withval="$with_coin_instdir"
+  if test -d "$withval"; then : ; else
+         { { echo "$as_me:$LINENO: error: argument for --with-coin-instdir not a directory" >&5
+echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
+   { (exit 1); exit 1; }; }
+       fi
+       PKG_CONFIG_PATH="$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+
+fi;
+
+    # let pkgconfig check if the project is already installed somewhere
+    # need to export variable to be sure that the following pkg-config call gets these values
+    export PKG_CONFIG_PATH
+
+if test -n "$PKG_CONFIG" ; then
+  if $PKG_CONFIG --exists "netlib"; then
+    NETLIB_VERSION=`$PKG_CONFIG --modversion "netlib" 2>/dev/null`
+    coin_has_netlib="$NETLIB_VERSION"
+  else
+    NETLIB_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "netlib"`
+
+  fi
+else
+  { { echo "$as_me:$LINENO: error: \"Cannot check for existance of module Netlib without pkg-config\"" >&5
+echo "$as_me: error: \"Cannot check for existance of module Netlib without pkg-config\"" >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+
+    PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
+  fi
+fi
+
+# if not found yet, check if project is available in present directory
+if test "$coin_has_netlib" = notGiven; then
+  if test -d $srcdir/Data/Netlib; then
+    coin_pkg_is_here=no
+     coin_pkg_is_here=yes
+
+    if test $coin_pkg_is_here = yes; then
+      coin_has_netlib=Data/Netlib
+    fi
+  fi
+fi
+
+echo "$as_me:$LINENO: result: $coin_has_netlib" >&5
+echo "${ECHO_T}$coin_has_netlib" >&6
+
+echo "$as_me:$LINENO: checking whether project Netlib need to be configured" >&5
+echo $ECHO_N "checking whether project Netlib need to be configured... $ECHO_C" >&6
+if test "$coin_has_netlib" != skipping &&
+   test "$coin_has_netlib" != notGiven &&
+   test "$coin_has_netlib" != installed; then
+
+  if test -r $srcdir/Data/Netlib/configure; then
+    coin_subdirs="$coin_subdirs Data/Netlib"
+    echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+
+
+subdirs="$subdirs Data/Netlib"
 
   else
     echo "$as_me:$LINENO: result: no" >&5

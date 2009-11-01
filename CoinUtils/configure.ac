@@ -12,7 +12,7 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([CoinUtils],[2.5.0],[http://projects.coin-or.org/CoinUtils])
+AC_INIT([CoinUtils],[2.5BSPsplit],[http://projects.coin-or.org/CoinUtils])
 
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.
@@ -437,12 +437,39 @@ AC_CHECK_HEADERS([windows.h])
 
 AC_COIN_HAS_PKGCONFIG
 
-AC_COIN_HAS_PROJECT2(CoinUtils)
-AC_COIN_HAS_PROJECT2(Blas,ThirdParty,[daxpy.f])
-AC_COIN_HAS_PROJECT2(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
-AC_COIN_HAS_PROJECT2(Glpk,ThirdParty,[glpk/src/glplpx01.c])
-AC_COIN_HAS_PROJECT2(Sample,Data)
-AC_COIN_HAS_PROJECT2(Netlib,Data)
+#AC_COIN_HAS_PROJECT2(CoinUtils)
+#AC_COIN_HAS_PROJECT2(Blas,ThirdParty,[daxpy.f])
+#AC_COIN_HAS_PROJECT2(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
+#AC_COIN_HAS_PROJECT2(Glpk,ThirdParty,[glpk/src/glplpx01.c])
+#AC_COIN_HAS_PROJECT2(Sample,Data)
+#AC_COIN_HAS_PROJECT2(Netlib,Data)
+
+AC_COIN_HAS_MODULE(Lapack, Blas, Lapack)
+AC_COIN_HAS_MODULE(Glpk, Glpk >= 4.39)
+AC_COIN_HAS_MODULE(Sample, Sample)
+AC_COIN_HAS_MODULE(Netlib, Netlib)
+
+if test "$coin_has_lapack" != yes ; then
+  AC_COIN_HAS_BLAS
+  AC_COIN_HAS_LAPACK
+  # now Blas and Lapack linker flags are in ADDLIBS
+else
+  #for configure
+  AM_CONDITIONAL([COIN_HAS_BLAS], [test 0 = 1])
+  AM_CONDITIONAL([COIN_BUILD_BLAS], [test 0 = 1])
+  AM_CONDITIONAL([COIN_BUILD_LAPACK], [test 0 = 1])
+fi
+
+if test "$coin_has_glpk" != yes ; then
+  AC_COIN_HAS_PROJECT(Glpk,ThirdParty,[glpk/src/glplpx01.c])
+  if test $coin_has_glpk = yes ; then
+    GLPK_CFLAGS="-I$GLPKSRCDIR/glpk/include -I$GLPKOBJDIR"
+    # now Glpk linker flags are in ADDLIBS
+  fi
+else
+  #for configure
+  AM_CONDITIONAL([COIN_HAS_GLPK_PREINSTALLED], [test 0 = 1])
+fi
 
 AC_COIN_CHECK_GNU_ZLIB
 AC_COIN_CHECK_GNU_BZLIB
