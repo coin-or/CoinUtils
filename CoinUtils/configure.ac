@@ -444,10 +444,10 @@ AC_COIN_HAS_PKGCONFIG
 #AC_COIN_HAS_PROJECT2(Sample,Data)
 #AC_COIN_HAS_PROJECT2(Netlib,Data)
 
-AC_COIN_HAS_MODULE(Lapack, Blas, Lapack)
-AC_COIN_HAS_MODULE(Glpk, Glpk >= 4.39)
-AC_COIN_HAS_MODULE(Sample, Sample)
-AC_COIN_HAS_MODULE(Netlib, Netlib)
+AC_COIN_HAS_MODULE(Lapack, [blas lapack])
+AC_COIN_HAS_MODULE(Glpk,   [glpk >= 4.39])
+AC_COIN_HAS_MODULE(Sample, [sample])
+AC_COIN_HAS_MODULE(Netlib, [netlib])
 
 if test "$coin_has_lapack" != yes ; then
   AC_COIN_HAS_BLAS

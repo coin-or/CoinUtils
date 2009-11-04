@@ -50,6 +50,8 @@ AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
 AC_COIN_MAIN_PACKAGEDIR(Sample,Data)
 AC_COIN_MAIN_PACKAGEDIR(Netlib,Data)
 
+echo $coin_subdirs > coin_subdirs.txt
+
 ##############################################################################
 #                   Finishing up by writing all the output                   #
 ##############################################################################

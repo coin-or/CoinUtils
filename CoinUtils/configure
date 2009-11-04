@@ -28438,8 +28438,8 @@ fi;
 fi
 
 if test $coin_has_lapack = notGiven; then
-  #assemble search path for pkg-config
   if test -n "$PKG_CONFIG" ; then
+    # assemble search path for pkg-config
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
 
@@ -28455,56 +28455,11 @@ echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
 
 fi;
 
-    # go through Blas to ... and assemble PKG_CONFIG_PATH with ../Blas and module search string
-    module_content=""
-
-module_content="$module_content blas"
-
-# extract the package name: get everything before first space
-pkgname=`echo "Blas" | sed -e 's/ .*//g'`
-
-# check if directory $srcdir/../Blas exists and add ../Blas to the PKG_CONFIG_PATH
-# this is for the classic setup where an uninstalled project can be found in ../Blas
-# we do the same for ThirdParty/Blas and Data/Blas; it's not nice but the only way I see to easily get around these nonstandard locations
-if test -d $srcdir/../$pkgname; then
-  PKG_CONFIG_PATH="../$pkgname:$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../ThirdParty/$pkgname; then
-  PKG_CONFIG_PATH="../ThirdParty/$pkgname$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../Data/$pkgname; then
-  PKG_CONFIG_PATH="../Data/$pkgname:$PKG_CONFIG_PATH"
-fi
-
-
-
-
-module_content="$module_content lapack"
-
-# extract the package name: get everything before first space
-pkgname=`echo "Lapack" | sed -e 's/ .*//g'`
-
-# check if directory $srcdir/../Lapack exists and add ../Lapack to the PKG_CONFIG_PATH
-# this is for the classic setup where an uninstalled project can be found in ../Lapack
-# we do the same for ThirdParty/Lapack and Data/Lapack; it's not nice but the only way I see to easily get around these nonstandard locations
-if test -d $srcdir/../$pkgname; then
-  PKG_CONFIG_PATH="../$pkgname:$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../ThirdParty/$pkgname; then
-  PKG_CONFIG_PATH="../ThirdParty/$pkgname$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../Data/$pkgname; then
-  PKG_CONFIG_PATH="../Data/$pkgname:$PKG_CONFIG_PATH"
-fi
-
-
-
-
-
-
-
-
-
+    if test -e ${prefix}/coin_subdirs.txt ; then
+      for i in `cat ${prefix}/coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="${prefix}/$i:$PKG_CONFIG_PATH"
+      done
+    fi
 
     # let pkg-config do it's magic
     # need to export variable to be sure that the following pkg-config gets these values
@@ -28513,19 +28468,19 @@ fi
 
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "$module_content"; then
-    LAPACK_VERSIONS="`$PKG_CONFIG --modversion $module_content 2>/dev/null`"
-     LAPACK_CFLAGS=`$PKG_CONFIG --cflags "$module_content" 2>/dev/null`
-    LAPACK_LIBS=`$PKG_CONFIG --libs "$module_content" 2>/dev/null`
-    LAPACK_DATA=`$PKG_CONFIG --variable=datadir "$module_content" 2>/dev/null`
+  if $PKG_CONFIG --exists "blas lapack"; then
+    LAPACK_VERSIONS="`$PKG_CONFIG --modversion blas lapack 2>/dev/null`"
+     LAPACK_CFLAGS=`$PKG_CONFIG --cflags "blas lapack" 2>/dev/null`
+    LAPACK_LIBS=`$PKG_CONFIG --libs "blas lapack" 2>/dev/null`
+    LAPACK_DATA=`$PKG_CONFIG --variable=datadir "blas lapack" 2>/dev/null`
      coin_has_lapack=yes
         echo "$as_me:$LINENO: result: yes: $LAPACK_VERSIONS" >&5
 echo "${ECHO_T}yes: $LAPACK_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES $module_content"
+        REQUIREDPACKAGES="$REQUIREDPACKAGES blas lapack"
 
 
   else
-    LAPACK_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors $module_content`
+    LAPACK_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors blas lapack`
       coin_has_lapack=notGiven
         echo "$as_me:$LINENO: result: not given: $LAPACK_PKG_ERRORS" >&5
 echo "${ECHO_T}not given: $LAPACK_PKG_ERRORS" >&6
@@ -28640,8 +28595,8 @@ fi;
 fi
 
 if test $coin_has_glpk = notGiven; then
-  #assemble search path for pkg-config
   if test -n "$PKG_CONFIG" ; then
+    # assemble search path for pkg-config
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
 
@@ -28657,36 +28612,11 @@ echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
 
 fi;
 
-    # go through Glpk >= 4.39 to ... and assemble PKG_CONFIG_PATH with ../Glpk >= 4.39 and module search string
-    module_content=""
-
-module_content="$module_content glpk >= 4.39"
-
-# extract the package name: get everything before first space
-pkgname=`echo "Glpk >= 4.39" | sed -e 's/ .*//g'`
-
-# check if directory $srcdir/../Glpk >= 4.39 exists and add ../Glpk >= 4.39 to the PKG_CONFIG_PATH
-# this is for the classic setup where an uninstalled project can be found in ../Glpk >= 4.39
-# we do the same for ThirdParty/Glpk >= 4.39 and Data/Glpk >= 4.39; it's not nice but the only way I see to easily get around these nonstandard locations
-if test -d $srcdir/../$pkgname; then
-  PKG_CONFIG_PATH="../$pkgname:$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../ThirdParty/$pkgname; then
-  PKG_CONFIG_PATH="../ThirdParty/$pkgname$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../Data/$pkgname; then
-  PKG_CONFIG_PATH="../Data/$pkgname:$PKG_CONFIG_PATH"
-fi
-
-
-
-
-
-
-
-
-
-
+    if test -e ${prefix}/coin_subdirs.txt ; then
+      for i in `cat ${prefix}/coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="${prefix}/$i:$PKG_CONFIG_PATH"
+      done
+    fi
 
     # let pkg-config do it's magic
     # need to export variable to be sure that the following pkg-config gets these values
@@ -28695,19 +28625,19 @@ fi
 
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "$module_content"; then
-    GLPK_VERSIONS="`$PKG_CONFIG --modversion $module_content 2>/dev/null`"
-     GLPK_CFLAGS=`$PKG_CONFIG --cflags "$module_content" 2>/dev/null`
-    GLPK_LIBS=`$PKG_CONFIG --libs "$module_content" 2>/dev/null`
-    GLPK_DATA=`$PKG_CONFIG --variable=datadir "$module_content" 2>/dev/null`
+  if $PKG_CONFIG --exists "glpk >= 4.39"; then
+    GLPK_VERSIONS="`$PKG_CONFIG --modversion glpk >= 4.39 2>/dev/null`"
+     GLPK_CFLAGS=`$PKG_CONFIG --cflags "glpk >= 4.39" 2>/dev/null`
+    GLPK_LIBS=`$PKG_CONFIG --libs "glpk >= 4.39" 2>/dev/null`
+    GLPK_DATA=`$PKG_CONFIG --variable=datadir "glpk >= 4.39" 2>/dev/null`
      coin_has_glpk=yes
         echo "$as_me:$LINENO: result: yes: $GLPK_VERSIONS" >&5
 echo "${ECHO_T}yes: $GLPK_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES $module_content"
+        REQUIREDPACKAGES="$REQUIREDPACKAGES glpk >= 4.39"
 
 
   else
-    GLPK_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors $module_content`
+    GLPK_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors glpk >= 4.39`
       coin_has_glpk=notGiven
         echo "$as_me:$LINENO: result: not given: $GLPK_PKG_ERRORS" >&5
 echo "${ECHO_T}not given: $GLPK_PKG_ERRORS" >&6
@@ -28822,8 +28752,8 @@ fi;
 fi
 
 if test $coin_has_sample = notGiven; then
-  #assemble search path for pkg-config
   if test -n "$PKG_CONFIG" ; then
+    # assemble search path for pkg-config
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
 
@@ -28839,36 +28769,11 @@ echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
 
 fi;
 
-    # go through Sample to ... and assemble PKG_CONFIG_PATH with ../Sample and module search string
-    module_content=""
-
-module_content="$module_content sample"
-
-# extract the package name: get everything before first space
-pkgname=`echo "Sample" | sed -e 's/ .*//g'`
-
-# check if directory $srcdir/../Sample exists and add ../Sample to the PKG_CONFIG_PATH
-# this is for the classic setup where an uninstalled project can be found in ../Sample
-# we do the same for ThirdParty/Sample and Data/Sample; it's not nice but the only way I see to easily get around these nonstandard locations
-if test -d $srcdir/../$pkgname; then
-  PKG_CONFIG_PATH="../$pkgname:$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../ThirdParty/$pkgname; then
-  PKG_CONFIG_PATH="../ThirdParty/$pkgname$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../Data/$pkgname; then
-  PKG_CONFIG_PATH="../Data/$pkgname:$PKG_CONFIG_PATH"
-fi
-
-
-
-
-
-
-
-
-
-
+    if test -e ${prefix}/coin_subdirs.txt ; then
+      for i in `cat ${prefix}/coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="${prefix}/$i:$PKG_CONFIG_PATH"
+      done
+    fi
 
     # let pkg-config do it's magic
     # need to export variable to be sure that the following pkg-config gets these values
@@ -28877,19 +28782,19 @@ fi
 
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "$module_content"; then
-    SAMPLE_VERSIONS="`$PKG_CONFIG --modversion $module_content 2>/dev/null`"
-     SAMPLE_CFLAGS=`$PKG_CONFIG --cflags "$module_content" 2>/dev/null`
-    SAMPLE_LIBS=`$PKG_CONFIG --libs "$module_content" 2>/dev/null`
-    SAMPLE_DATA=`$PKG_CONFIG --variable=datadir "$module_content" 2>/dev/null`
+  if $PKG_CONFIG --exists "sample"; then
+    SAMPLE_VERSIONS="`$PKG_CONFIG --modversion sample 2>/dev/null`"
+     SAMPLE_CFLAGS=`$PKG_CONFIG --cflags "sample" 2>/dev/null`
+    SAMPLE_LIBS=`$PKG_CONFIG --libs "sample" 2>/dev/null`
+    SAMPLE_DATA=`$PKG_CONFIG --variable=datadir "sample" 2>/dev/null`
      coin_has_sample=yes
         echo "$as_me:$LINENO: result: yes: $SAMPLE_VERSIONS" >&5
 echo "${ECHO_T}yes: $SAMPLE_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES $module_content"
+        REQUIREDPACKAGES="$REQUIREDPACKAGES sample"
 
 
   else
-    SAMPLE_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors $module_content`
+    SAMPLE_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors sample`
       coin_has_sample=notGiven
         echo "$as_me:$LINENO: result: not given: $SAMPLE_PKG_ERRORS" >&5
 echo "${ECHO_T}not given: $SAMPLE_PKG_ERRORS" >&6
@@ -29004,8 +28909,8 @@ fi;
 fi
 
 if test $coin_has_netlib = notGiven; then
-  #assemble search path for pkg-config
   if test -n "$PKG_CONFIG" ; then
+    # assemble search path for pkg-config
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
 
@@ -29021,36 +28926,11 @@ echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
 
 fi;
 
-    # go through Netlib to ... and assemble PKG_CONFIG_PATH with ../Netlib and module search string
-    module_content=""
-
-module_content="$module_content netlib"
-
-# extract the package name: get everything before first space
-pkgname=`echo "Netlib" | sed -e 's/ .*//g'`
-
-# check if directory $srcdir/../Netlib exists and add ../Netlib to the PKG_CONFIG_PATH
-# this is for the classic setup where an uninstalled project can be found in ../Netlib
-# we do the same for ThirdParty/Netlib and Data/Netlib; it's not nice but the only way I see to easily get around these nonstandard locations
-if test -d $srcdir/../$pkgname; then
-  PKG_CONFIG_PATH="../$pkgname:$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../ThirdParty/$pkgname; then
-  PKG_CONFIG_PATH="../ThirdParty/$pkgname$PKG_CONFIG_PATH"
-fi
-if test -d $srcdir/../Data/$pkgname; then
-  PKG_CONFIG_PATH="../Data/$pkgname:$PKG_CONFIG_PATH"
-fi
-
-
-
-
-
-
-
-
-
-
+    if test -e ${prefix}/coin_subdirs.txt ; then
+      for i in `cat ${prefix}/coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="${prefix}/$i:$PKG_CONFIG_PATH"
+      done
+    fi
 
     # let pkg-config do it's magic
     # need to export variable to be sure that the following pkg-config gets these values
@@ -29059,19 +28939,19 @@ fi
 
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "$module_content"; then
-    NETLIB_VERSIONS="`$PKG_CONFIG --modversion $module_content 2>/dev/null`"
-     NETLIB_CFLAGS=`$PKG_CONFIG --cflags "$module_content" 2>/dev/null`
-    NETLIB_LIBS=`$PKG_CONFIG --libs "$module_content" 2>/dev/null`
-    NETLIB_DATA=`$PKG_CONFIG --variable=datadir "$module_content" 2>/dev/null`
+  if $PKG_CONFIG --exists "netlib"; then
+    NETLIB_VERSIONS="`$PKG_CONFIG --modversion netlib 2>/dev/null`"
+     NETLIB_CFLAGS=`$PKG_CONFIG --cflags "netlib" 2>/dev/null`
+    NETLIB_LIBS=`$PKG_CONFIG --libs "netlib" 2>/dev/null`
+    NETLIB_DATA=`$PKG_CONFIG --variable=datadir "netlib" 2>/dev/null`
      coin_has_netlib=yes
         echo "$as_me:$LINENO: result: yes: $NETLIB_VERSIONS" >&5
 echo "${ECHO_T}yes: $NETLIB_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES $module_content"
+        REQUIREDPACKAGES="$REQUIREDPACKAGES netlib"
 
 
   else
-    NETLIB_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors $module_content`
+    NETLIB_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors netlib`
       coin_has_netlib=notGiven
         echo "$as_me:$LINENO: result: not given: $NETLIB_PKG_ERRORS" >&5
 echo "${ECHO_T}not given: $NETLIB_PKG_ERRORS" >&6
