@@ -1423,7 +1423,7 @@ class CoinPostsolveMatrix : public CoinPrePostsolveMatrix
     \brief Initialise linked list for major vector order in bulk storage
 */
 
-void presolve_make_memlists(CoinBigIndex *starts, int *lengths,
+void presolve_make_memlists(/*CoinBigIndex *starts,*/ int *lengths,
 			    presolvehlink *link, int n);
 
 /*! \relates CoinPrePostsolveMatrix

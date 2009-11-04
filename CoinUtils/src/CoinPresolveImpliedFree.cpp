@@ -72,6 +72,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
   }
 #define MAXPASS 10
   bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
+  double relaxedTolerance = 100.0*tolerance;
 
   // Loop round seeing if we can tighten bounds
   // Would be faster to have a stack of possible rows
@@ -132,8 +133,8 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 	    maxDown >= rowLower[iRow] - tolerance) {
 	  
 	} else {
-	  if (maxUp < rowLower[iRow] -100.0*tolerance ||
-	      maxDown > rowUpper[iRow]+100.0*tolerance) {
+	  if (maxUp < rowLower[iRow] -relaxedTolerance ||
+	      maxDown > rowUpper[iRow]+relaxedTolerance) {
             if(!fixInfeasibility) {
               // problem is infeasible - exit at once
               numberInfeasible++;
@@ -150,6 +151,11 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 	  }
 	  double lower = rowLower[iRow];
 	  double upper = rowUpper[iRow];
+	  // Clean up
+	  if (maximumUp < lower && maximumUp > lower -relaxedTolerance)
+	    maximumUp=lower;
+	  if (maximumDown > upper && maximumDown < upper +relaxedTolerance)
+	    maximumDown=upper;
 	  for (j = rStart; j < rEnd; ++j) {
 	    double value=element[j];
 	    iColumn = column[j];
@@ -191,7 +197,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 		  }
 		  // check infeasible (relaxed)
 		  if (nowUpper - newBound < 
-		      -100.0*tolerance) {
+		      -relaxedTolerance) {
 		    numberInfeasible++;
 		  }
 		  // adjust
@@ -240,7 +246,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 		  }
 		  // check infeasible (relaxed)
 		  if (newBound - nowLower < 
-		      -100.0*tolerance) {
+		      -relaxedTolerance) {
 		    numberInfeasible++;
 		  }
 		  // adjust 
@@ -291,7 +297,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 		  }
 		  // check infeasible (relaxed)
 		  if (newBound - nowLower < 
-		      -100.0*tolerance) {
+		      -relaxedTolerance) {
 		    numberInfeasible++;
 		  }
 		  // adjust
@@ -340,7 +346,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 		  }
 		  // check infeasible (relaxed)
 		  if (nowUpper - newBound < 
-		      -100.0*tolerance) {
+		      -relaxedTolerance) {
 		    numberInfeasible++;
 		  }
 		  // adjust

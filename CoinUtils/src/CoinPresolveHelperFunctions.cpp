@@ -113,7 +113,7 @@ void compact_rep (double *elems, int *indices,
   starts[j] > starts[i] for j < i.)
 */
 
-void presolve_make_memlists (CoinBigIndex *starts, int *lengths,
+void presolve_make_memlists (/*CoinBigIndex *starts,*/ int *lengths,
 			     presolvehlink *link, int n)
 {
   int i ;

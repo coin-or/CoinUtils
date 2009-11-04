@@ -319,12 +319,12 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
   // sort the row rep by reconstructing from col rep
   copyrep(mcstrt, hrow, colels, hincol, ncols,
 	  mrstrt, hcol, rowels, hinrow, nrows);
-  presolve_make_memlists(mrstrt, hinrow, rlink, nrows);
+  presolve_make_memlists(/*mrstrt,*/ hinrow, rlink, nrows);
   // NEED SOME ASSERTION ABOUT NELEMS
 
   copyrep(mrstrt, hcol, rowels, hinrow, nrows,
 	  mcstrt, hrow, colels, hincol, ncols);
-  presolve_make_memlists(mcstrt, hincol, clink, ncols);
+  presolve_make_memlists(/*mcstrt,*/ hincol, clink, ncols);
 #endif
 
   // in the original presolve, I don't think the two representations were
