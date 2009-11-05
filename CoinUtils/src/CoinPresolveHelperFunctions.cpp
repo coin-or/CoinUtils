@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -401,7 +402,7 @@ void presolve_delete_many_from_major (int majndx, char * marked,
 */
 void presolve_delete_from_major2 (int majndx, int minndx,
 				  CoinBigIndex *majstrts, int *majlens,
-				  int *minndxs, double *els, int *majlinks, 
+				  int *minndxs, /*double *els,*/ int *majlinks, 
 				  CoinBigIndex *free_listp)
 
 { CoinBigIndex k = majstrts[majndx] ;

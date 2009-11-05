@@ -1,3 +1,4 @@
+/* $Id: CoinStructuredModel.hpp 1191 2009-07-25 08:38:12Z forrest $ */
 // Copyright (C) 2008, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #ifndef CoinStructuredModel_H
@@ -10,23 +11,23 @@
     This is a model which is made up of Coin(Structured)Model blocks.
 */
   typedef struct CoinModelInfo2 {
-    unsigned int matrix:1; // nonzero if matrix exists
-    unsigned int rhs:1; // nonzero if non default rhs exists
-    unsigned int rowName:1; // nonzero if row names exists
-    unsigned int integer:1; // nonzero if integer information exists
-    unsigned int bounds:1; // nonzero if non default bounds/objective exists
-    unsigned int columnName:1; // nonzero if column names exists
     int rowBlock; // Which row block
     int columnBlock; // Which column block
+    char matrix; // nonzero if matrix exists
+    char rhs; // nonzero if non default rhs exists
+    char rowName; // nonzero if row names exists
+    char integer; // nonzero if integer information exists
+    char bounds; // nonzero if non default bounds/objective exists
+    char columnName; // nonzero if column names exists
     CoinModelInfo2() : 
+      rowBlock(0),
+      columnBlock(0),
       matrix(0),
       rhs(0),
       rowName(0),
       integer(0),
       bounds(0),
-      columnName(0),
-      rowBlock(0),
-      columnBlock(0)
+      columnName(0)
     {}
 } CoinModelBlockInfo;
 

@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2000, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -26,11 +27,11 @@ public:
   virtual CoinWarmStart *clone() const = 0 ;
    
   virtual CoinWarmStartDiff*
-  generateDiff (const CoinWarmStart *const oldCWS) const { return 0; }
+  generateDiff (const CoinWarmStart *const ) const { return 0; }
    
    
   virtual void
-  applyDiff (const CoinWarmStartDiff *const cwsdDiff) {}
+  applyDiff (const CoinWarmStartDiff *const ) {}
 
 };
 

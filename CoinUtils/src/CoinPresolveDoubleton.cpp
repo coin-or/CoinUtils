@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -55,7 +56,7 @@ namespace {	/* begin unnamed local namespace */
    and consistency will be restored.
 */
 
-bool elim_doubleton (const char *msg,
+  bool elim_doubleton (const char */*msg*/,
 		     CoinBigIndex *mcstrt, 
 		     double *rlo, double *rup,
 		     double *colels,
@@ -65,7 +66,7 @@ bool elim_doubleton (const char *msg,
 		     CoinBigIndex *mrstrt, double *rowels,
 		     double coeff_factor,
 		     double bounds_factor,
-		     int row0, int icolx, int icoly)
+		       int /*row0*/, int icolx, int icoly)
 
 {
   CoinBigIndex kcsx = mcstrt[icolx];
@@ -337,7 +338,7 @@ const CoinPresolveAction
 	    if (rhsRatio==floor(rhsRatio+0.5))
 	      canDo=true;
 	  }
-#ifdef COIN_DEVELOP
+#ifdef COIN_DEVELOP2
 	  if (canDo)
 	    printf("Good CoinPresolveDoubleton icolx %d (%g and bounds %g %g) icoly %d (%g and bound %g %g) - rhs %g\n",
 		   icolx,colels[krowx],clo[icolx],cup[icolx],
@@ -1322,8 +1323,8 @@ void check_doubletons(const CoinPresolveAction * paction)
   }
 }
 
-void check_doubletons1(const CoinPresolveAction * paction,
-		       int ncols)
+void check_doubletons1(const CoinPresolveAction * /*paction*/,
+		       int /*ncols*/)
 {
 #if	PRESOLVE_DEBUG
   doubleton_mult = new double[ncols];

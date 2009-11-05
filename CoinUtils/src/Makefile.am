@@ -41,6 +41,11 @@ libCoinUtils_la_SOURCES = \
 	CoinSimpFactorization.cpp \
 	CoinDenseFactorization.hpp \
 	CoinDenseFactorization.cpp \
+	CoinOslFactorization.hpp \
+	CoinOslFactorization.cpp \
+	CoinOslFactorization2.cpp \
+	CoinOslFactorization3.cpp \
+	CoinOslC.h \
 	CoinFileIO.cpp CoinFileIO.hpp \
 	CoinFinite.hpp \
 	CoinFloatEqual.hpp \
@@ -132,6 +137,7 @@ includecoin_HEADERS = \
 	CoinFactorization.hpp \
 	CoinSimpFactorization.hpp \
 	CoinDenseFactorization.hpp \
+	CoinOslFactorization.hpp \
 	CoinFileIO.hpp \
 	CoinFinite.hpp \
 	CoinFloatEqual.hpp \

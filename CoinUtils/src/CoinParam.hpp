@@ -1,3 +1,4 @@
+/* $Id: CoinParam.hpp 1191 2009-07-25 08:38:12Z forrest $ */
 #ifndef CoinParam_H
 #define CoinParam_H
 

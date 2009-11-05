@@ -1,3 +1,4 @@
+/* $Id: CoinDenseFactorization.hpp 1191 2009-07-25 08:38:12Z forrest $ */
 // Copyright (C) 2008, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -18,24 +19,24 @@
 #include "CoinFactorization.hpp"
 class CoinPackedMatrix;
 /// Abstract base class which also has some scalars so can be used from Dense or Simp
-class CoinSmallFactorization {
+class CoinOtherFactorization {
 
 public:
 
   /**@name Constructors and destructor and copy */
   //@{
   /// Default constructor
-  CoinSmallFactorization (  );
+  CoinOtherFactorization (  );
   /// Copy constructor 
-  CoinSmallFactorization ( const CoinSmallFactorization &other);
+  CoinOtherFactorization ( const CoinOtherFactorization &other);
   
   /// Destructor
-  virtual ~CoinSmallFactorization (  );
+  virtual ~CoinOtherFactorization (  );
   /// = copy
-  CoinSmallFactorization & operator = ( const CoinSmallFactorization & other );
+  CoinOtherFactorization & operator = ( const CoinOtherFactorization & other );
  
   /// Clone
-  virtual CoinSmallFactorization * clone() const = 0;
+  virtual CoinOtherFactorization * clone() const = 0;
   //@}
 
   /**@name general stuff such as status */
@@ -79,7 +80,7 @@ public:
     return maximumPivots_ ;
   }
   /// Set maximum pivots
-  void maximumPivots (  int value );
+  virtual void maximumPivots (  int value );
 
   /// Pivot tolerance
   inline double pivotTolerance (  ) const {
@@ -99,29 +100,42 @@ public:
   void slackValue (  double value );
 #endif
   /// Returns array to put basis elements in
-  inline CoinFactorizationDouble * elements() const
-  { return elements_;}
+  virtual CoinFactorizationDouble * elements() const;
   /// Returns pivot row 
-  inline int * pivotRow() const
-  { return pivotRow_;}
+  virtual int * pivotRow() const;
   /// Returns work area
-  inline CoinFactorizationDouble * workArea() const
-  { return workArea_;}
+  virtual CoinFactorizationDouble * workArea() const;
   /// Returns int work area
-  inline int * intWorkArea() const
-  { return reinterpret_cast<int *> (workArea_);}
+  virtual int * intWorkArea() const;
+  /// Number of entries in each row
+  virtual int * numberInRow() const;
+  /// Number of entries in each column
+  virtual int * numberInColumn() const;
   /// Returns array to put basis starts in
-  inline CoinBigIndex * starts() const
-  { return reinterpret_cast<CoinBigIndex *> (pivotRow_);}
+  virtual CoinBigIndex * starts() const;
   /// Returns permute back
-  inline int * permuteBack() const
-  { return pivotRow_+numberRows_;}
-  /// Get solve mode e.g. 0 C++ code, 1 Lapack, -1 choose
+  virtual int * permuteBack() const;
+  /** Get solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
+      If 4 set then values pass
+      if 8 set then has iterated
+  */
   inline int solveMode() const
   { return solveMode_ ;}
-  /// Set solve mode e.g. 0 C++ code, 1 Lapack, -1 choose
+  /** Set solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
+      If 4 set then values pass
+      if 8 set then has iterated
+  */
   inline void setSolveMode(int value)
   { solveMode_ = value;}
+  /// Returns true if wants tableauColumn in replaceColumn
+  virtual bool wantsTableauColumn() const;
+  /** Useful information for factorization
+      0 - iteration number
+      whereFrom is 0 for factorize and 1 for replaceColumn
+  */
+  virtual void setUsefulInformation(const int * info,int whereFrom);
+  /// Get rid of all memory
+  virtual void clearArrays() {}
   //@}
   /**@name virtual general stuff such as permutation */
   //@{ 
@@ -167,7 +181,8 @@ public:
   virtual int replaceColumn ( CoinIndexedVector * regionSparse,
 		      int pivotRow,
 		      double pivotCheck ,
-		      bool checkBeforeModifying=false) = 0;
+			      bool checkBeforeModifying=false,
+			      double acceptablePivot=1.0e-8)=0;
   //@}
 
   /**@name various uses of factorization (return code number elements) 
@@ -246,7 +261,10 @@ protected:
   CoinFactorizationDouble * elements_;
   /// Work area of numberRows_ 
   CoinFactorizationDouble * workArea_;
-  /// Solve mode e.g. 0 C++ code, 1 Lapack, -1 choose
+  /** Solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
+      If 4 set then values pass
+      if 8 set then has iterated
+  */
   int solveMode_;
   //@}
 };
@@ -259,7 +277,7 @@ protected:
 
 
 
-class CoinDenseFactorization : public CoinSmallFactorization {
+class CoinDenseFactorization : public CoinOtherFactorization {
    friend void CoinDenseFactorizationUnitTest( const std::string & mpsDir );
 
 public:
@@ -276,7 +294,7 @@ public:
   /// = copy
   CoinDenseFactorization & operator = ( const CoinDenseFactorization & other );
   /// Clone
-  virtual CoinSmallFactorization * clone() const ;
+  virtual CoinOtherFactorization * clone() const ;
   //@}
 
   /**@name Do factorization - public */
@@ -324,7 +342,8 @@ public:
   virtual int replaceColumn ( CoinIndexedVector * regionSparse,
 		      int pivotRow,
 		      double pivotCheck ,
-		      bool checkBeforeModifying=false);
+			      bool checkBeforeModifying=false,
+			      double acceptablePivot=1.0e-8);
   //@}
 
   /**@name various uses of factorization (return code number elements) 
@@ -338,7 +357,7 @@ public:
   */
   virtual inline int updateColumnFT ( CoinIndexedVector * regionSparse,
 				      CoinIndexedVector * regionSparse2,
-				      bool noPermute=false)
+				      bool = false)
   { return updateColumn(regionSparse,regionSparse2);}
   /** This version has same effect as above with FTUpdate==false
       so number returned is always >=0 */

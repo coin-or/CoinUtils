@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #if defined(_MSC_VER)
@@ -30,7 +31,7 @@ CoinFactorization::CoinFactorization ( const CoinFactorization &other)
   gutsOfCopy(other);
 }
 /// The real work of constructors etc
-void CoinFactorization::gutsOfDestructor(int type)
+void CoinFactorization::gutsOfDestructor(int )
 {
   delete [] denseArea_;
   delete [] densePermute_;
@@ -418,7 +419,7 @@ int CoinFactorization::factorize (
    returns 0 -okay, -99 memory */
 int 
 CoinFactorization::factorizePart1 ( int numberOfRows,
-				   int numberOfColumns,
+				   int ,
 				   CoinBigIndex numberOfElements,
 				   int * indicesRow[],
 				   int * indicesColumn[],
@@ -664,7 +665,7 @@ CoinFactorization::getAreas ( int numberOfRows,
 //state is 0 - triplets, 1 - some counts etc , 2 - ..
 void
 CoinFactorization::preProcess ( int state,
-			   int possibleDuplicates )
+			   int )
 {
   int *indexRow = indexRowU_.array();
   int *indexColumn = indexColumnU_.array();
@@ -853,6 +854,7 @@ CoinFactorization::preProcess ( int state,
 	  CoinBigIndex end = first+number;
 	  for (  ; k < end; k++ ) {
 	    int iRow = indexRow[k];
+	    assert (iRow<numberRows_);
 	    CoinFactorizationDouble value = element[k];
 	    if (numberInRow[iRow]>=0) {
 	      numberInRow[iRow]++;
@@ -1877,8 +1879,8 @@ CoinFactorization::cleanup (  )
       CoinBigIndex j;
       for ( j = start; j < end; j++ ) {
 	int iRow = indexRowL[j];
-
 	iRow = permute[iRow];
+	assert (iRow>firstReal);
 	indexRowL[j] = iRow;
       }
     }

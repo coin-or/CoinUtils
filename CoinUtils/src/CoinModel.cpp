@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2005, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -733,8 +734,9 @@ CoinModel::addRow(int numberInRow, const int * columns,
     assert (put==numberElements_);
     bool doHash = hashElements_.numberItems()!=0;
     for (int i=0;i<numberInRow;i++) {
-      elements_[put].row=static_cast<unsigned int>(numberRows_);
-      elements_[put].string=0;
+      setRowAndStringInTriple(elements_[put],numberRows_,false);
+      //elements_[put].row=static_cast<unsigned int>(numberRows_);
+      //elements_[put].string=0;
       elements_[put].column=sortIndices_[i];
       elements_[put].value=sortElements_[i];
       if (doHash)
@@ -872,8 +874,9 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
     bool doHash = hashElements_.numberItems()!=0;
     for (int i=0;i<numberInColumn;i++) {
       elements_[put].column=numberColumns_;
-      elements_[put].string=0;
-      elements_[put].row=static_cast<unsigned int>(sortIndices_[i]);
+      setRowAndStringInTriple(elements_[put],sortIndices_[i],false);
+      //elements_[put].string=0;
+      //elements_[put].row=static_cast<unsigned int>(sortIndices_[i]);
       elements_[put].value=sortElements_[i];
       if (doHash)
         hashElements_.addHash(put,sortIndices_[i],numberColumns_,elements_);
@@ -927,7 +930,7 @@ CoinModel::setElement(int i,int j,double value)
   int position = hashElements_.hash(i,j,elements_);
   if (position>=0) {
     elements_[position].value=value;
-    elements_[position].string=0;
+    setStringInTriple(elements_[position],false);
   } else {
     int newColumn=0;
     if (j>=maximumColumns_) {
@@ -971,7 +974,7 @@ CoinModel::setElement(int i,int j,double value)
 }
 // Sets quadratic value for column i and j 
 void 
-CoinModel::setQuadraticElement(int i,int j,double value) 
+CoinModel::setQuadraticElement(int ,int ,double ) 
 {
   printf("not written yet\n");
   abort();
@@ -1005,7 +1008,7 @@ CoinModel::setElement(int i,int j,const char * value)
   if (position>=0) {
     int iValue = addString(value);
     elements_[position].value=iValue;
-    elements_[position].string=1;
+    setStringInTriple(elements_[position],true);
   } else {
     int newColumn=0;
     if (j>=maximumColumns_) {
@@ -1049,7 +1052,7 @@ CoinModel::setElement(int i,int j,const char * value)
     assert (position>=0);
     int iValue = addString(value);
     elements_[position].value=iValue;
-    elements_[position].string=1;
+    setStringInTriple(elements_[position],true);
   }
 }
 // Associates a string with a value.  Returns string id (or -1 if does not exist)
@@ -1495,11 +1498,15 @@ CoinModel::deleteElement(int row, int column)
   return iPos;
 }
 // Takes element out of matrix when position known
-void 
+void
+#ifndef NDEBUG
 CoinModel::deleteThisElement(int row, int column,int position)
+#else
+CoinModel::deleteThisElement(int , int ,int position)
+#endif
 {
   assert (row<numberRows_&&column<numberColumns_);
-  assert (row==static_cast<int> (elements_[position].row)&&
+  assert (row==rowInTriple(elements_[position])&&
 	  column==static_cast<int>(elements_[position].column));
   if ((links_&1)==0) {
     createList(1);
@@ -1535,7 +1542,7 @@ CoinModel::packRows()
   int i;
   for ( i=0;i<numberElements_;i++) {
     if (elements_[i].column>=0) {
-      iRow = static_cast<int> (elements_[i].row);
+      iRow = rowInTriple(elements_[i]);
       assert (iRow>=0&&iRow<numberRows_);
       newRow[iRow]++;
     }
@@ -1560,7 +1567,7 @@ CoinModel::packRows()
     for ( i=0;i<numberElements_;i++) {
       if (elements_[i].column>=0) {
         elements_[n]=elements_[i];
-        elements_[n].row = static_cast<unsigned int>(newRow[elements_[i].row]);
+        setRowInTriple(elements_[n],newRow[rowInTriple(elements_[i])]);
         n++;
       }
     }
@@ -1578,7 +1585,7 @@ CoinModel::packRows()
       int last=-1;
       if (type_==0) {
         for (i=0;i<numberElements_;i++) {
-          int now = static_cast<int> (elements_[i].row);
+          int now = rowInTriple(elements_[i]);
           assert (now>=last);
           if (now>last) {
             start_[last+1]=numberElements_;
@@ -1688,7 +1695,7 @@ CoinModel::packColumns()
       int last=-1;
       if (type_==0) {
         for (i=0;i<numberElements_;i++) {
-          int now = static_cast<int> (elements_[i].row);
+          int now = rowInTriple(elements_[i]);
           assert (now>=last);
           if (now>last) {
             start_[last+1]=numberElements_;
@@ -1775,7 +1782,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix,
     int column = elements_[i].column;
     if (column>=0) {
       double value = elements_[i].value;
-      if (elements_[i].string) {
+      if (stringInTriple(elements_[i])) {
         int position = static_cast<int> (value);
         assert (position<sizeAssociated_);
         value = associated[position];
@@ -1787,7 +1794,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix,
       if (value) {
         numberElements++;
         int put=start[column]+length[column];
-        row[put]=static_cast<int> (elements_[i].row);
+        row[put]=rowInTriple(elements_[i]);
         element[put]=value;
         length[column]++;
       }
@@ -1827,7 +1834,7 @@ CoinModel::countPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * startN
     int column = elements_[i].column;
     if (column>=0) {
       double value = elements_[i].value;
-      if (elements_[i].string) {
+      if (stringInTriple(elements_[i])) {
         int position = static_cast<int> (value);
         assert (position<sizeAssociated_);
         value = associated[position];
@@ -1879,12 +1886,12 @@ CoinModel::createPlusMinusOne(CoinBigIndex * startPositive, CoinBigIndex * start
     int column = elements_[i].column;
     if (column>=0) {
       double value = elements_[i].value;
-      if (elements_[i].string) {
+      if (stringInTriple(elements_[i])) {
         int position = static_cast<int> (value);
         assert (position<sizeAssociated_);
         value = associated[position];
       }
-      int iRow=static_cast<int> (elements_[i].row);
+      int iRow=rowInTriple(elements_[i]);
       if (value==1.0) {
         CoinBigIndex position = startPositive[column];
         indices[position]=iRow;
@@ -2253,7 +2260,7 @@ CoinModel::getElement(const char * rowName,const char * columnName) const
 }
 // Returns quadratic value for columns i and j
 double 
-CoinModel::getQuadraticElement(int i,int j) const
+CoinModel::getQuadraticElement(int ,int ) const
 {
   printf("not written yet\n");
   abort();
@@ -2269,7 +2276,7 @@ CoinModel::getElementAsString(int i,int j) const
   }
   int position = hashElements_.hash(i,j,elements_);
   if (position>=0) {
-    if (elements_[position].string) {
+    if (stringInTriple(elements_[position])) {
       int iString =  static_cast<int> (elements_[position].value);
       assert (iString>=0&&iString<string_.numberItems());
       return string_.name(iString);
@@ -2328,7 +2335,7 @@ CoinModel::firstInRow(int whichRow) const
         link.setRow(whichRow);
         link.setPosition(position);
         link.setColumn(elements_[position].column);
-        assert (whichRow==static_cast<int> (elements_[position].row));
+        assert (whichRow==rowInTriple(elements_[position]));
         link.setValue(elements_[position].value);
       }
     } else {
@@ -2338,7 +2345,7 @@ CoinModel::firstInRow(int whichRow) const
         link.setRow(whichRow);
         link.setPosition(position);
         link.setColumn(elements_[position].column);
-        assert (whichRow==static_cast<int> (elements_[position].row));
+        assert (whichRow==rowInTriple(elements_[position]));
         link.setValue(elements_[position].value);
       }
     }
@@ -2361,7 +2368,7 @@ CoinModel::lastInRow(int whichRow) const
         link.setRow(whichRow);
         link.setPosition(position);
         link.setColumn(elements_[position].column);
-        assert (whichRow==static_cast<int> (elements_[position].row));
+        assert (whichRow==rowInTriple(elements_[position]));
         link.setValue(elements_[position].value);
       }
     } else {
@@ -2371,7 +2378,7 @@ CoinModel::lastInRow(int whichRow) const
         link.setRow(whichRow);
         link.setPosition(position);
         link.setColumn(elements_[position].column);
-        assert (whichRow==static_cast<int> (elements_[position].row));
+        assert (whichRow==rowInTriple(elements_[position]));
         link.setValue(elements_[position].value);
       }
     }
@@ -2393,7 +2400,7 @@ CoinModel::firstInColumn(int whichColumn) const
       if (position<start_[whichColumn+1]) {
         link.setColumn(whichColumn);
         link.setPosition(position);
-        link.setRow(elements_[position].row);
+        link.setRow(rowInTriple(elements_[position]));
         assert (whichColumn==static_cast<int> (elements_[position].column));
         link.setValue(elements_[position].value);
       }
@@ -2408,7 +2415,7 @@ CoinModel::firstInColumn(int whichColumn) const
       if (position>=0) {
         link.setColumn(whichColumn);
         link.setPosition(position);
-        link.setRow(elements_[position].row);
+        link.setRow(rowInTriple(elements_[position]));
         assert (whichColumn==static_cast<int> (elements_[position].column));
         link.setValue(elements_[position].value);
       }
@@ -2431,7 +2438,7 @@ CoinModel::lastInColumn(int whichColumn) const
       if (position>=start_[whichColumn]) {
         link.setColumn(whichColumn);
         link.setPosition(position);
-        link.setRow(elements_[position].row);
+        link.setRow(rowInTriple(elements_[position]));
         assert (whichColumn==static_cast<int> (elements_[position].column));
         link.setValue(elements_[position].value);
       }
@@ -2441,7 +2448,7 @@ CoinModel::lastInColumn(int whichColumn) const
       if (position>=0) {
         link.setColumn(whichColumn);
         link.setPosition(position);
-        link.setRow(elements_[position].row);
+        link.setRow(rowInTriple(elements_[position]));
         assert (whichColumn==static_cast<int> (elements_[position].column));
         link.setValue(elements_[position].value);
       }
@@ -2468,7 +2475,7 @@ CoinModel::next(CoinModelLink & current) const
         if (position<start_[whichRow+1]) {
           link.setPosition(position);
           link.setColumn(elements_[position].column);
-          assert (whichRow==static_cast<int> (elements_[position].row));
+          assert (whichRow==rowInTriple(elements_[position]));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2483,7 +2490,7 @@ CoinModel::next(CoinModelLink & current) const
         if (position>=0) {
           link.setPosition(position);
           link.setColumn(elements_[position].column);
-          assert (whichRow==static_cast<int> (elements_[position].row));
+          assert (whichRow==rowInTriple(elements_[position]));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2501,7 +2508,7 @@ CoinModel::next(CoinModelLink & current) const
         position++;
         if (position<start_[whichColumn+1]) {
           link.setPosition(position);
-          link.setRow(elements_[position].row);
+          link.setRow(rowInTriple(elements_[position]));
           assert (whichColumn==static_cast<int> (elements_[position].column));
           link.setValue(elements_[position].value);
         } else {
@@ -2516,7 +2523,7 @@ CoinModel::next(CoinModelLink & current) const
         position = columnList_.next()[position];
         if (position>=0) {
           link.setPosition(position);
-          link.setRow(elements_[position].row);
+          link.setRow(rowInTriple(elements_[position]));
           assert (whichColumn==static_cast<int> (elements_[position].column));
           link.setValue(elements_[position].value);
         } else {
@@ -2550,7 +2557,7 @@ CoinModel::previous(CoinModelLink & current) const
         if (position>=start_[whichRow]) {
           link.setPosition(position);
           link.setColumn(elements_[position].column);
-          assert (whichRow==static_cast<int> (elements_[position].row));
+          assert (whichRow==rowInTriple(elements_[position]));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2565,7 +2572,7 @@ CoinModel::previous(CoinModelLink & current) const
         if (position>=0) {
           link.setPosition(position);
           link.setColumn(elements_[position].column);
-          assert (whichRow==static_cast<int> (elements_[position].row));
+          assert (whichRow==rowInTriple(elements_[position]));
           link.setValue(elements_[position].value);
         } else {
           // signal end
@@ -2583,7 +2590,7 @@ CoinModel::previous(CoinModelLink & current) const
         position--;
         if (position>=start_[whichColumn]) {
           link.setPosition(position);
-          link.setRow(elements_[position].row);
+          link.setRow(rowInTriple(elements_[position]));
           assert (whichColumn==static_cast<int> (elements_[position].column));
           link.setValue(elements_[position].value);
         } else {
@@ -2598,7 +2605,7 @@ CoinModel::previous(CoinModelLink & current) const
         position = columnList_.previous()[position];
         if (position>=0) {
           link.setPosition(position);
-          link.setRow(elements_[position].row);
+          link.setRow(rowInTriple(elements_[position]));
           assert (whichColumn==static_cast<int> (elements_[position].column));
           link.setValue(elements_[position].value);
         } else {
@@ -2617,7 +2624,7 @@ CoinModel::previous(CoinModelLink & current) const
    Index is given by .index and value by .value
 */
 CoinModelLink 
-CoinModel::firstInQuadraticColumn(int whichColumn) const
+CoinModel::firstInQuadraticColumn(int ) const
 {
   printf("not written yet\n");
   abort();
@@ -2628,7 +2635,7 @@ CoinModel::firstInQuadraticColumn(int whichColumn) const
    Index is given by .index and value by .value
 */
 CoinModelLink 
-CoinModel::lastInQuadraticColumn(int whichColumn) const
+CoinModel::lastInQuadraticColumn(int) const
 {
   printf("not written yet\n");
   abort();

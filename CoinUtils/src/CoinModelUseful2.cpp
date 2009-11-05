@@ -1,3 +1,4 @@
+/* $Id$ */
 // Copyright (C) 2005, International Business Machines
 // Corporation and others.  All Rights Reserved.
 /* A Bison parser, made by GNU Bison 1.875c.  */
@@ -747,7 +748,7 @@ static     void
      
      /* Called by yyparse on error.  */
 static     void
-     yyerror (char const *s)
+yyerror (char const */*s*/)
      {
        // Put back if needed
        //printf ("%s\n", s);

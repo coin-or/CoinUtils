@@ -1,3 +1,4 @@
+/* $Id: CoinSearchTree.hpp 1191 2009-07-25 08:38:12Z forrest $ */
 #ifndef CoinSearchTree_H
 #define CoinSearchTree_H
 
