@@ -595,6 +595,18 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinOslFactorization.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinOslFactorization2.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinOslFactorization3.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinPackedMatrix.cpp"
 				>
 				<FileConfiguration
