@@ -1,6 +1,6 @@
 prefix=@prefix@
-libdir=@exec_prefix@/CoinUtils/src
-includedir=${prefix}/CoinUtils/src
+libdir=@ABSBUILDDIR@/src
+includedir=@abs_source_dir@/src
 
 Name: CoinUtils
 Description: COIN-OR Utilities

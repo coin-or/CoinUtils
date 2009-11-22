@@ -111,6 +111,7 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
+ABSBUILDDIR = @ABSBUILDDIR@
 ACLOCAL = @ACLOCAL@
 ADDLIBS = @ADDLIBS@
 ADD_CFLAGS = @ADD_CFLAGS@
