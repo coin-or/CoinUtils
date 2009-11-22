@@ -435,28 +435,25 @@ AC_CHECK_HEADERS([windows.h])
 #                              COIN components                              #
 #############################################################################
 
-AC_COIN_HAS_PKGCONFIG
-
-#AC_COIN_HAS_PROJECT2(CoinUtils)
-#AC_COIN_HAS_PROJECT2(Blas,ThirdParty,[daxpy.f])
-#AC_COIN_HAS_PROJECT2(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
-#AC_COIN_HAS_PROJECT2(Glpk,ThirdParty,[glpk/src/glplpx01.c])
-#AC_COIN_HAS_PROJECT2(Sample,Data)
-#AC_COIN_HAS_PROJECT2(Netlib,Data)
-
-AC_COIN_HAS_MODULE(Lapack, [blas lapack])
+AC_COIN_HAS_MODULE_BLAS
+AC_COIN_HAS_MODULE_LAPACK
 AC_COIN_HAS_MODULE(Glpk,   [glpk >= 4.39])
 AC_COIN_HAS_MODULE(Sample, [sample])
 AC_COIN_HAS_MODULE(Netlib, [netlib])
 
-if test "$coin_has_lapack" != yes ; then
+if test "$coin_has_blas" != yes ; then
   AC_COIN_HAS_BLAS
-  AC_COIN_HAS_LAPACK
-  # now Blas and Lapack linker flags are in ADDLIBS
+  # now Blas linker flags are in ADDLIBS
 else
   #for configure
-  AM_CONDITIONAL([COIN_HAS_BLAS], [test 0 = 1])
   AM_CONDITIONAL([COIN_BUILD_BLAS], [test 0 = 1])
+fi
+
+if test "$coin_has_lapack" != yes ; then
+  AC_COIN_HAS_LAPACK
+  # now Lapack linker flags are in ADDLIBS
+else
+  #for configure
   AM_CONDITIONAL([COIN_BUILD_LAPACK], [test 0 = 1])
 fi
 
