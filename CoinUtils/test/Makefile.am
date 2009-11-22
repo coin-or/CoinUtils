@@ -30,7 +30,7 @@ unitTest_SOURCES = \
 unitTest_LDADD = ../src/libCoinUtils.la
 
 # List additional libraries
-LIBS += $(ADDLIBS) $(GLPK_LIBS) $(LAPACK_LIBS)
+LIBS += $(ADDLIBS) $(GLPK_LIBS) $(LAPACK_LIBS) $(BLAS_LIBS)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
