@@ -555,6 +555,41 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
         } else if ((dcost[iCol]&&currentLower!=currentUpper)||rowObjective[iRow]) {
           continue;
         }
+	// get max and min of other stuff
+	double maxDown=0.0;
+	double maxUp=0.0;
+	int kDown=0;
+	int kUp=0;
+	for (CoinBigIndex j=mrstrt[iRow];
+	     j<mrstrt[iRow]+hinrow[iRow];j++) {
+	  int iColumn = hcol[j];
+	  if (iColumn!=iCol) {
+	    double value = rowels[j];
+	    if (value>0.0) {
+	      if(cup[iColumn]<1.0e20)
+		maxUp += value*cup[iColumn];
+	      else
+		kUp++;
+	      if(clo[iColumn]>-1.0e20)
+		maxDown += value*clo[iColumn];
+	      else
+		kDown++;
+	    } else {
+	      if(cup[iColumn]<1.0e20)
+		maxDown += value*cup[iColumn];
+	      else
+		kDown++;
+	      if(clo[iColumn]>-1.0e20)
+		maxUp += value*clo[iColumn];
+	      else
+		kUp++;
+	    }
+	  }
+	}
+	if (kUp)
+	  maxUp=COIN_DBL_MAX;
+	if (kDown)
+	  maxDown=-COIN_DBL_MAX;
         double newLower=currentLower;
         double newUpper=currentUpper;
         if (coeff<0.0) {
@@ -588,6 +623,15 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
               newLower=-COIN_DBL_MAX;
           }
         }
+	if (newLower>-1.0e20&&newUpper<1.0e20) {
+	  assert (newLower<newUpper);
+	  // See if one redundant
+	  if (maxDown>newLower-1.0e-8) {
+	    newLower=-COIN_DBL_MAX;
+	  } else if (maxUp<newUpper+1.0e-8) {
+	    newUpper=COIN_DBL_MAX;
+	  }
+	}
 	if (integerType&&integerType[iCol]) {
 	  // only possible if everything else integer
 	  if (newLower>-1.0e30) {
