@@ -21003,6 +21003,12 @@ if test $coin_has_coinutils = notGiven; then
   if test -n "$PKG_CONFIG" ; then
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
+    # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+    if test -d "$prefix"; then
+      PKG_CONFIG_PATH="$prefix/lib//pkgconfig:$PKG_CONFIG_PATH"
+    fi
+
+
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
   withval="$with_coin_instdir"
@@ -21128,6 +21134,12 @@ if test $coin_has_sample = notGiven; then
   if test -n "$PKG_CONFIG" ; then
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
+    # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+    if test -d "$prefix"; then
+      PKG_CONFIG_PATH="$prefix/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+    fi
+
+
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
   withval="$with_coin_instdir"
@@ -21252,6 +21264,12 @@ if test $coin_has_netlib = notGiven; then
   #see if user gives directory where project might be installed: assemble search path for pkg-config
   if test -n "$PKG_CONFIG" ; then
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+
+    # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+    if test -d "$prefix"; then
+      PKG_CONFIG_PATH="$prefix/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+    fi
+
 
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
