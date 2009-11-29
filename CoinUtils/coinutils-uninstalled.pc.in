@@ -6,5 +6,5 @@ Name: CoinUtils
 Description: COIN-OR Utilities
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lCoinUtils @ADDLIBS@
-Cflags: -I${includedir}
+Cflags: -I${includedir} -I@ABSBUILDDIR@/inc
 Requires: @REQUIREDPACKAGES@
