@@ -30389,6 +30389,11 @@ BLAS_DATA=
 
 
 
+required=1
+
+# execute third argument that can be used to overwrite flags like 'required'
+
+
 #check if user provided LIBS, CFLAGS, and DATA for module
 if test $coin_has_blas != skipping; then
 
@@ -30398,7 +30403,9 @@ if test "${with_blas_lib+set}" = set; then
   withval="$with_blas_lib"
   coin_has_blas=yes
        BLAS_LIBS="$withval"
-       ADDLIBS="$ADDLIBS $withval"
+       if test $required = 1; then
+         ADDLIBS="$ADDLIBS $withval"
+       fi
 
 fi;
 
@@ -30424,6 +30431,11 @@ if test $coin_has_blas = notGiven; then
     # assemble search path for pkg-config
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
+    # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+    if test -d "$prefix"; then
+      PKG_CONFIG_PATH="$prefix/lib/pkgconfig:$prefix/lib/ThirdParty/pkgconfig:$prefix/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+    fi
+
 
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
@@ -30433,13 +30445,23 @@ if test "${with_coin_instdir+set}" = set; then
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
        fi
-       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH",
+       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
 
 fi;
 
-    if test -e ${prefix}/coin_subdirs.txt ; then
-      for i in `cat ${prefix}/coin_subdirs.txt` ; do
-        PKG_CONFIG_PATH="${prefix}/$i:$PKG_CONFIG_PATH"
+    # in a classic setup, we want to find uninstalled projects
+    # their (relative) location is written to coin_subdirs.txt by the configure in the project base directory
+    # unfortunately, if the user set prefix, then we do not know where the project base directory is located
+    # but it is likely to be either .. (if we are a usual coin project) or ../.. (if we are a unusual coin project like ThirdParty or Data)
+    if test -e ../coin_subdirs.txt ; then
+      for i in `cat ../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../$i:$PKG_CONFIG_PATH"
+      done
+    fi
+
+    if test -e ../../coin_subdirs.txt ; then
+      for i in `cat ../../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../../$i:$PKG_CONFIG_PATH"
       done
     fi
 
@@ -30458,7 +30480,9 @@ if test -n "$PKG_CONFIG" ; then
      coin_has_blas=yes
         echo "$as_me:$LINENO: result: yes: $BLAS_VERSIONS" >&5
 echo "${ECHO_T}yes: $BLAS_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES blas"
+        if test $required = 1; then
+          REQUIREDPACKAGES="$REQUIREDPACKAGES blas"
+	fi
 
 
   else
@@ -32551,6 +32575,11 @@ LAPACK_DATA=
 
 
 
+required=1
+
+# execute third argument that can be used to overwrite flags like 'required'
+
+
 #check if user provided LIBS, CFLAGS, and DATA for module
 if test $coin_has_lapack != skipping; then
 
@@ -32560,7 +32589,9 @@ if test "${with_lapack_lib+set}" = set; then
   withval="$with_lapack_lib"
   coin_has_lapack=yes
        LAPACK_LIBS="$withval"
-       ADDLIBS="$ADDLIBS $withval"
+       if test $required = 1; then
+         ADDLIBS="$ADDLIBS $withval"
+       fi
 
 fi;
 
@@ -32586,6 +32617,11 @@ if test $coin_has_lapack = notGiven; then
     # assemble search path for pkg-config
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
+    # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+    if test -d "$prefix"; then
+      PKG_CONFIG_PATH="$prefix/lib/pkgconfig:$prefix/lib/ThirdParty/pkgconfig:$prefix/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+    fi
+
 
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
@@ -32595,13 +32631,23 @@ if test "${with_coin_instdir+set}" = set; then
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
        fi
-       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH",
+       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
 
 fi;
 
-    if test -e ${prefix}/coin_subdirs.txt ; then
-      for i in `cat ${prefix}/coin_subdirs.txt` ; do
-        PKG_CONFIG_PATH="${prefix}/$i:$PKG_CONFIG_PATH"
+    # in a classic setup, we want to find uninstalled projects
+    # their (relative) location is written to coin_subdirs.txt by the configure in the project base directory
+    # unfortunately, if the user set prefix, then we do not know where the project base directory is located
+    # but it is likely to be either .. (if we are a usual coin project) or ../.. (if we are a unusual coin project like ThirdParty or Data)
+    if test -e ../coin_subdirs.txt ; then
+      for i in `cat ../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../$i:$PKG_CONFIG_PATH"
+      done
+    fi
+
+    if test -e ../../coin_subdirs.txt ; then
+      for i in `cat ../../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../../$i:$PKG_CONFIG_PATH"
       done
     fi
 
@@ -32620,7 +32666,9 @@ if test -n "$PKG_CONFIG" ; then
      coin_has_lapack=yes
         echo "$as_me:$LINENO: result: yes: $LAPACK_VERSIONS" >&5
 echo "${ECHO_T}yes: $LAPACK_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES lapack"
+        if test $required = 1; then
+          REQUIREDPACKAGES="$REQUIREDPACKAGES lapack"
+	fi
 
 
   else
@@ -32754,6 +32802,11 @@ GLPK_DATA=
 
 
 
+required=1
+
+# execute third argument that can be used to overwrite flags like 'required'
+
+
 #check if user provided LIBS, CFLAGS, and DATA for module
 if test $coin_has_glpk != skipping; then
 
@@ -32763,7 +32816,9 @@ if test "${with_glpk_lib+set}" = set; then
   withval="$with_glpk_lib"
   coin_has_glpk=yes
        GLPK_LIBS="$withval"
-       ADDLIBS="$ADDLIBS $withval"
+       if test $required = 1; then
+         ADDLIBS="$ADDLIBS $withval"
+       fi
 
 fi;
 
@@ -32789,6 +32844,11 @@ if test $coin_has_glpk = notGiven; then
     # assemble search path for pkg-config
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
+    # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+    if test -d "$prefix"; then
+      PKG_CONFIG_PATH="$prefix/lib/pkgconfig:$prefix/lib/ThirdParty/pkgconfig:$prefix/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+    fi
+
 
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
@@ -32798,13 +32858,23 @@ if test "${with_coin_instdir+set}" = set; then
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
        fi
-       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH",
+       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
 
 fi;
 
-    if test -e ${prefix}/coin_subdirs.txt ; then
-      for i in `cat ${prefix}/coin_subdirs.txt` ; do
-        PKG_CONFIG_PATH="${prefix}/$i:$PKG_CONFIG_PATH"
+    # in a classic setup, we want to find uninstalled projects
+    # their (relative) location is written to coin_subdirs.txt by the configure in the project base directory
+    # unfortunately, if the user set prefix, then we do not know where the project base directory is located
+    # but it is likely to be either .. (if we are a usual coin project) or ../.. (if we are a unusual coin project like ThirdParty or Data)
+    if test -e ../coin_subdirs.txt ; then
+      for i in `cat ../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../$i:$PKG_CONFIG_PATH"
+      done
+    fi
+
+    if test -e ../../coin_subdirs.txt ; then
+      for i in `cat ../../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../../$i:$PKG_CONFIG_PATH"
       done
     fi
 
@@ -32823,7 +32893,9 @@ if test -n "$PKG_CONFIG" ; then
      coin_has_glpk=yes
         echo "$as_me:$LINENO: result: yes: $GLPK_VERSIONS" >&5
 echo "${ECHO_T}yes: $GLPK_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES glpk >= 4.39"
+        if test $required = 1; then
+          REQUIREDPACKAGES="$REQUIREDPACKAGES glpk >= 4.39"
+	fi
 
 
   else
@@ -32911,6 +32983,11 @@ SAMPLE_DATA=
 
 
 
+required=1
+
+# execute third argument that can be used to overwrite flags like 'required'
+required=0
+
 #check if user provided LIBS, CFLAGS, and DATA for module
 if test $coin_has_sample != skipping; then
 
@@ -32920,7 +32997,9 @@ if test "${with_sample_lib+set}" = set; then
   withval="$with_sample_lib"
   coin_has_sample=yes
        SAMPLE_LIBS="$withval"
-       ADDLIBS="$ADDLIBS $withval"
+       if test $required = 1; then
+         ADDLIBS="$ADDLIBS $withval"
+       fi
 
 fi;
 
@@ -32946,6 +33025,11 @@ if test $coin_has_sample = notGiven; then
     # assemble search path for pkg-config
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
+    # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+    if test -d "$prefix"; then
+      PKG_CONFIG_PATH="$prefix/lib/pkgconfig:$prefix/lib/ThirdParty/pkgconfig:$prefix/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+    fi
+
 
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
@@ -32955,13 +33039,23 @@ if test "${with_coin_instdir+set}" = set; then
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
        fi
-       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH",
+       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
 
 fi;
 
-    if test -e ${prefix}/coin_subdirs.txt ; then
-      for i in `cat ${prefix}/coin_subdirs.txt` ; do
-        PKG_CONFIG_PATH="${prefix}/$i:$PKG_CONFIG_PATH"
+    # in a classic setup, we want to find uninstalled projects
+    # their (relative) location is written to coin_subdirs.txt by the configure in the project base directory
+    # unfortunately, if the user set prefix, then we do not know where the project base directory is located
+    # but it is likely to be either .. (if we are a usual coin project) or ../.. (if we are a unusual coin project like ThirdParty or Data)
+    if test -e ../coin_subdirs.txt ; then
+      for i in `cat ../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../$i:$PKG_CONFIG_PATH"
+      done
+    fi
+
+    if test -e ../../coin_subdirs.txt ; then
+      for i in `cat ../../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../../$i:$PKG_CONFIG_PATH"
       done
     fi
 
@@ -32980,7 +33074,9 @@ if test -n "$PKG_CONFIG" ; then
      coin_has_sample=yes
         echo "$as_me:$LINENO: result: yes: $SAMPLE_VERSIONS" >&5
 echo "${ECHO_T}yes: $SAMPLE_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES sample"
+        if test $required = 1; then
+          REQUIREDPACKAGES="$REQUIREDPACKAGES sample"
+	fi
 
 
   else
@@ -33068,6 +33164,11 @@ NETLIB_DATA=
 
 
 
+required=1
+
+# execute third argument that can be used to overwrite flags like 'required'
+required=0
+
 #check if user provided LIBS, CFLAGS, and DATA for module
 if test $coin_has_netlib != skipping; then
 
@@ -33077,7 +33178,9 @@ if test "${with_netlib_lib+set}" = set; then
   withval="$with_netlib_lib"
   coin_has_netlib=yes
        NETLIB_LIBS="$withval"
-       ADDLIBS="$ADDLIBS $withval"
+       if test $required = 1; then
+         ADDLIBS="$ADDLIBS $withval"
+       fi
 
 fi;
 
@@ -33103,6 +33206,11 @@ if test $coin_has_netlib = notGiven; then
     # assemble search path for pkg-config
     coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 
+    # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+    if test -d "$prefix"; then
+      PKG_CONFIG_PATH="$prefix/lib/pkgconfig:$prefix/lib/ThirdParty/pkgconfig:$prefix/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+    fi
+
 
 # Check whether --with-coin-instdir or --without-coin-instdir was given.
 if test "${with_coin_instdir+set}" = set; then
@@ -33112,13 +33220,23 @@ if test "${with_coin_instdir+set}" = set; then
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
        fi
-       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH",
+       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$withval/lib/ThirdParty/pkgconfig:$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
 
 fi;
 
-    if test -e ${prefix}/coin_subdirs.txt ; then
-      for i in `cat ${prefix}/coin_subdirs.txt` ; do
-        PKG_CONFIG_PATH="${prefix}/$i:$PKG_CONFIG_PATH"
+    # in a classic setup, we want to find uninstalled projects
+    # their (relative) location is written to coin_subdirs.txt by the configure in the project base directory
+    # unfortunately, if the user set prefix, then we do not know where the project base directory is located
+    # but it is likely to be either .. (if we are a usual coin project) or ../.. (if we are a unusual coin project like ThirdParty or Data)
+    if test -e ../coin_subdirs.txt ; then
+      for i in `cat ../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../$i:$PKG_CONFIG_PATH"
+      done
+    fi
+
+    if test -e ../../coin_subdirs.txt ; then
+      for i in `cat ../../coin_subdirs.txt` ; do
+        PKG_CONFIG_PATH="../../$i:$PKG_CONFIG_PATH"
       done
     fi
 
@@ -33137,7 +33255,9 @@ if test -n "$PKG_CONFIG" ; then
      coin_has_netlib=yes
         echo "$as_me:$LINENO: result: yes: $NETLIB_VERSIONS" >&5
 echo "${ECHO_T}yes: $NETLIB_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES netlib"
+        if test $required = 1; then
+          REQUIREDPACKAGES="$REQUIREDPACKAGES netlib"
+	fi
 
 
   else

@@ -7,4 +7,4 @@ Description: COIN-OR Utilities
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lCoinUtils @ADDLIBS@
 Cflags: -I${includedir}
-Required: @REQUIREDPACKAGES@
+Requires: @REQUIREDPACKAGES@
