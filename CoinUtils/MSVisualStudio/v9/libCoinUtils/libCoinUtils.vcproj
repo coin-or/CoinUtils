@@ -1375,6 +1375,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinOslFactorization.hpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinPackedMatrix.hpp"
 				>
 			</File>
