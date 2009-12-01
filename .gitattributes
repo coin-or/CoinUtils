@@ -11,7 +11,6 @@ CoinUtils/MSVisualStudio/v7/CoinUtils.suo -text
 CoinUtils/MSVisualStudio/v7/libCoinUtils/libCoinUtils.vcproj -text
 CoinUtils/MSVisualStudio/v7/unitTestCoinUtils/unitTestCoinUtils.vcproj -text
 CoinUtils/MSVisualStudio/v8/CoinUtils.sln -text
-CoinUtils/MSVisualStudio/v8/CoinUtils.suo -text
 CoinUtils/MSVisualStudio/v8/libCoinUtils/libCoinUtils.vcproj -text
 CoinUtils/MSVisualStudio/v8/unitTestCoinUtils/unitTestCoinUtils.ncb -text
 CoinUtils/MSVisualStudio/v8/unitTestCoinUtils/unitTestCoinUtils.suo -text
