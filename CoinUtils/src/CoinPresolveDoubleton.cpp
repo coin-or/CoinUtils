@@ -56,7 +56,7 @@ namespace {	/* begin unnamed local namespace */
    and consistency will be restored.
 */
 
-  bool elim_doubleton (const char */*msg*/,
+  bool elim_doubleton (const char * /*msg*/,
 		     CoinBigIndex *mcstrt, 
 		     double *rlo, double *rup,
 		     double *colels,
