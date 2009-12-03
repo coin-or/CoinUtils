@@ -138,7 +138,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
           for (int k=0;k<jRow;k++) {
             int start = CoinMax(lastRow[k],model.numberRows());
             int end = lastRow[k+1];
-            bool doBounds = rowDone[k] ? true : false;
+            bool doBounds = rowDone[k]!=0;
             for (int j=start;j<end;j++) {
               if (doBounds)
                 model.addRow(0,NULL,NULL,baseModel.rowLower(j),
@@ -180,7 +180,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
           for (int k=0;k<jColumn;k++) {
             int start = CoinMax(lastColumn[k],model.numberColumns());
             int end = lastColumn[k+1];
-            bool doBounds = columnDone[k] ? true : false;
+            bool doBounds = columnDone[k]!=0;
             for (int j=start;j<end;j++) {
               if (doBounds)
                 model.addColumn(0,NULL,NULL,baseModel.columnLower(j),
