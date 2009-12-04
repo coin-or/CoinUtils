@@ -2798,8 +2798,8 @@ int c_ekktria(EKKfactinfo *fact,
   int *stack	= fact->krpadr; /* normally hpivro */
   int *hpivco	= fact->kcpadr;
   const double drtpiv	= fact->drtpiv;
-  CoinZeroN(reinterpret_cast<int *>(rlink+1),nrow*(sizeof(EKKHlink)/sizeof(int)));
-  CoinZeroN(reinterpret_cast<int *>(clink+1),nrow*(sizeof(EKKHlink)/sizeof(int)));
+  CoinZeroN(reinterpret_cast<int *>(rlink+1),static_cast<int>(nrow*(sizeof(EKKHlink)/sizeof(int))));
+  CoinZeroN(reinterpret_cast<int *>(clink+1),static_cast<int>(nrow*(sizeof(EKKHlink)/sizeof(int))));
   
   fact->npivots	= 0;
   /*      Use NUSPIK to keep sum of deactivated row counts */

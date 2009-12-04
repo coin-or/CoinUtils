@@ -942,9 +942,9 @@ const CoinPresolveAction
 						  <<rup[ithis]
 						  <<CoinMessageEol;
 		break;
-	      } else if (allowIntersection) {
+	      } else if (allowIntersection/*||fabs(rup1-rlo2)<tolerance*/) {
 		/* overlapping - could merge */
-#ifdef CLP_INVESTIGATE2
+#ifdef CLP_INVESTIGATE7
 		printf("overlapping duplicate row %g %g, %g %g\n",
 		       rlo1,rup1,rlo2,rup2);
 #	      endif
@@ -976,8 +976,8 @@ const CoinPresolveAction
 						  <<rup[ithis]
 						  <<CoinMessageEol;
 		break;
-	      } else if (allowIntersection) {
-#ifdef CLP_INVESTIGATE2
+	      } else if (allowIntersection/*||fabs(rup2-rlo1)<tolerance*/) {
+#ifdef CLP_INVESTIGATE7
 		printf("overlapping duplicate row %g %g, %g %g\n",
 		       rlo1,rup1,rlo2,rup2);
 #	      endif

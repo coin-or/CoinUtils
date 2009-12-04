@@ -280,13 +280,13 @@ void
 CoinMessages::toCompact()
 {
   if (numberMessages_&&lengthMessages_<0) {
-    lengthMessages_=numberMessages_*sizeof(CoinOneMessage *);
+    lengthMessages_=numberMessages_*CoinSizeofAsInt(CoinOneMessage *);
     int i;
     for (i=0;i<numberMessages_;i++) {
       if (message_[i]) {
-	int length = strlen(message_[i]->message());
-	length = (message_[i]->message()+length+1)-
-	  reinterpret_cast<char *> (message_[i]);
+	int length = static_cast<int>(strlen(message_[i]->message()));
+	length = static_cast<int>((message_[i]->message()+length+1)-
+				      reinterpret_cast<char *> (message_[i]));
 	assert (length<COIN_MESSAGE_HANDLER_MAX_BUFFER_SIZE);
 	int leftOver = length %8;
 	if (leftOver)
@@ -297,16 +297,16 @@ CoinMessages::toCompact()
     // space
     char * temp = new char [lengthMessages_];
     CoinOneMessage ** newMessage = reinterpret_cast<CoinOneMessage **> (temp);
-    temp += numberMessages_*sizeof(CoinOneMessage *);
+    temp += numberMessages_*CoinSizeofAsInt(CoinOneMessage *);
     CoinOneMessage message;
     //printf("new address %x(%x) - length %d\n",newMessage,temp,lengthMessages_);
-    lengthMessages_=numberMessages_*sizeof(CoinOneMessage *);
+    lengthMessages_=numberMessages_*CoinSizeofAsInt(CoinOneMessage *);
     for (i=0;i<numberMessages_;i++) {
       if (message_[i]) {
 	message = *message_[i];
-	int length = strlen(message.message());
-	length = (message.message()+length+1)-
-	  reinterpret_cast<char *> (&message);
+	int length = static_cast<int>(strlen(message.message()));
+	length = static_cast<int>((message.message()+length+1)-
+				  reinterpret_cast<char *> (&message));
 	assert (length<COIN_MESSAGE_HANDLER_MAX_BUFFER_SIZE);
 	int leftOver = length %8;
 	memcpy(temp,&message,length);
@@ -637,7 +637,7 @@ CoinMessageHandler::nextPerCent(char * start , const bool initial)
       char * nextPerCent = strchr(start,'%');
       if (nextPerCent) {
 	if (initial&&!printStatus_) {
-	  int numberToCopy=nextPerCent-start;
+	  int numberToCopy=static_cast<int>(nextPerCent-start);
 	  strncpy(messageOut_,start,numberToCopy);
 	  messageOut_+=numberToCopy;
 	} 

@@ -137,7 +137,7 @@ CoinSort_2(Iter_S sfirst, Iter_S slast, Iter_T tfirst, const CoinCompare2& pc)
 {
   typedef typename std::iterator_traits<Iter_S>::value_type S;
   typedef typename std::iterator_traits<Iter_T>::value_type T;
-  const int len = coinDistance(sfirst, slast);
+  const size_t len = coinDistance(sfirst, slast);
   if (len <= 1)
     return;
 
@@ -179,7 +179,7 @@ CoinSort_2(Iter_S sfirst, Iter_S slast, Iter_T tfirst)
 template <class S, class T, class CoinCompare2> void
 CoinSort_2(S* sfirst, S* slast, T* tfirst, const CoinCompare2& pc)
 {
-  const int len = coinDistance(sfirst, slast);
+  const size_t len = coinDistance(sfirst, slast);
   if (len <= 1)
     return;
 
@@ -191,7 +191,7 @@ CoinSort_2(S* sfirst, S* slast, T* tfirst, const CoinCompare2& pc)
   memset(x,0,(len*sizeof(ST_pair))) ;
 # endif
 
-  int i = 0;
+  size_t i = 0;
   S* scurrent = sfirst;
   T* tcurrent = tfirst;
   while (scurrent != slast) {
@@ -231,7 +231,7 @@ extern int boundary_sort3;
 template <class S, class T> void
 CoinSort_2(S* key, S* lastKey, T* array2)
 {
-  const int number = coinDistance(key, lastKey);
+  const size_t number = coinDistance(key, lastKey);
   if (number <= 1) {
     return;
   } else if (number>10000) {
@@ -258,14 +258,14 @@ CoinSort_2(S* key, S* lastKey, T* array2)
   int j;
   /*check already sorted  */
   S last=key[0];
-  for (j=1;j<number;j++) {
+  for (j=1;j<n;j++) {
     if (key[j]>=last) {
       last=key[j];
     } else {
       break;
     } /* endif */
   } /* endfor */
-  if (j==number) {
+  if (j==n) {
     return;
   } /* endif */
   sp = 0 ; ls[sp] = v ; rs[sp] = v + (n-1) ;
@@ -484,7 +484,7 @@ CoinSort_3(Iter_S sfirst, Iter_S slast, Iter_T tfirst, Iter_U, ufirst,
   typedef typename std::iterator_traits<Iter_S>::value_type S;
   typedef typename std::iterator_traits<Iter_T>::value_type T;
   typedef typename std::iterator_traits<Iter_U>::value_type U;
-  const int len = coinDistance(sfirst, slast);
+  const size_t len = coinDistance(sfirst, slast);
   if (len <= 1)
     return;
 

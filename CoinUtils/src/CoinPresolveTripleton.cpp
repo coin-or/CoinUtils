@@ -58,7 +58,7 @@
  * In the row rep, irow will be eliminated entirely, but not here;
  * icoly is removed from the rows it occurs in.
  */
-static bool elim_tripleton(const char */*msg*/,
+static bool elim_tripleton(const char * /*msg*/,
 			   CoinBigIndex *mcstrt, 
 			   double *rlo, double * acts, double *rup,
 			   double *colels,
@@ -482,7 +482,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	  continue;
 	//if (nAdded<=1) 
 	//printf("%d elements added, hincol %d , dups %d\n",nAdded,hincol[icoly],nDuplicate);
-	if (nAdded>1)
+	if (nAdded>2)
 	  continue;
 
 	// it is possible that both x/z and y are singleton columns

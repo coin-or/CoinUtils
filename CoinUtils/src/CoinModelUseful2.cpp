@@ -697,14 +697,13 @@ yydestruct (yytype, yyvaluep)
 {
   /* Pacify ``unused variable'' warnings.  */
   (void) yyvaluep;
-  (void) yytype;
 
-  //switch (yytype)
-  //{
-  //
-  //  default:
-  //    break;
-  //}
+  switch (yytype)
+    {
+
+      default:
+        break;
+    }
 }
 
 
@@ -749,7 +748,7 @@ static     void
      
      /* Called by yyparse on error.  */
 static     void
-yyerror (char const * )
+yyerror (char const * /*s*/)
      {
        // Put back if needed
        //printf ("%s\n", s);
@@ -1356,13 +1355,13 @@ yyerrlab:
 /*---------------------------------------------------.
 | yyerrorlab -- error raised explicitly by YYERROR.  |
 `---------------------------------------------------*/
-//yyerrorlab:
+yyerrorlab:
 
 #ifdef __GNUC__
   /* Pacify GCC when the user code never invokes YYERROR and the label
      yyerrorlab therefore never appears in user code.  */
-  //if (0)
-  // goto yyerrorlab;
+  if (0)
+     goto yyerrorlab;
 #endif
 
   yyvsp -= yylen;
