@@ -700,7 +700,8 @@ yydestruct (yytype, yyvaluep)
 
   switch (yytype)
     {
-
+	
+      case 0:  /* Bjarni: Added case 0: to take out MSVC warning of no case */
       default:
         break;
     }
@@ -1357,7 +1358,7 @@ yyerrlab:
 `---------------------------------------------------*/
 yyerrorlab:
 
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(_MSC_VER)  /* Bjarni: Added _MSC_VER to pacify MSVC also */
   /* Pacify GCC when the user code never invokes YYERROR and the label
      yyerrorlab therefore never appears in user code.  */
   if (0)
