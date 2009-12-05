@@ -1208,8 +1208,9 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
   nU_SZ += numberU_;
 #endif
 
-  for (int i=0;i<numberNonZero;i++) {
-    int iPivot=indexIn[i];
+  // Bjarni: renamed i to ii to avoid in MSVC compiler potential conflicts warnings with i defined in line 1230
+  for (int ii = 0; ii < numberNonZero; ii++) { 
+    int iPivot=indexIn[ii];
     int iWord = iPivot>>CHECK_SHIFT;
     int iBit = iPivot-(iWord<<CHECK_SHIFT);
     if (mark[iWord]) {
