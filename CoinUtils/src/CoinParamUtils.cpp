@@ -1,4 +1,3 @@
-/* $Id: CoinParamUtils.cpp 1191 2009-07-25 08:38:12Z forrest $ */
 
 #include <cassert>
 #include <cerrno>
@@ -67,7 +66,7 @@ std::string nextField (const char *prompt)
     { where = fgets(line,1000,readSrc) ; }
 #else
     if (readSrc == stdin)
-      { fprintf(stdout,"%s",prompt) ;
+    { fprintf(stdout,prompt) ;
       fflush(stdout) ; }
     where = fgets(line,1000,readSrc) ;
 #endif

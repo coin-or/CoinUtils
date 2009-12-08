@@ -1,4 +1,3 @@
-/* $Id: CoinSimpFactorization.cpp 1191 2009-07-25 08:38:12Z forrest $ */
 // Copyright (C) 2008, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #if defined(_MSC_VER)
@@ -73,20 +72,18 @@ FactorPointers::~ FactorPointers(){
 //:class CoinSimpFactorization.  Deals with Factorization and Updates
 //  CoinSimpFactorization.  Constructor
 CoinSimpFactorization::CoinSimpFactorization (  )
-  : CoinOtherFactorization()
 {
   gutsOfInitialize();
 }
 
 /// Copy constructor 
 CoinSimpFactorization::CoinSimpFactorization ( const CoinSimpFactorization &other)
-  : CoinOtherFactorization(other)
 {
   gutsOfInitialize();
   gutsOfCopy(other);
 }
 // Clone
-CoinOtherFactorization * 
+CoinSmallFactorization * 
 CoinSimpFactorization::clone() const 
 {
   return new CoinSimpFactorization(*this);
@@ -667,8 +664,8 @@ void CoinSimpFactorization::gutsOfCopy(const CoinSimpFactorization &other)
 void
 CoinSimpFactorization::getAreas ( int numberOfRows,
 			 int numberOfColumns,
-			 CoinBigIndex ,
-			 CoinBigIndex  )
+			 CoinBigIndex maximumL,
+			 CoinBigIndex maximumU )
 {
 
   numberRows_ = numberOfRows;
@@ -907,15 +904,15 @@ CoinSimpFactorization::postProcess(const int * sequence, int * pivotVariable)
    after factorization and thereafter re-factorize
    partial update already in U */
 int 
-CoinSimpFactorization::replaceColumn ( CoinIndexedVector * ,
+CoinSimpFactorization::replaceColumn ( CoinIndexedVector * regionSparse,
 				      int pivotRow,
 				      double pivotCheck ,
-				       bool ,
-				       double )
+				      bool checkBeforeModifying)
 {
     if (numberPivots_==maximumPivots_) 
 	return 3; 
 
+    assert (regionSparse->packedMode());
     double pivotValue = pivotCheck;
     if (fabs(pivotValue)<zeroTolerance_)
 	return 2;
@@ -949,7 +946,7 @@ CoinSimpFactorization::updateColumnFT( CoinIndexedVector * regionSparse,
 int 
 CoinSimpFactorization::upColumn( CoinIndexedVector * regionSparse,
 				  CoinIndexedVector * regionSparse2,
-				  bool , bool save) const
+				  bool noPermute, bool save) const
 {
     assert (numberRows_==numberColumns_);
     double *region2 = regionSparse2->denseVector (  );
@@ -1001,7 +998,7 @@ int
 CoinSimpFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
 					  CoinIndexedVector * regionSparse2,
 					  CoinIndexedVector * regionSparse3,
-					  bool )
+					  bool noPermute)
 {
     assert (numberRows_==numberColumns_);
 
@@ -1314,7 +1311,7 @@ int CoinSimpFactorization::findPivotShCol(FactorPointers &pointers, int &r, int 
     return 0;
 }
 
-int CoinSimpFactorization::findPivotSimp(FactorPointers &, int &r, int &s){
+int CoinSimpFactorization::findPivotSimp(FactorPointers &pointers, int &r, int &s){
     r=-1;
     int column=s;    
     const int colBeg=UcolStarts_[column];

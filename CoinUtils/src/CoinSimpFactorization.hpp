@@ -1,4 +1,3 @@
-/* $Id: CoinSimpFactorization.hpp 1191 2009-07-25 08:38:12Z forrest $ */
 // Copyright (C) 2008, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -36,7 +35,7 @@ public:
     ~ FactorPointers();
 };
 
-class CoinSimpFactorization : public CoinOtherFactorization {
+class CoinSimpFactorization : public CoinSmallFactorization {
    friend void CoinSimpFactorizationUnitTest( const std::string & mpsDir );
 
 public:
@@ -53,7 +52,7 @@ public:
   /// = copy
   CoinSimpFactorization & operator = ( const CoinSimpFactorization & other );
   /// Clone
-  virtual CoinOtherFactorization * clone() const ;
+  virtual CoinSmallFactorization * clone() const ;
   //@}
 
   /**@name Do factorization - public */
@@ -101,8 +100,7 @@ public:
   virtual int replaceColumn ( CoinIndexedVector * regionSparse,
 		      int pivotRow,
 		      double pivotCheck ,
-			      bool checkBeforeModifying=false,
-			      double acceptablePivot=1.0e-8);
+		      bool checkBeforeModifying=false);
   //@}
 
   /**@name various uses of factorization (return code number elements) 

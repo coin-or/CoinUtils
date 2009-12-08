@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Common Public License.
 //
-// $Id: CoinSmartPtr.hpp 1191 2009-07-25 08:38:12Z forrest $
+// $Id: IpReferenced.hpp 735 2006-06-04 06:10:05Z andreasw $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 // Removed lots of debugging stuff and reformatted: Laszlo Ladanyi, IBM

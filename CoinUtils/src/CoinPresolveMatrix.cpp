@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -253,8 +252,8 @@ void CoinPresolveMatrix::setMatrix (const CoinPackedMatrix *mtx)
 */
   if (clink_ == 0) clink_ = new presolvehlink [ncols0_+1] ;
   if (rlink_ == 0) rlink_ = new presolvehlink [nrows0_+1] ;
-  presolve_make_memlists(/*mcstrt_,*/hincol_,clink_,ncols_) ;
-  presolve_make_memlists(/*mrstrt_,*/hinrow_,rlink_,nrows_) ;
+  presolve_make_memlists(mcstrt_,hincol_,clink_,ncols_) ;
+  presolve_make_memlists(mrstrt_,hinrow_,rlink_,nrows_) ;
   mcstrt_[ncols_] = bulk0_ ;
   mrstrt_[nrows_] = bulk0_ ;
 /*

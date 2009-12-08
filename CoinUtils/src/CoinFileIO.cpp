@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2005, COIN-OR.  All Rights Reserved.
 #if defined(_MSC_VER)
 // Turn off compiler warning about long names

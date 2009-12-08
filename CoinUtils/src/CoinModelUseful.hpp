@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2005, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #ifndef CoinModelUseful_H
@@ -103,24 +102,13 @@ private:
 /// for linked lists
 // for specifying triple
 typedef struct {
-  // top bit is nonzero if string
-  // rest is row
-  unsigned int row;
+  unsigned int string:1; // nonzero if string
+  unsigned int row:31;
   //CoinModelRowIndex row;
   int column;
   double value; // If string then index into strings
 } CoinModelTriple;
-inline int rowInTriple(const CoinModelTriple & triple)
-{ return triple.row&0x7fffffff;}
-inline void setRowInTriple(CoinModelTriple & triple,int iRow)
-{ triple.row = iRow|(triple.row&0x80000000);}
-inline bool stringInTriple(const CoinModelTriple & triple)
-{ return (triple.row&0x80000000)!=0;}
-inline void setStringInTriple(CoinModelTriple & triple,bool string)
-{ triple.row = (string ? 0x80000000 : 0)|(triple.row&0x7fffffff);}
-inline void setRowAndStringInTriple(CoinModelTriple & triple,
-				    int iRow,bool string)
-{ triple.row = (string ? 0x80000000 : 0)|iRow;}
+
 /// for names and hashing
 // for hashing
 typedef struct {

@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -369,8 +368,7 @@ public:
   int replaceColumn ( CoinIndexedVector * regionSparse,
 		      int pivotRow,
 		      double pivotCheck ,
-		      bool checkBeforeModifying=false,
-		      double acceptablePivot=1.0e-8);
+		      bool checkBeforeModifying=false);
   /** Combines BtranU and delete elements
       If deleted is NULL then delete elements
       otherwise store where elements are
@@ -703,6 +701,7 @@ protected:
 	  CoinBigIndex pivotColumnPosition,
 	  CoinFactorizationDouble work[],
 	  unsigned int workArea2[],
+	  int increment,
 	  int increment2,
 	  T markRow[] ,
 	  int largeInteger)

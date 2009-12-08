@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -357,7 +356,7 @@ CoinFactorization::factorSparseSmall (  )
 	    //branch out to best pivot routine 
 	    goodPivot = pivot ( iPivotRow, iPivotColumn,
 				pivotRowPosition, pivotColumnPosition,
-				workArea, workArea2, 
+				workArea, workArea2, increment,
 				increment2,  markRow ,
 				SMALL_SET);
 #else
@@ -1295,7 +1294,7 @@ CoinFactorization::factorSparseLarge (  )
 	      //branch out to best pivot routine 
 	      goodPivot = pivot ( iPivotRow, iPivotColumn,
 				  pivotRowPosition, pivotColumnPosition,
-				  workArea, workArea2, 
+				  workArea, workArea2, increment,
 				  increment2, markRow ,
 				  LARGE_SET);
 #else

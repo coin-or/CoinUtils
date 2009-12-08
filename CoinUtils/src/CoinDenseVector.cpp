@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2003, International Business Machines
 // Corporation and others.  All Rights Resized.
 #if defined(_MSC_VER)

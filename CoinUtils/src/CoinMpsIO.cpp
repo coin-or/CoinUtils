@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2000, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #if defined(_MSC_VER)
@@ -2914,8 +2913,7 @@ CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
 					    <<CoinMessageEol;
   return 0;
 #else
-  printf("GMPL not being used %s %s %s\n",
-	 modelName, dataName,keepNames ? "yes" : "no");
+  printf("GMPL not being used\n");
   abort();
   return 1;
 #endif
@@ -2957,7 +2955,7 @@ int CoinMpsIO::readGms(const char * filename,  const char * extension,
   }
   return readGms(numberSets,sets);
 }
-int CoinMpsIO::readGms(int & /*numberSets*/,CoinSet ** &/*sets*/)
+int CoinMpsIO::readGms(int & numberSets,CoinSet ** &sets)
 {
   // First version expects comments giving size
   numberRows_ = 0;

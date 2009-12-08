@@ -1,4 +1,3 @@
-/* $Id$ */
 // Last edit: 11/5/08
 //
 // Name:     CoinLpIO.cpp; Support for Lp files
@@ -1085,9 +1084,7 @@ CoinLpIO::skip_comment(char *buff, FILE *fp) const {
       sprintf(str,"### ERROR: error while skipping comment\n");
       throw CoinError(str, "skip_comment", "CoinLpIO", __FILE__, __LINE__);
     }
-    char * x=fgets(buff, sizeof(buff), fp);    
-    if (!x)
-      throw("bad fgets");
+    fgets(buff, sizeof(buff), fp);    
   } 
 } /* skip_comment */
 
@@ -1095,14 +1092,10 @@ CoinLpIO::skip_comment(char *buff, FILE *fp) const {
 void
 CoinLpIO::scan_next(char *buff, FILE *fp) const {
 
-  int x=fscanf(fp, "%s", buff);
-  if (x<=0)
-    throw("bad fscanf");
+  fscanf(fp, "%s", buff);
   while(is_comment(buff)) {
     skip_comment(buff, fp);
-    x=fscanf(fp, "%s", buff);
-    if (x<=0)
-      throw("bad fscanf");
+    fscanf(fp, "%s", buff);
   }
 
 #ifdef LPIO_DEBUG
@@ -1301,7 +1294,7 @@ CoinLpIO::read_monom_row(FILE *fp, char *start_str,
   char buff[1024], loc_name[1024], *start;
   int read_sense = -1;
 
-  sprintf(buff, "%s", start_str);
+  sprintf(buff, start_str);
   read_sense = is_sense(buff);
   if(read_sense > -1) {
     return(read_sense);
@@ -1400,7 +1393,7 @@ CoinLpIO::read_row(FILE *fp, char *buff,
   int read_sense = -1;
   char start_str[1024];
   
-  sprintf(start_str, "%s", buff);
+  sprintf(start_str, buff);
 
   while(read_sense < 0) {
 
@@ -1542,9 +1535,7 @@ CoinLpIO::readLp(FILE* fp)
   cnt_coeff = cnt_obj;
 
   if(read_st == 2) {
-    int x=fscanf(fp, "%s", buff);
-    if (x<=0)
-      throw("bad fscanf");
+    fscanf(fp, "%s", buff);
     unsigned lbuff = strlen(buff);
 
     if((lbuff != 2) || (CoinStrNCaseCmp(buff, "to", 2) != 0)) {

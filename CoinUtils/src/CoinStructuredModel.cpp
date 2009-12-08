@@ -1,4 +1,3 @@
-/* $Id: CoinStructuredModel.cpp 1191 2009-07-25 08:38:12Z forrest $ */
 // Copyright (C) 2008, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -547,12 +546,12 @@ CoinStructuredModel::fillInfo(CoinModelBlockInfo & info,
 			      const CoinModel * block) 
 {
   int whatsSet = block->whatIsSet();
-  info.matrix = static_cast<char>(((whatsSet&1)!=0) ? 1 : 0);
-  info.rhs = static_cast<char>(((whatsSet&2)!=0) ? 1 : 0);
-  info.rowName = static_cast<char>(((whatsSet&4)!=0) ? 1 : 0);
-  info.integer = static_cast<char>(((whatsSet&32)!=0) ? 1 : 0);
-  info.bounds = static_cast<char>(((whatsSet&8)!=0) ? 1 : 0);
-  info.columnName = static_cast<char>(((whatsSet&16)!=0) ? 1 : 0);
+  info.matrix = ((whatsSet&1)!=0) ? 1 : 0;
+  info.rhs = ((whatsSet&2)!=0) ? 1 : 0;
+  info.rowName = ((whatsSet&4)!=0) ? 1 : 0;
+  info.integer = ((whatsSet&32)!=0) ? 1 : 0;
+  info.bounds = ((whatsSet&8)!=0) ? 1 : 0;
+  info.columnName = ((whatsSet&16)!=0) ? 1 : 0;
   int numberRows = block->numberRows();
   int numberColumns = block->numberColumns();
   // Which block
@@ -679,7 +678,7 @@ CoinStructuredModel::addBlock(const std::string & rowBlock,
 {
   CoinModel * block = new CoinModel();
   block->loadBlock(matrix,columnLower,columnUpper,objective,
-		   rowLower,rowUpper);
+		   rowLower,columnLower);
   return addBlock(rowBlock,columnBlock,block);
 }
 /* add a block from a CoinModel without names*/

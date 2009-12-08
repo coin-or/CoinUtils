@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 
@@ -186,9 +185,9 @@ void matrix_consistent (const CoinBigIndex *mrstrt, const int *hinrow,
   See further comments with matrix_consistent.
 */
 
-# if PRESOLVE_CONSISTENCY
 void presolve_consistent(const CoinPresolveMatrix *preObj, bool testvals)
 {
+# if PRESOLVE_CONSISTENCY
   matrix_consistent(preObj->mrstrt_,preObj->hinrow_,preObj->hcol_,
 		    preObj->rowels_,
 		    preObj->mcstrt_,preObj->hincol_,preObj->hrow_,
@@ -199,6 +198,7 @@ void presolve_consistent(const CoinPresolveMatrix *preObj, bool testvals)
 		    preObj->mrstrt_,preObj->hinrow_,preObj->hcol_,
 		    preObj->rowels_, 
 		    preObj->ncols_,testvals,"col","row") ;
+# endif
 }
 
 /*
@@ -210,12 +210,14 @@ void presolve_no_dups (const CoinPresolveMatrix *preObj,
 		       bool doCol, bool doRow)
 
 {
+# if PRESOLVE_CONSISTENCY
   if (doCol)
   { no_majvec_dups(0,preObj->mcstrt_,preObj->hrow_,
 		   preObj->hincol_,preObj->ncols_) ; }
   if (doRow)
   { no_majvec_dups(0,preObj->mrstrt_,preObj->hcol_,
 		   preObj->hinrow_,preObj->nrows_) ; }
+# endif
 
   return ; }
 
@@ -227,12 +229,14 @@ void presolve_no_dups (const CoinPresolveMatrix *preObj,
 void presolve_no_zeros (const CoinPresolveMatrix *preObj,
 			bool doCol, bool doRow)
 {
+# if PRESOLVE_CONSISTENCY
   if (doCol)
   { check_majvec_nozeros(preObj->mcstrt_,preObj->colels_,preObj->hincol_,
 			 preObj->ncols_) ; }
   if (doRow)
   { check_majvec_nozeros(preObj->mrstrt_,preObj->rowels_,preObj->hinrow_,
 			 preObj->nrows_) ; }
+# endif
 
   return ; }
 
@@ -246,6 +250,7 @@ void presolve_hincol_ok(const int *mcstrt, const int *hincol,
 	       const int *hinrow,
 	       const int *hrow, int ncols)
 {
+# if PRESOLVE_CONSISTENCY
   int jcol;
 
   for (jcol=0; jcol<ncols; jcol++) 
@@ -263,6 +268,7 @@ void presolve_hincol_ok(const int *mcstrt, const int *hincol,
       if (n != hincol[jcol])
 	abort();
     }
+# endif
 }
 
 /*
@@ -272,12 +278,14 @@ void presolve_hincol_ok(const int *mcstrt, const int *hincol,
 void presolve_links_ok (const CoinPresolveMatrix *preObj,
 			bool doCol, bool doRow)
 {
+# if PRESOLVE_CONSISTENCY
   if (doCol)
   { links_ok(preObj->clink_,preObj->mcstrt_,
 	     preObj->hincol_,preObj->ncols_) ; }
   if (doRow)
   { links_ok(preObj->rlink_,preObj->mrstrt_,
 	     preObj->hinrow_,preObj->nrows_) ; }
+# endif
 
   return ; }
 
@@ -296,6 +304,7 @@ void presolve_check_threads (const CoinPostsolveMatrix *obj)
 
 { 
 
+# if PRESOLVE_CONSISTENCY
   CoinBigIndex *mcstrt = obj->mcstrt_ ;
   int *hincol = obj->hincol_ ;
   CoinBigIndex *link = obj->link_ ;
@@ -317,6 +326,7 @@ void presolve_check_threads (const CoinPostsolveMatrix *obj)
       lenj-- ; }
 
     assert(k == NO_LINK && lenj == 0) ; }
+# endif
 
   return ; }
 
@@ -330,6 +340,7 @@ void presolve_check_free_list (const CoinPostsolveMatrix *obj, bool chkElemCnt)
 
 { 
 
+# if PRESOLVE_CONSISTENCY
   CoinBigIndex k = obj->free_list_ ;
   CoinBigIndex freeCnt = 0 ;
   CoinBigIndex maxlink = obj->maxlink_ ;
@@ -363,9 +374,10 @@ void presolve_check_free_list (const CoinPostsolveMatrix *obj, bool chkElemCnt)
   if (chkElemCnt)
   { assert(obj->nelems_+freeCnt == maxlink) ; }
 
+# endif
 
   return ; }
-#endif
+
 
 
 /*
@@ -397,10 +409,10 @@ void presolve_check_free_list (const CoinPostsolveMatrix *obj, bool chkElemCnt)
 	use the call presolve_check_reduced_costs(0), which will reinitialise
 	and return.
 */
-# if PRESOLVE_DEBUG
 
 void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 {
+# if PRESOLVE_DEBUG
 
   static bool warned = false ;
   static double *warned_rcosts = 0 ;
@@ -546,6 +558,7 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 
     warned_rcosts[j] = rcosts[j] ; }
 
+# endif
 }
 
 /*
@@ -564,6 +577,7 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 
 void presolve_check_duals (const CoinPostsolveMatrix *postObj)
 {
+# if PRESOLVE_DEBUG
 
 
   int nrows0 = postObj->nrows0_ ;
@@ -622,6 +636,7 @@ void presolve_check_duals (const CoinPostsolveMatrix *postObj)
       { std::cout
 	  << "Bad dual: " << i << " " << maxmin*yi
 	  << " " << statistr << " " << strMaxmin << std::endl ; } } }
+# endif
   return ; }
 
 
@@ -660,6 +675,7 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
 			 int chkColSol, int chkRowAct, int chkStatus)
 
 {
+# if PRESOLVE_DEBUG
   double *colels = preObj->colels_ ;
   int *hrow = preObj->hrow_ ;
   int *mcstrt = preObj->mcstrt_ ;
@@ -789,6 +805,7 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
 	  { printf("high RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
 		   i,li,evali,lhsi,ui) ; } } } }
     delete [] rsol ; }
+# endif
   return ; }
 
 /*
@@ -802,6 +819,7 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
 			 int chkColSol, int chkRowAct, int chkStatus)
 
 {
+# if PRESOLVE_DEBUG
   double *colels = postObj->colels_ ;
   int *hrow = postObj->hrow_ ;
   int *mcstrt = postObj->mcstrt_ ;
@@ -922,6 +940,7 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
 	{ printf("high RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
 		 i,li,evali,lhsi,ui) ; } } }
   delete [] rsol ; }
+# endif
   return ; }
 
 /*
@@ -932,6 +951,7 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
 void presolve_check_nbasic (const CoinPostsolveMatrix *postObj)
 
 {
+# if PRESOLVE_DEBUG
 
   int ncols0 = postObj->ncols0_ ;
   int nrows0 = postObj->nrows0_ ;
@@ -969,6 +989,7 @@ void presolve_check_nbasic (const CoinPostsolveMatrix *postObj)
     printf("cdone %d, col basic %d, rdone %d, row basic %d.\n",
 	   ncdone,ncb,nrdone,nrb) ;
     fflush(stdout) ; }
+# endif
   return ; }
 
 
@@ -981,6 +1002,7 @@ void presolve_check_nbasic (const CoinPostsolveMatrix *postObj)
 void presolve_check_nbasic (const CoinPresolveMatrix *preObj)
 
 {
+# if PRESOLVE_DEBUG
 
   if (preObj->sol_ == 0) return ;
 
@@ -1010,9 +1032,10 @@ void presolve_check_nbasic (const CoinPresolveMatrix *preObj)
 	   nbasic,nrows) ;
     printf(" cb %d, rb %d.\n",ncb,nrb);
     fflush(stdout) ; }
+# endif
   return ; }
 
-#endif
+
 /*
   Original comment: I've forgotton what this is all about
 

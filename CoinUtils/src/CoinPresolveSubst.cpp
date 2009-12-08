@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2002, International Business Machines
 // Corporation and others.  All Rights Reserved.
 #include <stdio.h>
@@ -320,12 +319,12 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
   // sort the row rep by reconstructing from col rep
   copyrep(mcstrt, hrow, colels, hincol, ncols,
 	  mrstrt, hcol, rowels, hinrow, nrows);
-  presolve_make_memlists(/*mrstrt,*/ hinrow, rlink, nrows);
+  presolve_make_memlists(mrstrt, hinrow, rlink, nrows);
   // NEED SOME ASSERTION ABOUT NELEMS
 
   copyrep(mrstrt, hcol, rowels, hinrow, nrows,
 	  mcstrt, hrow, colels, hincol, ncols);
-  presolve_make_memlists(/*mcstrt,*/ hincol, clink, ncols);
+  presolve_make_memlists(mcstrt, hincol, clink, ncols);
 #endif
 
   // in the original presolve, I don't think the two representations were
@@ -1027,7 +1026,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	if (col != icol)
 	  for (int i = 0; i<nincoly; ++i) {
 	    if (rows[i] != jrowy)
-	      presolve_delete_from_col2(rows[i],col,mcstrt,hincol,hrow,/*colels,*/
+	      presolve_delete_from_col2(rows[i],col,mcstrt,hincol,hrow,colels,
 					link,&free_list) ;
 	  }
       }
