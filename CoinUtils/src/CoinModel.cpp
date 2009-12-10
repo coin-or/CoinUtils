@@ -246,7 +246,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	assert (strlen(m.columnName(iColumn))<100);
 	char temp[100];
 	strcpy(temp,m.columnName(iColumn));
-	int n=strlen(temp);
+	int n=CoinStrlenAsInt(temp);
 	bool changed=false;
 	for (int i=0;i<n;i++) {
 	  if (temp[i]=='-') {
@@ -340,7 +340,8 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 	    if (value&&objRow<0) {
 	      sprintf(temp,"%g",value);
 	      ifFirst=false;
-	      put = strlen(temp);
+              /* static cast is safe, temp is at most 20000 chars */
+	      put = CoinStrlenAsInt(temp);
 	    }
 	    for (CoinBigIndex j = start[iColumn];j<start[iColumn+1];j++) {
 	      int jColumn = column[j];
@@ -366,7 +367,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
 		  else
 		    sprintf(temp+put,"+%g*%s",value,name);
 		}
-		put += strlen(temp+put);
+		put += CoinStrlenAsInt(temp+put);
 		assert (put<20000);
 		ifFirst=false;
 	      }
@@ -3437,7 +3438,8 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
 	if (linearRow[i]) {
 	  sprintf(temp,"%g",linearRow[i]);
 	  first=false;
-	  put = strlen(temp);
+          /* temp is at most 10000 long, so static_cast is safe */
+	  put = static_cast<int>(strlen(temp));
 	}
 	for (int j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
 	  int jColumn = column[j];
@@ -3446,7 +3448,7 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
 	    sprintf(temp2,"%g*c%7.7d",value,jColumn);
 	  else
 	    sprintf(temp2,"+%g*c%7.7d",value,jColumn);
-	  int nextPut = put + strlen(temp2);
+	  int nextPut = put + static_cast<int>(strlen(temp2));
 	  assert (nextPut<10000);
 	  strcpy(temp+put,temp2);
 	  put = nextPut;
@@ -3484,7 +3486,8 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
 	if (linearRow[i]) {
 	  sprintf(temp,"%g",linearRow[i]);
 	  first=false;
-	  put = strlen(temp);
+          /* temp is at most 10000 long, so static_cast is safe */
+	  put = static_cast<int>(strlen(temp));
 	}
 	for (int j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
 	  int jColumn = column[j];
@@ -3493,7 +3496,7 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
 	    sprintf(temp2,"%g*c%7.7d",value,jColumn);
 	  else
 	    sprintf(temp2,"+%g*c%7.7d",value,jColumn);
-	  int nextPut = put + strlen(temp2);
+	  int nextPut = put + static_cast<int>(strlen(temp2));
 	  assert (nextPut<10000);
 	  strcpy(temp+put,temp2);
 	  put = nextPut;

@@ -832,6 +832,8 @@ template <class T> inline void CoinSwap (T &x, T &y)
     Returns 0 if OK, 1 if bad write.
 */
 
+/* FIXME64 */
+
 template <class T> inline int
 CoinToFile( const T* array, int size, FILE * fp)
 {
@@ -859,6 +861,8 @@ CoinToFile( const T* array, int size, FILE * fp)
     But if NULL and size does not match and newSize 0 then leaves as NULL and 0
     Returns 0 if OK, 1 if bad read, 2 if size did not match.
 */
+
+/* FIXME64 */
 
 template <class T> inline int
 CoinFromFile( T* &array, int size, FILE * fp,int & newSize)

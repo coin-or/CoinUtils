@@ -957,7 +957,7 @@ CoinLpIO::find_obj(FILE *fp) const {
   char buff[1024];
 
   sprintf(buff, "aa");
-  unsigned lbuff = strlen(buff);
+  size_t lbuff = strlen(buff);
 
   while(((lbuff != 8) || (CoinStrNCaseCmp(buff, "minimize", 8) != 0)) &&
 	((lbuff != 3) || (CoinStrNCaseCmp(buff, "min", 3) != 0)) &&
@@ -985,7 +985,7 @@ CoinLpIO::find_obj(FILE *fp) const {
 int
 CoinLpIO::is_subject_to(const char *buff) const {
 
-  unsigned lbuff = strlen(buff);
+  size_t lbuff = strlen(buff);
 
   if(((lbuff == 4) && (CoinStrNCaseCmp(buff, "s.t.", 4) == 0)) ||
      ((lbuff == 3) && (CoinStrNCaseCmp(buff, "st.", 3) == 0)) ||
@@ -1002,11 +1002,11 @@ CoinLpIO::is_subject_to(const char *buff) const {
 int 
 CoinLpIO::first_is_number(const char *buff) const {
 
-  int pos;
+  size_t pos;
   char str_num[] = "1234567890";
 
   pos = strcspn (buff, str_num);
-  if(pos == 0) {
+  if (pos == 0) {
     return(1);
   }
   return(0);
@@ -1016,7 +1016,7 @@ CoinLpIO::first_is_number(const char *buff) const {
 int 
 CoinLpIO::is_sense(const char *buff) const {
 
-  int pos;
+  size_t pos;
   char str_sense[] = "<>=";
 
   pos = strcspn(buff, str_sense);
@@ -1040,7 +1040,7 @@ CoinLpIO::is_sense(const char *buff) const {
 int 
 CoinLpIO::is_free(const char *buff) const {
 
-  unsigned lbuff = strlen(buff);
+  size_t lbuff = strlen(buff);
 
   if((lbuff == 4) && (CoinStrNCaseCmp(buff, "free", 4) == 0)) {
     return(1);
@@ -1052,7 +1052,7 @@ CoinLpIO::is_free(const char *buff) const {
 int 
 CoinLpIO::is_inf(const char *buff) const {
 
-  unsigned lbuff = strlen(buff);
+  size_t lbuff = strlen(buff);
 
   if((lbuff == 3) && (CoinStrNCaseCmp(buff, "inf", 3) == 0)) {
     return(1);
@@ -1116,7 +1116,7 @@ int
 CoinLpIO::is_invalid_name(const char *name, 
 			  const bool ranged) const {
 
-  unsigned pos, lname, valid_lname = 100;
+  size_t pos, lname, valid_lname = 100;
   char str_valid[] = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\"!#$%&(),.;?@_'`{}~";
 
   if(ranged) {
@@ -1441,7 +1441,7 @@ CoinLpIO::read_row(FILE *fp, char *buff,
 int 
 CoinLpIO::is_keyword(const char *buff) const {
 
-  unsigned lbuff = strlen(buff);
+  size_t lbuff = strlen(buff);
 
   if(((lbuff == 5) && (CoinStrNCaseCmp(buff, "bound", 5) == 0)) ||
      ((lbuff == 6) && (CoinStrNCaseCmp(buff, "bounds", 6) == 0))) {
@@ -1545,7 +1545,7 @@ CoinLpIO::readLp(FILE* fp)
     int x=fscanf(fp, "%s", buff);
     if (x<=0)
       throw("bad fscanf");
-    unsigned lbuff = strlen(buff);
+    size_t lbuff = strlen(buff);
 
     if((lbuff != 2) || (CoinStrNCaseCmp(buff, "to", 2) != 0)) {
       char str[8192];
@@ -2061,7 +2061,7 @@ CoinLpIO::startHash(char const * const * const names,
   
   for (i=0; i<number; i++) {
     const char *thisName = names[i];
-    int length = strlen(thisName);
+    int length = CoinStrlenAsInt(thisName);
     
     ipos = hash(thisName, maxhash, length);
     if (hashThis[ipos].index == -1) {
@@ -2082,7 +2082,7 @@ CoinLpIO::startHash(char const * const * const names,
   iput = -1;
   for (i=0; i<number; i++) {
     const char *thisName = names[i];
-    int length = strlen(thisName);
+    int length = CoinStrlenAsInt(thisName);
     
     ipos = hash(thisName, maxhash, length);
     
@@ -2197,7 +2197,7 @@ CoinLpIO::findHash(const char *name, int section) const
   if (!maxhash)
     return -1;
 
-  int length = strlen (name);
+  int length = CoinStrlenAsInt(name);
 
   ipos = hash (name, maxhash, length);
   while (1) {
@@ -2239,7 +2239,7 @@ CoinLpIO::insertHash(const char *thisName, int section)
   char **hashNames = names_[section];
 
   int iput = -1;
-  int length = strlen (thisName);
+  int length = CoinStrlenAsInt(thisName);
 
   int ipos = hash (thisName, maxhash, length);
 
