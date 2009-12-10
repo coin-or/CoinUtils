@@ -570,7 +570,7 @@ protected:
   //@{
   /// values in message
   std::vector<double> doubleValue_;
-  std::vector<long> longValue_;
+  std::vector<int> longValue_;
   std::vector<char> charValue_;
   std::vector<std::string> stringValue_;
   /// Log level

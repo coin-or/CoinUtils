@@ -118,7 +118,7 @@ static int c_ekkshfpo_scan2zero(COIN_REGISTER const EKKfactinfo * COIN_RESTRICT2
       worko+=2;
     }
   }
-  return (mptrX-mptr);
+  return static_cast<int>(mptrX-mptr);
 }
 /*
  * c_ekkshfpi_list executes the following loop:
@@ -319,7 +319,7 @@ static int c_ekkscmv(COIN_REGISTER const EKKfactinfo * COIN_RESTRICT2 fact,int n
     irow+=2;
   }
   
-  return (mptr-mptrsave);
+  return static_cast<int>(mptr-mptrsave);
 } /* c_ekkscmv */
 double c_ekkputl(const EKKfactinfo * COIN_RESTRICT2 fact,
 	     const int *COIN_RESTRICT mpt2,
@@ -387,7 +387,7 @@ int c_ekkputl2( const EKKfactinfo * COIN_RESTRICT2 fact,
       }
     }
   }
-  int nincol=hrowiR-mptrX;
+  int nincol=static_cast<int>(hrowiR-mptrX);
 #endif
   double del3 = *del3p;
   /* dwork1 is r', the new R transform
@@ -3348,7 +3348,7 @@ static int c_ekkftjup(COIN_REGISTER3 const EKKfactinfo * COIN_RESTRICT2 fact,
     } while (ipiv!=0);
     
   }
-  return (mptX-mpt);
+  return static_cast<int>(mptX-mpt);
 }
 /* this assumes it is ok to reference back[loop_limit] */
 /* another 3 seconds from a ~570 second run can be trimmed
@@ -3617,7 +3617,7 @@ static int c_ekkftjup_pack(COIN_REGISTER3 const EKKfactinfo * COIN_RESTRICT2 fac
     ipiv = next_ipiv;
   }
   
-  return (mptX-mptY);
+  return static_cast<int>(mptX-mptY);
 }
 static int c_ekkftju_sparse_a(COIN_REGISTER2 const EKKfactinfo * COIN_RESTRICT2 fact,
 			    int * COIN_RESTRICT mpt,

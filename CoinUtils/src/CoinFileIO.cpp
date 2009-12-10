@@ -65,7 +65,7 @@ public:
 
   virtual int read (void *buffer, int size)
   {
-    return fread (buffer, 1, size, f_);
+    return static_cast<int>(fread (buffer, 1, size, f_));
   }
 
   virtual char *gets (char *buffer, int size)
@@ -110,7 +110,7 @@ public:
     // First consume data from buffer if available.
     if (dataStart_ < dataEnd_)
       {
-	int amount = dataEnd_ - dataStart_;
+	int amount = static_cast<int>(dataEnd_ - dataStart_);
 	if (amount > size)
 	  amount = size;
 
@@ -148,7 +148,7 @@ public:
 	if (dataStart_ == dataEnd_)
 	  {
 	    dataStart_ = dataEnd_ = &dataBuffer_[0];
-	    int count = readRaw (dataStart_, dataBuffer_.size ());
+	    int count = readRaw (dataStart_, static_cast<int>(dataBuffer_.size ()));
 
 	    // at EOF?
 	    if (count <= 0) 
@@ -304,7 +304,7 @@ CoinFileInput *CoinFileInput::create (const std::string &fileName)
 {
   // first try to open file, and read first bytes 
   unsigned char header[4];
-  int count ; // So stdin will be plain file
+  size_t count ; // So stdin will be plain file
   if (fileName!="stdin") {
     FILE *f = fopen (fileName.c_str (), "r");
 
@@ -390,7 +390,7 @@ public:
 
   virtual int write (const void *buffer, int size)
   {
-    return fwrite (buffer, 1, size, f_);
+    return static_cast<int>(fwrite (buffer, 1, size, f_));
   }
 
   // we have something better than the default implementation
@@ -568,7 +568,7 @@ CoinFileOutput::~CoinFileOutput ()
 
 bool CoinFileOutput::puts (const char *s)
 {
-  int len = strlen (s);
+  int len = static_cast<int>(strlen (s));
   if (len == 0)
     return true;
 
@@ -588,7 +588,7 @@ bool fileAbsPath (const std::string &path)
   // If the first two chars are drive designators then treat it as absolute
   // path (noone in their right mind would create a file named 'Z:' on unix,
   // right?...)
-  const int len = path.length();
+  const size_t len = path.length();
   if (len >= 2 && path[1] == ':') {
     const char ch = path[0];
     if (('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z')) {

@@ -700,7 +700,6 @@ yydestruct (yytype, yyvaluep)
 
   switch (yytype)
     {
-	
       case 0:  /* Bjarni: Added case 0: to take out MSVC warning of no case */
       default:
         break;

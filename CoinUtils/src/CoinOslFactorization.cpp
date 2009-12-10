@@ -972,11 +972,11 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
   tempI += 3*nrowmx+8+fact->maxinv;
   fact->R_etas_start = fact->xcsadr+nrowmx+fact->maxinv+4;
   fact->R_etas_start += FIX_ADD;
-  nInt = tempI-(reinterpret_cast<int *>( fact->trueStart));
-  nDouble = (sizeof(int)*(nInt+1)/sizeof(double));
+  nInt = static_cast<int>(tempI-(reinterpret_cast<int *>( fact->trueStart)));
+  nDouble = static_cast<int>(sizeof(int)*(nInt+1)/sizeof(double));
   *length = nDouble;
   /*printf("nDouble %d - type %d\n",nDouble,type);*/
-  nDouble += (2*ALIGNMENT)/sizeof(double);
+  nDouble += static_cast<int>((2*ALIGNMENT)/sizeof(double));
   if (type) {
     /*printf("%d allocated\n",nDouble);*/
     tempD = reinterpret_cast<double *>( clp_double(nDouble));
@@ -1112,7 +1112,7 @@ static void c_ekksmem_copy(EKKfactinfo *fact,const EKKfactinfo * rhsFact)
       int n2 = rhsFact->nR_etas;
       int n3 = n2 ? rhsFact->R_etas_start[1+n2]: 0;
       int * startR = rhsFact->R_etas_index+n3; 
-      nCopyEnd=(rhsFact->xeradr+nnetas)-startR;
+      nCopyEnd=static_cast<int>((rhsFact->xeradr+nnetas)-startR);
       nCopyStart=rhsFact->nnentu;
       nCopyEnd = CoinMin(nCopyEnd+20,nnetas);
       kCopyEnd = nnetas-nCopyEnd;

@@ -835,12 +835,12 @@ template <class T> inline void CoinSwap (T &x, T &y)
 template <class T> inline int
 CoinToFile( const T* array, int size, FILE * fp)
 {
-    int numberWritten;
+    size_t numberWritten;
     if (array&&size) {
 	numberWritten = fwrite(&size,sizeof(int),1,fp);
 	if (numberWritten!=1)
 	    return 1;
-	numberWritten = fwrite(array,sizeof(T),size,fp);
+	numberWritten = fwrite(array,sizeof(T),size_t(size),fp);
 	if (numberWritten!=size)
 	    return 1;
     } else {
@@ -863,7 +863,7 @@ CoinToFile( const T* array, int size, FILE * fp)
 template <class T> inline int
 CoinFromFile( T* &array, int size, FILE * fp,int & newSize)
 {
-    int numberRead;
+    size_t numberRead;
     numberRead = fread(&newSize,sizeof(int),1,fp);
     if (numberRead!=1)
 	return 1;
@@ -872,7 +872,7 @@ CoinFromFile( T* &array, int size, FILE * fp,int & newSize)
 	returnCode=2;
     if (newSize) {
 	array = new T [newSize];
-	numberRead = fread(array,sizeof(T),newSize,fp);
+	numberRead = fread(array,sizeof(T),size_t(newSize),fp);
 	if (numberRead!=newSize)
 	    returnCode=1;
     } else {
@@ -892,6 +892,17 @@ inline double CoinCbrt(double x)
     return cbrt(x);
 #endif
 }
+//-----------------------------------------------------------------------------
+
+/// This helper returns "sizeof" as an int 
+#define CoinSizeofAsInt(type) (static_cast<int>(sizeof(type)))
+/// This helper returns "strlen" as an int 
+inline int
+CoinStrlenAsInt(const char * string)
+{
+    return static_cast<int>(strlen(string));
+}
+
 /** Class for thread specific random numbers
 */
 #if defined COIN_OWN_RANDOM_32
