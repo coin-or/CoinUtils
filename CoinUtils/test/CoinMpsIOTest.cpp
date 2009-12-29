@@ -356,11 +356,192 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
         assert( siC1rr  == siC1.getRowRange() );
       }
     }
+
+#ifdef COIN_HAS_GLPK
+    // test GMPL reader
+    {
+      CoinMessageHandler msghandler;
+      CoinMpsIO mpsio;
+      mpsio.passInMessageHandler(&msghandler);
+      int ret = mpsio.readGMPL("plan.mod", NULL, true);
+      printf("read plan.mod with return == %d\n", ret);
+      assert(ret == 0);
+
+      int nc = mpsio.getNumCols();
+      int nr = mpsio.getNumRows();
+      const double * cl = mpsio.getColLower();
+      const double * cu = mpsio.getColUpper();
+      const double * rl = mpsio.getRowLower();
+      const double * ru = mpsio.getRowUpper();
+      const double * obj = mpsio.getObjCoefficients();
+      assert( nc == 7 );
+      assert( nr == 8 );
+
+      assert( eq(cl[0],0) );
+      assert( eq(cl[1],0) );
+      assert( eq(cl[2],400) );
+      assert( eq(cl[3],100) );
+      assert( eq(cl[4],0) );
+      assert( eq(cl[5],0) );
+      assert( eq(cl[6],0) );
+
+      assert( eq(cu[0],200) );
+      assert( eq(cu[1],2500) );
+      assert( eq(cu[2],800) );
+      assert( eq(cu[3],700) );
+      assert( eq(cu[4],1500) );
+      assert( eq(cu[5],mpsio.getInfinity()) );
+      assert( eq(cu[6],mpsio.getInfinity()) );
+
+      assert( eq(rl[0],-mpsio.getInfinity()) );
+      assert( eq(rl[1],2000) );
+      assert( eq(rl[2],-mpsio.getInfinity()) );
+      assert( eq(rl[3],-mpsio.getInfinity()) );
+      assert( eq(rl[4],-mpsio.getInfinity()) );
+      assert( eq(rl[5],-mpsio.getInfinity()) );
+      assert( eq(rl[6],1500) );
+      assert( eq(rl[7],250) );
+
+      assert( eq(ru[0],mpsio.getInfinity()) );
+      assert( eq(ru[1],2000) );
+      assert( eq(ru[2],60) );
+      assert( eq(ru[3],100) );
+      assert( eq(ru[4],40) );
+      assert( eq(ru[5],30) );
+      assert( eq(ru[6],mpsio.getInfinity()) );
+      assert( eq(ru[7],300) );
+
+      assert( eq(obj[0],0.03) );
+      assert( eq(obj[1],0.08) );
+      assert( eq(obj[2],0.17) );
+      assert( eq(obj[3],0.12) );
+      assert( eq(obj[4],0.15) );
+      assert( eq(obj[5],0.21) );
+      assert( eq(obj[6],0.38) );
+
+      const CoinPackedMatrix * matrix = mpsio.getMatrixByRow();
+      assert( matrix != NULL );
+      assert( matrix->getMajorDim() == nr ); 
+
+      int nel = matrix->getNumElements();
+      assert( nel == 48 );
+
+      const double * ev = matrix->getElements();
+      assert( ev != NULL );
+      const int * ei = matrix->getIndices();
+      assert( ei != NULL );
+      const CoinBigIndex * mi = matrix->getVectorStarts();
+      assert( mi != NULL );
+
+      assert( eq(ev[0],0.03) );
+      assert( eq(ev[1],0.08) );
+      assert( eq(ev[2],0.17) );
+      assert( eq(ev[3],0.12) );
+      assert( eq(ev[4],0.15) );
+      assert( eq(ev[5],0.21) );
+      assert( eq(ev[6],0.38) );
+      assert( eq(ev[7],1) );
+      assert( eq(ev[8],1) );
+      assert( eq(ev[9],1) );
+      assert( eq(ev[10],1) );
+      assert( eq(ev[11],1) );
+      assert( eq(ev[12],1) );
+      assert( eq(ev[13],1) );
+      assert( eq(ev[14],0.15) );
+      assert( eq(ev[15],0.04) );
+      assert( eq(ev[16],0.02) );
+      assert( eq(ev[17],0.04) );
+      assert( eq(ev[18],0.02) );
+      assert( eq(ev[19],0.01) );
+      assert( eq(ev[20],0.03) );
+      assert( eq(ev[21],0.03) );
+      assert( eq(ev[22],0.05) );
+      assert( eq(ev[23],0.08) );
+      assert( eq(ev[24],0.02) );
+      assert( eq(ev[25],0.06) );
+      assert( eq(ev[26],0.01) );
+      assert( eq(ev[27],0.02) );
+      assert( eq(ev[28],0.04) );
+      assert( eq(ev[29],0.01) );
+      assert( eq(ev[30],0.02) );
+      assert( eq(ev[31],0.02) );
+      assert( eq(ev[32],0.02) );
+      assert( eq(ev[33],0.03) );
+      assert( eq(ev[34],0.01) );
+      assert( eq(ev[35],0.7) );
+      assert( eq(ev[36],0.75) );
+      assert( eq(ev[37],0.8) );
+      assert( eq(ev[38],0.75) );
+      assert( eq(ev[39],0.8) );
+      assert( eq(ev[40],0.97) );
+      assert( eq(ev[41],0.02) );
+      assert( eq(ev[42],0.06) );
+      assert( eq(ev[43],0.08) );
+      assert( eq(ev[44],0.12) );
+      assert( eq(ev[45],0.02) );
+      assert( eq(ev[46],0.01) );
+      assert( eq(ev[47],0.97) );
+
+      assert( ei[0] == 0 );
+      assert( ei[1] == 1 );
+      assert( ei[2] == 2 );
+      assert( ei[3] == 3 );
+      assert( ei[4] == 4 );
+      assert( ei[5] == 5 );
+      assert( ei[6] == 6 );
+      assert( ei[7] == 0 );
+      assert( ei[8] == 1 );
+      assert( ei[9] == 2 );
+      assert( ei[10] == 3 );
+      assert( ei[11] == 4 );
+      assert( ei[12] == 5 );
+      assert( ei[13] == 6 );
+      assert( ei[14] == 0 );
+      assert( ei[15] == 1 );
+      assert( ei[16] == 2 );
+      assert( ei[17] == 3 );
+      assert( ei[18] == 4 );
+      assert( ei[19] == 5 );
+      assert( ei[20] == 6 );
+      assert( ei[21] == 0 );
+      assert( ei[22] == 1 );
+      assert( ei[23] == 2 );
+      assert( ei[24] == 3 );
+      assert( ei[25] == 4 );
+      assert( ei[26] == 5 );
+      assert( ei[27] == 0 );
+      assert( ei[28] == 1 );
+      assert( ei[29] == 2 );
+      assert( ei[30] == 3 );
+      assert( ei[31] == 4 );
+      assert( ei[32] == 0 );
+      assert( ei[33] == 1 );
+      assert( ei[34] == 4 );
+      assert( ei[35] == 0 );
+      assert( ei[36] == 1 );
+      assert( ei[37] == 2 );
+      assert( ei[38] == 3 );
+      assert( ei[39] == 4 );
+      assert( ei[40] == 5 );
+      assert( ei[41] == 0 );
+      assert( ei[42] == 1 );
+      assert( ei[43] == 2 );
+      assert( ei[44] == 3 );
+      assert( ei[45] == 4 );
+      assert( ei[46] == 5 );
+      assert( ei[47] == 6 );
+
+      assert( mi[0] == 0 );
+      assert( mi[1] == 7 );
+      assert( mi[2] == 14 );
+      assert( mi[3] == 21 );
+      assert( mi[4] == 27 );
+      assert( mi[5] == 32 );
+      assert( mi[6] == 35 );
+      assert( mi[7] == 41 );
+      assert( mi[8] == 48 );
+    }
+#endif
   }
-  
+
 }
-
-
-
-
-

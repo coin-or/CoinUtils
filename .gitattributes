@@ -46,6 +46,7 @@ CoinUtils/src/CoinWarmStartPrimalDual.hpp -text
 CoinUtils/src/CoinWarmStartVector.cpp -text
 CoinUtils/src/CoinWarmStartVector.hpp -text
 CoinUtils/test/CoinMessageHandlerTest.cpp -text
+CoinUtils/test/plan.mod -text
 /INSTALL -text
 /LICENSE -text
 /README -text
