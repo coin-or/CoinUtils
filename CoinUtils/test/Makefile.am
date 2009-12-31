@@ -42,10 +42,10 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 
 unittestflags =
 if COIN_HAS_SAMPLE
-  unittestflags += -mpsDir=$(SAMPLE_DATA)
+  unittestflags += -mpsDir=`$(CYGPATH_W) $(SAMPLE_DATA)`
 endif
 if COIN_HAS_NETLIB
-  unittestflags += -netlibDir=$(NETLIB_DATA) -testModel=adlittle.mps
+  unittestflags += -netlibDir=`$(CYGPATH_W) $(NETLIB_DATA)` -testModel=adlittle.mps
 endif
 
 test: unitTest$(EXEEXT)

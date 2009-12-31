@@ -43,8 +43,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = unitTest$(EXEEXT)
-@COIN_HAS_SAMPLE_TRUE@am__append_1 = -mpsDir=$(SAMPLE_DATA)
-@COIN_HAS_NETLIB_TRUE@am__append_2 = -netlibDir=$(NETLIB_DATA) -testModel=adlittle.mps
+@COIN_HAS_SAMPLE_TRUE@am__append_1 = -mpsDir=`$(CYGPATH_W) $(SAMPLE_DATA)`
+@COIN_HAS_NETLIB_TRUE@am__append_2 = -netlibDir=`$(CYGPATH_W) $(NETLIB_DATA)` -testModel=adlittle.mps
 subdir = test
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
