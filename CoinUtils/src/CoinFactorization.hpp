@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <string>
+#include <cstdio>
 #include <cassert>
 #include "CoinFinite.hpp"
 #include "CoinIndexedVector.hpp"

@@ -179,6 +179,9 @@ static bool elim_tripleton(const char *msg,
 	      return (true);
 	    
 	    // have to adjust various induction variables
+ 	    kcolx = mcstrt[icolx] + (kcolx - kcsx);
+ 	    kcsx = mcstrt[icolx];			
+ 	    kcex = mcstrt[icolx] + hincol[icolx];
 	    kcoly = mcstrt[icoly] + (kcoly - kcs);
 	    kcs = mcstrt[icoly];			// do this for ease of debugging
 	    kce = mcstrt[icoly] + hincol[icoly];
