@@ -437,9 +437,9 @@ AC_CHECK_HEADERS([windows.h])
 
 AC_COIN_HAS_MODULE_BLAS
 AC_COIN_HAS_MODULE_LAPACK
-AC_COIN_HAS_MODULE(Glpk,   [glpk >= 4.39])
-AC_COIN_HAS_MODULE(Sample, [sample], [required=0])
-AC_COIN_HAS_MODULE(Netlib, [netlib], [required=0])
+AC_COIN_HAS_MODULE(Glpk,   [coinglpk >= 4.39])
+AC_COIN_HAS_MODULE(Sample, [coindatasample], [required=0])
+AC_COIN_HAS_MODULE(Netlib, [coindatanetlib], [required=0])
 
 if test "$coin_has_blas" != yes ; then
   AC_COIN_HAS_BLAS

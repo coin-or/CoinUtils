@@ -20956,6 +20956,7 @@ echo "$as_me:$LINENO: checking whether project CoinUtils is available" >&5
 echo $ECHO_N "checking whether project CoinUtils is available... $ECHO_C" >&6
 
 coin_has_coinutils=notGiven
+coin_have_project_dir=no
 
 # check if user wants to skip project in any case
 
@@ -20973,6 +20974,7 @@ fi
 if test $coin_has_coinutils != skipping; then
   if test $PACKAGE_TARNAME = coinutils; then
     coin_has_coinutils=.
+    coin_have_project_dir=yes
   fi
 
 
@@ -21005,7 +21007,7 @@ if test $coin_has_coinutils = notGiven; then
 
     # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
     if test -d "$prefix"; then
-      PKG_CONFIG_PATH="$prefix/lib//pkgconfig:$PKG_CONFIG_PATH"
+      PKG_CONFIG_PATH="$prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
     fi
 
 
@@ -21017,7 +21019,7 @@ if test "${with_coin_instdir+set}" = set; then
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
        fi
-       PKG_CONFIG_PATH="$withval/lib//pkgconfig:$PKG_CONFIG_PATH"
+       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 fi;
 
@@ -21047,10 +21049,9 @@ fi
 # if not found yet, check if project is available in present directory
 if test "$coin_has_coinutils" = notGiven; then
   if test -d $srcdir//CoinUtils; then
-    coin_pkg_is_here=no
-     coin_pkg_is_here=yes
+     coin_have_project_dir=yes
 
-    if test $coin_pkg_is_here = yes; then
+    if test $coin_have_project_dir = yes; then
       coin_has_coinutils=/CoinUtils
     fi
   fi
@@ -21061,9 +21062,7 @@ echo "${ECHO_T}$coin_has_coinutils" >&6
 
 echo "$as_me:$LINENO: checking whether project CoinUtils need to be configured" >&5
 echo $ECHO_N "checking whether project CoinUtils need to be configured... $ECHO_C" >&6
-if test "$coin_has_coinutils" != skipping &&
-   test "$coin_has_coinutils" != notGiven &&
-   test "$coin_has_coinutils" != installed; then
+if test "$coin_have_project_dir" = yes ; then
 
   if test -r $srcdir//CoinUtils/configure; then
     coin_subdirs="$coin_subdirs CoinUtils"
@@ -21087,6 +21086,7 @@ echo "$as_me:$LINENO: checking whether project Sample is available" >&5
 echo $ECHO_N "checking whether project Sample is available... $ECHO_C" >&6
 
 coin_has_sample=notGiven
+coin_have_project_dir=no
 
 # check if user wants to skip project in any case
 
@@ -21104,6 +21104,7 @@ fi
 if test $coin_has_sample != skipping; then
   if test $PACKAGE_TARNAME = sample; then
     coin_has_sample=.
+    coin_have_project_dir=yes
   fi
 
 
@@ -21136,7 +21137,7 @@ if test $coin_has_sample = notGiven; then
 
     # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
     if test -d "$prefix"; then
-      PKG_CONFIG_PATH="$prefix/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+      PKG_CONFIG_PATH="$prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
     fi
 
 
@@ -21148,7 +21149,7 @@ if test "${with_coin_instdir+set}" = set; then
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
        fi
-       PKG_CONFIG_PATH="$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 fi;
 
@@ -21157,16 +21158,16 @@ fi;
     export PKG_CONFIG_PATH
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "sample"; then
-    SAMPLE_VERSION=`$PKG_CONFIG --modversion "sample" 2>/dev/null`
-    coin_has_sample="$SAMPLE_VERSION"
+  if $PKG_CONFIG --exists "coindatasample"; then
+    COINDATASAMPLE_VERSION=`$PKG_CONFIG --modversion "coindatasample" 2>/dev/null`
+    coin_has_sample="$COINDATASAMPLE_VERSION"
   else
-    SAMPLE_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "sample"`
+    COINDATASAMPLE_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "coindatasample"`
 
   fi
 else
-  { { echo "$as_me:$LINENO: error: \"Cannot check for existance of module Sample without pkg-config\"" >&5
-echo "$as_me: error: \"Cannot check for existance of module Sample without pkg-config\"" >&2;}
+  { { echo "$as_me:$LINENO: error: \"Cannot check for existance of module coindatasample without pkg-config\"" >&5
+echo "$as_me: error: \"Cannot check for existance of module coindatasample without pkg-config\"" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
@@ -21178,10 +21179,9 @@ fi
 # if not found yet, check if project is available in present directory
 if test "$coin_has_sample" = notGiven; then
   if test -d $srcdir/Data/Sample; then
-    coin_pkg_is_here=no
-     coin_pkg_is_here=yes
+     coin_have_project_dir=yes
 
-    if test $coin_pkg_is_here = yes; then
+    if test $coin_have_project_dir = yes; then
       coin_has_sample=Data/Sample
     fi
   fi
@@ -21192,9 +21192,7 @@ echo "${ECHO_T}$coin_has_sample" >&6
 
 echo "$as_me:$LINENO: checking whether project Sample need to be configured" >&5
 echo $ECHO_N "checking whether project Sample need to be configured... $ECHO_C" >&6
-if test "$coin_has_sample" != skipping &&
-   test "$coin_has_sample" != notGiven &&
-   test "$coin_has_sample" != installed; then
+if test "$coin_have_project_dir" = yes ; then
 
   if test -r $srcdir/Data/Sample/configure; then
     coin_subdirs="$coin_subdirs Data/Sample"
@@ -21218,6 +21216,7 @@ echo "$as_me:$LINENO: checking whether project Netlib is available" >&5
 echo $ECHO_N "checking whether project Netlib is available... $ECHO_C" >&6
 
 coin_has_netlib=notGiven
+coin_have_project_dir=no
 
 # check if user wants to skip project in any case
 
@@ -21235,6 +21234,7 @@ fi
 if test $coin_has_netlib != skipping; then
   if test $PACKAGE_TARNAME = netlib; then
     coin_has_netlib=.
+    coin_have_project_dir=yes
   fi
 
 
@@ -21267,7 +21267,7 @@ if test $coin_has_netlib = notGiven; then
 
     # let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
     if test -d "$prefix"; then
-      PKG_CONFIG_PATH="$prefix/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+      PKG_CONFIG_PATH="$prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
     fi
 
 
@@ -21279,7 +21279,7 @@ if test "${with_coin_instdir+set}" = set; then
 echo "$as_me: error: argument for --with-coin-instdir not a directory" >&2;}
    { (exit 1); exit 1; }; }
        fi
-       PKG_CONFIG_PATH="$withval/lib/Data/pkgconfig:$PKG_CONFIG_PATH"
+       PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 fi;
 
@@ -21288,16 +21288,16 @@ fi;
     export PKG_CONFIG_PATH
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "netlib"; then
-    NETLIB_VERSION=`$PKG_CONFIG --modversion "netlib" 2>/dev/null`
-    coin_has_netlib="$NETLIB_VERSION"
+  if $PKG_CONFIG --exists "coindatanetlib"; then
+    COINDATANETLIB_VERSION=`$PKG_CONFIG --modversion "coindatanetlib" 2>/dev/null`
+    coin_has_netlib="$COINDATANETLIB_VERSION"
   else
-    NETLIB_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "netlib"`
+    COINDATANETLIB_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "coindatanetlib"`
 
   fi
 else
-  { { echo "$as_me:$LINENO: error: \"Cannot check for existance of module Netlib without pkg-config\"" >&5
-echo "$as_me: error: \"Cannot check for existance of module Netlib without pkg-config\"" >&2;}
+  { { echo "$as_me:$LINENO: error: \"Cannot check for existance of module coindatanetlib without pkg-config\"" >&5
+echo "$as_me: error: \"Cannot check for existance of module coindatanetlib without pkg-config\"" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
@@ -21309,10 +21309,9 @@ fi
 # if not found yet, check if project is available in present directory
 if test "$coin_has_netlib" = notGiven; then
   if test -d $srcdir/Data/Netlib; then
-    coin_pkg_is_here=no
-     coin_pkg_is_here=yes
+     coin_have_project_dir=yes
 
-    if test $coin_pkg_is_here = yes; then
+    if test $coin_have_project_dir = yes; then
       coin_has_netlib=Data/Netlib
     fi
   fi
@@ -21323,9 +21322,7 @@ echo "${ECHO_T}$coin_has_netlib" >&6
 
 echo "$as_me:$LINENO: checking whether project Netlib need to be configured" >&5
 echo $ECHO_N "checking whether project Netlib need to be configured... $ECHO_C" >&6
-if test "$coin_has_netlib" != skipping &&
-   test "$coin_has_netlib" != notGiven &&
-   test "$coin_has_netlib" != installed; then
+if test "$coin_have_project_dir" = yes ; then
 
   if test -r $srcdir/Data/Netlib/configure; then
     coin_subdirs="$coin_subdirs Data/Netlib"

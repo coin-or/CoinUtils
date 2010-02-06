@@ -14,7 +14,8 @@ AUTOMAKE_OPTIONS = foreign
 
 # Name of the library compiled in this directory.  We want it to be installed
 # in the 'lib' directory
-lib_LTLIBRARIES = libCoinUtils.la
+libcoindir = $(libdir)/coin
+libcoin_LTLIBRARIES = libCoinUtils.la
 
 # AW: This is a fix at the moment to head with the fact that LIBS has
 # -llapack and other libraries in it when those are used and not compiled
