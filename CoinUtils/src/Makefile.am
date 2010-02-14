@@ -12,8 +12,8 @@ AUTOMAKE_OPTIONS = foreign
 #                             libCoinUtils                             #
 ########################################################################
 
-# Name of the library compiled in this directory.  We want it to be installed
-# in the 'lib' directory
+# Name of the library compiled in this directory.
+# We want it to be installed in the 'lib/coin' directory
 libcoindir = $(libdir)/coin
 libcoin_LTLIBRARIES = libCoinUtils.la
 
