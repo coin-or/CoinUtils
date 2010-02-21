@@ -457,15 +457,30 @@ else
   AM_CONDITIONAL([COIN_BUILD_LAPACK], [test 0 = 1])
 fi
 
+# fallback for Glpk if no pkg-config available
 if test "$coin_has_glpk" != yes ; then
-  AC_COIN_HAS_PROJECT(Glpk,ThirdParty,[glpk/src/glplpx01.c])
-  if test $coin_has_glpk = yes ; then
-    GLPK_CFLAGS="-I$GLPKSRCDIR/glpk/include -I$GLPKOBJDIR"
-    # now Glpk linker flags are in ADDLIBS
+  coin_glpkobjdir=../ThirdParty/Glpk
+  
+  # if ThirdParty/Glpk is available and configured, then a coinglpk-uninstalled.pc file should have been created
+  if test -r $coin_glpkobjdir/coinglpk-uninstalled.pc ; then
+    # read Glpk CFLAGS and LIBS from coinglpk-uninstalled.pc file
+    # add CYGPATH_W cludge into include flags
+    # replace -L${libdir} by absolute path to GLPK build directory in linker flags
+    [GLPK_CFLAGS=`sed -n -e 's/Cflags://' -e 's/-I\([^ ]*\)/-I\`${CYGPATH_W} \1\`/gp' $coin_glpkobjdir/coinglpk-uninstalled.pc`]
+    GLPK_LIBS=`sed -n -e 's/Libs://' -e 's/-L\${libdir}//p' $coin_glpkobjdir/coinglpk-uninstalled.pc`
+    GLPK_LIBS="-L`cd $coin_glpkobjdir; pwd` $GLPK_LIBS"
+
+    ADDLIBS="$ADDLIBS $GLPK_LIBS"
+    REQUIREDPACKAGES="$REQUIREDPACKAGES coinglpk"
+
+    coin_has_glpk=yes
+    AC_DEFINE([COIN_HAS_GLPK],[1],[If defined, the GLPK Library is available.])
   fi
-else
-  #for configure
-  AM_CONDITIONAL([COIN_HAS_GLPK_PREINSTALLED], [test 0 = 1])
+
+  AM_CONDITIONAL([COIN_HAS_GLPK],[test $coin_has_glpk = yes])
+  
+  AC_MSG_CHECKING([whether ThirdParty/Glpk is available and configured])
+  AC_MSG_RESULT([$coin_has_glpk])
 fi
 
 AC_COIN_CHECK_GNU_ZLIB

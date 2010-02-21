@@ -21,7 +21,7 @@
 /* Define to 1 if bzlib is available */
 #undef COIN_HAS_BZLIB
 
-/* Define to 1 if the Glpk package is used */
+/* If defined, the GLPK Library is available. */
 #undef COIN_HAS_GLPK
 
 /* If defined, the LAPACK Library is available. */
