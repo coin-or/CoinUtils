@@ -1,6 +1,7 @@
 /* $Id$ */
 /* Copyright (C) 1987, 2009, International Business Machines
    Corporation and others.  All Rights Reserved. */
+#include "CoinOslFactorization.hpp"
 #include "CoinOslC.h"
 #define GO_DENSE 70
 #define GO_DENSE_RATIO 1.8
