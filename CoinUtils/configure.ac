@@ -1,4 +1,4 @@
-# Copyright (C) 2006 International Business Machines.
+# Copyright (C) 2006,2009 International Business Machines.
 # All Rights Reserved.
 # This file is distributed under the Common Public License.
 
@@ -12,7 +12,7 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([CoinUtils],[2.1.0],[http://projects.coin-or.org/CoinUtils])
+AC_INIT([CoinUtils],[split],[http://projects.coin-or.org/CoinUtils])
 
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.
@@ -440,84 +440,60 @@ AC_CHECK_HEADERS([endian.h])
 #                              COIN components                              #
 #############################################################################
 
-AC_COIN_HAS_PROJECT(CoinUtils)
+AC_COIN_HAS_MODULE_BLAS
+AC_COIN_HAS_MODULE_LAPACK
+AC_COIN_HAS_MODULE(Glpk,   [coinglpk >= 4.39])
+AC_COIN_HAS_MODULE(Sample, [coindatasample], [required=0])
+AC_COIN_HAS_MODULE(Netlib, [coindatanetlib], [required=0])
 
-#############################################################################
-#                             Other dependencies                            #
-#############################################################################
-
-# For Gnu Mathprog (GMPL), supplied by glpk.
-
-AC_COIN_HAS_GLPK(Glpk)
-if test x"$use_thirdpartyglpk" = xbuild; then
-  COINUTILS_LIBADD="../../ThirdParty/Glpk/libcoinglpk.la $COINUTILS_LIBADD"
-  if test -e $GLPKOBJDIR/glpk_addlibs.txt ; then
-    ADDLIBS="`cat $GLPKOBJDIR/glpk_addlibs.txt` $ADDLIBS"
-  fi
-fi
-
-#############################################################################
-#                       Other third party software                          #
-#############################################################################
-
-# Ampl Solver library
-AC_COIN_HAS_ASL
-
-# Check for BLAS and LAPACK. If there's no Fortran compiler available, skip
-# this entirely, otherwise configuration will fail when we try to do a Fortran
-# link. The check cannot be embedded in AC_COIN_HAS_BLAS because the offending
-# macro is AC_REQUIRE'd from somewhere inside AC_TRY_LINK and ends up out in
-# front of all the code in AC_COIN_HAS_BLAS.  This will need to be revisited if
-# we run up against a situation where a prebuilt BLAS/LAPACK is linkable but
-# there's no Fortran compiler. This code has the unfortunate property that
-# calls to AM_CONDITIONAL are exposed here and still occur in AC_COIN_HAS_BLAS
-# and AC_COIN_HAS_LAPACK. With some thought, it should be possible to separate
-# BLAS and LAPACK configuration into two steps that would maintain information
-# hiding and still avoid attempting a Fortran link when no compiler is
-# present.
-
-if test "$F77" = unavailable ; then
-  coin_has_blas=no
-  AM_CONDITIONAL([COIN_HAS_BLAS],[false])
-  AM_CONDITIONAL([COIN_BUILD_BLAS],[false])
-  coin_has_lapack=no
-  AM_CONDITIONAL([COIN_HAS_LAPACK],[false])
-  AM_CONDITIONAL([COIN_BUILD_LAPACK],[false])
-else
-
-  #######################
-  #        BLAS         #
-  #######################
-
+if test "$coin_has_blas" != yes ; then
   AC_COIN_HAS_BLAS
-  if test $coin_has_blas = no; then
-    AC_MSG_WARN([Cannot find BLAS - no dense factorization])
-  fi
-  if test "$use_blas" = BUILD; then
-    COINUTILS_LIBADD="../../ThirdParty/Blas/libcoinblas.la $COINUTILS_LIBADD"
-  fi
-
-  #######################
-  #       LAPACK        #
-  #######################
-
-  AC_COIN_HAS_LAPACK
-  if test $coin_has_lapack = no; then
-    AC_MSG_WARN([Cannot find LAPACK - no dense factorization])
-  fi
-  if test "$use_lapack" = BUILD; then
-    COINUTILS_LIBADD="../../ThirdParty/Lapack/libcoinlapack.la $COINUTILS_LIBADD"
-  fi
+  # now Blas linker flags are in ADDLIBS
+else
+  #for configure
+  AM_CONDITIONAL([COIN_BUILD_BLAS], [test 0 = 1])
 fi
 
-# For now, we just add the lapack and blas libraries here in case they are
-# compiled in ThirdParty.  On the long run, we need a different solution
-AC_SUBST(COINUTILS_LIBADD)
+if test "$coin_has_lapack" != yes ; then
+  AC_COIN_HAS_LAPACK
+  # now Lapack linker flags are in ADDLIBS
+else
+  #for configure
+  AM_CONDITIONAL([COIN_BUILD_LAPACK], [test 0 = 1])
+fi
+
+# fallback for Glpk if no pkg-config available
+if test "$coin_has_glpk" != yes ; then
+  coin_glpkobjdir=../ThirdParty/Glpk
+  
+  # if ThirdParty/Glpk is available and configured, then a coinglpk-uninstalled.pc file should have been created
+  if test -r $coin_glpkobjdir/coinglpk-uninstalled.pc ; then
+    # read Glpk CFLAGS and LIBS from coinglpk-uninstalled.pc file
+    # add CYGPATH_W cludge into include flags
+    # replace -L${libdir} by absolute path to GLPK build directory in linker flags
+    [GLPK_CFLAGS=`sed -n -e 's/Cflags://' -e 's/-I\([^ ]*\)/-I\`${CYGPATH_W} \1\`/gp' $coin_glpkobjdir/coinglpk-uninstalled.pc`]
+    GLPK_LIBS=`sed -n -e 's/Libs://' -e 's/-L\${libdir}//p' $coin_glpkobjdir/coinglpk-uninstalled.pc`
+    GLPK_LIBS="-L`cd $coin_glpkobjdir; pwd` $GLPK_LIBS"
+
+    ADDLIBS="$ADDLIBS $GLPK_LIBS"
+    REQUIREDPACKAGES="$REQUIREDPACKAGES coinglpk"
+
+    coin_has_glpk=yes
+    AC_DEFINE([COIN_HAS_GLPK],[1],[If defined, the GLPK Library is available.])
+  fi
+
+  AM_CONDITIONAL([COIN_HAS_GLPK],[test $coin_has_glpk = yes])
+  
+  AC_MSG_CHECKING([whether ThirdParty/Glpk is available and configured])
+  AC_MSG_RESULT([$coin_has_glpk])
+fi
 
 AC_COIN_CHECK_GNU_ZLIB
 AC_COIN_CHECK_GNU_BZLIB
 
 AC_COIN_VPATH_LINK(test/plan.mod)
+
+AC_SUBST(ADDLIBS)
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #
@@ -528,7 +504,8 @@ AC_COIN_VPATH_LINK(test/plan.mod)
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  test/Makefile
-		 coinutils_addlibs.txt])
+		 coinutils_addlibs.txt
+                 coinutils.pc coinutils-uninstalled.pc])
 
 # Here put the location and name of the configuration header file
 AC_CONFIG_HEADER([inc/config_coinutils.h])

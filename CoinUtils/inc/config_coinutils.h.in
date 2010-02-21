@@ -15,23 +15,23 @@
 /* Define to the debug verbosity level (0 is no output) */
 #undef COIN_COINUTILS_VERBOSITY
 
-/* If defined, the Ampl Solver Library is available. */
-#undef COIN_HAS_ASL
-
 /* If defined, the BLAS Library is available. */
 #undef COIN_HAS_BLAS
 
 /* Define to 1 if bzlib is available */
 #undef COIN_HAS_BZLIB
 
-/* Define to 1 if the CoinUtils package is used */
-#undef COIN_HAS_COINUTILS
-
-/* Define to 1 if Glpk package is available */
+/* If defined, the GLPK Library is available. */
 #undef COIN_HAS_GLPK
 
 /* If defined, the LAPACK Library is available. */
 #undef COIN_HAS_LAPACK
+
+/* Define to 1 if the Netlib module is available */
+#undef COIN_HAS_NETLIB
+
+/* Define to 1 if the Sample module is available */
+#undef COIN_HAS_SAMPLE
 
 /* Define to 1 if zlib is available */
 #undef COIN_HAS_ZLIB

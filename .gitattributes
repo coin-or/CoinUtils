@@ -19,6 +19,8 @@ CoinUtils/MSVisualStudio/v9/CoinUtils.sln -text
 CoinUtils/MSVisualStudio/v9/libCoinUtils/libCoinUtils.vcproj -text
 CoinUtils/MSVisualStudio/v9/unitTestCoinUtils/unitTestCoinUtils.vcproj -text
 CoinUtils/README -text
+CoinUtils/coinutils-uninstalled.pc.in -text
+CoinUtils/coinutils.pc.in -text
 CoinUtils/coinutils_addlibs.txt.in -text
 CoinUtils/configure -text
 CoinUtils/configure.ac -text

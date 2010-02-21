@@ -12,9 +12,10 @@ AUTOMAKE_OPTIONS = foreign
 #                             libCoinUtils                             #
 ########################################################################
 
-# Name of the library compiled in this directory.  We want it to be installed
-# in the 'lib' directory
-lib_LTLIBRARIES = libCoinUtils.la
+# Name of the library compiled in this directory.
+# We want it to be installed in the 'lib/coin' directory
+libcoindir = $(libdir)/coin
+libcoin_LTLIBRARIES = libCoinUtils.la
 
 # AW: This is a fix at the moment to head with the fact that LIBS has
 # -llapack and other libraries in it when those are used and not compiled
@@ -112,7 +113,7 @@ libCoinUtils_la_DEPENDENCIES = $(COINUTILS_LIBADD)
 # "cygpath" stuff is necessary to compile with native compilers on Windows
 AM_CPPFLAGS =
 if COIN_HAS_GLPK
-  AM_CPPFLAGS += -I`$(CYGPATH_W) $(GLPKINCDIR)`
+  AM_CPPFLAGS += $(GLPK_CFLAGS)
 endif
 
 # This line is necessary to allow VPATH compilation with MS compilers

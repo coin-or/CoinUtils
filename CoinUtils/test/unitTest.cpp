@@ -87,7 +87,7 @@ int main (int argc, const char *argv[])
 	  <<"    -netlibDir: directory containing netlib files\n"
 	  <<"        Default value V2=same as mpsDir\n"
 	  <<"    -testModel: name of model in netlibdir for testing CoinModel\n"
-	  <<"        Default value V3=\"p0033.mps\"\n";
+	  <<"        Default value V3=\"adlittle.mps\"\n";
       return 1;
     }
     parms[key]=value;
