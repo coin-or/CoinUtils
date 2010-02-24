@@ -8,6 +8,7 @@
   2 - unroll - don't use in Gomory
   3 - unroll and use in Gomory
 */
+#include "CoinOslFactorization.hpp"
 #include "CoinOslC.h"
 
 #ifndef NDEBUG
