@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include "CoinOslFactorization.hpp"
+#include "CoinOslC.h"
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
