@@ -2711,7 +2711,7 @@ CoinPackedMatrix::gutsOfOpEqual(const bool colordered,
    majorDim_ = major;
    minorDim_ = minor;
    size_ = numels;
-   if (!len&&numels==start[major]&&!start[0]) {
+   if (!len && numels > 0 && numels==start[major] && start[0]==0) {
      // No gaps - do faster
      if (major>maxMajorDim_||!start_) {
        maxMajorDim_ = major;
