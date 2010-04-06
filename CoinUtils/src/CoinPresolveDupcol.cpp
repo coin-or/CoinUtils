@@ -702,7 +702,10 @@ const CoinPresolveAction
 	   nactions,nfixed_down,nfixed_up) ; }
 # endif
   if (nactions)
-  { next = new dupcol_action(nactions,CoinCopyOfArray(actions,nactions),next) ; }
+  { next = new dupcol_action(nactions,CoinCopyOfArray(actions,nactions),next) ;
+    // we can't go round again in integer
+    prob->presolveOptions_ |= 0x80000000;
+}
   deleteAction(actions,action*) ;
 
   if (nfixed_down)
