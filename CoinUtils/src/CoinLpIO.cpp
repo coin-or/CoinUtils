@@ -2004,7 +2004,7 @@ CoinLpIO::print() const {
 // Hash functions slightly modified from CoinMpsIO.cpp
 
 static int
-hash(const char *name, int maxsiz, int length)
+compute_hash(const char *name, int maxsiz, int length)
 {
   static int mmult[] = {
     262139, 259459, 256889, 254291, 251701, 249133, 246709, 244247,
@@ -2063,7 +2063,7 @@ CoinLpIO::startHash(char const * const * const names,
     const char *thisName = names[i];
     int length = CoinStrlenAsInt(thisName);
     
-    ipos = hash(thisName, maxhash, length);
+    ipos = compute_hash(thisName, maxhash, length);
     if (hashThis[ipos].index == -1) {
       hashThis[ipos].index = i; // will be changed below
     }
@@ -2084,7 +2084,7 @@ CoinLpIO::startHash(char const * const * const names,
     const char *thisName = names[i];
     int length = CoinStrlenAsInt(thisName);
     
-    ipos = hash(thisName, maxhash, length);
+    ipos = compute_hash(thisName, maxhash, length);
     
     while (1) {
       COINColumnIndex j1 = hashThis[ipos].index;
@@ -2199,7 +2199,7 @@ CoinLpIO::findHash(const char *name, int section) const
 
   int length = CoinStrlenAsInt(name);
 
-  ipos = hash (name, maxhash, length);
+  ipos = compute_hash(name, maxhash, length);
   while (1) {
     COINColumnIndex j1 = hashThis[ipos].index;
 
@@ -2241,7 +2241,7 @@ CoinLpIO::insertHash(const char *thisName, int section)
   int iput = -1;
   int length = CoinStrlenAsInt(thisName);
 
-  int ipos = hash (thisName, maxhash, length);
+  int ipos = compute_hash(thisName, maxhash, length);
 
   while (1) {
     COINColumnIndex j1 = hashThis[ipos].index;
