@@ -993,6 +993,7 @@ protected:
 
       if ( absValue > tolerance ) {
 	work[j] = 0.0;
+	assert (put<lengthAreaU_); 
 	elementU[put] = value;
 	indexRowU[put] = indexL[j];
 	if ( absValue > largest ) {
