@@ -1296,7 +1296,7 @@ CoinFactorization::getColumnSpace ( int iColumn,
   CoinFactorizationDouble *elementU = elementU_.array();
   int * indexRowU = indexRowU_.array();
 
-  if ( space < extraNeeded + number + 2 ) {
+  if ( space < extraNeeded + number + 4 ) {
     //compression
     int iColumn = nextColumn[maximumColumnsExtra_];
     CoinBigIndex put = 0;
@@ -1384,8 +1384,17 @@ CoinFactorization::getColumnSpace ( int iColumn,
     }
     put += number;
     get += number;
-    //add 4 for luck
-    startColumnU[maximumColumnsExtra_] = put + extraNeeded + 4;
+    //add 2 for luck
+    startColumnU[maximumColumnsExtra_] = put + extraNeeded + 2;
+    if (startColumnU[maximumColumnsExtra_]>lengthAreaU_) {
+      // get more memory
+#ifdef CLP_DEVELOP
+      printf("put %d, needed %d, start %d, length %d\n",
+	     put,extraNeeded,startColumnU[maximumColumnsExtra_],
+	     lengthAreaU_);
+#endif
+      return false;
+    }
   } else {
     //take off space
     startColumnU[maximumColumnsExtra_] = startColumnU[last] +
