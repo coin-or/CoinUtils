@@ -30744,7 +30744,7 @@ fi
 
 #call fallback in case the previous failed, maybe because pkg-config was not available
 
-if test $coin_has_blas != "yes" ; then
+if test x$coin_has_blas != "xyes" ; then
 echo "$as_me:$LINENO: checking for COIN-OR module Blas (fallback)" >&5
 echo $ECHO_N "checking for COIN-OR module Blas (fallback)... $ECHO_C" >&6
 
@@ -30770,16 +30770,23 @@ if test $coin_has_blas != "skipping" ; then
     # read CFLAGS and LIBS from coinblas-uninstalled.pc file
     # add CYGPATH_W cludge into include flags
     # replace -L${libdir} by absolute path to build directory in linker flags
+    # we assume that the build directory is ../ThirdParty/Blas/src if this directory exists, otherwise we assume that it is ../ThirdParty/Blas
     BLAS_CFLAGS=`sed -n -e 's/Cflags://' -e 's/-I\([^ ]*\)/-I\`${CYGPATH_W} \1\`/gp' ../ThirdParty/Blas/coinblas-uninstalled.pc`
     projectlibs=`sed -n -e 's/Libs://' -e 's/-L\${libdir}//p' ../ThirdParty/Blas/coinblas-uninstalled.pc`
     if test "x$projectlibs" != x ; then
-      BLAS_LIBS="-L`cd ../ThirdParty/Blas; pwd` $projectlibs"
+      if test -d ../ThirdParty/Blas/src ; then
+        BLAS_LIBS="-L`cd ../ThirdParty/Blas/src; pwd` $projectlibs"
+      else
+        BLAS_LIBS="-L`cd ../ThirdParty/Blas; pwd` $projectlibs"
+      fi
+    else
+      BLAS_LIBS=`sed -n -e 's/Libs://p' ../ThirdParty/Blas/coinblas-uninstalled.pc`
     fi
     BLAS_DATA=`sed -n -e 's/datadir=//gp' ../ThirdParty/Blas/coinblas-uninstalled.pc`
 
     ADDLIBS="$ADDLIBS $BLAS_LIBS"
+       REQUIREDPACKAGES="$REQUIREDPACKAGES coinblas"
 
-    REQUIREDPACKAGES="$REQUIREDPACKAGES coinblas"
 
 
 cat >>confdefs.h <<\_ACEOF
@@ -32996,7 +33003,7 @@ fi
 
 #call fallback in case the previous failed, maybe because pkg-config was not available
 
-if test $coin_has_lapack != "yes" ; then
+if test x$coin_has_lapack != "xyes" ; then
 echo "$as_me:$LINENO: checking for COIN-OR module Lapack (fallback)" >&5
 echo $ECHO_N "checking for COIN-OR module Lapack (fallback)... $ECHO_C" >&6
 
@@ -33022,16 +33029,23 @@ if test $coin_has_lapack != "skipping" ; then
     # read CFLAGS and LIBS from coinlapack-uninstalled.pc file
     # add CYGPATH_W cludge into include flags
     # replace -L${libdir} by absolute path to build directory in linker flags
+    # we assume that the build directory is ../ThirdParty/Lapack/src if this directory exists, otherwise we assume that it is ../ThirdParty/Lapack
     LAPACK_CFLAGS=`sed -n -e 's/Cflags://' -e 's/-I\([^ ]*\)/-I\`${CYGPATH_W} \1\`/gp' ../ThirdParty/Lapack/coinlapack-uninstalled.pc`
     projectlibs=`sed -n -e 's/Libs://' -e 's/-L\${libdir}//p' ../ThirdParty/Lapack/coinlapack-uninstalled.pc`
     if test "x$projectlibs" != x ; then
-      LAPACK_LIBS="-L`cd ../ThirdParty/Lapack; pwd` $projectlibs"
+      if test -d ../ThirdParty/Lapack/src ; then
+        LAPACK_LIBS="-L`cd ../ThirdParty/Lapack/src; pwd` $projectlibs"
+      else
+        LAPACK_LIBS="-L`cd ../ThirdParty/Lapack; pwd` $projectlibs"
+      fi
+    else
+      LAPACK_LIBS=`sed -n -e 's/Libs://p' ../ThirdParty/Lapack/coinlapack-uninstalled.pc`
     fi
     LAPACK_DATA=`sed -n -e 's/datadir=//gp' ../ThirdParty/Lapack/coinlapack-uninstalled.pc`
 
     ADDLIBS="$ADDLIBS $LAPACK_LIBS"
+       REQUIREDPACKAGES="$REQUIREDPACKAGES coinlapack"
 
-    REQUIREDPACKAGES="$REQUIREDPACKAGES coinlapack"
 
 
 cat >>confdefs.h <<\_ACEOF
@@ -33250,7 +33264,7 @@ fi
 
 
 
-if test $coin_has_glpk != "yes" ; then
+if test x$coin_has_glpk != "xyes" ; then
 echo "$as_me:$LINENO: checking for COIN-OR module Glpk (fallback)" >&5
 echo $ECHO_N "checking for COIN-OR module Glpk (fallback)... $ECHO_C" >&6
 
@@ -33276,16 +33290,23 @@ if test $coin_has_glpk != "skipping" ; then
     # read CFLAGS and LIBS from coinglpk-uninstalled.pc file
     # add CYGPATH_W cludge into include flags
     # replace -L${libdir} by absolute path to build directory in linker flags
+    # we assume that the build directory is ../ThirdParty/Glpk/src if this directory exists, otherwise we assume that it is ../ThirdParty/Glpk
     GLPK_CFLAGS=`sed -n -e 's/Cflags://' -e 's/-I\([^ ]*\)/-I\`${CYGPATH_W} \1\`/gp' ../ThirdParty/Glpk/coinglpk-uninstalled.pc`
     projectlibs=`sed -n -e 's/Libs://' -e 's/-L\${libdir}//p' ../ThirdParty/Glpk/coinglpk-uninstalled.pc`
     if test "x$projectlibs" != x ; then
-      GLPK_LIBS="-L`cd ../ThirdParty/Glpk; pwd` $projectlibs"
+      if test -d ../ThirdParty/Glpk/src ; then
+        GLPK_LIBS="-L`cd ../ThirdParty/Glpk/src; pwd` $projectlibs"
+      else
+        GLPK_LIBS="-L`cd ../ThirdParty/Glpk; pwd` $projectlibs"
+      fi
+    else
+      GLPK_LIBS=`sed -n -e 's/Libs://p' ../ThirdParty/Glpk/coinglpk-uninstalled.pc`
     fi
     GLPK_DATA=`sed -n -e 's/datadir=//gp' ../ThirdParty/Glpk/coinglpk-uninstalled.pc`
 
     ADDLIBS="$ADDLIBS $GLPK_LIBS"
+       REQUIREDPACKAGES="$REQUIREDPACKAGES coinglpk"
 
-    REQUIREDPACKAGES="$REQUIREDPACKAGES coinglpk"
 
 
 cat >>confdefs.h <<\_ACEOF
@@ -33502,7 +33523,7 @@ fi
 
 
 
-if test $coin_has_sample != "yes" ; then
+if test x$coin_has_sample != "xyes" ; then
 echo "$as_me:$LINENO: checking for COIN-OR module Sample (fallback)" >&5
 echo $ECHO_N "checking for COIN-OR module Sample (fallback)... $ECHO_C" >&6
 
@@ -33528,14 +33549,19 @@ if test $coin_has_sample != "skipping" ; then
     # read CFLAGS and LIBS from coindatasample-uninstalled.pc file
     # add CYGPATH_W cludge into include flags
     # replace -L${libdir} by absolute path to build directory in linker flags
+    # we assume that the build directory is ../Data/Sample/src if this directory exists, otherwise we assume that it is ../Data/Sample
     SAMPLE_CFLAGS=`sed -n -e 's/Cflags://' -e 's/-I\([^ ]*\)/-I\`${CYGPATH_W} \1\`/gp' ../Data/Sample/coindatasample-uninstalled.pc`
     projectlibs=`sed -n -e 's/Libs://' -e 's/-L\${libdir}//p' ../Data/Sample/coindatasample-uninstalled.pc`
     if test "x$projectlibs" != x ; then
-      SAMPLE_LIBS="-L`cd ../Data/Sample; pwd` $projectlibs"
+      if test -d ../Data/Sample/src ; then
+        SAMPLE_LIBS="-L`cd ../Data/Sample/src; pwd` $projectlibs"
+      else
+        SAMPLE_LIBS="-L`cd ../Data/Sample; pwd` $projectlibs"
+      fi
+    else
+      SAMPLE_LIBS=`sed -n -e 's/Libs://p' ../Data/Sample/coindatasample-uninstalled.pc`
     fi
     SAMPLE_DATA=`sed -n -e 's/datadir=//gp' ../Data/Sample/coindatasample-uninstalled.pc`
-
-    ADDLIBS="$ADDLIBS $SAMPLE_LIBS"
 
 
 
@@ -33754,7 +33780,7 @@ fi
 
 
 
-if test $coin_has_netlib != "yes" ; then
+if test x$coin_has_netlib != "xyes" ; then
 echo "$as_me:$LINENO: checking for COIN-OR module Netlib (fallback)" >&5
 echo $ECHO_N "checking for COIN-OR module Netlib (fallback)... $ECHO_C" >&6
 
@@ -33780,14 +33806,19 @@ if test $coin_has_netlib != "skipping" ; then
     # read CFLAGS and LIBS from coindatanetlib-uninstalled.pc file
     # add CYGPATH_W cludge into include flags
     # replace -L${libdir} by absolute path to build directory in linker flags
+    # we assume that the build directory is ../Data/Netlib/src if this directory exists, otherwise we assume that it is ../Data/Netlib
     NETLIB_CFLAGS=`sed -n -e 's/Cflags://' -e 's/-I\([^ ]*\)/-I\`${CYGPATH_W} \1\`/gp' ../Data/Netlib/coindatanetlib-uninstalled.pc`
     projectlibs=`sed -n -e 's/Libs://' -e 's/-L\${libdir}//p' ../Data/Netlib/coindatanetlib-uninstalled.pc`
     if test "x$projectlibs" != x ; then
-      NETLIB_LIBS="-L`cd ../Data/Netlib; pwd` $projectlibs"
+      if test -d ../Data/Netlib/src ; then
+        NETLIB_LIBS="-L`cd ../Data/Netlib/src; pwd` $projectlibs"
+      else
+        NETLIB_LIBS="-L`cd ../Data/Netlib; pwd` $projectlibs"
+      fi
+    else
+      NETLIB_LIBS=`sed -n -e 's/Libs://p' ../Data/Netlib/coindatanetlib-uninstalled.pc`
     fi
     NETLIB_DATA=`sed -n -e 's/datadir=//gp' ../Data/Netlib/coindatanetlib-uninstalled.pc`
-
-    ADDLIBS="$ADDLIBS $NETLIB_LIBS"
 
 
 
