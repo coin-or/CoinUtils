@@ -441,52 +441,17 @@ AC_CHECK_HEADERS([endian.h])
 #############################################################################
 
 AC_COIN_HAS_MODULE_BLAS
+
 AC_COIN_HAS_MODULE_LAPACK
+
 AC_COIN_HAS_MODULE(Glpk,   [coinglpk >= 4.39])
+AC_COIN_HAS_MODULE_FALLBACK([Glpk],   [coinglpk],       [../ThirdParty/Glpk])
+
 AC_COIN_HAS_MODULE(Sample, [coindatasample], [required=0])
+AC_COIN_HAS_MODULE_FALLBACK([Sample], [coindatasample], [../Data/Sample], [required=0])
+
 AC_COIN_HAS_MODULE(Netlib, [coindatanetlib], [required=0])
-
-if test "$coin_has_blas" != yes ; then
-  AC_COIN_HAS_BLAS
-  # now Blas linker flags are in ADDLIBS
-else
-  #for configure
-  AM_CONDITIONAL([COIN_BUILD_BLAS], [test 0 = 1])
-fi
-
-if test "$coin_has_lapack" != yes ; then
-  AC_COIN_HAS_LAPACK
-  # now Lapack linker flags are in ADDLIBS
-else
-  #for configure
-  AM_CONDITIONAL([COIN_BUILD_LAPACK], [test 0 = 1])
-fi
-
-# fallback for Glpk if no pkg-config available
-if test "$coin_has_glpk" != yes ; then
-  coin_glpkobjdir=../ThirdParty/Glpk
-  
-  # if ThirdParty/Glpk is available and configured, then a coinglpk-uninstalled.pc file should have been created
-  if test -r $coin_glpkobjdir/coinglpk-uninstalled.pc ; then
-    # read Glpk CFLAGS and LIBS from coinglpk-uninstalled.pc file
-    # add CYGPATH_W cludge into include flags
-    # replace -L${libdir} by absolute path to GLPK build directory in linker flags
-    [GLPK_CFLAGS=`sed -n -e 's/Cflags://' -e 's/-I\([^ ]*\)/-I\`${CYGPATH_W} \1\`/gp' $coin_glpkobjdir/coinglpk-uninstalled.pc`]
-    GLPK_LIBS=`sed -n -e 's/Libs://' -e 's/-L\${libdir}//p' $coin_glpkobjdir/coinglpk-uninstalled.pc`
-    GLPK_LIBS="-L`cd $coin_glpkobjdir; pwd` $GLPK_LIBS"
-
-    ADDLIBS="$ADDLIBS $GLPK_LIBS"
-    REQUIREDPACKAGES="$REQUIREDPACKAGES coinglpk"
-
-    coin_has_glpk=yes
-    AC_DEFINE([COIN_HAS_GLPK],[1],[If defined, the GLPK Library is available.])
-  fi
-
-  AM_CONDITIONAL([COIN_HAS_GLPK],[test $coin_has_glpk = yes])
-  
-  AC_MSG_CHECKING([whether ThirdParty/Glpk is available and configured])
-  AC_MSG_RESULT([$coin_has_glpk])
-fi
+AC_COIN_HAS_MODULE_FALLBACK([Netlib], [coindatanetlib], [../Data/Netlib], [required=0])
 
 AC_COIN_CHECK_GNU_ZLIB
 AC_COIN_CHECK_GNU_BZLIB

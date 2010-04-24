@@ -15,16 +15,16 @@
 /* Define to the debug verbosity level (0 is no output) */
 #undef COIN_COINUTILS_VERBOSITY
 
-/* If defined, the BLAS Library is available. */
+/* Define to 1 if the Blas module is available */
 #undef COIN_HAS_BLAS
 
 /* Define to 1 if bzlib is available */
 #undef COIN_HAS_BZLIB
 
-/* If defined, the GLPK Library is available. */
+/* Define to 1 if the Glpk module is available */
 #undef COIN_HAS_GLPK
 
-/* If defined, the LAPACK Library is available. */
+/* Define to 1 if the Lapack module is available */
 #undef COIN_HAS_LAPACK
 
 /* Define to 1 if the Netlib module is available */
