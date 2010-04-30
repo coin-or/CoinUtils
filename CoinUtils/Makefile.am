@@ -41,6 +41,7 @@ unitTest: test
 
 clean-local:
 	if test -r test/Makefile; then cd test; $(MAKE) clean; fi
+	rm -f coinutils_addlibs.txt
 
 distclean-local:
 	if test -r test/Makefile; then cd test; $(MAKE) distclean; fi
