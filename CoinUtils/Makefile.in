@@ -306,6 +306,7 @@ pkgconfiglib_DATA = coinutils.pc
 ########################################################################
 #                         Maintainer Stuff                             #
 ########################################################################
+CLEANFILES = coinutils_addlibs.txt
 
 # Files that are generated and should be cleaned with make distclean
 DISTCLEANFILES = $(am__append_3) $(VPATH_DISTCLEANFILES)
@@ -712,6 +713,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -803,7 +805,6 @@ unitTest: test
 
 clean-local:
 	if test -r test/Makefile; then cd test; $(MAKE) clean; fi
-	rm -f coinutils_addlibs.txt
 
 distclean-local:
 	if test -r test/Makefile; then cd test; $(MAKE) distclean; fi

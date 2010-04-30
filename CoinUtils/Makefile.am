@@ -41,7 +41,6 @@ unitTest: test
 
 clean-local:
 	if test -r test/Makefile; then cd test; $(MAKE) clean; fi
-	rm -f coinutils_addlibs.txt
 
 distclean-local:
 	if test -r test/Makefile; then cd test; $(MAKE) distclean; fi
@@ -70,6 +69,8 @@ pkgconfiglib_DATA = coinutils.pc
 ########################################################################
 #                         Maintainer Stuff                             #
 ########################################################################
+
+CLEANFILES = coinutils_addlibs.txt
 
 # Files that are generated and should be cleaned with make distclean
 DISTCLEANFILES =
