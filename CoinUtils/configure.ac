@@ -437,21 +437,14 @@ AC_CHECK_HEADERS([windows.h])
 AC_CHECK_HEADERS([endian.h])
 
 #############################################################################
-#                              COIN components                              #
+#                             COIN-OR components                            #
 #############################################################################
 
 AC_COIN_HAS_MODULE_BLAS
-
 AC_COIN_HAS_MODULE_LAPACK
-
-AC_COIN_HAS_MODULE(Glpk,   [coinglpk >= 4.39])
-AC_COIN_HAS_MODULE_FALLBACK([Glpk],   [coinglpk],       [../ThirdParty/Glpk])
-
-AC_COIN_HAS_MODULE(Sample, [coindatasample], [required=0])
-AC_COIN_HAS_MODULE_FALLBACK([Sample], [coindatasample], [../Data/Sample], [required=0])
-
-AC_COIN_HAS_MODULE(Netlib, [coindatanetlib], [required=0])
-AC_COIN_HAS_MODULE_FALLBACK([Netlib], [coindatanetlib], [../Data/Netlib], [required=0])
+AC_COIN_HAS_MODULE(Glpk,   [coinglpk >= 4.39], [],           [../ThirdParty/Glpk])
+AC_COIN_HAS_MODULE(Sample, [coindatasample],   [required=0], [../Data/Sample])
+AC_COIN_HAS_MODULE(Netlib, [coindatanetlib],   [required=0], [../Data/Netlib])
 
 AC_COIN_CHECK_GNU_ZLIB
 AC_COIN_CHECK_GNU_BZLIB
@@ -469,7 +462,6 @@ AC_SUBST(ADDLIBS)
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  test/Makefile
-		 coinutils_addlibs.txt
                  coinutils.pc coinutils-uninstalled.pc])
 
 # Here put the location and name of the configuration header file

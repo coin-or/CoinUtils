@@ -52,11 +52,16 @@ uninstall-local: uninstall-doc
 .PHONY: test unitTest
 
 ########################################################################
-#                  Installation of the addlibs file                    #
+#                  Installation of the addlibs and .pc file            #
 ########################################################################
 
+if COIN_HAS_PKGCONFIG
 addlibsdir = $(datadir)/coin/doc/CoinUtils
 addlibs_DATA = coinutils_addlibs.txt
+
+coinutils_addlibs.txt : coinutils.pc
+	PKG_CONFIG_PATH=.:$(libdir)/pkgconfig:${PKG_CONFIG_PATH} $(PKG_CONFIG) --libs coinutils > coinutils_addlibs.txt
+endif
 
 pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
