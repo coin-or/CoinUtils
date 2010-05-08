@@ -1,4 +1,4 @@
-# Copyright (C) 2006 International Business Machines.
+# Copyright (C) 2006, 2009 International Business Machines.
 # All Rights Reserved.
 # This file is distributed under the Common Public License.
 
@@ -12,10 +12,10 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([CoinUtils],[2.1.0],[coin-utils@lists.coin-or.org])
+AC_INIT([CoinUtils],[trunk],[coin-utils@lists.coin-or.org])
 
 AC_COPYRIGHT([
-Copyright 2006 International Business Machines and others.
+Copyright 2006, 2009 International Business Machines and others.
 All Rights Reserved.
 This file is part of the open source package Coin which is distributed
 under the Common Public License.])
@@ -39,17 +39,15 @@ AC_PREFIX_DEFAULT([`pwd`])
 AC_COIN_CREATE_LIBTOOL
 
 #############################################################################
-#             Check which ThirdParty sources are available                  #
+#         Check which subprojects might need to be configured               #
 #############################################################################
 
-AC_COIN_THIRDPARTY_SUBDIRS([Glpk],[ThirdParty/Glpk],[glpk/src/glplpx01.c])
-
-#############################################################################
-#                  Check which subprojects are there                        #
-#############################################################################
-
-AC_COIN_MAIN_SUBDIRS(CoinUtils)
-AC_COIN_MAIN_SUBDIRS(Data/Sample)
+AC_COIN_MAIN_PACKAGEDIR(Glpk,ThirdParty,[glpk/src/glplpx01.c],[coinglpk])
+AC_COIN_MAIN_PACKAGEDIR(Blas,ThirdParty,[daxpy.f],[coinblas])
+AC_COIN_MAIN_PACKAGEDIR(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f],[coinlapack])
+AC_COIN_MAIN_PACKAGEDIR(Sample,Data,,coindatasample)
+AC_COIN_MAIN_PACKAGEDIR(Netlib,Data,,coindatanetlib)
+AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #

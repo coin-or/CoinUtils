@@ -45,24 +45,32 @@ clean-local:
 distclean-local:
 	if test -r test/Makefile; then cd test; $(MAKE) distclean; fi
 
+install-exec-local: install-doc
+
+uninstall-local: uninstall-doc
+
 .PHONY: test unitTest
 
 ########################################################################
-#                  Installation of the addlibs file                    #
+#                  Installation of the addlibs and .pc file            #
 ########################################################################
 
-addlibsfile = coinutils_addlibs.txt
-addlibsdir = $(prefix)/share/doc/coin/$(PACKAGE_NAME)/
+if COIN_HAS_PKGCONFIG
+addlibsdir = $(datadir)/coin/doc/CoinUtils
+addlibs_DATA = coinutils_addlibs.txt
 
-install-exec-local: install-doc
-	$(install_sh_DATA) $(addlibsfile) $(DESTDIR)$(addlibsdir)/$(addlibsfile)
+coinutils_addlibs.txt : coinutils.pc
+	PKG_CONFIG_PATH=.:@COIN_PKG_CONFIG_PATH@ $(PKG_CONFIG) --libs coinutils > coinutils_addlibs.txt
+endif
 
-uninstall-local: uninstall-doc
-	rm -f $(DESTDIR)$(addlibsdir)/$(addlibsfile)
+pkgconfiglibdir = $(libdir)/pkgconfig
+pkgconfiglib_DATA = coinutils.pc
 
 ########################################################################
 #                         Maintainer Stuff                             #
 ########################################################################
+
+CLEANFILES = coinutils_addlibs.txt
 
 # Files that are generated and should be cleaned with make distclean
 DISTCLEANFILES =
