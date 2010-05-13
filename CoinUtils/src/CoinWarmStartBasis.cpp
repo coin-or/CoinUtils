@@ -374,6 +374,8 @@ void CoinWarmStartBasis::mergeBasis (const CoinWarmStartBasis *src,
     { int srcNdx = (*xferSpec).first ;
       int tgtNdx = (*xferSpec).second ;
       int runLen = (*xferSpec).third ;
+      // adjust in case Pierre has changed size
+      runLen=CoinMin(runLen,srcRows-srcNdx);
       assert(srcNdx >= 0 && srcNdx+runLen <= srcRows) ;
       assert(tgtNdx >= 0 && tgtNdx+runLen <= getNumArtificial()) ;
       for (int i = 0 ; i < runLen ; i++)
