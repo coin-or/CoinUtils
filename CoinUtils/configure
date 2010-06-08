@@ -30726,7 +30726,7 @@ if test -n "$PKG_CONFIG" ; then
      coin_has_blas=yes
         echo "$as_me:$LINENO: result: yes: $BLAS_VERSIONS" >&5
 echo "${ECHO_T}yes: $BLAS_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES coinblas"
+        REQUIREDPACKAGES="coinblas $REQUIREDPACKAGES"
 
 
   else
@@ -30791,7 +30791,7 @@ if test $coin_has_blas != "skipping" ; then
     BLAS_DATA=`sed -n -e 's/datadir=//gp' $blasdir/coinblas-uninstalled.pc`
 
     ADDLIBS="$ADDLIBS $BLAS_LIBS"
-       REQUIREDPACKAGES="$REQUIREDPACKAGES coinblas"
+       REQUIREDPACKAGES="coinblas $REQUIREDPACKAGES"
 
 
 
@@ -32958,7 +32958,7 @@ if test -n "$PKG_CONFIG" ; then
      coin_has_lapack=yes
         echo "$as_me:$LINENO: result: yes: $LAPACK_VERSIONS" >&5
 echo "${ECHO_T}yes: $LAPACK_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES coinlapack"
+        REQUIREDPACKAGES="coinlapack $REQUIREDPACKAGES"
 
 
   else
@@ -33023,7 +33023,7 @@ if test $coin_has_lapack != "skipping" ; then
     LAPACK_DATA=`sed -n -e 's/datadir=//gp' $lapackdir/coinlapack-uninstalled.pc`
 
     ADDLIBS="$ADDLIBS $LAPACK_LIBS"
-       REQUIREDPACKAGES="$REQUIREDPACKAGES coinlapack"
+       REQUIREDPACKAGES="coinlapack $REQUIREDPACKAGES"
 
 
 
@@ -33123,7 +33123,7 @@ cat >>confdefs.h <<\_ACEOF
 #define COIN_HAS_LAPACK 1
 _ACEOF
 
-  LAPACK_LIBS="$use_blas"
+  LAPACK_LIBS="$use_lapack"
   LAPACK_CFLAGS=
   LAPACK_DATA=
 
@@ -33227,7 +33227,7 @@ if test -n "$PKG_CONFIG" ; then
      coin_has_glpk=yes
         echo "$as_me:$LINENO: result: yes: $GLPK_VERSIONS" >&5
 echo "${ECHO_T}yes: $GLPK_VERSIONS" >&6
-        REQUIREDPACKAGES="$REQUIREDPACKAGES coinglpk >= 4.39"
+        REQUIREDPACKAGES="coinglpk >= 4.39 $REQUIREDPACKAGES"
 
 
   else
@@ -33292,7 +33292,7 @@ if test $coin_has_glpk != "skipping" ; then
     GLPK_DATA=`sed -n -e 's/datadir=//gp' ../ThirdParty/Glpk/coinglpk-uninstalled.pc`
 
     ADDLIBS="$ADDLIBS $GLPK_LIBS"
-       REQUIREDPACKAGES="$REQUIREDPACKAGES coinglpk"
+       REQUIREDPACKAGES="coinglpk $REQUIREDPACKAGES"
 
 
 
