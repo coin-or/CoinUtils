@@ -31379,7 +31379,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; use_lapack=ok
+echo "${ECHO_T}yes" >&6; use_lapack="$BLAS_LIBS"
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -31470,7 +31470,7 @@ rm -f conftest.err conftest.$ac_objext \
     fi
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; use_lapack=ok
+echo "${ECHO_T}yes" >&6; use_lapack="$BLAS_LIBS"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -31522,7 +31522,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; use_lapack=ok
+echo "${ECHO_T}yes" >&6; use_lapack="$BLAS_LIBS"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -31620,7 +31620,7 @@ rm -f conftest.err conftest.$ac_objext \
     fi
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; use_lapack=ok
+echo "${ECHO_T}yes" >&6; use_lapack="$BLAS_LIBS"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -31672,7 +31672,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6; use_lapack=ok
+echo "${ECHO_T}yes" >&6; use_lapack="$BLAS_LIBS"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
