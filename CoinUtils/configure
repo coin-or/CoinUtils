@@ -30676,7 +30676,7 @@ if test "${with_blas_lib+set}" = set; then
   withval="$with_blas_lib"
   coin_has_blas=yes
        BLAS_LIBS="$withval"
-       ADDLIBS="$ADDLIBS $withval"
+       ADDLIBS="$withval $ADDLIBS"
 
 fi;
 
@@ -30790,7 +30790,7 @@ if test $coin_has_blas != "skipping" ; then
     fi
     BLAS_DATA=`sed -n -e 's/datadir=//gp' $blasdir/coinblas-uninstalled.pc`
 
-    ADDLIBS="$ADDLIBS $BLAS_LIBS"
+    ADDLIBS="$BLAS_LIBS $ADDLIBS"
        REQUIREDPACKAGES="coinblas $REQUIREDPACKAGES"
 
 
@@ -32908,7 +32908,7 @@ if test "${with_lapack_lib+set}" = set; then
   withval="$with_lapack_lib"
   coin_has_lapack=yes
        LAPACK_LIBS="$withval"
-       ADDLIBS="$ADDLIBS $withval"
+       ADDLIBS="$withval $ADDLIBS"
 
 fi;
 
@@ -33022,7 +33022,7 @@ if test $coin_has_lapack != "skipping" ; then
     fi
     LAPACK_DATA=`sed -n -e 's/datadir=//gp' $lapackdir/coinlapack-uninstalled.pc`
 
-    ADDLIBS="$ADDLIBS $LAPACK_LIBS"
+    ADDLIBS="$LAPACK_LIBS $ADDLIBS"
        REQUIREDPACKAGES="coinlapack $REQUIREDPACKAGES"
 
 
@@ -33177,7 +33177,7 @@ if test "${with_glpk_lib+set}" = set; then
   withval="$with_glpk_lib"
   coin_has_glpk=yes
        GLPK_LIBS="$withval"
-       ADDLIBS="$ADDLIBS $withval"
+       ADDLIBS="$withval $ADDLIBS"
 
 fi;
 
@@ -33291,7 +33291,7 @@ if test $coin_has_glpk != "skipping" ; then
     fi
     GLPK_DATA=`sed -n -e 's/datadir=//gp' ../ThirdParty/Glpk/coinglpk-uninstalled.pc`
 
-    ADDLIBS="$ADDLIBS $GLPK_LIBS"
+    ADDLIBS="$GLPK_LIBS $ADDLIBS"
        REQUIREDPACKAGES="coinglpk $REQUIREDPACKAGES"
 
 
