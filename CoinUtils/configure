@@ -472,7 +472,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os ADDLIBS FADDLIBS ALWAYS_FALSE_TRUE ALWAYS_FALSE_FALSE have_svnversion COINUTILS_SVN_REV CDEFS ADD_CFLAGS DBG_CFLAGS OPT_CFLAGS sol_cc_compiler CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT MPICC CXXDEFS ADD_CXXFLAGS DBG_CXXFLAGS OPT_CXXFLAGS CXX CXXFLAGS ac_ct_CXX MPICXX F77 ADD_FFLAGS DBG_FFLAGS OPT_FFLAGS FFLAGS ac_ct_F77 MPIF77 FLIBS EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT LIBTOOLM4 have_autoconf have_automake have_svn BUILDTOOLSDIR AUX_DIR abs_source_dir abs_lib_dir abs_include_dir abs_bin_dir HAVE_EXTERNALS_TRUE HAVE_EXTERNALS_FALSE host host_cpu host_vendor host_os LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP LIBTOOL ac_c_preproc_warn_flag ac_cxx_preproc_warn_flag RPATH_FLAGS LT_LDFLAGS PKG_CONFIG ac_pt_PKG_CONFIG COIN_HAS_PKGCONFIG_TRUE COIN_HAS_PKGCONFIG_FALSE COIN_PKG_CONFIG_PATH BLAS_LIBS BLAS_CFLAGS BLAS_DATA REQUIREDPACKAGES COIN_HAS_BLAS_TRUE COIN_HAS_BLAS_FALSE LAPACK_LIBS LAPACK_CFLAGS LAPACK_DATA COIN_HAS_LAPACK_TRUE COIN_HAS_LAPACK_FALSE GLPK_LIBS GLPK_CFLAGS GLPK_DATA COIN_HAS_GLPK_TRUE COIN_HAS_GLPK_FALSE SAMPLE_LIBS SAMPLE_CFLAGS SAMPLE_DATA COIN_HAS_SAMPLE_TRUE COIN_HAS_SAMPLE_FALSE NETLIB_LIBS NETLIB_CFLAGS NETLIB_DATA COIN_HAS_NETLIB_TRUE COIN_HAS_NETLIB_FALSE COIN_HAS_ZLIB_TRUE COIN_HAS_ZLIB_FALSE LIBEXT VPATH_DISTCLEANFILES ABSBUILDDIR LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os ADDLIBS PCADDLIBS FADDLIBS ALWAYS_FALSE_TRUE ALWAYS_FALSE_FALSE have_svnversion COINUTILS_SVN_REV CDEFS ADD_CFLAGS DBG_CFLAGS OPT_CFLAGS sol_cc_compiler CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT MPICC CXXDEFS ADD_CXXFLAGS DBG_CXXFLAGS OPT_CXXFLAGS CXX CXXFLAGS ac_ct_CXX MPICXX F77 ADD_FFLAGS DBG_FFLAGS OPT_FFLAGS FFLAGS ac_ct_F77 MPIF77 FLIBS EGREP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT LIBTOOLM4 have_autoconf have_automake have_svn BUILDTOOLSDIR AUX_DIR abs_source_dir abs_lib_dir abs_include_dir abs_bin_dir HAVE_EXTERNALS_TRUE HAVE_EXTERNALS_FALSE host host_cpu host_vendor host_os LN_S ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP LIBTOOL ac_c_preproc_warn_flag ac_cxx_preproc_warn_flag RPATH_FLAGS LT_LDFLAGS PKG_CONFIG ac_pt_PKG_CONFIG COIN_HAS_PKGCONFIG_TRUE COIN_HAS_PKGCONFIG_FALSE COIN_PKG_CONFIG_PATH BLAS_LIBS BLAS_CFLAGS BLAS_DATA REQUIREDPACKAGES COIN_HAS_BLAS_TRUE COIN_HAS_BLAS_FALSE LAPACK_LIBS LAPACK_CFLAGS LAPACK_DATA COIN_HAS_LAPACK_TRUE COIN_HAS_LAPACK_FALSE GLPK_LIBS GLPK_CFLAGS GLPK_DATA COIN_HAS_GLPK_TRUE COIN_HAS_GLPK_FALSE SAMPLE_LIBS SAMPLE_CFLAGS SAMPLE_DATA COIN_HAS_SAMPLE_TRUE COIN_HAS_SAMPLE_FALSE NETLIB_LIBS NETLIB_CFLAGS NETLIB_DATA COIN_HAS_NETLIB_TRUE COIN_HAS_NETLIB_FALSE COIN_HAS_ZLIB_TRUE COIN_HAS_ZLIB_FALSE LIBEXT VPATH_DISTCLEANFILES ABSBUILDDIR LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1732,6 +1732,12 @@ build_os=`echo $ac_cv_build | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 # retrieved by svn if they are not there yet.
 # Initialize the ADDLIBS variable
 ADDLIBS="-lm $LIBS"
+
+
+# Initialize the PCADDLIBS variable.
+# This variable is used to setup library flags for the "Libs:" section in a .pc file.
+# In certain cases, it may contain more flags than the ADDLIBS variable.
+PCADDLIBS=""
 
 
 # As backup, we make sure we don't loose an FLIBS if it has been set
@@ -4393,7 +4399,7 @@ fi
 
 
 # Provide some information about the compiler.
-echo "$as_me:4396:" \
+echo "$as_me:4402:" \
      "checking for Fortran 77 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -4959,7 +4965,7 @@ _ACEOF
 # flags.
 ac_save_FFLAGS=$FFLAGS
 FFLAGS="$FFLAGS $ac_verb"
-(eval echo $as_me:4962: \"$ac_link\") >&5
+(eval echo $as_me:4968: \"$ac_link\") >&5
 ac_f77_v_output=`eval $ac_link 5>&1 2>&1 | grep -v 'Driving:'`
 echo "$ac_f77_v_output" >&5
 FFLAGS=$ac_save_FFLAGS
@@ -5037,7 +5043,7 @@ _ACEOF
 # flags.
 ac_save_FFLAGS=$FFLAGS
 FFLAGS="$FFLAGS $ac_cv_prog_f77_v"
-(eval echo $as_me:5040: \"$ac_link\") >&5
+(eval echo $as_me:5046: \"$ac_link\") >&5
 ac_f77_v_output=`eval $ac_link 5>&1 2>&1 | grep -v 'Driving:'`
 echo "$ac_f77_v_output" >&5
 FFLAGS=$ac_save_FFLAGS
@@ -7531,7 +7537,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7534 "configure"' > conftest.$ac_ext
+  echo '#line 7540 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9511,11 +9517,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9514: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9520: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9518: \$? = $ac_status" >&5
+   echo "$as_me:9524: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9779,11 +9785,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9782: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9788: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9786: \$? = $ac_status" >&5
+   echo "$as_me:9792: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9883,11 +9889,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9886: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9892: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9890: \$? = $ac_status" >&5
+   echo "$as_me:9896: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12300,7 +12306,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 12303 "configure"
+#line 12309 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12400,7 +12406,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 12403 "configure"
+#line 12409 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14760,11 +14766,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14763: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14769: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14767: \$? = $ac_status" >&5
+   echo "$as_me:14773: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14864,11 +14870,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14867: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14873: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14871: \$? = $ac_status" >&5
+   echo "$as_me:14877: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16434,11 +16440,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16437: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16443: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16441: \$? = $ac_status" >&5
+   echo "$as_me:16447: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16538,11 +16544,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16541: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16547: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16545: \$? = $ac_status" >&5
+   echo "$as_me:16551: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -18745,11 +18751,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18748: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18754: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18752: \$? = $ac_status" >&5
+   echo "$as_me:18758: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -19013,11 +19019,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:19016: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:19022: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:19020: \$? = $ac_status" >&5
+   echo "$as_me:19026: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -19117,11 +19123,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:19120: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:19126: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:19124: \$? = $ac_status" >&5
+   echo "$as_me:19130: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -28740,7 +28746,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_blas $ADDLIBS"
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -28835,7 +28840,6 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_blas $ADDLIBS"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -28888,7 +28892,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_blas $ADDLIBS"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -28993,7 +28996,6 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_blas $ADDLIBS"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -29046,7 +29048,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_blas $ADDLIBS"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -29133,8 +29134,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas=-lcomplib.sgimath;
-                         ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                         use_blas="-lcomplib.sgimath"
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -29227,8 +29227,7 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas=-lcomplib.sgimath;
-                         ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                         use_blas="-lcomplib.sgimath"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -29281,8 +29280,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas=-lcomplib.sgimath;
-                         ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                         use_blas="-lcomplib.sgimath"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -29383,8 +29381,7 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas=-lcomplib.sgimath;
-                         ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                         use_blas="-lcomplib.sgimath"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -29437,8 +29434,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas=-lcomplib.sgimath;
-                         ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                         use_blas="-lcomplib.sgimath"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -29523,7 +29519,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                          use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
 			 coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -29618,7 +29613,6 @@ rm -f conftest.err conftest.$ac_objext \
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                          use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
 			 coin_need_flibs=yes
     else
       if test x"$FLIBS" != x; then
@@ -29673,7 +29667,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                          use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
 			 coin_need_flibs=yes
                      coin_need_flibs=yes
 else
@@ -29776,7 +29769,6 @@ rm -f conftest.err conftest.$ac_objext \
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                          use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
 			 coin_need_flibs=yes
     else
       if test x"$FLIBS" != x; then
@@ -29831,7 +29823,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                          use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
 			 coin_need_flibs=yes
                      coin_need_flibs=yes
 else
@@ -29917,7 +29908,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                              use_blas='mkl_intel_c.lib mkl_sequential.lib mkl_core.lib'
-                             ADDLIBS="mkl_intel_c.lib mkl_sequential.lib mkl_core.lib $ADDLIBS"
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -30011,7 +30001,6 @@ rm -f conftest.err conftest.$ac_objext \
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                              use_blas='mkl_intel_c.lib mkl_sequential.lib mkl_core.lib'
-                             ADDLIBS="mkl_intel_c.lib mkl_sequential.lib mkl_core.lib $ADDLIBS"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -30065,7 +30054,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                              use_blas='mkl_intel_c.lib mkl_sequential.lib mkl_core.lib'
-                             ADDLIBS="mkl_intel_c.lib mkl_sequential.lib mkl_core.lib $ADDLIBS"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -30167,7 +30155,6 @@ rm -f conftest.err conftest.$ac_objext \
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                              use_blas='mkl_intel_c.lib mkl_sequential.lib mkl_core.lib'
-                             ADDLIBS="mkl_intel_c.lib mkl_sequential.lib mkl_core.lib $ADDLIBS"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -30221,7 +30208,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
                              use_blas='mkl_intel_c.lib mkl_sequential.lib mkl_core.lib'
-                             ADDLIBS="mkl_intel_c.lib mkl_sequential.lib mkl_core.lib $ADDLIBS"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -30302,7 +30288,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-lblas $ADDLIBS"
 		       use_blas='-lblas'
 else
   echo "$as_me: failed program was:" >&5
@@ -30396,7 +30381,6 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-lblas $ADDLIBS"
 		       use_blas='-lblas'
     else
       if test x"$FLIBS" != x; then
@@ -30450,7 +30434,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-lblas $ADDLIBS"
 		       use_blas='-lblas'
                      coin_need_flibs=yes
 else
@@ -30552,7 +30535,6 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-lblas $ADDLIBS"
 		       use_blas='-lblas'
     else
       if test x"$FLIBS" != x; then
@@ -30606,7 +30588,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-lblas $ADDLIBS"
 		       use_blas='-lblas'
                      coin_need_flibs=yes
 else
@@ -30667,7 +30648,7 @@ BLAS_DATA=
 
 
 
-#check if user provided LIBS, CFLAGS, and DATA for module
+#check if user provided LIBS, CFLAGS, or DATA for module
 if test $coin_has_blas != skipping; then
 
 
@@ -30676,7 +30657,7 @@ if test "${with_blas_lib+set}" = set; then
   withval="$with_blas_lib"
   coin_has_blas=yes
        BLAS_LIBS="$withval"
-       ADDLIBS="$withval $ADDLIBS"
+       PCADDLIBS="$withval $PCADDLIBS"
 
 fi;
 
@@ -30790,8 +30771,7 @@ if test $coin_has_blas != "skipping" ; then
     fi
     BLAS_DATA=`sed -n -e 's/datadir=//gp' $blasdir/coinblas-uninstalled.pc`
 
-    ADDLIBS="$BLAS_LIBS $ADDLIBS"
-       REQUIREDPACKAGES="coinblas $REQUIREDPACKAGES"
+    REQUIREDPACKAGES="coinblas $REQUIREDPACKAGES"
 
 
 
@@ -30897,6 +30877,7 @@ _ACEOF
 
 
 
+  PCADDLIBS="$use_blas $PCADDLIBS"
 
 else
   coin_has_blas=no
@@ -30990,7 +30971,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_lapack $ADDLIBS"
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -31085,7 +31065,6 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_lapack $ADDLIBS"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -31138,7 +31117,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_lapack $ADDLIBS"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -31243,7 +31221,6 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_lapack $ADDLIBS"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -31296,7 +31273,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                       ADDLIBS="$use_lapack $ADDLIBS"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -31330,7 +31306,7 @@ else
     echo "$as_me:$LINENO: checking whether LAPACK is already available with BLAS library" >&5
 echo $ECHO_N "checking whether LAPACK is already available with BLAS library... $ECHO_C" >&6
     coin_save_LIBS="$LIBS"
-    LIBS="$ADDLIBS $LIBS"
+    LIBS="$BLAS_LIBS $LIBS"
     case $ac_ext in
   f)
     cat >conftest.$ac_ext <<_ACEOF
@@ -31752,8 +31728,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack=-lcomplib.sgimath;
-                           ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                           use_lapack="-lcomplib.sgimath;"
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
@@ -31846,8 +31821,7 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack=-lcomplib.sgimath;
-                           ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                           use_lapack="-lcomplib.sgimath;"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -31900,8 +31874,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack=-lcomplib.sgimath;
-                           ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                           use_lapack="-lcomplib.sgimath;"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -32002,8 +31975,7 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack=-lcomplib.sgimath;
-                           ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                           use_lapack="-lcomplib.sgimath;"
     else
       if test x"$FLIBS" != x; then
         flink_save_libs="$LIBS"
@@ -32056,8 +32028,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                           use_lapack=-lcomplib.sgimath;
-                           ADDLIBS="-lcomplib.sgimath $ADDLIBS"
+                           use_lapack="-lcomplib.sgimath;"
                      coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -32136,8 +32107,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
+                         use_lapack='-lsunperf'
 			 coin_need_flibs=yes
 else
   echo "$as_me: failed program was:" >&5
@@ -32231,8 +32201,7 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
+                         use_lapack='-lsunperf'
 			 coin_need_flibs=yes
     else
       if test x"$FLIBS" != x; then
@@ -32286,8 +32255,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
+                         use_lapack='-lsunperf'
 			 coin_need_flibs=yes
                      coin_need_flibs=yes
 else
@@ -32389,8 +32357,7 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
+                         use_lapack='-lsunperf'
 			 coin_need_flibs=yes
     else
       if test x"$FLIBS" != x; then
@@ -32444,8 +32411,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-                         use_blas='-lsunperf'
-                         ADDLIBS="-lsunperf $ADDLIBS"
+                         use_lapack='-lsunperf'
 			 coin_need_flibs=yes
                      coin_need_flibs=yes
 else
@@ -32533,7 +32499,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-llapack $ADDLIBS"
 		       use_lapack='-llapack'
 else
   echo "$as_me: failed program was:" >&5
@@ -32627,7 +32592,6 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-llapack $ADDLIBS"
 		       use_lapack='-llapack'
     else
       if test x"$FLIBS" != x; then
@@ -32681,7 +32645,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-llapack $ADDLIBS"
 		       use_lapack='-llapack'
                      coin_need_flibs=yes
 else
@@ -32783,7 +32746,6 @@ rm -f conftest.err conftest.$ac_objext \
     if test $flink_try = yes; then
       echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-llapack $ADDLIBS"
 		       use_lapack='-llapack'
     else
       if test x"$FLIBS" != x; then
@@ -32837,7 +32799,6 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   LIBS="$flink_save_libs"
                      echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
-		       ADDLIBS="-llapack $ADDLIBS"
 		       use_lapack='-llapack'
                      coin_need_flibs=yes
 else
@@ -32899,7 +32860,7 @@ LAPACK_DATA=
 
 
 
-#check if user provided LIBS, CFLAGS, and DATA for module
+#check if user provided LIBS, CFLAGS, or DATA for module
 if test $coin_has_lapack != skipping; then
 
 
@@ -32908,7 +32869,7 @@ if test "${with_lapack_lib+set}" = set; then
   withval="$with_lapack_lib"
   coin_has_lapack=yes
        LAPACK_LIBS="$withval"
-       ADDLIBS="$withval $ADDLIBS"
+       PCADDLIBS="$withval $PCADDLIBS"
 
 fi;
 
@@ -33022,8 +32983,7 @@ if test $coin_has_lapack != "skipping" ; then
     fi
     LAPACK_DATA=`sed -n -e 's/datadir=//gp' $lapackdir/coinlapack-uninstalled.pc`
 
-    ADDLIBS="$LAPACK_LIBS $ADDLIBS"
-       REQUIREDPACKAGES="coinlapack $REQUIREDPACKAGES"
+    REQUIREDPACKAGES="coinlapack $REQUIREDPACKAGES"
 
 
 
@@ -33129,6 +33089,9 @@ _ACEOF
 
 
 
+  if test "x$LAPACK_LIBS" != "x$BLAS_LIBS"; then
+    PCADDLIBS="$LAPACK_LIBS $PCADDLIBS"
+  fi
 
 else
   coin_has_lapack=no
@@ -33168,7 +33131,7 @@ GLPK_DATA=
 
 
 
-#check if user provided LIBS, CFLAGS, and DATA for module
+#check if user provided LIBS, CFLAGS, or DATA for module
 if test $coin_has_glpk != skipping; then
 
 
@@ -33177,7 +33140,7 @@ if test "${with_glpk_lib+set}" = set; then
   withval="$with_glpk_lib"
   coin_has_glpk=yes
        GLPK_LIBS="$withval"
-       ADDLIBS="$withval $ADDLIBS"
+       PCADDLIBS="$withval $PCADDLIBS"
 
 fi;
 
@@ -33291,8 +33254,7 @@ if test $coin_has_glpk != "skipping" ; then
     fi
     GLPK_DATA=`sed -n -e 's/datadir=//gp' ../ThirdParty/Glpk/coinglpk-uninstalled.pc`
 
-    ADDLIBS="$GLPK_LIBS $ADDLIBS"
-       REQUIREDPACKAGES="coinglpk $REQUIREDPACKAGES"
+    REQUIREDPACKAGES="coinglpk $REQUIREDPACKAGES"
 
 
 
@@ -33397,7 +33359,7 @@ SAMPLE_DATA=
 
 
 
-#check if user provided LIBS, CFLAGS, and DATA for module
+#check if user provided LIBS, CFLAGS, or DATA for module
 if test $coin_has_sample != skipping; then
 
 
@@ -33624,7 +33586,7 @@ NETLIB_DATA=
 
 
 
-#check if user provided LIBS, CFLAGS, and DATA for module
+#check if user provided LIBS, CFLAGS, or DATA for module
 if test $coin_has_netlib != skipping; then
 
 
@@ -34418,6 +34380,7 @@ if test x$coin_skip_ac_output != xyes; then
   if test x"$coin_need_flibs" = xyes; then
     ADDLIBS="$ADDLIBS $FLIBS"
   fi
+  PCADDLIBS="$PCADDLIBS $ADDLIBS"
 
   # library extension
 
@@ -35246,6 +35209,7 @@ s,@build_cpu@,$build_cpu,;t t
 s,@build_vendor@,$build_vendor,;t t
 s,@build_os@,$build_os,;t t
 s,@ADDLIBS@,$ADDLIBS,;t t
+s,@PCADDLIBS@,$PCADDLIBS,;t t
 s,@FADDLIBS@,$FADDLIBS,;t t
 s,@ALWAYS_FALSE_TRUE@,$ALWAYS_FALSE_TRUE,;t t
 s,@ALWAYS_FALSE_FALSE@,$ALWAYS_FALSE_FALSE,;t t
