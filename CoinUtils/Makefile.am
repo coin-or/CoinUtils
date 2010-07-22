@@ -55,16 +55,17 @@ uninstall-local: uninstall-doc
 #                  Installation of the addlibs and .pc file            #
 ########################################################################
 
-if COIN_HAS_PKGCONFIG
-addlibsdir = $(datadir)/coin/doc/CoinUtils
-addlibs_DATA = coinutils_addlibs.txt
-
-coinutils_addlibs.txt : coinutils.pc
-	PKG_CONFIG_PATH=.:@COIN_PKG_CONFIG_PATH@ $(PKG_CONFIG) --libs coinutils > coinutils_addlibs.txt
-endif
-
 pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
+
+if COIN_HAS_PKGCONFIG
+addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
+	
+install-data-hook:
+	@$(mkdir_p) "$(addlibsdir)"
+	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@ PKG_CONFIG_DISABLE_UNINSTALLED= \
+	$(PKG_CONFIG) --libs coinutils > $(addlibsdir)/coinutils_addlibs.txt
+endif
 
 ########################################################################
 #                         Maintainer Stuff                             #
