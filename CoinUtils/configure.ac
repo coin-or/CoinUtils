@@ -442,9 +442,9 @@ AC_CHECK_HEADERS([endian.h])
 
 AC_COIN_HAS_MODULE_BLAS
 AC_COIN_HAS_MODULE_LAPACK
-AC_COIN_HAS_MODULE(Glpk,   [coinglpk >= 4.39], [],           [../ThirdParty/Glpk])
-AC_COIN_HAS_MODULE(Sample, [coindatasample],   [required=0], [../Data/Sample])
-AC_COIN_HAS_MODULE(Netlib, [coindatanetlib],   [required=0], [../Data/Netlib])
+AC_COIN_HAS_MODULE(Glpk,   [coinglpk >= 4.39])
+AC_COIN_HAS_MODULE(Sample, [coindatasample],   [required=0])
+AC_COIN_HAS_MODULE(Netlib, [coindatanetlib],   [required=0])
 
 AC_COIN_CHECK_GNU_ZLIB
 AC_COIN_CHECK_GNU_BZLIB
