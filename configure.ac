@@ -49,6 +49,12 @@ AC_COIN_MAIN_PACKAGEDIR(Sample,Data,,coindatasample)
 AC_COIN_MAIN_PACKAGEDIR(Netlib,Data,,coindatanetlib)
 AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
 
+#############################################################################
+#                  Check for doxygen                                        #
+#############################################################################
+
+AC_COIN_DOXYGEN()
+
 ##############################################################################
 #                   Finishing up by writing all the output                   #
 ##############################################################################
@@ -56,6 +62,7 @@ AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
 # Here list all the files that configure should create (except for the
 # configuration header file)
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Finally, we let configure write all the output...
 AC_COIN_FINALIZE

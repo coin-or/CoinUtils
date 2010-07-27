@@ -26,6 +26,7 @@ CoinUtils/config.sub -text
 CoinUtils/configure -text
 CoinUtils/configure.ac -text
 CoinUtils/depcomp -text
+CoinUtils/doxydoc/doxygen.conf.in -text
 CoinUtils/inc/config_coinutils.h.in -text
 CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
@@ -62,6 +63,6 @@ CoinUtils/test/plan.mod -text
 /configure -text
 /configure.ac -text
 /depcomp -text
-doxydoc/doxygen.conf -text
+doxydoc/doxygen.conf.in -text
 /install-sh -text
 /missing -text

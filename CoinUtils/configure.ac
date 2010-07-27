@@ -453,6 +453,12 @@ AC_COIN_VPATH_LINK(test/plan.mod)
 
 AC_SUBST(ADDLIBS)
 
+#############################################################################
+#                  Check for doxygen                                        #
+#############################################################################
+
+AC_COIN_DOXYGEN()
+
 ##############################################################################
 #                   Finishing up by writing all the output                   #
 ##############################################################################
@@ -463,6 +469,7 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  test/Makefile
                  coinutils.pc coinutils-uninstalled.pc])
+AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Here put the location and name of the configuration header file
 AC_CONFIG_HEADER([inc/config_coinutils.h])
