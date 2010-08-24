@@ -837,7 +837,7 @@ CoinFactorization::restoreFactorization (const char * file , bool factorIt )
   if (fp) {
     // Get rid of current
     gutsOfDestructor();
-    int newSize=0; // for checking - should be same
+    CoinBigIndex newSize=0; // for checking - should be same
     // Restore so we can pick up scalars
     char * first = reinterpret_cast<char *> ( &pivotTolerance_);
     char * last = reinterpret_cast<char *> ( &biasLU_);

@@ -335,13 +335,13 @@ protected:
     }
     /** After changing data in the top node, fix the heap */
     virtual void fixTop() {
-	const int size = candidateList_.size();
+	const size_t size = candidateList_.size();
 	if (size > 1) {
 	    CoinTreeSiblings** candidates = &candidateList_[0];
 	    CoinTreeSiblings* s = candidates[0];
 	    --candidates;
-	    int pos = 1;
-	    int ch;
+	    size_t pos = 1;
+	    size_t ch;
 	    for (ch = 2; ch < size; pos = ch, ch *= 2) {
 		if (comp_(candidates[ch+1], candidates[ch]))
 		    ++ch;
@@ -362,8 +362,8 @@ protected:
 	candidateList_.push_back(s);
 	CoinTreeSiblings** candidates = &candidateList_[0];
 	--candidates;
-	int pos = candidateList_.size();
-	int ch;
+	size_t pos = candidateList_.size();
+	size_t ch;
 	for (ch = pos/2; ch != 0; pos = ch, ch /= 2) {
 	    if (comp_(candidates[ch], s))
 		break;

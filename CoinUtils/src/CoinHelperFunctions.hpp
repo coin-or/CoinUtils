@@ -74,11 +74,17 @@ CoinCopyN(register const T* from, const int size, register T* to)
 /** This helper function copies an array to another location using Duff's
     device (for a speedup of ~2). The source array is given by its first and
     "after last" entry; the target array is given by its first entry.
-    Overlapping arrays are handled correctly. */
+    Overlapping arrays are handled correctly.
+
+    All of the various CoinCopyN variants use an int for size. On 64-bit
+    architectures, the address diff last-first will be a 64-bit quantity.
+    Given that everything else uses an int, I'm going to choose to kick
+    the difference down to int.  -- lh, 100823 --
+*/
 template <class T> inline void
 CoinCopy(register const T* first, register const T* last, register T* to)
 {
-    CoinCopyN(first, last - first, to);
+    CoinCopyN(first, static_cast<int>(last-first), to);
 }
 
 //-----------------------------------------------------------------------------
@@ -686,7 +692,7 @@ template <class T> inline T *
 CoinDeleteEntriesFromArray(register T * arrayFirst, register T * arrayLast,
 			   const int * firstDelPos, const int * lastDelPos)
 {
-    int delNum = lastDelPos - firstDelPos;
+    int delNum = static_cast<int>(lastDelPos - firstDelPos);
     if (delNum == 0)
 	return arrayLast;
 
@@ -701,7 +707,8 @@ CoinDeleteEntriesFromArray(register T * arrayFirst, register T * arrayLast,
 	delSortedPos = new int[delNum];
 	CoinDisjointCopy(firstDelPos, lastDelPos, delSortedPos);
 	std::sort(delSortedPos, delSortedPos + delNum);
-	delNum = std::unique(delSortedPos, delSortedPos + delNum) - delSortedPos;
+	delNum = static_cast<int>(std::unique(delSortedPos,
+				  delSortedPos+delNum) - delSortedPos);
     }
     const int * delSorted = delSortedPos ? delSortedPos : firstDelPos;
 
@@ -715,7 +722,7 @@ CoinDeleteEntriesFromArray(register T * arrayFirst, register T * arrayLast,
 	size += copyLast - copyFirst;
     }
     const int copyFirst = delSorted[last] + 1;
-    const int copyLast = arrayLast - arrayFirst;
+    const int copyLast = static_cast<int>(arrayLast - arrayFirst);
     CoinCopy(arrayFirst + copyFirst, arrayFirst + copyLast,
 	     arrayFirst + size);
     size += copyLast - copyFirst;
@@ -832,22 +839,23 @@ template <class T> inline void CoinSwap (T &x, T &y)
     Returns 0 if OK, 1 if bad write.
 */
 
-/* FIXME64 */
-
 template <class T> inline int
-CoinToFile( const T* array, int size, FILE * fp)
+CoinToFile( const T* array, CoinBigIndex size, FILE * fp)
 {
-    size_t numberWritten;
+    CoinBigIndex numberWritten;
     if (array&&size) {
-	numberWritten = fwrite(&size,sizeof(int),1,fp);
+	numberWritten =
+	    static_cast<CoinBigIndex>(fwrite(&size,sizeof(int),1,fp));
 	if (numberWritten!=1)
 	    return 1;
-	numberWritten = fwrite(array,sizeof(T),size_t(size),fp);
+	numberWritten =
+	    static_cast<CoinBigIndex>(fwrite(array,sizeof(T),size_t(size),fp));
 	if (numberWritten!=size)
 	    return 1;
     } else {
 	size = 0;
-	numberWritten = fwrite(&size,sizeof(int),1,fp);
+	numberWritten = 
+	    static_cast<CoinBigIndex>(fwrite(&size,sizeof(int),1,fp));
 	if (numberWritten!=1)
 	    return 1;
     }
@@ -862,13 +870,12 @@ CoinToFile( const T* array, int size, FILE * fp)
     Returns 0 if OK, 1 if bad read, 2 if size did not match.
 */
 
-/* FIXME64 */
-
 template <class T> inline int
-CoinFromFile( T* &array, int size, FILE * fp,int & newSize)
+CoinFromFile( T* &array, CoinBigIndex size, FILE * fp, CoinBigIndex & newSize)
 {
-    size_t numberRead;
-    numberRead = fread(&newSize,sizeof(int),1,fp);
+    CoinBigIndex numberRead;
+    numberRead =
+        static_cast<CoinBigIndex>(fread(&newSize,sizeof(int),1,fp));
     if (numberRead!=1)
 	return 1;
     int returnCode=0;
@@ -876,7 +883,8 @@ CoinFromFile( T* &array, int size, FILE * fp,int & newSize)
 	returnCode=2;
     if (newSize) {
 	array = new T [newSize];
-	numberRead = fread(array,sizeof(T),size_t(newSize),fp);
+	numberRead =
+	    static_cast<CoinBigIndex>(fread(array,sizeof(T),newSize,fp));
 	if (numberRead!=newSize)
 	    returnCode=1;
     } else {
