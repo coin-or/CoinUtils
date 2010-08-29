@@ -57,7 +57,10 @@ class CoinAbsFltEq
   /*! \name Constructors and destructors */
   //@{
 
-  //! Default constructor
+  /*! \brief Default constructor
+
+    Default tolerance is 1.0e-10.
+  */
 
   CoinAbsFltEq () : epsilon_(1.e-10) {} 
 
@@ -122,11 +125,17 @@ class CoinRelFltEq
   /*! \name Constructors and destructors */
   //@{
 
-  //! Default constructor
-
 #ifndef COIN_FLOAT
+  /*! Default constructor
+
+    Default tolerance is 1.0e-10.
+  */
   CoinRelFltEq () : epsilon_(1.e-10) {} 
 #else
+  /*! Default constructor
+
+    Default tolerance is 1.0e-6.
+  */
   CoinRelFltEq () : epsilon_(1.e-6) {} ; // as float
 #endif
 

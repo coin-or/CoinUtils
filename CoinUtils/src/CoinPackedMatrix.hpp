@@ -15,14 +15,23 @@
 
 /** Sparse Matrix Base Class
 
-  This class is used for storing a matrix by rows or columns.
+  This class is intended to represent sparse matrices using row-major
+  or column-major ordering. The representation is very efficient for
+  adding, deleting, or retrieving major-dimension vectors. Adding
+  a minor-dimension vector is less efficient, but can be helped by
+  providing "extra" space as described in the next paragraph. Deleting
+  a minor-dimension vector requires inspecting all coefficients in the
+  matrix. Retrieving a minor-dimension vector would incur the same cost
+  and is not supported (except in the sense that you can write a loop to
+  retrieve all coefficients one at a time). Consider physically transposing
+  the matrix, or keeping a second copy with the other major-vector ordering.
 
-  The sparse represention can be completely compact or it can 
-  have "extra" space. The extra space can be added at the end 
-  of rows and/or columns.  Incorporating extra space into the 
-  sparse matrix representation can improve performance in 
-  cases where new data needs to be inserted into the packed 
-  matrix.
+  The sparse represention can be completely compact or it can have "extra"
+  space available at the end of each major vector.  Incorporating extra
+  space into the sparse matrix representation can improve performance in
+  cases where new data needs to be inserted into the packed matrix against
+  the major-vector orientation (e.g, inserting a row into a matrix stored
+  in column-major order).
 
   For example if the matrix:
   @verbatim
@@ -58,6 +67,10 @@
     c.getNumElements() returns 14. 
     c.getMajorDim() returns 8. 
   @endverbatim
+
+  Compiling this class with CLP_NO_VECTOR defined will excise all methods
+  which use CoinPackedVectorBase, CoinPackedVector, or CoinShallowPackedVector
+  as parameters or return types.
 */
 class CoinPackedMatrix  {
    friend void CoinPackedMatrixUnitTest();
@@ -171,11 +184,14 @@ public:
   //---------------------------------------------------------------------------
   /**@name Modifying members. */
   //@{
-    /** Set the dimansions of the matrix. In effect, append new empty
-	columns/rows to the matrix. A negative number for either dimension
-	means that that dimension doesn't change. Otherwise the new dimensions
-	MUST be at least as large as the current ones otherwise an exception
-	is thrown. */
+    /*! \brief Set the dimensions of the matrix.
+    
+      The method name is deceptive; the effect is to append empty columns
+      and/or rows to the matrix to reach the specified dimensions.
+      A negative number for either dimension means that that dimension
+      doesn't change. An exception will be thrown if the specified dimensions
+      are smaller than the current dimensions.
+    */
     void setDimensions(int numrows, int numcols);
    
     /** Set the extra gap to be allocated to the specified value. */
@@ -183,58 +199,72 @@ public:
     /** Set the extra major to be allocated to the specified value. */
     void setExtraMajor(const double newMajor);
 #ifndef CLP_NO_VECTOR
-    /** Append a column to the end of the matrix. When libosi is compiled with
-	a COIN_DEBUG defined then this method throws an exception if the new
-	column contains an index that's larger than the number of rows (-1).
-	Otherwise the method assumes that every index fits into the matrix. */
+    /*! Append a column to the end of the matrix.
+    
+       When compiled with COIN_DEBUG defined this method throws an exception
+       if the column vector specifies a nonexistent row index.  Otherwise the
+       method assumes that every index fits into the matrix.
+    */
     void appendCol(const CoinPackedVectorBase& vec);
 #endif
-    /** Append a column to the end of the matrix. When libosi is compiled with
-	a COIN_DEBUG defined then this method throws an exception if the new
-	column contains an index that's larger than the number of rows (-1).
-	Otherwise the method assumes that every index fits into the matrix. */
+    /*! Append a column to the end of the matrix.
+    
+       When compiled with COIN_DEBUG defined this method throws an exception
+       if the column vector specifies a nonexistent row index.  Otherwise the
+       method assumes that every index fits into the matrix.
+    */
     void appendCol(const int vecsize,
-  		  const int *vecind, const double *vecelem);
+  		   const int *vecind, const double *vecelem);
 #ifndef CLP_NO_VECTOR
-    /** Append a set of columns to the end of the matrix. When libosi is
-	compiled with a COIN_DEBUG defined then this method throws an exception
-	if any of the new columns contain an index that's larger than the
-	number of rows (-1). Otherwise the method assumes that every index
-	fits into the matrix. */
+    /*! Append a set of columns to the end of the matrix.
+
+       When compiled with COIN_DEBUG defined this method throws an exception
+       if any of the column vectors specify a nonexistent row index. Otherwise
+       the method assumes that every index fits into the matrix.
+    */
     void appendCols(const int numcols,
 		    const CoinPackedVectorBase * const * cols);
 #endif
-    /** Append a set of columns to the end of the matrix. Returns number of errors
-	i.e. if any of the new columns contain an index that's larger than the
-	number of rows-1 (if numberRows>0) or duplicates (if numberRows>0).  */
+    /*! Append a set of columns to the end of the matrix.
+    
+      Returns the number of errors (nonexistent or duplicate row index).
+      No error checking is performed if \p numberRows < 0.
+    */
     int appendCols(const int numcols,
 		    const CoinBigIndex * columnStarts, const int * row,
                    const double * element, int numberRows=-1);
 #ifndef CLP_NO_VECTOR
-  /** Append a row to the end of the matrix. When libosi is compiled with
-	a COIN_DEBUG defined then this method throws an exception if the new
-	row contains an index that's larger than the number of columns (-1).
-	Otherwise the method assumes that every index fits into the matrix. */
+    /*! Append a row to the end of the matrix.
+  
+       When compiled with COIN_DEBUG defined this method throws an exception
+       if the row vector specifies a nonexistent column index.  Otherwise the
+       method assumes that every index fits into the matrix.
+    */
     void appendRow(const CoinPackedVectorBase& vec);
 #endif
-    /** Append a row to the end of the matrix. When libosi is compiled with
-	a COIN_DEBUG defined then this method throws an exception if the new
-	row contains an index that's larger than the number of columns (-1).
-	Otherwise the method assumes that every index fits into the matrix. */
+    /*! Append a row to the end of the matrix.
+
+       When compiled with COIN_DEBUG defined this method throws an exception
+       if the row vector specifies a nonexistent column index.  Otherwise the
+       method assumes that every index fits into the matrix.
+    */
     void appendRow(const int vecsize,
   		  const int *vecind, const double *vecelem);
 #ifndef CLP_NO_VECTOR
-    /** Append a set of rows to the end of the matrix. When libosi is
-	compiled with a COIN_DEBUG defined then this method throws an exception
-	if any of the new rows contain an index that's larger than the
-	number of columns (-1). Otherwise the method assumes that every index
-	fits into the matrix. */
+    /*! Append a set of rows to the end of the matrix.
+    
+       When compiled with COIN_DEBUG defined this method throws an exception
+       if any of the row vectors specify a nonexistent column index. Otherwise
+       the method assumes that every index fits into the matrix.
+    */
     void appendRows(const int numrows,
 		    const CoinPackedVectorBase * const * rows);
 #endif
-    /** Append a set of rows to the end of the matrix. Returns number of errors
-	i.e. if any of the new rows contain an index that's larger than the
-	number of columns-1 (if numberColumns>0) or duplicates (if numberColumns>0).  */
+    /*! Append a set of rows to the end of the matrix.
+    
+      Returns the number of errors (nonexistent or duplicate column index).
+      No error checking is performed if \p numberColumns < 0.
+    */
     int appendRows(const int numrows,
 		    const CoinBigIndex * rowStarts, const int * column,
                    const double * element, int numberColumns=-1);
@@ -335,10 +365,16 @@ public:
         including the extra space parameters. 
 	If there is room it will re-use arrays */
     void copyReuseArrays(const CoinPackedMatrix& rhs);
-    /** Reverse copy method. This method makes an exact replica of the
-        argument, but the major ordering reversed. The extra space parameters
-        are copied and reversed, too. */
+
+    /*! \brief Make a reverse-ordered copy.
+    
+      This method makes an exact replica of the argument with the major
+      vector orientation changed from row (column) to column (row).
+      The extra space parameters are also copied and reversed.
+      (Cf. #reverseOrdering, which does the same thing in place.)
+    */
     void reverseOrderedCopyOf(const CoinPackedMatrix& rhs);
+
     /** Assign the arguments to the matrix. If <code>len</code> is a NULL
 	pointer then the matrix is assumed to have no gaps in it and
 	<code>len</code> will be created accordingly. <br>
@@ -360,17 +396,26 @@ public:
         matrix's extra space parameters. */
     CoinPackedMatrix & operator=(const CoinPackedMatrix& rhs);
  
-    /** Reverse the ordering of the packed matrix. */
+    /*! \brief Reverse the ordering of the packed matrix.
+
+      Change the major vector orientation of the matrix data structures from
+      row (column) to column (row). (Cf. #reverseOrderedCopyOf, which does
+      the same thing but produces a new matrix.)
+    */
     void reverseOrdering();
-    /** Transpose the matrix. <br>
-        NOTE: All this routine does is to flip the ordering! Of course, then
-        the matrix describes the transposed matrix. To get the matrix
-        physically transposed (e.g., for a column ordered matrix to get the
-        transpose in column ordered format) one has to invoke this method AND
-        <code>reverseOrdering()</code>. */
+
+    /*! \brief Transpose the matrix.
+
+        \note
+	If you start with a column-ordered matrix and invoke transpose, you
+	will have a row-ordered transposed matrix. To change the major vector
+	orientation (e.g., to transform a column-ordered matrix to a
+	column-ordered transposed matrix), invoke transpose() followed by
+	#reverseOrdering().
+    */
     void transpose();
  
-    /** Swap the content of the two packed matrix. */
+    /*! \brief Swap the content of two packed matrices. */
     void swap(CoinPackedMatrix& matrix);
    
   //@}
@@ -438,11 +483,13 @@ public:
     //@}
 
     //-------------------------------------------------------------------------
-    /**@name Append vectors. <br>
-       When libosi is compiled with a COIN_DEBUG defined then these methods
-       throws an exception if the major (minor) vector contains an index
-       that's larger than the minor (major) dimension (-1). Otherwise the
-       methods assume that every index fits into the matrix. */
+    /*! @name Append vectors
+
+       When compiled with COIN_DEBUG defined these methods throw an exception
+       if the major (minor) vector contains an index that's invalid for the
+       minor (major) dimension. Otherwise the methods assume that every index
+       fits into the matrix.
+    */
     //@{
 #ifndef CLP_NO_VECTOR
       /** Append a major-dimension vector to the end of the matrix. */
@@ -463,10 +510,25 @@ public:
       void appendMinorVector(const int vecsize, const int *vecind,
 			     const double *vecelem);
 #ifndef CLP_NO_VECTOR
-      /** Append several minor-dimensonvectors to the end of the matrix */
+      /** Append several minor-dimension vectors to the end of the matrix */
       void appendMinorVectors(const int numvecs,
 			      const CoinPackedVectorBase * const * vecs);
 #endif
+    /*! \brief Append a set of rows (columns) to the end of a column (row)
+    	       ordered matrix.
+    
+      This case is when we know there are no gaps and majorDim_ will not
+      change.
+
+      \todo
+      This method really belongs in the group of protected methods with
+      #appendMinor; there are no safeties here even with COIN_DEBUG.
+      Apparently this method was needed in ClpPackedMatrix and giving it
+      proper visibility was too much trouble. Should be moved.
+    */
+    void appendMinorFast(const int number,
+		    const CoinBigIndex * starts, const int * index,
+                    const double * element);
     //@}
 
     //-------------------------------------------------------------------------
@@ -545,10 +607,12 @@ public:
    /**@name Logical Operations. */
    //@{
 #ifndef CLP_NO_VECTOR
-   /** Equivalence.
-       Two matrices are equivalent if they are both by rows or both by columns,
-       they have the same dimensions, and each vector is equivalent. 
-       In this method the FloatEqual function operator can be specified. 
+   /*! \brief Test for equivalence.
+
+       Two matrices are equivalent if they are both row- or column-ordered,
+       they have the same dimensions, and each (major) vector is equivalent.
+       The operator used to test for equality can be specified using the
+       \p FloatEqual template parameter.
    */
    template <class FloatEqual> bool 
    isEquivalent(const CoinPackedMatrix& rhs, const FloatEqual& eq) const
@@ -568,20 +632,32 @@ public:
       }
       return true;
    }
-   
+
+  /*! \brief Test for equivalence and report differences
+
+    Equivalence is defined as for #isEquivalent. In addition, this method will
+    print differences to std::cerr. Intended for use in unit tests and
+    for debugging.
+  */
   bool isEquivalent2(const CoinPackedMatrix& rhs) const;
 #else
-   /** Equivalence.
-       Two matrices are equivalent if they are both by rows or both by columns,
-       they have the same dimensions, and each vector is equivalent. 
-       In this method the CoinRelFltEq operator is used. 
+   /*! \brief Test for equivalence.
+
+       Two matrices are equivalent if they are both row- or column-ordered,
+       they have the same dimensions, and each (major) vector is equivalent.
+       This method is optimised for speed. CoinPackedVector#isEquivalent is
+       replaced with more efficient code for repeated comparison of
+       equal-length vectors. The CoinRelFltEq operator is used. 
    */
   bool isEquivalent(const CoinPackedMatrix& rhs, const CoinRelFltEq & eq) const;
 #endif
-   ///The default equivalence test is that the entries are relatively equal.
+   /*! \brief Test for equivalence.
+   
+     The test for element equality is the default CoinRelFltEq operator.
+   */
    bool isEquivalent(const CoinPackedMatrix& rhs) const
    {
-      return isEquivalent(rhs,  CoinRelFltEq());
+      return isEquivalent(rhs,CoinRelFltEq());
    }
    //@}
 
@@ -694,27 +770,32 @@ protected:
 		      const CoinBigIndex * start, const int * len);
    void resizeForAddingMajorVectors(const int numVec, const int * lengthVec);
    void resizeForAddingMinorVectors(const int * addedEntries);
-    /** Append a set of rows/columns to the end of the matrix. Returns number of errors
-	i.e. if any of the new rows/columns contain an index that's larger than the
-	number of columns-1/rows-1 (if numberOther>0) or duplicates
-        This version is easy one i.e. adding columns to column ordered */
+
+    /*! \brief Append a set of rows (columns) to the end of a row (colum)
+    	       ordered matrix.
+	
+      If \p numberOther > 0 the method will check if any of the new rows
+      (columns) contain duplicate indices or invalid indices and return the
+      number of errors. A valid minor index must satisfy
+      \code 0 <= k < numberOther \endcode
+      If \p numberOther < 0 no checking is performed.
+    */
     int appendMajor(const int number,
 		    const CoinBigIndex * starts, const int * index,
                     const double * element, int numberOther=-1);
-    /** Append a set of rows/columns to the end of the matrix. Returns number of errors
-	i.e. if any of the new rows/columns contain an index that's larger than the
-	number of columns-1/rows-1 (if numberOther>0) or duplicates
-        This version is harder one i.e. adding columns to row ordered */
+    /*! \brief Append a set of rows (columns) to the end of a column (row)
+    	       ordered matrix.
+    
+      If \p numberOther > 0 the method will check if any of the new rows
+      (columns) contain duplicate indices or indices outside the current
+      range for the major dimension and return the number of violations.
+      If \p numberOther <= 0 the major dimension will be expanded as
+      necessary and there are no checks for duplicate indices.
+    */
     int appendMinor(const int number,
 		    const CoinBigIndex * starts, const int * index,
                     const double * element, int numberOther=-1);
-public:
-    /** Append a set of rows/columns to the end of the matrix. This case is
-	when we know there are no gaps and majorDim_ will not change
-        This version is harder one i.e. adding columns to row ordered */
-    void appendMinorFast(const int number,
-		    const CoinBigIndex * starts, const int * index,
-                    const double * element);
+
 private:
    inline CoinBigIndex getLastStart() const {
       return majorDim_ == 0 ? 0 : start_[majorDim_];
