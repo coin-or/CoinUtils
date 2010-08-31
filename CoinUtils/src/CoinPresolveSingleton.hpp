@@ -11,7 +11,7 @@
   \file
 */
 
-const int MAX_SLACK_DOUBLETONS	= 1000;
+//const int MAX_SLACK_DOUBLETONS	= 1000;
 
 /*! \class slack_doubleton_action
     \brief Convert an explicit bound constraint to a column bound
@@ -50,7 +50,7 @@ class slack_doubleton_action : public CoinPresolveAction {
 
   /*! \brief Convert explicit bound constraints to column bounds.
   
-    There is a hard limit (#MAX_SLACK_DOUBLETONS) on the number of
+    Not now There is a hard limit (#MAX_SLACK_DOUBLETONS) on the number of
     constraints processed in a given call. \p notFinished is set to true
     if candidates remain.
   */

@@ -77,7 +77,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   int * look = prob->rowsToDo_;
   bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
 
-  action actions[MAX_SLACK_DOUBLETONS];
+  action * actions = new action[numberLook];
   int nactions = 0;
   notFinished = false;
 
@@ -265,7 +265,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       if (hincol[jcol] == 0)
       { PRESOLVE_REMOVE_LINK(prob->clink_,jcol) ; }
 
-      if (nactions >= MAX_SLACK_DOUBLETONS) {
+      if (nactions >= numberLook) {
 	notFinished=true;
 	break;
       }
@@ -299,7 +299,8 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   presolve_check_nbasic(prob) ;
   std::cout << "Leaving slack_doubleton_action::presolve." << std::endl ;
 # endif
-
+  delete [] actions;
+  
   return (next);
 }
 
