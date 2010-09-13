@@ -6,6 +6,6 @@ includedir=@includedir@/coin
 Name: CoinUtils
 Description: COIN-OR Utilities
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lCoinUtils @PCADDLIBS@
+Libs: -L${libdir} -lCoinUtils @COINUTILSLIB_PCLIBS@
 Cflags: -I${includedir}
-Requires: @REQUIREDPACKAGES@
+Requires: @COINUTILSLIB_PCREQUIRES@

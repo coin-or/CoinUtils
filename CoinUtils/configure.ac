@@ -284,10 +284,12 @@ if test "$enable_coinutils_threads" = yes; then
   # Define the preprocessor macro
   AC_DEFINE([COINUTILS_PTHREADS],[1],[Define to 1 if the thread aware version of CoinUtils should be compiled])
   AC_CHECK_LIB([rt],[clock_gettime],
-               [ADDLIBS="-lrt $ADDLIBS"],
+               [COINUTILSLIB_LIBS="-lrt $COINUTILSLIB_LIBS"
+                COINUTILSLIB_PCLIBS="-lrt $COINUTILSLIB_PCLIBS"],
 	       [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lrt unavailable])])
   AC_CHECK_LIB([pthread],[pthread_create],
-               [ADDLIBS="-lpthread $ADDLIBS"],
+               [COINUTILSLIB_LIBS="-lpthread $COINUTILSLIB_LIBS"
+                COINUTILSLIB_PCLIBS="-lpthread $COINUTILSLIB_PCLIBS"],
 	       [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lpthreads unavailable])])
 fi
 
@@ -440,18 +442,18 @@ AC_CHECK_HEADERS([endian.h])
 #                             COIN-OR components                            #
 #############################################################################
 
-AC_COIN_HAS_MODULE_BLAS
-AC_COIN_HAS_MODULE_LAPACK
-AC_COIN_HAS_MODULE(Glpk,   [coinglpk >= 4.39])
-AC_COIN_HAS_MODULE(Sample, [coindatasample],   [required=0])
-AC_COIN_HAS_MODULE(Netlib, [coindatanetlib],   [required=0])
+AC_COIN_CHECK_LIBM(CoinUtilsLib)
 
-AC_COIN_CHECK_GNU_ZLIB
-AC_COIN_CHECK_GNU_BZLIB
+AC_COIN_HAS_PACKAGE_BLAS(CoinUtilsLib)
+AC_COIN_HAS_PACKAGE_LAPACK(CoinUtilsLib)
+AC_COIN_HAS_PACKAGE(Glpk,   [coinglpk >= 4.39], [CoinUtilsLib])
+AC_COIN_HAS_PACKAGE(Sample, [coindatasample])
+AC_COIN_HAS_PACKAGE(Netlib, [coindatanetlib])
+
+AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
+AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
 
 AC_COIN_VPATH_LINK(test/plan.mod)
-
-AC_SUBST(ADDLIBS)
 
 #############################################################################
 #                  Check for doxygen                                        #
