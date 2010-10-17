@@ -2003,10 +2003,8 @@ CoinLpIO::print() const {
 /*************************************************************************/
 // Hash functions slightly modified from CoinMpsIO.cpp
 
-static int
-compute_hash(const char *name, int maxsiz, int length)
-{
-  static int mmult[] = {
+namespace {
+  const int mmult[] = {
     262139, 259459, 256889, 254291, 251701, 249133, 246709, 244247,
     241667, 239179, 236609, 233983, 231289, 228859, 226357, 223829,
     221281, 218849, 216319, 213721, 211093, 208673, 206263, 203773,
@@ -2018,6 +2016,9 @@ compute_hash(const char *name, int maxsiz, int length)
     103387, 101021, 98639, 96179, 93911, 91583, 89317, 86939, 84521,
     82183, 79939, 77587, 75307, 72959, 70793, 68447, 66103
   };
+ int compute_hash(const char *name, int maxsiz, int length)
+{
+  
   int n = 0;
   int j;
 
@@ -2028,6 +2029,7 @@ compute_hash(const char *name, int maxsiz, int length)
   }
   return ( abs ( n ) % maxsiz );	/* integer abs */
 }
+} // end file-local namespace
 
 /************************************************************************/
 //  startHash.  Creates hash list for names

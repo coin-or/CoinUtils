@@ -24,17 +24,21 @@
 
 //#############################################################################
 // type - 0 normal, 1 INTEL IEEE, 2 other IEEE
-double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type) 
-{
 
-  static const double fraction[]=
+namespace {
+
+  const double fraction[]=
   {1.0,1.0e-1,1.0e-2,1.0e-3,1.0e-4,1.0e-5,1.0e-6,1.0e-7,1.0e-8,
    1.0e-9,1.0e-10,1.0e-11,1.0e-12,1.0e-13,1.0e-14,1.0e-15,1.0e-16,
    1.0e-17,1.0e-18,1.0e-19,1.0e-20,1.0e-21,1.0e-22,1.0e-23};
 
-  static const double exponent[]=
+  const double exponent[]=
   {1.0e-9,1.0e-8,1.0e-7,1.0e-6,1.0e-5,1.0e-4,1.0e-3,1.0e-2,1.0e-1,
    1.0,1.0e1,1.0e2,1.0e3,1.0e4,1.0e5,1.0e6,1.0e7,1.0e8,1.0e9};
+
+} // end file-local namespace
+double CoinMpsCardReader::osi_strtod(char * ptr, char ** output, int type) 
+{
 
   double value = 0.0;
   char * save = ptr;
@@ -1178,10 +1182,8 @@ CoinMpsCardReader::nextGmsField ( int expectedType )
 
 //#############################################################################
 
-static int
-hash ( const char *name, int maxsiz, int length )
-{
-  static int mmult[] = {
+namespace {
+const int mmult[] = {
     262139, 259459, 256889, 254291, 251701, 249133, 246709, 244247,
     241667, 239179, 236609, 233983, 231289, 228859, 226357, 223829,
     221281, 218849, 216319, 213721, 211093, 208673, 206263, 203773,
@@ -1193,6 +1195,10 @@ hash ( const char *name, int maxsiz, int length )
     103387, 101021, 98639, 96179, 93911, 91583, 89317, 86939, 84521,
     82183, 79939, 77587, 75307, 72959, 70793, 68447, 66103
   };
+
+int hash ( const char *name, int maxsiz, int length )
+{
+  
   int n = 0;
   int j;
 
@@ -1203,6 +1209,8 @@ hash ( const char *name, int maxsiz, int length )
   }
   return ( abs ( n ) % maxsiz );	/* integer abs */
 }
+} // end file-local namespace
+
 // Define below if you are reading a Cnnnnnn file 
 // Will not do row names (for electricfence)
 //#define NONAMES
