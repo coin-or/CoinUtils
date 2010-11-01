@@ -346,6 +346,16 @@ CoinOslFactorization::postProcess(const int * sequence, int * pivotVariable)
     int k = sequence[j];
     pivotVariable[i]=k;
   }
+#ifdef CLP_REUSE_ETAS
+  int * start = factInfo_.xcsadr+1;
+  int * putSeq = factInfo_.xrsadr+2*factInfo_.nrowmx+2;
+  int * position = putSeq+factInfo_.maxinv;
+  int * putStart = position+factInfo_.maxinv;
+  memcpy(putStart,start,numberRows_*sizeof(int));
+  int iLast=start[numberRows_-1];
+  putStart[numberRows_]=iLast+factInfo_.xeradr[iLast]+1;
+  factInfo_.save_nnentu=factInfo_.nnentu;
+#endif
 #ifndef NDEBUG
   {
     int lstart=numberRows_+factInfo_.maxinv+5;
@@ -656,9 +666,41 @@ CoinOslFactorization::wantsTableauColumn() const
    0 - iteration number
    whereFrom is 0 for factorize and 1 for replaceColumn
 */
+#ifdef CLP_REUSE_ETAS
 void 
+CoinOslFactorization::setUsefulInformation(const int * info,int whereFrom)
+{ 
+  factInfo_.iterno=info[0]; 
+  if (whereFrom) {
+    factInfo_.reintro=-1;
+    if( factInfo_.first_dense>=factInfo_.last_dense) {
+      int * putSeq = factInfo_.xrsadr+2*factInfo_.nrowmx+2;
+      int * position = putSeq+factInfo_.maxinv;
+      //int * putStart = position+factInfo_.maxinv;
+      int iSequence=info[1];
+      if (whereFrom==1) {
+	putSeq[factInfo_.npivots]=iSequence;
+      } else {
+	int i;
+	for (i=factInfo_.npivots-1;i>=0;i--) {
+	  if (putSeq[i]==iSequence)
+	    break;
+	}
+	if (i>=0) {
+	  factInfo_.reintro=position[i];
+	} else {
+	  factInfo_.reintro=-1;
+	}
+	factInfo_.nnentu=factInfo_.save_nnentu;
+      }
+    }
+  }
+}
+#else
+void
 CoinOslFactorization::setUsefulInformation(const int * info,int /*whereFrom*/)
 { factInfo_.iterno=info[0]; }
+#endif
 
 // Get rid of all memory
 void 
@@ -953,10 +995,18 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
   tempI = reinterpret_cast<int *>( tempD);
   tempI = reinterpret_cast<int *>( clp_align(tempI));
   fact->xrsadr = tempI;
-  tempI +=( (nrowmx<<1)+1);
+#ifdef CLP_REUSE_ETAS
+  tempI +=( 3*(nrowmx+fact->maxinv+1));
+#else
+  tempI +=( (nrowmx<<1)+fact->maxinv+1);
+#endif
   tempI = reinterpret_cast<int *>( clp_align(tempI));
   fact->xcsadr = tempI;
+#ifdef CLP_REUSE_ETAS
+  tempI += ( 2*nrowmx+8+2*fact->maxinv);
+#else
   tempI += ( 2*nrowmx+8+fact->maxinv);
+#endif
   tempI += FIX_ADD+FIX_ADD2;
   tempI = reinterpret_cast<int *>( clp_align(tempI));
   fact->xrnadr = tempI;

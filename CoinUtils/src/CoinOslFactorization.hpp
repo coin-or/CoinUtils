@@ -70,6 +70,9 @@ typedef struct _EKKfactinfo {
   int num_resets;
   int nnentl;
   int nnentu;
+#ifdef CLP_REUSE_ETAS
+  int save_nnentu;
+#endif
   int ndenuc;
   int npivots; /* use as xpivsq in factorization */
   int kmxeta;
@@ -87,7 +90,9 @@ typedef struct _EKKfactinfo {
   int switch_off_sparse_update;
   int nuspike;
   bool rows_ok;	/* replaces test using mrstrt[1] */
-
+#ifdef CLP_REUSE_ETAS
+  mutable int reintro;
+#endif
   int nR_etas;
   int sortedEta; /* if vector for F-T is sorted */
   int lastEtaCount;
