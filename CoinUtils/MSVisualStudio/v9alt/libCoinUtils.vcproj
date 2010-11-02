@@ -302,8 +302,8 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
-				Description="Generating libCoinUtils.def"
-				CommandLine="powershell -ExecutionPolicy RemoteSigned -File .\genDefForCoinUtils.ps1 $(IntDir) "
+				Description="generate .def file"
+				CommandLine="powershell -ExecutionPolicy RemoteSigned -File .\genDefForCoinUtils.ps1 $(IntDir) Osi"
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -330,13 +330,13 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="if not exist $(CoinLibDir) mkdir $(CoinLibDir)&#x0D;&#x0A;move /y $(OutDir)\$(TargetName).lib $(CoinLibDir)"
+				CommandLine="if not exist $(CoinLibDir) mkdir $(CoinLibDir)&#x0D;&#x0A;move /y $(OutDir)\$(TargetName).lib $(CoinLibDir)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
 			Name="DebugDLL|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(CoinBinDir)"
+			IntermediateDirectory="$(ProjectName)\$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(COIN_ROOT)\BuildTools\MSVisualStudio\v9alt\coin.vsprops"
 			CharacterSet="1"
@@ -375,10 +375,12 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+				Description="generate .def file"
+				CommandLine="powershell -ExecutionPolicy RemoteSigned -File .\genDefForCoinUtils.ps1 $(IntDir) Osi"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				ModuleDefinitionFile="libCoinUtils.def"
+				ModuleDefinitionFile="$(IntDir)\libCoinUtils.def"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -400,6 +402,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="move import library to $(CoinLibDir)"
+				CommandLine="if not exist $(CoinLibDir) mkdir $(CoinLibDir)&#x0D;&#x0A;move /y $(OutDir)\$(TargetName).lib $(CoinLibDir)"
 			/>
 		</Configuration>
 	</Configurations>
