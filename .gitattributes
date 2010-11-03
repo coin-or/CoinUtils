@@ -60,6 +60,7 @@ CoinUtils/src/CoinWarmStartVector.cpp -text
 CoinUtils/src/CoinWarmStartVector.hpp -text
 CoinUtils/test/CoinMessageHandlerTest.cpp -text
 CoinUtils/test/plan.mod -text
+/Dependencies -text
 /INSTALL -text
 /LICENSE -text
 /README -text
