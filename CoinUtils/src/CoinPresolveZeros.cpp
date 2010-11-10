@@ -16,7 +16,7 @@
 namespace {	// begin unnamed file-local namespace
 
 // Sees how many zeros there are
-static int count_col_zeros (int ncheckcols, const int * checkcols,
+static int count_col_zeros (int ncheckcols, int * checkcols,
                             const CoinBigIndex *mcstrt, double *colels,// int *hrow,
                             int *hincol)
 {
@@ -32,6 +32,27 @@ static int count_col_zeros (int ncheckcols, const int * checkcols,
     for (k=kcs; k<kce; ++k) {
       if (fabs(colels[k]) < ZTOLDP) {
 	nactions++;
+      }
+    }
+  }
+  return (nactions);
+}
+
+// Sees how many zeros there are
+static int count_col_zeros2 (int ncheckcols, int * checkcols,
+                            const CoinBigIndex *mcstrt, double *colels,// int *hrow,
+                            int *hincol)
+{
+  int nactions = 0;
+
+  for (int col=0; col<ncheckcols; col++) {
+    CoinBigIndex kcs = mcstrt[col];
+    CoinBigIndex kce = mcstrt[col] + hincol[col];
+    CoinBigIndex k;
+
+    for (k=kcs; k<kce; ++k) {
+      if (fabs(colels[k]) < ZTOLDP) {
+	checkcols[nactions++]=col;
       }
     }
   }
@@ -137,16 +158,24 @@ const CoinPresolveAction
   presolvehlink *rlink	= prob->rlink_ ;
  
   //  int i;
-  int nzeros = count_col_zeros(ncheckcols,checkcols,
+  int nzeros;
+  if (ncheckcols==prob->ncols_) {
+    // can do faster
+    nzeros = count_col_zeros2(ncheckcols,checkcols,
                                mcstrt,colels,/*hrow,*/hincol);
+  } else {
+    nzeros = count_col_zeros(ncheckcols,checkcols,
+                               mcstrt,colels,/*hrow,*/hincol);
+  }
   if (nzeros == 0) {
     return (next);
   } else {
     dropped_zero * zeros = new dropped_zero[nzeros];
 
-    nzeros=drop_col_zeros(ncheckcols,checkcols,
-                   mcstrt,colels,hrow,hincol,clink,
-                   zeros);
+    nzeros=drop_col_zeros((ncheckcols==prob->ncols_) ? nzeros : ncheckcols,
+			  checkcols,
+			  mcstrt,colels,hrow,hincol,clink,
+			  zeros);
     double *rowels	= prob->rowels_;
     int *hcol		= prob->hcol_;
     CoinBigIndex *mrstrt		= prob->mrstrt_;
@@ -175,10 +204,7 @@ const CoinPresolveAction *drop_zero_coefficients(CoinPresolveMatrix *prob,
   int ncheck		= prob->ncols_;
   int *checkcols	= new int[ncheck];
 
-  if (!prob->anyProhibited()) {
-    for (int i=0; i<ncheck; i++)
-      checkcols[i] = i;
-  } else {
+  if (prob->anyProhibited()) {
     // some prohibited
     ncheck=0;
     for (int i=0; i<prob->ncols_; i++)

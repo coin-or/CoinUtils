@@ -547,6 +547,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 	
 	ap->col = jcoly;
 	ap->rowy = rowy;
+	PRESOLVE_DETAIL_PRINT(printf("pre__subst %dC %dR E\n",jcoly,rowy));
 	
 	ap->nincol = nincol;
 	ap->rows = new int[nincol];

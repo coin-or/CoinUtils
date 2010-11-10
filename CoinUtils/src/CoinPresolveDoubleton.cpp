@@ -420,6 +420,8 @@ const CoinPresolveAction
 
 	// common equations are of the form ax + by = 0, or x + y >= lo
 	{
+	  PRESOLVE_DETAIL_PRINT(printf("pre_doubleton %dC %dC %dR E\n",
+				       icoly,icolx,irow));
 	  action *s = &actions[nactions];	  
 	  nactions++;
 	  

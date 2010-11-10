@@ -62,6 +62,7 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
     int irow = useless_rows[i];
     CoinBigIndex krs = mrstrt[irow];
     CoinBigIndex kre = krs + hinrow[irow];
+    PRESOLVE_DETAIL_PRINT(printf("pre__useless %dR E\n",irow));
 
     action *f = &actions[i];
 

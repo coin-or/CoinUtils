@@ -216,6 +216,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	    action *s = &actions[nactions];	  
 	    nactions++;
 	    s->col = j;
+	    PRESOLVE_DETAIL_PRINT(printf("pre__tighten %dC E\n",j));
 	    if (integerType[j]) {
 	      assert (iflag==-1||iflag==1);
 	      iflag *= 2; // say integer

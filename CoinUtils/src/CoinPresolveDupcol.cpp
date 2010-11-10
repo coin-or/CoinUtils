@@ -517,6 +517,7 @@ const CoinPresolveAction
   Create the postsolve action before we start to modify the columns.
 */
       PRESOLVE_STMT(printf("DUPCOL: (%d,%d) %d += %d\n",j1,j2,j1,j2)) ;
+      PRESOLVE_DETAIL_PRINT(printf("pre_dupcol %dC %dC E\n",j2,j1));
 
       action *s = &actions[nactions++] ;	  
       s->thislo = clo[j2] ;
@@ -927,9 +928,11 @@ const CoinPresolveAction
 	    if (rup2<=rup1) {
 	      /* this is strictly tighter than last */
 	      idelete=ilast;
+	      PRESOLVE_DETAIL_PRINT(printf("pre_duprow %dR %dR E\n",ilast,ithis));
 	    } else if (fabs(rlo1-rlo2)<1.0e-12) {
 	      /* last is strictly tighter than this */
 	      idelete=ithis;
+	      PRESOLVE_DETAIL_PRINT(printf("pre_duprow %dR %dR E\n",ithis,ilast));
 	      // swap so can carry on deleting
 	      sort[jj-1]=ithis;
 	      sort[jj]=ilast;
@@ -953,6 +956,7 @@ const CoinPresolveAction
 #	      endif
 		// pretend this is stricter than last
 		idelete=ilast;
+		PRESOLVE_DETAIL_PRINT(printf("pre_duprow %dR %dR E\n",ilast,ithis));
 		rup[ithis]=rup1;
 	      }
 	    }
@@ -961,6 +965,7 @@ const CoinPresolveAction
 	    if (rup1<=rup2) {
 	      /* last is strictly tighter than this */
 	      idelete=ithis;
+	      PRESOLVE_DETAIL_PRINT(printf("pre_duprow %dR %dR E\n",ithis,ilast));
 	      // swap so can carry on deleting
 	      sort[jj-1]=ithis;
 	      sort[jj]=ilast;
@@ -986,6 +991,7 @@ const CoinPresolveAction
 #	      endif
 		// pretend this is stricter than last
 		idelete=ilast;
+		PRESOLVE_DETAIL_PRINT(printf("pre_duprow %dR %dR E\n",ilast,ithis));
 		rlo[ithis]=rlo1;
 	      }
 	    }

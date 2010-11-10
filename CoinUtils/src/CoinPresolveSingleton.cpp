@@ -107,6 +107,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       {
 	// put column on stack of things to do next time
 	prob->addCol(jcol);
+	PRESOLVE_DETAIL_PRINT(printf("pre_singleton %dC %dR E\n",jcol,irow));
 	action *s = &actions[nactions];
 	nactions++;
 

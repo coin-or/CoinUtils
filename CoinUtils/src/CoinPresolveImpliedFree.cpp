@@ -515,6 +515,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 	      
 	      forcing_constraint_action::action * f = &actions[numActions];
 	      numActions++;
+	      PRESOLVE_DETAIL_PRINT(printf("pre_impliedfree %dR E\n",iRow));
 	      f->row = iRow;
 	      f->nlo = lk-rStart;
 	      f->nup = rEnd-uk;
@@ -714,6 +715,8 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
   //if (prob->pass_%2!=1)
   //return next;
   next = testRedundant(prob,next,numberInfeasible);
+  if ((prob->presolveOptions_&16384)!=0)
+    numberInfeasible=0;
   if (numberInfeasible) {
     // infeasible
     prob->status_|= 1;
@@ -1138,6 +1141,7 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 	      
 	s->row = row;
 	s->col = j;
+	PRESOLVE_DETAIL_PRINT(printf("pre_impliedfree2 %dC %dR E\n",j,row));
 
 	s->clo = clo[j];
 	s->cup = cup[j];
