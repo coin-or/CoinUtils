@@ -30370,12 +30370,12 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-                       use_blas='-lblas'
+  use_blas='-lblas'
                        if test $coin_need_flibs = yes ; then
                          use_blas="$use_blas $FLIBS"
                        fi
+                       echo "$as_me:$LINENO: result: yes: $use_blas" >&5
+echo "${ECHO_T}yes: $use_blas" >&6
 
 else
   echo "$as_me: failed program was:" >&5
@@ -30466,12 +30466,12 @@ rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
     fi
     if test $flink_try = yes; then
-      echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-                       use_blas='-lblas'
+      use_blas='-lblas'
                        if test $coin_need_flibs = yes ; then
                          use_blas="$use_blas $FLIBS"
                        fi
+                       echo "$as_me:$LINENO: result: yes: $use_blas" >&5
+echo "${ECHO_T}yes: $use_blas" >&6
 
     else
       if test x"$FLIBS" != x; then
@@ -30524,12 +30524,12 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   LIBS="$flink_save_libs"
                      coin_need_flibs=yes
-                     echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-                       use_blas='-lblas'
+                     use_blas='-lblas'
                        if test $coin_need_flibs = yes ; then
                          use_blas="$use_blas $FLIBS"
                        fi
+                       echo "$as_me:$LINENO: result: yes: $use_blas" >&5
+echo "${ECHO_T}yes: $use_blas" >&6
 
 
 else
@@ -30627,12 +30627,12 @@ rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
     fi
     if test $flink_try = yes; then
-      echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-                       use_blas='-lblas'
+      use_blas='-lblas'
                        if test $coin_need_flibs = yes ; then
                          use_blas="$use_blas $FLIBS"
                        fi
+                       echo "$as_me:$LINENO: result: yes: $use_blas" >&5
+echo "${ECHO_T}yes: $use_blas" >&6
 
     else
       if test x"$FLIBS" != x; then
@@ -30685,12 +30685,12 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   (exit $ac_status); }; }; then
   LIBS="$flink_save_libs"
                      coin_need_flibs=yes
-                     echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-                       use_blas='-lblas'
+                     use_blas='-lblas'
                        if test $coin_need_flibs = yes ; then
                          use_blas="$use_blas $FLIBS"
                        fi
+                       echo "$as_me:$LINENO: result: yes: $use_blas" >&5
+echo "${ECHO_T}yes: $use_blas" >&6
 
 
 else
@@ -30913,7 +30913,7 @@ while test $coin_has_blas = notGiven ; do
       fi
 
       # read dependencies from $pcfile, filter it, and add to list of projects that need to be processed next
-      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\?>\?=[ 	]*[^ 	]\+//g'`
+      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\{0,1\}>\{0,1\}=[ 	]*[^ 	]\{0,\}//g'`
       nextprojtoprocess="$nextprojtoprocess $projrequires"
 
       # remember that we have processed $proj
@@ -33318,7 +33318,7 @@ while test $coin_has_lapack = notGiven ; do
       fi
 
       # read dependencies from $pcfile, filter it, and add to list of projects that need to be processed next
-      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\?>\?=[ 	]*[^ 	]\+//g'`
+      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\{0,1\}>\{0,1\}=[ 	]*[^ 	]\{0,\}//g'`
       nextprojtoprocess="$nextprojtoprocess $projrequires"
 
       # remember that we have processed $proj
@@ -33683,7 +33683,7 @@ while test $coin_has_glpk = notGiven ; do
       fi
 
       # read dependencies from $pcfile, filter it, and add to list of projects that need to be processed next
-      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\?>\?=[ 	]*[^ 	]\+//g'`
+      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\{0,1\}>\{0,1\}=[ 	]*[^ 	]\{0,\}//g'`
       nextprojtoprocess="$nextprojtoprocess $projrequires"
 
       # remember that we have processed $proj
@@ -33986,7 +33986,7 @@ while test $coin_has_sample = notGiven ; do
       fi
 
       # read dependencies from $pcfile, filter it, and add to list of projects that need to be processed next
-      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\?>\?=[ 	]*[^ 	]\+//g'`
+      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\{0,1\}>\{0,1\}=[ 	]*[^ 	]\{0,\}//g'`
       nextprojtoprocess="$nextprojtoprocess $projrequires"
 
       # remember that we have processed $proj
@@ -34275,7 +34275,7 @@ while test $coin_has_netlib = notGiven ; do
       fi
 
       # read dependencies from $pcfile, filter it, and add to list of projects that need to be processed next
-      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\?>\?=[ 	]*[^ 	]\+//g'`
+      projrequires=`sed -n -e 's/Requires://gp' "$pcfile" | sed -e 's/<\{0,1\}>\{0,1\}=[ 	]*[^ 	]\{0,\}//g'`
       nextprojtoprocess="$nextprojtoprocess $projrequires"
 
       # remember that we have processed $proj
