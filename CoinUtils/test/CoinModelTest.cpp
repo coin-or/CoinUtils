@@ -134,7 +134,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
         assert (i>=model.numberRows());
         if (i>model.numberRows()) {
           assert (i==lastRow[jRow]);
-          printf("need to fill in rows\n");
+	  std::cout << "need to fill in rows" << std::endl ;
           for (int k=0;k<jRow;k++) {
             int start = CoinMax(lastRow[k],model.numberRows());
             int end = lastRow[k+1];
@@ -176,7 +176,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
         assert (i>=model.numberColumns());
         if (i>model.numberColumns()) {
           assert (i==lastColumn[jColumn]);
-          printf("need to fill in columns\n");
+	  std::cout << "need to fill in columns" << std::endl ;
           for (int k=0;k<jColumn;k++) {
             int start = CoinMax(lastColumn[k],model.numberColumns());
             int end = lastColumn[k+1];
@@ -613,14 +613,28 @@ CoinModelUnitTest(const std::string & mpsDir,
   }
   // Test with various ways of generating
   {
-    // Get a model
+    /*
+      Get a model. Try first with netlibDir, fall back to mpsDir (sampleDir)
+      if that fails.
+    */
     CoinMpsIO m;
     std::string fn = netlibDir+testModel;
     double time1 = CoinCpuTime();
     int numErr = m.readMps(fn.c_str(),"");
-    if ( numErr== 0 ) {
-      printf("Time for readMps is %g seconds\n",
-             CoinCpuTime()-time1);
+    if (numErr != 0) {
+      std::cout
+	<< "Could not read " << testModel << " in " << netlibDir
+	<< "; falling back to " << mpsDir << "." << std::endl ;
+      fn = mpsDir+testModel ;
+      numErr = m.readMps(fn.c_str(),"") ;
+      if (numErr != 0) {
+	std::cout << "Could not read " << testModel << "; skipping test." << std::endl ;
+      }
+    }
+    if (numErr == 0) {
+      std::cout
+	<< "Time for readMps is "
+	<< (CoinCpuTime()-time1) << " seconds." << std::endl ;
       int numberRows = m.getNumRows();
       int numberColumns = m.getNumCols();
       // Build model
@@ -657,12 +671,13 @@ CoinModelUnitTest(const std::string & mpsDir,
         int iSeed = (int) (random*1000000);
         //iSeed = 776151;
         CoinSeedRandom(iSeed);
-        printf("before pass %d with seed of %d\n",i,iSeed);
+	std::cout << "before pass " << i << " with seed of " << iSeed << std::endl ;
         buildRandom(model,CoinDrand48(),time1,i);
         model.validateLinks();
       }
-      printf("Time for %d CoinModel passes is %g seconds\n",
-             nPass,time1);
+      std::cout
+	<< "Time for " << nPass << " CoinModel passes is "
+	<< time1 << " seconds\n" << std::endl ;
     }
   }
 }
