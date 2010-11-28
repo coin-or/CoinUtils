@@ -128,6 +128,7 @@ AUX_DIR = @AUX_DIR@
 AWK = @AWK@
 BLAS_CFLAGS = @BLAS_CFLAGS@
 BLAS_DATA = @BLAS_DATA@
+BLAS_DATA_INSTALLED = @BLAS_DATA_INSTALLED@
 BLAS_LIBS = @BLAS_LIBS@
 BUILDTOOLSDIR = @BUILDTOOLSDIR@
 CC = @CC@
@@ -135,10 +136,16 @@ CCDEPMODE = @CCDEPMODE@
 CDEFS = @CDEFS@
 CFLAGS = @CFLAGS@
 COINUTILSLIB_CFLAGS = @COINUTILSLIB_CFLAGS@
+COINUTILSLIB_CFLAGS_INSTALLED = @COINUTILSLIB_CFLAGS_INSTALLED@
 COINUTILSLIB_LIBS = @COINUTILSLIB_LIBS@
+COINUTILSLIB_LIBS_INSTALLED = @COINUTILSLIB_LIBS_INSTALLED@
 COINUTILSLIB_PCLIBS = @COINUTILSLIB_PCLIBS@
 COINUTILSLIB_PCREQUIRES = @COINUTILSLIB_PCREQUIRES@
 COINUTILS_SVN_REV = @COINUTILS_SVN_REV@
+COIN_CC_IS_CL_FALSE = @COIN_CC_IS_CL_FALSE@
+COIN_CC_IS_CL_TRUE = @COIN_CC_IS_CL_TRUE@
+COIN_CXX_IS_CL_FALSE = @COIN_CXX_IS_CL_FALSE@
+COIN_CXX_IS_CL_TRUE = @COIN_CXX_IS_CL_TRUE@
 COIN_HAS_BLAS_FALSE = @COIN_HAS_BLAS_FALSE@
 COIN_HAS_BLAS_TRUE = @COIN_HAS_BLAS_TRUE@
 COIN_HAS_GLPK_FALSE = @COIN_HAS_GLPK_FALSE@
@@ -180,6 +187,7 @@ FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
 GLPK_CFLAGS = @GLPK_CFLAGS@
 GLPK_DATA = @GLPK_DATA@
+GLPK_DATA_INSTALLED = @GLPK_DATA_INSTALLED@
 GLPK_LIBS = @GLPK_LIBS@
 HAVE_EXTERNALS_FALSE = @HAVE_EXTERNALS_FALSE@
 HAVE_EXTERNALS_TRUE = @HAVE_EXTERNALS_TRUE@
@@ -189,6 +197,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LAPACK_CFLAGS = @LAPACK_CFLAGS@
 LAPACK_DATA = @LAPACK_DATA@
+LAPACK_DATA_INSTALLED = @LAPACK_DATA_INSTALLED@
 LAPACK_LIBS = @LAPACK_LIBS@
 LDFLAGS = @LDFLAGS@
 LIBEXT = @LIBEXT@
@@ -208,6 +217,7 @@ MPICXX = @MPICXX@
 MPIF77 = @MPIF77@
 NETLIB_CFLAGS = @NETLIB_CFLAGS@
 NETLIB_DATA = @NETLIB_DATA@
+NETLIB_DATA_INSTALLED = @NETLIB_DATA_INSTALLED@
 NETLIB_LIBS = @NETLIB_LIBS@
 OBJEXT = @OBJEXT@
 OPT_CFLAGS = @OPT_CFLAGS@
@@ -226,6 +236,7 @@ RANLIB = @RANLIB@
 RPATH_FLAGS = @RPATH_FLAGS@
 SAMPLE_CFLAGS = @SAMPLE_CFLAGS@
 SAMPLE_DATA = @SAMPLE_DATA@
+SAMPLE_DATA_INSTALLED = @SAMPLE_DATA_INSTALLED@
 SAMPLE_LIBS = @SAMPLE_LIBS@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -312,7 +323,7 @@ EXTRA_DIST = $(am__append_2)
 ########################################################################
 pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
-@COIN_HAS_PKGCONFIG_TRUE@addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
+addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
 
 ########################################################################
 #                         Maintainer Stuff                             #
@@ -718,8 +729,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@COIN_HAS_PKGCONFIG_FALSE@install-data-hook:
-@COIN_HAS_PKGCONFIG_FALSE@uninstall-hook:
 clean: clean-recursive
 
 clean-am: clean-generic clean-libtool clean-local mostlyclean-am
@@ -825,13 +834,14 @@ uninstall-local: uninstall-doc
 
 .PHONY: test unitTest doxydoc
 
-@COIN_HAS_PKGCONFIG_TRUE@install-data-hook:
-@COIN_HAS_PKGCONFIG_TRUE@	@$(mkdir_p) "$(addlibsdir)"
+install-data-hook:
+	@$(mkdir_p) "$(addlibsdir)"
 @COIN_HAS_PKGCONFIG_TRUE@	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@ \
 @COIN_HAS_PKGCONFIG_TRUE@	$(PKG_CONFIG) --libs coinutils > $(addlibsdir)/coinutils_addlibs.txt
+@COIN_HAS_PKGCONFIG_FALSE@	echo -L@abs_lib_dir@ -lCoinUtils @COINUTILSLIB_LIBS_INSTALLED@ > $(addlibsdir)/coinutils_addlibs.txt
 
-@COIN_HAS_PKGCONFIG_TRUE@uninstall-hook:
-@COIN_HAS_PKGCONFIG_TRUE@	rm -f $(addlibsdir)/coinutils_addlibs.txt
+uninstall-hook:
+	rm -f $(addlibsdir)/coinutils_addlibs.txt
 
 install-doc: $(DocFiles)
 	test -z "$(DocInstallDir)" || $(mkdir_p) "$(DESTDIR)$(DocInstallDir)"
