@@ -20,6 +20,7 @@ enum COIN_TestMessage
 { COIN_TST_NOFIELDS,
   COIN_TST_INT,
   COIN_TST_DBL,
+  COIN_TST_DBLFMT,
   COIN_TST_CHAR,
   COIN_TST_STRING,
   COIN_TST_MULTIPART,
@@ -45,6 +46,8 @@ MsgDefn us_tstmsgs[] =
 { {COIN_TST_NOFIELDS,1,1,"This message has no parts and no fields."},
   {COIN_TST_INT,3,1,"This message has an integer field: (%d)"},
   {COIN_TST_DBL,4,1,"This message has a double field: (%g)"},
+  {COIN_TST_DBLFMT,4,1,
+      "This message has an explicit precision .3: (%.3g)"},
   {COIN_TST_CHAR,5,1,"This message has a char field: (%c)"},
   {COIN_TST_STRING,6,1,"This message has a string field: (%s)"},
   {COIN_TST_MULTIPART,7,1,
@@ -113,14 +116,26 @@ void basicTestsWithMessages (const CoinMessages &testMessages, int &errs)
   hdl.setLogLevel(1) ;
   if (hdl.logLevel() != 1)
   { std::cout
-      << "Cannot set/get log level of 0!" << std::endl ;
+      << "Cannot set/get log level of 1!" << std::endl ;
     errs++ ; }
 /*
   Simple tests of one piece messages.
 */
   hdl.message(COIN_TST_NOFIELDS,testMessages) << CoinMessageEol ;
   hdl.message(COIN_TST_INT,testMessages) << 42 << CoinMessageEol ;
-  hdl.message(COIN_TST_DBL,testMessages) << 42.42 << CoinMessageEol ;
+  hdl.message(COIN_TST_DBL,testMessages) << (42.42+1.0/7.0) << CoinMessageEol ;
+  std::cout << "Changing to 10 significant digits." << std::endl ;
+  int savePrecision = hdl.precision() ;
+  hdl.setPrecision(10) ;
+  hdl.message(COIN_TST_DBL,testMessages) << (42.42+1.0/7.0) << CoinMessageEol ;
+  std::cout
+    << "And back to " << savePrecision
+    << " significant digits." << std::endl ;
+  hdl.setPrecision(savePrecision) ;
+  hdl.message(COIN_TST_DBL,testMessages) << (42.42+1.0/7.0) << CoinMessageEol ;
+  hdl.message(COIN_TST_DBLFMT,testMessages)
+       << (42.42+1.0/7.0) << CoinMessageEol ;
+
   hdl.message(COIN_TST_CHAR,testMessages) << 'w' << CoinMessageEol ;
   hdl.message(COIN_TST_STRING,testMessages) << "forty-two" << CoinMessageEol ;
 /*
