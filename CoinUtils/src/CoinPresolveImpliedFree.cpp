@@ -57,7 +57,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 
   int iRow, iColumn;
 
-  int * markRow = prob->usefulRowInt_; // wasnew int[numberRows];
+  char * markRow = reinterpret_cast<char *>(prob->usefulRowInt_); // wasnew int[numberRows];
   for (iRow=0;iRow<numberRows;iRow++) {
     if ((rowLower[iRow]>-large||rowUpper[iRow]<large)&&rowLength[iRow]>0) {
       markRow[iRow]=-1;
@@ -712,15 +712,24 @@ const CoinPresolveAction *implied_free_action::presolve(CoinPresolveMatrix *prob
 #if 1  
   // This needs to be made faster
   int numberInfeasible;
-  //if (prob->pass_%2!=1)
-  //return next;
-  next = testRedundant(prob,next,numberInfeasible);
-  if ((prob->presolveOptions_&16384)!=0)
-    numberInfeasible=0;
-  if (numberInfeasible) {
-    // infeasible
-    prob->status_|= 1;
-    return (next);
+  //printf("Imp pass %d\n",prob->pass_);
+#ifdef COIN_LIGHTWEIGHT_PRESOLVE
+  if (prob->pass_==1) {
+#endif
+    next = testRedundant(prob,next,numberInfeasible);
+    if ((prob->presolveOptions_&16384)!=0)
+      numberInfeasible=0;
+    if (numberInfeasible) {
+      // infeasible
+      prob->status_|= 1;
+      return (next);
+    }
+#ifdef COIN_LIGHTWEIGHT_PRESOLVE
+  }
+#endif
+  if (prob->pass_>15&&(prob->presolveOptions_&0x10000)!=0) { 
+    fill_level=2;
+    return next;
   }
 #endif
   //  int nbounds = 0;
