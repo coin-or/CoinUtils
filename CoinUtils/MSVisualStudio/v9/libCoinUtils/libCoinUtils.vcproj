@@ -2495,10 +2495,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\src\CoinWarmStartPrimalDual.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinWarmStartPrimalDual.cpp"
 				>
 				<FileConfiguration
@@ -2545,6 +2541,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\src\CoinWarmStartPrimalDual.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\CoinWarmStartVector.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\CoinUtils\src\CoinWarmStartVector.cpp"
 				>
 				<FileConfiguration
@@ -2589,10 +2593,6 @@
 						BasicRuntimeChecks="3"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\src\CoinWarmStartVector.cpp"
-				>
 			</File>
 		</Filter>
 		<Filter

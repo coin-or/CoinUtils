@@ -56,7 +56,11 @@ int main (int argc, const char *argv[])
   if (dirsep == '/')
     dataDir = "../../Data" ;
   else
-    dataDir = "..\\..\\..\\..\\Data" ;
+    dataDir = "..\\..\\Data" ;
+# ifdef COIN_MSVS
+    // Visual Studio builds are deeper.
+    dataDir = "..\\..\\"+dataDir ;
+# endif
   // define valid parameter keywords
   std::set<std::string> definedKeyWords;
   // Really should be sampleDir, but let's not rock the boat.
