@@ -26,11 +26,11 @@ unitTest_SOURCES = \
 	CoinShallowPackedVectorTest.cpp \
 	unitTest.cpp
 
-# List libraries of COIN projects
-unitTest_LDADD = ../src/libCoinUtils.la
+# List libraries to link into binary
+unitTest_LDADD = ../src/libCoinUtils.la $(COINUTILSLIB_LIBS)
 
-# List additional libraries
-LIBS += $(COINUTILSLIB_LIBS)
+# Dependencies of binaries are mostly the same as given in LDADD, but with -l and -L removed
+unitTest_DEPENDENCIES = ../src/libCoinUtils.la $(COINUTILSLIB_DEPENDENCIES)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
