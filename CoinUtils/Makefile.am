@@ -66,17 +66,19 @@ uninstall-local: uninstall-doc
 pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
 
-if COIN_HAS_PKGCONFIG
 addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
 	
 install-data-hook:
 	@$(mkdir_p) "$(addlibsdir)"
+if COIN_HAS_PKGCONFIG
 	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@ \
 	$(PKG_CONFIG) --libs coinutils > $(addlibsdir)/coinutils_addlibs.txt
+else
+	echo -L@abs_lib_dir@ -lCoinUtils @COINUTILSLIB_LIBS_INSTALLED@ > $(addlibsdir)/coinutils_addlibs.txt
+endif
 
 uninstall-hook:
 	rm -f $(addlibsdir)/coinutils_addlibs.txt
-endif
 
 ########################################################################
 #                         Maintainer Stuff                             #

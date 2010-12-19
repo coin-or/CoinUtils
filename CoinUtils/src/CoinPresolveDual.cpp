@@ -373,6 +373,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    break;
 	  } else {
 	    fix_cols[--nfixdown_cols] = j;
+	    PRESOLVE_DETAIL_PRINT(printf("pre_duallo %dC E\n",j));
 #	    if PRESOLVE_DEBUG
 	    printf("NDUAL: fixing x<%d>",fix_cols[nfixdown_cols]) ;
 	    if (csol) printf(" = %g",csol[j]) ;
@@ -447,6 +448,7 @@ const CoinPresolveAction *remove_dual_action::presolve(CoinPresolveMatrix *prob,
 	    prob->status_ |= 2;
 	    break;
 	  } else {
+	    PRESOLVE_DETAIL_PRINT(printf("pre_dualup %dC E\n",j));
 	    fix_cols[nfixup_cols++] = j;
 #	    if PRESOLVE_DEBUG
 	    printf("NDUAL: fixing x<%d>",fix_cols[nfixup_cols-1]) ;

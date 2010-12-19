@@ -39,7 +39,11 @@ const double ZTOLDP      = 1e-12;
 const double ZTOLDP2      = 1e-10;
 //#define PRESOLVE_DEBUG 1
 // Debugging macros/functions
-
+#ifndef PRESOLVE_DETAIL
+#define PRESOLVE_DETAIL_PRINT(s) {}
+#else
+#define PRESOLVE_DETAIL_PRINT(s) s
+#endif
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #define	PRESOLVE_STMT(s)	s
 #define PRESOLVEASSERT(x) \

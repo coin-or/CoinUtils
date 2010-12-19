@@ -17,13 +17,6 @@ AUTOMAKE_OPTIONS = foreign
 libcoindir = $(libdir)/coin
 libcoin_LTLIBRARIES = libCoinUtils.la
 
-# AW: This is a fix at the moment to head with the fact that LIBS has
-# -llapack and other libraries in it when those are used and not compiled
-# here.  The content of LIBS is passed to libtool when building a shared
-# library, and that can cause trouble, since liblapack.a and others
-# should not be built into the shared libraries.
-LIBS =
-
 # List all source files for this library, including headers
 libCoinUtils_la_SOURCES = \
 	CoinUtilsConfig.h \
@@ -99,22 +92,12 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
 	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
 
-# This is for libtool (on Windows)
+# This is for libtool
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
-
-# Here we list additional libraries that we want to include, such as Lapack
-# and Blas when they are compiled with the rest of COIN.  This is temporary
-# solution.
-libCoinUtils_la_LIBADD = $(COINUTILS_LIBADD)
-
-libCoinUtils_la_DEPENDENCIES = $(COINUTILS_LIBADD)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
-AM_CPPFLAGS =
-if COIN_HAS_GLPK
-  AM_CPPFLAGS += $(GLPK_CFLAGS)
-endif
+AM_CPPFLAGS = $(GLPK_CFLAGS)
 
 # This line is necessary to allow VPATH compilation with MS compilers
 # on Cygwin

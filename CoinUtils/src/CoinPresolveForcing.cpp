@@ -422,6 +422,7 @@ const CoinPresolveAction
 
 	action *f = &actions[nactions];
 	nactions++;
+	PRESOLVE_DETAIL_PRINT(printf("pre_forcing %dR E\n",irow));
 
 	f->row = irow;
 	f->nlo = lk-krs;

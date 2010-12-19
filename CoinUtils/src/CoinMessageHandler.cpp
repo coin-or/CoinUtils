@@ -116,7 +116,7 @@ CoinMessages::CoinMessages(const CoinMessages & rhs)
   } else {
     char * temp = CoinCopyOfArray(reinterpret_cast<char *> (rhs.message_),lengthMessages_);
     message_ = reinterpret_cast<CoinOneMessage **> (temp);
-    long int offset = temp - reinterpret_cast<char *> (rhs.message_);
+    ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
     int i;
     //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
     for (i=0;i<numberMessages_;i++) {
@@ -161,7 +161,7 @@ CoinMessages::operator=(const CoinMessages & rhs)
     } else {
       char * temp = CoinCopyOfArray(reinterpret_cast<char *> (rhs.message_),lengthMessages_);
       message_ = reinterpret_cast<CoinOneMessage **> (temp);
-      long int offset = temp - reinterpret_cast<char *> (rhs.message_);
+      ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
       int i;
       //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
       for (i=0;i<numberMessages_;i++) {
@@ -411,6 +411,34 @@ CoinMessageHandler::setLogLevel(int which,int value)
   }
 }
 void 
+CoinMessageHandler::setPrecision(unsigned int new_precision) {
+
+  char new_string[8] = {'%','.','8','f','\0','\0','\0','\0'};
+  
+  //we assume that the precision is smaller than one thousand
+  new_precision = std::min<unsigned int>(999,new_precision);
+  if (new_precision == 0)
+    new_precision = 1;
+  g_precision_ = new_precision ;
+  int idx = 2;
+  int base = 100;
+  bool print = false;
+  while (base > 0) {
+
+    char c = (char) (new_precision / base);
+    new_precision = new_precision % base;
+    if (c != 0)
+      print = true;
+    if (print) {
+      new_string[idx] = (char) (c +  '0');
+      idx++;
+    }
+    base /= 10;
+  }
+  new_string[idx] = 'g';
+  strcpy(g_format_,new_string);
+}
+void 
 CoinMessageHandler::setPrefix(bool value)
 {
   if (value)
@@ -434,6 +462,11 @@ CoinMessageHandler::CoinMessageHandler() :
   highestNumber_(-1),
   fp_(stdout)
 {
+  const char* g_default = "%.8g";
+
+  strcpy(g_format_,g_default);
+  g_precision_ = 8 ;
+  
   for (int i=0;i<COIN_NUM_LOG;i++)
     logLevels_[i]=-1000;
   messageBuffer_[0]='\0';
@@ -451,6 +484,11 @@ CoinMessageHandler::CoinMessageHandler(FILE * fp) :
   highestNumber_(-1),
   fp_(fp)
 {
+  const char* g_default = "%.8g";
+  
+  strcpy(g_format_,g_default);
+  g_precision_ = 8 ;
+
   for (int i=0;i<COIN_NUM_LOG;i++)
     logLevels_[i]=-1000;
   messageBuffer_[0]='\0';
@@ -481,7 +519,7 @@ CoinMessageHandler::gutsOfCopy(const CoinMessageHandler& rhs)
   longValue_=rhs.longValue_;
   charValue_=rhs.charValue_;
   stringValue_=rhs.stringValue_;
-  long int offset ;
+  ptrdiff_t offset ;
   if (rhs.format_)
   { offset = rhs.format_ - rhs.currentMessage_.message();
     format_ = currentMessage_.message()+offset; }
@@ -495,6 +533,8 @@ CoinMessageHandler::gutsOfCopy(const CoinMessageHandler& rhs)
   highestNumber_= rhs.highestNumber_;
   fp_ = rhs.fp_;
   source_ = rhs.source_;
+  strcpy(g_format_,rhs.g_format_);
+  g_precision_ = rhs.g_precision_ ;
 }
 /* The copy constructor */
 CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler& rhs)
@@ -704,19 +744,33 @@ CoinMessageHandler::operator<< (double doublevalue)
   if (printStatus_==3)
     return *this; // not doing this message
   doubleValue_.push_back(doublevalue);
+
   if (printStatus_<2) {
     if (format_) {
-      //format is at % (but changed to 0)
+      //format is at \0 (but changed to %)
       *format_='%';
       char * next = nextPerCent(format_+1);
       // could check
       if (!printStatus_) {
-	sprintf(messageOut_,format_,doublevalue);
+	if (format_[1] == '.' && format_[2] >= '0' && format_[2] <= '9') {
+	  // an explicitly specified precision currently overrides the
+	  // precision of the message handler
+	  sprintf(messageOut_,format_,doublevalue);
+	}
+	else {
+	  sprintf(messageOut_,g_format_,doublevalue);
+	  if (next != format_+2) {
+	    messageOut_+=strlen(messageOut_);
+	    sprintf(messageOut_,format_+2);
+	  }
+	}
 	messageOut_+=strlen(messageOut_);
       }
       format_=next;
     } else {
-      sprintf(messageOut_," %g",doublevalue);
+      sprintf(messageOut_," ");
+      messageOut_ += 1;
+      sprintf(messageOut_,g_format_,doublevalue);
       messageOut_+=strlen(messageOut_);
     } 
   }
