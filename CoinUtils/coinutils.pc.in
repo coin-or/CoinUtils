@@ -5,6 +5,7 @@ includedir=@includedir@/coin
 
 Name: CoinUtils
 Description: COIN-OR Utilities
+URL: https://projects.coin-or.org/CoinUtils
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lCoinUtils @COINUTILSLIB_PCLIBS@
 Cflags: -I${includedir}
