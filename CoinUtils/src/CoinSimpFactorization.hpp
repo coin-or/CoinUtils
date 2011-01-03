@@ -1,11 +1,10 @@
 /* $Id$ */
 // Copyright (C) 2008, International Business Machines
 // Corporation and others.  All Rights Reserved.
+// This code is licensed under the terms of the Eclipse Public License (EPL).
 
 /* 
    This is a simple factorization of the LP Basis
-   
-
  */
 #ifndef CoinSimpFactorization_H
 #define CoinSimpFactorization_H

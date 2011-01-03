@@ -1,5 +1,7 @@
 /* $Id$ */
 // Copyright (C) 2005, COIN-OR.  All Rights Reserved.
+// This code is licensed under the terms of the Eclipse Public License (EPL).
+
 #ifndef CoinFileIO_H
 #define CoinFileIO_H
 
