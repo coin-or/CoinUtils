@@ -1,6 +1,10 @@
 /* $Id$ */
-/* Copyright (C) 1987, 2009, International Business Machines
-   Corporation and others.  All Rights Reserved. */
+/*
+  Copyright (C) 1987, 2009, International Business Machines
+  Corporation and others.  All Rights Reserved.
+
+  This code is licensed under the terms of the Eclipse Public License (EPL).
+*/
 #include "CoinOslFactorization.hpp"
 #include "CoinOslC.h"
 #define GO_DENSE 70
