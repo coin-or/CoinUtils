@@ -1,14 +1,12 @@
 /* $Id$ */
 // Copyright (C) 2003, International Business Machines
 // Corporation and others.  All Rights Reserved.
-// This code is licensed under the terms of the Eclipse Public License (EPL).
 
 #ifndef CoinPresolveTripleton_H
 #define CoinPresolveTripleton_H
 #define TRIPLETON 11
 /** We are only going to do this if it does not increase number of elements?.
-    It could be generalized to more than three but it seems unlikely it would
-    help.
+    It could be generalized to more than three but it seems unlikely it would help.
 
     As it is adapted from doubleton icoly is one dropped.
  */

@@ -1,10 +1,6 @@
 /* $Id$ */
-/*
-  Copyright (C) 1987, 2009, International Business Machines
-  Corporation and others.  All Rights Reserved.
-
-  This code is licensed under the terms of the Eclipse Public License (EPL).
-*/
+/* Copyright (C) 1987, 2009, International Business Machines
+   Corporation and others.  All Rights Reserved. */
 /*
   CLP_OSL - if defined use osl
   0 - don't unroll 2 and 3 - don't use in Gomory

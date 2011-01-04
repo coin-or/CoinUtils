@@ -16,7 +16,7 @@
 
 # Copyright (C) 2006 International Business Machines and others.
 # All Rights Reserved.
-# This file is distributed under the Eclipse Public License.
+# This file is distributed under the Common Public License.
 
 # Author:  Andreas Waechter           IBM    2006-04-13
 
@@ -81,6 +81,7 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ABSBUILDDIR = @ABSBUILDDIR@
 ACLOCAL = @ACLOCAL@
+ADDLIBS = @ADDLIBS@
 ADD_CFLAGS = @ADD_CFLAGS@
 ADD_CXXFLAGS = @ADD_CXXFLAGS@
 ADD_FFLAGS = @ADD_FFLAGS@
@@ -155,6 +156,7 @@ ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 F77 = @F77@
+FADDLIBS = @FADDLIBS@
 FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
 GLPK_CFLAGS = @GLPK_CFLAGS@
@@ -211,6 +213,7 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PCADDLIBS = @PCADDLIBS@
 PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 RPATH_FLAGS = @RPATH_FLAGS@

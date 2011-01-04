@@ -1,6 +1,3 @@
-// Copyright (c) 2006, International Business Machines
-// Corporation and others.  All Rights Reserved.
-// This code is licensed under the terms of the Eclipse Public License (EPL).
 
 /*
   A brief test of CoinMessageHandler. Tests that we can print basic messages,

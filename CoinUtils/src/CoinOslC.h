@@ -1,11 +1,7 @@
 /* $Id$ */
 #ifndef COIN_OSL_C_INCLUDE
-/*
-  Copyright (C) 1987, 2009, International Business Machines Corporation
-  and others.  All Rights Reserved.
-
-  This code is licensed under the terms of the Eclipse Public License (EPL).
-*/
+/* Copyright (C) 1987, 2009, International Business Machines
+   Corporation and others.  All Rights Reserved. */
 #define COIN_OSL_C_INCLUDE
 
 #ifndef CLP_OSL

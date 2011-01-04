@@ -1,8 +1,6 @@
 /* $Id$ */
 // Copyright (C) 2005, International Business Machines
 // Corporation and others.  All Rights Reserved.
-// This code is licensed under the terms of the Eclipse Public License (EPL).
-
 #ifndef CoinBuild_H
 #define CoinBuild_H
 
