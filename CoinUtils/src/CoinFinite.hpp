@@ -64,6 +64,24 @@ typedef long CoinBigIndex;
 #else
 typedef long long CoinBigIndex;
 #endif
+//=============================================================================
+#ifdef COIN_PREFETCH
+#if 1
+#define coin_prefetch(mem) \
+         __asm__ __volatile__ ("prefetchnta %0" : : "m" (*(reinterpret_cast<char *>(mem))))
+#define coin_prefetch_const(mem) \
+         __asm__ __volatile__ ("prefetchnta %0" : : "m" (*(reinterpret_cast<const char *>(mem))))
+#else
+#define coin_prefetch(mem) \
+         __asm__ __volatile__ ("prefetch %0" : : "m" (*(reinterpret_cast<char *>(mem))))
+#define coin_prefetch_const(mem) \
+         __asm__ __volatile__ ("prefetch %0" : : "m" (*(reinterpret_cast<const char *>(mem))))
+#endif
+#else
+// dummy
+#define coin_prefetch(mem)
+#define coin_prefetch_const(mem)
+#endif
 
 //=============================================================================
 #ifndef COIN_BIG_DOUBLE 
