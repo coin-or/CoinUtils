@@ -575,9 +575,19 @@ class CoinPrePostsolveMatrix
   /// Row (constraint) upper bounds
   double *rup_;
 
-  /// Original column numbers
+  /*! \brief Original column numbers
+
+    Over the current range of column numbers in the presolved problem,
+    the entry for column j will contain the index of the corresponding
+    column in the original problem.
+  */
   int * originalColumn_;
-  /// Original row numbers
+  /*! \brief Original row numbers
+
+    Over the current range of row numbers in the presolved problem, the
+    entry for row i will contain the index of the corresponding row in
+    the original problem.
+  */
   int * originalRow_;
 
   /// Primal feasibility tolerance
@@ -924,7 +934,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /// Picks up any special options
   inline int presolveOptions() const
   { return presolveOptions_;}
-  /// Sets any special options
+  /// Sets any special options (see #presolveOptions_)
   inline void setPresolveOptions(int value)
   { presolveOptions_=value;}
   //@}
@@ -1083,12 +1093,12 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /// Length of #nextRowsToDo_
   int numberNextRowsToDo_;
   /** Presolve options
-      1 set if allow duplicate column tests for integer variables
-      2 set to allow code to try and fix infeasibilities
-      4 set to inhibit x+y+z=1 mods
-      8 not used
-      16 set to allow stuff which won't unroll easily 
-      0x80000000 set by presolve to say dupcol_action compressed columns
+      - 1 set if allow duplicate column tests for integer variables
+      - 2 set to allow code to try and fix infeasibilities
+      - 4 set to inhibit x+y+z=1 mods
+      - 8 not used
+      - 16 set to allow stuff which won't unroll easily 
+      - 0x80000000 set by presolve to say dupcol_action compressed columns
   */
   int presolveOptions_;
   /*! Flag to say if any rows or columns are marked as prohibited

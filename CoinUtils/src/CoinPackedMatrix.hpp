@@ -73,6 +73,8 @@
   Compiling this class with CLP_NO_VECTOR defined will excise all methods
   which use CoinPackedVectorBase, CoinPackedVector, or CoinShallowPackedVector
   as parameters or return types.
+
+  Compiling this class with COIN_FAST_CODE defined removes index range checks.
 */
 class CoinPackedMatrix  {
    friend void CoinPackedMatrixUnitTest();
@@ -97,39 +99,65 @@ public:
 
     /** Whether the packed matrix is column major ordered or not. */
     inline bool isColOrdered() const { return colOrdered_; }
+
     /** Whether the packed matrix has gaps or not. */
-    inline bool hasGaps() const 
-    { return  size_<start_[majorDim_];} 
+    inline bool hasGaps() const { return (size_<start_[majorDim_]) ; } 
 
     /** Number of entries in the packed matrix. */
     inline CoinBigIndex getNumElements() const { return size_; }
-    /** Number of columns. */
-    inline int getNumCols() const { return colOrdered_ ? majorDim_ : minorDim_; }
-    /** Number of rows. */
-    inline int getNumRows() const { return colOrdered_ ? minorDim_ : majorDim_; }
 
-    /** A vector containing the elements in the packed matrix. Note that there
-	might be gaps in this list, entries that do not belong to any
-	major-dimension vector. To get the actual elements one should look at
-	this vector together with vectorStarts and vectorLengths. */
+    /** Number of columns. */
+    inline int getNumCols() const
+    { return colOrdered_ ? majorDim_ : minorDim_; }
+
+    /** Number of rows. */
+    inline int getNumRows() const
+    { return colOrdered_ ? minorDim_ : majorDim_; }
+
+    /*! \brief A vector containing the elements in the packed matrix.
+    
+	Returns #elements_. Note that there might be gaps in this vector,
+	entries that do not belong to any major-dimension vector. To get
+	the actual elements one should look at this vector together with
+	vectorStarts (#start_) and vectorLengths (#length_).
+    */
     inline const double * getElements() const { return element_; }
-    /** A vector containing the minor indices of the elements in the packed
-        matrix. Note that there might be gaps in this list, entries that do not
-        belong to any major-dimension vector. To get the actual elements one
-        should look at this vector together with vectorStarts and
-        vectorLengths. */
+
+    /*! \brief A vector containing the minor indices of the elements in
+    	       the packed matrix.
+
+	Returns #index_. Note that there might be gaps in this list,
+	entries that do not belong to any major-dimension vector. To get
+	the actual elements one should look at this vector together with
+	vectorStarts (#start_) and vectorLengths (#length_).
+    */
     inline const int * getIndices() const { return index_; }
 
-    /** The size of the <code>vectorStarts</code> array */
-    inline int getSizeVectorStarts()const { return majorDim_ > 0 ? majorDim_+1 : 0;}
-    /** The size of the <code>vectorLengths</code> array */
-    inline int getSizeVectorLengths() const { return majorDim_; }
-    /** The positions where the major-dimension vectors start in elements and
-        indices. */
-    inline const CoinBigIndex * getVectorStarts() const { return start_; }
-    /** The lengths of the major-dimension vectors. */
-    inline const int * getVectorLengths() const { return length_; }
+    /*! \brief The size of the <code>vectorStarts</code> array
 
+	See #start_.
+    */
+    inline int getSizeVectorStarts() const
+    { return ((majorDim_ > 0)?(majorDim_+1):(0)) ; }
+
+    /*! \brief The size of the <code>vectorLengths</code> array
+    
+        See #length_.
+    */
+    inline int getSizeVectorLengths() const { return majorDim_; }
+
+    /*! \brief The positions where the major-dimension vectors start in
+    	       elements and indices.
+
+	See #start_.
+    */
+    inline const CoinBigIndex * getVectorStarts() const { return start_; }
+
+    /*! \brief The lengths of the major-dimension vectors.
+    
+        See #length_.
+    */
+    inline const int * getVectorLengths() const { return length_; }
 
     /** The position of the first element in the i'th major-dimension vector.
      */
@@ -184,7 +212,7 @@ public:
   //@}
 
   //---------------------------------------------------------------------------
-  /**@name Modifying members. */
+  /**@name Modifying members */
   //@{
     /*! \brief Set the dimensions of the matrix.
     
@@ -487,6 +515,7 @@ public:
     //-------------------------------------------------------------------------
     /*! @name Append vectors
 
+       \details
        When compiled with COIN_DEBUG defined these methods throw an exception
        if the major (minor) vector contains an index that's invalid for the
        minor (major) dimension. Otherwise the methods assume that every index
@@ -534,12 +563,13 @@ public:
     //@}
 
     //-------------------------------------------------------------------------
-    /**@name Append matrices.
+    /*! \name Append matrices
 
-       We'll document these methods assuming that the current matrix is
-       column major ordered (Hence in the <code>...SameOrdered()</code>
-       methods the argument is column ordered, in the
-       <code>OrthoOrdered()</code> methods the argument is row ordered.)
+      \details
+      We'll document these methods assuming that the current matrix is
+      column major ordered (Hence in the <code>...SameOrdered()</code>
+      methods the argument is column ordered, in the
+      <code>OrthoOrdered()</code> methods the argument is row ordered.)
     */
     //@{
       /** Append the columns of the argument to the right end of this matrix.
@@ -664,41 +694,58 @@ public:
    //@}
 
    //--------------------------------------------------------------------------
-   /**@name non const methods.
-    This is to be used with great care when doing column generation etc */
+   /*! \name Non-const methods
+
+     These are to be used with great care when doing column generation, etc.
+   */
    //@{
     /** A vector containing the elements in the packed matrix. Note that there
 	might be gaps in this list, entries that do not belong to any
 	major-dimension vector. To get the actual elements one should look at
-	this vector together with vectorStarts and vectorLengths. */
+	this vector together with #start_ and #length_. */
     inline double * getMutableElements() const { return element_; }
     /** A vector containing the minor indices of the elements in the packed
         matrix. Note that there might be gaps in this list, entries that do not
         belong to any major-dimension vector. To get the actual elements one
-        should look at this vector together with vectorStarts and
-        vectorLengths. */
+        should look at this vector together with #start_ and
+        #length_. */
     inline int * getMutableIndices() const { return index_; }
 
-    /** The positions where the major-dimension vectors start in elements and
-        indices. */
+    /** The positions where the major-dimension vectors start in #element_ and
+        #index_. */
     inline CoinBigIndex * getMutableVectorStarts() const { return start_; }
     /** The lengths of the major-dimension vectors. */
     inline int * getMutableVectorLengths() const { return length_; }
-    /// Change size after modifying - be careful
+    /// Change the size of the bulk store after modifying - be careful
     inline void setNumElements(CoinBigIndex value)
     { size_ = value;}
-    /// NULLify element array - used when space is very tight
+    /*! NULLify element array
+    
+      Used when space is very tight. Does not free the space!
+    */
     inline void nullElementArray() {element_=NULL;}
-    /// NULLify start array - used when space is very tight
+
+    /*! NULLify start array
+    
+      Used when space is very tight. Does not free the space!
+    */
     inline void nullStartArray() {start_=NULL;}
-    /// NULLify length array - used when space is very tight
+
+    /*! NULLify length array
+    
+      Used when space is very tight. Does not free the space!
+    */
     inline void nullLengthArray() {length_=NULL;}
-    /// NULLify index array - used when space is very tight
+
+    /*! NULLify index array
+    
+      Used when space is very tight. Does not free the space!
+    */
     inline void nullIndexArray() {index_=NULL;}
    //@}
 
    //--------------------------------------------------------------------------
-   /**@name Constructors, destructors and major modifying methods*/
+   /*! \name Constructors and destructors */
    //@{
    /// Default Constructor creates an empty column ordered packed matrix
    CoinPackedMatrix();
@@ -753,7 +800,28 @@ public:
    virtual ~CoinPackedMatrix();    
    //@}
 
-   //--------------------------------------------------------------------------
+  /*! \name Debug Utilities */
+  //@{
+    /*! \brief Scan the matrix for anomalies.
+
+	Returns the number of anomalies. Scans the structure for gaps, obviously
+	bogus indices and coefficients, and inconsistencies. Gaps are not an error
+	unless #hasGaps() says the matrix should be gap-free. Values for verbosity
+	are:
+	- 0: No messages, just the return value
+	- 1: Messages about errors
+	- 2: If there are no errors, a message indicating the matrix was
+	     checked is printed (positive confirmation).
+	- 3: Adds a bit more information about the matrix.
+
+	Obviously bogus coefficients are coefficients that are NaN or have
+	absolute value less than 1e-50 or greater than 1e50 (defined by constants
+	in the method).
+      */
+    int verifyMtx(int verbosity = 1) const ;
+  //@}
+
+  //--------------------------------------------------------------------------
 protected:
    void gutsOfDestructor();
    void gutsOfCopyOf(const bool colordered,
@@ -846,11 +914,13 @@ protected:
 };
 
 //#############################################################################
-/** A function that tests the methods in the CoinPackedMatrix class. The
-    only reason for it not to be a member method is that this way it doesn't
-    have to be compiled into the library. And that's a gain, because the
-    library should be compiled with optimization on, but this method should be
-    compiled with debugging. */
+/*! \brief Test the methods in the CoinPackedMatrix class.
+
+    The only reason for it not to be a member method is that this way
+    it doesn't have to be compiled into the library. And that's a gain,
+    because the library should be compiled with optimization on, but this
+    method should be compiled with debugging.
+*/
 void
 CoinPackedMatrixUnitTest();
 

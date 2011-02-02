@@ -1883,8 +1883,8 @@ CoinPackedMatrix::timesMinor(const CoinPackedVectorBase& x, double * y) const
 
 CoinPackedMatrix::CoinPackedMatrix() :
    colOrdered_(true),
-   extraGap_(0.25),
-   extraMajor_(0.25),
+   extraGap_(0.0),
+   extraMajor_(0.0),
    element_(0), 
    index_(0),
    length_(0),
@@ -3523,4 +3523,177 @@ CoinPackedMatrix::appendMinorFast(const int number,
   }
   assert (checkSize==size_);
 #endif
+}
+
+/*
+  Utility to scan a packed matrix for corruption and inconsistencies. Not
+  exhaustive, but useful.
+*/
+
+int CoinPackedMatrix::verifyMtx (int verbosity) const
+
+{
+  const double smallCoeff = 1.0e-50 ;
+  const double largeCoeff = 1.0e50 ;
+
+  int majDim = majorDim_ ;
+  int minDim = minorDim_ ;
+  CoinBigIndex coeffCnt = size_ ;
+
+  std::string majName, minName ;
+
+  int m, n ;
+  if (colOrdered_) {
+    n = majDim ;
+    majName = "col" ;
+    m = minDim ;
+    minName = "row" ;
+  } else {
+    m = majDim ;
+    majName = "row" ;
+    n = minDim ;
+    minName = "col" ;
+  }
+
+  bool gaps = (size_ < start_[majDim]) ; 
+
+  if (verbosity >= 3) {
+    std::cout
+      << " Matrix is " << ((colOrdered_)?"column":"row") << "-major, "
+      << m << " rows X " << n << " cols; " << coeffCnt << " coeffs; ex maj "
+      << extraMajor_ << ", ex gap " << extraGap_ << "." << std::endl ;
+    if (gaps)
+      std::cout << "  matrix has gaps." << std::endl ;
+  }
+
+  const CoinBigIndex *const majStarts = start_ ;
+  const int *const majLens = length_ ;
+  const int *const minInds = index_ ;
+  const double *const coeffs = element_ ;
+/*
+  Scan the matrix.
+*/
+  int errs = 0 ;
+  int *refCnt = new int[coeffCnt] ;
+  CoinZeroN(refCnt,coeffCnt) ;
+
+  for (int majndx = 0 ; majndx < majDim ; majndx++) {
+/*
+  Check that the indices into the bulk store are valid.
+*/
+    CoinBigIndex majStart = majStarts[majndx] ;
+    CoinBigIndex majStartp1 = majStarts[majndx+1] ;
+    int majLen = majLens[majndx] ;
+    if (majStart < 0 || majStart > coeffCnt) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  " << majName << "(" << majndx
+	  << "): start " << majStart << " should be between 0 and "
+	  << coeffCnt << "." << std::endl ;
+      }
+      errs++ ;
+      continue ;
+    }
+    if (majStartp1 < 0 || majStartp1 > coeffCnt) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  " << majName << "(" << majndx+1
+	  << "): start " << majStart << " should be between 0 and "
+	  << coeffCnt << "." << std::endl ;
+      }
+      errs++ ;
+      continue ;
+    }
+/*
+  Check that the major dimension vector length is valid, consistent with the
+  indices into the bulk store, and consistent with the gap attribute.
+*/
+    if ((majStartp1-majStart) < 0 ||
+        (((majStartp1-majStart) > minDim) && !gaps)) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  " << majName << "(" << majndx << "): distance between "
+	  << majName << " starts " << (majStartp1-majStart)
+	  << " should be between 0 and " << minDim << "." << std::endl ;
+      }
+      errs++ ;
+    }
+    if (majLen < 0 || majLen > (majStartp1-majStart)) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  " << majName << "(" << majndx << "): vector length "
+	  << majLen << " should be between 0 and " << (majStartp1-majStart)
+	  << std::endl ;
+      }
+      errs++ ;
+      majLen = CoinMax(majLen,0) ;
+      majLen = CoinMin(majLen,(majStartp1-majStart)) ;
+    } else if (majLen != (majStartp1-majStart) && !gaps) {
+      if (verbosity >= 1) {
+	std::cout
+	  << "  " << majName << majndx
+	  << ": (end+1)-start = " << majStartp1 << " - " << majStart
+	  << " = " << majStartp1-majStart << " != len = " << majLen
+	  << "." << std::endl ;
+      }
+      errs++ ;
+    }
+/*
+  Scan the major dimension vectors, checking for obviously bogus minor indices
+  and coefficients. Generate reference counts for each bulk store entry.
+*/
+    int majEnd = majStart+majLen ;
+    for (CoinBigIndex ii = majStart ;  ii < majEnd ; ii++) {
+      refCnt[ii]++ ;
+      int minndx = minInds[ii] ;
+      if (minndx < 0 || minndx >= minDim) {
+        if (verbosity >= 1) {
+	  std::cout
+	    << "  " << majName << " " << majndx << ": "
+	    << minName << " index " << ii << " is " << minndx
+	    << ", should be between 0 and " << minDim-1 << "." << std::endl ;
+	}
+	errs++ ;
+      }
+      double aij = coeffs[ii] ;
+      if (CoinIsnan(aij) ||
+          CoinAbs(aij) > largeCoeff || CoinAbs(aij) < smallCoeff) {
+	if (verbosity >= 1) {
+	  std::cout
+	    << "  a<" << majndx << "," << minndx << "> = " << aij
+	    << " appears bogus." << std::endl ;
+	}
+	errs++ ;
+      }
+    }
+  }
+/*
+  Check the reference counts. They should all be 1.
+*/
+  for (CoinBigIndex ii = 0 ; ii < coeffCnt ; ii++) {
+    if (refCnt[ii] != 1) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  Bulk store entry " << ii << " has reference count "
+	  << refCnt[ii] << "; should be 1." << std::endl ;
+      }
+      errs++ ;
+    }
+  }
+  delete[] refCnt ;
+/*
+  Report the result.
+*/
+  if (errs > 0) {
+    if (verbosity >= 1) {
+      std::cout
+        << "  Detected " << errs << " errors in matrix." << std::endl ;
+    }
+  } else {
+    if (verbosity >= 2) {
+      std::cout << "  Matrix verified." << std::endl ;
+    }
+  }
+
+  return (errs) ;
 }
