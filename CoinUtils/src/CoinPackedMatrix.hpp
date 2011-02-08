@@ -804,21 +804,26 @@ public:
   //@{
     /*! \brief Scan the matrix for anomalies.
 
-	Returns the number of anomalies. Scans the structure for gaps, obviously
-	bogus indices and coefficients, and inconsistencies. Gaps are not an error
-	unless #hasGaps() says the matrix should be gap-free. Values for verbosity
-	are:
+	Returns the number of anomalies. Scans the structure for gaps,
+	obviously bogus indices and coefficients, and inconsistencies. Gaps
+	are not an error unless #hasGaps() says the matrix should be
+	gap-free. Zeroes are not an error unless \p zeroesAreError is set to
+	true.
+	
+	Values for verbosity are:
 	- 0: No messages, just the return value
 	- 1: Messages about errors
 	- 2: If there are no errors, a message indicating the matrix was
 	     checked is printed (positive confirmation).
 	- 3: Adds a bit more information about the matrix.
+	- 4: Prints warnings about zeroes even if they're not considered
+	     errors.
 
 	Obviously bogus coefficients are coefficients that are NaN or have
-	absolute value less than 1e-50 or greater than 1e50 (defined by constants
-	in the method).
+	absolute value greater than 1e50. Zeros have absolute value less
+	than 1e-50.
       */
-    int verifyMtx(int verbosity = 1) const ;
+    int verifyMtx(int verbosity = 1, bool zeroesAreError = false) const ;
   //@}
 
   //--------------------------------------------------------------------------
