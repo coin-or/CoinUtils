@@ -25,7 +25,7 @@
 			ConfigurationType="4"
 			InheritedPropertySheets="$(COIN_ROOT)\BuildTools\MSVisualStudio\v9alt\coin.vsprops"
 			CharacterSet="1"
-			ManagedExtensions="1"
+			ManagedExtensions="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -46,6 +46,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;_DEBUG"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -84,7 +85,7 @@
 			ConfigurationType="4"
 			InheritedPropertySheets="$(COIN_ROOT)\BuildTools\MSVisualStudio\v9alt\coin.vsprops"
 			CharacterSet="1"
-			ManagedExtensions="1"
+			ManagedExtensions="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -107,6 +108,7 @@
 				Optimization="0"
 				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;_DEBUG"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -145,7 +147,7 @@
 			ConfigurationType="4"
 			InheritedPropertySheets="$(COIN_ROOT)\BuildTools\MSVisualStudio\v9alt\coin.vsprops"
 			CharacterSet="1"
-			ManagedExtensions="1"
+			ManagedExtensions="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -167,6 +169,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;NDEBUG"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -206,7 +209,7 @@
 			ConfigurationType="4"
 			InheritedPropertySheets="$(COIN_ROOT)\BuildTools\MSVisualStudio\v9alt\coin.vsprops"
 			CharacterSet="1"
-			ManagedExtensions="1"
+			ManagedExtensions="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -229,6 +232,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;NDEBUG"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -265,11 +269,10 @@
 		<Configuration
 			Name="DebugDLL|Win32"
 			OutputDirectory="$(CoinBinDir)"
-			IntermediateDirectory="$(ProjectName)\$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(COIN_ROOT)\BuildTools\MSVisualStudio\v9alt\coin.vsprops"
 			CharacterSet="1"
-			ManagedExtensions="1"
+			ManagedExtensions="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -290,6 +293,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;_DEBUG"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -308,7 +312,8 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalLibraryDirectories=""
-				ModuleDefinitionFile="$(IntDir)\libCoinUtils.def"
+				ModuleDefinitionFile="$(IntDir)\$(ProjectName).def"
+				AssemblyDebug="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -336,11 +341,10 @@
 		<Configuration
 			Name="DebugDLL|x64"
 			OutputDirectory="$(CoinBinDir)"
-			IntermediateDirectory="$(ProjectName)\$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(COIN_ROOT)\BuildTools\MSVisualStudio\v9alt\coin.vsprops"
 			CharacterSet="1"
-			ManagedExtensions="1"
+			ManagedExtensions="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -380,7 +384,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				ModuleDefinitionFile="$(IntDir)\libCoinUtils.def"
+				ModuleDefinitionFile="$(IntDir)\$(ProjectName).def"
+				AssemblyDebug="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -403,7 +408,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="move import library to $(CoinLibDir)"
-				CommandLine="if not exist $(CoinLibDir) mkdir $(CoinLibDir)&#x0D;&#x0A;move /y $(OutDir)\$(TargetName).lib $(CoinLibDir)"
+				CommandLine="if not exist $(CoinLibDir) mkdir $(CoinLibDir)&#x0D;&#x0A;move /y $(OutDir)\$(TargetName).lib $(CoinLibDir)&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -640,6 +645,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\CoinWarmStartPrimalDual.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\CoinWarmStartVector.cpp"
 				>
 			</File>
 		</Filter>
