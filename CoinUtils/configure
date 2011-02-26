@@ -28213,6 +28213,18 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+# add -Wno-long-long if CoinInt64 or CoinIntPtr is long long and we use gnu compilers
+if test \( "$CoinInt64" = "long long" -o "$CoinIntPtr" = "long long" \) -a "$GXX" = "yes" ; then
+  case "$CXX" in
+    icpc* | */icpc* | icc )
+      ;;
+    *)
+      CXXFLAGS="$CXXFLAGS -Wno-long-long"
+      ;;
+  esac
+fi
+
+
 #############################################################################
 #                           Check whether we have windows.h                 #
 #############################################################################
