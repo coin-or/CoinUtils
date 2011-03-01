@@ -399,7 +399,7 @@ static const unsigned char yystos[] =
 };
 
 #if ! defined (YYSIZE_T) && defined (__SIZE_TYPE__)
-# define YYSIZE_T __SIZE_TYPE__
+# define YYSIZE_T size_t
 #endif
 #if ! defined (YYSIZE_T) && defined (size_t)
 # define YYSIZE_T size_t
