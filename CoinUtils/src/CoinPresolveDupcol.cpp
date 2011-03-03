@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <math.h>
 
+//#define PRESOLVE_DEBUG 1
+// Debugging macros/functions
+//#define PRESOLVE_DETAIL 1
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveDupcol.hpp"
@@ -13,7 +16,6 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinPresolveUseless.hpp"
 #include "CoinMessage.hpp"
-//#define PRESOLVE_DEBUG 1
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"
 #endif
@@ -165,6 +167,9 @@ const CoinPresolveAction
   int nlook = 0 ;
   for (int j = 0 ; j < ncols ; j++) {
     if (hincol[j] == 0) continue ;
+    // sort
+    CoinSort_2(hrow+mcstrt[j],hrow+mcstrt[j]+hincol[j],
+	       colels+mcstrt[j]);
     // check all positive and adjust rhs
     if (allPositive) {
       double lower = clo[j];
@@ -774,6 +779,9 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
     double l_k = f->lastlo;
     double u_k = f->lastup;
     double x_k_sol = sol[icol2];
+    PRESOLVE_DETAIL_PRINT(printf("post icol %d %g %g %g icol2 %d %g %g %g\n",
+	   icol,clo[icol],sol[icol],cup[icol],
+				 icol2,clo[icol2],sol[icol2],cup[icol2]));
     if (l_j>-PRESOLVE_INF&& x_k_sol-l_j>=l_k-tolerance&&x_k_sol-l_j<=u_k+tolerance) {
       // j at lb, leave k
       prob->setColumnStatus(icol,CoinPrePostsolveMatrix::atLowerBound);
@@ -801,11 +809,13 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
       sol[icol] = 0.0;	// doesn't matter
       prob->setColumnStatus(icol,CoinPrePostsolveMatrix::isFree);
     }
-
+    PRESOLVE_DETAIL_PRINT(printf("post2 icol %d %g icol2 %d %g\n",
+	   icol,sol[icol],
+				 icol2,sol[icol2]));
     // row activity doesn't change
     // dj of both variables is the same
     rcosts[icol] = rcosts[icol2];
-    // leave until desctructor
+    // leave until destructor
     //    deleteAction(f->colels,double *);
 
 #   if PRESOLVE_DEBUG
@@ -877,6 +887,9 @@ const CoinPresolveAction
   for (int i = 0 ; i < nrows ; i++)
   { if (hinrow[i] == 0) continue ;
     if (prob->rowProhibited2(i)) continue ;
+    // sort
+    CoinSort_2(hcol+mrstrt[i],hcol+mrstrt[i]+hinrow[i],
+	       rowels+mrstrt[i]);
     sort[nlook++] = i ; }
   if (nlook == 0)
   { delete[] sort ;
