@@ -428,18 +428,6 @@ if test x"$CoinIntPtr" = x; then
 fi
 AC_DEFINE_UNQUOTED([COIN_INTPTR_T],[$CoinIntPtr],[Define to integer type capturing pointer])
 
-# add -Wno-long-long if CoinInt64 or CoinIntPtr is long long and we use gnu compilers
-if test \( "$CoinInt64" = "long long" -o "$CoinIntPtr" = "long long" \) -a "$GXX" = "yes" ; then
-  case "$CXX" in
-    icpc* | */icpc* | icc )
-      ;;
-    *)
-      CXXFLAGS="$CXXFLAGS -Wno-long-long"
-      ;;
-  esac
-fi
-
-
 #############################################################################
 #                           Check whether we have windows.h                 #
 #############################################################################
