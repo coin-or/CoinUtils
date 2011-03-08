@@ -445,6 +445,14 @@ const CoinPresolveAction
 	  s->ncolx	= hincol[icolx];
 	  
 	  s->ncoly	= hincol[icoly];
+	  if (integerType[icolx]) {
+	    cup[icolx] = CoinMin(cup[icolx],static_cast<double>(COIN_INT_MAX));
+	    clo[icolx] = CoinMax(clo[icolx],-static_cast<double>(COIN_INT_MAX));
+	  }
+	  if (integerType[icoly]) {
+	    cup[icoly] = CoinMin(cup[icoly],static_cast<double>(COIN_INT_MAX));
+	    clo[icoly] = CoinMax(clo[icoly],-static_cast<double>(COIN_INT_MAX));
+	  }
 	  if (s->ncoly<s->ncolx) {
 	    // Take out row 
 	    s->colel	= presolve_dupmajor(colels,hrow,hincol[icoly],
