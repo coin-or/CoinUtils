@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(COIN_ROOT)\BuildTools\MSVisualStudio\v9alt\coin.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros">
+    <CoinUtilsIncludeDir>$(CoinRoot)\CoinUtils\CoinUtils\src</CoinUtilsIncludeDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <IncludePath>$(CoinUtilsIncludeDir);$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(CoinUtilsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libCoinUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CoinLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="CoinUtilsIncludeDir">
+      <Value>$(CoinUtilsIncludeDir)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
