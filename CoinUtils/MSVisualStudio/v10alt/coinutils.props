@@ -1,9 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="PropertySheets">
-    <Import Project="$(COIN_ROOT)\BuildTools\MSVisualStudio\v9alt\coin.props" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros">
+    <Have_CoinUtils_Props>yes</Have_CoinUtils_Props>
     <CoinUtilsIncludeDir>$(CoinRoot)\CoinUtils\CoinUtils\src</CoinUtilsIncludeDir>
   </PropertyGroup>
   <PropertyGroup>
@@ -20,6 +18,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <BuildMacro Include="Have_CoinUtils_Props">
+      <Value>$(Have_CoinUtils_Props)</Value>
+    </BuildMacro>
     <BuildMacro Include="CoinUtilsIncludeDir">
       <Value>$(CoinUtilsIncludeDir)</Value>
     </BuildMacro>
