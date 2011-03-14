@@ -135,14 +135,18 @@ CoinPackedVectorBase::findIndex(int i) const
 
 bool
 CoinPackedVectorBase::operator==(const CoinPackedVectorBase& rhs) const
-{  if (getNumElements() == 0 && rhs.getNumElements() == 0)
-     return (true) ;
-   else
+{  if (getNumElements() == 0 || rhs.getNumElements() == 0) {
+     if (getNumElements() == 0 && rhs.getNumElements() == 0)
+       return (true) ;
+     else
+       return (false) ;
+   } else {
      return (getNumElements()==rhs.getNumElements() &&
 	     std::equal(getIndices(),getIndices()+getNumElements(),
 		        rhs.getIndices()) &&
 	     std::equal(getElements(),getElements()+getNumElements(),
 		        rhs.getElements())) ;
+   }
 }
 
 //-----------------------------------------------------------------------------
