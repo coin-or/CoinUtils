@@ -57,7 +57,11 @@ namespace {	/* begin unnamed local namespace */
    and consistency will be restored.
 */
 
-  bool elim_doubleton (const char * /*msg*/,
+  bool elim_doubleton (const char * 
+#ifdef PRESOLVE_DEBUG
+msg
+#endif
+		       ,
 		     CoinBigIndex *mcstrt, 
 		     double *rlo, double *rup,
 		     double *colels,
@@ -67,7 +71,11 @@ namespace {	/* begin unnamed local namespace */
 		     CoinBigIndex *mrstrt, double *rowels,
 		     double coeff_factor,
 		     double bounds_factor,
-		       int /*row0*/, int icolx, int icoly)
+		       int
+#ifdef PRESOLVE_DEBUG
+		       row0
+#endif
+		       , int icolx, int icoly)
 
 {
   CoinBigIndex kcsx = mcstrt[icolx];
@@ -1241,6 +1249,8 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
     cdone[jcoly] = DOUBLETON;
     rdone[irow] = DOUBLETON;
     presolve_check_threads(prob) ;
+#endif
+# if PRESOLVE_DEBUG
 /*
   Confirm accuracy of reduced cost for columns x and y.
 */
@@ -1326,8 +1336,13 @@ void check_doubletons(const CoinPresolveAction * paction)
   }
 }
 
+#if	PRESOLVE_DEBUG
+void check_doubletons1(const CoinPresolveAction * paction,
+		       int ncols)
+#else
 void check_doubletons1(const CoinPresolveAction * /*paction*/,
 		       int /*ncols*/)
+#endif
 {
 #if	PRESOLVE_DEBUG
   doubleton_mult = new double[ncols];

@@ -569,3 +569,6 @@ CoinPresolveMatrix::statistics()
   tuning_=true;
   startTime_ = CoinCpuTime();
 }
+#ifdef PRESOLVE_DEBUG
+#include "CoinPresolvePsdebug.cpp"
+#endif
