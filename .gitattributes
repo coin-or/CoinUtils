@@ -2,6 +2,9 @@
 /AUTHORS -text
 CoinUtils/INSTALL -text
 CoinUtils/LICENSE -text
+CoinUtils/MSVisualStudio/v10/CoinUtils.sln -text
+CoinUtils/MSVisualStudio/v10/libCoinUtils/libCoinUtils.vcxproj -text
+CoinUtils/MSVisualStudio/v10/unitTestCoinUtils/unitTestCoinUtils.vcxproj -text
 CoinUtils/MSVisualStudio/v10alt/CoinUtils.sln -text
 CoinUtils/MSVisualStudio/v10alt/CoinUtilsUnitTest.vcxproj -text
 CoinUtils/MSVisualStudio/v10alt/coinutils.props -text
