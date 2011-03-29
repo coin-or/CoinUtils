@@ -117,7 +117,7 @@ CoinMessages::CoinMessages(const CoinMessages & rhs)
   } else {
     char * temp = CoinCopyOfArray(reinterpret_cast<char *> (rhs.message_),lengthMessages_);
     message_ = reinterpret_cast<CoinOneMessage **> (temp);
-    ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
+    std::ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
     int i;
     //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
     for (i=0;i<numberMessages_;i++) {
@@ -162,7 +162,7 @@ CoinMessages::operator=(const CoinMessages & rhs)
     } else {
       char * temp = CoinCopyOfArray(reinterpret_cast<char *> (rhs.message_),lengthMessages_);
       message_ = reinterpret_cast<CoinOneMessage **> (temp);
-      ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
+      std::ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
       int i;
       //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
       for (i=0;i<numberMessages_;i++) {
@@ -520,7 +520,7 @@ CoinMessageHandler::gutsOfCopy(const CoinMessageHandler& rhs)
   longValue_=rhs.longValue_;
   charValue_=rhs.charValue_;
   stringValue_=rhs.stringValue_;
-  ptrdiff_t offset ;
+  std::ptrdiff_t offset ;
   if (rhs.format_)
   { offset = rhs.format_ - rhs.currentMessage_.message();
     format_ = currentMessage_.message()+offset; }
