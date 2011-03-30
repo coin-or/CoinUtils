@@ -16,6 +16,7 @@
 #include <cstdio>
 
 class CoinPackedMatrix;
+#include "CoinMessage.hpp"
 
 typedef int COINColumnIndex;
 
@@ -443,10 +444,44 @@ public:
   /// Dump the data. Low level method for debugging.
   void print() const;
   //@}
+/**@name Message handling */
+//@{
+  /** Pass in Message handler
+  
+      Supply a custom message handler. It will not be destroyed when the
+      CoinMpsIO object is destroyed.
+  */
+  void passInMessageHandler(CoinMessageHandler * handler);
+
+  /// Set the language for messages.
+  void newLanguage(CoinMessages::Language language);
+
+  /// Set the language for messages.
+  inline void setLanguage(CoinMessages::Language language) {newLanguage(language);}
+
+  /// Return the message handler
+  inline CoinMessageHandler * messageHandler() const {return handler_;}
+
+  /// Return the messages
+  inline CoinMessages messages() {return messages_;}
+  /// Return the messages pointer
+  inline CoinMessages * messagesPointer() {return & messages_;}
+//@}
 
 protected:
   /// Problem name
   char * problemName_;
+
+  /// Message handler
+  CoinMessageHandler * handler_;
+  /** Flag to say if the message handler is the default handler.
+      
+      If true, the handler will be destroyed when the CoinMpsIO
+      object is destroyed; if false, it will not be destroyed.
+  */
+  bool defaultHandler_;
+  /// Messages
+  CoinMessages messages_;
 
   /// Number of rows
   int numberRows_;

@@ -783,15 +783,15 @@ public:
   void newLanguage(CoinMessages::Language language);
 
   /// Set the language for messages.
-  void setLanguage(CoinMessages::Language language) {newLanguage(language);}
+  inline void setLanguage(CoinMessages::Language language) {newLanguage(language);}
 
   /// Return the message handler
-  CoinMessageHandler * messageHandler() const {return handler_;}
+  inline CoinMessageHandler * messageHandler() const {return handler_;}
 
   /// Return the messages
-  CoinMessages messages() {return messages_;}
+  inline CoinMessages messages() {return messages_;}
   /// Return the messages pointer
-  CoinMessages * messagesPointer() {return & messages_;}
+  inline CoinMessages * messagesPointer() {return & messages_;}
 //@}
 
 

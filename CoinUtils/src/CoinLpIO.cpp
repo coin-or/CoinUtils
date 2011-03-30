@@ -11,6 +11,7 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
+#include "CoinUtilsConfig.h"
 
 #include <cfloat>
 #include <cctype>
@@ -31,6 +32,7 @@ using namespace std;
 
 CoinLpIO::CoinLpIO() :
   problemName_(CoinStrdup("")),
+  defaultHandler_(true),
   numberRows_(0),
   numberColumns_(0),
   numberElements_(0),
@@ -66,6 +68,8 @@ CoinLpIO::CoinLpIO() :
   numberHash_[1] = 0;
   hash_[1] = NULL;
   names_[1] = NULL;
+  handler_ = new CoinMessageHandler();
+  messages_ = CoinMessage();
 }
 
 /************************************************************************/
@@ -73,6 +77,9 @@ CoinLpIO::~CoinLpIO() {
   stopHash(0);
   stopHash(1);
   freeAll();
+  if (defaultHandler_) {
+    delete handler_;
+  }
 }
 
 /************************************************************************/
@@ -298,7 +305,9 @@ void CoinLpIO::checkRowNames() {
 
   if(numberHash_[0] != nrow+1) {
     setDefaultRowNames();
-    printf("### WARNING: CoinLpIO::checkRowNames(): non distinct or missing row names or objective function name.\nNow using default row names.\n");
+    handler_->message(COIN_GENERAL_WARNING,messages_)<<
+      "### CoinLpIO::checkRowNames(): non distinct or missing row names or objective function name.\nNow using default row names."
+						     <<CoinMessageEol;
   }
 
   char const * const * rowNames = getRowNames();
@@ -313,7 +322,10 @@ void CoinLpIO::checkRowNames() {
       sprintf(rName, "%s_low", rowNames[i]);
       if(findHash(rName, 0) != -1) {
 	setDefaultRowNames();
-	printf("### WARNING: CoinLpIO::checkRowNames(): ranged constraint %d hasa name %s identical to another constraint name or objective function name.\nUse getPreviousNames() to get the old row names.\nNow using default row names.\n", i, rName);
+	char printBuffer[512];
+	sprintf(printBuffer,"### CoinLpIO::checkRowNames(): ranged constraint %d hasa name %s identical to another constraint name or objective function name.\nUse getPreviousNames() to get the old row names.\nNow using default row names.", i, rName);
+	handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+						  <<CoinMessageEol;
 	break;
       }
     }
@@ -327,7 +339,9 @@ void CoinLpIO::checkColNames() {
 
   if(numberHash_[1] != ncol) {
     setDefaultColNames();
-    printf("### WARNING: CoinLpIO::checkColNames(): non distinct or missing column names.\nNow using default column names.\n");
+    handler_->message(COIN_GENERAL_WARNING,messages_)<<
+      "### CoinLpIO::checkColNames(): non distinct or missing column names.\nNow using default column names."
+					      <<CoinMessageEol;
   }
 } /* checkColNames */
 
@@ -602,7 +616,9 @@ void CoinLpIO::setLpDataRowAndColNames(char const * const * const rownames,
   if(rownames != NULL) {
     if(are_invalid_names(rownames, nrow+1, true)) {
       setDefaultRowNames();
-      printf("### WARNING: CoinLpIO::setLpDataRowAndColNames(): Invalid row names\nUse getPreviousNames() to get the old row names.\nNow using default row names.\n");
+      handler_->message(COIN_GENERAL_WARNING,messages_)<<
+      "### CoinLpIO::setLpDataRowAndColNames(): Invalid row names\nUse getPreviousNames() to get the old row names.\nNow using default row names."
+						<<CoinMessageEol;
     } 
     else {
       stopHash(0);
@@ -620,7 +636,9 @@ void CoinLpIO::setLpDataRowAndColNames(char const * const * const rownames,
   if(colnames != NULL) {
     if(are_invalid_names(colnames, ncol, false)) {
       setDefaultColNames();
-      printf("### WARNING: CoinLpIO::setLpDataRowAndColNames(): Invalid column names\nNow using default row names.\n");
+      handler_->message(COIN_GENERAL_WARNING,messages_)<<
+      "### CoinLpIO::setLpDataRowAndColNames(): Invalid column names\nNow using default row names."
+						<<CoinMessageEol;
     } 
     else {
       stopHash(1);
@@ -1132,21 +1150,32 @@ CoinLpIO::is_invalid_name(const char *name,
     lname = strlen(name);
   }
   if(lname < 1) {
-    printf("### WARNING: CoinLpIO::is_invalid_name(): Name is empty\n");
+    handler_->message(COIN_GENERAL_WARNING,messages_)<<
+    "### CoinLpIO::is_invalid_name(): Name is empty"
+					      <<CoinMessageEol;
     return(5);
   }
   if(lname > valid_lname) {
-    printf("### WARNING: CoinLpIO::is_invalid_name(): Name %s is too long\n", 
+	char printBuffer[512];
+	sprintf(printBuffer,"### CoinLpIO::is_invalid_name(): Name %s is too long", 
 	   name);
+	handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+							 <<CoinMessageEol;
     return(1);
   }
   if(first_is_number(name)) {
-    printf("### WARNING: CoinLpIO::is_invalid_name(): Name %s should not start with a number\n", name);
+    char printBuffer[512];
+    sprintf(printBuffer,"### CoinLpIO::is_invalid_name(): Name %s should not start with a number", name);
+    handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+						     <<CoinMessageEol;
     return(2);
   }
   pos = strspn(name, str_valid);
   if(pos != lname) {
-    printf("### WARNING: CoinLpIO::is_invalid_name(): Name %s contains illegal character '%c'\n", name, name[pos]);
+    char printBuffer[512];
+    sprintf(printBuffer,"### CoinLpIO::is_invalid_name(): Name %s contains illegal character '%c'", name, name[pos]);
+    handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+						     <<CoinMessageEol;
     return(3);
   }
 
@@ -1184,8 +1213,11 @@ CoinLpIO::are_invalid_names(char const * const * const vnames,
     }
     flag = is_invalid_name(vnames[i], is_ranged);
     if(flag) {
-      printf("### WARNING: CoinLpIO::are_invalid_names(): Invalid name: vnames[%d]: %s\n",
-	     i, vnames[i]);
+      char printBuffer[512];
+      sprintf(printBuffer,"### CoinLpIO::are_invalid_names(): Invalid name: vnames[%d]: %s",
+	      i, vnames[i]);
+      handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+						       <<CoinMessageEol;
       invalid = flag;
     }
   }
@@ -1658,7 +1690,10 @@ CoinLpIO::readLp(FILE* fp)
 
 	icol = findHash(buff, 1);
 	if(icol < 0) {
-	  printf("### WARNING: CoinLpIO::readLp(): Variable %s does not appear in objective function or constraints\n", buff);
+	  char printBuffer[512];
+	  sprintf(printBuffer,"### CoinLpIO::readLp(): Variable %s does not appear in objective function or constraints", buff);
+	  handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+							   <<CoinMessageEol;
 	  insertHash(buff, 1);
 	  icol = findHash(buff, 1);
 	  if(icol == maxcol) {
@@ -1768,7 +1803,10 @@ CoinLpIO::readLp(FILE* fp)
 #endif
 
 	if(icol < 0) {
-	  printf("### WARNING: CoinLpIO::readLp(): Integer variable %s does not appear in objective function or constraints\n", buff);
+	  char printBuffer[512];
+	  sprintf(printBuffer,"### CoinLpIO::readLp(): Integer variable %s does not appear in objective function or constraints", buff);
+	  handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+							   <<CoinMessageEol;
 	  insertHash(buff, 1);
 	  icol = findHash(buff, 1);
 	  if(icol == maxcol) {
@@ -1801,7 +1839,10 @@ CoinLpIO::readLp(FILE* fp)
 #endif
 
 	if(icol < 0) {
-	  printf("### WARNING: CoinLpIO::readLp(): Binary variable %s does not appear in objective function or constraints\n", buff);
+	  char printBuffer[512];
+	  sprintf(printBuffer,"### CoinLpIO::readLp(): Binary variable %s does not appear in objective function or constraints", buff);
+	  handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+							   <<CoinMessageEol;
 	  insertHash(buff, 1);
 	  icol = findHash(buff, 1);
 	  if(icol == maxcol) {
@@ -1874,7 +1915,9 @@ CoinLpIO::readLp(FILE* fp)
   }
 
   if (objsense == -1) {
-    printf("### WARNING: CoinLpIO::readLp(): Maximization problem reformulated as minimization\n");
+    handler_->message(COIN_GENERAL_INFO,messages_)<<
+      " CoinLpIO::readLp(): Maximization problem reformulated as minimization"
+						  <<CoinMessageEol;
     objectiveOffset_ = -objectiveOffset_;
   }
 
@@ -1908,7 +1951,9 @@ CoinLpIO::readLp(FILE* fp)
 
   if(are_invalid_names(names_[1], numberHash_[1], false)) {
     setDefaultColNames();
-    printf("### WARNING: CoinLpIO::readLp(): Invalid column names\nNow using default column names.\n");
+    handler_->message(COIN_GENERAL_WARNING,messages_)<<
+      "### CoinLpIO::readLp(): Invalid column names\nNow using default column names."
+						     <<CoinMessageEol;
   } 
   
   for(i=0; i<cnt_coeff; i++) {
@@ -2288,5 +2333,20 @@ CoinLpIO::insertHash(const char *thisName, int section)
   hashNames[number] = CoinStrdup(thisName);
   (numberHash_[section])++;
 
+}
+// Pass in Message handler (not deleted at end)
+void 
+CoinLpIO::passInMessageHandler(CoinMessageHandler * handler)
+{
+  if (defaultHandler_) 
+    delete handler_;
+  defaultHandler_=false;
+  handler_=handler;
+}
+// Set language
+void 
+CoinLpIO::newLanguage(CoinMessages::Language language)
+{
+  messages_ = CoinMessage(language);
 }
 
