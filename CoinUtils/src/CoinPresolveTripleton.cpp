@@ -500,7 +500,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	{
 	  action *s = &actions[nactions];	  
 	  nactions++;
-	  PRESOLVE_DETAIL_PRINT(printf("pre__tripleton %dR %dC %dC %dC E\n",
+	  PRESOLVE_DETAIL_PRINT(printf("pre_tripleton %dR %dC %dC %dC E\n",
 				       irow,icoly,icolx,icolz));
 	  
 	  s->row = irow;
