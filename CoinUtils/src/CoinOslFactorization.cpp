@@ -307,7 +307,7 @@ CoinOslFactorization::makeNonSingular(int * sequence, int numberColumns)
       } else {
 	goodPass=false;
 	assert(numberDone);
-	printf("BAD singular at row %d\n",i);
+	//printf("BAD singular at row %d\n",i);
 	break;
       }
     }
@@ -918,7 +918,7 @@ static int adjust_check=-1;
 #endif
 static void clp_adjust_pointers(EKKfactinfo * fact, int adjust)
 {
-#ifndef NDEBUG
+#if 0 //ndef NDEBUG
   adjust_count++;
   if (adjust_check>=0&&adjust_count>=adjust_check) {
     printf("trouble\n");

@@ -867,8 +867,8 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 	  assert (columnUpper[i]>columnLower[i]-10.0*tolerance);
 	}
       }
-      if (nFixed)
-	printf("could fix %d\n",nFixed);
+      //if (nFixed)
+      //printf("could fix %d\n",nFixed);
       //next = remove_fixed_action::presolve(prob,fixed,nFixed,next) ; 
     }
 #endif
@@ -1742,8 +1742,8 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 	rowduals[irow] = possibleDual;
 	if ((rlo[irow] < rup[irow] && rowduals[irow] < 0.0)
 	    || rlo[irow]< -1.0e20) {
-	  if (rlo[irow]<-1.0e20&&rowduals[irow]>ZTOLDP)
-	    printf("IMP %g %g %g\n",rlo[irow],rup[irow],rowduals[irow]);
+	  //if (rlo[irow]<-1.0e20&&rowduals[irow]>ZTOLDP)
+	  //printf("IMP %g %g %g\n",rlo[irow],rup[irow],rowduals[irow]);
 	  sol[icol] = (rup[irow] - act) / coeff;
 	  //assert (sol[icol]>=clo[icol]-1.0e-5&&sol[icol]<=cup[icol]+1.0e-5);
 	  acts[irow] = rup[irow];

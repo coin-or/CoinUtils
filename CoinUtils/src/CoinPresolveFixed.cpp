@@ -695,8 +695,8 @@ transferCosts(CoinPresolveMatrix * prob)
       }
     }
   }
-  if (nchanged)
-    printf("%d singleton columns have transferred costs\n",nchanged);
+  //if (nchanged)
+  //printf("%d singleton columns have transferred costs\n",nchanged);
   if (numberIntegers) {
     int changed=-1;
     while (changed) {
@@ -734,12 +734,12 @@ transferCosts(CoinPresolveMatrix * prob)
       }
       if (changed) {
         nchanged+=changed;
-        printf("%d changed this pass\n",changed);
+        //printf("%d changed this pass\n",changed);
       }
     }
   }
-  if (bias!=prob->dobias_)
-    printf("new bias %g\n",bias);
+  //if (bias!=prob->dobias_)
+  //printf("new bias %g\n",bias);
   prob->dobias_ = bias;
 }
 

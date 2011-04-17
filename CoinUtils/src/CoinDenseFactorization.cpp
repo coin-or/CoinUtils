@@ -208,7 +208,7 @@ CoinDenseFactorization::factor ( )
       solveMode_=1+10*(solveMode_/10);
       numberGoodU_=numberRows_;
       CoinZeroN(workArea_,2*numberRows_);
-#ifndef NDEBUG
+#if 0 //ndef NDEBUG
       const CoinFactorizationDouble * column = elements_;
       double smallest=COIN_DBL_MAX;
       for (int i=0;i<numberRows_;i++) {

@@ -1083,4 +1083,9 @@ protected:
   //@}
 };
 #endif
+#ifndef COIN_DETAIL
+#define COIN_DETAIL_PRINT(s) {}
+#else
+#define COIN_DETAIL_PRINT(s) s
+#endif
 #endif

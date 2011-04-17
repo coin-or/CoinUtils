@@ -3472,7 +3472,7 @@ int CoinMpsIO::readGms(int & /*numberSets*/,CoinSet ** &/*sets*/)
 					    <<numberColumns_
 					    <<numberElements_
 					    <<CoinMessageEol;
-  if (numberTiny||numberLarge)
+  if ((numberTiny||numberLarge)&&handler_->logLevel()>3)
     printf("There were %d coefficients < %g and %d > %g\n",
            numberTiny,smallElement_,numberLarge,largeElement);
   return numberErrors;
