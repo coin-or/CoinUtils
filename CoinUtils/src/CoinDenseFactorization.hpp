@@ -16,7 +16,7 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-#include "CoinFinite.hpp"
+#include "CoinTypes.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinFactorization.hpp"
 class CoinPackedMatrix;

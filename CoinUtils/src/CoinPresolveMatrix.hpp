@@ -15,6 +15,7 @@
 #include <cassert>
 #include <cfloat>
 #include <cassert>
+#include <cstdlib>
 
 /*! \file
 

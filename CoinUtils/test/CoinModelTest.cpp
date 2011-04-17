@@ -16,7 +16,7 @@
 #include "CoinMpsIO.hpp"
 #include "CoinModel.hpp"
 #include "CoinHelperFunctions.hpp"
-#include  "CoinTime.hpp"
+#include "CoinTime.hpp"
 
 //#############################################################################
 

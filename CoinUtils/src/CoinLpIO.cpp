@@ -13,6 +13,7 @@
 
 #include "CoinUtilsConfig.h"
 
+#include <cmath>
 #include <cfloat>
 #include <cctype>
 #include <cassert>

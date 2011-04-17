@@ -7,7 +7,7 @@
 #define CoinSnapshot_H
 
 class CoinPackedMatrix;
-#include "CoinFinite.hpp"
+#include "CoinTypes.hpp"
 
 //#############################################################################
 

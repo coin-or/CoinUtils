@@ -3,24 +3,22 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#  pragma warning(disable:4786)
-#endif
-
 #include "CoinUtilsConfig.h"
 
 #include <algorithm>
 #include <numeric>
 #include <cassert>
 #include <cstdio>
+#include <cmath>
 #include <iostream>
 
+#include "CoinPragma.hpp"
 #include "CoinSort.hpp"
 #include "CoinHelperFunctions.hpp"
 #ifndef CLP_NO_VECTOR
 #include "CoinPackedVectorBase.hpp"
 #endif
+#include "CoinFloatEqual.hpp"
 #include "CoinPackedMatrix.hpp"
 
 #if !defined(COIN_COINUTILS_CHECKLEVEL)
@@ -3058,6 +3056,10 @@ CoinPackedMatrix::isEquivalent(const CoinPackedMatrix& rhs, const CoinRelFltEq& 
   return same;
 }
 #endif
+bool CoinPackedMatrix::isEquivalent(const CoinPackedMatrix& rhs) const
+{
+   return isEquivalent(rhs,CoinRelFltEq());
+}
 /* Sort all columns so indices are increasing.in each column */
 void 
 CoinPackedMatrix::orderMatrix()

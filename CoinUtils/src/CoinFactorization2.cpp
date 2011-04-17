@@ -16,6 +16,7 @@
 #include "CoinFactorization.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
+#include "CoinFinite.hpp"
 #if DENSE_CODE==1
 // using simple lapack interface
 extern "C" 

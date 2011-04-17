@@ -8,6 +8,7 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinSnapshot.hpp"
 #include "CoinPackedMatrix.hpp"
+#include "CoinFinite.hpp"
 
 //#############################################################################
 // Constructors / Destructor / Assignment

@@ -5,6 +5,9 @@
 
 #ifndef CoinHelperFunctions_H
 #define CoinHelperFunctions_H
+
+#include "CoinUtilsConfig.h"
+
 #if defined(_MSC_VER)
 #  include <direct.h>
 #  define getcwd _getcwd
@@ -15,8 +18,19 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <algorithm>
+#include "CoinTypes.hpp"
 #include "CoinError.hpp"
-#include "CoinFinite.hpp"
+
+// Compilers can produce better code if they know about __restrict
+#ifndef COIN_RESTRICT
+#ifdef COIN_USE_RESTRICT
+#define COIN_RESTRICT __restrict
+#else
+#define COIN_RESTRICT
+#endif
+#endif
+
 //#############################################################################
 
 /** This helper function copies an array to another location using Duff's
@@ -909,6 +923,7 @@ CoinFromFile( T* &array, CoinBigIndex size, FILE * fp, CoinBigIndex & newSize)
 //#############################################################################
 
 /// Cube Root
+#if 0
 inline double CoinCbrt(double x)
 {
 #if defined(_MSC_VER) 
@@ -917,6 +932,8 @@ inline double CoinCbrt(double x)
     return cbrt(x);
 #endif
 }
+#endif
+
 //-----------------------------------------------------------------------------
 
 /// This helper returns "sizeof" as an int 

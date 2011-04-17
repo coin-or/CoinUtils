@@ -14,6 +14,7 @@
 */
 #include "CoinOslFactorization.hpp"
 #include "CoinOslC.h"
+#include "CoinFinite.hpp"
 
 #ifndef NDEBUG
 extern int ets_count;

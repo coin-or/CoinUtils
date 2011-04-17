@@ -78,8 +78,8 @@ AC_COIN_CHECK_CXX_CHEADER(assert)
 ###################
 # Function finite #
 ###################
-MY_C_FINITE=
-AC_CHECK_DECL([finite],[MY_C_FINITE=finite],,[
+COIN_C_FINITE=
+AC_CHECK_DECL([finite],[COIN_C_FINITE=finite],,[
 #ifdef HAVE_CMATH
 # include <cmath>
 #else
@@ -101,8 +101,8 @@ AC_CHECK_DECL([finite],[MY_C_FINITE=finite],,[
 #  include <ieeefp.h>
 # endif
 #endif])
-if test -z "$MY_C_FINITE"; then
-  AC_CHECK_DECL([_finite],[MY_C_FINITE=_finite],,[
+if test -z "$COIN_C_FINITE"; then
+  AC_CHECK_DECL([_finite],[COIN_C_FINITE=_finite],,[
 #ifdef HAVE_CMATH
 # include <cmath>
 #else
@@ -124,8 +124,8 @@ if test -z "$MY_C_FINITE"; then
 #  include <ieeefp.h>
 # endif
 #endif])
-  if test -z "$MY_C_FINITE"; then
-    AC_CHECK_DECL([isfinite],[MY_C_FINITE=isfinite],,[
+  if test -z "$COIN_C_FINITE"; then
+    AC_CHECK_DECL([isfinite],[COIN_C_FINITE=isfinite],,[
 #ifdef HAVE_CMATH
 # include <cmath>
 #else
@@ -149,18 +149,18 @@ if test -z "$MY_C_FINITE"; then
 #endif])
   fi
 fi
-if test -z "$MY_C_FINITE"; then
+if test -z "$COIN_C_FINITE"; then
   AC_MSG_WARN(Cannot find C-function for checking Inf. Check will test whether the value is different from DBL_MAX)
 else
-  AC_DEFINE_UNQUOTED([MY_C_FINITE],[$MY_C_FINITE],
+  AC_DEFINE_UNQUOTED([COIN_C_FINITE],[$COIN_C_FINITE],
                      [Define to be the name of C-function for Inf check])
 fi
 
 ###################
 # Function isnan #
 ###################
-MY_C_ISNAN=
-AC_CHECK_DECL([isnan],[MY_C_ISNAN=isnan],,[
+COIN_C_ISNAN=
+AC_CHECK_DECL([isnan],[COIN_C_ISNAN=isnan],,[
 #ifdef HAVE_CMATH
 # include <cmath>
 #else
@@ -187,8 +187,8 @@ AC_CHECK_DECL([isnan],[MY_C_ISNAN=isnan],,[
 # std::isnan, and bare isnan will be unavailable. Typically we need a parameter
 # in the test to allow C++ to do overload resolution.
 
-if test -z "$MY_C_ISNAN"; then
-  AC_CHECK_DECL([std::isnan(42.42)],[MY_C_ISNAN=std::isnan],,[
+if test -z "$COIN_C_ISNAN"; then
+  AC_CHECK_DECL([std::isnan(42.42)],[COIN_C_ISNAN=std::isnan],,[
 #ifdef HAVE_CMATH
 # include <cmath>
 #else
@@ -212,8 +212,8 @@ if test -z "$MY_C_ISNAN"; then
 #endif])
 fi
 
-if test -z "$MY_C_ISNAN"; then
-  AC_CHECK_DECL([_isnan],[MY_C_ISNAN=_isnan],,[
+if test -z "$COIN_C_ISNAN"; then
+  AC_CHECK_DECL([_isnan],[COIN_C_ISNAN=_isnan],,[
 #ifdef HAVE_CMATH
 # include <cmath>
 #else
@@ -236,8 +236,8 @@ if test -z "$MY_C_ISNAN"; then
 # endif
 #endif])
 fi
-if test -z "$MY_C_ISNAN"; then
-  AC_CHECK_DECL([isnand],[MY_C_ISNAN=isnand],,[
+if test -z "$COIN_C_ISNAN"; then
+  AC_CHECK_DECL([isnand],[COIN_C_ISNAN=isnand],,[
 #ifdef HAVE_CMATH
 # include <cmath>
 #else
@@ -260,10 +260,10 @@ if test -z "$MY_C_ISNAN"; then
 # endif
 #endif])
 fi
-if test -z "$MY_C_ISNAN"; then
+if test -z "$COIN_C_ISNAN"; then
   AC_MSG_WARN(Cannot find C-function for checking NaN. Check will return false)
 else
-  AC_DEFINE_UNQUOTED([MY_C_ISNAN],[$MY_C_ISNAN],
+  AC_DEFINE_UNQUOTED([COIN_C_ISNAN],[$COIN_C_ISNAN],
                      [Define to be the name of C-function for NaN check])
 fi
 
@@ -474,7 +474,7 @@ AC_CONFIG_FILES([Makefile
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Here put the location and name of the configuration header file
-AC_CONFIG_HEADER([inc/config_coinutils.h])
+AC_CONFIG_HEADER([inc/config.h inc/config_coinutils.h])
 
 # Finally, we let configure write all the output...
 AC_COIN_FINALIZE

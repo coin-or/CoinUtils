@@ -3,8 +3,6 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#include "CoinFinite.hpp"
-
 #include "CoinMessageHandler.hpp"
 #include "CoinHelperFunctions.hpp"
 #include <cassert>

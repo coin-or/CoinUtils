@@ -15,6 +15,7 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
+#include "CoinFinite.hpp"
 #include <stdio.h>
 //:class CoinFactorization.  Deals with Factorization and Updates
 //  CoinFactorization.  Constructor

@@ -12,11 +12,10 @@
 #include <iostream>
 
 
-#include "CoinPragma.hpp"
-
-#include "CoinHelperFunctions.hpp"
-
 #include "CoinBuild.hpp"
+
+#include "CoinPragma.hpp"
+#include "CoinHelperFunctions.hpp"
 
 /*
   Format of each item is a bit sleazy.

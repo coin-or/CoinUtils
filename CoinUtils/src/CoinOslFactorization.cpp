@@ -3,20 +3,17 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#  pragma warning(disable:4786)
-#endif
-
 #include "CoinUtilsConfig.h"
 
 #include <cassert>
+#include "CoinPragma.hpp"
 #include "CoinOslFactorization.hpp"
 #include "CoinOslC.h"
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinTypes.hpp"
+#include "CoinFinite.hpp"
 #include <stdio.h>
 static void c_ekksmem(EKKfactinfo *fact,int numberRows,int maximumPivots);
 static void c_ekksmem_copy(EKKfactinfo *fact,const EKKfactinfo * rhsFact);

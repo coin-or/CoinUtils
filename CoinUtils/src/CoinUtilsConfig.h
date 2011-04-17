@@ -22,42 +22,19 @@
 #define __COINUTILSCONFIG_H__
 
 #ifdef HAVE_CONFIG_H
+#ifdef COINUTILS_BUILD
+#include "config.h"
+#else
 #include "config_coinutils.h"
-
-/* undefine macros that could conflict with those in other config.h
-   files */
-#undef PACKAGE
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef VERSION
+#endif
 
 #else /* HAVE_CONFIG_H */
 
-/* include the COIN-wide system specific configure header */
-#include "configall_system.h"
-
-/***************************************************************************/
-/*             HERE DEFINE THE CONFIGURATION SPECIFIC MACROS               */
-/*    These are only in effect in a setting that doesn't use configure     */
-/***************************************************************************/
-
-/* Define to the debug sanity check level (0 is no test) */
-#define COIN_COINUTILS_CHECKLEVEL 0
-
-/* Define to the debug verbosity level (0 is no output) */
-#define COIN_COINUTILS_VERBOSITY 0
-
-/* Define to 1 if bzlib is available */
-/* #define COIN_HAS_BZLIB */
-
-/* Define to 1 if the CoinUtils package is used */
-#define COIN_HAS_COINUTILS 1
-
-/* Define to 1 if zlib is available */
-/* #define COIN_HAS_ZLIB */
+#ifdef COINUTILS_BUILD
+#include "config_default.h"
+#else
+#include "config_coinutils_default.h"
+#endif
 
 #endif /* HAVE_CONFIG_H */
 

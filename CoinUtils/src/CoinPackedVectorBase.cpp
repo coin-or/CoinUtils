@@ -3,16 +3,12 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#  pragma warning(disable:4786)
-#endif
-
 #include <numeric>
 
-#include "CoinFinite.hpp"
-#include "CoinHelperFunctions.hpp"
 #include "CoinPackedVectorBase.hpp"
+#include "CoinTypes.hpp"
+#include "CoinHelperFunctions.hpp"
+#include "CoinFloatEqual.hpp"
 
 //#############################################################################
 
@@ -174,6 +170,12 @@ CoinPackedVectorBase::compare(const CoinPackedVectorBase& rhs) const
   return memcmp(getElements(), rhs.getElements(), size * sizeof(double));
 }
 
+bool
+CoinPackedVectorBase::isEquivalent(const CoinPackedVectorBase& rhs) const
+{
+   return isEquivalent(rhs,  CoinRelFltEq());
+}
+
 //#############################################################################
 
 double
@@ -207,6 +209,14 @@ CoinPackedVectorBase::normSquare() const
 {
    return std::inner_product(getElements(), getElements() + getNumElements(),
 			     getElements(), 0.0);
+}
+
+//-----------------------------------------------------------------------------
+
+double
+CoinPackedVectorBase::twoNorm() const
+{
+   return sqrt(normSquare());
 }
 
 //-----------------------------------------------------------------------------

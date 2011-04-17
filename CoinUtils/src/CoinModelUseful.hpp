@@ -7,6 +7,7 @@
 #define CoinModelUseful_H
 
 
+#include <cstdlib>
 #include <cmath>
 #include <cassert>
 #include <cfloat>
@@ -16,7 +17,6 @@
 
 
 #include "CoinPragma.hpp"
-#include "CoinFinite.hpp"
 
 /**
    This is for various structures/classes needed by CoinModel.

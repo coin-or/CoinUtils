@@ -3,19 +3,17 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#  pragma warning(disable:4786)
-#endif
-
 #include "CoinUtilsConfig.h"
+#include "CoinPragma.hpp"
 
 #include <cassert>
+#include <cstdio>
+
 #include "CoinDenseFactorization.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
-#include <stdio.h>
+#include "CoinFinite.hpp"
 #if COIN_BIG_DOUBLE==1
 #undef DENSE_CODE
 #endif

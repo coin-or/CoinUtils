@@ -40,7 +40,10 @@ CoinUtils/configure -text
 CoinUtils/configure.ac -text
 CoinUtils/depcomp -text
 CoinUtils/doxydoc/doxygen.conf.in -text
+CoinUtils/inc/config.h.in -text
 CoinUtils/inc/config_coinutils.h.in -text
+CoinUtils/inc/config_coinutils_default.h -text
+CoinUtils/inc/config_default.h -text
 CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
 CoinUtils/missing -text

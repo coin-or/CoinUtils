@@ -6,15 +6,10 @@
 #ifndef CoinPackedVectorBase_H
 #define CoinPackedVectorBase_H
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#  pragma warning(disable:4786)
-#endif
-
 #include <set>
 #include <map>
+#include "CoinPragma.hpp"
 #include "CoinError.hpp"
-#include "CoinFloatEqual.hpp"
 
 class CoinPackedVector;
 
@@ -176,10 +171,8 @@ public:
       }
       return true;
    }
-   bool isEquivalent(const CoinPackedVectorBase& rhs) const
-   {
-      return isEquivalent(rhs,  CoinRelFltEq());
-   }
+
+   bool isEquivalent(const CoinPackedVectorBase& rhs) const;
    //@}
 
 
@@ -195,7 +188,7 @@ public:
    double normSquare() const;
 
    /// Return the 2-norm of the vector
-   inline double twoNorm() const { return sqrt(normSquare()); }
+   double twoNorm() const;
 
    /// Return the infinity-norm of the vector
    double infNorm() const;

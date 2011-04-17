@@ -11,7 +11,7 @@
 #include <cassert>
 #include <cstdio>
 
-#include "CoinFinite.hpp"
+#include "CoinTypes.hpp"
 #include "CoinFloatEqual.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinIndexedVector.hpp"

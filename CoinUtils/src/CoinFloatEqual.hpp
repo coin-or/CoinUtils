@@ -7,7 +7,6 @@
 #define CoinFloatEqual_H
 
 #include <algorithm>
-#
 #include <cmath>
 
 #include "CoinFinite.hpp"

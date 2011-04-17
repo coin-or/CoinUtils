@@ -7,12 +7,12 @@
 #define CoinPackedMatrix_H
 
 #include "CoinError.hpp"
+#include "CoinTypes.hpp"
 #ifndef CLP_NO_VECTOR
 #include "CoinPackedVectorBase.hpp"
 #include "CoinShallowPackedVector.hpp"
 #else
-#include "CoinFinite.hpp"
-#include "CoinFloatEqual.hpp"
+class CoinRelFltEq;
 #endif
 
 /** Sparse Matrix Base Class
@@ -687,10 +687,7 @@ public:
    
      The test for element equality is the default CoinRelFltEq operator.
    */
-   bool isEquivalent(const CoinPackedMatrix& rhs) const
-   {
-      return isEquivalent(rhs,CoinRelFltEq());
-   }
+   bool isEquivalent(const CoinPackedMatrix& rhs) const;
    //@}
 
    //--------------------------------------------------------------------------
