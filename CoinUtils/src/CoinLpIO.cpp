@@ -1376,7 +1376,14 @@ CoinLpIO::read_monom_row(FILE *fp, char *start_str,
   }
 
   coeff[cnt_coeff] *= mult;
+#ifdef KILL_ZERO_READLP
+  if (fabs(coeff[cnt_coeff])>epsilon_)
+    name[cnt_coeff] = CoinStrdup(loc_name);
+  else
+    read_sense=-2; // effectively zero
+#else
   name[cnt_coeff] = CoinStrdup(loc_name);
+#endif
 
 #ifdef LPIO_DEBUG
   printf("CoinLpIO: read_monom_row: (%f)  (%s)\n", 
@@ -1444,8 +1451,10 @@ CoinLpIO::read_row(FILE *fp, char *buff,
     }
     read_sense = read_monom_row(fp, start_str, 
 				*pcoeff, *pcolNames, *cnt_coeff);
-
-    (*cnt_coeff)++;
+#ifdef KILL_ZERO_READLP
+    if (read_sense!=-2) // see if zero
+#endif
+      (*cnt_coeff)++;
 
     scan_next(start_str, fp);
 
