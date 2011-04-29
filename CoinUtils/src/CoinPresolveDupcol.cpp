@@ -13,6 +13,7 @@
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveDupcol.hpp"
 #include "CoinSort.hpp"
+#include "CoinFinite.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPresolveUseless.hpp"
 #include "CoinMessage.hpp"

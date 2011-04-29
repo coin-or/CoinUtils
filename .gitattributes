@@ -51,6 +51,7 @@ CoinUtils/src/CoinAlloc.cpp -text
 CoinUtils/src/CoinAlloc.hpp -text
 CoinUtils/src/CoinDenseFactorization.cpp -text
 CoinUtils/src/CoinDenseFactorization.hpp -text
+CoinUtils/src/CoinFinite.cpp -text
 CoinUtils/src/CoinOslC.h -text
 CoinUtils/src/CoinOslFactorization.cpp -text
 CoinUtils/src/CoinOslFactorization.hpp -text

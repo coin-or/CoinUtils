@@ -2732,7 +2732,8 @@ glp_prob* cbc_glp_prob = NULL;
    Thanks to Ted Ralphs - I just looked at his coding rather than look at the GMPL documentation.
  */
 int 
-CoinMpsIO::readGMPL(const char *modelName, const char * dataName,bool keepNames)
+CoinMpsIO::readGMPL(const char * /* modelName */, const char * /* dataName */,
+                    bool /* keepNames */)
 {
 #ifdef COIN_HAS_GLPK
   int returnCode;

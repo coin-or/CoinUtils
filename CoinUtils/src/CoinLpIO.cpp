@@ -24,6 +24,7 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinLpIO.hpp"
+#include "CoinFinite.hpp"
 
 using namespace std;
 
@@ -50,7 +51,7 @@ CoinLpIO::CoinLpIO() :
   objectiveOffset_(0),
   integerType_(NULL),
   fileName_(NULL),
-  infinity_(DBL_MAX),
+  infinity_(COIN_DBL_MAX),
   epsilon_(1e-5),
   numberAcross_(10),
   decimals_(5),

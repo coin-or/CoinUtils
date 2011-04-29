@@ -40,7 +40,7 @@ libCoinUtils_la_SOURCES = \
 	CoinOslFactorization3.cpp \
 	CoinOslC.h \
 	CoinFileIO.cpp CoinFileIO.hpp \
-	CoinFinite.hpp \
+	CoinFinite.cpp CoinFinite.hpp \
 	CoinFloatEqual.hpp \
 	CoinHelperFunctions.hpp \
 	CoinIndexedVector.cpp CoinIndexedVector.hpp \

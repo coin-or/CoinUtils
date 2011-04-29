@@ -14,6 +14,7 @@
 #include "CoinPresolveSingleton.hpp"
 #include "CoinPresolvePsdebug.hpp"
 #include "CoinMessage.hpp"
+#include "CoinFinite.hpp"
 
 // #define PRESOLVE_DEBUG 1
 // #define PRESOLVE_SUMMARY 1

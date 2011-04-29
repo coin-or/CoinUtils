@@ -73,10 +73,6 @@ inline void DIE(const char *)	{}
 inline int ALIGN(int n, int m)	{ return (((n + m - 1) / m) * m); }
 inline int ALIGN_DOUBLE(int n)	{ return ALIGN(n,sizeof(double)); }
 
-// Plus infinity
-#ifndef COIN_DBL_MAX
-#define COIN_DBL_MAX DBL_MAX
-#endif
 #define PRESOLVE_INF COIN_DBL_MAX
 
 class CoinPostsolveMatrix;

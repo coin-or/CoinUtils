@@ -9,6 +9,7 @@
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveFixed.hpp"
 #include "CoinHelperFunctions.hpp"
+#include "CoinFinite.hpp"
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"

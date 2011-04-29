@@ -19,10 +19,6 @@
 #include "CoinMessageHandler.hpp"
 #include "CoinFileIO.hpp"
 class CoinModel;
-// Plus infinity
-#ifndef COIN_DBL_MAX
-#define COIN_DBL_MAX DBL_MAX
-#endif
 
 /// The following lengths are in decreasing order (for 64 bit etc)
 /// Large enough to contain element index

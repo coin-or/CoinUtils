@@ -71,10 +71,10 @@ am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinFactorization4.lo CoinSimpFactorization.lo \
 	CoinDenseFactorization.lo CoinOslFactorization.lo \
 	CoinOslFactorization2.lo CoinOslFactorization3.lo \
-	CoinFileIO.lo CoinIndexedVector.lo CoinLpIO.lo CoinMessage.lo \
-	CoinMessageHandler.lo CoinModel.lo CoinStructuredModel.lo \
-	CoinModelUseful.lo CoinModelUseful2.lo CoinMpsIO.lo \
-	CoinPackedMatrix.lo CoinPackedVector.lo \
+	CoinFileIO.lo CoinFinite.lo CoinIndexedVector.lo CoinLpIO.lo \
+	CoinMessage.lo CoinMessageHandler.lo CoinModel.lo \
+	CoinStructuredModel.lo CoinModelUseful.lo CoinModelUseful2.lo \
+	CoinMpsIO.lo CoinPackedMatrix.lo CoinPackedVector.lo \
 	CoinPackedVectorBase.lo CoinParam.lo CoinParamUtils.lo \
 	CoinPostsolveMatrix.lo CoinPrePostsolveMatrix.lo \
 	CoinPresolveDoubleton.lo CoinPresolveDual.lo \
@@ -357,7 +357,7 @@ libCoinUtils_la_SOURCES = \
 	CoinOslFactorization3.cpp \
 	CoinOslC.h \
 	CoinFileIO.cpp CoinFileIO.hpp \
-	CoinFinite.hpp \
+	CoinFinite.cpp CoinFinite.hpp \
 	CoinFloatEqual.hpp \
 	CoinHelperFunctions.hpp \
 	CoinIndexedVector.cpp CoinIndexedVector.hpp \
@@ -573,6 +573,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinFactorization3.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinFactorization4.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinFileIO.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinFinite.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinIndexedVector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinLpIO.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinMessage.Plo@am__quote@

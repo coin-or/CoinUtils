@@ -12,10 +12,6 @@
     If COIN_EXTERN_C defined then an extra extern C
 */
 
-/* Plus infinity */
-#ifndef COIN_DBL_MAX
-#define COIN_DBL_MAX DBL_MAX
-#endif
 #if defined (CLP_EXTERN_C)
 #define COIN_EXTERN_C
 #define COIN_NO_SBB

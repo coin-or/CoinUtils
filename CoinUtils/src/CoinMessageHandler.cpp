@@ -424,12 +424,12 @@ CoinMessageHandler::setPrecision(unsigned int new_precision) {
   bool print = false;
   while (base > 0) {
 
-    char c = (char) (new_precision / base);
+    char c = static_cast<char>(new_precision / base);
     new_precision = new_precision % base;
     if (c != 0)
       print = true;
     if (print) {
-      new_string[idx] = (char) (c +  '0');
+      new_string[idx] = static_cast<char>(c +  '0');
       idx++;
     }
     base /= 10;

@@ -16,6 +16,7 @@
 #include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
+#include "CoinFinite.hpp"
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"
