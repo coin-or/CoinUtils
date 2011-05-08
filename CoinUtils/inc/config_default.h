@@ -21,3 +21,11 @@
 
 /* Define to 1 if zlib is available */
 /* #define COIN_HAS_ZLIB */
+
+#ifdef _MSC_VER
+/* Define to be the name of C-function for Inf check */
+#define COIN_C_FINITE _finite
+
+/* Define to be the name of C-function for NaN check */
+#define COIN_C_ISNAN _isnan
+#endif

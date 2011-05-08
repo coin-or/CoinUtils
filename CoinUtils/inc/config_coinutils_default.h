@@ -37,11 +37,3 @@
 # define COIN_UINT64_T unsigned long long
 # define COIN_INTPTR_T int*
 #endif
-
-#ifdef _MSC_VER
-/* Define to be the name of C-function for Inf check */
-#define COIN_C_FINITE _finite
-
-/* Define to be the name of C-function for NaN check */
-#define COIN_C_ISNAN _isnan
-#endif

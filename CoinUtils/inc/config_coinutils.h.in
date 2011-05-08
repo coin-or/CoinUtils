@@ -12,12 +12,6 @@
 /* Release Version number of project */
 #undef COINUTILS_VERSION_RELEASE
 
-/* Define to be the name of C-function for Inf check */
-#undef COIN_C_FINITE
-
-/* Define to be the name of C-function for NaN check */
-#undef COIN_C_ISNAN
-
 /* Define to 64bit integer type */
 #undef COIN_INT64_T
 
