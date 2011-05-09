@@ -7,6 +7,7 @@
 #include "CoinHelperFunctions.hpp"
 #include <cassert>
 #include <cstdlib>
+#include <cstddef>
 #include <map>
 
 /* Default constructor. */
