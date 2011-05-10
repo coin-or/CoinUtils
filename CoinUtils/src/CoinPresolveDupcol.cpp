@@ -190,7 +190,10 @@ const CoinPresolveAction
       }
     }
     if (prob->colProhibited2(j)) continue ;
+    //#define PRESOLVE_INTEGER_DUPCOL
+#ifndef PRESOLVE_INTEGER_DUPCOL
     if (prob->isInteger(j)&&!allowIntegers) continue ;
+#endif
     sort[nlook++] = j ; }
   if (nlook == 0)
     { //delete[] sort ;
@@ -495,6 +498,8 @@ const CoinPresolveAction
 	  }
 	}
       }
+      // relax a bit
+      upperBound -= 1.0e-9;
     } else {
       // Not sure what to do so give up
       continue;
@@ -509,6 +514,24 @@ const CoinPresolveAction
 */
     if (c1 == c2)
     { 
+#ifdef PRESOLVE_INTEGER_DUPCOL
+      if (!allowIntegers) {
+	if (prob->isInteger(j1)) {
+	  if (!prob->isInteger(j2)) {
+	    if (cup2 < upperBound) //if (!prob->colInfinite(j2))
+	      continue;
+	    else
+	      cup2 = COIN_DBL_MAX;
+	  }
+	} else if (prob->isInteger(j2)) {
+	  if (cup1 < upperBound) //if (!prob->colInfinite(j1))
+	    continue;
+	  else
+	    cup1 = COIN_DBL_MAX;
+	}
+	//printf("TakingINTeq\n");
+      }
+#endif
 /*
   As far as the presolved lp, there's no difference between columns. But we
   need this relation to hold in order to guarantee that we can split the
@@ -604,14 +627,26 @@ const CoinPresolveAction
 */
     else
     { int minterm = 0 ;
+#ifdef PRESOLVE_INTEGER_DUPCOL
+      if (!allowIntegers) {
+	if (c2 > c1) {
+	  if (cup1 < upperBound/*!prob->colInfinite(j1)*/ && (prob->isInteger(j1)||prob->isInteger(j2)))
+	    continue ;
+	} else {
+	  if (cup2 < upperBound/*!prob->colInfinite(j2)*/ && (prob->isInteger(j1)||prob->isInteger(j2)))
+	    continue ;
+	}
+	//printf("TakingINTne\n");
+      }
+#endif
       bool swapped = false ;
 #if PRESOLVE_DEBUG
       printf("bounds %g %g\n",lowerBound,upperBound);
 #endif
       if (c2 > c1) minterm |= 1<<0 ;
-      if (cup2 >= PRESOLVE_INF) minterm |= 1<<1 ;
+      if (cup2 >= PRESOLVE_INF/*prob->colInfinite(j2)*/) minterm |= 1<<1 ;
       if (clo2 <= -PRESOLVE_INF) minterm |= 1<<2 ;
-      if (cup1 >= PRESOLVE_INF) minterm |= 1<<3 ;
+      if (cup1 >= PRESOLVE_INF/*prob->colInfinite(j1)*/) minterm |= 1<<3 ;
       if (clo1 <= -PRESOLVE_INF) minterm |= 1<<4 ;
       // for now be careful - just one special case
       if (!clo1&&!clo2) {

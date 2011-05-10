@@ -1060,6 +1060,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
       <li> 0x01: Column has changed
       <li> 0x02: preprocessing prohibited
       <li> 0x04: Column has been used
+      <li> 0x08: Column originally had infinite ub
     </ul>
   */
   unsigned char * colChanged_;
@@ -1200,6 +1201,18 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /// Mark column as unused
   inline void unsetColUsed(int i) {
     colChanged_[i] = static_cast<unsigned char>(colChanged_[i] & (~4)) ;
+  }
+  /// Has column infinite ub (originally)
+  inline bool colInfinite(int i) const {
+    return (colChanged_[i]&8)!=0;
+  }
+  /// Mark column as not infinite ub (originally)
+  inline void unsetColInfinite(int i) {
+    colChanged_[i] = static_cast<unsigned char>(colChanged_[i] & (~8)) ;
+  }
+  /// Mark column as infinite ub (originally)
+  inline void setColInfinite(int i) {
+    colChanged_[i] = static_cast<unsigned char>(colChanged_[i] | (8)) ;
   }
 
   /*! \brief Initialise the row ToDo lists

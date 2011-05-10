@@ -344,9 +344,11 @@ CoinPresolveMatrix::recomputeSums(int iRow)
 	    ++infiniteUpper;
 	}
       }
-      // Build in a margin of error
+#if 0
+      // Build in a margin of error (NO)
       maximumUp += 1.0e-8*fabs(maximumUp);
       maximumDown -= 1.0e-8*fabs(maximumDown);
+#endif
       infiniteUp_[iRow]=infiniteUpper;
       sumUp_[iRow]=maximumUp;
       infiniteDown_[iRow]=infiniteLower;

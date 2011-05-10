@@ -143,6 +143,12 @@ CoinOslFactorization::getAreas ( int numberOfRows,
   CoinBigIndex size = static_cast<CoinBigIndex>(factInfo_.areaFactor*
 						(maximumL+maximumU));
   factInfo_.zeroTolerance=zeroTolerance_;
+  // If wildly out redo
+  if (maximumRows_>numberRows_+1000) {
+    maximumRows_=0;
+    maximumSpace_=0;
+    factInfo_.last_eta_size=0;
+  }
   if (size>maximumSpace_) {
     //delete [] elements_;
     //elements_ = new CoinFactorizationDouble [size];
@@ -708,6 +714,10 @@ CoinOslFactorization::clearArrays()
   factInfo_.nR_etas=0;
   factInfo_.nnentu=0;
   factInfo_.nnentl=0;
+  maximumRows_=0;
+  maximumSpace_=0;
+  factInfo_.last_eta_size=0;
+  gutsOfDestructor(false);
 }
 void 
 CoinOslFactorization::maximumPivots (  int value )
