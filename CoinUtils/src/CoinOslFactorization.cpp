@@ -923,8 +923,8 @@ void clp_setup_pointers(EKKfactinfo * fact)
 #ifndef NDEBUG
 int ets_count=0;
 int ets_check=-1;
-static int adjust_count=0;
-static int adjust_check=-1;
+//static int adjust_count=0;
+//static int adjust_check=-1;
 #endif
 static void clp_adjust_pointers(EKKfactinfo * fact, int adjust)
 {
@@ -961,7 +961,6 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
   int ntot1;
   int ntot2;
   int ntot3;
-  int ntot4;
   int nrowmx;
   int * tempI;
   double * tempD;
@@ -970,7 +969,6 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
   ntot1 = nrowmxp;
   ntot2 = 3*nrowmx+5; /* space for three lists */
   ntot3 = 2*nrowmx;
-  ntot4 = (5*nrowmx)/2+4;
   if ((ntot1<<1)<ntot2) {
     ntot1=ntot2>>1;
   }
@@ -989,7 +987,6 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
   tempD+=nrowmxp;
   tempD = reinterpret_cast<double *>( clp_align(tempD));
   fact->kp1adr=reinterpret_cast<EKKHlink *>(tempD);
-  //tempD+=CoinMax(nrowmxp,ntot4);
   tempD+=nrowmxp;
   tempD = reinterpret_cast<double *>( clp_align(tempD));
   fact->kp2adr=reinterpret_cast<EKKHlink *>(tempD);
@@ -1011,7 +1008,7 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
 #endif
   tempI = reinterpret_cast<int *>( clp_align(tempI));
   fact->xcsadr = tempI;
-#ifdef CLP_REUSE_ETAS
+#if 1 //def CLP_REUSE_ETAS
   tempI += ( 2*nrowmx+8+2*fact->maxinv);
 #else
   tempI += ( 2*nrowmx+8+fact->maxinv);
