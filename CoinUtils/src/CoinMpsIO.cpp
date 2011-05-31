@@ -2843,6 +2843,14 @@ CoinMpsIO::readGMPL(const char * modelName, const char * dataName,
   objectiveOffset_ = glp_get_obj_coef(cbc_glp_prob, 0);
   for (int i=0;i<numberColumns_;i++)
     objective_[i]=glp_get_obj_coef(cbc_glp_prob, i+1);
+  if (!minimize) {
+  for (int i=0;i<numberColumns_;i++)
+    objective_[i]=-objective_[i];
+    handler_->message(COIN_GENERAL_INFO,messages_)<<
+      " CoinMpsIO::readGMPL(): Maximization problem reformulated as minimization"
+						  <<CoinMessageEol;
+    objectiveOffset_ = -objectiveOffset_;
+  }
 
   // Matrix
   matrixByColumn_ = new CoinPackedMatrix(false,numberColumns_,numberRows_,numberElements_,
