@@ -335,6 +335,7 @@ lib_LTLIBRARIES = libCoinUtils.la
 
 # List all source files for this library, including headers
 libCoinUtils_la_SOURCES = \
+	../inc/config_coinutils.h \
 	CoinUtilsConfig.h \
 	Coin_C_defines.h \
 	CoinAlloc.cpp CoinAlloc.hpp \
@@ -428,7 +429,6 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 # and that therefore should be installed in 'install/coin'
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
-	../inc/config_coinutils.h \
 	Coin_C_defines.h \
 	CoinAlloc.hpp \
 	CoinBuild.hpp \
@@ -716,7 +716,6 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
-	$(mkdir_p) $(distdir)/../inc
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -842,10 +841,10 @@ uninstall-am: uninstall-includecoinHEADERS uninstall-info-am \
 
 
 install-exec-local:
-	echo "#ifndef HAVE_CONFIG_H" >bla
-	echo "#define HAVE_CONFIG_H" >>bla
+	echo "#ifndef __CONFIG_COINUTILS_H__" > bla
+	echo "#define __CONFIG_COINUTILS_H__" >> bla
+	tail -n +3 ../inc/config_coinutils.h >> bla
 	echo "#endif" >> bla
-	cat $(srcdir)/$(ConfigHeader) >> bla
 	$(install_sh_DATA) bla $(DESTDIR)$(includecoindir)/$(ConfigHeader)
 	rm -f bla
 

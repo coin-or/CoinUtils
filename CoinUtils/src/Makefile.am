@@ -18,6 +18,7 @@ lib_LTLIBRARIES = libCoinUtils.la
 
 # List all source files for this library, including headers
 libCoinUtils_la_SOURCES = \
+	../inc/config_coinutils.h \
 	CoinUtilsConfig.h \
 	Coin_C_defines.h \
 	CoinAlloc.cpp CoinAlloc.hpp \
@@ -110,7 +111,6 @@ DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
 # and that therefore should be installed in 'install/coin'
 includecoindir = $(includedir)/coin
 includecoin_HEADERS = \
-	../inc/config_coinutils.h \
 	Coin_C_defines.h \
 	CoinAlloc.hpp \
 	CoinBuild.hpp \
@@ -177,10 +177,10 @@ includecoin_HEADERS = \
 ConfigHeader = CoinUtilsConfig.h
 
 install-exec-local:
-	echo "#ifndef HAVE_CONFIG_H" >bla
-	echo "#define HAVE_CONFIG_H" >>bla
+	echo "#ifndef __CONFIG_COINUTILS_H__" > bla
+	echo "#define __CONFIG_COINUTILS_H__" >> bla
+	tail -n +3 ../inc/config_coinutils.h >> bla
 	echo "#endif" >> bla
-	cat $(srcdir)/$(ConfigHeader) >> bla
 	$(install_sh_DATA) bla $(DESTDIR)$(includecoindir)/$(ConfigHeader)
 	rm -f bla
 
