@@ -31780,7 +31780,7 @@ BLAS_CFLAGS_INSTALLED=
 BLAS_DATA=
 BLAS_DATA_INSTALLED=
 
-# initial list of dependencies is "coinblas", but we need to filter out version number specifications (= x, <= x, >= x)
+# initial list of dependencies is "coinblas", but we need to filter out version number specifications (= x, <= x, >= x, != x)
 projtoprocess="coinblas"
 
 # we first expand the list of projects to process by adding all dependencies just behind the project which depends on it
@@ -34369,7 +34369,7 @@ LAPACK_CFLAGS_INSTALLED=
 LAPACK_DATA=
 LAPACK_DATA_INSTALLED=
 
-# initial list of dependencies is "coinlapack", but we need to filter out version number specifications (= x, <= x, >= x)
+# initial list of dependencies is "coinlapack", but we need to filter out version number specifications (= x, <= x, >= x, != x)
 projtoprocess="coinlapack"
 
 # we first expand the list of projects to process by adding all dependencies just behind the project which depends on it
@@ -34912,7 +34912,7 @@ GLPK_CFLAGS_INSTALLED=
 GLPK_DATA=
 GLPK_DATA_INSTALLED=
 
-# initial list of dependencies is "coinglpk >= 4.39", but we need to filter out version number specifications (= x, <= x, >= x)
+# initial list of dependencies is "coinglpk >= 4.39", but we need to filter out version number specifications (= x, <= x, >= x, != x)
 projtoprocess="coinglpk "
 
 # we first expand the list of projects to process by adding all dependencies just behind the project which depends on it
@@ -35389,7 +35389,7 @@ SAMPLE_CFLAGS_INSTALLED=
 SAMPLE_DATA=
 SAMPLE_DATA_INSTALLED=
 
-# initial list of dependencies is "coindatasample", but we need to filter out version number specifications (= x, <= x, >= x)
+# initial list of dependencies is "coindatasample", but we need to filter out version number specifications (= x, <= x, >= x, != x)
 projtoprocess="coindatasample"
 
 # we first expand the list of projects to process by adding all dependencies just behind the project which depends on it
@@ -35851,7 +35851,7 @@ NETLIB_CFLAGS_INSTALLED=
 NETLIB_DATA=
 NETLIB_DATA_INSTALLED=
 
-# initial list of dependencies is "coindatanetlib", but we need to filter out version number specifications (= x, <= x, >= x)
+# initial list of dependencies is "coindatanetlib", but we need to filter out version number specifications (= x, <= x, >= x, != x)
 projtoprocess="coindatanetlib"
 
 # we first expand the list of projects to process by adding all dependencies just behind the project which depends on it
@@ -36884,7 +36884,7 @@ done
 
 
 # Here put the location and name of the configuration header file
-                    ac_config_headers="$ac_config_headers inc/config.h inc/config_coinutils.h"
+                    ac_config_headers="$ac_config_headers src/config.h src/config_coinutils.h"
 
 
 # Finally, we let configure write all the output...
@@ -37660,8 +37660,8 @@ do
   "coinutils-uninstalled.pc" ) CONFIG_FILES="$CONFIG_FILES coinutils-uninstalled.pc" ;;
   "doxydoc/doxygen.conf" ) CONFIG_FILES="$CONFIG_FILES doxydoc/doxygen.conf" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
-  "inc/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS inc/config.h" ;;
-  "inc/config_coinutils.h" ) CONFIG_HEADERS="$CONFIG_HEADERS inc/config_coinutils.h" ;;
+  "src/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
+  "src/config_coinutils.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config_coinutils.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;

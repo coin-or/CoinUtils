@@ -36,9 +36,8 @@ unitTest_DEPENDENCIES = ../src/libCoinUtils.la $(COINUTILSLIB_DEPENDENCIES)
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
 AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src`
 
-# This line is necessary to allow VPATH compilation with MS compilers
-# on Cygwin
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
+# This line is necessary to allow VPATH compilation
+DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/src
 
 unittestflags =
 if COIN_HAS_SAMPLE

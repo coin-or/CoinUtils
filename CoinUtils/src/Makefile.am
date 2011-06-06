@@ -18,7 +18,7 @@ lib_LTLIBRARIES = libCoinUtils.la
 
 # List all source files for this library, including headers
 libCoinUtils_la_SOURCES = \
-	../inc/config_coinutils.h \
+	config_coinutils.h \
 	CoinUtilsConfig.h \
 	Coin_C_defines.h \
 	CoinAlloc.cpp CoinAlloc.hpp \
@@ -99,9 +99,8 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 # "cygpath" stuff is necessary to compile with native compilers on Windows
 AM_CPPFLAGS = $(GLPK_CFLAGS)
 
-# This line is necessary to allow VPATH compilation with MS compilers
-# on Cygwin
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
+# This line is necessary to allow VPATH compilation
+DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 
 ########################################################################
 #                Headers that need to be installed                     #
@@ -179,7 +178,7 @@ ConfigHeader = CoinUtilsConfig.h
 install-exec-local:
 	echo "#ifndef __CONFIG_COINUTILS_H__" > bla
 	echo "#define __CONFIG_COINUTILS_H__" >> bla
-	tail -n +3 ../inc/config_coinutils.h >> bla
+	tail -n +3 config_coinutils.h >> bla
 	echo "#endif" >> bla
 	$(install_sh_DATA) bla $(DESTDIR)$(includecoindir)/$(ConfigHeader)
 	rm -f bla

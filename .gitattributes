@@ -40,10 +40,6 @@ CoinUtils/configure -text
 CoinUtils/configure.ac -text
 CoinUtils/depcomp -text
 CoinUtils/doxydoc/doxygen.conf.in -text
-CoinUtils/inc/config.h.in -text
-CoinUtils/inc/config_coinutils.h.in -text
-CoinUtils/inc/config_coinutils_default.h -text
-CoinUtils/inc/config_default.h -text
 CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
 CoinUtils/missing -text
@@ -70,6 +66,10 @@ CoinUtils/src/CoinWarmStartPrimalDual.cpp -text
 CoinUtils/src/CoinWarmStartPrimalDual.hpp -text
 CoinUtils/src/CoinWarmStartVector.cpp -text
 CoinUtils/src/CoinWarmStartVector.hpp -text
+CoinUtils/src/config.h.in -text
+CoinUtils/src/config_coinutils.h.in -text
+CoinUtils/src/config_coinutils_default.h -text
+CoinUtils/src/config_default.h -text
 CoinUtils/test/CoinMessageHandlerTest.cpp -text
 CoinUtils/test/plan.mod -text
 /Dependencies -text

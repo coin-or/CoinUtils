@@ -53,8 +53,8 @@ am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/inc/config.h \
-	$(top_builddir)/inc/config_coinutils.h
+CONFIG_HEADER = $(top_builddir)/src/config.h \
+	$(top_builddir)/src/config_coinutils.h
 CONFIG_CLEAN_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
 am_unitTest_OBJECTS = CoinDenseVectorTest.$(OBJEXT) \
@@ -312,9 +312,8 @@ unitTest_DEPENDENCIES = ../src/libCoinUtils.la $(COINUTILSLIB_DEPENDENCIES)
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
 AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src`
 
-# This line is necessary to allow VPATH compilation with MS compilers
-# on Cygwin
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/inc
+# This line is necessary to allow VPATH compilation
+DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/src
 unittestflags = $(am__append_1) $(am__append_2)
 
 ########################################################################

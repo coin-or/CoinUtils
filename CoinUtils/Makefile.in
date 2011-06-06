@@ -61,9 +61,7 @@ DIST_COMMON = README $(am__configure_deps) \
 	$(srcdir)/BuildTools/Makemain.inc $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/coinutils-uninstalled.pc.in \
 	$(srcdir)/coinutils.pc.in $(top_srcdir)/configure \
-	$(top_srcdir)/doxydoc/doxygen.conf.in \
-	$(top_srcdir)/inc/config.h.in \
-	$(top_srcdir)/inc/config_coinutils.h.in AUTHORS INSTALL \
+	$(top_srcdir)/doxydoc/doxygen.conf.in AUTHORS INSTALL \
 	config.guess config.sub depcomp install-sh ltmain.sh missing
 @HAVE_EXTERNALS_TRUE@am__append_2 = Dependencies
 @HAVE_EXTERNALS_TRUE@am__append_3 = .Dependencies-stamp
@@ -76,8 +74,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno configure.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/inc/config.h \
-	$(top_builddir)/inc/config_coinutils.h
+CONFIG_HEADER = $(top_builddir)/src/config.h \
+	$(top_builddir)/src/config_coinutils.h
 CONFIG_CLEAN_FILES = coinutils.pc coinutils-uninstalled.pc \
 	doxydoc/doxygen.conf
 SOURCES =
@@ -385,33 +383,6 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(srcdir) && $(AUTOCONF)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
-
-inc/config.h: inc/stamp-h1
-	@if test ! -f $@; then \
-	  rm -f inc/stamp-h1; \
-	  $(MAKE) inc/stamp-h1; \
-	else :; fi
-
-inc/stamp-h1: $(top_srcdir)/inc/config.h.in $(top_builddir)/config.status
-	@rm -f inc/stamp-h1
-	cd $(top_builddir) && $(SHELL) ./config.status inc/config.h
-$(top_srcdir)/inc/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
-	cd $(top_srcdir) && $(AUTOHEADER)
-	rm -f inc/stamp-h1
-	touch $@
-
-inc/config_coinutils.h: inc/stamp-h2
-	@if test ! -f $@; then \
-	  rm -f inc/stamp-h2; \
-	  $(MAKE) inc/stamp-h2; \
-	else :; fi
-
-inc/stamp-h2: $(top_srcdir)/inc/config_coinutils.h.in $(top_builddir)/config.status
-	@rm -f inc/stamp-h2
-	cd $(top_builddir) && $(SHELL) ./config.status inc/config_coinutils.h
-
-distclean-hdr:
-	-rm -f inc/config.h inc/stamp-h1 inc/config_coinutils.h inc/stamp-h2
 coinutils.pc: $(top_builddir)/config.status $(srcdir)/coinutils.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 coinutils-uninstalled.pc: $(top_builddir)/config.status $(srcdir)/coinutils-uninstalled.pc.in
@@ -581,7 +552,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/BuildTools $(distdir)/doxydoc $(distdir)/inc
+	$(mkdir_p) $(distdir)/. $(distdir)/BuildTools $(distdir)/doxydoc
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -761,8 +732,8 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-hdr \
-	distclean-libtool distclean-local distclean-tags
+distclean-am: clean-am distclean-generic distclean-libtool \
+	distclean-local distclean-tags
 
 dvi: dvi-recursive
 
@@ -815,11 +786,11 @@ uninstall-info: uninstall-info-recursive
 	check-am clean clean-generic clean-libtool clean-local \
 	clean-recursive ctags ctags-recursive dist dist-all dist-bzip2 \
 	dist-gzip dist-shar dist-tarZ dist-zip distcheck distclean \
-	distclean-generic distclean-hdr distclean-libtool \
-	distclean-local distclean-recursive distclean-tags \
-	distcleancheck distdir distuninstallcheck dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-data-hook install-exec install-exec-am \
+	distclean-generic distclean-libtool distclean-local \
+	distclean-recursive distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am \
+	install-data-hook install-exec install-exec-am \
 	install-exec-local install-info install-info-am install-man \
 	install-pkgconfiglibDATA install-strip installcheck \
 	installcheck-am installdirs installdirs-am maintainer-clean \
