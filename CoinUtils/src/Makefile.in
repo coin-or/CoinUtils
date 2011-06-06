@@ -486,13 +486,6 @@ includecoin_HEADERS = \
 	CoinWarmStartDual.hpp \
 	CoinWarmStartPrimalDual.hpp
 
-
-#############################################################################
-# Create the Config.h file that always defines HAVE_CONFIG_H and install it #
-#############################################################################
-
-# You only need to adapt the following line
-ConfigHeader = CoinUtilsConfig.h
 all: config.h config_coinutils.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -868,16 +861,15 @@ uninstall-am: uninstall-includecoinHEADERS uninstall-info-am \
 	uninstall-libLTLIBRARIES uninstall-local
 
 
+#######################################################################
+# Create the Config.h file that has all public defines and install it #
+#######################################################################
+
 install-exec-local:
-	echo "#ifndef __CONFIG_COINUTILS_H__" > bla
-	echo "#define __CONFIG_COINUTILS_H__" >> bla
-	tail -n +3 config_coinutils.h >> bla
-	echo "#endif" >> bla
-	$(install_sh_DATA) bla $(DESTDIR)$(includecoindir)/$(ConfigHeader)
-	rm -f bla
+	$(install_sh_DATA) config_coinutils.h $(DESTDIR)$(includecoindir)/CoinUtilsConfig.h
 
 uninstall-local:
-	rm -f $(DESTDIR)$(includecoindir)/$(ConfigHeader)
+	rm -f $(DESTDIR)$(includecoindir)/CoinUtilsConfig.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -168,20 +168,12 @@ includecoin_HEADERS = \
 	CoinWarmStartDual.hpp \
 	CoinWarmStartPrimalDual.hpp
 
-#############################################################################
-# Create the Config.h file that always defines HAVE_CONFIG_H and install it #
-#############################################################################
-
-# You only need to adapt the following line
-ConfigHeader = CoinUtilsConfig.h
+#######################################################################
+# Create the Config.h file that has all public defines and install it #
+#######################################################################
 
 install-exec-local:
-	echo "#ifndef __CONFIG_COINUTILS_H__" > bla
-	echo "#define __CONFIG_COINUTILS_H__" >> bla
-	tail -n +3 config_coinutils.h >> bla
-	echo "#endif" >> bla
-	$(install_sh_DATA) bla $(DESTDIR)$(includecoindir)/$(ConfigHeader)
-	rm -f bla
+	$(install_sh_DATA) config_coinutils.h $(DESTDIR)$(includecoindir)/CoinUtilsConfig.h
 
 uninstall-local:
-	rm -f $(DESTDIR)$(includecoindir)/$(ConfigHeader)
+	rm -f $(DESTDIR)$(includecoindir)/CoinUtilsConfig.h
