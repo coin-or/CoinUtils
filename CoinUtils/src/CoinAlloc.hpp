@@ -15,10 +15,6 @@
 
 #if (COINUTILS_MEMPOOL_MAXPOOLED >= 0)
 
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
 #ifndef COINUTILS_MEMPOOL_ALIGNMENT
 #define COINUTILS_MEMPOOL_ALIGNMENT 16
 #endif
