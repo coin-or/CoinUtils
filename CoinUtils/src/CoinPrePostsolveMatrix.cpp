@@ -3,9 +3,8 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#include <stdio.h>
-
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 #include <iostream>
 
 #include "CoinHelperFunctions.hpp"

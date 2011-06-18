@@ -80,14 +80,8 @@
 /* Define if F77 and FC dummy `main' functions are identical. */
 #undef FC_DUMMY_MAIN_EQ_F77
 
-/* Define to 1 if you have the <assert.h> header file. */
-#undef HAVE_ASSERT_H
-
 /* Define to 1 if you have the <bzlib.h> header file. */
 #undef HAVE_BZLIB_H
-
-/* Define to 1 if you have the <cassert> header file. */
-#undef HAVE_CASSERT
 
 /* Define to 1 if you have the <cfloat> header file. */
 #undef HAVE_CFLOAT
