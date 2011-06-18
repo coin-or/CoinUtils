@@ -62,8 +62,8 @@ AC_COIN_INIT_AUTO_TOOLS
 #                   Stuff that we need for finite and isnan                #
 ############################################################################
 
-AC_COIN_CHECK_ISFINITE(Coin)
-AC_COIN_CHECK_ISNAN(Coin)
+AC_COIN_CHECK_ISFINITE
+AC_COIN_CHECK_ISNAN
 
 #############################################################################
 #                       Thread configuration				    #
