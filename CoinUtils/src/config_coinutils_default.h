@@ -5,13 +5,13 @@
 /***************************************************************************/
 
 /* Version number of project */
-#define COINUTILS_VERSION  "trunk"
+#define COINUTILS_VERSION      "trunk"
 
 /* Major Version number of project */
-#define COINUTILS_VERSION_MAJOR   9999
+#define COINUTILS_VERSION_MAJOR      2
 
 /* Minor Version number of project */
-#define COINUTILS_VERSION_MINOR   9999
+#define COINUTILS_VERSION_MINOR      8
 
 /* Release Version number of project */
 #define COINUTILS_VERSION_RELEASE 9999
