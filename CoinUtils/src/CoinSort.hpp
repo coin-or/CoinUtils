@@ -8,13 +8,19 @@
 
 #include <functional>
 #include <new>
+#include <algorithm>
 #include "CoinDistance.hpp"
-#include "CoinFinite.hpp"
 
 // Uncomment the next three lines to get thorough initialisation of memory.
 // #ifndef ZEROFAULT
 // #define ZEROFAULT
 // #endif
+
+#ifdef COIN_FAST_CODE
+#ifndef COIN_USE_EKK_SORT
+#define COIN_USE_EKK_SORT
+#endif
+#endif
 
 //#############################################################################
 

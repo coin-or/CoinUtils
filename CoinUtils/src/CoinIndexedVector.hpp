@@ -198,12 +198,12 @@ public:
                {
 		 if (elements_[index]) {
 		   element += elements_[index];
-		   if (fabs(element)>= COIN_INDEXED_TINY_ELEMENT) {
+		   if ((element > 0 ? element : -element) >= COIN_INDEXED_TINY_ELEMENT) {
 		     elements_[index] = element;
 		   } else {
 		     elements_[index] = 1.0e-100;
 		   }
-		 } else if (fabs(element)>= COIN_INDEXED_TINY_ELEMENT) {
+		 } else if ((element > 0 ? element : -element) >= COIN_INDEXED_TINY_ELEMENT) {
 		   indices_[nElements_++] = index;
 		   assert (nElements_<=capacity_);
 		   elements_[index] = element;

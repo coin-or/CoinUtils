@@ -31,13 +31,13 @@ CoinPackedMatrixUnitTest()
     CoinPackedMatrix lhs = m;    
     CoinPackedMatrix mCopy(m);
     
-    assert( eq(m.getExtraGap(),.25) );
-    assert( eq(lhs.getExtraGap(),.25) );
-    assert( eq(mCopy.getExtraGap(),.25) );
+    assert( eq(m.getExtraGap(),0.0) );
+    assert( eq(lhs.getExtraGap(),0.0) );
+    assert( eq(mCopy.getExtraGap(),0.0) );
     
-    assert( eq(m.getExtraMajor(),.25) );
-    assert( eq(lhs.getExtraMajor(),.25) );
-    assert( eq(mCopy.getExtraMajor(),.25) );
+    assert( eq(m.getExtraMajor(),0.0) );
+    assert( eq(lhs.getExtraMajor(),0.0) );
+    assert( eq(mCopy.getExtraMajor(),0.0) );
     
     assert(       m.isColOrdered() );
     assert(     lhs.isColOrdered() );
@@ -132,7 +132,11 @@ CoinPackedMatrixUnitTest()
       std::copy(indBase,indBase+numels,ind);
       std::copy(startsBase,startsBase+major+1,starts);
       std::copy(lenBase,lenBase+major,lens);
-      
+ 
+      /*
+	Explicitly request gap on this matrix, so we can see it propagate
+	in subsequent copy & assignment.
+      */
       CoinPackedMatrix pm(false,minor,major,numels,elem,ind,starts,lens,
 			 .25,.25);
       
@@ -277,9 +281,9 @@ CoinPackedMatrixUnitTest()
         // Test assignment
         {
           CoinPackedMatrix pmA;
-          // Gap should be 0.25
-          assert( eq(pmA.getExtraGap(),0.25) );
-          assert( eq(pmA.getExtraMajor(),0.25) );
+          // Gap should be 0.0
+          assert( eq(pmA.getExtraGap(),0.0) );
+          assert( eq(pmA.getExtraMajor(),0.0) );
           
           pmA = pm;
           

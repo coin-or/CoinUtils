@@ -14,6 +14,7 @@
 #include "CoinPresolveUseless.hpp"
 #include "CoinPresolveForcing.hpp"
 #include "CoinMessage.hpp"
+#include "CoinFinite.hpp"
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"
@@ -776,8 +777,8 @@ static void implied_bounds1(CoinPresolveMatrix * prob, const double *rowels,
 
 	if (ilbound[jcol] < ilb1) {
 	  ilbound[jcol] = ilb1;
-	  if (jcol == 278001)
-	    printf("JCOL LB %g\n", ilb1);
+	  //if (jcol == 278001)
+	  //printf("JCOL LB %g\n", ilb1);
 	}
       }
     }
@@ -815,8 +816,8 @@ static void implied_bounds1(CoinPresolveMatrix * prob, const double *rowels,
 
 	if (iub1 < iubound[jcol]) {
 	  iubound[jcol] = iub1;
-	  if (jcol == 278001)
-	    printf("JCOL UB %g\n", iub1);
+	  //if (jcol == 278001)
+	  //printf("JCOL UB %g\n", iub1);
 	}
       }
     }

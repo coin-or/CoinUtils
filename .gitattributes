@@ -2,6 +2,14 @@
 /AUTHORS -text
 CoinUtils/INSTALL -text
 CoinUtils/LICENSE -text
+CoinUtils/MSVisualStudio/v10/CoinUtils.sln -text
+CoinUtils/MSVisualStudio/v10/libCoinUtils/libCoinUtils.vcxproj -text
+CoinUtils/MSVisualStudio/v10/unitTestCoinUtils/unitTestCoinUtils.vcxproj -text
+CoinUtils/MSVisualStudio/v10alt/CoinUtils.sln -text
+CoinUtils/MSVisualStudio/v10alt/CoinUtilsUnitTest.vcxproj -text
+CoinUtils/MSVisualStudio/v10alt/coinutils.props -text
+CoinUtils/MSVisualStudio/v10alt/genDefForCoinUtils.ps1 -text
+CoinUtils/MSVisualStudio/v10alt/libCoinUtils.vcxproj -text
 CoinUtils/MSVisualStudio/v6/CoinUtils.dsw -text
 CoinUtils/MSVisualStudio/v6/CoinUtils.opt -text
 CoinUtils/MSVisualStudio/v6/libCoinUtils/libCoinUtils.dsp -text
@@ -32,7 +40,6 @@ CoinUtils/configure -text
 CoinUtils/configure.ac -text
 CoinUtils/depcomp -text
 CoinUtils/doxydoc/doxygen.conf.in -text
-CoinUtils/inc/config_coinutils.h.in -text
 CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
 CoinUtils/missing -text
@@ -40,6 +47,7 @@ CoinUtils/src/CoinAlloc.cpp -text
 CoinUtils/src/CoinAlloc.hpp -text
 CoinUtils/src/CoinDenseFactorization.cpp -text
 CoinUtils/src/CoinDenseFactorization.hpp -text
+CoinUtils/src/CoinFinite.cpp -text
 CoinUtils/src/CoinOslC.h -text
 CoinUtils/src/CoinOslFactorization.cpp -text
 CoinUtils/src/CoinOslFactorization.hpp -text
@@ -58,6 +66,10 @@ CoinUtils/src/CoinWarmStartPrimalDual.cpp -text
 CoinUtils/src/CoinWarmStartPrimalDual.hpp -text
 CoinUtils/src/CoinWarmStartVector.cpp -text
 CoinUtils/src/CoinWarmStartVector.hpp -text
+CoinUtils/src/config.h.in -text
+CoinUtils/src/config_coinutils.h.in -text
+CoinUtils/src/config_coinutils_default.h -text
+CoinUtils/src/config_default.h -text
 CoinUtils/test/CoinMessageHandlerTest.cpp -text
 CoinUtils/test/plan.mod -text
 /Dependencies -text

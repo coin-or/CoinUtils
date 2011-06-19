@@ -5,6 +5,9 @@
 
 #ifndef CoinHelperFunctions_H
 #define CoinHelperFunctions_H
+
+#include "CoinUtilsConfig.h"
+
 #if defined(_MSC_VER)
 #  include <direct.h>
 #  define getcwd _getcwd
@@ -15,8 +18,19 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <algorithm>
+#include "CoinTypes.hpp"
 #include "CoinError.hpp"
-#include "CoinFinite.hpp"
+
+// Compilers can produce better code if they know about __restrict
+#ifndef COIN_RESTRICT
+#ifdef COIN_USE_RESTRICT
+#define COIN_RESTRICT __restrict
+#else
+#define COIN_RESTRICT
+#endif
+#endif
+
 //#############################################################################
 
 /** This helper function copies an array to another location using Duff's
@@ -742,12 +756,19 @@ CoinDeleteEntriesFromArray(register T * arrayFirst, register T * arrayLast,
 /* Thanks to Stefano Gliozzi for providing an operating system
    independent random number generator.  */
 
-// linear congruential generator. given the seed, the generated numbers are  
-// always the same regardless the (32 bit) architecture. This allows to 
-// build & test in different environments (i.e. Wintel, Linux/Intel AIX Power5)
-// getting in most cases the same optimization path. 
-/// Return random number between 0 and 1.
-inline double CoinDrand48(bool isSeed = false, unsigned int seed=1)
+/*! \brief Return a random number between 0 and 1
+
+  A platform-independent linear congruential generator. For a given seed, the
+  generated sequence is always the same regardless of the (32-bit)
+  architecture. This allows to build & test in different environments, getting
+  in most cases the same optimization path.
+
+  Set \p isSeed to true and supply an integer seed to set the seed
+  (vid. #CoinSeedRandom)
+
+  \todo Anyone want to volunteer an upgrade for 64-bit architectures?
+*/
+inline double CoinDrand48 (bool isSeed = false, unsigned int seed = 1)
 {
   static unsigned int last = 123456;
   if (isSeed) { 
@@ -756,9 +777,10 @@ inline double CoinDrand48(bool isSeed = false, unsigned int seed=1)
     last = 1664525*last+1013904223;
     return ((static_cast<double> (last))/4294967296.0);
   }
-  return(0.0);
+  return (0.0);
 }
-/// Seed random number generator
+
+/// Set the seed for the random number generator
 inline void CoinSeedRandom(int iseed)
 {
   CoinDrand48(true, iseed);
@@ -768,12 +790,16 @@ inline void CoinSeedRandom(int iseed)
 
 #if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN32__)
 
+/// Return a random number between 0 and 1
 inline double CoinDrand48() { return rand() / (double) RAND_MAX; }
+/// Set the seed for the random number generator
 inline void CoinSeedRandom(int iseed) { srand(iseed + 69822); }
 
 #else
 
+/// Return a random number between 0 and 1
 inline double CoinDrand48() { return drand48(); }
+/// Set the seed for the random number generator
 inline void CoinSeedRandom(int iseed) { srand48(iseed + 69822); }
 
 #endif
@@ -897,6 +923,7 @@ CoinFromFile( T* &array, CoinBigIndex size, FILE * fp, CoinBigIndex & newSize)
 //#############################################################################
 
 /// Cube Root
+#if 0
 inline double CoinCbrt(double x)
 {
 #if defined(_MSC_VER) 
@@ -905,6 +932,8 @@ inline double CoinCbrt(double x)
     return cbrt(x);
 #endif
 }
+#endif
+
 //-----------------------------------------------------------------------------
 
 /// This helper returns "sizeof" as an int 
@@ -1053,5 +1082,10 @@ protected:
   mutable unsigned short seed_[3];
   //@}
 };
+#endif
+#ifndef COIN_DETAIL
+#define COIN_DETAIL_PRINT(s) {}
+#else
+#define COIN_DETAIL_PRINT(s) s
 #endif
 #endif

@@ -74,7 +74,11 @@ if COIN_HAS_PKGCONFIG
 	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@ \
 	$(PKG_CONFIG) --libs coinutils > $(addlibsdir)/coinutils_addlibs.txt
 else
+if COIN_CXX_IS_CL
+	echo "/libpath:`$(CYGPATH_W) @abs_lib_dir@` libCoinUtils.lib @COINUTILSLIB_LIBS_INSTALLED@" > $(addlibsdir)/coinutils_addlibs_cpp.txt
+else
 	echo -L@abs_lib_dir@ -lCoinUtils @COINUTILSLIB_LIBS_INSTALLED@ > $(addlibsdir)/coinutils_addlibs.txt
+endif
 endif
 
 uninstall-hook:

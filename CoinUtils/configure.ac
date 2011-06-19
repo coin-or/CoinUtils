@@ -12,7 +12,7 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([CoinUtils],[2.8],[http://projects.coin-or.org/CoinUtils])
+AC_INIT([CoinUtils],[trunk],[http://projects.coin-or.org/CoinUtils])
 
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.
@@ -49,14 +49,11 @@ AC_COIN_DEBUG_COMPILE(CoinUtils)
 # Get the name of the C++ compiler and appropriate compiler options
 AC_COIN_PROG_CXX
 
-# Check if we have a Fortran compiler; if we do, acquire the appropriate
-# options. This has to be done before we call AC_COIN_INIT_AUTO_TOOLS, else
-# it will helpfully set FFLAGS to an incorrect value.
-AC_COIN_FIND_F77
-if test "$F77" != unavailable ; then
-  AC_COIN_PROG_F77
-  AC_COIN_F77_WRAPPERS
-fi
+# Get the name of the Fortran compiler and appropriate compiler options
+AC_COIN_PROG_F77
+
+# Find out how to call Fortran from C and determine Fortran runtime libraries
+AC_COIN_F77_WRAPPERS
 
 # Initialize automake and libtool
 AC_COIN_INIT_AUTO_TOOLS
@@ -65,207 +62,8 @@ AC_COIN_INIT_AUTO_TOOLS
 #                   Stuff that we need for finite and isnan                #
 ############################################################################
 
-AC_LANG_PUSH(C++)
-
-################
-# Header Files #
-################
-AC_COIN_CHECK_CXX_CHEADER(math)
-AC_COIN_CHECK_CXX_CHEADER(float)
-AC_COIN_CHECK_CXX_CHEADER(ieeefp)
-AC_COIN_CHECK_CXX_CHEADER(assert)
-
-###################
-# Function finite #
-###################
-MY_C_FINITE=
-AC_CHECK_DECL([finite],[MY_C_FINITE=finite],,[
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif])
-if test -z "$MY_C_FINITE"; then
-  AC_CHECK_DECL([_finite],[MY_C_FINITE=_finite],,[
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif])
-  if test -z "$MY_C_FINITE"; then
-    AC_CHECK_DECL([isfinite],[MY_C_FINITE=isfinite],,[
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif])
-  fi
-fi
-if test -z "$MY_C_FINITE"; then
-  AC_MSG_WARN(Cannot find C-function for checking Inf. Check will test whether the value is different from DBL_MAX)
-else
-  AC_DEFINE_UNQUOTED([MY_C_FINITE],[$MY_C_FINITE],
-                     [Define to be the name of C-function for Inf check])
-fi
-
-###################
-# Function isnan #
-###################
-MY_C_ISNAN=
-AC_CHECK_DECL([isnan],[MY_C_ISNAN=isnan],,[
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif])
-
-# It appears that for some systems (e.g., Mac OSX), cmath will provide only
-# std::isnan, and bare isnan will be unavailable. Typically we need a parameter
-# in the test to allow C++ to do overload resolution.
-
-if test -z "$MY_C_ISNAN"; then
-  AC_CHECK_DECL([std::isnan(42.42)],[MY_C_ISNAN=std::isnan],,[
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif])
-fi
-
-if test -z "$MY_C_ISNAN"; then
-  AC_CHECK_DECL([_isnan],[MY_C_ISNAN=_isnan],,[
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif])
-fi
-if test -z "$MY_C_ISNAN"; then
-  AC_CHECK_DECL([isnand],[MY_C_ISNAN=isnand],,[
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif])
-fi
-if test -z "$MY_C_ISNAN"; then
-  AC_MSG_WARN(Cannot find C-function for checking NaN. Check will return false)
-else
-  AC_DEFINE_UNQUOTED([MY_C_ISNAN],[$MY_C_ISNAN],
-                     [Define to be the name of C-function for NaN check])
-fi
+AC_COIN_CHECK_ISFINITE
+AC_COIN_CHECK_ISNAN
 
 #############################################################################
 #                       Thread configuration				    #
@@ -275,6 +73,8 @@ fi
 #    --enable-coinutils-threads 
 #    --enable-coinutils-mempool-override-new
 #    --enable-coinutils-mempool-maxpooled
+
+AC_LANG_PUSH(C++)
 
 AC_ARG_ENABLE([coinutils-threads],
 [AC_HELP_STRING([--enable-coinutils-threads],
@@ -446,7 +246,7 @@ AC_COIN_CHECK_LIBM(CoinUtilsLib)
 
 AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
 AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
-AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk >= 4.39], [CoinUtilsLib])
+AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
 AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
 
@@ -474,7 +274,7 @@ AC_CONFIG_FILES([Makefile
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Here put the location and name of the configuration header file
-AC_CONFIG_HEADER([inc/config_coinutils.h])
+AC_CONFIG_HEADER([src/config.h src/config_coinutils.h])
 
 # Finally, we let configure write all the output...
 AC_COIN_FINALIZE

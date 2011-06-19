@@ -15,6 +15,7 @@
 #include <cassert>
 #include <cfloat>
 #include <cassert>
+#include <cstdlib>
 
 /*! \file
 
@@ -40,6 +41,7 @@ const double ZTOLDP      = 1e-12;
 // But use a different one if we are doing doubletons etc
 const double ZTOLDP2      = 1e-10;
 //#define PRESOLVE_DEBUG 1
+//#define PRESOLVE_CONSISTENCY 1
 // Debugging macros/functions
 #ifndef PRESOLVE_DETAIL
 #define PRESOLVE_DETAIL_PRINT(s) {}
@@ -71,10 +73,6 @@ inline void DIE(const char *)	{}
 inline int ALIGN(int n, int m)	{ return (((n + m - 1) / m) * m); }
 inline int ALIGN_DOUBLE(int n)	{ return ALIGN(n,sizeof(double)); }
 
-// Plus infinity
-#ifndef COIN_DBL_MAX
-#define COIN_DBL_MAX DBL_MAX
-#endif
 #define PRESOLVE_INF COIN_DBL_MAX
 
 class CoinPostsolveMatrix;
@@ -575,9 +573,19 @@ class CoinPrePostsolveMatrix
   /// Row (constraint) upper bounds
   double *rup_;
 
-  /// Original column numbers
+  /*! \brief Original column numbers
+
+    Over the current range of column numbers in the presolved problem,
+    the entry for column j will contain the index of the corresponding
+    column in the original problem.
+  */
   int * originalColumn_;
-  /// Original row numbers
+  /*! \brief Original row numbers
+
+    Over the current range of row numbers in the presolved problem, the
+    entry for row i will contain the index of the corresponding row in
+    the original problem.
+  */
   int * originalRow_;
 
   /// Primal feasibility tolerance
@@ -924,7 +932,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /// Picks up any special options
   inline int presolveOptions() const
   { return presolveOptions_;}
-  /// Sets any special options
+  /// Sets any special options (see #presolveOptions_)
   inline void setPresolveOptions(int value)
   { presolveOptions_=value;}
   //@}
@@ -1052,6 +1060,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
       <li> 0x01: Column has changed
       <li> 0x02: preprocessing prohibited
       <li> 0x04: Column has been used
+      <li> 0x08: Column originally had infinite ub
     </ul>
   */
   unsigned char * colChanged_;
@@ -1083,12 +1092,12 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /// Length of #nextRowsToDo_
   int numberNextRowsToDo_;
   /** Presolve options
-      1 set if allow duplicate column tests for integer variables
-      2 set to allow code to try and fix infeasibilities
-      4 set to inhibit x+y+z=1 mods
-      8 not used
-      16 set to allow stuff which won't unroll easily 
-      0x80000000 set by presolve to say dupcol_action compressed columns
+      - 1 set if allow duplicate column tests for integer variables
+      - 2 set to allow code to try and fix infeasibilities
+      - 4 set to inhibit x+y+z=1 mods
+      - 8 not used
+      - 16 set to allow stuff which won't unroll easily 
+      - 0x80000000 set by presolve to say dupcol_action compressed columns
   */
   int presolveOptions_;
   /*! Flag to say if any rows or columns are marked as prohibited
@@ -1192,6 +1201,18 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /// Mark column as unused
   inline void unsetColUsed(int i) {
     colChanged_[i] = static_cast<unsigned char>(colChanged_[i] & (~4)) ;
+  }
+  /// Has column infinite ub (originally)
+  inline bool colInfinite(int i) const {
+    return (colChanged_[i]&8)!=0;
+  }
+  /// Mark column as not infinite ub (originally)
+  inline void unsetColInfinite(int i) {
+    colChanged_[i] = static_cast<unsigned char>(colChanged_[i] & (~8)) ;
+  }
+  /// Mark column as infinite ub (originally)
+  inline void setColInfinite(int i) {
+    colChanged_[i] = static_cast<unsigned char>(colChanged_[i] | (8)) ;
   }
 
   /*! \brief Initialise the row ToDo lists

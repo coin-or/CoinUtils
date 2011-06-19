@@ -11,6 +11,7 @@
 #include "CoinPresolveTighten.hpp"
 #include "CoinPresolveUseless.hpp"
 #include "CoinHelperFunctions.hpp"
+#include "CoinFinite.hpp"
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 #include "CoinPresolvePsdebug.hpp"
@@ -218,7 +219,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	    action *s = &actions[nactions];	  
 	    nactions++;
 	    s->col = j;
-	    PRESOLVE_DETAIL_PRINT(printf("pre__tighten %dC E\n",j));
+	    PRESOLVE_DETAIL_PRINT(printf("pre_tighten %dC E\n",j));
 	    if (integerType[j]) {
 	      assert (iflag==-1||iflag==1);
 	      iflag *= 2; // say integer

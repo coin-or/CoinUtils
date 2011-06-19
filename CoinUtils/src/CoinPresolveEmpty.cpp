@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "CoinFinite.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPresolveMatrix.hpp"
 

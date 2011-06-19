@@ -3,20 +3,17 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#  pragma warning(disable:4786)
-#endif
-
 #include "CoinUtilsConfig.h"
 
 #include <cassert>
+#include "CoinPragma.hpp"
 #include "CoinOslFactorization.hpp"
 #include "CoinOslC.h"
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinTypes.hpp"
+#include "CoinFinite.hpp"
 #include <stdio.h>
 static void c_ekksmem(EKKfactinfo *fact,int numberRows,int maximumPivots);
 static void c_ekksmem_copy(EKKfactinfo *fact,const EKKfactinfo * rhsFact);
@@ -146,6 +143,12 @@ CoinOslFactorization::getAreas ( int numberOfRows,
   CoinBigIndex size = static_cast<CoinBigIndex>(factInfo_.areaFactor*
 						(maximumL+maximumU));
   factInfo_.zeroTolerance=zeroTolerance_;
+  // If wildly out redo
+  if (maximumRows_>numberRows_+1000) {
+    maximumRows_=0;
+    maximumSpace_=0;
+    factInfo_.last_eta_size=0;
+  }
   if (size>maximumSpace_) {
     //delete [] elements_;
     //elements_ = new CoinFactorizationDouble [size];
@@ -310,7 +313,7 @@ CoinOslFactorization::makeNonSingular(int * sequence, int numberColumns)
       } else {
 	goodPass=false;
 	assert(numberDone);
-	printf("BAD singular at row %d\n",i);
+	//printf("BAD singular at row %d\n",i);
 	break;
       }
     }
@@ -711,6 +714,10 @@ CoinOslFactorization::clearArrays()
   factInfo_.nR_etas=0;
   factInfo_.nnentu=0;
   factInfo_.nnentl=0;
+  maximumRows_=0;
+  maximumSpace_=0;
+  factInfo_.last_eta_size=0;
+  gutsOfDestructor(false);
 }
 void 
 CoinOslFactorization::maximumPivots (  int value )
@@ -916,12 +923,12 @@ void clp_setup_pointers(EKKfactinfo * fact)
 #ifndef NDEBUG
 int ets_count=0;
 int ets_check=-1;
-static int adjust_count=0;
-static int adjust_check=-1;
+//static int adjust_count=0;
+//static int adjust_check=-1;
 #endif
 static void clp_adjust_pointers(EKKfactinfo * fact, int adjust)
 {
-#ifndef NDEBUG
+#if 0 //ndef NDEBUG
   adjust_count++;
   if (adjust_check>=0&&adjust_count>=adjust_check) {
     printf("trouble\n");
@@ -954,7 +961,6 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
   int ntot1;
   int ntot2;
   int ntot3;
-  int ntot4;
   int nrowmx;
   int * tempI;
   double * tempD;
@@ -963,7 +969,6 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
   ntot1 = nrowmxp;
   ntot2 = 3*nrowmx+5; /* space for three lists */
   ntot3 = 2*nrowmx;
-  ntot4 = (5*nrowmx)/2+4;
   if ((ntot1<<1)<ntot2) {
     ntot1=ntot2>>1;
   }
@@ -982,7 +987,6 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
   tempD+=nrowmxp;
   tempD = reinterpret_cast<double *>( clp_align(tempD));
   fact->kp1adr=reinterpret_cast<EKKHlink *>(tempD);
-  //tempD+=CoinMax(nrowmxp,ntot4);
   tempD+=nrowmxp;
   tempD = reinterpret_cast<double *>( clp_align(tempD));
   fact->kp2adr=reinterpret_cast<EKKHlink *>(tempD);
@@ -1004,7 +1008,7 @@ clp_alloc_memory(EKKfactinfo * fact,int type, int * length)
 #endif
   tempI = reinterpret_cast<int *>( clp_align(tempI));
   fact->xcsadr = tempI;
-#ifdef CLP_REUSE_ETAS
+#if 1 //def CLP_REUSE_ETAS
   tempI += ( 2*nrowmx+8+2*fact->maxinv);
 #else
   tempI += ( 2*nrowmx+8+fact->maxinv);

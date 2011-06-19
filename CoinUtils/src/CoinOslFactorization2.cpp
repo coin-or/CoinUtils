@@ -14,6 +14,7 @@
 */
 #include "CoinOslFactorization.hpp"
 #include "CoinOslC.h"
+#include "CoinFinite.hpp"
 
 #ifndef NDEBUG
 extern int ets_count;
@@ -1836,7 +1837,7 @@ int c_ekketsj(COIN_REGISTER2 /*const*/ EKKfactinfo * COIN_RESTRICT2 fact,
     fact->num_resets=0;
   }
   kpivrw = mpermu[ipivrw];
-#ifndef NDEBUG
+#if 0 //ndef NDEBUG
   ets_count++;
   if (ets_check>=0&&ets_count>=ets_check) {
     printf("trouble\n");

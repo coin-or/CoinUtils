@@ -302,6 +302,24 @@ private:
 
 // ----- implementation of CoinFileInput's methods
 
+/// indicates whether CoinFileInput supports gzip'ed files
+bool CoinFileInput::haveGzipSupport() {
+#ifdef COIN_HAS_ZLIB
+  return true;
+#else
+  return false;
+#endif
+}
+
+/// indicates whether CoinFileInput supports bzip2'ed files
+bool CoinFileInput::haveBzip2Support() {
+#ifdef COIN_HAS_BZLIB
+  return true;
+#else
+  return false;
+#endif
+}
+
 CoinFileInput *CoinFileInput::create (const std::string &fileName)
 {
   // first try to open file, and read first bytes 

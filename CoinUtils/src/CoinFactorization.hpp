@@ -17,8 +17,10 @@
 #include <string>
 #include <cassert>
 #include <cstdio>
-#include "CoinFinite.hpp"
+#include <cmath>
+#include "CoinTypes.hpp"
 #include "CoinIndexedVector.hpp"
+
 class CoinPackedMatrix;
 /** This deals with Factorization and Updates
 

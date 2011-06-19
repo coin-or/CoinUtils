@@ -14,6 +14,7 @@
 #include "CoinPresolveSingleton.hpp"
 #include "CoinPresolvePsdebug.hpp"
 #include "CoinMessage.hpp"
+#include "CoinFinite.hpp"
 
 // #define PRESOLVE_DEBUG 1
 // #define PRESOLVE_SUMMARY 1
@@ -121,6 +122,11 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	s->rup = rup[irow];
 
 	s->coeff = coeff;
+	if (prob->tuning_>10) {
+	  // really for gcc 4.6 compiler bug
+	  printf("jcol %d %g %g irow %d %g %g coeff %g\n",
+		 jcol,clo[jcol],cup[jcol],irow,rlo[irow],rup[irow],coeff);
+	}
       }
 
       if (coeff < 0.0) {
@@ -148,6 +154,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       if (clo[jcol] < lo) {
 	// If integer be careful
 	if (integerType[jcol]) {
+	  //#define COIN_DEVELOP
 #ifdef COIN_DEVELOP
 	  double lo2=lo;
 #endif
@@ -182,7 +189,6 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	  cup[jcol] = up;
 	}
       }
-
       if (fabs(cup[jcol] - clo[jcol]) < ZTOLDP) {
 	fixed_cols[nfixed_cols++] = jcol;
       }
@@ -617,7 +623,8 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
         if (nactions>=maxActions) {
           maxActions += CoinMin(numberLook-iLook,maxActions);
           action * temp = new action[maxActions];
-          CoinMemcpyN(actions,nactions,temp);
+	  memcpy(temp,actions,nactions*sizeof(action));
+          // changed as 4.6 compiler bug! CoinMemcpyN(actions,nactions,temp);
           delete [] actions;
           actions=temp;
         }

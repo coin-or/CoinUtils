@@ -3,12 +3,11 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#include "CoinFinite.hpp"
-
 #include "CoinMessageHandler.hpp"
 #include "CoinHelperFunctions.hpp"
 #include <cassert>
 #include <cstdlib>
+#include <cstddef>
 #include <map>
 
 /* Default constructor. */
@@ -117,7 +116,7 @@ CoinMessages::CoinMessages(const CoinMessages & rhs)
   } else {
     char * temp = CoinCopyOfArray(reinterpret_cast<char *> (rhs.message_),lengthMessages_);
     message_ = reinterpret_cast<CoinOneMessage **> (temp);
-    ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
+    std::ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
     int i;
     //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
     for (i=0;i<numberMessages_;i++) {
@@ -162,7 +161,7 @@ CoinMessages::operator=(const CoinMessages & rhs)
     } else {
       char * temp = CoinCopyOfArray(reinterpret_cast<char *> (rhs.message_),lengthMessages_);
       message_ = reinterpret_cast<CoinOneMessage **> (temp);
-      ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
+      std::ptrdiff_t offset = temp - reinterpret_cast<char *> (rhs.message_);
       int i;
       //printf("new address %x(%x), rhs %x - length %d\n",message_,temp,rhs.message_,lengthMessages_);
       for (i=0;i<numberMessages_;i++) {
@@ -426,12 +425,12 @@ CoinMessageHandler::setPrecision(unsigned int new_precision) {
   bool print = false;
   while (base > 0) {
 
-    char c = (char) (new_precision / base);
+    char c = static_cast<char>(new_precision / base);
     new_precision = new_precision % base;
     if (c != 0)
       print = true;
     if (print) {
-      new_string[idx] = (char) (c +  '0');
+      new_string[idx] = static_cast<char>(c +  '0');
       idx++;
     }
     base /= 10;
@@ -520,7 +519,7 @@ CoinMessageHandler::gutsOfCopy(const CoinMessageHandler& rhs)
   longValue_=rhs.longValue_;
   charValue_=rhs.charValue_;
   stringValue_=rhs.stringValue_;
-  ptrdiff_t offset ;
+  std::ptrdiff_t offset ;
   if (rhs.format_)
   { offset = rhs.format_ - rhs.currentMessage_.message();
     format_ = currentMessage_.message()+offset; }

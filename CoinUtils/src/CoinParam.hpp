@@ -369,12 +369,12 @@ private:
   std::string name_ ;
 
   /// Length of parameter name
-  unsigned int lengthName_ ;
+  size_t lengthName_ ;
 
   /*! \brief  Minimum length required to declare a match for the parameter
 	      name.
   */
-  unsigned int lengthMatch_ ;
+  size_t lengthMatch_ ;
 
   /// Lower bound on value for a double parameter
   double lowerDblValue_ ;

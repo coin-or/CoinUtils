@@ -6,17 +6,13 @@
 #ifndef CoinMessageHandler_H
 #define CoinMessageHandler_H
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#  pragma warning(disable:4786)
-#endif
-
+#include "CoinUtilsConfig.h"
+#include "CoinPragma.hpp"
 
 #include <iostream>
 #include <cstdio>
 #include <string>
 #include <vector>
-#include "CoinFinite.hpp"
 
 /** \file CoinMessageHandler.hpp
     \brief This is a first attempt at a message handler.

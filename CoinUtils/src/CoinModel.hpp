@@ -8,6 +8,7 @@
 
 #include "CoinModelUseful.hpp"
 #include "CoinPackedMatrix.hpp"
+#include "CoinFinite.hpp"
 class CoinBaseModel {
 
 public:

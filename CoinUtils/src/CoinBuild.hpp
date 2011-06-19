@@ -8,6 +8,7 @@
 
 
 #include "CoinPragma.hpp"
+#include "CoinTypes.hpp"
 #include "CoinFinite.hpp"
 
 

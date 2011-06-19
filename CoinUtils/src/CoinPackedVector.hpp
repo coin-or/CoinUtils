@@ -6,15 +6,18 @@
 #ifndef CoinPackedVector_H
 #define CoinPackedVector_H
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#  pragma warning(disable:4786)
-#endif
-
 #include <map>
 
+#include "CoinPragma.hpp"
 #include "CoinPackedVectorBase.hpp"
 #include "CoinSort.hpp"
+
+#ifdef COIN_FAST_CODE
+#ifndef COIN_NOTEST_DUPLICATE
+#define COIN_NOTEST_DUPLICATE
+#endif
+#endif
+
 #ifndef COIN_NOTEST_DUPLICATE
 #define COIN_DEFAULT_VALUE_FOR_DUPLICATE true
 #else

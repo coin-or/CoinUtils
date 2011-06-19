@@ -3,24 +3,22 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#  pragma warning(disable:4786)
-#endif
-
 #include "CoinUtilsConfig.h"
 
 #include <algorithm>
 #include <numeric>
 #include <cassert>
 #include <cstdio>
+#include <cmath>
 #include <iostream>
 
+#include "CoinPragma.hpp"
 #include "CoinSort.hpp"
 #include "CoinHelperFunctions.hpp"
 #ifndef CLP_NO_VECTOR
 #include "CoinPackedVectorBase.hpp"
 #endif
+#include "CoinFloatEqual.hpp"
 #include "CoinPackedMatrix.hpp"
 
 #if !defined(COIN_COINUTILS_CHECKLEVEL)
@@ -1883,8 +1881,8 @@ CoinPackedMatrix::timesMinor(const CoinPackedVectorBase& x, double * y) const
 
 CoinPackedMatrix::CoinPackedMatrix() :
    colOrdered_(true),
-   extraGap_(0.25),
-   extraMajor_(0.25),
+   extraGap_(0.0),
+   extraMajor_(0.0),
    element_(0), 
    index_(0),
    length_(0),
@@ -3058,6 +3056,10 @@ CoinPackedMatrix::isEquivalent(const CoinPackedMatrix& rhs, const CoinRelFltEq& 
   return same;
 }
 #endif
+bool CoinPackedMatrix::isEquivalent(const CoinPackedMatrix& rhs) const
+{
+   return isEquivalent(rhs,CoinRelFltEq());
+}
 /* Sort all columns so indices are increasing.in each column */
 void 
 CoinPackedMatrix::orderMatrix()
@@ -3523,4 +3525,259 @@ CoinPackedMatrix::appendMinorFast(const int number,
   }
   assert (checkSize==size_);
 #endif
+}
+
+/*
+  Utility to scan a packed matrix for corruption and inconsistencies. Not
+  exhaustive, but useful. By default, the method counts coefficients of zero
+  and reports them, but does not consider them an error. Set zeroesAreError to
+  true if you want an error.
+*/
+
+int CoinPackedMatrix::verifyMtx (int verbosity, bool zeroesAreError) const
+
+{
+  const double smallCoeff = 1.0e-50 ;
+  const double largeCoeff = 1.0e50 ;
+
+  int majDim = majorDim_ ;
+  int minDim = minorDim_ ;
+
+  std::string majName, minName ;
+
+  int m, n ;
+  if (colOrdered_) {
+    n = majDim ;
+    majName = "col" ;
+    m = minDim ;
+    minName = "row" ;
+  } else {
+    m = majDim ;
+    majName = "row" ;
+    n = minDim ;
+    minName = "col" ;
+  }
+
+/*
+  size_ is the number of coefficients, maxSize_ the size of the bulk store.
+  start_[majDim] should be one past the last valid coefficient in the bulk
+  store. The actual relation is (#coeffs + #gaps) = start_[majDim].
+*/
+  bool gaps = (size_ < start_[majDim]) ;
+  CoinBigIndex maxIndex = CoinMin(maxSize_,start_[majDim])-1 ;
+
+  if (verbosity >= 3) {
+    std::cout
+      << " Matrix is " << ((colOrdered_)?"column":"row") << "-major, "
+      << m << " rows X " << n << " cols; " << size_ << " coeffs."
+      << std::endl ;
+    std::cout
+      << "  Bulk store " << maxSize_ << " coeffs, last coeff at "
+      << start_[majDim]-1 << ", ex maj " << extraMajor_
+      << ", ex gap " << extraGap_  ;
+    if (gaps) std::cout << ";  matrix has gaps" ;
+    std::cout << "." << std::endl ;
+  }
+
+  const CoinBigIndex *const majStarts = start_ ;
+  const int *const majLens = length_ ;
+  const int *const minInds = index_ ;
+  const double *const coeffs = element_ ;
+/*
+  Set up arrays to track use of bulk store entries.
+*/
+  int errs = 0 ;
+  int zeroes = 0 ;
+  int *refCnt = new int[maxSize_] ;
+  CoinZeroN(refCnt,maxSize_) ;
+  bool *inGap = new bool[maxSize_] ;
+  CoinZeroN(inGap,maxSize_) ;
+
+  for (int majndx = 0 ; majndx < majDim ; majndx++) {
+/*
+  Check that the range of indices for the major vector falls within the bulk
+  store. If any of these checks fail, it's pointless (and possibly unsafe)
+  to do more with this vector.
+
+  Subtle point: Normally, majStarts[majDim] = maxIndex+1 (one past the
+  end of the bulk store), and majStarts[k], k < majDim, should be a valid
+  index. But ... if the last major vector (k = majDim-1) has length 0,
+  then majStarts[k] = maxIndex. This will propagate back through multiple
+  major vectors of length 0. Hence the check for length = 0.
+*/
+    CoinBigIndex majStart = majStarts[majndx] ;
+    int majLen = majLens[majndx] ;
+
+    if (majStart < 0 || (majStart == (maxIndex+1) && majLen != 0) ||
+        majStart > maxIndex+1) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  " << majName << " " << majndx
+	  << ": start " << majStart << " should be between 0 and "
+	  << maxIndex << "." << std::endl ;
+      }
+      errs++ ;
+      if (majStart >= maxSize_) {
+        std::cout
+	  << "  " << "index exceeds bulk store limit " << maxSize_
+	  << "!" << std::endl ;
+      }
+      continue ;
+    }
+    if (majLen < 0 || majLen > minDim) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  " << majName << " " << majndx << ": vector length "
+	  << majLen << " should be between 0 and " << minDim
+	  << std::endl ;
+      }
+      errs++ ;
+      continue ;
+    }
+    CoinBigIndex majEnd = majStart+majLen ;
+    if (majEnd < 0 || majEnd > maxIndex+1) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  " << majName << " " << majndx
+	  << ": end " << majEnd << " should be between 0 and "
+	  << maxIndex << "." << std::endl ;
+      }
+      errs++ ;
+      if (majEnd >= maxSize_) {
+        std::cout
+	  << "  " << "index exceeds bulk store limit " << maxSize_
+	  << "!" << std::endl ;
+      }
+      continue ;
+    }
+/*
+  Check that the major vector length is consistent with the distance between
+  majStart[majndx] and majStart[majndx+1]. If the matrix is gap-free, they
+  should be equal. We've already confirmed that majStart+majLen is within the
+  bulk store, so we can continue even if these checks fail.
+
+  Recall that the final entry in the major vector start array is one past the
+  end of the bulk store. The previous tests will check more carefully if
+  majndx+1 is not the final entry.
+*/
+    CoinBigIndex majStartp1 = majStarts[majndx+1] ;
+    CoinBigIndex startDist = majStartp1-majStart ;
+    if (majStartp1 < 0 || majStartp1 > maxIndex+1) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  " << majName << " " << majndx
+	  << ": start of next " << majName << " " << majStartp1
+	  << " should be between 0 and " << maxIndex+1 << "." << std::endl ;
+      }
+      errs++ ;
+      if (majStartp1 >= maxSize_) {
+        std::cout
+	  << "  " << "index exceeds bulk store limit " << maxSize_
+	  << "!" << std::endl ;
+      }
+    } else if ((startDist < 0) || ((startDist > minDim) && !gaps)) {
+      if (verbosity >= 1) {
+	std::cout
+	  << "  " << majName << " " << majndx << ": distance between "
+	  << majName << " starts " << startDist
+	  << " should be between 0 and " << minDim << "." << std::endl ;
+      }
+      errs++ ;
+    } else if (majLen > startDist) {
+      if (verbosity >= 1) {
+	std::cout
+	  << "  " << majName << " " << majndx << ": vector length "
+	  << majLen << " should not be greater than distance between "
+	  << majName << " starts " << startDist << std::endl ;
+      }
+      errs++ ;
+    } else if (majLen != startDist && !gaps) {
+      if (verbosity >= 1) {
+	std::cout
+	  << "  " << majName << " " << majndx
+	  << ": " << majName << " length " << majLen
+	  << " should equal distance " << startDist << " between "
+	  << majName << " starts in gap-free matrix." << std::endl ;
+      }
+      errs++ ;
+    }
+/*
+  Scan the major dimension vector, checking for obviously bogus minor indices
+  and coefficients. Generate reference counts for each bulk store entry.
+*/
+    for (CoinBigIndex ii = majStart ;  ii < majEnd ; ii++) {
+      refCnt[ii]++ ;
+      int minndx = minInds[ii] ;
+      if (minndx < 0 || minndx >= minDim) {
+        if (verbosity >= 1) {
+	  std::cout
+	    << "  " << majName << " " << majndx << ": "
+	    << minName << " index " << ii << " is " << minndx
+	    << ", should be between 0 and " << minDim-1 << "." << std::endl ;
+	}
+	errs++ ;
+      }
+      double aij = coeffs[ii] ;
+      if (CoinIsnan(aij) || CoinAbs(aij) > largeCoeff) {
+	if (verbosity >= 1) {
+	  std::cout
+	    << "  (" << ii << ") a<" << majndx << "," << minndx << "> = "
+	    << aij << " appears bogus." << std::endl ;
+	}
+	errs++ ;
+      }
+      if (CoinAbs(aij) < smallCoeff) {
+	if (verbosity >= 4 || zeroesAreError) {
+	  std::cout
+	    << "  (" << ii << ") a<" << majndx << "," << minndx << "> = "
+	    << aij << " appears bogus." << std::endl ;
+	}
+	zeroes++ ;
+      }
+    }
+/*
+  And mark the gaps, if any.
+*/
+    if (gaps) {
+      for (CoinBigIndex ii = majEnd ; ii < majStartp1 ; ii++)
+	inGap[ii] = true ;
+    }
+  }
+/*
+  Check the reference counts. They should all be 1 unless the entry is in a
+  gap, in which case it should be zero. Anything else is a problem. Allow that
+  the matrix may not use the full size of the bulk store.
+*/
+  for (CoinBigIndex ii = 0 ; ii <= maxIndex  ; ii++) {
+    if (!((refCnt[ii] == 1 && inGap[ii] == false) ||
+          (refCnt[ii] == 0 && inGap[ii] == true))) {
+      if (verbosity >= 1) {
+        std::cout
+	  << "  Bulk store entry " << ii << " has reference count "
+	  << refCnt[ii] << "; should be " << ((inGap[ii])?0:1) << "."
+	  << std::endl ;
+      }
+      errs++ ;
+    }
+  }
+  delete[] refCnt ;
+/*
+  Report the result.
+*/
+  if (zeroesAreError) errs += zeroes ;
+  if (errs > 0) {
+    if (verbosity >= 1) {
+      std::cout << "  Detected " << errs << " errors in matrix" ;
+      if (zeroes) std::cout << " (includes " << zeroes << " zeroes)" ;
+      std::cout << "." << std::endl ;
+    }
+  } else {
+    if (verbosity >= 2) {
+      std::cout << "  Matrix verified" ;
+      if (zeroes) std::cout << " (" << zeroes << " zeroes)" ;
+      std::cout << "." << std::endl ;
+    }
+  }
+
+  return (errs) ;
 }

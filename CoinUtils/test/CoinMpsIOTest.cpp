@@ -14,6 +14,7 @@
 #include <cassert>
 
 #include "CoinMpsIO.hpp"
+#include "CoinFloatEqual.hpp"
 
 //#############################################################################
 
