@@ -5,7 +5,7 @@
 /***************************************************************************/
 
 /* Version number of project */
-#define COINUTILS_VERSION      "trunk"
+#define COINUTILS_VERSION        "2.8"
 
 /* Major Version number of project */
 #define COINUTILS_VERSION_MAJOR      2
