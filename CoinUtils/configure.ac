@@ -246,7 +246,7 @@ AC_COIN_CHECK_LIBM(CoinUtilsLib)
 
 AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
 AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
-AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk >= 4.39], [CoinUtilsLib])
+AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
 AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
 
