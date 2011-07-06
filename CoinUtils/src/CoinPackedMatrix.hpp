@@ -342,6 +342,16 @@ public:
 	eliminated.  
     */
     int eliminateDuplicates(double threshold);
+     /**
+	Modifies coefficients (input by major index)
+	only works at present if no gaps
+	returns -1 if bad input, 0 otherwise
+     */
+     int modifyCoefficients(int number,
+			    const int * which,
+			    const CoinBigIndex * start,
+			    const int * row,
+			    const double * newCoefficient);
     /** Sort all columns so indices are increasing.in each column */
     void orderMatrix();
     /** Really clean up matrix.

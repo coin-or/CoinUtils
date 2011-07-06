@@ -590,6 +590,189 @@ CoinPackedMatrix::eliminateDuplicates(double threshold)
   return numberEliminated;
 }
 //#############################################################################
+#ifndef COIN_FLOAT
+#define COIN_INDEXED_TINY_ELEMENT 1.0e-50
+#define COIN_INDEXED_REALLY_TINY_ELEMENT 1.0e-100
+#else
+#define COIN_INDEXED_TINY_ELEMENT 1.0e-35
+#define COIN_INDEXED_REALLY_TINY_ELEMENT 1.0e-39
+#endif
+/**
+   Modifies coefficients (input by major index)
+   only works at present if no gaps
+   returns -1 if bad input, 0 otherwise
+*/
+int 
+CoinPackedMatrix::modifyCoefficients(int number,
+				     const int * which,
+				     const CoinBigIndex * start,
+				     const int * index,
+				     const double * newCoefficient)
+{
+  // Copy and sort which
+  int * which2 = new int [2*number+2];
+  int * sort = which2+number+1;
+  int n=0;
+  int returnCode=0;
+  for (int i=0;i<number;i++) {
+    int iSequence=which[i];
+    if (iSequence<majorDim_) {
+      for (CoinBigIndex j=start[i];j<start[i+1];j++) {
+	int iMinor=index[j];
+	if (iMinor<0||iMinor>=minorDim_)
+	  returnCode=-1;;
+      }
+      which2[n]=iSequence;
+      sort[n++]=i;
+    } else if (start[i]<start[i+1]) {
+      returnCode=-1;;
+    }
+  }
+  if (n&&!returnCode) {
+    double * array = new double [minorDim_];
+    memset(array,0,minorDim_*sizeof(double));
+    CoinSort_2(which2,which2+n,sort);
+    // Stop at end
+    which2[n]=majorDim_;
+    sort[n]=n;
+    int needed=0;
+    bool moveUp=false;
+    for (int i=0;i<n;i++) {
+      int inWhich=sort[i];
+      int iSequence=which2[inWhich];
+      int nZeroNew=0;
+      int nZeroOld=0;
+      for (CoinBigIndex j=start[inWhich];j<start[inWhich+1];j++) {
+	int iMinor=index[j];
+	double newValue=newCoefficient[j];
+	if (!newValue) {
+	  newValue = COIN_INDEXED_REALLY_TINY_ELEMENT;
+	  nZeroNew++;
+	}
+	array[iMinor]=newValue;
+      }
+      for (CoinBigIndex j=start_[iSequence];
+	   j<start_[iSequence]+length_[iSequence];j++) {
+	int iMinor=index_[j];
+	double oldValue=element_[j];
+	if (fabs(oldValue)>COIN_INDEXED_REALLY_TINY_ELEMENT) {
+	  double newValue=array[iMinor];
+	  if (oldValue!=newValue) {
+	    if (newValue) {
+	      array[iMinor]=0.0;
+	      if (newValue==COIN_INDEXED_REALLY_TINY_ELEMENT) {
+		needed--;
+	      }
+	    }
+	  }
+	} else {
+	  nZeroOld++;
+	}
+      }
+      assert (!nZeroOld);
+      for (CoinBigIndex j=start[inWhich];j<start[inWhich+1];j++) {
+	int iMinor=index[j];
+	double newValue=array[iMinor];
+	if (newValue) {
+	  array[iMinor]=0.0;
+	  needed++;
+	  if (needed>0)
+	    moveUp=true;
+	}
+      }
+    }
+    assert (size_==start_[majorDim_]);
+    if (needed>0) {
+      // need more space
+      reserve(majorDim_, size_+needed);
+    }
+    if (moveUp) {
+      // move up from top
+      CoinBigIndex top = size_+needed;
+      for (int iMajor=majorDim_-1;iMajor>=0;iMajor--) {
+	CoinBigIndex end = start_[iMajor+1];
+	start_[iMajor+1]=top;
+	CoinBigIndex startThis = start_[iMajor];
+	for (CoinBigIndex j=end-1;j>=startThis;j--) {
+	  if (element_[j]) {
+	    top--;
+	    element_[top]=element_[j];
+	    index_[top]=index_[j];
+	  }
+	}
+      }
+      start_[0]=top;
+    }
+    // now move down and insert
+    CoinBigIndex put=0;
+    int iMajor=0;
+    for (int i=0;i<n+1;i++) {
+      int inWhich=sort[i];
+      int nextMod=which2[inWhich];
+      for (;iMajor<nextMod;iMajor++) {
+	CoinBigIndex startThis = start_[iMajor];
+	start_[iMajor]=put;
+	for (CoinBigIndex j=startThis;
+	     j<start_[iMajor+1];j++) {
+	  int iMinor=index_[j];
+	  double oldValue=element_[j];
+	  if (oldValue) {
+	    index_[put]=iMinor;
+	    element_[put++]=oldValue;
+	  }
+	}
+      }
+      if (i==n) {
+	start_[iMajor]=put;
+	break;
+      }
+      // Now 
+      for (CoinBigIndex j=start[inWhich];j<start[inWhich+1];j++) {
+	int iMinor=index[j];
+	double newValue=newCoefficient[j];
+	if (!newValue) {
+	  newValue = COIN_INDEXED_REALLY_TINY_ELEMENT;
+	}
+	array[iMinor]=newValue;
+      }
+      CoinBigIndex startThis = start_[iMajor];
+      start_[iMajor]=put;
+      for (CoinBigIndex j=startThis;
+	   j<start_[iMajor+1];j++) {
+	int iMinor=index_[j];
+	double oldValue=element_[j];
+	if (array[iMinor]) {
+	  oldValue=array[iMinor];
+	  if (oldValue==COIN_INDEXED_REALLY_TINY_ELEMENT) 
+	    oldValue=0.0;
+	  array[iMinor]=0.0;
+	}
+	if (fabs(oldValue)>COIN_INDEXED_REALLY_TINY_ELEMENT) {
+	  index_[put]=iMinor;
+	  element_[put++]=oldValue;
+	}
+      }
+      for (CoinBigIndex j=start[inWhich];j<start[inWhich+1];j++) {
+	int iMinor=index[j];
+	double newValue=array[iMinor];
+	if (newValue) {
+	  array[iMinor]=0.0;
+	  index_[put]=iMinor;
+	  element_[put++]=newValue;
+	}
+      }
+      iMajor++;
+    }
+    size_ = put;
+    delete [] array;
+    for (int i=0;i<majorDim_;i++) {
+      length_[i]=start_[i+1]-start_[i];
+    }
+  }
+  delete [] which2;
+  return returnCode;
+}
+//#############################################################################
 
 void
 CoinPackedMatrix::removeGaps(double removeValue)
