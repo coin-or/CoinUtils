@@ -122,11 +122,13 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	s->rup = rup[irow];
 
 	s->coeff = coeff;
-	if (prob->tuning_>10) {
+#if 0
+	if (prob->tuning_) {
 	  // really for gcc 4.6 compiler bug
 	  printf("jcol %d %g %g irow %d %g %g coeff %g\n",
 		 jcol,clo[jcol],cup[jcol],irow,rlo[irow],rup[irow],coeff);
 	}
+#endif
       }
 
       if (coeff < 0.0) {
