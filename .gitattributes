@@ -10,6 +10,9 @@ CoinUtils/MSVisualStudio/v10alt/CoinUtilsUnitTest.vcxproj -text
 CoinUtils/MSVisualStudio/v10alt/coinutils.props -text
 CoinUtils/MSVisualStudio/v10alt/genDefForCoinUtils.ps1 -text
 CoinUtils/MSVisualStudio/v10alt/libCoinUtils.vcxproj -text
+CoinUtils/MSVisualStudio/v9/CoinUtils.sln -text
+CoinUtils/MSVisualStudio/v9/libCoinUtils/libCoinUtils.vcproj -text
+CoinUtils/MSVisualStudio/v9/unitTestCoinUtils/unitTestCoinUtils.vcproj -text
 CoinUtils/README -text
 CoinUtils/coinutils-uninstalled.pc.in -text
 CoinUtils/coinutils.pc.in -text
