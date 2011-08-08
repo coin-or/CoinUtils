@@ -12,6 +12,7 @@
 #endif
 
 #include <map>
+#include "CoinFinite.hpp"
 #ifndef CLP_NO_VECTOR
 #include "CoinPackedVectorBase.hpp"
 #endif
@@ -188,6 +189,14 @@ public:
 
    /// Insert an element into the vector
    void insert(int index, double element);
+   /// Insert a nonzero element into the vector
+   inline void quickInsert(int index, double element)
+               {
+		 assert (!elements_[index]);
+		 indices_[nElements_++] = index;
+		 assert (nElements_<=capacity_);
+		 elements_[index] = element;
+	       }
    /** Insert or if exists add an element into the vector
        Any resulting zero elements will be made tiny */
    void add(int index, double element);
@@ -198,12 +207,32 @@ public:
                {
 		 if (elements_[index]) {
 		   element += elements_[index];
-		   if ((element > 0 ? element : -element) >= COIN_INDEXED_TINY_ELEMENT) {
+		   if (element) {
 		     elements_[index] = element;
 		   } else {
-		     elements_[index] = 1.0e-100;
+		     elements_[index] = COIN_DBL_MIN;
 		   }
-		 } else if ((element > 0 ? element : -element) >= COIN_INDEXED_TINY_ELEMENT) {
+		 } else if (element) {
+		   indices_[nElements_++] = index;
+		   assert (nElements_<=capacity_);
+		   elements_[index] = element;
+		 }
+	       }
+   /** Insert or if exists add an element into the vector
+       Any resulting zero elements will be made tiny.
+       This knows element is nonzero
+       This version does no checking */
+   inline void quickAddNonZero(int index, double element)
+               {
+		 assert (element);
+		 if (elements_[index]) {
+		   element += elements_[index];
+		   if (element) {
+		     elements_[index] = element;
+		   } else {
+		     elements_[index] = COIN_DBL_MIN;
+		   }
+		 } else {
 		   indices_[nElements_++] = index;
 		   assert (nElements_<=capacity_);
 		   elements_[index] = element;
@@ -214,7 +243,7 @@ public:
    inline void zero(int index)
                {
 		 if (elements_[index]) 
-		   elements_[index] = 1.0e-100;
+		   elements_[index] = COIN_DBL_MIN;
 	       }
    /** set all small values to zero and return number remaining
       - < tolerance => 0.0 */
