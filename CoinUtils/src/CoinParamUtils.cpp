@@ -57,7 +57,7 @@ std::string nextField (const char *prompt)
   using the readline library, add non-empty lines to the history list.
 */
   if (!where) {
-#ifdef COIN_USE_READLINE     
+#ifdef COIN_HAS_READLINE
     if (readSrc == stdin)
     { where = readline(prompt) ;
       if (where)

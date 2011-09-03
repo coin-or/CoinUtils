@@ -66,7 +66,7 @@ AC_COIN_CHECK_ISFINITE
 AC_COIN_CHECK_ISNAN
 
 #############################################################################
-#                       Thread configuration				    #
+#                         Thread configuration                              #
 #############################################################################
 
 # Define new options: 
@@ -252,6 +252,7 @@ AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
 
 AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
 AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
+AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
 
 AC_COIN_VPATH_LINK(test/plan.mod)
 
