@@ -53,7 +53,10 @@ AC_COIN_PROG_CXX
 AC_COIN_PROG_F77
 
 # Find out how to call Fortran from C and determine Fortran runtime libraries
-AC_COIN_F77_WRAPPERS
+if test $F77 != unavailable
+then
+  AC_COIN_F77_WRAPPERS
+fi
 
 # Initialize automake and libtool
 AC_COIN_INIT_AUTO_TOOLS
