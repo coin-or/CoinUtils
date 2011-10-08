@@ -4982,7 +4982,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 # Find out how to call Fortran from C and determine Fortran runtime libraries
-if test $F77 != unavailable
+if test "x$F77" != xunavailable
 then
 
 # get FLIBS
