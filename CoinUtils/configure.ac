@@ -53,7 +53,7 @@ AC_COIN_PROG_CXX
 AC_COIN_PROG_F77
 
 # Find out how to call Fortran from C and determine Fortran runtime libraries
-if test $F77 != unavailable
+if test "x$F77" != xunavailable
 then
   AC_COIN_F77_WRAPPERS
 fi
