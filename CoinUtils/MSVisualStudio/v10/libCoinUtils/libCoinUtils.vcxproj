@@ -1031,15 +1031,12 @@
     <ClInclude Include="..\..\..\src\CoinStructuredModel.hpp" />
     <ClInclude Include="..\..\..\src\CoinTime.hpp" />
     <ClInclude Include="..\..\..\src\CoinTypes.hpp" />
-    <ClInclude Include="..\..\..\src\CoinUtilsAutomake.hpp" />
     <ClInclude Include="..\..\..\src\CoinUtilsConfig.h" />
     <ClInclude Include="..\..\..\src\CoinWarmStart.hpp" />
     <ClInclude Include="..\..\..\src\CoinWarmStartBasis.hpp" />
     <ClInclude Include="..\..\..\src\CoinWarmStartDual.hpp" />
     <ClInclude Include="..\..\..\src\CoinWarmStartPrimalDual.hpp" />
     <ClInclude Include="..\..\..\src\CoinWarmStartVector.hpp" />
-    <ClInclude Include="..\..\..\..\BuildTools\headers\configall_system.h" />
-    <ClInclude Include="..\..\..\..\BuildTools\headers\configall_system_msc.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
