@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdio>
 
 /*! \class CoinParam
     \brief A base class for `keyword value' command line parameters.
