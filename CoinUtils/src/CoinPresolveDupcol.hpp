@@ -64,7 +64,7 @@ class dupcol_action : public CoinPresolveAction {
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~dupcol_action();
+  virtual ~dupcol_action();
 
 };
 

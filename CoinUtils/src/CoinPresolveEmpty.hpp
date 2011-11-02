@@ -65,7 +65,7 @@ private:
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~drop_empty_cols_action() { deleteAction(actions_,action*); }
+  virtual ~drop_empty_cols_action() { deleteAction(actions_,action*); }
 };
 
 
@@ -110,7 +110,7 @@ private:
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~drop_empty_rows_action() { deleteAction(actions_,action*); }
+  virtual ~drop_empty_rows_action() { deleteAction(actions_,action*); }
 };
 #endif
 

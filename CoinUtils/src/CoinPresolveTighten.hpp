@@ -47,7 +47,7 @@ class do_tighten_action : public CoinPresolveAction {
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~do_tighten_action();
+  virtual ~do_tighten_action();
 
 };
 #endif

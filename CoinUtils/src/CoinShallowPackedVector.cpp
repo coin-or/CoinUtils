@@ -36,7 +36,7 @@ CoinShallowPackedVector::operator=(const CoinPackedVectorBase & x)
       try {
 	 CoinPackedVectorBase::duplicateIndex();
       }
-      catch (CoinError e) {
+      catch (CoinError& e) {
 	 throw CoinError("duplicate index", "operator= from base",
 			"CoinShallowPackedVector");
       }
@@ -58,7 +58,7 @@ CoinShallowPackedVector::operator=(const CoinShallowPackedVector & x)
       try {
 	 CoinPackedVectorBase::duplicateIndex();
       }
-      catch (CoinError e) {
+      catch (CoinError& e) {
 	 throw CoinError("duplicate index", "operator=",
 			"CoinShallowPackedVector");
       }
@@ -80,7 +80,7 @@ CoinShallowPackedVector::setVector(int size,
    try {
       CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
    }
-   catch (CoinError e) {
+   catch (CoinError& e) {
       throw CoinError("duplicate index", "setVector",
 		     "CoinShallowPackedVector");
    }
@@ -100,7 +100,7 @@ CoinShallowPackedVector::CoinShallowPackedVector(bool testForDuplicateIndex) :
    try {
       CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
    }
-   catch (CoinError e) {
+   catch (CoinError& e) {
       throw CoinError("duplicate index", "default constructor",
 		     "CoinShallowPackedVector");
    }
@@ -121,7 +121,7 @@ CoinShallowPackedVector::CoinShallowPackedVector(int size,
    try {
       CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
    }
-   catch (CoinError e) {
+   catch (CoinError& e) {
       throw CoinError("duplicate index", "explicit constructor",
 		     "CoinShallowPackedVector");
    }
@@ -140,7 +140,7 @@ CoinShallowPackedVector::CoinShallowPackedVector(const CoinPackedVectorBase& x) 
    try {
       CoinPackedVectorBase::setTestForDuplicateIndex(x.testForDuplicateIndex());
    }
-   catch (CoinError e) {
+   catch (CoinError& e) {
       throw CoinError("duplicate index", "copy constructor from base",
 		     "CoinShallowPackedVector");
    }
@@ -160,7 +160,7 @@ CoinShallowPackedVector::CoinShallowPackedVector(const
    try {
       CoinPackedVectorBase::setTestForDuplicateIndex(x.testForDuplicateIndex());
    }
-   catch (CoinError e) {
+   catch (CoinError& e) {
       throw CoinError("duplicate index", "copy constructor",
 		     "CoinShallowPackedVector");
    }

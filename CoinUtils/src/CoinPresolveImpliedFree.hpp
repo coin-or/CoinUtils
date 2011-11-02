@@ -54,7 +54,7 @@ class implied_free_action : public CoinPresolveAction {
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~implied_free_action();
+  virtual ~implied_free_action();
 };
 
 #endif

@@ -62,7 +62,7 @@ class slack_doubleton_action : public CoinPresolveAction {
   void postsolve(CoinPostsolveMatrix *prob) const;
 
 
-  ~slack_doubleton_action() { deleteAction(actions_,action*); }
+  virtual ~slack_doubleton_action() { deleteAction(actions_,action*); }
 };
 /*! \class slack_singleton_action
     \brief For variables with one entry
@@ -107,6 +107,6 @@ class slack_singleton_action : public CoinPresolveAction {
   void postsolve(CoinPostsolveMatrix *prob) const;
 
 
-  ~slack_singleton_action() { deleteAction(actions_,action*); }
+  virtual ~slack_singleton_action() { deleteAction(actions_,action*); }
 };
 #endif

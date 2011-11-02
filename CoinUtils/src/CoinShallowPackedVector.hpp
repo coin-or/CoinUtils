@@ -119,7 +119,7 @@ public:
    /** Copy constructor. */
    CoinShallowPackedVector(const CoinShallowPackedVector &);
    /** Destructor. */
-   ~CoinShallowPackedVector() {}
+   virtual ~CoinShallowPackedVector() {}
    /// Print vector information.
    void print();
    //@}

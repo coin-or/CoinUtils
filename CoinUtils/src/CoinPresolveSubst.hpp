@@ -58,7 +58,7 @@ private:
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~subst_constraint_action();
+  virtual ~subst_constraint_action();
 };
 
 

@@ -51,7 +51,7 @@ class drop_zero_coefficients_action : public CoinPresolveAction {
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~drop_zero_coefficients_action() { deleteAction(zeros_,dropped_zero*); }
+  virtual ~drop_zero_coefficients_action() { deleteAction(zeros_,dropped_zero*); }
 };
 
 const CoinPresolveAction *drop_zero_coefficients(CoinPresolveMatrix *prob,

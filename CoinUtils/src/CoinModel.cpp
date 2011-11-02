@@ -188,7 +188,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     try {
       status=m.readMps(fileName,"");
     }
-    catch (CoinError e) {
+    catch (CoinError& e) {
       e.print();
       status=-1;
     }

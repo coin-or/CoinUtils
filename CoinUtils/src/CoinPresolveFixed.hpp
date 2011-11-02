@@ -68,7 +68,7 @@ class remove_fixed_action : public CoinPresolveAction {
   void postsolve(CoinPostsolveMatrix *prob) const;
 
   /// Destructor
-  ~remove_fixed_action();
+  virtual ~remove_fixed_action();
 };
 
 
@@ -150,7 +150,7 @@ class make_fixed_action : public CoinPresolveAction {
   void postsolve(CoinPostsolveMatrix *prob) const;
 
   /// Destructor
-  ~make_fixed_action() { 
+  virtual ~make_fixed_action() {
     deleteAction(actions_,action*); 
     delete faction_;
   }

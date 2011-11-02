@@ -43,7 +43,7 @@ class isolated_constraint_action : public CoinPresolveAction {
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~isolated_constraint_action();
+  virtual ~isolated_constraint_action();
 };
 
 

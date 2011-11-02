@@ -385,7 +385,7 @@ public:
 	numInserted_ = t.numInserted();
 	size_ = t.size();
     }
-    ~CoinSearchTree() {}
+    virtual ~CoinSearchTree() {}
     const char* compName() const { return Comp::name(); }
 };
 

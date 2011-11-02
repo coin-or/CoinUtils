@@ -37,7 +37,7 @@ class useless_constraint_action : public CoinPresolveAction {
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~useless_constraint_action();
+  virtual ~useless_constraint_action();
 
 };
 

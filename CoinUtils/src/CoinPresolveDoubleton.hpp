@@ -66,7 +66,7 @@ class doubleton_action : public CoinPresolveAction {
   
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~doubleton_action();
+  virtual ~doubleton_action();
 };
 #endif
 

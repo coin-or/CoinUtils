@@ -214,7 +214,7 @@ CoinIndexedVectorUnitTest()
     try {
       assert( r[1]==0. );
     }
-    catch (CoinError e) {
+    catch (CoinError& e) {
       errorThrown = true;
     }
     assert( errorThrown );
@@ -225,7 +225,7 @@ CoinIndexedVectorUnitTest()
     try {
       assert( r[-1]==0. );
     }
-    catch (CoinError e) {
+    catch (CoinError& e) {
       errorThrown = true;
     }
     assert( errorThrown );
@@ -239,7 +239,7 @@ CoinIndexedVectorUnitTest()
     try {
       assert( r[5]==0. );
     }
-    catch (CoinError e) {
+    catch (CoinError& e) {
       errorThrown = true;
     }
     assert( errorThrown );

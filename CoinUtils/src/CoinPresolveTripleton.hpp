@@ -59,7 +59,7 @@ class tripleton_action : public CoinPresolveAction {
   
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  ~tripleton_action();
+  virtual ~tripleton_action();
 };
 #endif
 

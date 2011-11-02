@@ -95,7 +95,7 @@ CoinPackedVector::assignVector(int size, int*& inds, double*& elems,
     try {    
       CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
     }
-    catch (CoinError e) {
+    catch (CoinError& e) {
     throw CoinError("duplicate index", "assignVector",
 		    "CoinPackedVector");
     }
@@ -491,7 +491,7 @@ CoinPackedVector::gutsOfSetVector(int size,
      try {
        CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
      }
-     catch (CoinError e) {
+     catch (CoinError& e) {
        throw CoinError("duplicate index", method, "CoinPackedVector");
      }
    } else {
@@ -517,7 +517,7 @@ CoinPackedVector::gutsOfSetConstant(int size,
    try {
       CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
    }
-   catch (CoinError e) {
+   catch (CoinError& e) {
       throw CoinError("duplicate index", method, "CoinPackedVector");
    }
 }
