@@ -11,6 +11,7 @@
 
 #include <list>
 #include <cassert>
+#include <cstddef>
 
 namespace Coin {
 
