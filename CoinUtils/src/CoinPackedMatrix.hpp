@@ -495,14 +495,20 @@ public:
       void countOrthoLength(int * counts) const;
       /** Major dimension. For row ordered matrix this would be the number of
           rows. */
-      int getMajorDim() const { return majorDim_; }
+      inline int getMajorDim() const { return majorDim_; }
+      /** Set major dimension. For row ordered matrix this would be the number of
+          rows. Use with great care.*/
+      inline void setMajorDim(int value) { majorDim_ = value; }
       /** Minor dimension. For row ordered matrix this would be the number of
 	  columns. */
-      int getMinorDim() const { return minorDim_; }
+      inline int getMinorDim() const { return minorDim_; }
+      /** Set minor dimension. For row ordered matrix this would be the number of
+          columns. Use with great care.*/
+      inline void setMinorDim(int value) { minorDim_ = value; }
       /** Current maximum for major dimension. For row ordered matrix this many
           rows can be added without reallocating the vector related to the
 	  major dimension (<code>start_</code> and <code>length_</code>). */
-      int getMaxMajorDim() const { return maxMajorDim_; }
+      inline int getMaxMajorDim() const { return maxMajorDim_; }
 
       /** Dump the matrix on stdout. When in dire straits this method can
 	  help. */
