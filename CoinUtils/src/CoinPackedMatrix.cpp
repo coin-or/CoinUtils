@@ -2925,32 +2925,37 @@ CoinPackedMatrix::dumpMatrix(const char* fname) const
   }
 }
 void
-CoinPackedMatrix::printMatrixElement(const int row_val, const int col_val) const
+CoinPackedMatrix::printMatrixElement (const int row_val,
+				      const int col_val) const
 {
-int major_index, minor_index;
-if (isColOrdered())
-  {
-  major_index = col_val;
-  minor_index = row_val;
+  int major_index, minor_index;
+  if (isColOrdered()) {
+    major_index = col_val;
+    minor_index = row_val;
+  } else {
+    major_index = row_val;
+    minor_index = col_val;
   }
-else
-  {
-  major_index = row_val;
-  minor_index = col_val;
-  }
-if (getMajorDim() > major_index)
-  std::cout << "Major index out of range: " << major_index << " vs. " << getMajorDim() << "\n";
-CoinBigIndex curr_point = start_[major_index];
-CoinBigIndex stop_point = curr_point + length_[major_index];
-while (curr_point < stop_point)
-  {
-  if (index_[curr_point] == minor_index)
-    {
-      std::cout << element_[curr_point];
-    return;
+  if (major_index < 0 || major_index > getMajorDim()-1) {
+    std::cout
+      << "Major index " << major_index << " not in range 0.."
+      << getMajorDim()-1 << std::endl ;
+  } else if (minor_index < 0 || minor_index > getMinorDim()-1) {
+    std::cout
+      << "Minor index " << minor_index << " not in range 0.."
+      << getMinorDim()-1 << std::endl ;
+  } else {
+    CoinBigIndex curr_point = start_[major_index];
+    const CoinBigIndex stop_point = curr_point+length_[major_index];
+    double aij = 0.0 ;
+    for ( ; curr_point < stop_point ; curr_point++) {
+      if (index_[curr_point] == minor_index) {
+	aij = element_[curr_point];
+	break;
+      }
     }
+    std::cout << aij ;
   }
- std::cout << 0.0;
 }
 #ifndef CLP_NO_VECTOR
 bool 

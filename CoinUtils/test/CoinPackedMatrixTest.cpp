@@ -384,6 +384,38 @@ CoinPackedMatrixUnitTest()
     assert( eq(ev[16],  5.6) );
     assert( eq(ev[17],  1.0) );
     assert( eq(ev[18],  1.9) );
+
+    // Check printMatrixElement
+    std::cout << "Testing printMatrixElement:" << std::endl ;
+    std::cout << "Expecting 1.1, 0.0, -1.2." << std::endl ;
+    std::cout << "a(1,2) = " ;
+    globalP->printMatrixElement(1,2) ;
+    std::cout << "; a(3,5) = " ;
+    globalP->printMatrixElement(3,5) ;
+    std::cout << "; a(3,6) = " ;
+    globalP->printMatrixElement(3,6) ;
+    std::cout << std::endl ;
+    std::cout << "Expecting bounds error messages." << std::endl ;
+    std::cout << "a(-1,-1) = " ;
+    globalP->printMatrixElement(-1,-1) ;
+    std::cout << "a(0,-1) = " ;
+    globalP->printMatrixElement(0,-1) ;
+    std::cout << "a(4,8) = " ;
+    globalP->printMatrixElement(4,8) ;
+    std::cout << "a(5,8) = " ;
+    globalP->printMatrixElement(5,8) ;
+#   if 0
+    /* If you want an exhaustive test, enable these loops. */
+    for (CoinBigIndex rowndx = -1 ;
+         rowndx <= globalP->getMajorDim() ; rowndx++) {
+      for (CoinBigIndex colndx = -1 ;
+           colndx < globalP->getMinorDim() ; colndx++) {
+        std::cout << "a(" << rowndx << "," << colndx << ") = " ;
+	globalP->printMatrixElement(rowndx,colndx) ;
+	std::cout << std::endl ;
+      }
+    }
+#   endif
     
     const CoinBigIndex * mi = globalP->getVectorStarts();
     assert( mi[0]==0 );
