@@ -810,13 +810,15 @@ public:
    //@{
    /** Default constructor. */
    CoinModel();
-    /** Read a problem in MPS or GAMS format from the given filename.
-    */
-    CoinModel(const char *fileName, int allowStrings=0);
-    /** Read a problem from AMPL nl file
-	NOTE - as I can't work out configure etc the source code is in Cbc_ampl.cpp!
-    */
-    CoinModel( int nonLinear, const char * fileName,const void * info);
+   /** Constructor with sizes. */
+   CoinModel(int firstRows, int firstColumns, int firstElements,bool noNames=false);
+   /** Read a problem in MPS or GAMS format from the given filename.
+   */
+   CoinModel(const char *fileName, int allowStrings=0);
+   /** Read a problem from AMPL nl file
+       NOTE - as I can't work out configure etc the source code is in Cbc_ampl.cpp!
+   */
+   CoinModel( int nonLinear, const char * fileName,const void * info);
   /// From arrays
   CoinModel(int numberRows, int numberColumns,
 	    const CoinPackedMatrix * matrix,
@@ -1019,6 +1021,8 @@ private:
       3 matrix is CoinPackedMatrix (and at present can't be modified);
   */
   mutable int type_;
+  /// True if no names EVER being used (for users who know what they are doing)
+  bool noNames_;
   /** Links present (could be tested by sizes of objects)
       0 - none,
       1 - row links,

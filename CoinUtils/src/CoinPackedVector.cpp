@@ -29,7 +29,7 @@ CoinPackedVector::operator=(const CoinPackedVector & rhs)
 {
    if (this != &rhs) {
       clear();
-      gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements(),
+      gutsOfSetVector(rhs.getVectorNumElements(), rhs.getVectorIndices(), rhs.getVectorElements(),
 		      CoinPackedVectorBase::testForDuplicateIndex(),
 		      "operator=");
    }
@@ -68,7 +68,7 @@ CoinPackedVector::assignVector(int size, int*& inds, double*& elems,
    try {
       CoinPackedVectorBase::setTestForDuplicateIndex(testForDuplicateIndex);
    }
-   catch (CoinError e) {
+   catch (CoinError& e) {
       throw CoinError("duplicate index", "assignVector", "CoinPackedVector");
    }
 }
@@ -459,7 +459,7 @@ CoinPackedVector::CoinPackedVector(const CoinPackedVector & rhs) :
    origIndices_(NULL),
    capacity_(0)
 {  
-   gutsOfSetVector(rhs.getNumElements(), rhs.getIndices(), rhs.getElements(),
+   gutsOfSetVector(rhs.getVectorNumElements(), rhs.getVectorIndices(), rhs.getVectorElements(),
 		   rhs.testForDuplicateIndex(), "copy constructor");
 }
 

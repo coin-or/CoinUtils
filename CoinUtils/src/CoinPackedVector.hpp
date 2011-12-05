@@ -134,6 +134,12 @@ public:
    virtual const double * getElements() const { return elements_; }
    /// Get indices of elements
    int * getIndices() { return indices_; }
+   /// Get the size
+   inline int getVectorNumElements() const { return nElements_; }
+   /// Get indices of elements
+   inline const int * getVectorIndices() const { return indices_; }
+   /// Get element values
+   inline const double * getVectorElements() const { return elements_; }
    /// Get element values
    double * getElements() { return elements_; }
    /** Get pointer to int * vector of original postions.
