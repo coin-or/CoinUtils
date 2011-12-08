@@ -163,7 +163,7 @@ const CoinPresolveAction
   Question: Why are we excluding integral columns?
 */
   // allow integral columns if asked for
-  bool allowIntegers = ( prob->presolveOptions_&1)!=0;
+  bool allowIntegers = ((prob->presolveOptions_&0x01) != 0) ;
   int *sort = prob->usefulColumnInt_; //new int[ncols] ;
   int nlook = 0 ;
   for (int j = 0 ; j < ncols ; j++) {
@@ -947,8 +947,8 @@ const CoinPresolveAction
   double *rup	= prob->rup_;
 
   int nuseless_rows = 0;
-  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
-  bool allowIntersection = ( prob->presolveOptions_&16)!=0;
+  bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
+  bool allowIntersection = ((prob->presolveOptions_&0x10) != 0) ;
   double tolerance = prob->feasibilityTolerance_;
 
   double dval = workrow[0];

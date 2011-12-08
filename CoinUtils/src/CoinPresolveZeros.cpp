@@ -10,21 +10,20 @@
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveZeros.hpp"
 
-#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
 
 namespace {	// begin unnamed file-local namespace
 
 // Sees how many zeros there are
-static int count_col_zeros (int ncheckcols, int * checkcols,
-                            const CoinBigIndex *mcstrt, double *colels,// int *hrow,
-                            int *hincol)
+int count_col_zeros (int ncheckcols, int *checkcols,
+		     const CoinBigIndex *mcstrt, double *colels,
+		     int *hincol)
 {
   int nactions = 0;
-  int i;
 
-  for (i=0; i<ncheckcols; i++) {
+  for (int i = 0 ; i < ncheckcols ; i++) {
     int col = checkcols[i];
     CoinBigIndex kcs = mcstrt[col];
     CoinBigIndex kce = mcstrt[col] + hincol[col];
@@ -40,13 +39,13 @@ static int count_col_zeros (int ncheckcols, int * checkcols,
 }
 
 // Sees how many zeros there are
-static int count_col_zeros2 (int ncheckcols, int * checkcols,
-                            const CoinBigIndex *mcstrt, double *colels,// int *hrow,
-                            int *hincol)
+int count_col_zeros2 (int ncheckcols, int * checkcols,
+		      const CoinBigIndex *mcstrt, double *colels,
+		      int *hincol)
 {
   int nactions = 0;
 
-  for (int col=0; col<ncheckcols; col++) {
+  for (int col = 0 ; col < ncheckcols ; col++) {
     CoinBigIndex kcs = mcstrt[col];
     CoinBigIndex kce = mcstrt[col] + hincol[col];
     CoinBigIndex k;
@@ -64,7 +63,7 @@ static int count_col_zeros2 (int ncheckcols, int * checkcols,
 // creates a dropped_zero entry for each one; doesn't check for out-of-memory.
 // returns number of zeros found.
 
-static int drop_col_zeros (int ncheckcols, int *checkcols,
+int drop_col_zeros (int ncheckcols, int *checkcols,
 		    const CoinBigIndex *mcstrt, double *colels, int *hrow,
 		    int *hincol, presolvehlink *clink,
 		    dropped_zero *actions)
@@ -84,7 +83,7 @@ static int drop_col_zeros (int ncheckcols, int *checkcols,
 	actions[nactions].col = col;
 	actions[nactions].row = hrow[k];
 
-#       if PRESOLVE_DEBUG
+#       if PRESOLVE_DEBUG > 0
 	if (nactions == 0)
 	  printf("ZEROS:  ");
 	else
@@ -107,7 +106,7 @@ static int drop_col_zeros (int ncheckcols, int *checkcols,
     PRESOLVE_REMOVE_LINK(clink,col) ;
   }
 
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 0
   if (nactions)
     printf("\n");
 # endif
@@ -117,7 +116,7 @@ static int drop_col_zeros (int ncheckcols, int *checkcols,
 
 // very similar to col, but without the buffer and reads zeros
 
-static void drop_row_zeros(int nzeros, const dropped_zero *zeros,
+void drop_row_zeros(int nzeros, const dropped_zero *zeros,
 		    const CoinBigIndex *mrstrt, double *rowels, int *hcol,
 		    int *hinrow, presolvehlink *rlink)
 {
@@ -157,19 +156,26 @@ const CoinPresolveAction
   int *hincol		= prob->hincol_;
   presolvehlink *clink	= prob->clink_ ;
   presolvehlink *rlink	= prob->rlink_ ;
+
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Entering drop_zero_action::presolve." << std::endl ;
+# endif
  
   //  int i;
   int nzeros;
   if (ncheckcols==prob->ncols_) {
     // can do faster
     nzeros = count_col_zeros2(ncheckcols,checkcols,
-                               mcstrt,colels,/*hrow,*/hincol);
+                               mcstrt,colels,hincol);
   } else {
     nzeros = count_col_zeros(ncheckcols,checkcols,
-                               mcstrt,colels,/*hrow,*/hincol);
+                               mcstrt,colels,hincol);
   }
   if (nzeros == 0) {
-    return (next);
+#   if PRESOLVE_DEBUG > 0
+    std::cout << "Leaving drop_zero_action::presolve." << std::endl ;
+#   endif
+    return (next) ;
   } else {
     dropped_zero * zeros = new dropped_zero[nzeros];
 
@@ -183,7 +189,7 @@ const CoinPresolveAction
     int *hinrow		= prob->hinrow_;
     //    int nrows		= prob->nrows_;
 
-#   if PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY > 0
     printf("NZEROS:  %d\n", nzeros);
 #   endif
 
@@ -249,7 +255,7 @@ void drop_zero_coefficients_action::postsolve(CoinPostsolveMatrix *prob) const
     hincol[jcol]++;
   }
 
-# if PRESOLVE_CONSISTENCY
+# if PRESOLVE_CONSISTENCY > 0
   presolve_check_free_list(prob) ;
 # endif
 

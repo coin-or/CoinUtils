@@ -18,7 +18,7 @@
 #include "CoinError.hpp"
 #include "CoinFinite.hpp"
 
-#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
 
@@ -69,7 +69,7 @@ static bool add_row(CoinBigIndex *mrstrt,
   // "ADD_ROW:",
   //  irowx, irowy, coeff_factor, hinrow[irowx], hinrow[irowy]);
 
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 0
   printf("%s x=%d y=%d cf=%g nx=%d ycols=(",
 	 "ADD_ROW:",
 	  irowx, irowy, coeff_factor, hinrow[irowx]);
@@ -90,7 +90,7 @@ static bool add_row(CoinBigIndex *mrstrt,
 
     // (1)
     if (-PRESOLVE_INF < rlo[irowx]) {
-#     if PRESOLVE_DEBUG
+#     if PRESOLVE_DEBUG > 0
       if (rhsy * coeff_factor)
 	printf("ELIM_ROW RLO:  %g -> %g\n",
 	       rlo[irowx],
@@ -100,7 +100,7 @@ static bool add_row(CoinBigIndex *mrstrt,
     }
     // (2)
     if (rup[irowx] < PRESOLVE_INF) {
-#     if PRESOLVE_DEBUG
+#     if PRESOLVE_DEBUG > 0
       if (rhsy * coeff_factor)
 	printf("ELIM_ROW RUP:  %g -> %g\n",
 	       rup[irowx],
@@ -128,7 +128,7 @@ static bool add_row(CoinBigIndex *mrstrt,
     while (kcolx < krex0 && hcol[kcolx] < jcol)
       kcolx++;
 
-#   if PRESOLVE_DEBUG
+#   if PRESOLVE_DEBUG > 0
     printf("%d%s ", jcol, (kcolx < krex0 && hcol[kcolx] == jcol) ? "+" : "");
 #   endif
 
@@ -139,7 +139,7 @@ static bool add_row(CoinBigIndex *mrstrt,
 
       // update row rep - just modify coefficent
       // column y is deleted as a whole at the end of the loop
-#     if PRESOLVE_DEBUG
+#     if PRESOLVE_DEBUG > 0
       printf("CHANGING %g + %g -> %g\n",
 	     rowels[kcolx],
 	     rowels[krowy],
@@ -184,7 +184,7 @@ static bool add_row(CoinBigIndex *mrstrt,
     }
   }
 
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 0
   printf(")\n");
 # endif
   return false;
@@ -481,7 +481,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 	if (! (kcol2 < kre2 && hcol[kcol2] == jcol))
 	  nfill++;
       }
-#if	PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
       printf("FILL:  %d\n", nfill);
 #endif
       
@@ -613,7 +613,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
       
       // now adjust for the implied free row - COPIED
       if (nonzero_cost) {
-#if	0&&PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 1
 	printf("NONZERO SUBST COST:  %d %g\n", jcoly, dcost[jcoly]);
 #endif
 	double *cost = dcost;
@@ -649,7 +649,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 	cost[jcoly] = 0.0;
       }
       
-#if	0&&PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 1
       if (hincol[jcoly] == 3) {
 	CoinBigIndex krs = mrstrt[rowy];
 	CoinBigIndex kre = krs + hinrow[rowy];
@@ -682,7 +682,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 	  double coeffx = ap->coeffxs[k];
 	  double coeff_factor = -coeffx / coeffy;	// backwards from doubleton
 	  
-#if	0&&PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 1
 	  {
 	    CoinBigIndex krs = mrstrt[rowx];
 	    CoinBigIndex kre = krs + hinrow[rowx];
@@ -785,7 +785,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 	  // better if this were first
 	  presolve_delete_from_row(rowx, jcoly, mrstrt, hinrow, hcol, rowels);
 #endif
-#if	0&&PRESOLVE_DEBUG
+#if	  PRESOLVE_DEBUG > 1
 	  {
 	    CoinBigIndex krs = mrstrt[rowx];
 	    CoinBigIndex kre = krs + hinrow[rowx];
@@ -811,7 +811,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 	}
       }
       
-#if	0&&PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 1
       printf("\n");
 #endif
       
@@ -848,7 +848,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
       rlo[rowy] = 0.0;
       rup[rowy] = 0.0;
       
-#if	0 && PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 1
       printf("ROWY COLS:  ");
       for (CoinBigIndex k=0; k<save_ninrowy; ++k)
 	if (rowycols[k] != col) {
@@ -858,7 +858,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 	}
       printf("\n");
 #endif
-#       if PRESOLVE_CONSISTENCY
+#       if PRESOLVE_CONSISTENCY > 0
       presolve_links_ok(prob) ;
       presolve_consistent(prob) ;
 #       endif
@@ -873,7 +873,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
   if (nactions < 30&&fill_level<prob->maxSubstLevel_)
     try_fill_level = -fill_level-1;
   if (nactions) {
-#   if PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY > 0
     printf("NSUBSTS:  %d\n", nactions);
     //printf("NT: %d  NGOOD:  %d FILL_LEVEL:  %d\n", nt, ngood, fill_level);
 #   endif
@@ -913,9 +913,15 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   double *acts	= prob->acts_;
   double *rowduals = prob->rowduals_;
 
-# if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering subst_constraint_action::postsolve, "
+    << nactions << " constraints to process." << std::endl ;
+# endif
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   char *cdone	= prob->cdone_;
   char *rdone	= prob->rdone_;
+  presolve_check_sol(prob,2,2,2) ;
 # endif
 
   CoinBigIndex &free_list = prob->free_list_;
@@ -949,7 +955,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     PRESOLVEASSERT(rdone[jrowy]==DROP_ROW);
 
     // DEBUG CHECK
-#if	1 && PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
     {
       double actx = 0.0;
       const double ztolzb	= prob->ztolzb_;
@@ -1015,7 +1021,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
       }
       sol[icol] = sol0 / coeffy;
 
-#     if PRESOLVE_DEBUG
+#     if PRESOLVE_DEBUG > 0
       const double ztolzb	= prob->ztolzb_;
       double *clo	= prob->clo_;
       double *cup	= prob->cup_;
@@ -1055,7 +1061,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 					link,&free_list) ;
 	  }
       }
-#     if PRESOLVE_CONSISTENCY
+#     if PRESOLVE_CONSISTENCY > 0
       presolve_check_free_list(prob) ;
 #     endif
 
@@ -1102,7 +1108,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	  rowcolsx += ninrowx;
 	  rowelsx += ninrowx;
 	}
-#       if PRESOLVE_CONSISTENCY
+#       if PRESOLVE_CONSISTENCY > 0
         presolve_check_free_list(prob) ;
 #       endif
       }
@@ -1116,7 +1122,7 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	  ++hincol[col];
 	}
       }
-#     if PRESOLVE_CONSISTENCY
+#     if PRESOLVE_CONSISTENCY > 0
       presolve_check_free_list(prob) ;
 #     endif
     }
@@ -1169,11 +1175,11 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	    PRESOLVEASSERT(rlo[jrowx] - prob->ztolzb_ <= actx 
 			   && actx <= rup[jrowx] + prob->ztolzb_);
 	    acts[jrowx] = actx;
-	    if (prob->getRowStatus(jrowx)!=CoinPrePostsolveMatrix::basic) {
-	      if (actx-rlo[jrowx]<rup[jrowx]-actx)
-		prob->setRowStatus(jrowx,CoinPrePostsolveMatrix::atLowerBound);
-	      else
+	    if (prob->getRowStatus(jrowx) != CoinPrePostsolveMatrix::basic) {
+	      if (actx-rlo[jrowx] < rup[jrowx]-actx)
 		prob->setRowStatus(jrowx,CoinPrePostsolveMatrix::atUpperBound);
+	      else
+		prob->setRowStatus(jrowx,CoinPrePostsolveMatrix::atLowerBound);
 	    }
 	  }
 	  rowcolsx += ninrowx;
@@ -1196,14 +1202,19 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     //rowstat[jrowy] = 0;
     prob->setColumnStatus(icol,CoinPrePostsolveMatrix::basic);
 
-#   if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#   if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
     cdone[icol] = SUBST_ROW;
     rdone[jrowy] = SUBST_ROW;
 #   endif
   }
 
-# if PRESOLVE_CONSISTENCY
+# if PRESOLVE_CONSISTENCY > 0
   presolve_check_threads(prob) ;
+# endif
+# if PRESOLVE_DEBUG > 0
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+  std::cout << "Leaving subst_constraint_action::postsolve." << std::endl ;
 # endif
 
   return ;

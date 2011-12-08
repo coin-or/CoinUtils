@@ -18,7 +18,7 @@
 #include "CoinPresolvePsdebug.hpp"
 #include "CoinMessage.hpp"
 
-#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
 
@@ -59,7 +59,7 @@ namespace {	/* begin unnamed local namespace */
 */
 
   bool elim_doubleton (const char * 
-#ifdef PRESOLVE_DEBUG
+#if PRESOLVE_DEBUG > 0
 msg
 #endif
 		       ,
@@ -73,7 +73,7 @@ msg
 		     double coeff_factor,
 		     double bounds_factor,
 		       int
-#ifdef PRESOLVE_DEBUG
+#if PRESOLVE_DEBUG > 0
 		       row0
 #endif
 		       , int icolx, int icoly)
@@ -82,7 +82,7 @@ msg
   CoinBigIndex kcsx = mcstrt[icolx];
   CoinBigIndex kcex = kcsx + hincol[icolx];
 
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 1
   printf("%s %d x=%d y=%d cf=%g bf=%g nx=%d yrows=(", msg,
 	 row0, icolx, icoly, coeff_factor, bounds_factor, hincol[icolx]);
 # endif
@@ -104,7 +104,7 @@ msg
     double delta = coeffy*coeff_factor ;
     int row = hrow[kcoly] ;
     CoinBigIndex kcolx = presolve_find_row1(row,kcsx,kcex,hrow) ;
-#   if PRESOLVE_DEBUG
+#   if PRESOLVE_DEBUG > 0
     printf("%d%s ",row,(kcolx<kcex)?"+":"") ;
 #   endif
 /*
@@ -153,7 +153,7 @@ msg
       if (rup[row] < PRESOLVE_INF)
 	rup[row] -= delta ; } }
 
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 0
   printf(")\n") ;
 # endif
 
@@ -226,8 +226,8 @@ const CoinPresolveAction
   double *acts	= prob->acts_;
   double * sol = prob->sol_;
 
-  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
-# if PRESOLVE_CONSISTENCY
+  bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
+# if PRESOLVE_CONSISTENCY > 0
   presolve_consistent(prob) ;
   presolve_links_ok(prob) ;
 # endif
@@ -663,7 +663,7 @@ const CoinPresolveAction
 	// bounds may be non-zero.
       }
       
-#     if PRESOLVE_CONSISTENCY
+#     if PRESOLVE_CONSISTENCY > 0
       presolve_consistent(prob) ;
       presolve_links_ok(prob) ;
 #     endif
@@ -671,7 +671,7 @@ const CoinPresolveAction
   }
 
   if (nactions) {
-#   if PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY > 0
     printf("NDOUBLETONS:  %d\n", nactions);
 #   endif
     action *actions1 = new action[nactions];
@@ -736,11 +736,6 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 
   const double maxmin	= prob->maxmin_;
 
-# if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
-  char *cdone	= prob->cdone_;
-  char *rdone	= prob->rdone_;
-# endif
-
   CoinBigIndex &free_list = prob->free_list_;
 
   const double ztolzb	= prob->ztolzb_;
@@ -752,11 +747,17 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   double * element1 = new double[nrows];
   CoinZeroN(element1,nrows);
 
-# if PRESOLVE_CONSISTENCY
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+  char *cdone	= prob->cdone_;
+  char *rdone	= prob->rdone_;
+
   presolve_check_threads(prob) ;
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Entering doubleton_action::postsolve." << std::endl ;
 # endif
-# if PRESOLVE_DEBUG
-  presolve_check_sol(prob) ;
 # endif
 /*
   The outer loop: step through the doubletons in this array of actions.
@@ -798,7 +799,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
     dcost[jcolx] = f->costx;
     dcost[jcoly] = f->costy;
 
-#if	PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 0
 /* Original comment: I've forgotten what this is about
 
    Loss of significant digits through cancellation, with possible inflation
@@ -807,10 +808,10 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
     if ((rhs < 0) == ((coeffx * sol[jcolx]) < 0) &&
 	fabs(rhs - coeffx * sol[jcolx]) * 100 < rhs &&
 	fabs(rhs - coeffx * sol[jcolx]) * 100 < (coeffx * sol[jcolx]))
-      printf("DANGEROUS RHS??? %g %g %g\n",
-	     rhs, coeffx * sol[jcolx],
-	     (rhs - coeffx * sol[jcolx]));
-#endif
+      std::cout
+        << "DANGEROUS RHS??? " << rhs << " " << (coeffx*sol[jcolx])
+	<< " " << (rhs-(coeffx*sol[jcolx])) << std::endl ;
+# endif
 /*
   Set primal solution for y (including status) and row activity for the
   doubleton row. The motivation (up in presolve) for wanting coeffx < coeffy
@@ -897,7 +898,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	element1[iRow]=yValue;
 	index1[nX++]=iRow;
       }
-#     if PRESOLVE_CONSISTENCY
+#     if PRESOLVE_CONSISTENCY > 0
       presolve_check_free_list(prob) ;
 #     endif
 /*
@@ -988,7 +989,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	}
       }
 	  
-#     if PRESOLVE_CONSISTENCY
+#     if PRESOLVE_CONSISTENCY > 0
       presolve_check_free_list(prob) ;
 #     endif
 	  
@@ -1067,7 +1068,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  element1[iRow]+=xValue;
 	}
       }
-#     if PRESOLVE_CONSISTENCY
+#     if PRESOLVE_CONSISTENCY > 0
       presolve_check_free_list(prob) ;
 #     endif
 /*
@@ -1118,7 +1119,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	  ystart = k;
 	}
       }
-#     if PRESOLVE_CONSISTENCY
+#     if PRESOLVE_CONSISTENCY > 0
       presolve_check_free_list(prob) ;
 #     endif
 /*
@@ -1242,16 +1243,16 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
       rcosts[jcoly] = 0.0;
     }
     
-# if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 /*
-  Mark the column and row as processed by doubleton action. The check integrity
-  of the threaded matrix.
+  Mark the column and row as processed by doubleton action. Then check
+  integrity of the threaded matrix.
 */
     cdone[jcoly] = DOUBLETON;
     rdone[irow] = DOUBLETON;
     presolve_check_threads(prob) ;
 #endif
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 0
 /*
   Confirm accuracy of reduced cost for columns x and y.
 */
@@ -1296,9 +1297,16 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 /*
   Done at last. Delete the scratch arrays.
 */
-
   delete [] index1;
   delete [] element1;
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Leaving doubleton_action::postsolve." << std::endl ;
+# endif
+# endif
 }
 
 
@@ -1337,7 +1345,7 @@ void check_doubletons(const CoinPresolveAction * paction)
   }
 }
 
-#if	PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
 void check_doubletons1(const CoinPresolveAction * paction,
 		       int ncols)
 #else
@@ -1345,7 +1353,7 @@ void check_doubletons1(const CoinPresolveAction * /*paction*/,
 		       int /*ncols*/)
 #endif
 {
-#if	PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
   doubleton_mult = new double[ncols];
   doubleton_id = new int[ncols];
   int i;

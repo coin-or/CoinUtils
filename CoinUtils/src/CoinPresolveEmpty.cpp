@@ -13,7 +13,7 @@
 #include "CoinPresolveEmpty.hpp"
 #include "CoinMessage.hpp"
 
-#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
 
@@ -62,7 +62,7 @@ const CoinPresolveAction
 
   action *actions 	= new action[necols];
   int * colmapping = new int [ncols+1];
-  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
+  bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
 
   CoinZeroN(colmapping,ncols);
   int i;
@@ -127,7 +127,7 @@ const CoinPresolveAction
       }
     }
 
-#if	PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
     if (e.sol * dcost[jcol]) {
       //printf("\a>>>NON-ZERO COST FOR EMPTY COL %d:  %g\n", jcol, dcost[jcol]);
     }
@@ -207,7 +207,7 @@ const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *p
   for (i=0; i<ncols; i++)
   { nelems2 += hincol[i] ;
     if (hincol[i] == 0) {
-#if	PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
       if (nempty==0)
 	printf("UNUSED COLS:  ");
       else
@@ -227,7 +227,7 @@ const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *p
   prob->nelems_ = nelems2 ;
 
   if (nempty) {
-#if	PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
       printf("\ndropped %d cols\n", nempty);
 #endif
     next = drop_empty_cols_action::presolve(prob, empty, nempty, next);
@@ -261,7 +261,7 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
   int * colmapping = new int [ncols2];
 
   CoinZeroN(colmapping,ncols2);
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 0
   char *cdone	= prob->cdone_;
 # endif
   int action_i;
@@ -293,7 +293,7 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
 
       if (colstat) 
 	colstat[i] = colstat[ncols];
-#     if PRESOLVE_DEBUG
+#     if PRESOLVE_DEBUG > 0
       cdone[i] = cdone[ncols];
 #     endif
     }
@@ -318,7 +318,7 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
 
     hincol[jcol] = 0;
     mcstrt[jcol] = NO_LINK ;
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 0
     cdone[jcol] = DROP_COL;
 # endif
     if (colstat) 
@@ -327,7 +327,7 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
 
   prob->ncols_ += nactions;
 
-# if PRESOLVE_CONSISTENCY
+# if PRESOLVE_CONSISTENCY > 0
   presolve_check_threads(prob) ;
 # endif
 
@@ -357,7 +357,7 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
   int * originalRow  = prob->originalRow_;
 
   //presolvehlink *rlink = prob->rlink_;
-  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
+  bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
   // Relax tolerance
   double tolerance = 10.0*prob->feasibilityTolerance_;
   
@@ -380,7 +380,7 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
       if (hinrow[i] == 0) {
 	action &e = actions[nactions];
 
-#       if PRESOLVE_DEBUG
+#       if PRESOLVE_DEBUG > 0
 	if (nactions == 0)
 	  printf("UNUSED ROWS:  ");
 	else
@@ -440,7 +440,7 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
 
     prob->nrows_ = nrows2;
 
-#if	PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
     presolve_check_nbasic(prob) ;
     if (nactions)
       printf("\ndropped %d rows\n", nactions);
@@ -451,94 +451,117 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
 
 void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
 {
-  const int nactions	= nactions_;
-  const action *const actions = actions_;
+  const int nactions = nactions_ ;
+  const action *const actions = actions_ ;
 
-  int ncols	= prob->ncols_;
-  CoinBigIndex *mcstrt	= prob->mcstrt_;
-  int *hincol	= prob->hincol_;
+  int ncols = prob->ncols_ ;
+  CoinBigIndex *mcstrt	= prob->mcstrt_ ;
+  int *hincol = prob->hincol_ ;
 
-  int *hrow	= prob->hrow_;
+  int *hrow = prob->hrow_ ;
 
-  double *rlo	= prob->rlo_;
-  double *rup	= prob->rup_;
-  unsigned char *rowstat	= prob->rowstat_;
-  double *rowduals = prob->rowduals_;
-  double *acts	= prob->acts_;
-# if PRESOLVE_DEBUG
-  char *rdone	= prob->rdone_;
+  double *rlo = prob->rlo_ ;
+  double *rup = prob->rup_ ;
+  unsigned char *rowstat = prob->rowstat_ ;
+  double *rowduals = prob->rowduals_ ;
+  double *acts = prob->acts_ ;
+
+# if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Entering drop_empty_rows_action::postsolve." << std::endl ;
+# endif
+  char *rdone = prob->rdone_ ;
+
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
 # endif
 
-  int nrows0	= prob->nrows0_;
-  int nrows	= prob->nrows_;
-
-  int * rowmapping = new int [nrows0];
+  int nrows0 = prob->nrows0_ ;
+  int nrows = prob->nrows_ ;
+/*
+  Process the array of actions and mark rowmapping[i] if constraint i was
+  eliminated in presolve.
+*/
+  int *rowmapping = new int [nrows0] ;
   CoinZeroN(rowmapping,nrows0) ;
-
-  int i, action_i;
-  for (action_i = 0; action_i<nactions; action_i++) {
-    const action *e = &actions[action_i];
-    int hole = e->row;
-    rowmapping[hole]=-1;
+  for (int k = 0 ; k < nactions ; k++) {
+    const action *e = &actions[k] ;
+    int i = e->row ;
+    rowmapping[i] = -1 ;
   }
-
-  // move data
-  for (i=nrows0-1; i>=0; i--) {
+/*
+  Now walk the vectors for row bounds, activity, duals, and status. Expand
+  the existing entries in 0..(nrows-1) to occupy 0..(nrows0-1), leaving
+  holes for the rows we're about to reintroduce.
+*/
+  for (int i = nrows0-1 ; i >= 0 ; i--) {
     if (!rowmapping[i]) {
-      // not a hole
-      nrows--;
-      rlo[i]=rlo[nrows];
-      rup[i]=rup[nrows];
-      acts[i]=acts[nrows];
-      rowduals[i]=rowduals[nrows];
+      nrows-- ;
+      rlo[i] = rlo[nrows] ;
+      rup[i] = rup[nrows] ;
+      acts[i] = acts[nrows] ;
+      rowduals[i] = rowduals[nrows] ;
       if (rowstat)
-	rowstat[i] = rowstat[nrows];
-#     if PRESOLVE_DEBUG
+	rowstat[i] = rowstat[nrows] ;
+#     if PRESOLVE_DEBUG > 0
       rdone[i] = rdone[nrows] ;
 #     endif
     }
   }
-  assert (!nrows);
-  // set up mapping for matrix
-  for (i=0;i<nrows0;i++) {
+  assert (!nrows) ;
+/*
+  Rewrite rowmapping so that it maps presolved row indices to row indices in
+  the restored matrix.
+*/
+  for (int i = 0 ; i < nrows0 ; i++) {
     if (!rowmapping[i])
-      rowmapping[nrows++]=i;
+      rowmapping[nrows++] = i ;
   }
-
-  for (int j=0; j<ncols; j++) {
-    CoinBigIndex start = mcstrt[j];
-    CoinBigIndex end   = start + hincol[j];
-    
-    for (CoinBigIndex k=start; k<end; ++k) {
-      hrow[k] = rowmapping[hrow[k]];
+/*
+  Now walk the row index array for each column, rewriting the row indices so
+  they are correct for the restored matrix.
+*/
+  for (int j = 0 ; j < ncols ; j++) {
+    const CoinBigIndex &start = mcstrt[j] ;
+    const CoinBigIndex &end = start+hincol[j] ;
+    for (CoinBigIndex k = start ; k < end ; k++) {
+      hrow[k] = rowmapping[hrow[k]] ;
     }
   }
-
-
   delete [] rowmapping;
-
-  for (action_i = 0; action_i < nactions; action_i++) {
-    const action *e = &actions[action_i];
-    int irow = e->row;
-
-    // Now recreate irow
-    rlo[irow] = e->rlo;
-    rup[irow] = e->rup;
-
+/*
+  And reintroduce the (still empty) rows that were removed in presolve. The
+  assumption is that an empty row cannot be tight, hence the logical is basic
+  and the dual is zero.
+*/
+  for (int k = 0 ; k < nactions ; k++) {
+    const action *e = &actions[k] ;
+    int i = e->row ;
+    rlo[i] = e->rlo ;
+    rup[i] = e->rup ;
+    acts[i] = 0.0 ;
     if (rowstat)
-      prob->setRowStatus(irow,CoinPrePostsolveMatrix::basic);
-    rowduals[irow] = 0.0;	// ???
-    acts[irow] = 0.0;
-
-#   if PRESOLVE_DEBUG
-    rdone[irow] = DROP_ROW;
+      prob->setRowStatus(i,CoinPrePostsolveMatrix::basic) ;
+    rowduals[i] = 0.0 ;
+#   if PRESOLVE_DEBUG > 0
+    rdone[i] = DROP_ROW;
+#   if PRESOLVE_DEBUG > 1
+    std::cout
+      << "  restoring row " << i << ", LB = " << rlo[i] << ", UB = " << rup[i]
+      << std::endl ;
+#   endif
 #   endif
   }
+  prob->nrows_ += nactions ;
+  assert(prob->nrows_ == prob->nrows0_) ;
 
-  prob->nrows_ = prob->nrows_+nactions;
-
-# if PRESOLVE_DEBUG
+# if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
   presolve_check_threads(prob) ;
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Leaving drop_empty_rows_action::postsolve." << std::endl ;
+# endif
 # endif
 
 }

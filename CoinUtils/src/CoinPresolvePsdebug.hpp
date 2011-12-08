@@ -6,19 +6,43 @@
 #ifndef CoinPresolvePsdebug_H
 #define CoinPresolvePsdebug_H
 
+/*
+  The current idea of the relation between PRESOLVE_DEBUG and
+  PRESOLVE_CONSISTENCY is that PRESOLVE_CONSISTENCY triggers the consistency
+  checks and PRESOLVE_DEBUG triggers consistency checks and output.
+  This isn't always true in the code, but that's the goal.  Really,
+  the whole compile-time scheme should be replaced with something more
+  user-friendly (control variables that can be changed during the run).
+
+  Also floating about are PRESOLVE_SUMMARY and COIN_PRESOLVE_TUNING.
+  -- lh, 111208 --
+*/
 /*! \defgroup PresolveDebugFunctions Presolve Debug Functions
 
-  These functions implement consistency checks on data structures
-  involved in presolve and postsolve and on the components of the lp solution.
+  These functions implement consistency checks on data structures involved
+  in presolve and postsolve and on the components of the lp solution.
 
   To use these functions, include CoinPresolvePsdebug.hpp in your file and
   define the compile-time constants PRESOLVE_SUMMARY, PRESOLVE_DEBUG, and
-  PRESOLVE_CONSISTENCY (either in individual files or in Coin/Makefile).
-  A value is needed (<i>i.e.</i>, PRESOLVE_DEBUG=1) but not at present used
-  to control debug level. Be sure that the definition occurs before any
-  CoinPresolve*.hpp file is processed.
-*/
+  PRESOLVE_CONSISTENCY. A value is needed (<i>i.e.</i>, PRESOLVE_DEBUG=1).
+  In a few places, higher values will get you a bit more output.
 
+                        ********
+
+  Define the symbols PRESOLVE_DEBUG and PRESOLVE_CONSISTENCY on the configure
+  command line (use ADD_CXXFLAGS), in a Makefile, or similar and do a
+  full rebuild (including any presolve driver code). If the symbols are
+  not consistent across *all* presolve code, you'll get something between
+  garbage and a core dump! Debugging adds messages to COIN_Message and
+  allocates space for arrays that hold debug information.
+
+  That said, given that you've configured and built with PRESOLVE_DEBUG and
+  PRESOLVE_CONSISTENCY nonzero everywhere, it's safe to adjust PRESOLVE_DEBUG
+  to values in the range 1..n in individual files to increase or decrease the
+  amount of output.
+
+                        ********
+*/
 //@{
 
 /*! \relates CoinPresolveMatrix

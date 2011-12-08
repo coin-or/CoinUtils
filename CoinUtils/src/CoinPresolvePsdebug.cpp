@@ -13,22 +13,25 @@
 /*
   \file
 
-  This file contains a number of routines that are useful when doing serious
-  debugging but unneeded otherwise. Presumably if you're deep enough into
-  presolve to need these, you're willing to scan the file to see what can be
-  done. See also the Presolve Debug Functions module in the doxygen doc'n
-  and CoinPresolvePsdebug.hpp.
+  This file contains a number of routines that are useful when doing
+  serious debugging but unneeded otherwise. It also contains the methods
+  that implement the CoinPresolveMonitor class.
+
+  Presumably if you're deep enough into presolve to need these, you're
+  willing to scan the file to see what can be done. See also the Presolve
+  Debug Functions module in the doxygen doc'n and CoinPresolvePsdebug.hpp.
 
   The general approach for the matrix consistency routines is that the
   routines return void and abort when they find a problem. The routines
   that check the basis and solution complain loudly but do not abort.
 
-  NOTE: The definitions for PRESOLVE_CONSISTENCY and PRESOLVE_DEBUG MUST BE
-	CONSISTENT across all CoinPresolve source files. AND OsiPresolve,
-	if you're debugging there. Otherwise, at best you'll get garbage
-	output. More likely, you'll get a core dump. Resist the temptation to
-	define these constants in individual files. In particular, cdone and
-	rdone will NOT be consistently maintained during postsolve.
+  NOTE: The definitions for PRESOLVE_CONSISTENCY and PRESOLVE_DEBUG MUST
+	BE CONSISTENT across all CoinPresolve source files AND OsiPresolve
+	AND ClpPresolve AND OsiDylpPresolve (assuming any of the latter
+	are relevant to your code).  Otherwise, at best you'll get garbage
+	output. More likely, you'll get a core dump. Resist the temptation
+	to define these constants in individual files. In particular,
+	cdone and rdone will NOT be consistently maintained during postsolve.
 
   Hack away as your needs dictate.
 */
@@ -642,17 +645,23 @@ void presolve_check_duals (const CoinPostsolveMatrix *postObj)
 		0 - checks off
 	       *1 - check for NaN/Inf
 		2 - check for inaccuracy, above/below row bounds
-  chkStatus:	check for valid status of architectural variables
+  chkStatus:	check for valid status of variables
 		0 - checks off
-	       *1 - checks on, if colstat_ exists
+	       *1 - check status of architecturals, if colstat_ exists
+	        2 - check status rows, if rowstat_ exists
+
+  In order to check row status we need accurate row activity. Setting
+  chkStatus to 2 forces chkRowAct to 2.
+
+  CoinPrePostsolveMatrix plays games with colstat_ and rowstat_, allocating
+  them as a single vector, so if colstat_ exists, rowstat_ really should
+  exist. Check it anyway; this is a debug method, be robust.
 
   In general, the presolve transforms are not prepared to properly adjust the
   row activity (reported as `Inacc RSOL'). Postsolve transforms do better. On
   the bright side, the code seems to work just fine without maintaining row
   activity.  You probably don't want to use the level 2 checks for the row
   solution, particularly in presolve.
-
-  To do: implement row status checks.
 
   With a bit of thought, the various checks could be more cleanly separated
   to require only the minimum information for each check.
@@ -684,6 +693,8 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
 
   double tol = preObj->ztolzb_ ;
 
+  if (chkStatus >= 2) chkRowAct = 2 ;
+
   double *rsol = 0 ;
   if (chkRowAct)
   { rsol = new double[m] ;
@@ -706,14 +717,14 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
     double lj = clo[j] ;
     double uj = cup[j] ;
 
-    if (chkRowAct)
+    if (chkRowAct >= 1)
     { for (int u = 0 ; u < colLen ; ++u)
       { int i = hrow[v] ;
 	  double aij = colels[v] ;
 	  v++ ;
 	  rsol[i] += aij*xj ; } }
 
-    if (chkColSol&((1<<1)|(1<<0)))
+    if (chkColSol > 0)
     { if (CoinIsnan(xj))
       { printf("NaN CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
       if (xj <= -PRESOLVE_INF || xj >= PRESOLVE_INF)
@@ -763,7 +774,7 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
     * Check for feasibility (rsol within row bounds)
 */
   tol *=1.0e3;
-  if (chkRowAct)
+  if (chkRowAct >= 1)
   { for (int i = 0 ; i < m ; ++i)
     { if (hinrow[i])
       { double lhsi = acts[i] ;
@@ -778,7 +789,7 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
 	    lhsi <= -PRESOLVE_INF || lhsi >= PRESOLVE_INF)
 	{ printf("Inf RSOL: %d  : lb = %g eval = %g (expected %g) ub = %g\n",
 		 i,li,evali,lhsi,ui) ; }
-	if (chkRowAct > 1)
+	if (chkRowAct >= 2)
 	{ if (fabs(evali-lhsi) > tol)
 	  { printf("Inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
 		   i,li,evali,lhsi,ui) ; }
@@ -788,7 +799,35 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
 	  else
 	  if (evali > ui+tol || lhsi > ui+tol)
 	  { printf("high RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
-		   i,li,evali,lhsi,ui) ; } } } }
+		   i,li,evali,lhsi,ui) ; } }
+	if (chkStatus >= 2 && preObj->rowstat_)
+	{ CoinPrePostsolveMatrix::Status stati = preObj->getRowStatus(i) ;
+	  switch (stati)
+	  { case CoinPrePostsolveMatrix::atUpperBound:
+	    { if (li <= -PRESOLVE_INF || fabs(lhsi-li) > tol)
+	      { printf("Bad status RSOL: %d : status atUpperBound : ",i) ;
+		printf("LB = %g lhs = %g UB = %g\n",li,lhsi,ui) ; }
+	      break ; }
+	    case CoinPrePostsolveMatrix::atLowerBound:
+	    { if (ui >= PRESOLVE_INF || fabs(lhsi-ui) > tol)
+	      { printf("Bad status RSOL: %d : status atLowerBound : ",i) ;
+		printf("LB = %g lhs = %g UB = %g\n",li,lhsi,ui) ; }
+	      break ; }
+	    case CoinPrePostsolveMatrix::isFree:
+	    { if (li > -PRESOLVE_INF || ui < PRESOLVE_INF)
+	      { printf("Bad status RSOL: %d : status isFree : ",i) ;
+		printf("LB = %g lhs = %g UB = %g\n",li,lhsi,ui) ; }
+	      break ; }
+	    case CoinPrePostsolveMatrix::superBasic:
+	    { printf("Bad status RSOL: %d : status superBasic : ",i) ;
+	      printf("LB = %g lhs = %g UB = %g\n",li,lhsi,ui) ;
+	      break ; }
+	    case CoinPrePostsolveMatrix::basic:
+	    { /* Nothing to do here. */
+	      break ; }
+	    default:
+	    { printf("Bad status RSOL: %d : status unrecognized : ",i) ;
+	      break ; } } } } }
     delete [] rsol ; }
   return ; }
 
@@ -821,8 +860,9 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
 
   double tol = postObj->ztolzb_ ;
 
+  if (chkStatus >= 2) chkRowAct = 2 ;
   double *rsol = 0 ;
-  if (chkRowAct)
+  if (chkRowAct >= 1)
   { rsol = new double[m] ;
     memset(rsol,0,m*sizeof(double)) ; }
 
@@ -842,25 +882,25 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
     double lj = clo[j] ;
     double uj = cup[j] ;
 
-    if (chkRowAct)
+    if (chkRowAct >= 1)
     { for (int u = 0 ; u < colLen ; ++u)
       { int i = hrow[v] ;
 	  double aij = colels[v] ;
 	  v = link[v] ;
 	  rsol[i] += aij*xj ; } }
-    if (chkColSol)
+    if (chkColSol >= 1)
     { if (CoinIsnan(xj))
       { printf("NaN CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
       if (xj <= -PRESOLVE_INF || xj >= PRESOLVE_INF)
       { printf("Inf CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
-      if (chkColSol > 1)
+      if (chkColSol >= 2)
       { if (xj < lj-tol)
 	{ printf("low CSOL: %d  : lb = %g x = %g ub = %g\n",j,lj,xj,uj) ; }
 	else
 	if (xj > uj+tol)
 	{ printf("high CSOL: %d  : lb = %g x = %g ub = %g\n",
 		 j,lj,xj,uj) ; } } }
-    if (chkStatus && postObj->colstat_)
+    if (chkStatus >= 1 && postObj->colstat_)
     { CoinPrePostsolveMatrix::Status statj = postObj->getColumnStatus(j) ;
       switch (statj)
       { case CoinPrePostsolveMatrix::atUpperBound:
@@ -897,7 +937,7 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
     * Check for bogus values (NaN, infinity)
 */
   tol *= 1.0e4;
-  if (chkRowAct)
+  if (chkRowAct >= 1)
   { for (int i = 0 ; i < m ; ++i)
     { double lhsi = acts[i] ;
       double evali = rsol[i] ;
@@ -911,7 +951,7 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
 	  lhsi <= -PRESOLVE_INF || lhsi >= PRESOLVE_INF)
       { printf("Inf RSOL: %d  : lb = %g eval = %g (expected %g) ub = %g\n",
 	       i,li,evali,lhsi,ui) ; }
-      if (chkRowAct > 1)
+      if (chkRowAct >= 2)
       { if (fabs(evali-lhsi) > tol)
 	{ printf("Inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
 		 i,li,evali,lhsi,ui) ; }
@@ -921,7 +961,35 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
 	else
 	if (evali > ui+tol || lhsi > ui+tol)
 	{ printf("high RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
-		 i,li,evali,lhsi,ui) ; } } }
+		 i,li,evali,lhsi,ui) ; } }
+      if (chkStatus >= 2 && postObj->rowstat_)
+      { CoinPrePostsolveMatrix::Status stati = postObj->getRowStatus(i) ;
+	switch (stati)
+	{ case CoinPrePostsolveMatrix::atUpperBound:
+	  { if (li <= -PRESOLVE_INF || fabs(lhsi-li) > tol)
+	    { printf("Bad status RSOL: %d : status atUpperBound : ",i) ;
+	      printf("LB = %g lhs = %g UB = %g\n",li,lhsi,ui) ; }
+	    break ; }
+	  case CoinPrePostsolveMatrix::atLowerBound:
+	  { if (ui >= PRESOLVE_INF || fabs(lhsi-ui) > tol)
+	    { printf("Bad status RSOL: %d : status atLowerBound : ",i) ;
+	      printf("LB = %g lhs = %g UB = %g\n",li,lhsi,ui) ; }
+	    break ; }
+	  case CoinPrePostsolveMatrix::isFree:
+	  { if (li > -PRESOLVE_INF || ui < PRESOLVE_INF)
+	    { printf("Bad status RSOL: %d : status isFree : ",i) ;
+	      printf("LB = %g lhs = %g UB = %g\n",li,lhsi,ui) ; }
+	    break ; }
+	  case CoinPrePostsolveMatrix::superBasic:
+	  { printf("Bad status RSOL: %d : status superBasic : ",i) ;
+	    printf("LB = %g lhs = %g UB = %g\n",li,lhsi,ui) ;
+	    break ; }
+	  case CoinPrePostsolveMatrix::basic:
+	  { /* Nothing to do here. */
+	    break ; }
+	  default:
+	  { printf("Bad status RSOL: %d : status unrecognized : ",i) ;
+	    break ; } } } }
   delete [] rsol ; }
   return ; }
 

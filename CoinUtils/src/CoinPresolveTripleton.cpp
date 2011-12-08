@@ -18,7 +18,7 @@
 #include "CoinPresolvePsdebug.hpp"
 #include "CoinMessage.hpp"
 
-#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
 
@@ -61,7 +61,7 @@
  * icoly is removed from the rows it occurs in.
  */
 static bool elim_tripleton(const char * 
-#ifdef PRESOLVE_DEBUG
+#if PRESOLVE_DEBUG > 1
 msg
 #endif
 			   ,
@@ -85,7 +85,7 @@ msg
   CoinBigIndex kcsz = mcstrt[icolz];
   CoinBigIndex kcez = kcsz + hincol[icolz];
 
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 1
   printf("%s %d x=%d y=%d z=%d cfx=%g cfz=%g nx=%d yrows=(", msg,
 	 row0,icolx,icoly,icolz,coeff_factorx,coeff_factorz,hincol[icolx]) ;
 # endif
@@ -113,12 +113,12 @@ msg
       }
       // see if row appears in colx
       CoinBigIndex kcolx = presolve_find_row1(row, kcsx, kcex, hrow);
-#     if PRESOLVE_DEBUG
+#     if PRESOLVE_DEBUG > 0
       printf("%d%s ",row,(kcolx<kcex)?"x+":"") ;
 #     endif
       // see if row appears in colz
       CoinBigIndex kcolz = presolve_find_row1(row, kcsz, kcez, hrow);
-#     if PRESOLVE_DEBUG
+#     if PRESOLVE_DEBUG > 0
       printf("%d%s ",row,(kcolz<kcez)?"x+":"") ;
 #     endif
 
@@ -270,7 +270,7 @@ msg
     }
   }
 
-# if PRESOLVE_DEBUG
+# if PRESOLVE_DEBUG > 0
   printf(")\n") ;
 # endif
 
@@ -346,7 +346,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
   //  unsigned char * colstat = prob->colstat_;
 
 
-# if PRESOLVE_CONSISTENCY
+# if PRESOLVE_CONSISTENCY > 0
   presolve_links_ok(prob) ;
 # endif
 
@@ -617,14 +617,14 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	}
       }
       
-#     if PRESOLVE_CONSISTENCY
+#     if PRESOLVE_CONSISTENCY > 0
       presolve_links_ok(prob) ;
       presolve_consistent(prob);
 #     endif
     }
   }
   if (nactions) {
-#   if PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY > 0
     printf("NTRIPLETONS:  %d\n", nactions);
 #   endif
     action *actions1 = new action[nactions];
@@ -681,9 +681,15 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 
   const double maxmin	= prob->maxmin_;
 
-# if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   char *cdone	= prob->cdone_;
   char *rdone	= prob->rdone_;
+  presolve_check_threads(prob) ;
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Entering tripleton_action::postsolve." << std::endl ;
+# endif
 # endif
 
   CoinBigIndex &free_list = prob->free_list_;
@@ -809,7 +815,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
       element2[iRow]=yValue*multiplier2;
       index2[nZ++]=iRow;
     }
-#   if PRESOLVE_CONSISTENCY
+#   if PRESOLVE_CONSISTENCY > 0
     presolve_check_free_list(prob) ;
 #   endif
     mcstrt[jcoly] = ystart;
@@ -865,7 +871,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	last = k;
       }
     }
-#   if PRESOLVE_CONSISTENCY
+#   if PRESOLVE_CONSISTENCY > 0
     presolve_check_free_list(prob) ;
 #   endif
     link[last]=NO_LINK;
@@ -923,7 +929,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	last = k;
       }
     }
-#   if PRESOLVE_CONSISTENCY
+#   if PRESOLVE_CONSISTENCY > 0
     presolve_check_free_list(prob) ;
 #   endif
     link[last]=NO_LINK;
@@ -949,7 +955,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	// for example, this is obviously true if y is a singleton column
 	rowduals[irow] = djy / coeffy;
 	rcosts[jcolx] = djx - rowduals[irow] * coeffx;
-#       if PRESOLVE_DEBUG
+#       if PRESOLVE_DEBUG > 0
 	if (prob->columnIsBasic(jcolx)&&fabs(rcosts[jcolx])>1.0e-5)
 	  printf("bad dj %d %g\n",jcolx,rcosts[jcolx]);
 #       endif
@@ -979,7 +985,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
     }
     
     // DEBUG CHECK
-#   if PRESOLVE_DEBUG
+#   if PRESOLVE_DEBUG > 0
     {
       CoinBigIndex k = mcstrt[jcolx];
       int nx = hincol[jcolx];
@@ -1019,7 +1025,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
     }
 #   endif
     
-#   if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#   if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
     cdone[jcoly] = TRIPLETON;
     rdone[irow] = TRIPLETON;
 #   endif
@@ -1029,10 +1035,14 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
   delete [] index2;
   delete [] element2;
 
-# if PRESOLVE_CONSISTENCY
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   presolve_check_threads(prob) ;
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Leaving tripleton_action::postsolve." << std::endl ;
 # endif
-
+# endif
 }
 
 

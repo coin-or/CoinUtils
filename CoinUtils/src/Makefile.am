@@ -71,6 +71,7 @@ libCoinUtils_la_SOURCES = \
 	CoinPresolveIsolated.cpp CoinPresolveIsolated.hpp \
 	CoinPresolveMatrix.cpp CoinPresolveMatrix.hpp \
 	CoinPresolvePsdebug.cpp CoinPresolvePsdebug.hpp \
+	CoinPresolveMonitor.cpp CoinPresolveMonitor.hpp \
 	CoinPresolveSingleton.cpp CoinPresolveSingleton.hpp \
 	CoinPresolveSubst.cpp CoinPresolveSubst.hpp \
 	CoinPresolveTighten.cpp CoinPresolveTighten.hpp \
@@ -146,6 +147,7 @@ includecoin_HEADERS = \
 	CoinPresolveImpliedFree.hpp \
 	CoinPresolveIsolated.hpp \
 	CoinPresolveMatrix.hpp \
+	CoinPresolveMonitor.hpp \
 	CoinPresolvePsdebug.hpp \
 	CoinPresolveSingleton.hpp \
 	CoinPresolveSubst.hpp \

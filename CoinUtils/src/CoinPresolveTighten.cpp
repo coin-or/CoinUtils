@@ -13,7 +13,7 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinFinite.hpp"
 
-#if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
+#if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
 
@@ -23,47 +23,47 @@ const char *do_tighten_action::name() const
   return ("do_tighten_action");
 }
 
-// This is ekkredc2.
-// This fairly simple transformation is not mentioned in the paper.
-// Say there is a costless variable such all its constraints
-// would be satisfied as it approaches plus or minus infinity,
-// because all its constraints have only one bound, and increasing/decreasing
-// the variable makes the row activity grow away from the bound
-// (in the right direction).
-//
-// If the variable is unbounded in that direction,
-// that means we can determine right now how large it needs
-// to get in order to satisfy the constraints, so we can
-// just drop the variable and those constraints from the problem.
-//
-// If the variable *is* bounded in that direction,
-// there is no reason not to set it to that bound.
-// This effectively weakens the constraints, and in fact 
-// may be subsequently presolved away.
-//
-// Note that none of the constraints may be bounded both above and below,
-// since then we don't know which way to move the variable in order
-// to satisfy the constraint.
-//
-// To drop constraints, we just make them useless and let other
-// transformations take care of the rest.
-//
-// Note that more than one such costless unbounded variable
-// may be part of a given constraint.
-// In that case, the first one processed will make the
-// constraint useless, and the second will ignore it.
-// In postsolve, the first will be responsible for satisfying
-// the constraint.
-//
-// Note that if the constraints are dropped (as in the first case),
-// then we just make them useless.  It is subsequently discovered
-// the the variable does not appear in any constraints, and since it
-// has no cost it is just set to some value (either zero or a bound)
-// and removed (by remove_empty_cols).
-//
-// oddly, pilots and baxter do *worse* when this transform is applied.
+/*
+  This is ekkredc2.  This fairly simple transformation is not mentioned
+  in the paper.  Say there is a costless variable x<t> such that all the
+  constraints it's entangled with (i.e., a<it> != 0) would be satisfied
+  as it approaches plus or minus infinity, because all its constraints
+  have only one bound, and increasing/decreasing the variable makes the
+  row activity grow away from the bound (in the right direction).
+
+  If x<j> is unbounded in that direction, it can always be made large
+  enough to satisfy the constraints, so we can just drop the variable and
+  the entangled constraints from the problem.
+
+  If x<j> *is* bounded in that direction, there is no reason not to set
+  it to that bound.  This effectively weakens the constraints, which in
+  fact may be subsequently presolved away.
+
+  Note that none of the constraints may be bounded both above and below,
+  since then we don't know which way to move the variable in order to
+  satisfy the constraint.
+
+  To drop constraints, we just make them useless and let other transformations
+  take care of the rest.
+
+  Note that more than one such costless unbounded variable may be part of
+  a given constraint.  In that case, the first one processed will make
+  the constraint useless, and the second will ignore it.  In postsolve,
+  the first will be responsible for satisfying the constraint.
+
+  Note that if the constraints are dropped (as in the first case), then we
+  just make them useless.  It will subsequently be discovered the the variable
+  does not appear in any constraints, and since it has no cost it is just set
+  to some value (either zero or a bound) and removed (by remove_empty_cols).
+
+  Oddly, pilots and baxter do *worse* when this transform is applied.
+
+  It's informative to compare this transform to the very similar transform
+  implemented in remove_dual_action. Surely they could be merged.
+*/
+
 const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
-						   const CoinPresolveAction *next)
+					       const CoinPresolveAction *next)
 {
   double startTime = 0.0;
   int startEmptyRows=0;
@@ -79,8 +79,6 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
   int *hincol		= prob->hincol_;
   int ncols		= prob->ncols_;
 
-  //int nrows		= prob->nrows_;
-
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
 
@@ -91,12 +89,12 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 
   const unsigned char *integerType = prob->integerType_;
 
-  int *fix_cols	= prob->usefulColumnInt_; //new int[ncols];
+  int *fix_cols	= prob->usefulColumnInt_;
   int nfixup_cols	= 0;
 
   int nfixdown_cols	= ncols;
 
-  int *useless_rows	= prob->usefulRowInt_; //new int[nrows];
+  int *useless_rows	= prob->usefulRowInt_;
   int nuseless_rows	= 0;
   
   action *actions	= new action [ncols];
@@ -105,7 +103,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
   int numberLook = prob->numberColsToDo_;
   int iLook;
   int * look = prob->colsToDo_;
-  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
+  bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
 
   // singleton columns are especially likely to be caught here
   for (iLook=0;iLook<numberLook;iLook++) {
@@ -171,7 +169,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	iflag=0; // all free anyway
       if (iflag) {
 	if (iflag==1 && cup[j]<1.0e10) {
-#if	PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
 	  printf("TIGHTEN UP:  %d\n", j);
 #endif
 	  fix_cols[nfixup_cols++] = j;
@@ -180,7 +178,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	  // symmetric case
 	  //mpre[j] = PRESOLVE_XUP;
 
-#if	PRESOLVE_DEBUG
+#if	PRESOLVE_DEBUG > 0
 	  printf("TIGHTEN DOWN:  %d\n", j);
 #endif
 
@@ -229,7 +227,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	    s->rows =   new int[hincol[j]];
 	    s->lbound = new double[hincol[j]];
 	    s->ubound = new double[hincol[j]];
-#ifdef PRESOLVE_DEBUG
+#if         PRESOLVE_DEBUG > 0
 	    printf("TIGHTEN FREE:  %d   ", j);
 #endif
 	    int nr = 0;
@@ -249,14 +247,14 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 		rlo[irow] = -PRESOLVE_INF;
 		rup[irow] = PRESOLVE_INF;
 
-#ifdef PRESOLVE_DEBUG
+#if             PRESOLVE_DEBUG > 0
 		printf("%d ", irow);
 #endif
 	      }
 	    }
 	    s->nrows = nr;
 
-#ifdef PRESOLVE_DEBUG
+#if         PRESOLVE_DEBUG > 0
 	    printf("\n");
 #endif
 	  }
@@ -266,7 +264,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
   }
 
 
-#if	PRESOLVE_SUMMARY
+#if	PRESOLVE_SUMMARY > 0
   if (nfixdown_cols<ncols || nfixup_cols || nuseless_rows) {
     printf("NTIGHTENED:  %d %d %d\n", ncols-nfixdown_cols, nfixup_cols, nuseless_rows);
   }
@@ -318,7 +316,6 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
   CoinBigIndex *mcstrt		= prob->mcstrt_;
   int *hincol		= prob->hincol_;
   int *link		= prob->link_;
-  //  int ncols		= prob->ncols_;
 
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
@@ -326,14 +323,19 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
   double *rup	= prob->rup_;
 
   double *sol	= prob->sol_;
-  //  double *dcost	= prob->cost_;
-  //  double *rcosts	= prob->rcosts_;
-
   double *acts	= prob->acts_;
-  //  double *rowduals = prob->rowduals_;
 
-
-  //  const double ztolzb	= prob->ztolzb_;
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+  char *cdone	= prob->cdone_;
+  char *rdone	= prob->rdone_;
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Entering do_tighten_action::postsolve." << std::endl ;
+# endif
+  presolve_check_threads(prob) ;
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+# endif
+# endif
 
   for (const action *f = &actions[nactions-1]; actions<=f; f--) {
     int jcol = f->col;
@@ -433,31 +435,36 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
 
 	acts[irow] += correction * coeff;
       }
-      // if the col happens to get pushed to its bound,
-      // we may as well leave it non-basic.
-      if (fabs(sol[jcol] - clo[jcol]) > ZTOLDP &&
-          fabs(sol[jcol] - cup[jcol]) > ZTOLDP) {
+      /*
+        If the col happens to get pushed to its bound, we may as well leave
+	it non-basic. Otherwise, set the status to basic.
+
+	Why do we correct the row status only when the column is made basic?
+	Need to look at preceding code.  -- lh, 110528 --
+      */
+      if (fabs(sol[jcol]-clo[jcol]) > ZTOLDP &&
+          fabs(sol[jcol]-cup[jcol]) > ZTOLDP) {
         
         prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic);
-	if (acts[last_corrected]-rlo[last_corrected]<rup[last_corrected]-acts[last_corrected])
-	  prob->setRowStatus(last_corrected,CoinPrePostsolveMatrix::atLowerBound);
+	if (acts[last_corrected]-rlo[last_corrected] <
+				rup[last_corrected]-acts[last_corrected])
+	  prob->setRowStatus(last_corrected,
+	  		     CoinPrePostsolveMatrix::atUpperBound);
 	else
-	  prob->setRowStatus(last_corrected,CoinPrePostsolveMatrix::atUpperBound);
+	  prob->setRowStatus(last_corrected,
+	  		     CoinPrePostsolveMatrix::atLowerBound);
       }
     }
-
-    // leave until desctructor
-    //    deleteAction(rows,int *);
-    //    deleteAction(lbound,double *);
-    //    deleteAction(ubound,double *);
   }
-  // leave until desctructor
-  //  deleteAction(actions_,action *);
 
-# if PRESOLVE_CONSISTENCY
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   presolve_check_threads(prob) ;
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Leaving do_tighten_action::postsolve." << std::endl ;
 # endif
-
+# endif
 }
 
 do_tighten_action::~do_tighten_action()

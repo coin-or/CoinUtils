@@ -442,17 +442,17 @@ CoinWarmStartBasis *CoinPrePostsolveMatrix::getStatus ()
 
 void CoinPrePostsolveMatrix::setRowStatusUsingValue (int iRow)
 
-{ double value = acts_[iRow];
-  double lower = rlo_[iRow];
-  double upper = rup_[iRow];
-  if (lower<-1.0e20&&upper>1.0e20) {
-    setRowStatus(iRow,isFree);
-  } else if (fabs(lower-value)<=ztolzb_) {
-    setRowStatus(iRow,atLowerBound);
-  } else if (fabs(upper-value)<=ztolzb_) {
-    setRowStatus(iRow,atUpperBound);
+{ double value = acts_[iRow] ;
+  double lower = rlo_[iRow] ;
+  double upper = rup_[iRow] ;
+  if (lower < -1.0e20 && upper > 1.0e20) {
+    setRowStatus(iRow,isFree) ;
+  } else if (fabs(lower-value) <= ztolzb_) {
+    setRowStatus(iRow,atUpperBound) ;
+  } else if (fabs(upper-value) <= ztolzb_) {
+    setRowStatus(iRow,atLowerBound) ;
   } else {
-    setRowStatus(iRow,superBasic);
+    setRowStatus(iRow,superBasic) ;
   }
 }
 

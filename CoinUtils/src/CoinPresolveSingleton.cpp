@@ -12,12 +12,12 @@
 #include "CoinPresolveEmpty.hpp"	// for DROP_COL/DROP_ROW
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveSingleton.hpp"
+#if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
+#endif
 #include "CoinMessage.hpp"
 #include "CoinFinite.hpp"
 
-// #define PRESOLVE_DEBUG 1
-// #define PRESOLVE_SUMMARY 1
 
 /*
  * Transfers singleton row bound information to the corresponding column bounds.
@@ -77,7 +77,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   int numberLook = prob->numberRowsToDo_;
   int iLook;
   int * look = prob->rowsToDo_;
-  bool fixInfeasibility = (prob->presolveOptions_&16384)!=0;
+  bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
 
   action * actions = new action[numberLook];
   int nactions = 0;
@@ -219,7 +219,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	}
       }
 
-#     if PRESOLVE_DEBUG
+#     if PRESOLVE_DEBUG > 1
       printf("SINGLETON R-%d C-%d\n", irow, jcol);
 #     endif
 
@@ -316,43 +316,41 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 
 void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 {
-  const action *const actions = actions_;
-  const int nactions = nactions_;
+  const action *const actions = actions_ ;
+  const int nactions = nactions_ ;
 
-  double *colels	= prob->colels_;
-  int *hrow		= prob->hrow_;
-  CoinBigIndex *mcstrt		= prob->mcstrt_;
-  int *hincol		= prob->hincol_;
-  int *link		= prob->link_;
-  //  int ncols		= prob->ncols_;
+  double *colels = prob->colels_ ;
+  int *hrow = prob->hrow_ ;
+  CoinBigIndex *mcstrt = prob->mcstrt_ ;
+  int *hincol = prob->hincol_ ;
+  int *link = prob->link_ ;
 
-  double *clo		= prob->clo_;
-  double *cup		= prob->cup_;
+  double *clo = prob->clo_ ;
+  double *cup = prob->cup_ ;
+  double *sol = prob->sol_ ;
+  double *rcosts = prob->rcosts_ ;
+  unsigned char *colstat = prob->colstat_ ;
 
-  double *rlo		= prob->rlo_;
-  double *rup		= prob->rup_;
+  double *rlo = prob->rlo_ ;
+  double *rup = prob->rup_ ;
+  double *acts = prob->acts_ ;
+  double *rowduals = prob->rowduals_ ;
 
-  double *sol		= prob->sol_;
-  double *rcosts	= prob->rcosts_;
-
-  double *acts		= prob->acts_;
-  double *rowduals 	= prob->rowduals_;
-
-  unsigned char *colstat		= prob->colstat_;
-  //  unsigned char *rowstat		= prob->rowstat_;
 
 # if PRESOLVE_DEBUG
-  char *rdone		= prob->rdone_;
-
-  std::cout << "Entering slack_doubleton_action::postsolve." << std::endl ;
-  presolve_check_sol(prob) ;
+  char *rdone = prob->rdone_;
+  std::cout
+    << "Entering slack_doubleton_action::postsolve, "
+    << nactions << " constraints to process." << std::endl ;
+  presolve_check_sol(prob,2,2,2) ;
   presolve_check_nbasic(prob) ;
 # endif
-  CoinBigIndex &free_list		= prob->free_list_;
 
-  const double ztolzb	= prob->ztolzb_;
+  CoinBigIndex &free_list = prob->free_list_ ;
 
-  for (const action *f = &actions[nactions-1]; actions<=f; f--) {
+  const double ztolzb	= prob->ztolzb_ ;
+
+  for (const action *f = &actions[nactions-1] ; actions <= f ; f--) {
     int irow = f->row;
     double lo0 = f->clo;
     double up0 = f->cup;
@@ -365,91 +363,83 @@ void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
     clo[jcol] = lo0;
     cup[jcol] = up0;
 
-    acts[irow] = coeff * sol[jcol];
-
-    // add new element
+    acts[irow] = coeff*sol[jcol] ;
+    /*
+      Create the row and restore the single coefficient, linking the new
+      coefficient at the start of the column.
+    */
     {
-      CoinBigIndex k = free_list;
+      CoinBigIndex k = free_list ;
       assert(k >= 0 && k < prob->bulk0_) ;
-      free_list = link[free_list];
-      hrow[k] = irow;
-      colels[k] = coeff;
-      link[k] = mcstrt[jcol];
-      mcstrt[jcol] = k;
+      free_list = link[free_list] ;
+      hrow[k] = irow ;
+      colels[k] = coeff ;
+      link[k] = mcstrt[jcol] ;
+      mcstrt[jcol] = k ;
+      hincol[jcol]++ ;
     }
-    hincol[jcol]++;	// right?
 
     /*
-     * Have to compute rowstat and rowduals, since we are adding the row.
-     * that satisfy complentarity slackness.
-     *
-     * We may also have to modify colstat and rcosts if bounds
-     * have been relaxed.
+      Since we are adding a row, we have to set the row status and dual
+      to satisfy complimentary slackness.  We may also have to modify
+      the column status and reduced cost if bounds have been relaxed.
      */
     if (!colstat) {
       // ????
       rowduals[irow] = 0.0;
     } else {
       if (prob->columnIsBasic(jcol)) {
-	/* variable is already basic, so slack in this row must be basic */
-	prob->setRowStatus(irow,CoinPrePostsolveMatrix::basic);
-
-	rowduals[irow] = 0.0;
-	/* hence no reduced costs change */
-	/* since the column was basic, it doesn't matter if it is now
-	   away from its bounds. */
-	/* the slack is basic and its reduced cost is 0 */
-      } else if ((fabs(sol[jcol] - lo0) <= ztolzb &&
-		  rcosts[jcol] >= 0) ||
-		 
-		 (fabs(sol[jcol] - up0) <= ztolzb &&
-		  rcosts[jcol] <= 0)) {
-	/* up against its bound but the rcost is still ok */
-	prob->setRowStatus(irow,CoinPrePostsolveMatrix::basic);
-
-	rowduals[irow] = 0.0;
-	/* hence no reduced costs change */
-      } else if (! (fabs(sol[jcol] - lo0) <= ztolzb) &&
-		 ! (fabs(sol[jcol] - up0) <= ztolzb)) {
-	/* variable not marked basic,
-	 * so was at a bound in the reduced problem,
-	 * but its bounds were tighter in the reduced problem,
-	 * so now it has to be made basic.
-	 */
-	prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic);
-	prob->setRowStatusUsingValue(irow);
-
-	/* choose a value for rowduals[irow] that forces rcosts[jcol] to 0.0 */
-	/* new reduced cost = 0 = old reduced cost - new dual * coeff */
-	rowduals[irow] = rcosts[jcol] / coeff;
-	rcosts[jcol] = 0.0;
-
-	/* this value is provably of the right sign for the slack */
-	/* SHOULD SHOW THIS */
+	/*
+	  The variable is basic, hence the slack must be basic, hence the dual
+	  for the row is zero.  Relaxing the bounds on a basic variable
+	  doesn't change anything.
+	*/
+	prob->setRowStatus(irow,CoinPrePostsolveMatrix::basic) ;
+	rowduals[irow] = 0.0 ;
+      } else if ((fabs(sol[jcol]-lo0) <= ztolzb && rcosts[jcol] >= 0) ||
+		 (fabs(sol[jcol]-up0) <= ztolzb && rcosts[jcol] <= 0)) {
+	/*
+	  The variable is nonbasic and the sign of the reduced cost is correct
+	  for the bound. Again, the slack will be basic and the dual zero.
+	*/
+	prob->setRowStatus(irow,CoinPrePostsolveMatrix::basic) ;
+	rowduals[irow] = 0.0 ;
+      } else if (!(fabs(sol[jcol]-lo0) <= ztolzb) &&
+		 !(fabs(sol[jcol]-up0) <= ztolzb)) {
+	/*
+	  The variable was not basic but transferring bounds back to the
+	  constraint has relaxed the column bounds. The variable will need to
+	  be made basic. The constraint must then be tight and the dual must
+	  be set so that the reduced cost of the variable becomes zero.
+	*/
+	prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic) ;
+	prob->setRowStatusUsingValue(irow) ;
+	rowduals[irow] = rcosts[jcol]/coeff ;
+	rcosts[jcol] = 0.0 ;
       } else {
-	/* the solution is at a bound, but the rcost is wrong */
-
-	prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic);
-	prob->setRowStatusUsingValue(irow);
-
-	/* choose a value for rowduals[irow] that forcesd rcosts[jcol] to 0.0 */
-	rowduals[irow] = rcosts[jcol] / coeff;
-	rcosts[jcol] = 0.0;
-
-	/* this value is provably of the right sign for the slack */
-	/*rcosts[irow] = -rowduals[irow];*/
+	/*
+	  The variable is at bound, but the reduced cost is wrong. Again
+	  set the row dual to bring the reduced cost to zero. This implies
+	  that the constraint is tight and the slack will be nonbasic.
+	*/
+	prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::basic) ;
+	prob->setRowStatusUsingValue(irow) ;
+	rowduals[irow] = rcosts[jcol]/coeff ;
+	rcosts[jcol] = 0.0 ;
       }
     }
 
-#   if PRESOLVE_DEBUG
+#   if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
     rdone[irow] = SLACK_DOUBLETON;
 #   endif
   }
 
-# if PRESOLVE_CONSISTENCY
+# if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
   presolve_check_threads(prob) ;
-  presolve_check_sol(prob) ;
+  presolve_check_sol(prob,2,2,2) ;
   presolve_check_nbasic(prob) ;
+# endif
+# if PRESOLVE_DEBUG > 0
   std::cout << "Leaving slack_doubleton_action::postsolve." << std::endl ;
 # endif
 
