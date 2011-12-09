@@ -1075,8 +1075,14 @@ void remove_dual_action::postsolve (CoinPostsolveMatrix *prob) const
 # endif
 
 /*
-  For each record, restore the row bounds. If we have status arrays, check the
-  status of the logical and adjust if necessary.
+  For each record, restore the row bounds. If we have status arrays, check
+  the status of the logical and adjust if necessary.
+
+  In spite of the fact that the status array is an unsigned char array,
+  we still need to use getRowStatus to make sure we're only looking at the
+  bottom three bits. Why is this an issue? Because the status array isn't
+  necessarily cleared to zeros, and setRowStatus carefully changes only
+  the bottom three bits!
 */
   for (int k = 0 ; k < numRecs ; k++) {
     const action &bndRec = bndRecords[k] ;
@@ -1093,7 +1099,7 @@ void remove_dual_action::postsolve (CoinPostsolveMatrix *prob) const
     rlo[i] = rloi ;
     rup[i] = rupi ;
     if (rowstat) {
-      unsigned char stati = rowstat[i] ;
+      unsigned char stati = prob->getRowStatus(i) ;
       if (stati == CoinPresolveMatrix::atUpperBound) {
         if (rloi <= -PRESOLVE_INF) {
 #         if PRESOLVE_DEBUG > 1
@@ -1109,8 +1115,17 @@ void remove_dual_action::postsolve (CoinPostsolveMatrix *prob) const
 	  rowstat[i] = CoinPresolveMatrix::atUpperBound ;
 	}
       }
+#     if PRESOLVE_DEBUG > 2
+        else if (stati == CoinPresolveMatrix::basic) {
+        std::cout << ", status is basic." ;
+      } else if (stati == CoinPresolveMatrix::isFree) {
+        std::cout << ", status is free?!" ;
+      } else {
+        unsigned int tmp = static_cast<unsigned int>(stati) ;
+        std::cout << ", status is invalid (" << tmp << ")!" ;
+      }
+#     endif
     }
-
 #   if PRESOLVE_DEBUG > 1
     std::cout << "." << std::endl ;
 #   endif
