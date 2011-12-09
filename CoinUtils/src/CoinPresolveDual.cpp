@@ -18,7 +18,7 @@
   uniform across all uses of presolve code you'll get something between
   garbage and a core dump. See comments in CoinPresolvePsdebug.hpp
 */
-#ifdef PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+#if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
 

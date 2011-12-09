@@ -328,12 +328,13 @@ void do_tighten_action::postsolve(CoinPostsolveMatrix *prob) const
 # if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   char *cdone	= prob->cdone_;
   char *rdone	= prob->rdone_;
-# if PRESOLVE_DEBUG > 0
-  std::cout << "Entering do_tighten_action::postsolve." << std::endl ;
-# endif
+
   presolve_check_threads(prob) ;
   presolve_check_sol(prob,2,2,2) ;
   presolve_check_nbasic(prob) ;
+
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Entering do_tighten_action::postsolve." << std::endl ;
 # endif
 # endif
 

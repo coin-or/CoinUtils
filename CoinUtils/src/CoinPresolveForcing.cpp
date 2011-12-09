@@ -522,6 +522,7 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     << "Entering forcing_constraint_action::postsolve, "
     << nactions << " constraints to process." << std::endl ;
 # endif
+# endif
 
   for (const action *f = &actions[nactions-1] ; actions <= f ; f--) {
     const int irow	= f->row ;
