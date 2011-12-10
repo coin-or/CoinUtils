@@ -20,6 +20,51 @@
 #include "CoinPresolvePsdebug.hpp"
 #endif
 
+/*
+  Just spent some time fixing a bug in postsolve which was causing a loss of
+  basic variables. Turns out that when there are many forcing constraints,
+  they will have columns in common (no surprise). Postsolve was not taking
+  this into account and the code to adjust status after changing bounds was a
+  bit too simple-minded. You can see the problem in this trace:
+
+  Entering forcing_constraint_action::postsolve, 3 constraints to process.
+  Restoring constraint 61, 3 variables.
+    x(87) NBLB cbar = 0, lb = 0, ub = 0 -> 1.79769e+308 -> NBLB.
+    x(103) NBLB cbar = 0, lb = 0, ub = 0 -> 0 -> NBLB.
+    x(106) NBUB cbar = -0.00547328, lb = 0, ub = 0 -> 0 -> NBUB.
+  Restoring constraint 60, 4 variables.
+    x(89) NBUB cbar = -5.55112e-17, lb = 0, ub = 0 -> 1.79769e+308 -> NBLB.
+    x(92) NBUB cbar = -0.00548328, lb = 0, ub = 0 -> 0 -> NBUB.
+    x(103) NBLB cbar = 0, lb = 0, ub = 0 -> 1.79769e+308 -> NBLB.
+    x(106) NBUB cbar = -0.00547328, lb = 0, ub = 0 -> 0 -> NBUB.
+  Restoring constraint 59, 2 variables.
+    x(92) NBUB cbar = -0.00548328, lb = 0, ub = 0 -> 1.79769e+308 -> NBLB.
+    x(106) NBUB cbar = -0.00547328, lb = 0, ub = 0 -> 1.79769e+308 -> NBLB.
+    Adjusting row dual; x(92) NBLB -> B, y = 0.0 -> 0.00548328.
+    Row status NBUB, lb = 0, ax = 0, ub = 1.79769e+308.
+  Leaving forcing_constraint_action::postsolve.
+
+  Look at x(106): in presolve, u(106) is initially forced to 0 when
+  constraint 59 is processed. Subsequent bound `changes' when constraints
+  60 and 61 are processed are really noops. In postsolve, there's no need to
+  change the status until constraint 59 is processed.
+
+  Notice that the status of x(106) is first forced to NBLB and then to basic
+  when constraint 59 is processed. While working on this, I encountered
+  situations where the variable then appeared when processing a later
+  constraint, in which case it appeared that it needed to remain basic. But
+  I'm thinking that this might be an artifact of getting it wrong for the
+  `noop' case of the previous paragraph.
+
+  The reason for leaving this note is to pose the following question: If
+  there's no actual change in bound when a forcing constraint is processed,
+  is it necessary to record the change in the postsolve object? Then there
+  would be fewer bound change records to process and the postsolve code
+  could return to its previous simplicity.
+
+  -- lh, 111210 --
+*/
+
 namespace {
 
 /*
@@ -208,25 +253,6 @@ void implied_row_bounds(const double *els,
   *maxdownp = (neginf) ? -PRESOLVE_INF : maxdown;
 }
 
-#if 0
-/*
-  Suppressed to avoid compiler warning for unused method. See comments at
-  former call sites.
-*/
-static bool some_col_was_fixed(const int *hcol,
-			       CoinBigIndex krs, CoinBigIndex kre,
-			       const double *clo, const double *cup)
-{
-  CoinBigIndex k;
-  for (k=krs; k<kre; k++) {
-    int jcol = hcol[k];
-    if (clo[jcol] == cup[jcol])
-      break;
-  }
-  return (k<kre);
-}
-#endif
-
 }	// end file-local namespace
 
 
@@ -262,234 +288,263 @@ const char *forcing_constraint_action::name() const
   Note that both of these operations will cause problems if the variables
   in question really need to exceed their bounds in order to make the
   problem feasible.
+
+  See comments at head of file -- lh, 111210 --
 */
-const CoinPresolveAction
-    *forcing_constraint_action::presolve(CoinPresolveMatrix *prob,
-					 const CoinPresolveAction *next)
+const CoinPresolveAction*
+  forcing_constraint_action::presolve (CoinPresolveMatrix *prob,
+  				       const CoinPresolveAction *next)
 {
-  double startTime = 0.0;
-  int startEmptyRows=0;
-  int startEmptyColumns = 0;
-  if (prob->tuning_) {
-    startTime = CoinCpuTime();
-    startEmptyRows = prob->countEmptyRows();
-    startEmptyColumns = prob->countEmptyCols();
-  }
-  double *clo	= prob->clo_;
-  double *cup	= prob->cup_;
-  double *csol  = prob->sol_ ;
-
-  const double *rowels	= prob->rowels_;
-  const int *hcol	= prob->hcol_;
-  const CoinBigIndex *mrstrt	= prob->mrstrt_;
-  const int *hinrow	= prob->hinrow_;
-  const int nrows	= prob->nrows_;
-
-  const double *rlo	= prob->rlo_;
-  const double *rup	= prob->rup_;
-
-  //  const char *integerType = prob->integerType_;
-
-  const double tol	= ZTOLDP;
-  const double inftol	= prob->feasibilityTolerance_;
-  const int ncols	= prob->ncols_;
-
-  int *fixed_cols	= new int[ncols];
-  int nfixed_cols	= 0;
-
-  action *actions	= new action [nrows];
-  int nactions = 0;
-
-  int *useless_rows	= new int[nrows];
-  int nuseless_rows	= 0;
-
-  int numberLook = prob->numberRowsToDo_;
-  int iLook;
-  int * look = prob->rowsToDo_;
-  bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
-
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING
+  int startEmptyRows = 0 ;
+  int startEmptyColumns = 0 ;
+  startEmptyRows = prob->countEmptyRows() ;
+  startEmptyColumns = prob->countEmptyCols() ;
+# endif
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 # if PRESOLVE_DEBUG > 0
   std::cout << "Entering forcing_constraint_action::presolve." << std::endl ;
-  presolve_check_sol(prob) ;
 # endif
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+# if COIN_PRESOLVE_TUNING
+  double startTime = 0.0 ;
+  if (prob->tuning_) {
+    startTime = CoinCpuTime() ;
+  }
+# endif
+
+  // Column solution and bounds
+  double *clo = prob->clo_ ;
+  double *cup = prob->cup_ ;
+  double *csol = prob->sol_ ;
+
+  // Row-major representation
+  const CoinBigIndex *mrstrt = prob->mrstrt_ ;
+  const double *rowels = prob->rowels_ ;
+  const int *hcol = prob->hcol_ ;
+  const int *hinrow = prob->hinrow_ ;
+  const int nrows = prob->nrows_ ;
+
+  const double *rlo = prob->rlo_ ;
+  const double *rup = prob->rup_ ;
+
+  const double tol = ZTOLDP ;
+  const double inftol = prob->feasibilityTolerance_ ;
+  const int ncols = prob->ncols_ ;
+
+  int *fixed_cols = new int[ncols] ;
+  int nfixed_cols = 0 ;
+
+  action *actions = new action [nrows] ;
+  int nactions = 0 ;
+
+  int *useless_rows = new int[nrows] ;
+  int nuseless_rows = 0 ;
+
+  const int numberLook = prob->numberRowsToDo_ ;
+  int *look = prob->rowsToDo_ ;
+
+  bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
 /*
   Open a loop to scan the constraints of interest. There must be variables
   left in the row.
 */
-  for (iLook=0;iLook<numberLook;iLook++) {
-    int irow = look[iLook];
-    if (hinrow[irow] > 0) {
-      CoinBigIndex krs = mrstrt[irow];
-      CoinBigIndex kre = krs + hinrow[irow];
+  for (int iLook = 0 ; iLook < numberLook ; iLook++) {
+    int irow = look[iLook] ;
+    if (hinrow[irow] <= 0) continue ;
+
+    const CoinBigIndex krs = mrstrt[irow] ;
+    const CoinBigIndex kre = krs+hinrow[irow] ;
 /*
   Calculate upper and lower bounds on the row activity based on upper and lower
   bounds on the variables. If these are finite and incompatible with the given
   row bounds, we have infeasibility.
 */
-      double maxup, maxdown;
-      implied_row_bounds(rowels, clo, cup, hcol, krs, kre,
-			 &maxup, &maxdown);
-
-      if (maxup < PRESOLVE_INF && maxup + inftol < rlo[irow]&&!fixInfeasibility) {
-	/* max row activity below the row lower bound */
-	prob->status_|= 1;
-	prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
-					     prob->messages())
-				 	       <<irow
-					       <<rlo[irow]
-					       <<rup[irow]
-					       <<CoinMessageEol;
-	break;
-      } else if (-PRESOLVE_INF < maxdown && rup[irow] < maxdown - inftol&&!fixInfeasibility) {
-	/* min row activity above the row upper bound */
-	prob->status_|= 1;
-	prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
-					     prob->messages())
-					       <<irow
-					       <<rlo[irow]
-					       <<rup[irow]
-					       <<CoinMessageEol;
-	break;
-      }
-      // ADD TOLERANCE TO THESE TESTS
-      else if ((rlo[irow] <= -PRESOLVE_INF ||
-		(-PRESOLVE_INF < maxdown && rlo[irow] <= maxdown)) &&
-	       (rup[irow] >= PRESOLVE_INF ||
-		(maxup < PRESOLVE_INF && rup[irow] >= maxup))) {
-
+    double maxup, maxdown;
+    implied_row_bounds(rowels,clo,cup,hcol,krs,kre,&maxup,&maxdown) ;
 /*
-  Original comment: I'm not sure that these transforms don't intefere with
-		    each other. We can get it next time.
-
-  Well, I'll argue that bounds are never really loosened (at worst, they're
-  transferred onto some other variable, or inferred to be unnecessary.
-  Once useless, always useless. Leaving this hook in place allows for a sort
-  of infinite loop where this routine keeps queuing the same constraints over
-  and over.  -- lh, 040901 --
-
-	 if (some_col_was_fixed(hcol, krs, kre, clo, cup)) {
-	   prob->addRow(irow);
-	   continue;
-	 }
+  If the maximum lhs value is less than L(i) or the minimum lhs value is
+  greater than U(i), we're infeasible.
 */
-
-	// this constraint must always be satisfied - drop it
-	useless_rows[nuseless_rows++] = irow;
-
-      } else if ((maxup < PRESOLVE_INF && fabs(rlo[irow] - maxup) < tol) ||
-		 (-PRESOLVE_INF < maxdown && fabs(rup[irow] - maxdown) < tol)) {
-
-	// the lower bound can just be reached, or
-	// the upper bound can just be reached;
-	// called a "forcing constraint" in the paper (p. 226)
-	const int lbound_tight = (maxup < PRESOLVE_INF &&
-				  fabs(rlo[irow] - maxup) < tol);
-
-/*
-  Original comment and rebuttal as above.
-	if (some_col_was_fixed(hcol, krs, kre, clo, cup)) {
-	  // make sure on next time
-	  prob->addRow(irow);
-	  continue;
-	}
-*/
-	// out of space - this probably never happens (but this routine will
-	// often put duplicates in the fixed column list)
-	if (nfixed_cols + (kre-krs) >= ncols)
-	  break;
-
-	double *bounds = new double[hinrow[irow]];
-	int *rowcols = new int[hinrow[irow]];
-	int lk = krs;	// load fix-to-down in front
-	int uk = kre;	// load fix-to-up in back
-        CoinBigIndex k;
-	for ( k=krs; k<kre; k++) {
-	  int jcol = hcol[k];
-	  prob->addCol(jcol);
-	  double coeff = rowels[k];
-
-	  PRESOLVEASSERT(fabs(coeff) > ZTOLDP);
-
-	  // one of the two contributed to maxup - set the other to that
-	  if (lbound_tight == (coeff > 0.0)) {
-	    --uk;
-	    bounds[uk-krs] = clo[jcol];
-	    rowcols[uk-krs] = jcol;
-	    if (csol != 0) {
-	      csol[jcol] = cup[jcol] ;
-	    }
-	    clo[jcol] = cup[jcol];
-	  } else {
-	    bounds[lk-krs] = cup[jcol];
-	    rowcols[lk-krs] = jcol;
-	    ++lk;
-	    if (csol != 0) {
-	      csol[jcol] = clo[jcol] ;
-	    }
-	    cup[jcol] = clo[jcol];
-	  }
-
-	  fixed_cols[nfixed_cols++] = jcol;
-	}
-	PRESOLVEASSERT(uk == lk);
-
-	action *f = &actions[nactions];
-	nactions++;
-	PRESOLVE_DETAIL_PRINT(printf("pre_forcing %dR E\n",irow));
-
-	f->row = irow;
-	f->nlo = lk-krs;
-	f->nup = kre-uk;
-	f->rowcols = rowcols;
-	f->bounds = bounds;
-      }
+    if (maxup < PRESOLVE_INF &&
+        maxup+inftol < rlo[irow] && !fixInfeasibility) {
+      CoinMessageHandler *hdlr = prob->messageHandler() ;
+      prob->status_|= 1 ;
+      hdlr->message(COIN_PRESOLVE_ROWINFEAS,prob->messages())
+	 << irow << rlo[irow] << rup[irow] << CoinMessageEol ;
+      break ;
     }
+    if (-PRESOLVE_INF < maxdown &&
+        rup[irow] < maxdown-inftol && !fixInfeasibility) {
+      CoinMessageHandler *hdlr = prob->messageHandler() ;
+      prob->status_|= 1;
+      hdlr->message(COIN_PRESOLVE_ROWINFEAS,prob->messages())
+	 << irow << rlo[irow] << rup[irow] << CoinMessageEol ;
+      break ;
+    }
+/*
+  We've dealt with prima facie infeasibility. Now check if the constraint
+  is trivially satisfied. If so, add it to the list of useless rows and move
+  on.
+
+  The reason we require maxdown and maxup to be finite if the row bound is
+  finite is to guard against some subsequent transform changing a column
+  bound from infinite to finite. Once finite, bounds continue to tighten,
+  so we're safe.
+*/
+    if (((rlo[irow] <= -PRESOLVE_INF) ||
+	 (-PRESOLVE_INF < maxdown && rlo[irow] <= maxdown-inftol)) &&
+	((rup[irow] >= PRESOLVE_INF) ||
+	 (maxup < PRESOLVE_INF && rup[irow] >= maxup+inftol))) {
+      useless_rows[nuseless_rows++] = irow ;
+      continue ;
+    }
+/*
+  Is it the case that we can just barely attain L(i) or U(i)? If so, we have a
+  forcing constraint. As explained above, we need maxup and maxdown to be
+  finite in order for the test to be valid.
+*/
+    const bool tightAtLower = ((maxup < PRESOLVE_INF) &&
+    			       (fabs(rlo[irow]-maxup) < tol)) ;
+    const bool tightAtUpper = ((-PRESOLVE_INF < maxdown) &&
+			       (fabs(rup[irow]-maxdown) < tol)) ;
+    if (!(tightAtLower || tightAtUpper)) continue ;
+/*
+  We have a forcing constraint. Do we have space to handle it? Rare, to be
+  sure, but we have the potential to queue up a column many times before
+  reducing the list to unique indices.
+*/
+    if (nfixed_cols+(kre-krs) >= ncols) break ;
+/*
+  Get down to the business of fixing the variables at the appropriate bound.
+  We need to remember the original value of the bound we're tightening.
+  Allocate a pair of arrays the size of the row. Load variables fixed at l<j>
+  from the start, variables fixed at u<j> from the end. Add the column to
+  the list of columns to be processed further.
+*/
+    double *bounds = new double[hinrow[irow]] ;
+    int *rowcols = new int[hinrow[irow]] ;
+    int lk = krs ;
+    int uk = kre ;
+    for (CoinBigIndex k = krs ; k < kre ; k++) {
+      int jcol = hcol[k] ;
+      prob->addCol(jcol) ;
+      double coeff = rowels[k] ;
+      PRESOLVEASSERT(fabs(coeff) > ZTOLDP);
+/*
+  If maxup is tight at L(i), then we want to force variables x<j> to the bound
+  that produced maxup: u<j> if a<ij> > 0, l<j> if a<ij> < 0. If maxdown is
+  tight at U(i), it'll be just the opposite.
+*/
+      if (tightAtLower == (coeff > 0.0)) {
+	--uk ;
+	bounds[uk-krs] = clo[jcol] ;
+	rowcols[uk-krs] = jcol ;
+	if (csol != 0) {
+	  csol[jcol] = cup[jcol] ;
+	}
+	clo[jcol] = cup[jcol] ;
+      } else {
+	bounds[lk-krs] = cup[jcol] ;
+	rowcols[lk-krs] = jcol ;
+	++lk ;
+	if (csol != 0) {
+	  csol[jcol] = clo[jcol] ;
+	}
+	cup[jcol] = clo[jcol] ;
+      }
+      fixed_cols[nfixed_cols++] = jcol ;
+    }
+    PRESOLVEASSERT(uk == lk);
+    PRESOLVE_DETAIL_PRINT(printf("pre_forcing %dR E\n",irow));
+#   if PRESOLVE_DEBUG > 1
+    std::cout
+      << "FORCING: row(" << irow << "), " << (kre-krs) << " variables."
+      << std::endl ;
+#   endif
+/*
+  Done with this row. Remember the changes in a postsolve action.
+*/
+    action *f = &actions[nactions] ;
+    nactions++ ;
+    f->row = irow ;
+    f->nlo = lk-krs ;
+    f->nup = kre-uk ;
+    f->rowcols = rowcols ;
+    f->bounds = bounds ;
   }
-
-
-  if (nactions) {
-#if	PRESOLVE_SUMMARY > 0
-    printf("NFORCED:  %d\n", nactions);
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "FORCING: " << nactions << " forcing, " << nuseless_rows << " useless."
+    << std::endl ;
 #endif
+/*
+  Done processing the rows of interest. Create a postsolve object.
+
+  \todo: Why are we making a copy of actions? Why not just assign the array
+         to the postsolve object?
+*/
+  if (nactions) {
     next = new forcing_constraint_action(nactions, 
-					 CoinCopyOfArray(actions,nactions), next);
+			       CoinCopyOfArray(actions,nactions),next) ;
   }
-  deleteAction(actions,action*);
+  deleteAction(actions,action*) ;
+/*
+  Hand off the job of dealing with the useless rows to a specialist.
+*/
   if (nuseless_rows) {
     next = useless_constraint_action::presolve(prob,
-					       useless_rows, nuseless_rows,
-					       next);
+			   useless_rows,nuseless_rows,next);
   }
-  delete[]useless_rows;
+  delete [] useless_rows ;
 /*
+  Hand off the job of dealing with the fixed columns to a specialist.
+
   We need to remove duplicates here, or we get into trouble in
   remove_fixed_action::postsolve when we try to reinstate a column multiple
   times.
 */
-  if (nfixed_cols)
-  { if (nfixed_cols > 1)
-    { std::sort(fixed_cols,fixed_cols+nfixed_cols) ;
+  if (nfixed_cols) {
+    if (nfixed_cols > 1) {
+      std::sort(fixed_cols,fixed_cols+nfixed_cols) ;
       int *end = std::unique(fixed_cols,fixed_cols+nfixed_cols) ;
-      nfixed_cols = static_cast<int>(end-fixed_cols) ; }
-    next = remove_fixed_action::presolve(prob,fixed_cols,nfixed_cols,next) ; }
+      nfixed_cols = static_cast<int>(end-fixed_cols) ;
+    }
+    next = remove_fixed_action::presolve(prob,fixed_cols,nfixed_cols,next) ;
+  }
   delete[]fixed_cols ;
 
-  if (prob->tuning_) {
-    double thisTime=CoinCpuTime();
-    int droppedRows = prob->countEmptyRows() - startEmptyRows ;
-    int droppedColumns =  prob->countEmptyCols() - startEmptyColumns;
-    printf("CoinPresolveForcing(32) - %d rows, %d columns dropped in time %g, total %g\n",
-	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
-  }
-
-# if PRESOLVE_DEBUG > 0
+# if COIN_PRESOLVE_TUNING
+  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+# endif
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   presolve_check_sol(prob) ;
-  std::cout << "Leaving forcing_constraint_action::presolve." << std::endl ;
+  presolve_check_nbasic(prob) ;
+# endif
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING
+  int droppedRows = prob->countEmptyRows()-startEmptyRows ;
+  int droppedColumns =  prob->countEmptyCols()-startEmptyColumns ;
+  std::cout
+    << "Leaving forcing_constraint_action::presolve: removed " << droppedRows
+    << " rows, " << droppedColumns << " columns" ;
+# if COIN_PRESOLVE_TUNING > 0
+  if (prob->tuning_)
+    std::cout << " in " << (thisTime-prob->startTime_) << "s" ;
+# endif
+  std::cout << "." << std::endl ;
 # endif
 
   return (next);
 }
 
+/*
+  We're here to undo the bound changes that were put in place for forcing
+  constraints. This is a bit trickier than it appears because the constraints
+  are not necessarily independent. We need to take care when adjusting column
+  status.
+*/
 void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 {
   const action *const actions = actions_ ;
@@ -517,73 +572,110 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
 # if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
 # if PRESOLVE_DEBUG > 0
   std::cout
     << "Entering forcing_constraint_action::postsolve, "
     << nactions << " constraints to process." << std::endl ;
 # endif
 # endif
-
+/*
+  Open a loop to process the actions. One action per constraint.
+*/
   for (const action *f = &actions[nactions-1] ; actions <= f ; f--) {
-    const int irow	= f->row ;
-    const int nlo	= f->nlo ;
-    const int nup	= f->nup ;
-    const int ninrow	= nlo+nup ;
-    const int *rowcols	= f->rowcols ;
-    const double *bounds= f->bounds ;
+    const int irow = f->row ;
+    const int nlo = f->nlo ;
+    const int nup = f->nup ;
+    const int ninrow = nlo+nup ;
+    const int *rowcols = f->rowcols ;
+    const double *bounds = f->bounds ;
+
 #   if PRESOLVE_DEBUG > 1
     std::cout
       << "  Restoring constraint " << irow << ", " << nlo+nup
       << " variables." << std::endl ;
 #   endif
 /*
-  Process variables where the upper bound is relaxed. Status remains NBLB.
+  Process variables where the upper bound is relaxed.
+    * If the variable is basic, we should leave the status unchanged.
+      This case occurs when the variable was selected as most out-of-whack
+      below and changed to basic when processing a previous constraint.
+    * The bound change may be a noop, in which case we can choose to leave
+      the status unchanged if the reduced cost is right.
+    * Otherwise, the status should be set to NBLB.
 */
     for (int k = 0 ; k < nlo ; k++) {
-      int jcol = rowcols[k] ;
+      const int jcol = rowcols[k] ;
       PRESOLVEASSERT(fabs(sol[jcol]-clo[jcol]) <= ztolzb) ;
+      const double cbarj = rcosts[jcol] ;
+      const double olduj = cup[jcol] ;
+      const double newuj = bounds[k] ;
+      const bool change = (fabs(newuj-olduj) > ztolzb) ;
+
 #     if PRESOLVE_DEBUG > 2
       std::cout
-        << "    var " << jcol << ", cbarj = " << rcosts[jcol]
-	<< " fixed atLowerBound, lb " << clo[jcol]
-	<< ", ub relaxed from " << cup[jcol] << " to " << bounds[k]
+        << "    x(" << jcol << ") " << prob->columnStatusString(jcol)
+	<< " cbar = " << cbarj << ", lb = " << clo[jcol]
+	<< ", ub = " << olduj << " -> " << newuj ;
+#     endif
+
+      if (prob->getColumnStatus(jcol) != CoinPrePostsolveMatrix::basic) {
+        if (change || cbarj > 0)
+	  prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::atLowerBound) ;
+      }
+      cup[jcol] = bounds[k] ;
+
+#     if PRESOLVE_DEBUG > 2
+      std::cout
+	<< " -> " << prob->columnStatusString(jcol)
 	<< "." << std::endl ;
 #     endif
-      cup[jcol] = bounds[k] ;
-      prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::atLowerBound) ;
     }
 /*
-  Restore variables where the lower bound is relaxed.
+  Process variables where the lower bound is relaxed. The comments above
+  apply.
 */
     for (int k = nlo ; k < ninrow ; k++) {
-      int jcol = rowcols[k] ;
+      const int jcol = rowcols[k] ;
       PRESOLVEASSERT(fabs(sol[jcol]-cup[jcol]) <= ztolzb) ;
+      const double cbarj = rcosts[jcol] ;
+      const double oldlj = clo[jcol] ;
+      const double newlj = bounds[k] ;
+      const bool change = (fabs(newlj-oldlj) > ztolzb) ;
+
 #     if PRESOLVE_DEBUG > 2
       std::cout
-        << "    var " << jcol << ", cbarj = " << rcosts[jcol]
-	<< " fixed atUpperBound, ub " << cup[jcol]
-	<< ", lb relaxed from " << clo[jcol] << " to " << bounds[k]
+        << "    x(" << jcol << ") " << prob->columnStatusString(jcol)
+	<< " cbar = " << cbarj << ", ub = " << cup[jcol]
+	<< ", lb = " << oldlj << " -> " << newlj ;
+#     endif
+
+      if (prob->getColumnStatus(jcol) != CoinPrePostsolveMatrix::basic) {
+        if (change || cbarj < 0)
+	  prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::atUpperBound) ;
+      }
+      clo[jcol] = bounds[k] ;
+
+#     if PRESOLVE_DEBUG > 2
+      std::cout
+	<< " -> " << prob->columnStatusString(jcol)
 	<< "." << std::endl ;
 #     endif
-      clo[jcol] = bounds[k] ;
-      prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::atUpperBound) ;
     }
-
-    /*
-      This is a lazy implementation.  We tightened the col bounds, then
-      let them be eliminated by repeated use of FIX_VARIABLE and a final
-      DROP_ROW.  Therefore, by this point the row has been marked basic,
-      the rowdual of this row is 0.0, and the reduced costs for the cols
-      may or may not be ok for the new status and relaxed column bounds.
-      Find the variable most out-of-whack with respect to reduced cost,
-      set the row dual y<i> accordingly, and do the necessary bookkeeping.
-    */
+/*
+  This is a lazy implementation.  We tightened the col bounds, then let
+  them be eliminated by repeated use of FIX_VARIABLE and a final DROP_ROW.
+  Therefore, at this point the logical s<irow> for the row is basic and
+  y<irow> = 0.0.  But we know this row is tight (by definition of forcing
+  constraint), so we can have a nonzero dual and nonbasic logical. On the
+  other hand, the reduced costs for the cols may or may not be ok for the
+  relaxed column bounds and consequent new status.  Find the variable x<joow>
+  most out-of-whack with respect to reduced cost and reduce cbar<joow>
+  to zero using y<irow>. Then we can make x<joow> basic and s<irow> nonbasic.
+*/
     PRESOLVEASSERT(prob->getRowStatus(irow) == CoinPrePostsolveMatrix::basic) ;
     PRESOLVEASSERT(rowduals[irow] == 0.0) ;
-    /*
-      Find the variable most out-of-whack with respect to reduced cost.
-      Calculate the resulting y<i>.
-    */
+
     int joow = -1 ;
     double yi = 0.0 ;
     for (int k = 0 ; k < ninrow ; k++) {
@@ -594,20 +686,27 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
       const CoinPrePostsolveMatrix::Status statj = prob->getColumnStatus(jcol) ;
       if ((cbarj < -ztoldj && statj != CoinPrePostsolveMatrix::atUpperBound) ||
           (cbarj > ztoldj && statj != CoinPrePostsolveMatrix::atLowerBound)) {
-	double yi_j = cbarj/colels[kk];
+	double yi_j = cbarj/colels[kk] ;
 	if (fabs(yi_j) > fabs(yi)) {
 	  joow = jcol ;
 	  yi = yi_j ;
 	}
       }
     }
-    /*
-      Non-zero y<i> implies this row is tight. Make x<joow> be basic and set
-      the row status according to whether we're tight at the lower or upper
-      bound. Keep in mind the convention that a <= constraint has a slack
-      0 <= s <= infty, while a >= constraint has a surplus -infty <= s <= 0.
-    */
+/*
+  Make x<joow> be basic and set the row status according to whether we're
+  tight at the lower or upper bound. Keep in mind the convention that a
+  <= constraint has a slack 0 <= s <= infty, while a >= constraint has a
+  surplus -infty <= s <= 0.
+*/
     if (joow != -1) {
+#     if PRESOLVE_DEBUG > 1
+      std::cout
+        << "    Adjusting row dual; x(" << joow
+	<< ") " << prob->columnStatusString(joow) << " -> "
+	<< statusName(CoinPrePostsolveMatrix::basic)
+	<< ", y = 0.0 -> " << yi << "." << std::endl ;
+#     endif
       prob->setColumnStatus(joow,CoinPrePostsolveMatrix::basic);
       if (acts[irow]-rlo[irow] < rup[irow]-acts[irow])
 	prob->setRowStatus(irow,CoinPrePostsolveMatrix::atUpperBound);
@@ -616,18 +715,10 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
       rowduals[irow] = yi;
 #     if PRESOLVE_DEBUG > 1
       std::cout
-        << "    Adjusting row dual; base col " << joow
-	<< ", y = " << yi << "." << std::endl ;
-      std::cout << "    Row status " ;
-      if (prob->getRowStatus(irow) == CoinPrePostsolveMatrix::atLowerBound)
-        std::cout << "atLowerBound" ;
-      else
-        std::cout << "atUpperBound" ;
-      std::cout
-        << ", lb " << rlo[irow] << ", lhs = " << acts[irow]
+        << "    Row status " << prob->rowStatusString(irow)
+        << ", lb = " << rlo[irow] << ", ax = " << acts[irow]
 	<< ", ub = " << rup[irow] << "." << std::endl ;
 #     endif
-
       for (int k = 0 ; k < ninrow ; k++) {
 	int jcol = rowcols[k] ;
 	CoinBigIndex kk = presolve_find_row2(irow,mcstrt[jcol],
@@ -635,11 +726,15 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	rcosts[jcol] -= yi*colels[kk] ;
       }
     }
+# if PRESOLVE_DEBUG > 0
+  presolve_check_nbasic(prob) ;
+# endif
   }
 
 # if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   presolve_check_threads(prob) ;
   presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
 # if PRESOLVE_DEBUG > 0
   std::cout << "Leaving forcing_constraint_action::postsolve." << std::endl ;
 # endif
