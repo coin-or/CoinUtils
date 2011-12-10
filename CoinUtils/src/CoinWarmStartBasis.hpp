@@ -363,6 +363,10 @@ inline void setStatus(char * array, int i, CoinWarmStartBasis::Status st) {
   st_byte = static_cast<char>(st_byte | (st << ((i&3)<<1))) ;
 }
 
+/*! \relates CoinWarmStartBasis
+    \brief Generate a print string for a status code
+*/
+const char *statusName(CoinWarmStartBasis::Status status) ;
 
 
 /*! \class CoinWarmStartBasisDiff

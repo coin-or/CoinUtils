@@ -656,6 +656,15 @@ void CoinWarmStartBasis::applyDiff (const CoinWarmStartDiff *const cwsdDiff)
   }
   return ; }
 
+const char *statusName (CoinWarmStartBasis::Status status) {
+  switch (status) {
+    case CoinWarmStartBasis::isFree: { return ("NBFR") ; }
+    case CoinWarmStartBasis::basic: { return ("B") ; }
+    case CoinWarmStartBasis::atUpperBound: { return ("NBUB") ; }
+    case CoinWarmStartBasis::atLowerBound: { return ("NBLB") ; }
+    default: { return ("INVALID!") ; }
+  }
+}
 
 /* Routines for CoinWarmStartBasisDiff */
 
