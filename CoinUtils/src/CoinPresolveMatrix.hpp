@@ -325,7 +325,7 @@ class CoinPrePostsolveMatrix
     related vectors.
 
     \todo
-    Why are we futzing around with these methods? A holdover from the
+    Why are we futzing around with three bit status? A holdover from the
     packed arrays of CoinWarmStartBasis? Big swaths of the presolve code
     manipulates colstat_ and rowstat_ as unsigned char arrays using simple
     assignment to set values.
@@ -706,6 +706,11 @@ class CoinPrePostsolveMatrix
 
 };
 
+/*! \relates CoinPrePostsolveMatrix
+    \brief Generate a print string for a status code.
+*/
+const char *statusName (CoinPrePostsolveMatrix::Status status) ;
+
 
 /*! \class presolvehlink
     \brief Links to aid in packed matrix modification
@@ -1001,12 +1006,12 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   inline void change_bias(double change_amount)
   {
     dobias_ += change_amount;
-  #if PRESOLVE_DEBUG
+  # if PRESOLVE_DEBUG > 0
     assert(fabs(change_amount)<1.0e50);
-  #endif
     if (change_amount)
       PRESOLVE_STMT(printf("changing bias by %g to %g\n",
 			    change_amount, dobias_));
+  # endif
   }
 
   /*! \name Row-major representation
@@ -1706,31 +1711,39 @@ inline CoinBigIndex presolve_find_row3(int row, CoinBigIndex kcs, int collen,
 inline void presolve_delete_from_major(int majndx, int minndx,
 				const CoinBigIndex *majstrts,
 				int *majlens, int *minndxs, double *els) 
-{ CoinBigIndex ks = majstrts[majndx] ;
-  CoinBigIndex ke = ks + majlens[majndx] ;
+{
+  const CoinBigIndex ks = majstrts[majndx] ;
+  const CoinBigIndex ke = ks+majlens[majndx] ;
 
-  CoinBigIndex kmi = presolve_find_minor(minndx,ks,ke,minndxs) ;
+  const CoinBigIndex kmi = presolve_find_minor(minndx,ks,ke,minndxs) ;
 
   minndxs[kmi] = minndxs[ke-1] ;
   els[kmi] = els[ke-1] ;
   majlens[majndx]-- ;
   
-  return ; }
-// Delete all marked from major (and zero marked)
-inline void presolve_delete_many_from_major(int majndx, char * marked,
+  return ;
+}
+
+/*! \relates CoinPrePostsolveMatrix
+    \brief Delete marked entries
+
+    Removes the entries specified in \p marked, compressing the major vector
+    to maintain loose packing. \p marked is cleared in the process.
+*/
+inline void presolve_delete_many_from_major(int majndx, char *marked,
 				const CoinBigIndex *majstrts,
 				int *majlens, int *minndxs, double *els) 
 { 
-  CoinBigIndex ks = majstrts[majndx] ;
-  CoinBigIndex ke = ks + majlens[majndx] ;
-  CoinBigIndex put=ks;
-  for (CoinBigIndex k=ks;k<ke;k++) {
-    int iMinor = minndxs[k];
+  const CoinBigIndex ks = majstrts[majndx] ;
+  const CoinBigIndex ke = ks+majlens[majndx] ;
+  CoinBigIndex put = ks ;
+  for (CoinBigIndex k = ks ; k < ke ; k++) {
+    int iMinor = minndxs[k] ;
     if (!marked[iMinor]) {
-      minndxs[put]=iMinor;
-      els[put++]=els[k];
+      minndxs[put] = iMinor ;
+      els[put++] = els[k] ;
     } else {
-      marked[iMinor]=0;
+      marked[iMinor] = 0 ;
     }
   } 
   majlens[majndx] = put-ks ;
@@ -1820,8 +1833,10 @@ inline void presolve_delete_from_col2(int row, int col, CoinBigIndex *mcstrt,
 */
 double *presolve_dupmajor(const double *elems, const int *indices,
 			  int length, CoinBigIndex offset, int tgt = -1);
-/// Initialize an array with random numbers
+
+/// Initialize a vector with random numbers
 void coin_init_random_vec(double *work, int n);
+
 //@}
 
 

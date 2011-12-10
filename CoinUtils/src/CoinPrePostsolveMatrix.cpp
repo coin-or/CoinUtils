@@ -481,7 +481,8 @@ void CoinPrePostsolveMatrix::setColumnStatusUsingValue(int iColumn)
 
 /*
   Simple routines to return a constant character string for the status value.
-  Separate row and column routines for convenience.
+  Separate row and column routines for convenience, and one that just takes
+  the status code.
 */
 
 const char *CoinPrePostsolveMatrix::columnStatusString (int j) const
@@ -489,34 +490,39 @@ const char *CoinPrePostsolveMatrix::columnStatusString (int j) const
 { Status statj = getColumnStatus(j) ;
 
   switch (statj)
-  { case isFree:
-    { return ("NBF") ; }
-    case basic:
-    { return ("B") ; }
-    case atUpperBound:
-    { return ("NBUB") ; }
-    case atLowerBound:
-    { return ("NBLB") ; }
-    case superBasic:
-    { return ("SB") ; }
-    default:
-    { return ("INVALID") ; } } }
+  { case isFree: { return ("NBFR") ; }
+    case basic: { return ("B") ; }
+    case atUpperBound: { return ("NBUB") ; }
+    case atLowerBound: { return ("NBLB") ; }
+    case superBasic: { return ("SB") ; }
+    default: { return ("INVALID!") ; }
+  }
+}
 
 const char *CoinPrePostsolveMatrix::rowStatusString (int j) const
 
 { Status statj = getRowStatus(j) ;
 
   switch (statj)
-  { case isFree:
-    { return ("NBF") ; }
-    case basic:
-    { return ("B") ; }
-    case atUpperBound:
-    { return ("NBUB") ; }
-    case atLowerBound:
-    { return ("NBLB") ; }
-    case superBasic:
-    { return ("SB") ; }
-    default:
-    { return ("INVALID") ; } } }
+  { case isFree: { return ("NBFR") ; }
+    case basic: { return ("B") ; }
+    case atUpperBound: { return ("NBUB") ; }
+    case atLowerBound: { return ("NBLB") ; }
+    case superBasic: { return ("SB") ; }
+    default: { return ("INVALID!") ; }
+  }
+}
+
+const char *statusName (CoinPrePostsolveMatrix::Status status)
+{
+  switch (status) {
+    case CoinPrePostsolveMatrix::isFree: { return ("NBFR") ; }
+    case CoinPrePostsolveMatrix::basic: { return ("B") ; }
+    case CoinPrePostsolveMatrix::atUpperBound: { return ("NBUB") ; }
+    case CoinPrePostsolveMatrix::atLowerBound: { return ("NBLB") ; }
+    case CoinPrePostsolveMatrix::superBasic: { return ("SB") ; }
+    default: { return ("INVALID!") ; }
+  }
+}
+
 #endif
