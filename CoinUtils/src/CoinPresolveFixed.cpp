@@ -613,7 +613,9 @@ void make_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
   unsigned char *colstat = prob->colstat_;
 
 # if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
+# if PRESOLVE_DEBUG > 0
   std::cout << "Entering make_fixed_action::postsolve." << std::endl ;
+# endif
   presolve_check_threads(prob) ;
   presolve_check_sol(prob,2,2,2) ;
   presolve_check_nbasic(prob) ;

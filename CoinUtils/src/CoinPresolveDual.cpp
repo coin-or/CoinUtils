@@ -15,7 +15,7 @@
 
 /*
   Define PRESOLVE_DEBUG and PRESOLVE_CONSISTENCY as compile flags! If not
-  uniform across all uses of presolve code you'll get something between
+  uniformly on across all uses of presolve code you'll get something between
   garbage and a core dump. See comments in CoinPresolvePsdebug.hpp
 */
 #if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
@@ -349,7 +349,7 @@ const CoinPresolveAction
 		  } else if (ymax[i] <= ekkinf2) {
 		    cbarjmin -= aij*(newValue-ymax[i]) ;
 		  }
-#		  if PRESOLVE_DEBUG > 0
+#		  if PRESOLVE_DEBUG > 1
 		  std::cout
 		    << "NDUAL(infu/inf): u(" << j << ") = " << cup[j]
 		    << ": max y(" << i << ") was " << ymax[i]
@@ -367,7 +367,7 @@ const CoinPresolveAction
 		  } else if (ymin[i] >= -ekkinf2) {
 		    cbarjmin -= aij*(newValue-ymin[i]) ;
 		  }
-#		  if PRESOLVE_DEBUG > 0
+#		  if PRESOLVE_DEBUG > 1
 		  std::cout
 		    << "NDUAL(infu/inf): u(" << j << ") = " << cup[j]
 		    << ": min y(" << i << ") was " << ymin[i]
@@ -389,7 +389,7 @@ const CoinPresolveAction
 	      int i = hrow[k] ;
 	      double aij = colels[k] ;
 	      if (aij > 0.0) {
-#		if PRESOLVE_DEBUG > 0
+#		if PRESOLVE_DEBUG > 1
 		std::cout
 		  << "NDUAL(infu/sing): u(" << j << ") = " << cup[j]
 		  << ": max y(" << i << ") was " << ymax[i]
@@ -399,7 +399,7 @@ const CoinPresolveAction
 		cbarjmin = 0.0 ;
 		tightened++ ;
 	      } else if (aij < 0.0 ) {
-#		if PRESOLVE_DEBUG > 0
+#		if PRESOLVE_DEBUG > 1
 		std::cout
 		  << "NDUAL(infu/sing): u(" << j << ") = " << cup[j]
 		  << ": min y(" << i << ") was " << ymin[i]
@@ -440,7 +440,7 @@ const CoinPresolveAction
 		  }
 		  ymax[i] = newValue ;
 		  tightened++ ;
-#		  if PRESOLVE_DEBUG
+#		  if PRESOLVE_DEBUG > 1
 		  printf("Col %d, row %d max pi now %g\n",j,i,ymax[i]) ;
 #		  endif
 		}
@@ -457,7 +457,7 @@ const CoinPresolveAction
 		  }
 		  ymin[i] = newValue ;
 		  tightened++ ;
-#		  if PRESOLVE_DEBUG
+#		  if PRESOLVE_DEBUG > 1
 		  printf("Col %d, row %d min pi now %g\n",j,i,ymin[i]) ;
 #		  endif
 		}
@@ -473,14 +473,14 @@ const CoinPresolveAction
 		ymax[i] += cbarjmax/coeff ;
 		cbarjmax =0.0 ;
 		tightened++ ;
-#		if PRESOLVE_DEBUG
+#		if PRESOLVE_DEBUG > 1
 		printf("Col %d, row %d max pi now %g\n",j,i,ymax[i]) ;
 #		endif
 	      } else if (coeff > 0.0 ) {
 		ymin[i] += cbarjmax/coeff ;
 		cbarjmax =0.0 ;
 		tightened++ ;
-#		if PRESOLVE_DEBUG
+#		if PRESOLVE_DEBUG > 1
 		printf("Col %d, row %d min pi now %g\n",j,i,ymin[i]) ;
 #		endif
 	      }
@@ -683,7 +683,7 @@ const CoinPresolveAction
 	    	cbarjmax0 < PRESOLVE_INF && cup[icol] >= ekkinf) {
 	      double bnd = cbarjmax0 / coeff ;
 	      if (rmax > bnd) {
-#		if PRESOLVE_DEBUG
+#		if PRESOLVE_DEBUG > 1
 		printf("MAX TIGHT[%d,%d]: %g --> %g\n",i,hrow[k],ymax[i],bnd) ;
 #		endif
 		ymax[i] = rmax = bnd ;
@@ -693,7 +693,7 @@ const CoinPresolveAction
 	    	       cbarjmax0 <PRESOLVE_INF && cup[icol] >= ekkinf) {
 	      double bnd = cbarjmax0 / coeff ;
 	      if (rmin < bnd) {
-#		if PRESOLVE_DEBUG
+#		if PRESOLVE_DEBUG > 1
 		printf("MIN TIGHT[%d,%d]: %g --> %g\n",i,hrow[k],ymin[i],bnd) ;
 #		endif
 		ymin[i] = rmin = bnd ;
@@ -706,7 +706,7 @@ const CoinPresolveAction
 	    	cbarmin0 > -PRESOLVE_INF && clo[icol] <= -ekkinf) {
 	      double bnd = cbarmin0 / coeff ;
 	      if (rmin < bnd) {
-#		if PRESOLVE_DEBUG
+#		if PRESOLVE_DEBUG > 1
 		printf("MIN1 TIGHT[%d,%d]: %g --> %g\n",i,hrow[k],ymin[i],bnd) ;
 #		endif
 		ymin[i] = rmin = bnd ;
@@ -716,7 +716,7 @@ const CoinPresolveAction
 	    	       cbarmin0 > -PRESOLVE_INF && clo[icol] <= -ekkinf) {
 	      double bnd = cbarmin0 / coeff ;
 	      if (rmax > bnd) {
-#		if PRESOLVE_DEBUG
+#		if PRESOLVE_DEBUG > 1
 		printf("MAX TIGHT1[%d,%d]: %g --> %g\n",i,hrow[k],ymax[i],bnd) ;
 #		endif
 		ymax[i] = rmax = bnd ;
@@ -732,7 +732,7 @@ const CoinPresolveAction
   Is it productive to continue with another pass? Essentially, we need lots of
   tightening but no fixing. If we fixed any variables, break and process them.
 */
-#   if PRESOLVE_DEBUG > 0
+#   if PRESOLVE_DEBUG > 1
     std::cout
       << "NDUAL: pass " << nPass << ": fixed " << (ncols-nfixdown_cols)
       << " down, " << nfixup_cols << " up, tightened " << tightened
@@ -746,7 +746,7 @@ const CoinPresolveAction
   Process columns fixed at upper bound.
 */
   if (nfixup_cols) {
-#   if PRESOLVE_DEBUG > 0
+#   if PRESOLVE_DEBUG > 1
     std::cout << "NDUAL(upper):" ;
     for (int k = 0 ; k < nfixup_cols ; k++)
       std::cout << " " << fix_cols[k] ;
@@ -760,7 +760,7 @@ const CoinPresolveAction
   if (nfixdown_cols < ncols) {
     int *fixdown_cols = fix_cols+nfixdown_cols ; 
     nfixdown_cols = ncols-nfixdown_cols ;
-#   if PRESOLVE_DEBUG > 0
+#   if PRESOLVE_DEBUG > 1
     std::cout << "NDUAL(lower):" ;
     for (int k = 0 ; k < nfixdown_cols ; k++)
       std::cout << " " << fixdown_cols[k] ;
@@ -1102,17 +1102,17 @@ void remove_dual_action::postsolve (CoinPostsolveMatrix *prob) const
       unsigned char stati = prob->getRowStatus(i) ;
       if (stati == CoinPresolveMatrix::atUpperBound) {
         if (rloi <= -PRESOLVE_INF) {
-#         if PRESOLVE_DEBUG > 1
-	  std::cout << ", status forced to NBLB" ;
-#         endif
 	  rowstat[i] = CoinPresolveMatrix::atLowerBound ;
+#         if PRESOLVE_DEBUG > 1
+	  std::cout << ", status forced to " << statusName(rowstat[i]) ;
+#         endif
 	}
       } else if (stati == CoinPresolveMatrix::atLowerBound) {
         if (rupi >= PRESOLVE_INF) {
-#         if PRESOLVE_DEBUG > 1
-	  std::cout << ", status forced to NBUB" ;
-#         endif
 	  rowstat[i] = CoinPresolveMatrix::atUpperBound ;
+#         if PRESOLVE_DEBUG > 1
+	  std::cout << ", status forced to " << statusName(rowstat[i]) ;
+#         endif
 	}
       }
 #     if PRESOLVE_DEBUG > 2

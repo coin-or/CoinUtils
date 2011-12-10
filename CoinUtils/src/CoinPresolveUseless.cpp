@@ -25,6 +25,16 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
 								  int nuseless_rows,
 				       const CoinPresolveAction *next)
 {
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering useless_constraint_action::presolve, "
+    << nuseless_rows << " rows." << std::endl ;
+# endif
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
   // may be modified by useless constraint
   double *colels	= prob->colels_;
 
@@ -51,14 +61,6 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
   double *rup	= prob->rup_;
 
   action *actions	= new action [nuseless_rows];
-
-# if PRESOLVE_DEBUG
-  std::cout << "Entering useless_constraint_action::presolve." << std::endl ;
-  presolve_check_sol(prob) ;
-# endif
-# if PRESOLVE_SUMMARY
-  printf("NUSELESS ROWS:  %d\n", nuseless_rows);
-# endif
 
   for (int i=0; i<nuseless_rows; ++i) {
     int irow = useless_rows[i];
@@ -87,15 +89,19 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
     rup[irow] = 0.0;
   }
 
-# if PRESOLVE_DEBUG
+  next = new useless_constraint_action(nuseless_rows,actions,next) ;
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
   std::cout << "Leaving useless_constraint_action::presolve." << std::endl ;
 # endif
+# endif
 
-  next = new useless_constraint_action(nuseless_rows, actions, next);
-
-  return (next);
+  return (next) ;
 }
+
 // Put constructors here
 useless_constraint_action::useless_constraint_action(int nactions,
                                                      const action *actions,
@@ -122,6 +128,16 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 {
   const action *const actions = actions_;
   const int nactions = nactions_;
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering useless_constraint_action::postsolve, "
+    << nactions << " rows." << std::endl ;
+# endif
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
 
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
@@ -184,8 +200,13 @@ void useless_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
   //deleteAction(actions_,action *);
 
-# if PRESOLVE_CONSISTENCY
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   presolve_check_threads(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Leaving useless_constraint_action::postsolve." << std::endl ;
+# endif
 # endif
 
 }

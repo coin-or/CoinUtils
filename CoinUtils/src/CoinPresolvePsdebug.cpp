@@ -1033,11 +1033,20 @@ void presolve_check_nbasic (const CoinPostsolveMatrix *postObj)
   }
 
   if (nbasic != postObj->nrows_)
-  { printf("WRONG NUMBER NBASIC: is %d, should be %d; ",
+  { printf("NBASIC (ERROR): %d basic variables, should be %d; ",
 	   nbasic,postObj->nrows_) ;
     printf("cdone %d, col basic %d, rdone %d, row basic %d.\n",
 	   ncdone,ncb,nrdone,nrb) ;
     fflush(stdout) ; }
+# if PRESOLVE_DEBUG > 1
+  else
+  { std::cout
+      << "NBASIC: " << nbasic << " basic variables; cdone " << ncdone
+      << ", col basic " << ncb << ", rdone " << nrdone << ", row basic "
+      << nrb << std::endl ;
+    std::cout << std::flush ;
+  }
+# endif
   return ; }
 
 

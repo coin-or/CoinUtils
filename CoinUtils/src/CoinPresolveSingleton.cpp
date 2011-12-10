@@ -856,7 +856,7 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
           prob->setColumnStatusUsingValue(iCol);
 	}
       }
-#     if PRESOLVE_DEBUG
+#     if PRESOLVE_DEBUG > 1
       printf("SLKSING: %d = %g restored %d lb = %g ub = %g.\n",
 	     iCol,sol[iCol],prob->getColumnStatus(iCol),clo[iCol],cup[iCol]) ;
 #     endif

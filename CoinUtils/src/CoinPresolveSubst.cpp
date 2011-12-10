@@ -40,7 +40,7 @@ inline void prepend_elem(int jcol, double coeff, int irow,
 }
 
 // add coeff_factor * rowy to rowx
-static bool add_row(CoinBigIndex *mrstrt, 
+bool add_row(CoinBigIndex *mrstrt, 
 	     double *rlo, double * acts, double *rup,
 	     double *rowels,
 	     int *hcol,
@@ -69,7 +69,7 @@ static bool add_row(CoinBigIndex *mrstrt,
   // "ADD_ROW:",
   //  irowx, irowy, coeff_factor, hinrow[irowx], hinrow[irowy]);
 
-# if PRESOLVE_DEBUG > 0
+# if PRESOLVE_DEBUG > 1
   printf("%s x=%d y=%d cf=%g nx=%d ycols=(",
 	 "ADD_ROW:",
 	  irowx, irowy, coeff_factor, hinrow[irowx]);
@@ -90,7 +90,7 @@ static bool add_row(CoinBigIndex *mrstrt,
 
     // (1)
     if (-PRESOLVE_INF < rlo[irowx]) {
-#     if PRESOLVE_DEBUG > 0
+#     if PRESOLVE_DEBUG > 1
       if (rhsy * coeff_factor)
 	printf("ELIM_ROW RLO:  %g -> %g\n",
 	       rlo[irowx],
@@ -100,7 +100,7 @@ static bool add_row(CoinBigIndex *mrstrt,
     }
     // (2)
     if (rup[irowx] < PRESOLVE_INF) {
-#     if PRESOLVE_DEBUG > 0
+#     if PRESOLVE_DEBUG > 1
       if (rhsy * coeff_factor)
 	printf("ELIM_ROW RUP:  %g -> %g\n",
 	       rup[irowx],
@@ -128,7 +128,7 @@ static bool add_row(CoinBigIndex *mrstrt,
     while (kcolx < krex0 && hcol[kcolx] < jcol)
       kcolx++;
 
-#   if PRESOLVE_DEBUG > 0
+#   if PRESOLVE_DEBUG > 1
     printf("%d%s ", jcol, (kcolx < krex0 && hcol[kcolx] == jcol) ? "+" : "");
 #   endif
 
@@ -139,7 +139,7 @@ static bool add_row(CoinBigIndex *mrstrt,
 
       // update row rep - just modify coefficent
       // column y is deleted as a whole at the end of the loop
-#     if PRESOLVE_DEBUG > 0
+#     if PRESOLVE_DEBUG > 1
       printf("CHANGING %g + %g -> %g\n",
 	     rowels[kcolx],
 	     rowels[krowy],
@@ -184,7 +184,7 @@ static bool add_row(CoinBigIndex *mrstrt,
     }
   }
 
-# if PRESOLVE_DEBUG > 0
+# if PRESOLVE_DEBUG > 1
   printf(")\n");
 # endif
   return false;
@@ -278,6 +278,29 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 				  const CoinPresolveAction *next,
 				  int &try_fill_level)
 {
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering subst_constraint_action::presolve." << std::endl ;
+# endif
+  presolve_consistent(prob) ;
+  presolve_links_ok(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int startEmptyRows = 0 ;
+  int startEmptyColumns = 0 ;
+  startEmptyRows = prob->countEmptyRows() ;
+  startEmptyColumns = prob->countEmptyCols() ;
+# if COIN_PRESOLVE_TUNING > 0
+  double startTime = 0.0;
+  if (prob->tuning_) startTime = CoinCpuTime() ;
+# endif
+# endif
+
   double *colels	= prob->colels_;
   int *hrow	= prob->hrow_;
   CoinBigIndex *mcstrt	= prob->mcstrt_;
@@ -481,7 +504,7 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 	if (! (kcol2 < kre2 && hcol[kcol2] == jcol))
 	  nfill++;
       }
-#if	PRESOLVE_DEBUG > 0
+#if	PRESOLVE_DEBUG > 1
       printf("FILL:  %d\n", nfill);
 #endif
       
@@ -886,6 +909,24 @@ subst_constraint_action::presolve(CoinPresolveMatrix *prob,
 
   delete[]x_to_y;
   delete[]zerocols;
+
+# if COIN_PRESOLVE_TUNING > 0
+  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+# endif
+# if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
+  presolve_check_sol(prob) ;
+# endif
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int droppedRows = prob->countEmptyRows()-startEmptyRows ;
+  int droppedColumns = prob->countEmptyCols()-startEmptyColumns ;
+  std::cout
+    << "Leaving subst_constraint_action::presolve, "
+    << droppedRows << " rows, " << droppedColumns << " columns dropped" ;
+# if COIN_PRESOLVE_TUNING > 0
+  std::cout << " in " << thisTime-startTime << "s" ;
+# endif
+  std::cout << "." << std::endl ;
+# endif
 
   return (next);
 }

@@ -976,14 +976,28 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 const CoinPresolveAction *implied_free_action::presolve (
     CoinPresolveMatrix *prob, const CoinPresolveAction *next, int &fill_level)
 {
-  double startTime = 0.0 ;
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering implied_free_action::presolve." << std::endl ;
+# endif
+  presolve_consistent(prob) ;
+  presolve_links_ok(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
   int startEmptyRows = 0 ;
   int startEmptyColumns = 0 ;
-  if (prob->tuning_) {
-    startTime = CoinCpuTime() ;
-    startEmptyRows = prob->countEmptyRows() ;
-    startEmptyColumns = prob->countEmptyCols() ;
-  }
+  startEmptyRows = prob->countEmptyRows() ;
+  startEmptyColumns = prob->countEmptyCols() ;
+# if COIN_PRESOLVE_TUNING > 0
+  double startTime = 0.0;
+  if (prob->tuning_) startTime = CoinCpuTime() ;
+# endif
+# endif
+
   double *colels = prob->colels_ ;
   int *hrow = prob->hrow_ ;
   const CoinBigIndex *mcstrt	= prob->mcstrt_ ;
@@ -1477,7 +1491,7 @@ const CoinPresolveAction *implied_free_action::presolve (
 	double rhs = rlo[row] ;
 	double costj = cost[j] ;
 
-#	if PRESOLVE_DEBUG
+#	if PRESOLVE_DEBUG > 1
 	printf("FREE COSTS:  %g  ", costj) ;
 #	endif
 	for (CoinBigIndex k = krs ; k < kre ; k++) {
@@ -1487,7 +1501,7 @@ const CoinPresolveAction *implied_free_action::presolve (
 	  if (jcol != j) {
 	    double coeff = rowels[k] ;
 
-#	    if PRESOLVE_DEBUG
+#	    if PRESOLVE_DEBUG > 1
 	    printf("%g %g   ", cost[jcol], coeff/coeffj) ;
 #	    endif
 	    /*
@@ -1498,7 +1512,7 @@ const CoinPresolveAction *implied_free_action::presolve (
 	    cost[jcol] += costj * (-coeff / coeffj) ;
 	  }
 	}
-#	if PRESOLVE_DEBUG
+#	if PRESOLVE_DEBUG > 1
 	printf("\n") ;
 
 	/* similar to doubleton */
@@ -1535,7 +1549,7 @@ const CoinPresolveAction *implied_free_action::presolve (
 
   //delete [] look2 ;
   if (nactions) {
-#   if PRESOLVE_SUMMARY
+#   if PRESOLVE_SUMMARY > 0 || PRESOLVE_DEBUG > 0
     printf("NIMPLIED FREE:  %d\n", nactions) ;
 #   endif
     action *actions1 = new action[nactions] ;
@@ -1558,13 +1572,24 @@ const CoinPresolveAction *implied_free_action::presolve (
   }
   //delete[]implied_free ;
 
-  if (prob->tuning_) {
-    double thisTime = CoinCpuTime() ;
-    int droppedRows = prob->countEmptyRows() - startEmptyRows ;
-    int droppedColumns =  prob->countEmptyCols() - startEmptyColumns ;
-    printf("CoinPresolveImpliedFree(64) - %d rows, %d columns dropped in time %g, total %g\n",
-	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_) ;
-  }
+# if COIN_PRESOLVE_TUNING > 0
+  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+# endif
+# if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
+  presolve_check_sol(prob) ;
+# endif
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int droppedRows = prob->countEmptyRows()-startEmptyRows ;
+  int droppedColumns = prob->countEmptyCols()-startEmptyColumns ;
+  std::cout
+    << "Leaving implied_free_action::presolve, " << droppedRows << " rows, "
+    << droppedColumns << " columns dropped" ;
+# if COIN_PRESOLVE_TUNING > 0
+  std::cout << " in " << thisTime-startTime << "s" ;
+# endif
+  std::cout << "." << std::endl ;
+# endif
+
   return (next) ;
 }
 

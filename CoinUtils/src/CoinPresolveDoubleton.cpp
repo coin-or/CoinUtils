@@ -104,7 +104,7 @@ msg
     double delta = coeffy*coeff_factor ;
     int row = hrow[kcoly] ;
     CoinBigIndex kcolx = presolve_find_row1(row,kcsx,kcex,hrow) ;
-#   if PRESOLVE_DEBUG > 0
+#   if PRESOLVE_DEBUG > 1
     printf("%d%s ",row,(kcolx<kcex)?"+":"") ;
 #   endif
 /*
@@ -153,11 +153,76 @@ msg
       if (rup[row] < PRESOLVE_INF)
 	rup[row] -= delta ; } }
 
-# if PRESOLVE_DEBUG > 0
+# if PRESOLVE_DEBUG > 1
   printf(")\n") ;
 # endif
 
   return (false) ; }
+
+#if PRESOLVE_DEBUG > 0
+/*
+  Debug helpers
+*/
+
+double *doubleton_mult ;
+int *doubleton_id ;
+
+void check_doubletons (const CoinPresolveAction *paction)
+{
+  const CoinPresolveAction * paction0 = paction;
+  
+  if (paction) {
+    check_doubletons(paction->next) ;
+    
+    if (strcmp(paction0->name(),"doubleton_action") == 0) {
+      const doubleton_action *daction = 
+	dynamic_cast<const doubleton_action *>(paction0) ;
+      for (int i = daction->nactions_-1 ; i >= 0 ; --i) {
+	int icolx = daction->actions_[i].icolx ;
+	int icoly = daction->actions_[i].icoly ;
+	double coeffx = daction->actions_[i].coeffx ;
+	double coeffy = daction->actions_[i].coeffy ;
+
+	doubleton_mult[icoly] = -coeffx/coeffy ;
+	doubleton_id[icoly] = icolx ;
+      }
+    }
+  }
+}
+
+void check_doubletons1(const CoinPresolveAction * paction,
+		       int ncols)
+{
+  doubleton_mult = new double[ncols];
+  doubleton_id = new int[ncols];
+  int i;
+  for ( i=0; i<ncols; ++i)
+    doubleton_id[i] = i;
+  check_doubletons(paction);
+  double minmult = 1.0;
+  int minid = -1;
+  for ( i=0; i<ncols; ++i) {
+    double mult = 1.0;
+    int j = i;
+    if (doubleton_id[j] != j) {
+      printf("MULTS (%d):  ", j);
+      while (doubleton_id[j] != j) {
+	printf("%d %g, ", doubleton_id[j], doubleton_mult[j]);
+	mult *= doubleton_mult[j];
+	j = doubleton_id[j];
+      }
+      printf(" == %g\n", mult);
+      if (minmult > fabs(mult)) {
+	minmult = fabs(mult);
+	minid = i;
+      }
+    }
+  }
+  if (minid != -1)
+    printf("MIN MULT:  %d %g\n", minid, minmult);
+}
+#endif  // PRESOLVE_DEBUG
+
 
 } /* end unnamed local namespace */
 
@@ -175,14 +240,6 @@ const CoinPresolveAction
 			      const CoinPresolveAction *next)
 
 {
-  double startTime = 0.0;
-  int startEmptyRows=0;
-  int startEmptyColumns = 0;
-  if (prob->tuning_) {
-    startTime = CoinCpuTime();
-    startEmptyRows = prob->countEmptyRows();
-    startEmptyColumns = prob->countEmptyCols();
-  }
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt	= prob->mcstrt_;
@@ -227,10 +284,30 @@ const CoinPresolveAction
   double * sol = prob->sol_;
 
   bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
-# if PRESOLVE_CONSISTENCY > 0
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering doubleton_action::presolve; considering " << numberLook
+    << " rows." << std::endl ;
+# endif
   presolve_consistent(prob) ;
   presolve_links_ok(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
 # endif
+
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int startEmptyRows = 0 ;
+  int startEmptyColumns = 0 ;
+  startEmptyRows = prob->countEmptyRows() ;
+  startEmptyColumns = prob->countEmptyCols() ;
+# if COIN_PRESOLVE_TUNING > 0
+  double startTime = 0.0;
+  if (prob->tuning_) startTime = CoinCpuTime() ;
+# endif
+# endif
+
 
   // wasfor (int irow=0; irow<nrows; irow++)
   for (iLook=0;iLook<numberLook;iLook++) {
@@ -689,13 +766,24 @@ const CoinPresolveAction
   //delete[]fixed;
   deleteAction(actions,action*);
 
-  if (prob->tuning_) {
-    double thisTime=CoinCpuTime();
-    int droppedRows = prob->countEmptyRows() - startEmptyRows ;
-    int droppedColumns =  prob->countEmptyCols() - startEmptyColumns;
-    printf("CoinPresolveDoubleton(4) - %d rows, %d columns dropped in time %g, total %g\n",
-	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
-  }
+# if COIN_PRESOLVE_TUNING > 0
+  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+# endif
+# if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
+  presolve_check_sol(prob) ;
+# endif
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int droppedRows = prob->countEmptyRows()-startEmptyRows ;
+  int droppedColumns = prob->countEmptyCols()-startEmptyColumns ;
+  std::cout
+    << "Leaving doubleton_action::presolve, " << droppedRows << " rows, "
+    << droppedColumns << " columns dropped" ;
+# if COIN_PRESOLVE_TUNING > 0
+  std::cout << " in " << thisTime-startTime << "s" ;
+# endif
+  std::cout << "." << std::endl ;
+# endif
+
   return (next);
 }
 
@@ -1319,67 +1407,3 @@ doubleton_action::~doubleton_action()
 }
 
 
-
-static double *doubleton_mult;
-static int *doubleton_id;
-void check_doubletons(const CoinPresolveAction * paction)
-{
-  const CoinPresolveAction * paction0 = paction;
-  
-  if (paction) {
-    check_doubletons(paction->next);
-    
-    if (strcmp(paction0->name(), "doubleton_action") == 0) {
-      const doubleton_action *daction = 
-	reinterpret_cast<const doubleton_action *>(paction0);
-      for (int i=daction->nactions_-1; i>=0; --i) {
-	int icolx = daction->actions_[i].icolx;
-	int icoly = daction->actions_[i].icoly;
-	double coeffx = daction->actions_[i].coeffx;
-	double coeffy = daction->actions_[i].coeffy;
-
-	doubleton_mult[icoly] = -coeffx/coeffy;
-	doubleton_id[icoly] = icolx;
-      }
-    }
-  }
-}
-
-#if	PRESOLVE_DEBUG > 0
-void check_doubletons1(const CoinPresolveAction * paction,
-		       int ncols)
-#else
-void check_doubletons1(const CoinPresolveAction * /*paction*/,
-		       int /*ncols*/)
-#endif
-{
-#if	PRESOLVE_DEBUG > 0
-  doubleton_mult = new double[ncols];
-  doubleton_id = new int[ncols];
-  int i;
-  for ( i=0; i<ncols; ++i)
-    doubleton_id[i] = i;
-  check_doubletons(paction);
-  double minmult = 1.0;
-  int minid = -1;
-  for ( i=0; i<ncols; ++i) {
-    double mult = 1.0;
-    int j = i;
-    if (doubleton_id[j] != j) {
-      printf("MULTS (%d):  ", j);
-      while (doubleton_id[j] != j) {
-	printf("%d %g, ", doubleton_id[j], doubleton_mult[j]);
-	mult *= doubleton_mult[j];
-	j = doubleton_id[j];
-      }
-      printf(" == %g\n", mult);
-      if (minmult > fabs(mult)) {
-	minmult = fabs(mult);
-	minid = i;
-      }
-    }
-  }
-  if (minid != -1)
-    printf("MIN MULT:  %d %g\n", minid, minmult);
-#endif
-}

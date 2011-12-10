@@ -191,9 +191,14 @@ const CoinPresolveAction
 }
 
 
-const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *prob,
-							  const CoinPresolveAction *next)
+const CoinPresolveAction
+  *drop_empty_cols_action::presolve (CoinPresolveMatrix *prob,
+				     const CoinPresolveAction *next)
 {
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Entering drop_empty_cols_action::presolve." << std::endl ;
+# endif
+
   const int *hincol	= prob->hincol_;
   //  const double *clo	= prob->clo_;
   //  const double *cup	= prob->cup_;
@@ -207,7 +212,7 @@ const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *p
   for (i=0; i<ncols; i++)
   { nelems2 += hincol[i] ;
     if (hincol[i] == 0) {
-#if	PRESOLVE_DEBUG > 0
+#     if PRESOLVE_DEBUG > 1
       if (nempty==0)
 	printf("UNUSED COLS:  ");
       else
@@ -220,19 +225,23 @@ const CoinPresolveAction *drop_empty_cols_action::presolve(CoinPresolveMatrix *p
       if (i >= 1000 && nempty%15 == 0)
 	printf("\n") ;
       printf("%d ", i);
-#endif
+#     endif
       empty[nempty++] = i;
     }
   }
   prob->nelems_ = nelems2 ;
 
-  if (nempty) {
-#if	PRESOLVE_DEBUG > 0
-      printf("\ndropped %d cols\n", nempty);
-#endif
-    next = drop_empty_cols_action::presolve(prob, empty, nempty, next);
-  }
-  delete [] empty;
+  if (nempty)
+    next = drop_empty_cols_action::presolve(prob,empty,nempty,next) ;
+
+  delete [] empty ;
+
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Leaving drop_empty_cols_action::presolve" ;
+  if (nempty) std::cout << ", dropped " << nempty << " columns" ;
+  std::cout << "." << std::endl ;
+# endif
+
   return (next);
 }
 
@@ -335,9 +344,14 @@ void drop_empty_cols_action::postsolve(CoinPostsolveMatrix *prob) const
 
 
 
-const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *prob,
-				       const CoinPresolveAction *next)
+const CoinPresolveAction
+  *drop_empty_rows_action::presolve (CoinPresolveMatrix *prob,
+				     const CoinPresolveAction *next)
 {
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Entering drop_empty_rows_action::presolve." << std::endl ;
+# endif
+
   int ncols	= prob->ncols_;
   CoinBigIndex *mcstrt	= prob->mcstrt_;
   int *hincol	= prob->hincol_;
@@ -367,86 +381,99 @@ const CoinPresolveAction *drop_empty_rows_action::presolve(CoinPresolveMatrix *p
   for (i=0; i<nrows; i++)
     if (hinrow[i] == 0)
       nactions++;
-
-  if (nactions == 0)
-    return next;
-  else {
-    action *actions 	= new action[nactions];
-    int * rowmapping = new int [nrows];
-
-    nactions = 0;
-    int nrows2=0;
-    for (i=0; i<nrows; i++) {
-      if (hinrow[i] == 0) {
-	action &e = actions[nactions];
-
-#       if PRESOLVE_DEBUG > 0
-	if (nactions == 0)
-	  printf("UNUSED ROWS:  ");
-	else
-	if (i < 100 && nactions%25 == 0)
-	  printf("\n") ;
-	else
-	if (i >= 100 && i < 1000 && nactions%19 == 0)
-	  printf("\n") ;
-	else
-	if (i >= 1000 && nactions%15 == 0)
-	  printf("\n") ;
-	printf("%d ", i);
-#	endif
-
-	nactions++;
-	if (rlo[i] > 0.0 || rup[i] < 0.0) {
-	  if ((rlo[i]<=tolerance &&
-	       rup[i]>=-tolerance)||fixInfeasibility) {
-	    rlo[i]=0.0;
-	    rup[i]=0.0;
-	  } else {
-	    prob->status_|= 1;
-	  prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
-					     prob->messages())
-					       <<i
-					       <<rlo[i]
-					       <<rup[i]
-					       <<CoinMessageEol;
-	    break;
-	  }
-	}
-	e.row	= i;
-	e.rlo	= rlo[i];
-	e.rup	= rup[i];
-	rowmapping[i]=-1;
-
-      } else {
-	// move down - we want to preserve order
-	rlo[nrows2]=rlo[i];
-	rup[nrows2]=rup[i];
-	originalRow[nrows2]=i;
-	if (acts) {
-	  acts[nrows2]=acts[i];
-	  rowstat[nrows2]=rowstat[i];
-	}
-	rowmapping[i]=nrows2++;
-      }
-    }
-
-    // remap matrix
-    for (i=0;i<ncols;i++) {
-      int j;
-      for (j=mcstrt[i];j<mcstrt[i]+hincol[i];j++) 
-	hrow[j] = rowmapping[hrow[j]];
-    }
-    delete [] rowmapping;
-
-    prob->nrows_ = nrows2;
-
-#if	PRESOLVE_DEBUG > 0
-    presolve_check_nbasic(prob) ;
-    if (nactions)
-      printf("\ndropped %d rows\n", nactions);
-#endif
-    return (new drop_empty_rows_action(nactions, actions, next));
+/*
+  Bail out if there's nothing to be done.
+*/
+  if (nactions == 0) {
+#   if PRESOLVE_DEBUG > 0
+    std::cout << "Leaving drop_empty_rows_action::presolve." << std::endl ;
+#   endif
+    return (next) ;
   }
+/*
+  Work to do.
+*/
+  action *actions 	= new action[nactions];
+  int * rowmapping = new int [nrows];
+
+  nactions = 0;
+  int nrows2=0;
+  for (i=0; i<nrows; i++) {
+    if (hinrow[i] == 0) {
+      action &e = actions[nactions];
+
+#     if PRESOLVE_DEBUG > 1
+      if (nactions == 0)
+	printf("UNUSED ROWS:  ");
+      else
+      if (i < 100 && nactions%25 == 0)
+	printf("\n") ;
+      else
+      if (i >= 100 && i < 1000 && nactions%19 == 0)
+	printf("\n") ;
+      else
+      if (i >= 1000 && nactions%15 == 0)
+	printf("\n") ;
+      printf("%d ", i);
+#     endif
+
+      nactions++;
+      if (rlo[i] > 0.0 || rup[i] < 0.0) {
+	if ((rlo[i]<=tolerance &&
+	     rup[i]>=-tolerance)||fixInfeasibility) {
+	  rlo[i]=0.0;
+	  rup[i]=0.0;
+	} else {
+	  prob->status_|= 1;
+	prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
+					   prob->messages())
+					     <<i
+					     <<rlo[i]
+					     <<rup[i]
+					     <<CoinMessageEol;
+	  break;
+	}
+      }
+      e.row	= i;
+      e.rlo	= rlo[i];
+      e.rup	= rup[i];
+      rowmapping[i]=-1;
+
+    } else {
+      // move down - we want to preserve order
+      rlo[nrows2]=rlo[i];
+      rup[nrows2]=rup[i];
+      originalRow[nrows2]=i;
+      if (acts) {
+	acts[nrows2]=acts[i];
+	rowstat[nrows2]=rowstat[i];
+      }
+      rowmapping[i]=nrows2++;
+    }
+  }
+
+  // remap matrix
+  for (i=0;i<ncols;i++) {
+    int j;
+    for (j=mcstrt[i];j<mcstrt[i]+hincol[i];j++) 
+      hrow[j] = rowmapping[hrow[j]];
+  }
+  delete [] rowmapping;
+
+  prob->nrows_ = nrows2;
+
+  next = new drop_empty_rows_action(nactions,actions,next) ;
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Leaving drop_empty_rows_action::presolve" ;
+  if (nactions) std::cout << ", dropped " << nactions << " rows" ;
+  std::cout << "." << std::endl ;
+# endif
+# endif
+
+  return (next) ;
 }
 
 void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
@@ -455,6 +482,9 @@ void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
   const action *const actions = actions_ ;
 
   int ncols = prob->ncols_ ;
+  int nrows0 = prob->nrows0_ ;
+  int nrows = prob->nrows_ ;
+
   CoinBigIndex *mcstrt	= prob->mcstrt_ ;
   int *hincol = prob->hincol_ ;
 
@@ -468,7 +498,10 @@ void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
 
 # if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
 # if PRESOLVE_DEBUG > 0
-  std::cout << "Entering drop_empty_rows_action::postsolve." << std::endl ;
+  std::cout
+    << "Entering drop_empty_rows_action::postsolve, initial system "
+    << nrows << "x" << ncols << ", " << nactions
+    << " rows to restore." << std::endl ;
 # endif
   char *rdone = prob->rdone_ ;
 
@@ -476,8 +509,6 @@ void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
   presolve_check_nbasic(prob) ;
 # endif
 
-  int nrows0 = prob->nrows0_ ;
-  int nrows = prob->nrows_ ;
 /*
   Process the array of actions and mark rowmapping[i] if constraint i was
   eliminated in presolve.
@@ -560,7 +591,8 @@ void drop_empty_rows_action::postsolve(CoinPostsolveMatrix *prob) const
   presolve_check_sol(prob,2,2,2) ;
   presolve_check_nbasic(prob) ;
 # if PRESOLVE_DEBUG > 0
-  std::cout << "Leaving drop_empty_rows_action::postsolve." << std::endl ;
+  std::cout << "Leaving drop_empty_rows_action::postsolve, system "
+    << prob->nrows_ << "x" << prob->ncols_ << "." << std::endl ;
 # endif
 # endif
 

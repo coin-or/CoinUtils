@@ -65,14 +65,6 @@ const char *do_tighten_action::name() const
 const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 					       const CoinPresolveAction *next)
 {
-  double startTime = 0.0;
-  int startEmptyRows=0;
-  int startEmptyColumns = 0;
-  if (prob->tuning_) {
-    startTime = CoinCpuTime();
-    startEmptyRows = prob->countEmptyRows();
-    startEmptyColumns = prob->countEmptyCols();
-  }
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt		= prob->mcstrt_;
@@ -104,6 +96,30 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
   int iLook;
   int * look = prob->colsToDo_;
   bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering do_tighten_action::presolve; considering " << numberLook
+    << " rows." << std::endl ;
+# endif
+  presolve_consistent(prob) ;
+  presolve_links_ok(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int startEmptyRows = 0 ;
+  int startEmptyColumns = 0 ;
+  startEmptyRows = prob->countEmptyRows() ;
+  startEmptyColumns = prob->countEmptyCols() ;
+# if COIN_PRESOLVE_TUNING > 0
+  double startTime = 0.0;
+  if (prob->tuning_) startTime = CoinCpuTime() ;
+# endif
+# endif
+
 
   // singleton columns are especially likely to be caught here
   for (iLook=0;iLook<numberLook;iLook++) {
@@ -169,7 +185,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	iflag=0; // all free anyway
       if (iflag) {
 	if (iflag==1 && cup[j]<1.0e10) {
-#if	PRESOLVE_DEBUG > 0
+#if	PRESOLVE_DEBUG > 1
 	  printf("TIGHTEN UP:  %d\n", j);
 #endif
 	  fix_cols[nfixup_cols++] = j;
@@ -178,7 +194,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	  // symmetric case
 	  //mpre[j] = PRESOLVE_XUP;
 
-#if	PRESOLVE_DEBUG > 0
+#if	PRESOLVE_DEBUG > 1
 	  printf("TIGHTEN DOWN:  %d\n", j);
 #endif
 
@@ -227,7 +243,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 	    s->rows =   new int[hincol[j]];
 	    s->lbound = new double[hincol[j]];
 	    s->ubound = new double[hincol[j]];
-#if         PRESOLVE_DEBUG > 0
+#if         PRESOLVE_DEBUG > 1
 	    printf("TIGHTEN FREE:  %d   ", j);
 #endif
 	    int nr = 0;
@@ -247,14 +263,14 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 		rlo[irow] = -PRESOLVE_INF;
 		rup[irow] = PRESOLVE_INF;
 
-#if             PRESOLVE_DEBUG > 0
+#if             PRESOLVE_DEBUG > 1
 		printf("%d ", irow);
 #endif
 	      }
 	    }
 	    s->nrows = nr;
 
-#if         PRESOLVE_DEBUG > 0
+#if         PRESOLVE_DEBUG > 1
 	    printf("\n");
 #endif
 	  }
@@ -296,13 +312,24 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
   }
   //delete[]fixup_cols;
 
-  if (prob->tuning_) {
-    double thisTime=CoinCpuTime();
-    int droppedRows = prob->countEmptyRows() - startEmptyRows ;
-    int droppedColumns =  prob->countEmptyCols() - startEmptyColumns;
-    printf("CoinPresolveTighten(16) - %d rows, %d columns dropped in time %g, total %g\n",
-	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
-  }
+# if COIN_PRESOLVE_TUNING > 0
+  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+# endif
+# if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
+  presolve_check_sol(prob) ;
+# endif
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int droppedRows = prob->countEmptyRows()-startEmptyRows ;
+  int droppedColumns = prob->countEmptyCols()-startEmptyColumns ;
+  std::cout
+    << "Leaving do_tighten_action::presolve, " << droppedRows << " rows, "
+    << droppedColumns << " columns dropped" ;
+# if COIN_PRESOLVE_TUNING > 0
+  std::cout << " in " << thisTime-startTime << "s" ;
+# endif
+  std::cout << "." << std::endl ;
+# endif
+
   return (next);
 }
 

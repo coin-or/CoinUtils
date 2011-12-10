@@ -30,16 +30,19 @@
                         ********
 
   Define the symbols PRESOLVE_DEBUG and PRESOLVE_CONSISTENCY on the configure
-  command line (use ADD_CXXFLAGS), in a Makefile, or similar and do a
-  full rebuild (including any presolve driver code). If the symbols are
-  not consistent across *all* presolve code, you'll get something between
-  garbage and a core dump! Debugging adds messages to COIN_Message and
-  allocates space for arrays that hold debug information.
+  command line (use ADD_CXXFLAGS), in a Makefile, or similar and do a full
+  rebuild (including any presolve driver code). If the symbols are not
+  consistently nonzero across *all* presolve code, you'll get something
+  between garbage and a core dump! Debugging adds messages to COIN_Message
+  and allocates and maintains arrays that hold debug information.
 
   That said, given that you've configured and built with PRESOLVE_DEBUG and
   PRESOLVE_CONSISTENCY nonzero everywhere, it's safe to adjust PRESOLVE_DEBUG
   to values in the range 1..n in individual files to increase or decrease the
   amount of output.
+
+  The suggested approach for PRESOLVE_DEBUG is to define it to 1 in the build
+  and then increase it in individual presolve code files to get more detail.
 
                         ********
 */

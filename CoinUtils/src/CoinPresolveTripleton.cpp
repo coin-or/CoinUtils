@@ -113,12 +113,12 @@ msg
       }
       // see if row appears in colx
       CoinBigIndex kcolx = presolve_find_row1(row, kcsx, kcex, hrow);
-#     if PRESOLVE_DEBUG > 0
+#     if PRESOLVE_DEBUG > 1
       printf("%d%s ",row,(kcolx<kcex)?"x+":"") ;
 #     endif
       // see if row appears in colz
       CoinBigIndex kcolz = presolve_find_row1(row, kcsz, kcez, hrow);
-#     if PRESOLVE_DEBUG > 0
+#     if PRESOLVE_DEBUG > 1
       printf("%d%s ",row,(kcolz<kcez)?"x+":"") ;
 #     endif
 
@@ -270,7 +270,7 @@ msg
     }
   }
 
-# if PRESOLVE_DEBUG > 0
+# if PRESOLVE_DEBUG > 1
   printf(")\n") ;
 # endif
 
@@ -290,14 +290,6 @@ msg
 const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 						  const CoinPresolveAction *next)
 {
-  double startTime = 0.0;
-  int startEmptyRows=0;
-  int startEmptyColumns = 0;
-  if (prob->tuning_) {
-    startTime = CoinCpuTime();
-    startEmptyRows = prob->countEmptyRows();
-    startEmptyColumns = prob->countEmptyCols();
-  }
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt		= prob->mcstrt_;
@@ -327,6 +319,29 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
   int iLook;
   int * look = prob->rowsToDo_;
   const double ztolzb	= prob->ztolzb_;
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering tripleton_action::presolve; considering " << numberLook
+    << " rows." << std::endl ;
+# endif
+  presolve_consistent(prob) ;
+  presolve_links_ok(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int startEmptyRows = 0 ;
+  int startEmptyColumns = 0 ;
+  startEmptyRows = prob->countEmptyRows() ;
+  startEmptyColumns = prob->countEmptyCols() ;
+# if COIN_PRESOLVE_TUNING > 0
+  double startTime = 0.0;
+  if (prob->tuning_) startTime = CoinCpuTime() ;
+# endif
+# endif
 
   action * actions = new action [nrows];
 # ifdef ZEROFAULT
@@ -640,13 +655,24 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
   //delete[]zeros;
   deleteAction(actions,action*);
 
-  if (prob->tuning_) {
-    double thisTime=CoinCpuTime();
-    int droppedRows = prob->countEmptyRows() - startEmptyRows ;
-    int droppedColumns =  prob->countEmptyCols() - startEmptyColumns;
-    printf("CoinPresolveTripleton(8) - %d rows, %d columns dropped in time %g, total %g\n",
-	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
-  }
+# if COIN_PRESOLVE_TUNING > 0
+  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+# endif
+# if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
+  presolve_check_sol(prob) ;
+# endif
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int droppedRows = prob->countEmptyRows()-startEmptyRows ;
+  int droppedColumns = prob->countEmptyCols()-startEmptyColumns ;
+  std::cout
+    << "Leaving tripleton_action::presolve, " << droppedRows << " rows, "
+    << droppedColumns << " columns dropped" ;
+# if COIN_PRESOLVE_TUNING > 0
+  std::cout << " in " << thisTime-startTime << "s" ;
+# endif
+  std::cout << "." << std::endl ;
+# endif
+
   return (next);
 }
 

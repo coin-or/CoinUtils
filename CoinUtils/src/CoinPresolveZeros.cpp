@@ -83,7 +83,7 @@ int drop_col_zeros (int ncheckcols, int *checkcols,
 	actions[nactions].col = col;
 	actions[nactions].row = hrow[k];
 
-#       if PRESOLVE_DEBUG > 0
+#       if PRESOLVE_DEBUG > 1
 	if (nactions == 0)
 	  printf("ZEROS:  ");
 	else
@@ -106,7 +106,7 @@ int drop_col_zeros (int ncheckcols, int *checkcols,
     PRESOLVE_REMOVE_LINK(clink,col) ;
   }
 
-# if PRESOLVE_DEBUG > 0
+# if PRESOLVE_DEBUG > 1
   if (nactions)
     printf("\n");
 # endif
@@ -171,37 +171,45 @@ const CoinPresolveAction
     nzeros = count_col_zeros(ncheckcols,checkcols,
                                mcstrt,colels,hincol);
   }
+/*
+  Nothing to do; bail out now.
+*/
   if (nzeros == 0) {
 #   if PRESOLVE_DEBUG > 0
     std::cout << "Leaving drop_zero_action::presolve." << std::endl ;
 #   endif
     return (next) ;
-  } else {
-    dropped_zero * zeros = new dropped_zero[nzeros];
-
-    nzeros=drop_col_zeros((ncheckcols==prob->ncols_) ? nzeros : ncheckcols,
-			  checkcols,
-			  mcstrt,colels,hrow,hincol,clink,
-			  zeros);
-    double *rowels	= prob->rowels_;
-    int *hcol		= prob->hcol_;
-    CoinBigIndex *mrstrt		= prob->mrstrt_;
-    int *hinrow		= prob->hinrow_;
-    //    int nrows		= prob->nrows_;
-
-#   if PRESOLVE_SUMMARY > 0
-    printf("NZEROS:  %d\n", nzeros);
-#   endif
-
-    // make the row rep consistent
-    drop_row_zeros(nzeros,zeros,mrstrt,rowels,hcol,hinrow,rlink) ;
-
-    dropped_zero *zeros1 = new dropped_zero[nzeros];
-    CoinMemcpyN(zeros, nzeros, zeros1);
-
-    delete [] zeros;
-    return (new drop_zero_coefficients_action(nzeros, zeros1, next));
   }
+/*
+  We have zeros to remove. drop_col_zeros will scan the columns and remove
+  zeros, adding records of the dropped entries to zeros. The we need to clean
+  the row representation.
+*/
+  dropped_zero *zeros = new dropped_zero[nzeros] ;
+
+  nzeros = drop_col_zeros(((ncheckcols==prob->ncols_)?nzeros:ncheckcols),
+			  checkcols,mcstrt,colels,hrow,hincol,clink,zeros) ;
+
+  double *rowels = prob->rowels_ ;
+  int *hcol = prob->hcol_ ;
+  CoinBigIndex *mrstrt = prob->mrstrt_ ;
+  int *hinrow = prob->hinrow_ ;
+  drop_row_zeros(nzeros,zeros,mrstrt,rowels,hcol,hinrow,rlink) ;
+
+  // Why are we making this copy?
+  dropped_zero *zeros1 = new dropped_zero[nzeros] ;
+  CoinMemcpyN(zeros, nzeros, zeros1) ;
+  delete [] zeros ;
+
+  next = new drop_zero_coefficients_action(nzeros,zeros1,next) ;
+
+# if PRESOLVE_SUMMARY > 0 || PRESOLVE_DEBUG > 0
+  std::cout
+    << "Leaving drop_zero_action::presolve, dropped " << nzeros
+    << " zeroes." << std::endl ;
+# endif
+
+  return (next) ;
 }
 
 

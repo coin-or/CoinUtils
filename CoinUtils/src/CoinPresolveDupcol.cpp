@@ -127,14 +127,27 @@ const CoinPresolveAction
     *dupcol_action::presolve (CoinPresolveMatrix *prob,
 			      const CoinPresolveAction *next)
 {
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering subst_constraint_action::presolve." << std::endl ;
+# endif
+  presolve_consistent(prob) ;
+  presolve_links_ok(prob) ;
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int startEmptyRows = 0 ;
+  int startEmptyColumns = 0 ;
+  startEmptyRows = prob->countEmptyRows() ;
+  startEmptyColumns = prob->countEmptyCols() ;
+# if COIN_PRESOLVE_TUNING > 0
   double startTime = 0.0;
-  int startEmptyRows=0;
-  int startEmptyColumns = 0;
-  if (prob->tuning_) {
-    startTime = CoinCpuTime();
-    startEmptyRows = prob->countEmptyRows();
-    startEmptyColumns = prob->countEmptyCols();
-  }
+  if (prob->tuning_) startTime = CoinCpuTime() ;
+# endif
+# endif
 
   double maxmin	= prob->maxmin_ ;
 
@@ -547,8 +560,10 @@ const CoinPresolveAction
 /*
   Create the postsolve action before we start to modify the columns.
 */
+#     if PRESOLVE_DEBUG > 1
       PRESOLVE_STMT(printf("DUPCOL: (%d,%d) %d += %d\n",j1,j2,j1,j2)) ;
       PRESOLVE_DETAIL_PRINT(printf("pre_dupcol %dC %dC E\n",j2,j1));
+#     endif
 
       action *s = &actions[nactions++] ;	  
       s->thislo = clo[j2] ;
@@ -640,7 +655,7 @@ const CoinPresolveAction
       }
 #endif
       bool swapped = false ;
-#if PRESOLVE_DEBUG
+#if PRESOLVE_DEBUG > 1
       printf("bounds %g %g\n",lowerBound,upperBound);
 #endif
       if (c2 > c1) minterm |= 1<<0 ;
@@ -670,7 +685,9 @@ const CoinPresolveAction
 */
       if ((minterm&0x13) == 0x12 || (minterm&0x0d) == 0x0d)
       { prob->setStatus(2) ;
+#       if PRESOLVE_DEBUG > 1
 	PRESOLVE_STMT(printf("DUPCOL: (%d,%d) Unbounded\n",j1,j2)) ;
+#       endif
 	break ; }
 /*
   With the no inference and unbounded cases removed, all that's left are the
@@ -693,7 +710,9 @@ const CoinPresolveAction
 */
       if ((minterm&0x13) == 0x10)
       { fixed_up[nfixed_up++] = j2 ;
+#       if PRESOLVE_DEBUG > 1
 	PRESOLVE_STMT(printf("DUPCOL: (%d,%d) %d -> NBUB\n",j1,j2,j2)) ;
+#       endif
 	if (prob->colstat_)
 	{ if (prob->getColumnStatus(j1) == CoinPrePostsolveMatrix::basic ||
 	      prob->getColumnStatus(j2) == CoinPrePostsolveMatrix::basic)
@@ -711,7 +730,9 @@ const CoinPresolveAction
 */
       if ((minterm&0x0d) == 0x09)
       { fixed_down[nfixed_down++] = j2 ;
+#       if PRESOLVE_DEBUG > 1
 	PRESOLVE_STMT(printf("DUPCOL: (%d,%d) %d -> NBLB\n",j1,j2,j2)) ;
+#       endif
 	if (prob->colstat_)
 	{ if (prob->getColumnStatus(j1) == CoinPrePostsolveMatrix::basic ||
 	      prob->getColumnStatus(j2) == CoinPrePostsolveMatrix::basic)
@@ -762,14 +783,26 @@ const CoinPresolveAction
       make_fixed_action::presolve(prob,fixed_up,nfixed_up,false,next) ; }
   delete[]fixed_up ;
 
-  if (prob->tuning_) {
-    double thisTime=CoinCpuTime();
-    int droppedRows = prob->countEmptyRows() - startEmptyRows ;
-    int droppedColumns =  prob->countEmptyCols() - startEmptyColumns;
-    printf("CoinPresolveDupcol(128) - %d rows, %d columns dropped in time %g, total %g\n",
-	   droppedRows,droppedColumns,thisTime-startTime,thisTime-prob->startTime_);
-  }
-  return (next) ; }
+# if COIN_PRESOLVE_TUNING > 0
+  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+# endif
+# if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
+  presolve_check_sol(prob) ;
+# endif
+# if PRESOLVE_DEBUG > 0 || COIN_PRESOLVE_TUNING > 0
+  int droppedRows = prob->countEmptyRows()-startEmptyRows ;
+  int droppedColumns = prob->countEmptyCols()-startEmptyColumns ;
+  std::cout
+    << "Leaving subst_constraint_action::presolve, "
+    << droppedRows << " rows, " << droppedColumns << " columns dropped" ;
+# if COIN_PRESOLVE_TUNING > 0
+  std::cout << " in " << thisTime-startTime << "s" ;
+# endif
+  std::cout << "." << std::endl ;
+# endif
+
+  return (next) ;
+}
 
 
 void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
@@ -854,7 +887,7 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
     // leave until destructor
     //    deleteAction(f->colels,double *);
 
-#   if PRESOLVE_DEBUG
+#   if PRESOLVE_DEBUG > 0
     const double ztolzb = prob->ztolzb_;
     if (! (clo[icol] - ztolzb <= sol[icol] && sol[icol] <= cup[icol] + ztolzb))
 	     printf("BAD DUPCOL BOUNDS:  %g %g %g\n", clo[icol], sol[icol], cup[icol]);
