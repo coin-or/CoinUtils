@@ -12,6 +12,7 @@
 #include <list>
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 
 namespace Coin {
 
