@@ -2390,7 +2390,7 @@ CoinFactorization::replaceColumnPFI ( CoinIndexedVector * regionSparse,
 //  =
 CoinFactorization & CoinFactorization::operator = ( const CoinFactorization & other ) {
   if (this != &other) {    
-    gutsOfDestructor();
+    gutsOfDestructor(2);
     gutsOfInitialize(3);
     persistenceFlag_=other.persistenceFlag_;
     gutsOfCopy(other);

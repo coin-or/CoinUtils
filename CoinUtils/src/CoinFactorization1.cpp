@@ -34,11 +34,47 @@ CoinFactorization::CoinFactorization ( const CoinFactorization &other)
   gutsOfCopy(other);
 }
 /// The real work of constructors etc
-void CoinFactorization::gutsOfDestructor(int )
+/// Really really delete if type 2
+void CoinFactorization::gutsOfDestructor(int type)
 {
   delete [] denseArea_;
   delete [] densePermute_;
-
+  if (type==2) {
+    elementU_.switchOff();
+    startRowU_.switchOff();
+    convertRowToColumnU_.switchOff();
+    indexRowU_.switchOff();
+    indexColumnU_.switchOff();
+    startColumnU_.switchOff();
+    elementL_.switchOff();
+    indexRowL_.switchOff();
+    startColumnL_.switchOff();
+    startColumnR_.switchOff();
+    numberInRow_.switchOff();
+    numberInColumn_.switchOff();
+    numberInColumnPlus_.switchOff();
+    pivotColumn_.switchOff();
+    pivotColumnBack_.switchOff();
+    firstCount_.switchOff();
+    nextCount_.switchOff();
+    lastCount_.switchOff();
+    permute_.switchOff();
+    permuteBack_.switchOff();
+    nextColumn_.switchOff();
+    lastColumn_.switchOff();
+    nextRow_.switchOff();
+    lastRow_.switchOff();
+    saveColumn_.switchOff();
+    markRow_.switchOff();
+    pivotRowL_.switchOff();
+    pivotRegion_.switchOff();
+    elementByRowL_.switchOff();
+    startRowL_.switchOff();
+    indexColumnL_.switchOff();
+    sparse_.switchOff();
+    workArea_.switchOff();
+    workArea2_.switchOff();
+  }
   elementU_.conditionalDelete();
   startRowU_.conditionalDelete();
   convertRowToColumnU_.conditionalDelete();
@@ -489,7 +525,7 @@ CoinFactorization::factorizePart2 (int permutation[],int exactNumberElements)
 //  ~CoinFactorization.  Destructor
 CoinFactorization::~CoinFactorization (  )
 {
-  gutsOfDestructor();
+  gutsOfDestructor(2);
 }
 
 //  show_self.  Debug show object
@@ -2385,5 +2421,5 @@ CoinFactorization::setPersistenceFlag(int flag)
 void 
 CoinFactorization::almostDestructor()
 {
-  gutsOfDestructor(1);
+  gutsOfDestructor(2);
 }
