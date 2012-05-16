@@ -17,10 +17,26 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinTypes.hpp"
 //#############################################################################
-
+#define WARN_USELESS 0
 void
 CoinIndexedVector::clear()
 {
+#if WARN_USELESS
+  int nNonZero=0;
+  for (int i=0;i<capacity_;i++) {
+    if(elements_[i])
+      nNonZero++;
+  }
+  assert (nNonZero<=nElements_);
+#if WARN_USELESS>1
+  if (nNonZero!=nElements_)
+    printf("Vector said it had %d nonzeros - only had %d\n",
+	   nElements_,nNonZero);
+#endif
+  if (!nNonZero&&nElements_)
+    printf("Vector said it had %d nonzeros - but is already empty\n",
+	   nElements_);
+#endif
   if (!packedMode_) {
     if (3*nElements_<capacity_) {
       int i=0;
@@ -302,6 +318,8 @@ CoinIndexedVector::clean( double tolerance )
 void CoinIndexedVector::checkClear()
 {
 #ifndef NDEBUG
+#ifndef NDEBUG
+  //printf("checkClear %p\n",this);
   assert(!nElements_);
   assert(!packedMode_);
   int i;
@@ -337,10 +355,13 @@ void CoinIndexedVector::checkClear()
     abort();
   }
 #endif
+#endif
 }
 // For debug check vector is clean i.e. elements match indices
 void CoinIndexedVector::checkClean()
 {
+#ifndef NDEBUG
+  //printf("checkClean %p\n",this);
   int i;
   if (packedMode_) {
     for (i=0;i<nElements_;i++) 
@@ -352,6 +373,7 @@ void CoinIndexedVector::checkClean()
     CoinMemcpyN(elements_,capacity_,copy);
     for (i=0;i<nElements_;i++) {
       int indexValue = indices_[i];
+      assert (copy[indexValue]);
       copy[indexValue]=0.0;
     }
     for (i=0;i<capacity_;i++) 
@@ -364,6 +386,7 @@ void CoinIndexedVector::checkClean()
   for (i=0;i<capacity_;i++) {
     assert(!mark[i]);
   }
+#endif
 #endif
 }
 
@@ -555,11 +578,11 @@ CoinIndexedVector::reserve(int n)
     indices_ = new int [n+nPlus];
     CoinZeroN(indices_+n,nPlus);
     // align on 64 byte boundary
-    double * temp = new double [n+7];
+    double * temp = new double [n+9];
     offset_ = 0;
     CoinInt64 xx = reinterpret_cast<CoinInt64>(temp);
     int iBottom = static_cast<int>(xx & 63);
-    if (iBottom)
+    //if (iBottom)
       offset_ = (64-iBottom)>>3;
     elements_ = temp + offset_;;
     
@@ -1048,10 +1071,14 @@ CoinIndexedVector::gutsOfSetVector(int size, int numberIndices,
       if (fabs(elements_[indexValue])<COIN_INDEXED_TINY_ELEMENT) 
 	needClean=true; // need to go through again
     } else {
+#ifndef COIN_FAC_NEW
       if (fabs(elems[indexValue])>=COIN_INDEXED_TINY_ELEMENT) {
+#endif
 	elements_[indexValue]=elems[indexValue];
 	indices_[nElements_++]=indexValue;
+#ifndef COIN_FAC_NEW
       }
+#endif
     }
   }
   if (needClean) {
@@ -1223,6 +1250,83 @@ CoinIndexedVector::append(const CoinIndexedVector & caboose)
   if (numberDuplicates)
     throw CoinError("duplicate index", "append", "CoinIndexedVector");
 }
+// Append a CoinIndexedVector to the end and modify indices
+void 
+CoinIndexedVector::append(CoinIndexedVector & other,int adjustIndex, bool zapElements/*,double multiplier*/)
+{
+  const int cs = other.nElements_;
+  const int * cind = other.indices_;
+  double * celem = other.elements_;
+  int * newInd = indices_+nElements_;
+  if (packedMode_) {
+    double * newEls = elements_+nElements_;
+    if (zapElements) {
+      if (other.packedMode_) {
+	for (int i=0;i<cs;i++) {
+	  newInd[i]=cind[i]+adjustIndex;
+	  newEls[i]=celem[i]/* *multiplier*/;
+	  celem[i]=0.0;
+	}
+      } else {
+	for (int i=0;i<cs;i++) {
+	  int k=cind[i];
+	  newInd[i]=k+adjustIndex;
+	  newEls[i]=celem[k]/* *multiplier*/;
+	  celem[k]=0.0;
+	}
+      }
+    } else {
+      if (other.packedMode_) {
+	for (int i=0;i<cs;i++) {
+	  newEls[i]=celem[i]/* *multiplier*/;
+	  newInd[i]=cind[i]+adjustIndex;
+	}
+      } else {
+	for (int i=0;i<cs;i++) {
+	  int k=cind[i];
+	  newInd[i]=k+adjustIndex;
+	  newEls[i]=celem[k]/* *multiplier*/;
+	}
+      }
+    }
+  } else {
+    double * newEls = elements_+adjustIndex;
+    if (zapElements) {
+      if (other.packedMode_) {
+	for (int i=0;i<cs;i++) {
+	  int k=cind[i];
+	  newInd[i]=k+adjustIndex;
+	  newEls[k]=celem[i]/* *multiplier*/;
+	  celem[i]=0.0;
+	}
+      } else {
+	for (int i=0;i<cs;i++) {
+	  int k=cind[i];
+	  newInd[i]=k+adjustIndex;
+	  newEls[k]=celem[k]/* *multiplier*/;
+	  celem[k]=0.0;
+	}
+      }
+    } else {
+      if (other.packedMode_) {
+	for (int i=0;i<cs;i++) {
+	  int k=cind[i];
+	  newInd[i]=k+adjustIndex;
+	  newEls[k]=celem[i]/* *multiplier*/;
+	}
+      } else {
+	for (int i=0;i<cs;i++) {
+	  int k=cind[i];
+	  newInd[i]=k+adjustIndex;
+	  newEls[k]=celem[k]/* *multiplier*/;
+	}
+      }
+    }
+  }
+  nElements_ += cs;
+  if (zapElements)
+    other.nElements_=0;
+}
 #ifndef CLP_NO_VECTOR
 /* Equal. Returns true if vectors have same length and corresponding
    element of each vector is equal. */
@@ -1268,6 +1372,92 @@ CoinIndexedVector::operator!=(const CoinPackedVectorBase & rhs) const
   return okay;
 }
 #endif
+// Equal with a tolerance (returns -1 or position of inequality). 
+int
+CoinIndexedVector::isApproximatelyEqual(const CoinIndexedVector & rhs, double tolerance) const
+{
+  CoinIndexedVector tempA(*this);
+  CoinIndexedVector tempB(rhs);
+  int * cind = tempB.indices_;
+  double * celem = tempB.elements_;
+  double * elem = tempA.elements_;
+  int cs = tempB.nElements_;
+  int bad=-1;
+  CoinRelFltEq eq(tolerance);
+  if (!packedMode_&&!tempB.packedMode_) {
+    for (int i=0;i<cs;i++) {
+      int iRow = cind[i];
+      if (!eq(celem[iRow],elem[iRow])) {
+	bad=iRow;
+	break;
+      } else {
+	celem[iRow]=elem[iRow]=0.0;
+      }
+    }
+    cs=tempA.nElements_;
+    cind=tempA.indices_;
+    for (int i=0;i<cs;i++) {
+      int iRow = cind[i];
+      if (!eq(celem[iRow],elem[iRow])) {
+	bad=iRow;
+	break;
+      } else {
+	celem[iRow]=elem[iRow]=0.0;
+      }
+    }
+  } else if (packedMode_&&tempB.packedMode_) {
+    double * celem2 = rhs.elements_;
+    memset(celem,0,CoinMin(capacity_,tempB.capacity_)*sizeof(double));
+    for (int i=0;i<cs;i++) {
+      int iRow = cind[i];
+      celem[iRow]=celem2[i];
+    }
+    for (int i=0;i<cs;i++) {
+      int iRow = cind[i];
+      if (!eq(celem[iRow],elem[i])) {
+	bad=iRow;
+	break;
+      } else {
+	celem[iRow]=elem[i]=0.0;
+      }
+    }
+  } else {
+    double * celem2=elem;
+    double * celem3=celem;
+    if (packedMode_) {
+      celem2=celem;
+      celem3=elem;
+    }
+    for (int i=0;i<cs;i++) {
+      int iRow = cind[i];
+      if (!eq(celem2[iRow],celem3[i])) {
+	bad=iRow;
+	break;
+      } else {
+	celem2[iRow]=celem3[i]=0.0;
+      }
+    }
+  }
+  if (bad<0) {
+    for (int i=0;i<tempA.capacity_;i++) {
+      if (elem[i]) {
+	if (fabs(elem[i])>tolerance) {
+	  bad=i;
+	  break;
+	}
+      }
+    }
+    for (int i=0;i<tempB.capacity_;i++) {
+      if (celem[i]) {
+	if (fabs(celem[i])>tolerance) {
+	  bad=i;
+	  break;
+	}
+      }
+    }
+  }
+  return bad;
+}
 /* Equal. Returns true if vectors have same length and corresponding
    element of each vector is equal. */
 bool 
@@ -1279,14 +1469,42 @@ CoinIndexedVector::operator==(const CoinIndexedVector & rhs) const
   const double * celem = rhs.elements_;
   if (nElements_!=cs)
     return false;
-  int i;
   bool okay=true;
   CoinRelFltEq eq(1.0e-8);
-  for (i=0;i<cs;i++) {
-    int iRow = cind[i];
-    if (!eq(celem[iRow],elements_[iRow])) {
-      okay=false;
-      break;
+  if (!packedMode_&&!rhs.packedMode_) {
+    for (int i=0;i<cs;i++) {
+      int iRow = cind[i];
+      if (!eq(celem[iRow],elements_[iRow])) {
+	okay=false;
+	break;
+      }
+    }
+  } else if (packedMode_&&rhs.packedMode_) {
+    double * temp = new double[CoinMax(capacity_,rhs.capacity_)];
+    memset(temp,0,CoinMax(capacity_,rhs.capacity_)*sizeof(double));
+    for (int i=0;i<cs;i++) {
+      int iRow = cind[i];
+      temp[iRow]=celem[i];
+    }
+    for (int i=0;i<cs;i++) {
+      int iRow = cind[i];
+      if (!eq(temp[iRow],elements_[i])) {
+	okay=false;
+	break;
+      }
+    }
+  } else {
+    const double * celem2=elements_;
+    if (packedMode_) {
+      celem2=celem;
+      celem=elements_;
+    }
+    for (int i=0;i<cs;i++) {
+      int iRow = cind[i];
+      if (!eq(celem2[iRow],celem[i])) {
+	okay=false;
+	break;
+      }
     }
   }
   return okay;
@@ -1388,20 +1606,21 @@ CoinIndexedVector::scan(int start, int end, double tolerance)
 int
 CoinIndexedVector::cleanAndPack( double tolerance )
 {
-  int number = nElements_;
-  int i;
-  nElements_=0;
-  assert(!packedMode_);
-  for (i=0;i<number;i++) {
-    int indexValue = indices_[i];
-    double value = elements_[indexValue];
-    elements_[indexValue]=0.0;
-    if (fabs(value)>=tolerance) {
-      elements_[nElements_]=value;
-      indices_[nElements_++]=indexValue;
+  if (!packedMode_) {
+    int number = nElements_;
+    int i;
+    nElements_=0;
+    for (i=0;i<number;i++) {
+      int indexValue = indices_[i];
+      double value = elements_[indexValue];
+      elements_[indexValue]=0.0;
+      if (fabs(value)>=tolerance) {
+	elements_[nElements_]=value;
+	indices_[nElements_++]=indexValue;
+      }
     }
+    packedMode_=true;
   }
-  packedMode_=true;
   return nElements_;
 }
 // These pack down
@@ -1535,6 +1754,28 @@ CoinIndexedVector::createPacked(int number, const int * indices,
   CoinMemcpyN(indices,number,indices_);
   CoinMemcpyN(elements,number,elements_);
 }
+// Create packed array
+void 
+CoinIndexedVector::createUnpacked(int number, const int * indices, 
+		    const double * elements)
+{
+  nElements_=number;
+  packedMode_=false;
+  for (int i=0;i<nElements_;i++) {
+    int iRow=indices[i];
+    indices_[i]=iRow;
+    elements_[iRow]=elements[i];
+  }
+}
+// Create unpacked singleton
+void 
+CoinIndexedVector::createOneUnpackedElement(int index, double element)
+{
+  nElements_=1;
+  packedMode_=false;
+  indices_[0]=index;
+  elements_[index]=element;
+}
 //  Print out
 void 
 CoinIndexedVector::print() const
@@ -1557,56 +1798,109 @@ CoinArrayWithLength::clear()
   assert ((size_>0&&array_)||!array_);
   memset (array_,0,size_);
 }
-static char * mallocArray(long size)
+// Get array with alignment
+void 
+CoinArrayWithLength::getArray(int size)
 {
   if (size>0) {
-    char * array = new char [size];
-    return array;
+    if(alignment_>2) {
+      offset_ = 1<<alignment_;
+    } else {
+      offset_=0;
+    }
+    assert (size>0);
+    char * array = new char [size+offset_];
+    if (offset_) {
+      // need offset
+      CoinInt64 xx = reinterpret_cast<CoinInt64>(array);
+      int iBottom = static_cast<int>(xx & ((offset_-1)));
+      if (iBottom)
+	offset_ = offset_-iBottom;
+      else
+	offset_ = 0;
+      array_ = array + offset_;;
+    } else {
+      array_=array;
+    }
+    if (size_!=-1)
+      size_=size;
   } else {
-    return NULL;
+    array_= NULL;
   }
 }
-static void freeArray(void * array)
+// Get rid of array with alignment
+void 
+CoinArrayWithLength::conditionalDelete()
 {
-  char * charArray = reinterpret_cast<char *> (array);
-  delete [] charArray;
+  if (size_==-1) {
+    char * charArray = reinterpret_cast<char *> (array_);
+    if (charArray)
+      delete [] (charArray-offset_);
+    array_=NULL;
+  } else if (size_>=0) {
+    size_ = -size_-2;
+  }
+}
+// Really get rid of array with alignment
+void 
+CoinArrayWithLength::reallyFreeArray()
+{
+  char * charArray = reinterpret_cast<char *> (array_);
+  if (charArray)
+    delete [] (charArray-offset_);
+  array_=NULL;
+  size_=-1;
+}
+// Get enough space
+void 
+CoinArrayWithLength::getCapacity(int numberBytes,int numberNeeded)
+{
+  int k=capacity();
+  if (k<numberBytes) {
+    reallyFreeArray();
+    getArray(CoinMax(numberBytes,numberNeeded));
+  } else if (size_<0) {
+    size_=-size_-2;
+  }
+}
+/* Alternate Constructor - length in bytes 
+   mode -  0 size_ set to size
+   >0 size_ set to size and zeroed
+   if size<=0 just does alignment
+   If abs(mode) >2 then align on that as power of 2
+*/
+CoinArrayWithLength::CoinArrayWithLength(int size, int mode)
+{
+  alignment_=abs(mode);
+  getArray(size);
+  if (mode>0&&array_) 
+    memset(array_,0,size);
+  size_=size;
+}
+CoinArrayWithLength::~CoinArrayWithLength ()
+{ 
+  if (array_)
+    delete [] (array_-offset_); 
 }
 // Conditionally gets new array
 char * 
 CoinArrayWithLength::conditionalNew(long sizeWanted)
 {
   if (size_==-1) {
-    freeArray(array_);
-    array_ = mallocArray(sizeWanted);
+    getCapacity(sizeWanted);
   } else {
-    setCapacity();
-    if (sizeWanted>size_) {
-      freeArray(array_);
-      size_ = static_cast<int> (sizeWanted*101/100)+64;
-      // round to multiple of 16
-      size_ -= size_%16;
-      array_ = mallocArray(size_);
-    }
+    int newSize = static_cast<int> (sizeWanted*101/100)+64;
+    // round to multiple of 16
+    newSize -= newSize%16;
+    getCapacity(sizeWanted,newSize);
   }
   return array_;
-}
-// Conditionally deletes
-void 
-CoinArrayWithLength::conditionalDelete()
-{
-  if (size_==-1) {
-    freeArray(array_);
-    array_=NULL;
-  } else if (size_>=0) {
-    size_ = -size_-2;
-  }
 }
 /* Copy constructor. */
 CoinArrayWithLength::CoinArrayWithLength(const CoinArrayWithLength & rhs)
 {
-  assert (rhs.getCapacity()>=0);
-  size_=rhs.size_;
-  array_ = mallocArray(getCapacity());
+  assert (capacity()>=0);
+  getArray(rhs.capacity());
   if (size_>0)
     CoinMemcpyN(rhs.array_,size_,array_);
 }
@@ -1614,9 +1908,9 @@ CoinArrayWithLength::CoinArrayWithLength(const CoinArrayWithLength & rhs)
 /* Copy constructor.2 */
 CoinArrayWithLength::CoinArrayWithLength(const CoinArrayWithLength * rhs)
 {
-  assert (rhs->getCapacity()>=0);
+  assert (rhs->capacity()>=0);
   size_=rhs->size_;
-  array_ = mallocArray(getCapacity());
+  getArray(rhs->capacity());
   if (size_>0)
     CoinMemcpyN(rhs->array_,size_,array_);
 }
@@ -1627,19 +1921,11 @@ CoinArrayWithLength::operator=(const CoinArrayWithLength & rhs)
   if (this != &rhs) {
     assert (rhs.size_!=-1||!rhs.array_);
     if (rhs.size_==-1) {
-      freeArray(array_);
-      array_=NULL;
-      size_=-1;
+      reallyFreeArray();
     } else {
-      int capacity = getCapacity();
-      int rhsCapacity = rhs.getCapacity();
-      if (capacity<rhsCapacity) {
-	freeArray(array_);
-	array_ = mallocArray(rhsCapacity);
-      }
-      size_=rhs.size_;
+      getCapacity(rhs.size_);
       if (size_>0)
- CoinMemcpyN(rhs.array_,size_,array_);
+	CoinMemcpyN(rhs.array_,size_,array_);
     }
   }
   return *this;
@@ -1648,19 +1934,11 @@ CoinArrayWithLength::operator=(const CoinArrayWithLength & rhs)
 void 
 CoinArrayWithLength::copy(const CoinArrayWithLength & rhs, int numberBytes)
 {
-  if (numberBytes==-1||numberBytes<=rhs.getCapacity()) {
+  if (numberBytes==-1||numberBytes<=rhs.capacity()) {
     CoinArrayWithLength::operator=(rhs);
   } else {
     assert (numberBytes>=0);
-    if (size_==-1) {
-      freeArray(array_);
-      array_=NULL;
-    } else {
-      size_=-1;
-    } 
-    if (rhs.size_>=0) 
-      size_ = numberBytes;
-    array_ = mallocArray(numberBytes);
+    getCapacity(numberBytes);
     if (rhs.array_)
       CoinMemcpyN(rhs.array_,numberBytes,array_);
   }
@@ -1669,32 +1947,27 @@ CoinArrayWithLength::copy(const CoinArrayWithLength & rhs, int numberBytes)
 void 
 CoinArrayWithLength::allocate(const CoinArrayWithLength & rhs, int numberBytes)
 {
-  if (numberBytes==-1||numberBytes<=rhs.getCapacity()) {
+  if (numberBytes==-1||numberBytes<=rhs.capacity()) {
     assert (rhs.size_!=-1||!rhs.array_);
     if (rhs.size_==-1) {
-      freeArray(array_);
-      array_=NULL;
-      size_=-1;
+      reallyFreeArray();
     } else {
-      int capacity = getCapacity();
-      int rhsCapacity = rhs.getCapacity();
-      if (capacity<rhsCapacity) {
-	freeArray(array_);
-	array_ = mallocArray(rhsCapacity);
-      }
-      size_=rhs.size_;
+      getCapacity(rhs.size_);
     }
   } else {
     assert (numberBytes>=0);
     if (size_==-1) {
-      freeArray(array_);
+      delete [] array_;
       array_=NULL;
     } else {
       size_=-1;
     } 
     if (rhs.size_>=0) 
       size_ = numberBytes;
-    array_ = mallocArray(numberBytes);
+    assert (numberBytes>=0);
+    assert (!array_);
+    if (numberBytes)
+      array_ = new char[numberBytes];
   }
 }
 // Does what is needed to set persistence
@@ -1707,7 +1980,7 @@ CoinArrayWithLength::setPersistence(int flag,int currentLength)
 	size_=currentLength;
       } else {
 	size_=0;
-	freeArray(array_);
+	conditionalDelete();
 	array_=NULL;
       }
     }
@@ -1723,24 +1996,30 @@ CoinArrayWithLength::swap(CoinArrayWithLength & other)
   if (!(size_==other.size_||size_==-1||other.size_==-1))
     printf("Two arrays have sizes - %d and %d\n",size_,other.size_);
 #endif
+  assert (alignment_==other.alignment_);
   char * swapArray = other.array_;
   other.array_=array_;
   array_=swapArray;
   int swapSize = other.size_;
   other.size_=size_;
   size_=swapSize;
+  int swapOffset = other.offset_;
+  other.offset_=offset_;
+  offset_=swapOffset;
 }
 // Extend a persistent array keeping data (size in bytes)
 void 
 CoinArrayWithLength::extend(int newSize)
 {
-  //assert (newSize>=getCapacity()&&getCapacity()>=0);
+  //assert (newSize>=capacity()&&capacity()>=0);
   assert (size_>=0); // not much point otherwise
   if (newSize>size_) {
-    char * temp = mallocArray(newSize);
-    CoinMemcpyN(array_,size_,temp);
-    freeArray(array_);
-    array_=temp;
+    char * temp = array_;
+    getArray(newSize);
+    if (temp) {
+      CoinMemcpyN(array_,size_,temp);
+      delete [] (temp-offset_);
+    }
     size_=newSize;
   }
 }
