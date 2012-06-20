@@ -3390,8 +3390,8 @@ CoinPackedMatrix::appendMinorFast(const int number,
   // first compute how many entries will be added to each major-dimension
   // vector, and if needed, resize the matrix to accommodate all
   // Will be used as new start array
-  CoinBigIndex * newStart = new CoinBigIndex [majorDim_+1];
-  CoinZeroN(newStart,majorDim_);
+  CoinBigIndex * newStart = new CoinBigIndex [maxMajorDim_+1];
+  CoinZeroN(newStart,maxMajorDim_);
   // no checking
   int numberAdded = starts[number];
   for (CoinBigIndex j = 0; j < numberAdded; j++) {
