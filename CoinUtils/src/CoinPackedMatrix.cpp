@@ -3092,7 +3092,7 @@ CoinPackedMatrix::appendMajor(const int number,
     // we got to resize before we add. note that the resizing method
     // properly fills out start_ and length_ for the major-dimension
     // vectors to be added!
-    if (!extraGap_&&!extraMajor_&&numberOther<=0) {
+    if (!extraGap_&&!extraMajor_&&numberOther<=0&&!hasGaps()) {
       // can do faster
       if (majorDim_+number>maxMajorDim_) {
 	maxMajorDim_ = majorDim_+number;
