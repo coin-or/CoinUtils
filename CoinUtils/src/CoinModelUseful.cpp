@@ -1428,15 +1428,12 @@ CoinModelLinkedList::validateLinks(const CoinModelTriple * triples) const
     int lastPosition=-1;
     while (position>=0) {
       int iMajor;
-      int iMinor;
       if (position!=first_[i])
         assert (next_[previous_[position]]==position);
       if (!type_) {
         // for rows
         iMajor=static_cast<int> (rowInTriple(triples[position]));
-        iMinor=triples[position].column;
       } else {
-        iMinor=static_cast<int> (rowInTriple(triples[position]));
         iMajor=triples[position].column;
       }
       assert (triples[position].column>=0);
