@@ -2221,16 +2221,12 @@ CoinLpIO::startHash(char const * const * const names,
 void
 CoinLpIO::stopHash(int section)
 {
-  char **names = names_[section];
-
   freePreviousNames(section);
   previous_names_[section] = names_[section];
   card_previous_names_[section] = numberHash_[section];
 
   delete[] hash_[section];
   hash_[section] = NULL;
-
-  names = NULL;
 
   maxHash_[section] = 0;
   numberHash_[section] = 0;
