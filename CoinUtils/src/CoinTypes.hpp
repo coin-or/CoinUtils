@@ -7,6 +7,9 @@
 #define _CoinTypes_hpp
 
 #include "CoinUtilsConfig.h"
+#ifdef __MINGW64__
+#include <stdint.h>
+#endif
 
 #define CoinInt64 COIN_INT64_T
 #define CoinUInt64 COIN_UINT64_T
