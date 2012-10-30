@@ -1447,6 +1447,8 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
     }
   } 
 #endif
+  if (goSparse>0&&regionSparse->getNumElements()>numberRows_)
+    goSparse=0;
   switch (goSparse) {
   case -1: // No row copy
     updateColumnTransposeLDensish(regionSparse);
