@@ -227,7 +227,7 @@ public:
 		 assert (element);
 		 if (elements_[index]) {
 		   element += elements_[index];
-		   if (element) {
+		   if ((element > 0 ? element : -element) >= COIN_INDEXED_TINY_ELEMENT) {
 		     elements_[index] = element;
 		   } else {
 		     elements_[index] = COIN_DBL_MIN;
