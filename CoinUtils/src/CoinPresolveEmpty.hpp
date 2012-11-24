@@ -56,7 +56,7 @@ private:
   const char *name() const { return ("drop_empty_cols_action"); }
 
   static const CoinPresolveAction *presolve(CoinPresolveMatrix *,
-					 int *ecols,
+					 const int *ecols,
 					 int necols,
 					 const CoinPresolveAction*);
 
