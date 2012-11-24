@@ -23,8 +23,8 @@
   reach its upper or lower bounds, it is an implied free variable. Both x and
   the constraint can be deleted from the problem.
 
-  The transform also handles more complicated variations, where x is not a
-  singleton.
+  A similar transform for the case where the variable is not a natural column
+  singleton is handled by #subst_constraint_action.
 */
 class implied_free_action : public CoinPresolveAction {
   struct action {
