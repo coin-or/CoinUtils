@@ -2198,12 +2198,16 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs) :
 		rhs.extraMajor_, rhs.extraGap_);
   }
 }
-/* Copy constructor - fine tuning - allowing extra space and/or reverse ordering.
-   extraForMajor is exact extra after any possible reverse ordering.
+/* Copy constructor - fine tuning - allowing extra space and/or reverse
+   ordering.
+
+   extraForMajor is exact extra after any possible reverse ordering. If
+    < 0 then gaps and small values are removed as the copy is created.
    extraMajor_ and extraGap_ set to zero.
 */
-CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix& rhs, int extraForMajor, 
-				   int extraElements, bool reverseOrdering)
+CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix& rhs,
+				    int extraForMajor, 
+				    int extraElements, bool reverseOrdering)
   :  colOrdered_(rhs.colOrdered_),
    extraGap_(0),
    extraMajor_(0),

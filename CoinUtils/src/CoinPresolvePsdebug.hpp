@@ -33,7 +33,7 @@
   command line (use ADD_CXXFLAGS), in a Makefile, or similar and do a full
   rebuild (including any presolve driver code). If the symbols are not
   consistently nonzero across *all* presolve code, you'll get something
-  between garbage and a core dump! Debugging adds messages to COIN_Message
+  between garbage and a core dump! Debugging adds messages to CoinMessage
   and allocates and maintains arrays that hold debug information.
 
   That said, given that you've configured and built with PRESOLVE_DEBUG and
@@ -53,7 +53,7 @@
 	   entries in the major vectors.
 
   By default, scans both the column- and row-major matrices. Set doCol (doRow)
-  to false to suppress one or the other.
+  to false to suppress the column (row) scan.
 */
 void presolve_no_dups(const CoinPresolveMatrix *preObj,
 		      bool doCol = true, bool doRow = true) ;
@@ -62,19 +62,18 @@ void presolve_no_dups(const CoinPresolveMatrix *preObj,
     \brief Check the links which track storage order for major vectors in
     the bulk storage area.
 
-  By default, scans only the column-major matrix. Set doCol = false to
-  suppress the scan. Set doRow = false to scan the row-major links. But be
-  warned, the row-major links are not maintained with the same zeal as the
-  column-major links.
+  By default, scans both the column- and row-major matrix. Set doCol = false to
+  suppress the column-major scan. Set doRow = false to suppres the row-major
+  scan. 
 */
 void presolve_links_ok(const CoinPresolveMatrix *preObj,
-		       bool doCol = true, bool doRow = false) ;
+		       bool doCol = true, bool doRow = true) ;
 
 /*! \relates CoinPresolveMatrix
     \brief Check for explicit zeros in the column- and/or row-major matrices.
 
   By default, scans both the column- and row-major matrices. Set doCol (doRow)
-  to false to suppress one or the other.
+  to false to suppress the column (row) scan.
 */
 void presolve_no_zeros(const CoinPresolveMatrix *preObj,
 		       bool doCol = true, bool doRow = true) ;
@@ -98,7 +97,7 @@ void presolve_check_threads(const CoinPostsolveMatrix *obj) ;
 
     Scans the thread of free locations in the bulk store and checks that all
     entries are reasonable (0 <= index < bulk0_). If chkElemCnt is true, it
-    Also checks that the total number of entries in the matrix plus the
+    also checks that the total number of entries in the matrix plus the
     locations on the free list total to the size of the bulk store. Postsolve
     routines do not maintain an accurate element count, but this is useful
     for checking a newly constructed postsolve matrix.

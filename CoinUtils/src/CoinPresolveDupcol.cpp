@@ -130,7 +130,7 @@ const CoinPresolveAction
 # if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 # if PRESOLVE_DEBUG > 0
   std::cout
-    << "Entering subst_constraint_action::presolve." << std::endl ;
+    << "Entering dupcol_action::presolve." << std::endl ;
 # endif
   presolve_consistent(prob) ;
   presolve_links_ok(prob) ;
@@ -793,7 +793,7 @@ const CoinPresolveAction
   int droppedRows = prob->countEmptyRows()-startEmptyRows ;
   int droppedColumns = prob->countEmptyCols()-startEmptyColumns ;
   std::cout
-    << "Leaving subst_constraint_action::presolve, "
+    << "Leaving dupcol_action::presolve, "
     << droppedRows << " rows, " << droppedColumns << " columns dropped" ;
 # if COIN_PRESOLVE_TUNING > 0
   std::cout << " in " << thisTime-startTime << "s" ;
@@ -1124,6 +1124,9 @@ void duprow_action::postsolve(CoinPostsolveMatrix *) const
 /*
   Routines for gub rows. This is definitely unfinished --- there's no
   postsolve action.
+
+  This is potentially called from ClpPresolve and OsiPresolve. Unclear that
+  it can be backed out --- there's no postsolve.
 */
 
 const char *gubrow_action::name () const

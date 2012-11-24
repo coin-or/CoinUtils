@@ -561,7 +561,7 @@ const CoinPresolveAction
 		  printf("NDUAL: x<%d> moved %g to %g; ",
 			 k,movement,csol[k]) ;
 		  printf("lb = %g, ub = %g, status now %s.\n",
-			 clo[k],cup[k],columnStatusString(colstat[k])) ;
+			 clo[k],cup[k],columnStatusString(k)) ;
 		  distance_j -= (movement*value_k)/value_j ;
 		  csol[j] -= (movement*value_k)/value_j ;
 		  if (distance_j<1.0e-7)
@@ -635,7 +635,7 @@ const CoinPresolveAction
 		  printf("NDUAL: x<%d> moved %g to %g; ",
 			 k,movement,csol[k]) ;
 		  printf("lb = %g, ub = %g, status now %s.\n",
-			 clo[k],cup[k],columnStatusString(colstat[k])) ;
+			 clo[k],cup[k],columnStatusString(k)) ;
 		  distance_j -= (movement*value_k)/value_j ;
 		  csol[j] -= (movement*value_k)/value_j ;
 		  if (distance_j>-1.0e-7)
