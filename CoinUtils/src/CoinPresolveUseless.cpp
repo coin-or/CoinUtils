@@ -64,6 +64,9 @@ const CoinPresolveAction *useless_constraint_action::presolve(CoinPresolveMatrix
 
   for (int i=0; i<nuseless_rows; ++i) {
     int irow = useless_rows[i];
+#   if PRESOLVE_DEBUG > 2
+    std::cout << "  removing row " << irow << std::endl ;
+#   endif
     CoinBigIndex krs = mrstrt[irow];
     CoinBigIndex kre = krs + hinrow[irow];
     PRESOLVE_DETAIL_PRINT(printf("pre_useless %dR E\n",irow));

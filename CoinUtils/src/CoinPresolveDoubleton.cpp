@@ -475,8 +475,8 @@ const CoinPresolveAction
 /*
   We've resolved integrality concerns. If we concluded that we need to
   switch the roles of x and y because of integrality, do that now. If both
-  variables are continuous, we may still want to swap for numeric stability,
-  because the value of y will be y = coeffx*x.
+  variables are continuous, we may still want to swap for numeric stability.
+  Eliminate the variable with the larger coefficient.
 */
     if (integerStatus == 2) {
       CoinSwap(tgtcoly,tgtcolx) ;
@@ -597,6 +597,11 @@ const CoinPresolveAction
 	    break ;
 	  }
 	}
+#       if PRESOLVE_DEBUG > 2
+	std::cout
+	  << "  x(" << tgtcolx << ") lb " << clo[tgtcolx] << " --> " << lo2
+	  << ", ub " << cup[tgtcolx] << " --> " << up2 << std::endl ;
+#       endif
 	clo[tgtcolx] = lo2 ;
 	cup[tgtcolx] = up2 ;
 /*

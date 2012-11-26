@@ -33,7 +33,6 @@ void implied_row_bounds (const double *els,
 			 const int *hcol, CoinBigIndex krs, CoinBigIndex kre,
 			 double &maxupp, double &maxdnp)
 {
-  int jcol = hcol[krs] ;
   bool posinf = false ;
   bool neginf = false ;
   double maxup = 0.0 ;
@@ -147,7 +146,9 @@ const CoinPresolveAction*
 # endif
 # if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 # if PRESOLVE_DEBUG > 0
-  std::cout << "Entering forcing_constraint_action::presolve." << std::endl ;
+  std::cout
+    << "Entering forcing_constraint_action::presolve, considering "
+    << prob->numberRowsToDo_ << " rows." << std::endl ;
 # endif
   presolve_check_sol(prob) ;
   presolve_check_nbasic(prob) ;
@@ -208,6 +209,11 @@ const CoinPresolveAction*
 */
     double maxup, maxdown ;
     implied_row_bounds(rowels,clo,cup,hcol,krs,kre,maxup,maxdown) ;
+#   if PRESOLVE_DEBUG > 2
+    std::cout
+      << "  considering row " << irow << ", rlo " << rlo[irow]
+      << " LB " << maxdown << " UB " << maxup << " rup " << rup[irow] ;
+#   endif
 /*
   If the maximum lhs value is less than L(i) or the minimum lhs value is
   greater than U(i), we're infeasible.
@@ -218,6 +224,9 @@ const CoinPresolveAction*
       prob->status_|= 1 ;
       hdlr->message(COIN_PRESOLVE_ROWINFEAS,prob->messages())
 	 << irow << rlo[irow] << rup[irow] << CoinMessageEol ;
+#     if PRESOLVE_DEBUG > 2
+      std::cout << "; infeasible." << std::endl ;
+#     endif
       break ;
     }
     if (-PRESOLVE_INF < maxdown &&
@@ -226,6 +235,9 @@ const CoinPresolveAction*
       prob->status_|= 1 ;
       hdlr->message(COIN_PRESOLVE_ROWINFEAS,prob->messages())
 	 << irow << rlo[irow] << rup[irow] << CoinMessageEol ;
+#     if PRESOLVE_DEBUG > 2
+      std::cout << "; infeasible." << std::endl ;
+#     endif
       break ;
     }
 /*
@@ -243,6 +255,9 @@ const CoinPresolveAction*
 	((rup[irow] >= PRESOLVE_INF) ||
 	 (maxup < PRESOLVE_INF && rup[irow] >= maxup+inftol))) {
       useless_rows[nuseless_rows++] = irow ;
+#     if PRESOLVE_DEBUG > 2
+      std::cout << "; useless." << std::endl ;
+#     endif
       continue ;
     }
 /*
@@ -254,6 +269,10 @@ const CoinPresolveAction*
     			       (fabs(rlo[irow]-maxup) < tol)) ;
     const bool tightAtUpper = ((-PRESOLVE_INF < maxdown) &&
 			       (fabs(rup[irow]-maxdown) < tol)) ;
+#   if PRESOLVE_DEBUG > 2
+    if (tightAtLower || tightAtUpper) std::cout << "; forcing." ;
+    std::cout << std::endl ;
+#   endif
     if (!(tightAtLower || tightAtUpper)) continue ;
 /*
   We have a forcing constraint.
