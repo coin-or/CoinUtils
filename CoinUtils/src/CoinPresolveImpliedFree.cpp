@@ -463,7 +463,6 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 		  markRow[k] = -1 ;
 		}
 	      }
-	      double now ;
 	      if (lt <= -large) {
 		finUpi += newlt*ait ;
 		infUpi-- ;
@@ -612,6 +611,7 @@ const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
 
 
 } // end unnamed file-local namespace
+
 
 /*
   Scan for candidates for the implied free and subst transforms (see
@@ -813,8 +813,9 @@ const CoinPresolveAction *implied_free_action::presolve (
 /*
   Set up to reconnoiter the column.
 
-  The value for ait_max is chosen to make sure that anything that satisfies
-  the stability check is big enough to use.
+  The initial value for ait_max is chosen to make sure that anything that
+  satisfies the stability check is big enough to use (though we'd clearly like
+  something better).
 */
     const CoinBigIndex kcs = colStarts[tgtcol] ;
     const CoinBigIndex kce = kcs+tgtcol_len ;
@@ -827,7 +828,7 @@ const CoinPresolveAction *implied_free_action::presolve (
   singleton row (that has its own, simpler, transform: slack_doubleton). But
   make sure we're not dealing with some tiny a(it).
 
-  Note that there's no point in marking singleton rows. By definition, we
+  Note that there's no point in marking a singleton row. By definition, we
   won't encounter it again.
 */
     if (singletonCol) {
@@ -858,8 +859,11 @@ const CoinPresolveAction *implied_free_action::presolve (
     if (singletonRow || !possibleRow) continue ;
 /*
   The column has possibilities. Walk the column, calculate row activity
-  bounds L(i) and U(i) for suitable entangled rows, and see if any meet
-  the implied free condition. Skip rows already deemed useless.
+  bounds L(i) and U(i) for suitable entangled rows, then calculate the
+  improvement (if any) on the column bounds for l(j) and u(j). The goal is to
+  satisfy the implied free condition over all entangled rows and find at least
+  one row suitable for a substitution formula (if the column is not a natural
+  singleton).
 
   Suitable: If this is a natural singleton, we need to look at the single
   entangled constraint.  If we're attempting to create a singleton by
@@ -873,6 +877,8 @@ const CoinPresolveAction *implied_free_action::presolve (
       << ") " << cup[tgtcol] << ", c(" << tgtcol << ") " << cost[tgtcol]
       << "." << std::endl ;
 #   endif
+    const double lt = clo[tgtcol] ;
+    const double ut = cup[tgtcol] ;
     double impliedLow = -COIN_DBL_MAX ;
     double impliedHigh = COIN_DBL_MAX ;
     int subst_ndx = -1 ;
@@ -887,15 +893,16 @@ const CoinPresolveAction *implied_free_action::presolve (
       const int leni = rowLengths[i] ;
       const double rloi = rlo[i] ;
       const double rupi = rup[i] ;
-
-      if (!singletonCol) {
-        if ((fabs(rloi-rupi) > feasTol) || (fabs(ait) < .1*ait_max))
-	  continue ;
-	if (integerType[tgtcol]) {
-	  const double scaled_rloi = rloi/ait ;
-	  if (fabs(scaled_rloi-floor(scaled_rloi+0.5)) > feasTol) continue ;
-	}
-      }
+/*
+  A suitable row for substitution must
+    * be an equality;
+    * the entangled coefficient must be large enough to be numerically stable;
+    * if x(t) is integer, the constant term in the substitution formula must be
+      integer.
+*/
+      bool rowiOK = (fabs(rloi-rupi) < feasTol) && (fabs(ait) > .1*ait_max) ;
+      rowiOK = rowiOK && ((integerType[tgtcol] == 0) ||
+                          (fabs((rloi/ait)-floor((rloi/ait)+0.5)) < feasTol)) ;
 /*
   If we don't already have L(i) and U(i), calculate now. Check for useless and
   infeasible constraints when that's done.
@@ -976,7 +983,7 @@ const CoinPresolveAction *implied_free_action::presolve (
 /*
   If we're infeasible, no sense checking further; escape the implied bound
   loop. The other possibility is that we've just discovered the constraint
-  is useless, in which case we just move on to the next one in the row.
+  is useless, in which case we just move on to the next one in the column.
 */
       if (infeas) break ;
       if (infiniteUp[i] == -2) continue ;
@@ -996,8 +1003,6 @@ const CoinPresolveAction *implied_free_action::presolve (
   L(i) or U(i) is very large. If the new bound is very large, force it to
   infinity.
 */
-      const double lt = clo[tgtcol] ;
-      const double ut = cup[tgtcol] ;
       double ltprime = -COIN_DBL_MAX ;
       double utprime = COIN_DBL_MAX ;
       if (ait > 0.0) {
@@ -1063,24 +1068,16 @@ const CoinPresolveAction *implied_free_action::presolve (
 	  impliedLow = CoinMax(impliedLow,ltprime) ;
 	}
       }
-      if (ltprime < -large) ltprime = -COIN_DBL_MAX ;
-      if (utprime > large) utprime = COIN_DBL_MAX ;
 #     if PRESOLVE_DEBUG > 2
       std::cout
         << "    row(" << i << ") l'(" << tgtcol << ") " << ltprime
 	<< ", u'(" << tgtcol << ") " << utprime ;
-      if (lt <= ltprime && utprime <= ut)
-        std::cout << " pass" ;
-      else
-        std::cout << " fail" ;
-      std::cout << " implied free." << std::endl ;
+      if (lt <= impliedLow && impliedHigh <= ut)
+	std::cout << "; implied free satisfied" ;
+      std::cout << "." << std::endl ;
 #     endif
 /*
-  Does row i meet the implied free condition? If not, move on.
-*/
-      if (!(lt <= ltprime && utprime <= ut)) continue ;
-/*
-  For x(t) integral, make sure a substitution formula based on row i will
+  For x(t) integral, see if a substitution formula based on row i will
   preserve integrality.  The final check in this clause aims to preserve
   SOS equalities (i.e., don't eliminate a non-trivial SOS equality from
   the system using this transform).
@@ -1106,20 +1103,22 @@ const CoinPresolveAction *implied_free_action::presolve (
 	}
 	if (rloi == 1.0 && leni >= 5 && stopSomeStuff && allOnes)
 	  possibleRow = false ;
-	if (!possibleRow) continue ;
+	rowiOK = rowiOK && possibleRow ;
       }
 /*
-  We have a winner! If we have an incumbent, prefer the one with fewer
+  Do we have a winner? If we have an incumbent, prefer the one with fewer
   coefficients.
 */
-      if (subst_ndx < 0 || (leni < subst_len)) {
-#       if PRESOLVE_DEBUG > 2
-        std::cout
-	  << "    row(" << i << ") now candidate for x(" << tgtcol << ")."
-	  << std::endl ;
-#       endif
-        subst_ndx = i ;
-	subst_len = leni ;
+      if (rowiOK) {
+	if (subst_ndx < 0 || (leni < subst_len)) {
+#         if PRESOLVE_DEBUG > 2
+          std::cout
+	    << "    row(" << i << ") now candidate for x(" << tgtcol << ")."
+	    << std::endl ;
+#         endif
+	  subst_ndx = i ;
+	  subst_len = leni ;
+	}
       }
     }
 
@@ -1130,7 +1129,8 @@ const CoinPresolveAction *implied_free_action::presolve (
   it out. Take the row out of the running --- we can't use the same row
   for two substitutions.
 */
-    if (subst_ndx >= 0) {
+    if (lt <= impliedLow && impliedHigh <= ut &&
+        (subst_ndx >= 0 || singletonRow)) {
       implied_free[numberFree] = subst_ndx ;
       infiniteUp[subst_ndx] = -4 ;
       whichFree[numberFree++] = tgtcol ;
