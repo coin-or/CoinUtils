@@ -41,5 +41,23 @@ class useless_constraint_action : public CoinPresolveAction {
 
 };
 
+/*! \relates useless_constraint_action
+    \brief Scan constraints looking for useless constraints
+
+  A front end to identify useless constraints and hand them to
+  useless_constraint_action::presolve() for processing.
+
+  In a bit more detail, the routine implements a greedy algorithm that
+  identifies a set of necessary constraints. A constraint is necessary if it
+  implies a tighter bound on a variable than the original column bound. These
+  tighter column bounds are then used to calculate row activity and identify
+  constraints that are useless given the presence of the necessary
+  constraints. 
+*/
+
+const CoinPresolveAction *testRedundant(CoinPresolveMatrix *prob,
+					const CoinPresolveAction *next) ;
+
+
 
 #endif

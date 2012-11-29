@@ -61,557 +61,6 @@
   of x(t) that *would* violate the constraint.
 */
 
-namespace {	// begin unnamed file-local namespace
-
-/*
-  Hard to say what was intended here. Once you strip away a huge amount of
-  cruft (cf. r1555) the code amounts to an expensive noop that might detect
-  infeasibility and useless constraints while it works.  If presolve is
-  allowed to do things that may not unroll, then this code can also fix
-  variables as the result of bound propagation.
-
-  Superfically the code is yet another instance of bound propagation, but
-  it's kind of specialised. In context, we're looking to improve our chances
-  of finding implied free transforms. The propagation here is specialised
-  towards that end. As soon as some row can be used to improve a column
-  bound, it's excluded from further processing. But the effort is wasted!
-  No information is propagated back to implied_free_action::presolve.
-  (And this whole paragraph is speculation, given the usual total lack of
-  comment.)
-
-  In r1555 there was disabled code to detect and process forcing
-  constraints. Unfortunately, it was using the wrong condition to detect
-  a forcing constraint, which likely explains why it was disabled. I've
-  deleted that code, along with huge swathes of debug code, because the
-  code that was here would require serious effort to fix and because
-  forcing_constraint_action (CoinPresolveForcing) handles forcing and
-  useless constraints correctly.
-
-  Compiles, but not thoroughly tested. There doesn't seem to be any point.
-
-  -- lh, 121116 --
-*/
-const CoinPresolveAction *testRedundant (CoinPresolveMatrix *prob,
-					 const CoinPresolveAction *next,
-					 int &numberInfeasible)
-{
-
-  const int m = prob->nrows_ ;
-  const int n = prob->ncols_ ;
-/*
-  Unpack the row- and column-major representations.
-*/
-  const CoinBigIndex *rowStarts = prob->mrstrt_ ;
-  const int *rowLengths = prob->hinrow_ ;
-  const double *rowCoeffs = prob->rowels_ ;
-  const int *colIndices = prob->hcol_ ;
-
-  const CoinBigIndex *colStarts = prob->mcstrt_ ;
-  const int *rowIndices = prob->hrow_ ;
-  const int *colLengths = prob->hincol_ ;
-/*
-  Rim vectors.
-  
-  We'll want copies of the column bounds to modify as we do bound propagation.
-*/
-  const double *rlo = prob->rlo_ ;
-  const double *rup = prob->rup_ ;
-
-  double *columnLower = new double[n] ;
-  double *columnUpper = new double[n] ;
-  CoinMemcpyN(prob->clo_,n,columnLower) ;
-  CoinMemcpyN(prob->cup_,n,columnUpper) ;
-
-  int *useless_rows = prob->usefulRowInt_+m ;
-  int nuseless_rows = 0 ;
-
-/*
-  The usual finite infinity.
-*/
-# define USE_SMALL_LARGE
-# ifdef USE_SMALL_LARGE
-  const double large = 1.0e15 ;
-# else
-  const double large = 1.0e20 ;
-# endif
-# ifndef NDEBUG
-  const double large2 = 1.0e10*large ;
-# endif
-
-  double feasTol = prob->feasibilityTolerance_ ;
-  double relaxedTol = 100.0*feasTol ;
-
-  const int MAXPASS = 10 ;
-  int iPass = 0 ;
-
-  numberInfeasible = 0 ;
-  int numberChanged = 0 ;
-  int totalTightened = 0 ;
-/*
-  More like `ignore infeasibility.'
-*/
-  bool fixInfeasibility = ((prob->presolveOptions_&0x4000) != 0) ;
-
-/*
-  Set up for propagation. Scan the rows and mark them as interesting for
-  column bound propagation (-1) or uninteresting (+1). Later on, a code of
-  -2 indicates that we've calculated row activity bounds and tried to use the
-  row to tighten column bounds.
-
-  Useful rows are nonempty with at least one finite row bound.
-
-  Nonempty rows with no finite row bounds are useless. Record them for later.
-*/
-  char *markRow = reinterpret_cast<char *>(prob->usefulRowInt_) ;
-
-  for (int i = 0 ; i < m ; i++) {
-    if ((rlo[i] > -large || rup[i] < large) && rowLengths[i] > 0) {
-      markRow[i] = -1 ;
-    } else {
-      markRow[i] = 1 ;
-      if (rowLengths[i] > 0) {
-	useless_rows[nuseless_rows++] = i ;
-	prob->addRow(i) ;
-      }
-    }
-  }
-
-/*
-  Open the main loop. We'll keep trying to tighten bounds until we get to
-  diminishing returns. numberCheck is set at the end of the loop based on how
-  well we did in the first pass.
-
-  Original comment:
-     Loop round seeing if we can tighten bounds
-     Would be faster to have a stack of possible rows
-     and we put altered rows back on stack
-*/
-  int numberCheck = -1 ;
-  while (iPass < MAXPASS && numberChanged > numberCheck) {
-    iPass++ ;
-    numberChanged = 0 ;
-/*
-  Open a loop to work through the rows computing upper and lower bounds
-  on row activity. Each bound is calculated as a finite component and an
-  infinite component.
-
-  The progress of an interesting row goes like this:
-    * It starts out marked with -1.
-    * When it's processed by the loop, L(i) and U(i) are calculated and we
-      try to tighten the column bounds of the row. If nothing happens, the
-      row remains marked with -2. It's still in play but won't be processed
-      again unless the mark changes back to -1.
-    * If a column bound is tightened when we process the row, it's marked with
-      +1 and is never processed again. Rows entangled with the column and
-      marked with -2 are remarked to -1 and will be reprocessed on the next
-      major pass.
-*/
-    for (int i = 0 ; i < m ; i++) {
-
-      if (markRow[i] != -1) continue ;
-
-      int infUpi = 0 ;
-      int infLoi = 0 ;
-      double finUpi = 0.0 ;
-      double finDowni = 0.0 ;
-      const CoinBigIndex krs = rowStarts[i] ;
-      const CoinBigIndex kre = krs+rowLengths[i] ;
-/*
-  Open a loop to walk the row and calculate upper (U) and lower (L) bounds
-  on row activity. Expand the finite component just a wee bit to make sure the
-  bounds are conservative, then add in a whopping big value to account for the
-  infinite component.
-*/
-      for (CoinBigIndex kcol = krs ; kcol < kre ; ++kcol) {
-	const double value = rowCoeffs[kcol] ;
-	const int j = colIndices[kcol] ;
-	if (value > 0.0) {
-	  if (columnUpper[j] < large) 
-	    finUpi += columnUpper[j]*value ;
-	  else
-	    ++infUpi ;
-	  if (columnLower[j] > -large) 
-	    finDowni += columnLower[j]*value ;
-	  else
-	    ++infLoi ;
-	} else if (value<0.0) {
-	  if (columnUpper[j] < large) 
-	    finDowni += columnUpper[j]*value ;
-	  else
-	    ++infLoi ;
-	  if (columnLower[j] > -large) 
-	    finUpi += columnLower[j]*value ;
-	  else
-	    ++infUpi ;
-	}
-      }
-      markRow[i] = -2 ;
-      finUpi += 1.0e-8*fabs(finUpi) ;
-      finDowni -= 1.0e-8*fabs(finDowni) ;
-      const double maxUpi = finUpi+infUpi*1.0e31 ;
-      const double maxDowni = finDowni-infLoi*1.0e31 ;
-/*
-  Remember why we're here --- this is presolve. If the constraint satisfies
-  this condition, it might qualify as forcing or even useless. No need to keep
-  tightening U(i) and L(i).
-*/
-      if (maxUpi <= rup[i]+feasTol && maxDowni >= rlo[i]-feasTol) continue ;
-/*
-  If LB(i) > rup(i) or UB(i) < rlo(i), we're infeasible. Break for the exit,
-  unless the user has been so foolish as to tell us to ignore infeasibility,
-  in which case just move on to the next row.
-*/
-      if (maxUpi < rlo[i]-relaxedTol || maxDowni > rup[i]+relaxedTol) {
-	if (!fixInfeasibility) {
-	  numberInfeasible++ ;
-	  prob->messageHandler()->message(COIN_PRESOLVE_ROWINFEAS,
-					  prob->messages())
-	      << i << rlo[i] << rup[i] << CoinMessageEol ;
-	  break ;
-	} else {
-	  continue ;
-	}
-      }
-/*
-  We're not infeasible, but one of U(i) or L(i) is not yet inside the row
-  bounds. See if we can tighten it up a bit. If the value is close to the
-  row bound, force it to be cleanly equal.
-*/
-      const double rloi = rlo[i] ;
-      const double rupi = rup[i] ;
-      if (finUpi < rloi && finUpi > rloi-relaxedTol)
-	finUpi = rloi ;
-      if (finDowni > rupi && finDowni < rupi+relaxedTol)
-	finDowni = rupi ;
-/*
-  Open a loop to walk the row and tighten column bounds.
-*/
-      for (CoinBigIndex kcol = krs; kcol < kre; ++kcol) {
-	double ait = rowCoeffs[kcol] ;
-	int t = colIndices[kcol] ;
-	double lt = columnLower[t] ;
-	double ut = columnUpper[t] ;
-	double newlt = COIN_DBL_MAX ;
-	double newut = -COIN_DBL_MAX ;
-/*
-  For a target variable x(t) with a(it) > 0, we have
-
-    new l(t) = (rlo(i)-(U(i)-a(it)u(t)))/a(it) = u(t) + (rlo(i)-U(i))/a(it)
-    new u(t) = (rup(i)-(L(i)-a(it)l(t)))/a(it) = l(t) + (rup(i)-L(i))/a(it)
-
-  Notice that if there's a single infinite contribution to L(i) or U(i) and it
-  comes from x(t), then the finite portion finDowni or finUpi is correct and
-  finite.
-
-  Start by calculating new l(t) against rlo(i) and U(i).
-*/
-
-	if (ait > 0.0) {
-	  if (rloi > -large) {
-	    if (!infUpi) {
-	      assert(ut < large2) ;
-	      newlt = ut+(rloi-finUpi)/ait ;
-	      if (fabs(finUpi) > 1.0e8)
-		newlt -= 1.0e-12*fabs(finUpi) ;
-	    } else if (infUpi == 1 && ut >= large) {
-	      newlt = (rloi-finUpi)/ ait ;
-	      if (fabs(finUpi) > 1.0e8)
-		newlt -= 1.0e-12*fabs(finUpi) ;
-	    } else {
-	      newlt = -COIN_DBL_MAX ;
-	    }
-/*
-  Did we improve the bound? If we're infeasible, head for the exit. If we're
-  still feasible, walk the column and reset the marks on the entangled rows
-  so that the activity bounds will be recalculated. Mark this constraint
-  so we don't use it again, and correct L(i).
-*/
-	    if (newlt > lt+1.0e-12 && newlt > -large) {
-	      columnLower[t] = newlt ;
-	      if (ut-lt < -relaxedTol) {
-		numberInfeasible++ ;
-		break ;
-	      }
-	      markRow[i] = 1 ;
-	      numberChanged++ ;
-	      const CoinBigIndex kcs = colStarts[t] ;
-	      const CoinBigIndex kce = kcs+colLengths[t] ;
-	      for (CoinBigIndex kcol = kcs ; kcol < kce ; ++kcol) {
-		int k = rowIndices[kcol] ;
-		if (markRow[k] == -2) {
-		  markRow[k] = -1 ;
-		}
-	      }
-	      if (lt <= -large) {
-		finDowni += newlt*ait ;
-		infLoi-- ;
-	      } else {
-		finDowni += (newlt-lt)*ait ;
-	      }
-	      lt = newlt ;
-	    }
-	  }
-/*
-  Perform the same actions, for new u(t) against rup(i) and L(i).
-*/
-	  if (rupi < large) {
-	    if (!infLoi) {
-	      assert(lt >- large2) ;
-	      newut = lt+(rupi-finDowni)/ait ;
-	      if (fabs(finDowni) > 1.0e8)
-		newut += 1.0e-12*fabs(finDowni) ;
-	    } else if (infLoi == 1 && lt <= -large) {
-	      newut = (rupi-finDowni)/ait ;
-	      if (fabs(finDowni) > 1.0e8)
-		newut += 1.0e-12*fabs(finDowni) ;
-	    } else {
-	      newut = COIN_DBL_MAX ;
-	    }
-	    if (newut < ut-1.0e-12 && newut < large) {
-	      columnUpper[t] = newut ;
-	      if (newut-lt < -relaxedTol) {
-		numberInfeasible++ ;
-		break ;
-	      }
-	      markRow[i] = 1 ;
-	      numberChanged++ ;
-	      CoinBigIndex kcs = colStarts[t] ;
-	      CoinBigIndex kce = kcs+colLengths[t] ;
-	      for (CoinBigIndex kcol = kcs ; kcol < kce ; ++kcol) {
-		int k = rowIndices[kcol] ;
-		if (markRow[k] == -2) {
-		  markRow[k] = -1 ;
-		}
-	      }
-	      if (ut >= large) {
-		finUpi += newut*ait ;
-		infUpi-- ;
-	      } else {
-		finUpi += (newut-ut)*ait ;
-	      }
-	      ut = newut ;
-	    }
-	  }
-	} else {
-/*
-  And repeat both sets with the appropriate flips for a(it) < 0.
-*/
-	  if (rloi > -large) {
-	    if (!infUpi) {
-	      assert(lt < large2) ;
-	      newut = lt+(rloi-finUpi)/ait ;
-	      if (fabs(finUpi) > 1.0e8)
-		newut += 1.0e-12*fabs(finUpi) ;
-	    } else if (infUpi == 1 && lt <= -large) {
-	      newut = (rloi-finUpi)/ait ;
-	      if (fabs(finUpi) > 1.0e8)
-		newut += 1.0e-12*fabs(finUpi) ;
-	    } else {
-	      newut = COIN_DBL_MAX ;
-	    }
-	    if (newut < ut-1.0e-12 && newut < large) {
-	      columnUpper[t] = newut  ;
-	      if (newut-lt < -relaxedTol) {
-		numberInfeasible++ ;
-		break ;
-	      }
-	      markRow[i] = 1 ;
-	      numberChanged++ ;
-	      CoinBigIndex kcs = colStarts[t] ;
-	      CoinBigIndex kce = kcs+colLengths[t] ;
-	      for (CoinBigIndex kcol = kcs ; kcol < kce ; ++kcol) {
-		int k = rowIndices[kcol] ;
-		if (markRow[k] == -2) {
-		  markRow[k] = -1 ;
-		}
-	      }
-	      if (ut >= large) {
-		finDowni += newut*ait ;
-		infLoi-- ;
-	      } else {
-		finDowni += (newut-ut)*ait ;
-	      }
-	      ut = newut  ;
-	    }
-	  }
-	  if (rupi < large) {
-	    if (!infLoi) {
-	      assert(ut < large2) ;
-	      newlt = ut+(rupi-finDowni)/ait ;
-	      if (fabs(finDowni) > 1.0e8)
-		newlt -= 1.0e-12*fabs(finDowni) ;
-	    } else if (infLoi == 1 && ut >= large) {
-	      newlt = (rupi-finDowni)/ait ;
-	      if (fabs(finDowni) > 1.0e8)
-		newlt -= 1.0e-12*fabs(finDowni) ;
-	    } else {
-	      newlt = -COIN_DBL_MAX ;
-	    }
-	    if (newlt > lt+1.0e-12 && newlt > -large) {
-	      columnLower[t] = newlt ;
-	      if (ut-newlt < -relaxedTol) {
-		numberInfeasible++ ;
-		break ;
-	      }
-	      markRow[i] = 1 ;
-	      numberChanged++ ;
-	      CoinBigIndex kcs = colStarts[t] ;
-	      CoinBigIndex kce = kcs+colLengths[t] ;
-	      for (CoinBigIndex kcol = kcs ; kcol < kce ; ++kcol) {
-		int k = rowIndices[kcol] ;
-		if (markRow[k] == -2) {
-		  markRow[k] = -1 ;
-		}
-	      }
-	      if (lt <= -large) {
-		finUpi += newlt*ait ;
-		infUpi-- ;
-	      } else {
-		finUpi += (newlt-lt)*ait ;
-	      }
-	      lt = newlt ;
-	    }
-	  }
-	}
-      }
-    }
-
-    totalTightened += numberChanged ;
-    if (iPass == 1)
-      numberCheck = CoinMax(10,numberChanged>>5) ;
-    if (numberInfeasible) break ;
-
-  }
-/*
-  At this point, we have rows marked with +1, -1, and -2. Rows marked with +1
-  have been used to tighten the column bound on some variable, hence they are
-  candidates for an implied free transform. Rows marked with -1 or -2 are
-  candidates for forcing or useless constraints.
-*/
-  if (!numberInfeasible) {
-/*
-  Open a loop to scan the rows again looking for useless constraints.
-*/
-    for (int i = 0 ; i < m ; i++) {
-      
-      if (markRow[i] >= 0) continue ;
-/*
-  Recalculate L(i) and U(i).
-*/
-      int infUpi = 0 ;
-      int infLoi = 0 ;
-      double finUpi = 0.0 ;
-      double finDowni = 0.0 ;
-      const CoinBigIndex krs = rowStarts[i] ;
-      const CoinBigIndex kre = krs+rowLengths[i] ;
-
-      for (CoinBigIndex krow = krs; krow < kre; ++krow) {
-	const double value = rowCoeffs[krow] ;
-	const int j = colIndices[krow] ;
-	if (value > 0.0) {
-	  if (columnUpper[j] < large) 
-	    finUpi += columnUpper[j] * value ;
-	  else
-	    ++infUpi ;
-	  if (columnLower[j] > -large) 
-	    finDowni += columnLower[j] * value ;
-	  else
-	    ++infLoi ;
-	} else if (value<0.0) {
-	  if (columnUpper[j] < large) 
-	    finDowni += columnUpper[j] * value ;
-	  else
-	    ++infLoi ;
-	  if (columnLower[j] > -large) 
-	    finUpi += columnLower[j] * value ;
-	  else
-	    ++infUpi ;
-	}
-      }
-      finUpi += 1.0e-8*fabs(finUpi) ;
-      finDowni -= 1.0e-8*fabs(finDowni) ;
-      double maxUpi = finUpi+infUpi*1.0e31 ;
-      double maxDowni = finDowni-infLoi*1.0e31 ;
-/*
-  If we have L(i) and U(i) at or inside the row bounds, we have a useless
-  constraint.
-*/
-      if (maxUpi <= rup[i]+feasTol && maxDowni >= rlo[i]-feasTol) {
-	useless_rows[nuseless_rows++] = i ;
-      }
-    }
-
-    if (nuseless_rows) {
-      next = useless_constraint_action::presolve(prob,
-						 useless_rows,nuseless_rows,
-						 next) ;
-    }
-/*
-  See if we can transfer tightened bounds from the work above.
-
-  Original comment: may not unroll
-*/
-    if (prob->presolveOptions_&0x10) {
-      const unsigned char *integerType = prob->integerType_ ;
-      double *csol  = prob->sol_ ;
-      double *clo = prob->clo_ ;
-      double *cup = prob->cup_ ;
-      int *fixed = prob->usefulColumnInt_ ;
-      int nFixed = 0 ;
-      int nChanged = 0 ;
-      for (int j = 0 ; j < n ; j++) {
-	if (clo[j] == cup[j])
-	  continue ;
-	double lower = columnLower[j] ;
-	double upper = columnUpper[j] ;
-	if (integerType[j]) {
-	  upper = floor(upper+1.0e-4) ;
-	  lower = ceil(lower-1.0e-4) ;
-	}
-	if (upper-lower < 1.0e-8) {
-	  if (upper-lower < -feasTol)
-	    numberInfeasible++ ;
-	  if (CoinMin(fabs(upper),fabs(lower)) <= 1.0e-7) 
-	    upper = 0.0 ;
-	  fixed[nFixed++] = j ;
-	  prob->addCol(j) ;
-	  cup[j] = upper ;
-	  clo[j] = upper ;
-	  if (csol != 0) 
-	    csol[j] = upper ;
-	} else {
-	  if (integerType[j]) {
-	    if (upper < cup[j]) {
-	      cup[j] = upper ;
-	      nChanged++ ;
-	      prob->addCol(j) ;
-	    }
-	    if (lower > clo[j]) {
-	      clo[j] = lower ;
-	      nChanged++ ;
-	      prob->addCol(j) ;
-	    }
-	  }
-	}
-      }
-#     ifdef CLP_INVESTIGATE
-      if (nFixed||nChanged)
-	printf("%d fixed in impliedfree, %d changed\n",nFixed,nChanged) ;
-#     endif
-      if (nFixed)
-	next = remove_fixed_action::presolve(prob,fixed,nFixed,next) ; 
-    }
-  }
-
-  delete [] columnLower ;
-  delete [] columnUpper ;
-
-  return (next) ;
-}
-
-
-} // end unnamed file-local namespace
-
 
 /*
   Scan for candidates for the implied free and subst transforms (see
@@ -698,21 +147,22 @@ const CoinPresolveAction *implied_free_action::presolve (
 
 # if 0  
 /*
-  You probably want to leave this disabled. See comments with testRedundant.
-  -- lh, 121116 --
+  Tentatively moved to be a front-end function for useless_constraint_action,
+  much as make_fixed is a front-end for make_fixed_action. This bit of code
+  left for possible tuning.
+  -- lh, 121127 --
 
   Original comment: This needs to be made faster.
 */
-  int numberInfeasible ;
 # ifdef COIN_LIGHTWEIGHT_PRESOLVE
   if (prob->pass_ == 1) {
 # endif
-    next = testRedundant(prob,next,numberInfeasible) ;
-    if ((prob->presolveOptions_&0x4000) != 0)
-      numberInfeasible = 0 ;
-    if (numberInfeasible) {
-      prob->status_ |= 1 ;
-      return (next) ;
+    next = testRedundant(prob,next) ;
+    if (prob->status_&0x01 != 0) {
+      if ((prob->presolveOptions_&0x4000) != 0)
+        prob->status &= !0x01 ;
+      else
+	return (next) ;
     }
 # ifdef COIN_LIGHTWEIGHT_PRESOLVE
   }
@@ -819,7 +269,7 @@ const CoinPresolveAction *implied_free_action::presolve (
 */
     const CoinBigIndex kcs = colStarts[tgtcol] ;
     const CoinBigIndex kce = kcs+tgtcol_len ;
-    bool singletonCol = (tgtcol_len == 1) ;
+    const bool singletonCol = (tgtcol_len == 1) ;
     bool possibleRow = false ;
     bool singletonRow = false ;
     double ait_max = 20*ZTOLDP2 ;
@@ -850,7 +300,7 @@ const CoinPresolveAction *implied_free_action::presolve (
 	  break ;
 	}
 	const double abs_ait = fabs(colCoeffs[kcol]) ;
-	const double ait_max = CoinMax(ait_max,abs_ait) ;
+	ait_max = CoinMax(ait_max,abs_ait) ;
 	if (fabs(rlo[i]-rup[i]) < feasTol && abs_ait > .1*ait_max) {
 	  possibleRow = true ;
 	}
@@ -916,8 +366,8 @@ const CoinPresolveAction *implied_free_action::presolve (
 
       if (infiniteUp[i] == -1) {
 	for (CoinBigIndex krow = krs ; krow < kre ; ++krow) {
-	  double aik = rowCoeffs[krow] ;
-	  int k = colIndices[krow] ;
+	  const double aik = rowCoeffs[krow] ;
+	  const int k = colIndices[krow] ;
 	  const double lk = clo[k] ;
 	  const double uk = cup[k] ;
 	  if (aik > 0.0) {
@@ -1241,9 +691,9 @@ const CoinPresolveAction *implied_free_action::presolve (
       for (CoinBigIndex krow = krs ; krow < kre ; krow++) {
 	const int j = colIndices[krow] ;
 	save_costs[krow-krs] = cost[j] ;
-	cost[j] -= tgtcol_cost*(rowCoeffs[krow]/tgtcol_coeff) ;
+	cost[j] -= (tgtcol_cost*rowCoeffs[krow])/tgtcol_coeff ;
       }
-      prob->change_bias(tgtcol_cost*tgtrow_rhs/tgtcol_coeff) ;
+      prob->change_bias((tgtcol_cost*tgtrow_rhs)/tgtcol_coeff) ;
       cost[tgtcol] = 0.0 ;
       s->costs = save_costs ;
     }
