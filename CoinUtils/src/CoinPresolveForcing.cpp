@@ -450,7 +450,6 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   double *rlo = prob->rlo_ ;
   double *rup = prob->rup_ ;
 
-  const double *sol = prob->sol_ ;
   double *rcosts = prob->rcosts_ ;
 
   double *acts = prob->acts_ ;
@@ -460,6 +459,7 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   const double ztolzb = prob->ztolzb_ ;
 
 # if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+  const double *sol = prob->sol_ ;
 # if PRESOLVE_DEBUG > 0
   std::cout
     << "Entering forcing_constraint_action::postsolve, "
@@ -619,13 +619,13 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 	<< ", ub = " << rup[irow] << "." << std::endl ;
 #     endif
 /*
-Now correct the reduced costs for other variables in the row. This may
-cause a reduced cost to change sign, in which case we need to change status.
+  Now correct the reduced costs for other variables in the row. This may
+  cause a reduced cost to change sign, in which case we need to change status.
 
-The code implicitly assumes that if it's necessary to change the status
-of a variable because the reduced cost has changed sign, then it will be
-possible to do it. I'm not sure I could prove that, however.
--- lh, 121108 --
+  The code implicitly assumes that if it's necessary to change the status
+  of a variable because the reduced cost has changed sign, then it will be
+  possible to do it. I'm not sure I could prove that, however.
+  -- lh, 121108 --
 */
       for (int k = 0 ; k < ninrow ; k++) {
 	int jcol = rowcols[k] ;
@@ -636,8 +636,6 @@ possible to do it. I'm not sure I could prove that, however.
 	const double new_cbarj = rcosts[jcol] ;
 
 	if ((old_cbarj < 0) != (new_cbarj < 0)) {
-	  const CoinPrePostsolveMatrix::Status statj =
-						prob->getColumnStatus(jcol) ;
 	  if (new_cbarj < -ztoldj && cup[jcol] < COIN_DBL_MAX)
 	    prob->setColumnStatus(jcol,CoinPrePostsolveMatrix::atUpperBound) ;
 	  else if (new_cbarj > ztoldj && clo[jcol] > -COIN_DBL_MAX)

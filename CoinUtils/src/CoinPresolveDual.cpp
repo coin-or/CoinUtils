@@ -235,13 +235,13 @@ const CoinPresolveAction
   for (int j = 0 ; j < ncols ; j++) {
     if (integerType[j]) continue ;
     if (hincol[j] != 1) continue ;
-    bool no_ub = (cup[j] >= ekkinf) ;
-    bool no_lb = (clo[j] <= -ekkinf) ;
+    const bool no_ub = (cup[j] >= ekkinf) ;
+    const bool no_lb = (clo[j] <= -ekkinf) ;
     if (no_ub != no_lb) {
       const int &i = hrow[mcstrt[j]] ;
       double aij = colels[mcstrt[j]] ;
       PRESOLVEASSERT(fabs(aij) > ZTOLDP) ;
-      double yzero = cost[j]/aij ;
+      const double yzero = cost[j]/aij ;
       if ((aij > 0.0) == no_ub) {
 	if (ymax[i] > yzero)
 	  ymax[i] = yzero ;
@@ -286,29 +286,31 @@ const CoinPresolveAction
       for (CoinBigIndex k = kcs ; k < kce ; k++) {
 	const int &i = hrow[k] ;
 	const double &aij = colels[k] ;
+	const double mindelta = aij*ymin[i] ;
+	const double maxdelta = aij*ymax[i] ;
 	
 	if (aij > 0.0) {
 	  if (ymin[i] >= -ekkinf2) {
-	    cbarjmax -= aij*ymin[i] ;
+	    cbarjmax -= mindelta ;
 	    nordu++ ;
 	  } else {
 	    nflagu++ ;
 	  }
 	  if (ymax[i] <= ekkinf2) {
-	    cbarjmin -= aij*ymax[i] ;
+	    cbarjmin -= maxdelta ;
 	    nordl++ ;
 	  } else {
 	    nflagl++ ;
 	  }
 	} else {
 	  if (ymax[i] <= ekkinf2) {
-	    cbarjmax -= aij*ymax[i] ;
+	    cbarjmax -= maxdelta ;
 	    nordu++ ;
 	  } else {
 	    nflagu++ ;
 	  }
 	  if (ymin[i] >= -ekkinf2) {
-	    cbarjmin -= aij*ymin[i] ;
+	    cbarjmin -= mindelta ;
 	    nordl++ ;
 	  } else {
 	    nflagl++ ;
@@ -338,11 +340,11 @@ const CoinPresolveAction
 	if (cup[j] > ekkinf) {
 	  if (nflagu == 1 && cbarjmax < -ztolcbarj) {
 	    for (CoinBigIndex k = kcs ; k < kce; k++) {
-	      int i = hrow[k] ;
-	      double aij = colels[k] ;
+	      const int i = hrow[k] ;
+	      const double aij = colels[k] ;
 	      if (aij > 0.0 && ymin[i] < -ekkinf2) {
 		if (cbarjmax < (ymax[i]*aij-ztolcbarj)) {
-		  double newValue = cbarjmax/aij ;
+		  const double newValue = cbarjmax/aij ;
 		  if (ymax[i] > ekkinf2 && newValue <= ekkinf2) {
 		    nflagl-- ;
 		    cbarjmin -= aij*newValue ;
@@ -360,7 +362,7 @@ const CoinPresolveAction
 		}
 	      } else if (aij < 0.0 && ymax[i] > ekkinf2) {
 		if (cbarjmax < (ymin[i]*aij-ztolcbarj)) {
-		  double newValue = cbarjmax/aij ;
+		  const double newValue = cbarjmax/aij ;
 		  if (ymin[i] < -ekkinf2 && newValue >= -ekkinf2) {
 		    nflagl-- ;
 		    cbarjmin -= aij*newValue ;
@@ -386,8 +388,8 @@ const CoinPresolveAction
   to other y will affect this.
 */
 	    for (CoinBigIndex k = kcs; k < kce; k++) {
-	      int i = hrow[k] ;
-	      double aij = colels[k] ;
+	      const int i = hrow[k] ;
+	      const double aij = colels[k] ;
 	      if (aij > 0.0) {
 #		if PRESOLVE_DEBUG > 1
 		std::cout
@@ -424,13 +426,13 @@ const CoinPresolveAction
 	  if (cbarjmin > ztolcbarj&&nflagl == 1) {
 	    // We can make bound finite one way
 	    for (CoinBigIndex k = kcs; k < kce; k++) {
-	      int i = hrow[k] ;
-	      double coeff = colels[k] ;
+	      const int i = hrow[k] ;
+	      const double coeff = colels[k] ;
 	      
 	      if (coeff < 0.0&&ymin[i] < -ekkinf2) {
 		// ymax[i] has upper bound
 		if (cbarjmin>ymax[i]*coeff+ztolcbarj) {
-		  double newValue = cbarjmin/coeff ;
+		  const double newValue = cbarjmin/coeff ;
 		  // re-compute hi
 		  if (ymax[i] > ekkinf2 && newValue <= ekkinf2) {
 		    nflagu-- ;
@@ -447,7 +449,7 @@ const CoinPresolveAction
 	      } else if (coeff > 0.0 && ymax[i] > ekkinf2) {
 		// ymin[i] has lower bound
 		if (cbarjmin>ymin[i]*coeff+ztolcbarj) {
-		  double newValue = cbarjmin/coeff ;
+		  const double newValue = cbarjmin/coeff ;
 		  // re-compute lo
 		  if (ymin[i] < -ekkinf2 && newValue >= -ekkinf2) {
 		    nflagu-- ;
@@ -466,8 +468,8 @@ const CoinPresolveAction
 	  } else if (nflagu == 0 && nordu == 1 && cbarjmax > ztolcbarj) {
 	    // We may be able to tighten
 	    for (CoinBigIndex k = kcs; k < kce; k++) {
-	      int i = hrow[k] ;
-	      double coeff = colels[k] ;
+	      const int i = hrow[k] ;
+	      const double coeff = colels[k] ;
 	      
 	      if (coeff < 0.0) {
 		ymax[i] += cbarjmax/coeff ;
@@ -531,12 +533,12 @@ const CoinPresolveAction
 	      int row = hrow[mcstrt[j]] ;
 	      // See if another column can take value
 	      for (CoinBigIndex kk = mrstrt[row] ; kk < mrstrt[row]+hinrow[row] ; kk++) {
-		int k = hcol[kk] ;
+		const int k = hcol[kk] ;
 		if (colstat[k] == CoinPrePostsolveMatrix::superBasic)
 		  continue ;
 
 		if (hincol[k] == 1 && k != j) {
-		  double value_k = rowels[kk] ;
+		  const double value_k = rowels[kk] ;
 		  double movement ;
 		  if (value_k*value_j>0.0) {
 		    // k needs to increase
@@ -605,12 +607,12 @@ const CoinPresolveAction
 	      int row = hrow[mcstrt[j]] ;
 	      // See if another column can take value
 	      for (CoinBigIndex kk = mrstrt[row] ; kk < mrstrt[row]+hinrow[row] ; kk++) {
-		int k = hcol[kk] ;
+		const int k = hcol[kk] ;
 		if (colstat[k] == CoinPrePostsolveMatrix::superBasic)
 		  continue ;
 
 		if (hincol[k] == 1 && k != j) {
-		  double value_k = rowels[kk] ;
+		  const double value_k = rowels[kk] ;
 		  double movement ;
 		  if (value_k*value_j<0.0) {
 		    // k needs to increase
@@ -661,27 +663,27 @@ const CoinPresolveAction
     int *hinrow	= prob->hinrow_ ;
     // tighten row dual bounds, as described on p. 229
     for (int i = 0; i < nrows; i++) {
-      bool no_ub = (rup[i] >= ekkinf) ;
-      bool no_lb = (rlo[i] <= -ekkinf) ;
+      const bool no_ub = (rup[i] >= ekkinf) ;
+      const bool no_lb = (rlo[i] <= -ekkinf) ;
 
       if ((no_ub ^ no_lb) == true) {
-	CoinBigIndex krs = mrstrt[i] ;
-	CoinBigIndex kre = krs + hinrow[i] ;
-	double rmax  = ymax[i] ;
-	double rmin  = ymin[i] ;
+	const CoinBigIndex krs = mrstrt[i] ;
+	const CoinBigIndex kre = krs + hinrow[i] ;
+	const double rmax  = ymax[i] ;
+	const double rmin  = ymin[i] ;
 
 	// all row columns are non-empty
 	for (CoinBigIndex k = krs ; k < kre ; k++) {
-	  double coeff = rowels[k] ;
-	  int icol = hcol[k] ;
-	  double cbarmax0 = cbarmax[icol] ;
-	  double cbarmin0 = cbarmin[icol] ;
+	  const double coeff = rowels[k] ;
+	  const int icol = hcol[k] ;
+	  const double cbarmax0 = cbarmax[icol] ;
+	  const double cbarmin0 = cbarmin[icol] ;
 
 	  if (no_ub) {
 	    // cbarj must not be negative
 	    if (coeff > ZTOLDP2 &&
 	    	cbarjmax0 < PRESOLVE_INF && cup[icol] >= ekkinf) {
-	      double bnd = cbarjmax0 / coeff ;
+	      const double bnd = cbarjmax0 / coeff ;
 	      if (rmax > bnd) {
 #		if PRESOLVE_DEBUG > 1
 		printf("MAX TIGHT[%d,%d]: %g --> %g\n",i,hrow[k],ymax[i],bnd) ;
@@ -691,7 +693,7 @@ const CoinPresolveAction
 	      }
 	    } else if (coeff < -ZTOLDP2 &&
 	    	       cbarjmax0 <PRESOLVE_INF && cup[icol] >= ekkinf) {
-	      double bnd = cbarjmax0 / coeff ;
+	      const double bnd = cbarjmax0 / coeff ;
 	      if (rmin < bnd) {
 #		if PRESOLVE_DEBUG > 1
 		printf("MIN TIGHT[%d,%d]: %g --> %g\n",i,hrow[k],ymin[i],bnd) ;
@@ -704,7 +706,7 @@ const CoinPresolveAction
 	    // cbarj must not be positive
 	    if (coeff > ZTOLDP2 &&
 	    	cbarmin0 > -PRESOLVE_INF && clo[icol] <= -ekkinf) {
-	      double bnd = cbarmin0 / coeff ;
+	      const double bnd = cbarmin0 / coeff ;
 	      if (rmin < bnd) {
 #		if PRESOLVE_DEBUG > 1
 		printf("MIN1 TIGHT[%d,%d]: %g --> %g\n",i,hrow[k],ymin[i],bnd) ;
@@ -714,7 +716,7 @@ const CoinPresolveAction
 	      }
 	    } else if (coeff < -ZTOLDP2 &&
 	    	       cbarmin0 > -PRESOLVE_INF && clo[icol] <= -ekkinf) {
-	      double bnd = cbarmin0 / coeff ;
+	      const double bnd = cbarmin0 / coeff ;
 	      if (rmax > bnd) {
 #		if PRESOLVE_DEBUG > 1
 		printf("MAX TIGHT1[%d,%d]: %g --> %g\n",i,hrow[k],ymax[i],bnd) ;
@@ -785,8 +787,8 @@ const CoinPresolveAction
 */
   int *canFix = prob->usefulRowInt_ ;
   for (int i = 0 ; i < nrows ; i++) {
-    bool no_rlb = (rlo[i] <= -ekkinf) ;
-    bool no_rub = (rup[i] >= ekkinf) ;
+    const bool no_rlb = (rlo[i] <= -ekkinf) ;
+    const bool no_rub = (rup[i] >= ekkinf) ;
     canFix[i] = 0 ;
     if (no_rub && !no_rlb ) {
       if (ymin[i] > 0.0) 
@@ -960,7 +962,7 @@ const CoinPresolveAction
       const CoinBigIndex &krs = mrstrt[i] ;
       const CoinBigIndex kre = krs+hinrow[i] ;
       for (CoinBigIndex k = krs ; k < kre ; k++) {
-	int j = hcol[k] ;
+	const int j = hcol[k] ;
 	if (cup[j] > clo[j] && integerType[j]) {
 	  canFix[i] = 0 ;
 #	  if PRESOLVE_DEBUG > 1

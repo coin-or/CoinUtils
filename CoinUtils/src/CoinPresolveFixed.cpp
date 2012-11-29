@@ -571,9 +571,8 @@ make_fixed_action::presolve (CoinPresolveMatrix *prob,
   }
 /*
   Original comment:
-  This is unusual in that the make_fixed_action transform
-  contains within it a remove_fixed_action transform
-  bad idea?
+  This is unusual in that the make_fixed_action transform contains within it
+  a remove_fixed_action transform. Bad idea?
 
   Explanatory comment:
   Now that we've adjusted the bounds, time to create the postsolve action
@@ -583,10 +582,12 @@ make_fixed_action::presolve (CoinPresolveMatrix *prob,
   the column. Cache the postsolve transform that will repopulate the column
   inside the postsolve transform for fixing the bounds.
 */
-  if (nfcols > 0)
-  { next = new make_fixed_action(nfcols,actions,fix_to_lower,
+  if (nfcols > 0) {
+    next = new make_fixed_action(nfcols,actions,fix_to_lower,
 			   remove_fixed_action::presolve(prob,fcols,nfcols,0),
-				 next) ; }
+				 next) ;
+  }
+
 # if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   presolve_check_sol(prob) ;
   presolve_check_nbasic(prob) ;
@@ -679,6 +680,16 @@ void make_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
 const CoinPresolveAction *make_fixed (CoinPresolveMatrix *prob,
 				      const CoinPresolveAction *next)
 {
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering make_fixed, checking " << prob->ncols_ << " columns."
+    << std::endl ;
+# endif
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
   int ncols = prob->ncols_ ;
   int *fcols = prob->usefulColumnInt_ ;
   int nfcols = 0 ;
@@ -703,6 +714,15 @@ const CoinPresolveAction *make_fixed (CoinPresolveMatrix *prob,
 */
   if (nfcols > 0)
     next = make_fixed_action::presolve(prob,fcols,nfcols,true,next) ;
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+  presolve_check_sol(prob) ;
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Leaving make_fixed, fixed " << nfcols << " columns." << std::endl ;
+# endif
+# endif
 
   return (next) ; }
 
