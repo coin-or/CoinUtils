@@ -2028,8 +2028,7 @@ CoinArrayWithLength::extend(int newSize)
     size_=newSize;
   }
 }
-// Not included unless abc (to save code for others)
-#if CLP_HAS_ABC
+
 /* Default constructor */
 CoinPartitionedVector::CoinPartitionedVector()
   : CoinIndexedVector()
@@ -2311,4 +2310,3 @@ CoinPartitionedVector::sort()
     CoinSort_2(indices,indices+numberElementsPartition_[partition],elements);
   }
 }
-#endif
