@@ -254,7 +254,7 @@ const CoinPresolveAction
       if (fabs(rowels[krs]) < ZTOLDP2 || fabs(rowels[krs+1]) < ZTOLDP2)
 	continue;
       // See if prohibited for any reason
-      if (prob->colProhibited(icolx) || prob->colProhibited(icolx))
+      if (prob->colProhibited(icolx) || prob->colProhibited(icoly))
 	continue;
       
       // don't bother with fixed variables
