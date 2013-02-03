@@ -345,7 +345,7 @@ const CoinPresolveAction
   Avoid prohibited columns and fixed columns. Make sure the coefficients are
   nonzero.
 */
-    if (prob->colProhibited(tgtcolx) || prob->colProhibited(tgtcolx))
+    if (prob->colProhibited(tgtcolx) || prob->colProhibited(tgtcoly))
       continue ;
     if (fabs(rowCoeffs[krs]) < ZTOLDP2 || fabs(rowCoeffs[krs+1]) < ZTOLDP2)
       continue ;
