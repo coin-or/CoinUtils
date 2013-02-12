@@ -1087,7 +1087,8 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	    mcstrt[jcolx] = kcs ;
 	}
       }
-      link[last_nonzero] = NO_LINK ;
+      if (last_nonzero != NO_LINK)
+	link[last_nonzero] = NO_LINK ;
 /*
   We've dealt with the existing nonzeros in column x. Any remaining
   nonzeros in element1 will be fill in, which we insert at the beginning of
