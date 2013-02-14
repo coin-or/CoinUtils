@@ -3121,6 +3121,14 @@ CoinPackedMatrix::appendMajor(const int number,
 	index_ = newIndex;
       }
       CoinMemcpyN(index,numberElements,index_+size_);
+      // Do minor dimension
+      int lastMinor=-1;
+      for (CoinBigIndex j=0;j<numberElements;j++) {
+	int iIndex = index[j];
+	lastMinor = CoinMax(lastMinor,iIndex);
+      }
+      // update minorDim if necessary
+      minorDim_ = CoinMax(minorDim_,lastMinor+1);
       CoinMemcpyN(element,numberElements,element_+size_);
       i=majorDim_;
       starts -= majorDim_;
