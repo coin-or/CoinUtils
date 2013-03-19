@@ -53,6 +53,8 @@ void dbg_find_elem (const CoinPostsolveMatrix *postMtx, int i, int j)
   terminology used in ::presolve, rowy is the target row, and rowx is an
   entangled row (entangled with the target column).
 
+  If a coefficient is < kill_ratio * coeff_factor then kill it
+
   Column indices in irowx and iroy must be sorted in increasing order.
   Normally one might do that here, but this routine is only called from
   subst_constraint_action::presolve and rowy will be the same over several
@@ -70,7 +72,7 @@ void dbg_find_elem (const CoinPostsolveMatrix *postMtx, int i, int j)
 */
 bool add_row (CoinBigIndex *mrstrt, double *rlo, double *acts, double *rup,
 	     double *rowels, int *hcol, int *hinrow, presolvehlink *rlink,
-	     int nrows, double coeff_factor, int irowx, int irowy,
+	      int nrows, double coeff_factor, double kill_ratio,  int irowx, int irowy,
 	     int *x_to_y)
 {
   CoinBigIndex krsy = mrstrt[irowy] ;
@@ -91,6 +93,7 @@ bool add_row (CoinBigIndex *mrstrt, double *rlo, double *acts, double *rup,
 */
   const double rhsy = rlo[irowy] ;
   const double rhscorr = rhsy*coeff_factor ;
+  const double tolerance = kill_ratio*coeff_factor;
 
   if (-PRESOLVE_INF < rlo[irowx]) {
     const double newrlo = rlo[irowx]+rhscorr ;
@@ -141,12 +144,15 @@ bool add_row (CoinBigIndex *mrstrt, double *rlo, double *acts, double *rup,
   The easy case: coeff a(xj) already exists and all we need to is modify it.
 */
     if (krowx < krex0 && hcol[krowx] == j) {
-      const double newcoeff = rowels[krowx]+rowels[krowy]*coeff_factor ;
+      double newcoeff = rowels[krowx]+rowels[krowy]*coeff_factor ;
 
 #     if PRESOLVE_DEBUG > 3
       std::cout << rowels[krowx] << " -> " << newcoeff << ";" ;
 #     endif
 
+      // kill small 
+      if (fabs(newcoeff) <tolerance) 
+	newcoeff=0.0;
       rowels[krowx] = newcoeff ;
       x_to_y[x_to_y_i++] = krowx-krsx ;
       krowx++ ;
@@ -157,25 +163,26 @@ bool add_row (CoinBigIndex *mrstrt, double *rlo, double *acts, double *rup,
   rows, so recalculate all pointers into the bulk store. Only then can we add
   the new coefficient.
 */
+      double newValue = rowels[krowy]*coeff_factor ;
       bool outOfSpace = presolve_expand_row(mrstrt,rowels,hcol,
-      					    hinrow,rlink,nrows,irowx) ;
+					    hinrow,rlink,nrows,irowx) ;
       if (outOfSpace) return (true) ;
-
+      
       krowy = mrstrt[irowy]+(krowy-krsy) ;
       krsy = mrstrt[irowy] ;
       krey = krsy+hinrow[irowy] ;
-	  
+      
       krowx = mrstrt[irowx]+(krowx-krsx) ;
       krex0 = mrstrt[irowx]+(krex0-krsx) ;
       krsx = mrstrt[irowx] ;
       krex = krsx+hinrow[irowx] ;
-
+      
       hcol[krex] = j ;
-      rowels[krex] = rowels[krowy]*coeff_factor ;
+      rowels[krex] = newValue;
       x_to_y[x_to_y_i++] = krex-krsx ;
       hinrow[irowx]++ ;
       krex++ ;
-
+      
 #     if PRESOLVE_DEBUG > 3
       std::cout << rowels[krex-1] << ";" ;
 #     endif
@@ -532,9 +539,12 @@ const CoinPresolveAction *subst_constraint_action::presolve (
   compaction of the row-major bulk store, so update bulk store indices.
 */
       CoinSort_2(colIndices+krs,colIndices+kre,rowCoeffs+krs) ;
+      // kill small if wanted
+      double tolerance = ((prob->presolveOptions()&0x20000)!=0) ?
+	1.0e-9*coeff_factor : 1.0e-12*coeff_factor;
       
       bool outOfSpace = add_row(rowStarts,rlo,acts,rup,rowCoeffs,colIndices,
-				rowLengths,rlink,nrows,coeff_factor,i,tgtrow,
+				rowLengths,rlink,nrows,coeff_factor,tolerance,i,tgtrow,
 				x_to_y) ;
       if (outOfSpace)
 	throwCoinError("out of memory","CoinImpliedFree::presolve") ;

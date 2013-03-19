@@ -998,6 +998,14 @@ public:
     retVal = ((static_cast<double> (seed_))/4294967296.0);
     return retVal;
   }
+  /// make more random (i.e. for startup)
+  inline void randomize(int n=0)
+  {
+    if (!n) 
+      n=seed_ & 255;
+    for (int i=0;i<n;i++)
+      randomDouble();
+  }
   //@}
   
   
@@ -1070,6 +1078,16 @@ public:
     retVal = erand48(seed_);
 #endif
     return retVal;
+  }
+  /// make more random (i.e. for startup)
+  inline void randomize(int n=0)
+  {
+    if (!n) {
+      n=seed_[0]+seed_[1]+seed_[2];
+      n &= 255;
+    }
+    for (int i=0;i<n;i++)
+      randomDouble();
   }
   //@}
   

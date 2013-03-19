@@ -124,7 +124,6 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
     int i = look[iLook] ;
 
     if (hinrow[i] != 1) continue ;
-
     int j = hcol[mrstrt[i]] ;
     double aij = rowels[mrstrt[i]] ;
     double lo = rlo[i] ;

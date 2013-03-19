@@ -1005,7 +1005,7 @@ CoinFactorization::factor (  )
 	int * nextRow = nextRow_.array();
 	//int nSing =0;
 	k=nextRow[maximumRowsExtra_];
-	while (k!=maximumRowsExtra_) {
+	while (k!=maximumRowsExtra_ && k>=0) {
 	  int iRow = k;
 	  k=nextRow[k];
 	  //nSing++;
