@@ -344,8 +344,10 @@ const CoinPresolveAction
 /*
   Avoid prohibited columns and fixed columns. Make sure the coefficients are
   nonzero.
+  JJF - test should allow one to be prohibited as long as you leave that
+  one.  I modified earlier code but hope I have got this right.
 */
-    if (prob->colProhibited(tgtcolx) || prob->colProhibited(tgtcoly))
+    if (prob->colProhibited(tgtcolx) && prob->colProhibited(tgtcoly))
       continue ;
     if (fabs(rowCoeffs[krs]) < ZTOLDP2 || fabs(rowCoeffs[krs+1]) < ZTOLDP2)
       continue ;
@@ -389,7 +391,15 @@ const CoinPresolveAction
     assert((integerType[tgtcolx] == 0) || (integerType[tgtcolx] == 1)) ;
     assert((integerType[tgtcoly] == 0) || (integerType[tgtcoly] == 1)) ;
 
-    int integerStatus = (integerType[tgtcoly]<<1)|integerType[tgtcolx] ;
+    int integerX = integerType[tgtcolx];
+    int integerY = integerType[tgtcoly];
+    /* if one prohibited then treat that as integer. This
+       may be pessimistic - but will catch SOS etc */
+    if (prob->colProhibited2(tgtcolx))
+      integerX=1;
+    if (prob->colProhibited2(tgtcoly))
+      integerY=1;
+    int integerStatus = (integerY<<1)|integerX ;
 
     if (integerStatus == 3) {
       int good = 0 ;
@@ -399,14 +409,14 @@ const CoinPresolveAction
 	rhs2 += 1 ;
       }
       if ((cup[tgtcolx] == 1.0) && (clo[tgtcolx] == 0.0) &&
-	  (fabs(coeffx-1.0) < 1.0e-7))
+	  (fabs(coeffx-1.0) < 1.0e-7) && !prob->colProhibited2(tgtcoly))
 	good = 1 ;
       if (coeffy < 0.0) {
 	coeffy = -coeffy ;
 	rhs2 += 1 ;
       }
       if ((cup[tgtcoly] == 1.0) && (clo[tgtcoly] == 0.0) &&
-	  (fabs(coeffy-1.0) < 1.0e-7))
+	  (fabs(coeffy-1.0) < 1.0e-7) && !prob->colProhibited2(tgtcolx))
 	good |= 2 ;
       if (!(good == 3 && fabs(rhs2-1.0) < 1.0e-7))
 	integerStatus = -1 ;
@@ -500,7 +510,8 @@ const CoinPresolveAction
 	break ;
       }
     }
-    if (singletonRow) continue ;
+    // skip if y prohibited
+    if (singletonRow || prob->colProhibited2(tgtcoly)) continue ;
 
     coeffx = colCoeffs[krowx] ;
     coeffy = colCoeffs[krowy] ;

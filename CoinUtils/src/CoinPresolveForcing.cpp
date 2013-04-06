@@ -254,6 +254,19 @@ const CoinPresolveAction*
 	 (-PRESOLVE_INF < maxdown && rlo[irow] <= maxdown-inftol)) &&
 	((rup[irow] >= PRESOLVE_INF) ||
 	 (maxup < PRESOLVE_INF && rup[irow] >= maxup+inftol))) {
+      // check none prohibited
+      if (prob->anyProhibited_) {
+	bool anyProhibited=false;
+	for (int k=krs; k<kre; k++) {
+	  int jcol = hcol[k];
+	  if (prob->colProhibited(jcol)) {
+	    anyProhibited=true;
+	    break;
+	  }
+	}
+	if (anyProhibited)
+	  continue; // skip row
+      }
       useless_rows[nuseless_rows++] = irow ;
 #     if PRESOLVE_DEBUG > 2
       std::cout << "; useless." << std::endl ;
@@ -274,6 +287,19 @@ const CoinPresolveAction*
     std::cout << std::endl ;
 #   endif
     if (!(tightAtLower || tightAtUpper)) continue ;
+    // check none prohibited
+    if (prob->anyProhibited_) {
+      bool anyProhibited=false;
+      for (int k=krs; k<kre; k++) {
+	int jcol = hcol[k];
+	if (prob->colProhibited(jcol)) {
+	  anyProhibited=true;
+	  break;
+	}
+      }
+      if (anyProhibited)
+	continue; // skip row
+    }
 /*
   We have a forcing constraint.
   Get down to the business of fixing the variables at the appropriate bound.

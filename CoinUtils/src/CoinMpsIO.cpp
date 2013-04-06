@@ -2406,7 +2406,9 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    columnType[icolumn] = COIN_MI_BOUND;
 	    break;
 	  case COIN_PL_BOUND:
-	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
+	    // change to allow if no upper bound set
+	    //if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
+	    if (colupper_[icolumn]==infinity_) {
 	    } else {
 	      ifError = true;
 	    }

@@ -212,6 +212,22 @@ const CoinPresolveAction *implied_free_action::presolve (
     else
       infiniteUp[i] = -2 ;
   }
+  // Get rid of rows with prohibited columns
+  if (prob->anyProhibited_) {
+    for (int i = 0 ; i < m ; i++) {
+      CoinBigIndex rStart = rowStarts[i];
+      CoinBigIndex rEnd = rStart+rowLengths[i];
+      bool badRow=false;
+      for (CoinBigIndex j = rStart; j < rEnd; ++j) {
+	if (prob->colProhibited(colIndices[j])) {
+	  badRow=true;
+	  break;
+	}
+      }
+      if (badRow)
+	infiniteUp[i] = -2 ;
+    }
+  }
 
 // Can't go on without a suitable finite infinity, can we?
 #ifdef USE_SMALL_LARGE
