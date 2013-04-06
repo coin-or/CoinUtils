@@ -1435,8 +1435,8 @@ CoinModelLinkedList::validateLinks(const CoinModelTriple * triples) const
 #endif
     while (position>=0) {
       assert (position==first_[i] || next_[previous_[position]]==position);
-      assert (type || i == static_cast<int> (rowInTriple(triples[position])));  // i == iMajor for rows
-      assert (!type || i == triples[position].column);  // i == iMajor
+      assert (type_ || i == static_cast<int> (rowInTriple(triples[position])));  // i == iMajor for rows
+      assert (!type_ || i == triples[position].column);  // i == iMajor
       assert (triples[position].column>=0);
       mark[position]=1;
       lastElement = CoinMax(lastElement,position);
