@@ -2412,14 +2412,13 @@ int c_ekketsj(COIN_REGISTER2 /*const*/ EKKfactinfo * COIN_RESTRICT2 fact,
 	c_ekk_Unset(fact->bitArray,kpivrw);
 	if (now&&kpivrw==lastSlack) {
 	  int i;
-	  int ipiv,jpiv;
+	  int ipiv;
 	  ipiv=hpivco_new[0];
 	  for (i=0;i<now-1;i++)
 	    ipiv=hpivco_new[ipiv];
 	  lastSlack=ipiv;
-	  jpiv=hpivco_new[ipiv];
 	  assert (c_ekk_IsSet(fact->bitArray,ipiv));
-	  assert (!c_ekk_IsSet(fact->bitArray,jpiv)||jpiv>fact->nrow);
+	  assert (!c_ekk_IsSet(fact->bitArray,hpivco_new[ipiv])||hpivco_new[ipiv]>fact->nrow);
 	  fact->lastSlack = lastSlack;
 	} else if (!now) {
 	  fact->lastSlack=0;

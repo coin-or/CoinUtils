@@ -1892,12 +1892,12 @@ char *
 CoinArrayWithLength::conditionalNew(long sizeWanted)
 {
   if (size_==-1) {
-    getCapacity(sizeWanted);
+    getCapacity(static_cast<int>(sizeWanted));
   } else {
     int newSize = static_cast<int> (sizeWanted*101/100)+64;
     // round to multiple of 16
     newSize -= newSize&15;
-    getCapacity(sizeWanted,newSize);
+    getCapacity(static_cast<int>(sizeWanted),newSize);
   }
   return array_;
 }

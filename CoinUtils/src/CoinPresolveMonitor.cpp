@@ -269,7 +269,6 @@ void CoinPresolveMonitor::checkAndTell (CoinPackedVector *curVec,
     double aij_cur = 0.0 ;
     bool inOrig = false ;
     bool inCur = false ;
-    bool different = false ;
     if (origVec_->findIndex(j) >= 0) {
       inOrig = true ;
       aij_orig = (*origVec_)[j] ;
