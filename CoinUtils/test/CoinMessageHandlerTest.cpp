@@ -251,7 +251,6 @@ void advTestsWithMessages (const CoinMessages &testMessages, int &errs)
 bool CoinMessageHandlerUnitTest ()
 
 { int errs = 0 ;
-  CoinMessages::Language curLang = CoinMessages::us_en ;
 
 /*
   Create a CoinMessages object to hold our messages. 

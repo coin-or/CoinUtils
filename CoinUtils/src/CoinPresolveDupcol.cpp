@@ -1729,9 +1729,7 @@ void twoxtwo_action::postsolve(CoinPostsolveMatrix * prob) const
     els1real[1]=els1[1];
     // make <= rows
     double rowUpper0=rup[row0];
-    bool swapSigns0=false;
     if (rlo[row0]>-1.0e30) {
-      swapSigns0=true;
       rowUpper0=-rlo[row0];
       els0[0]=-els0[0];
       els0[1]=-els0[1];
@@ -1784,21 +1782,21 @@ void twoxtwo_action::postsolve(CoinPostsolveMatrix * prob) const
       assert (cost[icol]);
       double value0 = (rowUpper0-els0[0]*valueOther)/els0[1];
       double value1 = (rowUpper1-els1[0]*valueOther)/els1[1];
-      bool binding0=true;
+      //bool binding0=true;
       double value;
       if (cost[icol]>0) {
 	if (value0>value1) {
 	  value=value0;
 	} else {
 	  value=value1;
-	  binding0=false;
+	  //binding0=false;
 	}
       } else {
 	if (value0<value1) {
 	  value=value0;
 	} else {
 	  value=value1;
-	  binding0=false;
+	  //binding0=false;
 	}
       }
       sol[icol]=value;

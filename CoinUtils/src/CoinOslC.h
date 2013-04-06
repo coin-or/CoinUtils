@@ -185,13 +185,14 @@ void clp_free(void * oldArray);
   int kipie, kcpiv, knprs, knpre;
   bool cancel;
   double multip, elemnt;
-  int ipivot, jpivot, epivro, epivco, lstart, ifdens, nfirst;
+  int ipivot, jpivot, epivro, epivco, lstart, nfirst;
   int nzpivj, kfill, kstart;
   int nmove, ileft;
 #ifndef C_EKKCMFY
   int iput, nspare;
   int noRoomForDense=0;
   int if_sparse_update=fact->if_sparse_update;
+  int ifdens = 0;
 #endif
   int irtcod	= 0;
   const int nrow	= fact->nrow;
@@ -204,7 +205,6 @@ void clp_free(void * oldArray);
   for (i = lstart; i <= nnetas; ++i) {
       hrowi[i] = SHIFT_INDEX(hcoli[i]);
   }
-  ifdens = 0;
 
   for (i = 1; i <= nrow; ++i) {
     maction[i] = 0;
