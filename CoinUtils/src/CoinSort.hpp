@@ -372,14 +372,14 @@ CoinShortSort_2(S* key, S* lastKey, T* array2)
     return;
   }
   int minsize=10;
-  int n = number;
+  size_t n = number;
   int sp;
   S *v = key;
   S *m, t;
   S * ls[32] , * rs[32];
   S *l , *r , c;
   T it;
-  int j;
+  size_t j;
   /*check already sorted  */
   S last=key[0];
   for (j=1;j<n;j++) {
