@@ -24,7 +24,9 @@ private:
   unsigned int bits_[4];
 public:
   BitVector128();
+  BitVector128(unsigned int bits[4]);
   ~BitVector128() {}
+  void set(unsigned int bits[4]);
   void setBit(int i);
   void clearBit(int i);
   std::string str() const;
