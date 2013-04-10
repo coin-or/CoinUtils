@@ -814,7 +814,7 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
      cnt_print++;
    }
 
-   if(cnt_print % numberAcross != 0) {
+   if((cnt_print == 0) || (cnt_print % numberAcross != 0)) {
      fprintf(fp, "\n");
    }
    
