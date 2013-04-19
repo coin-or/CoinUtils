@@ -653,6 +653,31 @@ const CoinPresolveAction *implied_free_action::presolve (
 
     const CoinBigIndex krs = rowStarts[tgtrow] ;
     const CoinBigIndex kre = krs+tgtrow_len ;
+    if (tgtcol_cost != 0.0) {
+      // Check costs don't make unstable
+      //double minOldCost=COIN_DBL_MAX;
+      double maxOldCost=0.0;
+      //double minNewCost=COIN_DBL_MAX;
+      double maxNewCost=0.0;
+      for (CoinBigIndex krow = krs ; krow < kre ; krow++) {
+	const int j = colIndices[krow] ;
+	if (j != tgtcol) {
+	  double oldCost = cost[j] ;
+	  double newCost = oldCost - (tgtcol_cost*rowCoeffs[krow])/tgtcol_coeff ;
+	  oldCost = fabs(oldCost);
+	  newCost = fabs(newCost);
+	  //minOldCost=CoinMin(minOldCost,oldCost);
+	  maxOldCost=CoinMax(maxOldCost,oldCost);
+	  //minNewCost=CoinMin(minNewCost,newCost);
+	  maxNewCost=CoinMax(maxNewCost,newCost);
+	}
+      }
+      if (maxNewCost>1000.0*(maxOldCost+1.0) /*&& maxOldCost*/) {
+	//printf("too big %d tgtcost %g maxOld %g maxNew %g\n",
+	//     tgtcol,tgtcol_cost,maxOldCost,maxNewCost);
+	continue;
+      }
+    }
 /*
   Initialise the postsolve action. We need to remember the row and column.
 */
