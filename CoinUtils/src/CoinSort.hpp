@@ -256,7 +256,7 @@ CoinSort_2(S* key, S* lastKey, T* array2)
   }
 #endif
   int minsize=10;
-  int n = number;
+  int n = static_cast<int>(number);
   int sp;
   S *v = key;
   S *m, t;
