@@ -15,6 +15,7 @@ AUTOMAKE_OPTIONS = foreign
 noinst_PROGRAMS = unitTest
 
 unitTest_SOURCES = \
+	CoinLpIOTest.cpp \
 	CoinDenseVectorTest.cpp \
 	CoinErrorTest.cpp \
 	CoinIndexedVectorTest.cpp \
