@@ -963,7 +963,7 @@ const CoinPresolveAction
       const CoinBigIndex kre = krs+hinrow[i] ;
       for (CoinBigIndex k = krs ; k < kre ; k++) {
 	const int j = hcol[k] ;
-	if (cup[j] > clo[j] && integerType[j]) {
+	if (cup[j] > clo[j] && (integerType[j]||prob->colProhibited2(j))) {
 	  canFix[i] = 0 ;
 #	  if PRESOLVE_DEBUG > 1
 	  std::cout
