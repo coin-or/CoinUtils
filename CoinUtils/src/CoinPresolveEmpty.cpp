@@ -251,7 +251,7 @@ const CoinPresolveAction
   // count empty cols
   for (int i = 0 ; i < ncols ; i++) {
     nelems2 += hincol[i] ;
-    if (hincol[i] == 0) {
+    if (hincol[i] == 0&&!prob->colProhibited2(i)) {
 #     if PRESOLVE_DEBUG > 1
       if (nempty == 0)
 	std::cout << "UNUSED COLS:" ;
