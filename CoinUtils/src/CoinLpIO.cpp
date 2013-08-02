@@ -2513,10 +2513,8 @@ CoinLpIO::insertHash(const char *thisName, int section)
 void 
 CoinLpIO::passInMessageHandler(CoinMessageHandler * handler)
 {
-  if (defaultHandler_){ 
+  if (defaultHandler_)
     delete handler_;
-    handler = NULL; 
-    }
   defaultHandler_=false;
   handler_=handler;
 }
