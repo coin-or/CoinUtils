@@ -7,7 +7,8 @@
 #define _CoinTypes_hpp
 
 #include "CoinUtilsConfig.h"
-#ifdef __MINGW64__
+/* On some systems, we require stdint.h to have the 64bit integer type defined. */
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
 
