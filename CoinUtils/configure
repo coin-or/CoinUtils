@@ -29006,6 +29006,15 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+
+if test "x$ac_cv_header_stdint_h" = xyes ; then
+
+cat >>confdefs.h <<\_ACEOF
+#define COINUTILS_HAS_STDINT_H 1
+_ACEOF
+
+fi
+
 #############################################################################
 #                           Check whether we have windows.h                 #
 #############################################################################
