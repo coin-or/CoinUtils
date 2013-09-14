@@ -3,6 +3,9 @@
 #ifndef __CONFIG_COINUTILS_H__
 #define __CONFIG_COINUTILS_H__
 
+/* Define to 1 if stdint.h is available for CoinUtils */
+#undef COINUTILS_HAS_STDINT_H
+
 /* Version number of project */
 #undef COINUTILS_VERSION
 
@@ -14,9 +17,6 @@
 
 /* Release Version number of project */
 #undef COINUTILS_VERSION_RELEASE
-
-/* Need to include stdint.h when building other projects */
-#undef HAVE_STDINT_H
 
 /* Define to 64bit integer type */
 #undef COIN_INT64_T

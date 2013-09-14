@@ -231,6 +231,11 @@ if test x"$CoinIntPtr" = x; then
 fi
 AC_DEFINE_UNQUOTED([COIN_INTPTR_T],[$CoinIntPtr],[Define to integer type capturing pointer])
 
+
+if test "x$ac_cv_header_stdint_h" = xyes ; then
+  AC_DEFINE([COINUTILS_HAS_STDINT_H], [1], [Define to 1 if stdint.h is available for CoinUtils])
+fi
+
 #############################################################################
 #                           Check whether we have windows.h                 #
 #############################################################################

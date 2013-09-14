@@ -8,7 +8,7 @@
 
 #include "CoinUtilsConfig.h"
 /* On some systems, we require stdint.h to have the 64bit integer type defined. */
-#ifdef HAVE_STDINT_H
+#ifdef COINUTILS_HAS_STDINT_H
 #include <stdint.h>
 #endif
 
