@@ -2445,6 +2445,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    } else {
 	       if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
 	       } else if ( columnType[icolumn] == COIN_LO_BOUND ||
+			   columnType[icolumn] == COIN_LI_BOUND ||
                            columnType[icolumn] == COIN_MI_BOUND ) {
 		  if ( value < collower_[icolumn] ) {
 		     ifError = true;
@@ -5757,11 +5758,28 @@ CoinMpsIO::readConicMps(const char * filename,
     cardReader_ = new CoinMpsCardReader ( input, this);
   }
 
-  cardReader_->readToNextSection();
-
-  // Skip NAME
-  if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) 
+  // See if CSECTION just found
+  if (filename||cardReader_->whichSection (  ) != COIN_CONIC_SECTION ) {
     cardReader_->readToNextSection();
+    
+    // Skip NAME
+    if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) 
+      cardReader_->readToNextSection();
+    if ( cardReader_->whichSection (  ) == COIN_CONIC_SECTION ) {
+      // looks good
+    } else if ( cardReader_->whichSection (  ) == COIN_EOF_SECTION ) {
+      handler_->message(COIN_MPS_EOF,messages_)<<fileName_
+					       <<CoinMessageEol;
+      return -3;
+    } else {
+      handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
+						  <<cardReader_->cardNumber()
+						  <<fileName_
+						  <<CoinMessageEol;
+      return -2;
+    }
+  }
+    
   numberCones=0;
 
   // Get arrays
