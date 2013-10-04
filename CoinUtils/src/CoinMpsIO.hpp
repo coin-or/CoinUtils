@@ -740,9 +740,11 @@ public:
       -3 empty section
 
       columnStart is numberCones+1 long, other number of columns in matrix
+
+      coneType is 1 for QUAD, 2 for RQUAD (numberCones long)
     */
-    int readConicMps(const char * filename,
-		     int * &columnStart, int * &column, int & numberCones);
+    int readConicMps(const char * filename, 
+		     int * &columnStart, int * &column, int * &coneType, int & numberCones);
     /// Set whether to move objective from matrix
     inline void setConvertObjective(bool trueFalse)
     { convertObjective_=trueFalse;}

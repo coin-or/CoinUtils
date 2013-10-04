@@ -5743,10 +5743,12 @@ CoinMpsIO::readQuadraticMps(const char * filename,
    Returns number of errors, -1 bad file, -2 no conic section, -3 empty section
    
    columnStart is numberCones+1 long, other number of columns in matrix
+
+   coneType is 1 for QUAD, 2 for RQUAD (numberCones long)
 */
 int 
 CoinMpsIO::readConicMps(const char * filename,
-		     int * &columnStart, int * &column, int & numberCones)
+			int * &columnStart, int * &column, int * &coneType, int & numberCones)
 {
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
   CoinFileInput *input = 0;
@@ -5782,25 +5784,41 @@ CoinMpsIO::readConicMps(const char * filename,
     
   numberCones=0;
 
-  // Get arrays
+  // Get arrays (some too big, but ...)
   columnStart = new int [numberColumns_+1];
   column = new int [numberColumns_];
+  coneType = new int [numberColumns_];
+  // check QUAD or RQUAD (by hand) - card has had end stripped 
+  const char * quad = cardReader_->card()+strlen(cardReader_->card())-4; 
+  // Should be QUAD but if not don't complain
+  int type=1;
+  if (!strcmp(quad,"QUAD")) {
+    if (*(quad-1)=='R')
+      type=2;
+  }
+  coneType[0] = type;
   int numberErrors = 0;
   columnStart[0]=0;
   int numberElements=0;
   startHash(1);
   
-  //if (cardReader_->whichSection()==COIN_CONIC_SECTION) 
-  //cardReader_->cleanCard(); // skip doing last
   while ( cardReader_->nextField (  ) == COIN_CONIC_SECTION ) {
-    // should check QUAD
-    // Have to check by hand
-    if (!strncmp(cardReader_->card(),"CSECTION",8)) {
+    const char * card = cardReader_->card();
+    if (!strncmp(card,"CSECTION",8)) {
+      // check QUAD or RQUAD (by hand) - card has had end stripped 
+      const char * quad = card+strlen(card)-4; 
+      // Should be QUAD but if not don't complain
+      int type=1;
+      if (!strcmp(quad,"QUAD")) {
+	if (*(quad-1)=='R')
+	  type=2;
+      }
       if (numberElements==columnStart[numberCones]) {
 	printf("Cone must have at least one column\n");
 	abort();
       }
       columnStart[++numberCones]=numberElements;
+      coneType[numberCones] = type;
       continue;
     }
     COINColumnIndex iColumn1;
@@ -5842,8 +5860,10 @@ CoinMpsIO::readConicMps(const char * filename,
 					       <<CoinMessageEol;
       delete [] columnStart;
       delete [] column;
+      delete [] coneType;
       columnStart = NULL;
       column = NULL;
+      coneType = NULL;
       return -3;
     } else {
       columnStart[++numberCones]=numberElements;
