@@ -101,6 +101,9 @@
 /* Define to 1 if you have the <cmath> header file. */
 #undef HAVE_CMATH
 
+/* Define to 1 if you have the <cstdint> header file. */
+#undef HAVE_CSTDINT
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
