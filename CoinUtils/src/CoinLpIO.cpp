@@ -493,7 +493,7 @@ void CoinLpIO::checkRowNames() {
       if(findHash(rName, 0) != -1) {
 	setDefaultRowNames();
 	char printBuffer[512];
-	sprintf(printBuffer,"### CoinLpIO::checkRowNames(): ranged constraint %d hasa name %s identical to another constraint name or objective function name.\nUse getPreviousNames() to get the old row names.\nNow using default row names.", i, rName);
+	sprintf(printBuffer,"### CoinLpIO::checkRowNames(): ranged constraint %d has a name %s identical to another constraint name or objective function name.\nUse getPreviousNames() to get the old row names.\nNow using default row names.", i, rName);
 	handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
 						  <<CoinMessageEol;
 	break;
