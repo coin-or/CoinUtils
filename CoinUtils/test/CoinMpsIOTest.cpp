@@ -363,7 +363,7 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
 	//test special sections: SOS, QUADOBJ, CSECTION
 	{
 	    CoinMpsIO m_MpsData;
-		std::string fn = mpsDir+"spec_session";
+		std::string fn = mpsDir+"spec_sections";
 		int nOfSOS;
 		CoinSet ** SOS;
 		int status = m_MpsData.readMps(fn.c_str(),"mps", nOfSOS, SOS);
