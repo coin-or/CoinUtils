@@ -840,8 +840,8 @@ inline int CoinStrNCaseCmp(const char* s0, const char* s1,
 	if (s1[i] == 0) {
 	    return 1;
 	}
-	const int c0 = tolower(s0[i]);
-	const int c1 = tolower(s1[i]);
+	const int c0 = std::tolower(s0[i]);
+	const int c1 = std::tolower(s1[i]);
 	if (c0 < c1)
 	    return -1;
 	if (c0 > c1)
