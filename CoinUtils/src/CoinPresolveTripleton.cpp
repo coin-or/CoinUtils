@@ -467,31 +467,24 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	  if (cx*cup[icolx]+cz*cup[icolz]+rhsRatio>cup[icoly]+ztolzb)
 	    continue;
 	}
-	CoinBigIndex krowx,krowy,krowz;
 	/* find this row in each of the columns and do counts */
 	bool singleton=false;
 	for (k=mcstrt[icoly]; k<mcstrt[icoly]+hincol[icoly]; k++) {
 	  int jrow=hrow[k];
 	  if (hinrow[jrow]==1)
 	    singleton=true;
-	  if (jrow == irow) 
-	    krowy=k;
-	  else
+	  if (jrow != irow)
 	    prob->setRowUsed(jrow);
 	}
 	int nDuplicate=0;
 	for (k=mcstrt[icolx]; k<mcstrt[icolx]+hincol[icolx]; k++) {
 	  int jrow=hrow[k];
-	  if (jrow == irow) 
-	    krowx=k;
-	  else if (prob->rowUsed(jrow))
+	  if (jrow != irow && prob->rowUsed(jrow))
 	    nDuplicate++;;
 	}
 	for (k=mcstrt[icolz]; k<mcstrt[icolz]+hincol[icolz]; k++) {
 	  int jrow=hrow[k];
-	  if (jrow == irow) 
-	    krowz=k;
-	  else if (prob->rowUsed(jrow))
+	  if (jrow != irow && prob->rowUsed(jrow))
 	    nDuplicate++;;
 	}
 	int nAdded=hincol[icoly]-3-nDuplicate;

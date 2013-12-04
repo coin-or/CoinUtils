@@ -312,16 +312,15 @@ CoinIndexedVector::clean( double tolerance )
   }
   return nElements_;
 }
-
+#ifndef NDEBUG
 //#############################################################################
 // For debug check vector is clear i.e. no elements
 void CoinIndexedVector::checkClear()
 {
 #ifndef NDEBUG
-#ifndef NDEBUG
   //printf("checkClear %p\n",this);
   assert(!nElements_);
-  assert(!packedMode_);
+  //assert(!packedMode_);
   int i;
   for (i=0;i<capacity_;i++) {
     assert(!elements_[i]);
@@ -355,12 +354,10 @@ void CoinIndexedVector::checkClear()
     abort();
   }
 #endif
-#endif
 }
 // For debug check vector is clean i.e. elements match indices
 void CoinIndexedVector::checkClean()
 {
-#ifndef NDEBUG
   //printf("checkClean %p\n",this);
   int i;
   if (packedMode_) {
@@ -387,9 +384,8 @@ void CoinIndexedVector::checkClean()
     assert(!mark[i]);
   }
 #endif
-#endif
 }
-
+#endif
 //#############################################################################
 #ifndef CLP_NO_VECTOR
 void
@@ -951,6 +947,13 @@ CoinIndexedVector::sortDecrIndex()
   CoinSort_2(indices_, indices_ + nElements_, elements,
 	     CoinFirstGreater_2<int, double>());
   delete [] elements;
+}
+
+void 
+CoinIndexedVector::sortPacked()
+{ 
+  assert(packedMode_);  
+  CoinSort_2(indices_, indices_ + nElements_, elements_);
 }
 
 void 
@@ -1857,7 +1860,9 @@ CoinArrayWithLength::getCapacity(int numberBytes,int numberNeeded)
 {
   int k=capacity();
   if (k<numberBytes) {
+    int saveSize=size_;
     reallyFreeArray();
+    size_=saveSize;
     getArray(CoinMax(numberBytes,numberNeeded));
   } else if (size_<0) {
     size_=-size_-2;
@@ -1887,12 +1892,12 @@ char *
 CoinArrayWithLength::conditionalNew(long sizeWanted)
 {
   if (size_==-1) {
-    getCapacity(sizeWanted);
+    getCapacity(static_cast<int>(sizeWanted));
   } else {
     int newSize = static_cast<int> (sizeWanted*101/100)+64;
     // round to multiple of 16
-    newSize -= newSize%16;
-    getCapacity(sizeWanted,newSize);
+    newSize -= newSize&15;
+    getCapacity(static_cast<int>(sizeWanted),newSize);
   }
   return array_;
 }
@@ -2021,5 +2026,287 @@ CoinArrayWithLength::extend(int newSize)
       delete [] (temp-offset_);
     }
     size_=newSize;
+  }
+}
+
+/* Default constructor */
+CoinPartitionedVector::CoinPartitionedVector()
+  : CoinIndexedVector()
+{
+  memset(startPartition_,0,((&numberPartitions_-startPartition_)+1)*sizeof(int));
+}
+/* Copy constructor. */
+CoinPartitionedVector::CoinPartitionedVector(const CoinPartitionedVector & rhs)
+  : CoinIndexedVector(rhs)
+{
+  memcpy(startPartition_,rhs.startPartition_,((&numberPartitions_-startPartition_)+1)*sizeof(int));
+}
+/* Copy constructor.2 */
+CoinPartitionedVector::CoinPartitionedVector(const CoinPartitionedVector * rhs)
+  : CoinIndexedVector(rhs)
+{
+  memcpy(startPartition_,rhs->startPartition_,((&numberPartitions_-startPartition_)+1)*sizeof(int));
+}
+/* Assignment operator. */
+CoinPartitionedVector & CoinPartitionedVector::operator=(const CoinPartitionedVector & rhs)
+{
+  if (this != &rhs) {
+    CoinIndexedVector::operator=(rhs);
+    memcpy(startPartition_,rhs.startPartition_,((&numberPartitions_-startPartition_)+1)*sizeof(int));
+  }
+  return *this;
+}
+/* Destructor */
+CoinPartitionedVector::~CoinPartitionedVector ()
+{
+}
+// Add up number of elements in partitions
+void 
+CoinPartitionedVector::computeNumberElements()
+{
+  if (numberPartitions_) {
+    assert (packedMode_);
+    int n=0;
+    for (int i=0;i<numberPartitions_;i++)
+      n += numberElementsPartition_[i];
+    nElements_=n;
+  }
+}
+// Add up number of elements in partitions and pack and get rid of partitions
+void 
+CoinPartitionedVector::compact()
+{
+  if (numberPartitions_) {
+    int n=numberElementsPartition_[0];
+    numberElementsPartition_[0]=0;
+    for (int i=1;i<numberPartitions_;i++) {
+      int nThis=numberElementsPartition_[i];
+      int start=startPartition_[i];
+      memmove(indices_+n,indices_+start,nThis*sizeof(int));
+      memmove(elements_+n,elements_+start,nThis*sizeof(double));
+      n += nThis;
+    }
+    nElements_=n;
+    // clean up
+    for (int i=1;i<numberPartitions_;i++) {
+      int nThis=numberElementsPartition_[i];
+      int start=startPartition_[i];
+      numberElementsPartition_[i]=0;
+      int end=nThis+start;
+      if (nElements_<end) {
+	int offset=CoinMax(nElements_-start,0);
+	start+=offset;
+	nThis-=offset;
+	memset(elements_+start,0,nThis*sizeof(double));
+      }
+    }
+    packedMode_=true;
+    numberPartitions_=0;
+  }
+}
+/* Reserve space.
+ */
+void 
+CoinPartitionedVector::reserve(int n)
+{
+  CoinIndexedVector::reserve(n);
+  memset(startPartition_,0,((&numberPartitions_-startPartition_)+1)*sizeof(int));
+  startPartition_[1]=capacity_; // for safety
+}
+// Setup partitions (needs end as well)
+void 
+CoinPartitionedVector::setPartitions(int number,const int * starts)
+{
+  if (number) {
+    packedMode_=true;
+    assert (number<=COIN_PARTITIONS);
+    memcpy(startPartition_,starts,(number+1)*sizeof(int));
+    numberPartitions_=number;
+#ifndef NDEBUG
+    assert (startPartition_[0]==0);
+    int last=-1;
+    for (int i=0;i<numberPartitions_;i++) {
+      assert (startPartition_[i]>=last);
+      assert (numberElementsPartition_[i]==0);
+      last=startPartition_[i];
+    }
+    assert (startPartition_[numberPartitions_]>=last&&
+	    startPartition_[numberPartitions_]<=capacity_);
+#endif
+  } else {
+    clearAndReset();
+  }
+}
+// Reset the vector (as if were just created an empty vector). Gets rid of partitions
+void 
+CoinPartitionedVector::clearAndReset()
+{
+  if (numberPartitions_) {
+    assert (packedMode_||!nElements_);
+    for (int i=0;i<numberPartitions_;i++) {
+      int n=numberElementsPartition_[i];
+      memset(elements_+startPartition_[i],0,n*sizeof(double));
+      numberElementsPartition_[i]=0;
+    }
+  } else {
+    memset(elements_,0,nElements_*sizeof(double));
+  }
+  nElements_=0;
+  numberPartitions_=0;
+  startPartition_[1]=capacity_;
+  packedMode_=false;
+}
+// Reset the vector (as if were just created an empty vector). Keeps partitions
+void 
+CoinPartitionedVector::clearAndKeep()
+{
+  assert (packedMode_);
+  for (int i=0;i<numberPartitions_;i++) {
+    int n=numberElementsPartition_[i];
+    memset(elements_+startPartition_[i],0,n*sizeof(double));
+    numberElementsPartition_[i]=0;
+  }
+  nElements_=0;
+}
+// Clear a partition.
+void 
+CoinPartitionedVector::clearPartition(int partition)
+{
+  assert (packedMode_);
+  assert (partition<COIN_PARTITIONS);
+  int n=numberElementsPartition_[partition];
+  memset(elements_+startPartition_[partition],0,n*sizeof(double));
+  numberElementsPartition_[partition]=0;
+}
+#ifndef NDEBUG
+// For debug check vector is clear i.e. no elements
+void 
+CoinPartitionedVector::checkClear()
+{
+#ifndef NDEBUG
+  //printf("checkClear %p\n",this);
+  assert(!nElements_);
+  //assert(!packedMode_);
+  int i;
+  for (i=0;i<capacity_;i++) {
+    assert(!elements_[i]);
+  }
+#else
+  if(nElements_) {
+    printf("%d nElements_ - checkClear\n",nElements_);
+    abort();
+  }
+  int i;
+  int n=0;
+  int k=-1;
+  for (i=0;i<capacity_;i++) {
+    if(elements_[i]) {
+      n++;
+      if (k<0)
+	k=i;
+    }
+  }
+  if(n) {
+    printf("%d elements, first %d - checkClear\n",n,k);
+    abort();
+  }
+#endif
+}
+// For debug check vector is clean i.e. elements match indices
+void 
+CoinPartitionedVector::checkClean()
+{
+  //printf("checkClean %p\n",this);
+  if (!nElements_) {
+    checkClear();
+  } else {
+    assert (packedMode_);
+    int i;
+    for (i=0;i<nElements_;i++) 
+      assert(elements_[i]);
+    for (;i<capacity_;i++) 
+      assert(!elements_[i]);
+#ifndef NDEBUG
+    // check mark array zeroed
+    char * mark = reinterpret_cast<char *> (indices_+capacity_);
+    for (i=0;i<capacity_;i++) {
+      assert(!mark[i]);
+    }
+#endif
+  }
+}
+#endif
+// Scan dense region and set up indices (returns number found)
+int 
+CoinPartitionedVector::scan(int partition, double tolerance)
+{
+  assert (packedMode_);
+  assert (partition<COIN_PARTITIONS);
+  int n=0;
+  int start=startPartition_[partition];
+  double * COIN_RESTRICT elements=elements_+start;
+  int * COIN_RESTRICT indices=indices_+start;
+  int sizePartition=startPartition_[partition+1]-start;
+  if (!tolerance) {
+    for (int i=0;i<sizePartition;i++) {
+      double value = elements[i];
+      if (value) {
+	elements[i]=0.0;
+	elements[n]=value;
+	indices[n++]=i+start;
+      }
+    }
+  } else {
+    for (int i=0;i<sizePartition;i++) {
+      double value = elements[i];
+      if (value) {
+	elements[i]=0.0;
+	if (fabs(value)>tolerance) {
+	  elements[n]=value;
+	  indices[n++]=i+start;
+	}
+      }
+    }
+  }
+  numberElementsPartition_[partition]=n;
+  return n;
+}
+//  Print out
+void 
+CoinPartitionedVector::print() const
+{
+  printf("Vector has %d elements (%d partitions)\n",nElements_,numberPartitions_);
+  if (!numberPartitions_) {
+    CoinIndexedVector::print();
+    return;
+  }
+  double * tempElements=CoinCopyOfArray(elements_,capacity_);
+  int * tempIndices=CoinCopyOfArray(indices_,capacity_);
+  for (int partition=0;partition<numberPartitions_;partition++) {
+    printf("Partition %d has %d elements\n",partition,numberElementsPartition_[partition]);
+    int start=startPartition_[partition];
+    double * COIN_RESTRICT elements=tempElements+start;
+    int * COIN_RESTRICT indices=tempIndices+start;
+    CoinSort_2(indices,indices+numberElementsPartition_[partition],elements);
+    for (int i=0;i<numberElementsPartition_[partition];i++) {
+      if (i&&(i%5==0))
+	printf("\n");
+      int index = indices[i];
+      double value =  elements[i];
+      printf(" (%d,%g)",index,value);
+    }
+    printf("\n");
+  }
+}
+/* Sort the indexed storage vector (increasing indices). */
+void 
+CoinPartitionedVector::sort()
+{
+  assert (packedMode_);
+  for (int partition=0;partition<numberPartitions_;partition++) {
+    int start=startPartition_[partition];
+    double * COIN_RESTRICT elements=elements_+start;
+    int * COIN_RESTRICT indices=indices_+start;
+    CoinSort_2(indices,indices+numberElementsPartition_[partition],elements);
   }
 }

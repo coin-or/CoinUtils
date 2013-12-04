@@ -22384,6 +22384,59 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+#if test x"" = x; then
+#  hdr="#include <cstdint>"
+#else
+#  hdr=""
+#fi
+#AC_CHECK_HEADERS([cstdint],[],[],[$hdr])
+for ac_header in cstdint
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cstdint" "ac_cv_header_cstdint" "$ac_includes_default"
+if test "x$ac_cv_header_cstdint" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CSTDINT 1
+_ACEOF
+
+fi
+
+done
+
+
+if test "$ac_cv_header_cstdint" != "yes"; then
+  #if test x"" = x; then
+#  hdr="#include <stdint.h>"
+#else
+#  hdr=""
+#fi
+#AC_CHECK_HEADERS([stdint.h],[],[],[$hdr])
+for ac_header in stdint.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "stdint.h" "ac_cv_header_stdint_h" "$ac_includes_default"
+if test "x$ac_cv_header_stdint_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STDINT_H 1
+_ACEOF
+
+fi
+
+done
+
+
+fi
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
 
 ##### 64bit Integer types
 # The problem here is that you can't extend `int64_t' to `unsigned int64_t'.
@@ -22756,6 +22809,12 @@ cat >>confdefs.h <<_ACEOF
 #define COIN_INTPTR_T $CoinIntPtr
 _ACEOF
 
+
+if test "x$ac_cv_header_stdint_h" = xyes ; then
+
+$as_echo "#define COINUTILS_HAS_STDINT_H 1" >>confdefs.h
+
+fi
 
 #############################################################################
 #                           Check whether we have windows.h                 #

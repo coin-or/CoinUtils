@@ -150,5 +150,49 @@ class gubrow_action : public CoinPresolveAction {
   //~gubrow_action() { delete[]actions_; }
 };
 
+/*! \class twoxtwo_action
+    \brief Detect interesting 2 by 2 blocks
+
+    If a variable has two entries and for each row there are only
+    two entries with same other variable then we can get rid of 
+    one constraint and modify costs.
+
+    This is a work in progress - I need more examples
+*/
+
+class twoxtwo_action : public CoinPresolveAction {
+  struct action {
+    double lbound_row;
+    double ubound_row;
+    double lbound_col;
+    double ubound_col;
+    double cost_col;
+    double cost_othercol;
+    int row;
+    int col;
+    int othercol;
+  };
+
+  const int nactions_;
+  const action *const actions_;
+
+  twoxtwo_action():CoinPresolveAction(NULL),nactions_(0),actions_(NULL) {}
+  twoxtwo_action(int nactions,
+		      const action *actions,
+		      const CoinPresolveAction *next) :
+    CoinPresolveAction(next),
+    nactions_(nactions), actions_(actions) {}
+
+ public:
+  const char *name() const;
+
+  static const CoinPresolveAction *presolve(CoinPresolveMatrix *prob,
+					 const CoinPresolveAction *next);
+
+  void postsolve(CoinPostsolveMatrix *prob) const;
+
+  ~twoxtwo_action() { delete [] actions_; }
+};
+
 #endif
 

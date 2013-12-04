@@ -12,10 +12,12 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
+#ifndef CoinLpIO_H
+#define CoinLpIO_H
 
 #include <cstdio>
 
-class CoinPackedMatrix;
+#include "CoinPackedMatrix.hpp"
 #include "CoinMessage.hpp"
 
 typedef int COINColumnIndex;
@@ -72,7 +74,10 @@ Notes: <UL>
       as suffix. This should be kept in mind when assigning names to ranged
       constraint, as the resulting name must be distinct from all the other
       names and be considered valid by the method is_invalid_name().
- <LI> At most one constant term may appear in the objective function; 
+ <LI> At most one term related to any single variable may appear in the
+      objective function; if more than one term are present, only the last
+      one is taken into account.
+      At most one constant term may appear in the objective function; 
       if present, it must appear last. 
  <LI> Default bounds are 0 for lower bound and +infinity for upper bound.
  <LI> Free variables get default lower bound -infinity and 
@@ -92,7 +97,7 @@ Notes: <UL>
 </UL>
 */
 class CoinLpIO {
-
+      friend void CoinLpIOUnitTest(const std::string & lpDir); 
 public:
 
   /**@name Constructor and Destructor */
@@ -100,6 +105,18 @@ public:
   /// Default Constructor
   CoinLpIO(); 
   
+  /// Does the heavy lifting for destruct and assignment.
+  void gutsOfDestructor(); 
+ 
+  /// Does the heavy lifting for copy and assignment
+  void gutsOfCopy(const CoinLpIO &); 
+ 
+  /// assignment operator
+  CoinLpIO & operator = (const CoinLpIO& rhs) ; 
+ 
+  /// Copy constructor 
+  CoinLpIO (const CoinLpIO &); 
+
   /// Destructor 
   ~CoinLpIO();
 
@@ -726,3 +743,8 @@ protected:
 
 };
 
+void
+CoinLpIOUnitTest(const std::string& lpDir);
+
+
+#endif 

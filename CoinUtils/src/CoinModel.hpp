@@ -695,6 +695,12 @@ public:
   /// Return column names array
   inline const CoinModelHash * columnNames() const
   { return &columnName_;}
+  /// Reset row names
+  inline void zapRowNames()
+  { rowName_=CoinModelHash();}
+  /// Reset column names
+  inline void zapColumnNames()
+  { columnName_=CoinModelHash();}
   /// Returns array of 0 or nonzero if can be a cut (or returns NULL)
   inline const int * cutMarker() const
   { return cut_;}

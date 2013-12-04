@@ -983,7 +983,8 @@ protected:
 	return false;
       }
       //redo starts
-      positionLargest = positionLargest + startColumnU[iColumn] - startColumn;
+      if (positionLargest >= 0)
+         positionLargest = positionLargest + startColumnU[iColumn] - startColumn;
       startColumn = startColumnU[iColumn];
       put = startColumn + numberInColumn[iColumn];
     }

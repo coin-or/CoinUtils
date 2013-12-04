@@ -227,7 +227,7 @@ public:
 		 assert (element);
 		 if (elements_[index]) {
 		   element += elements_[index];
-		   if (element) {
+		   if ((element > 0 ? element : -element) >= COIN_INDEXED_TINY_ELEMENT) {
 		     elements_[index] = element;
 		   } else {
 		     elements_[index] = COIN_DBL_MIN;
@@ -255,12 +255,15 @@ public:
   /// Mark as packed
   inline void setPacked()
   { packedMode_ = true;}
-
+#ifndef NDEBUG
    /// For debug check vector is clear i.e. no elements
    void checkClear();
    /// For debug check vector is clean i.e. elements match indices
    void checkClean();
-
+#else
+  inline void checkClear() {};
+  inline void checkClean() {};
+#endif
    /// Scan dense region and set up indices (returns number found)
    int scan();
    /** Scan dense region from start to < end and set up indices
@@ -359,6 +362,7 @@ public:
    void sortIncrElement();
 
    void sortDecrElement();
+   void sortPacked();
 
    //@}
 
@@ -716,6 +720,60 @@ public:
   { CoinArrayWithLength::operator=(rhs);  return *this;}
   //@}
 };
+/// CoinFactorizationLongDouble * version
+
+class CoinFactorizationLongDoubleArrayWithLength : public CoinArrayWithLength {
+  
+public:
+  /**@name Get methods. */
+  //@{
+  /// Get the size
+  inline int getSize() const 
+  { return size_/CoinSizeofAsInt(long double); }
+  /// Get Array
+  inline long double * array() const 
+  { return reinterpret_cast<long double *> ((size_>-2) ? array_ : NULL); }
+  //@}
+  
+  /**@name Set methods */
+  //@{
+  /// Set the size
+  inline void setSize(int value) 
+  { size_ = value*CoinSizeofAsInt(long double); }
+  //@}
+  
+  /**@name Condition methods */
+  //@{
+  /// Conditionally gets new array
+  inline long double * conditionalNew(int sizeWanted)
+  { return reinterpret_cast<long double *> (CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> (( sizeWanted)*CoinSizeofAsInt(long double)) : -1)); }
+  //@}
+  
+  /**@name Constructors and destructors */
+  //@{
+  /** Default constructor - NULL*/
+  inline CoinFactorizationLongDoubleArrayWithLength()
+  { array_=NULL; size_=-1;}
+  /** Alternate Constructor - length in bytes - size_ -1 */
+  inline CoinFactorizationLongDoubleArrayWithLength(int size)
+  { array_=new char [size*CoinSizeofAsInt(long double)]; size_=-1;}
+  /** Alternate Constructor - length in bytes 
+      mode -  0 size_ set to size
+      1 size_ set to size and zeroed
+  */
+  inline CoinFactorizationLongDoubleArrayWithLength(int size, int mode)
+    : CoinArrayWithLength(size*CoinSizeofAsInt(long double),mode) {}
+  /** Copy constructor. */
+  inline CoinFactorizationLongDoubleArrayWithLength(const CoinFactorizationLongDoubleArrayWithLength & rhs)
+    : CoinArrayWithLength(rhs) {}
+  /** Copy constructor.2 */
+  inline CoinFactorizationLongDoubleArrayWithLength(const CoinFactorizationLongDoubleArrayWithLength * rhs)
+    : CoinArrayWithLength(rhs) {}
+  /** Assignment operator. */
+  inline CoinFactorizationLongDoubleArrayWithLength& operator=(const CoinFactorizationLongDoubleArrayWithLength & rhs)
+  { CoinArrayWithLength::operator=(rhs);  return *this;}
+  //@}
+};
 /// int * version
 
 class CoinIntArrayWithLength : public CoinArrayWithLength {
@@ -877,5 +935,228 @@ public:
   inline CoinUnsignedIntArrayWithLength& operator=(const CoinUnsignedIntArrayWithLength & rhs)
   { CoinArrayWithLength::operator=(rhs);  return *this;}
   //@}
+};
+/// void * version
+
+class CoinVoidStarArrayWithLength : public CoinArrayWithLength {
+  
+public:
+  /**@name Get methods. */
+  //@{
+  /// Get the size
+  inline int getSize() const 
+  { return size_/CoinSizeofAsInt(void *); }
+  /// Get Array
+  inline void ** array() const 
+  { return reinterpret_cast<void **> ((size_>-2) ? array_ : NULL); }
+  //@}
+  
+  /**@name Set methods */
+  //@{
+  /// Set the size
+  inline void setSize(int value) 
+  { size_ = value*CoinSizeofAsInt(void *); }
+  //@}
+  
+  /**@name Condition methods */
+  //@{
+  /// Conditionally gets new array
+  inline void ** conditionalNew(int sizeWanted)
+  { return reinterpret_cast<void **> ( CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> ((sizeWanted)*CoinSizeofAsInt(void *)) : -1)); }
+  //@}
+  
+  /**@name Constructors and destructors */
+  //@{
+  /** Default constructor - NULL*/
+  inline CoinVoidStarArrayWithLength()
+  { array_=NULL; size_=-1;}
+  /** Alternate Constructor - length in bytes - size_ -1 */
+  inline CoinVoidStarArrayWithLength(int size)
+  { array_=new char [size*CoinSizeofAsInt(void *)]; size_=-1;}
+  /** Alternate Constructor - length in bytes 
+      mode -  0 size_ set to size
+      1 size_ set to size and zeroed
+  */
+  inline CoinVoidStarArrayWithLength(int size, int mode)
+    : CoinArrayWithLength(size*CoinSizeofAsInt(void *),mode) {}
+  /** Copy constructor. */
+  inline CoinVoidStarArrayWithLength(const CoinVoidStarArrayWithLength & rhs)
+    : CoinArrayWithLength(rhs) {}
+  /** Copy constructor.2 */
+  inline CoinVoidStarArrayWithLength(const CoinVoidStarArrayWithLength * rhs)
+    : CoinArrayWithLength(rhs) {}
+  /** Assignment operator. */
+  inline CoinVoidStarArrayWithLength& operator=(const CoinVoidStarArrayWithLength & rhs)
+  { CoinArrayWithLength::operator=(rhs);  return *this;}
+  //@}
+};
+/// arbitrary version
+
+class CoinArbitraryArrayWithLength : public CoinArrayWithLength {
+  
+public:
+  /**@name Get methods. */
+  //@{
+  /// Get the size
+  inline int getSize() const 
+  { return size_/lengthInBytes_; }
+  /// Get Array
+  inline void ** array() const 
+  { return reinterpret_cast<void **> ((size_>-2) ? array_ : NULL); }
+  //@}
+  
+  /**@name Set methods */
+  //@{
+  /// Set the size
+  inline void setSize(int value) 
+  { size_ = value*lengthInBytes_; }
+  //@}
+  
+  /**@name Condition methods */
+  //@{
+  /// Conditionally gets new array
+  inline char * conditionalNew(int length, int sizeWanted)
+  { lengthInBytes_=length;return reinterpret_cast<char *> ( CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> 
+									  ((sizeWanted)*lengthInBytes_) : -1)); }
+  //@}
+  
+  /**@name Constructors and destructors */
+  //@{
+  /** Default constructor - NULL*/
+  inline CoinArbitraryArrayWithLength(int length=1)
+  { array_=NULL; size_=-1;lengthInBytes_=length;}
+  /** Alternate Constructor - length in bytes - size_ -1 */
+  inline CoinArbitraryArrayWithLength(int length, int size)
+  { array_=new char [size*length]; size_=-1; lengthInBytes_=length;}
+  /** Alternate Constructor - length in bytes 
+      mode -  0 size_ set to size
+      1 size_ set to size and zeroed
+  */
+  inline CoinArbitraryArrayWithLength(int length, int size, int mode)
+    : CoinArrayWithLength(size*length,mode) {lengthInBytes_=length;}
+  /** Copy constructor. */
+  inline CoinArbitraryArrayWithLength(const CoinArbitraryArrayWithLength & rhs)
+    : CoinArrayWithLength(rhs) {}
+  /** Copy constructor.2 */
+  inline CoinArbitraryArrayWithLength(const CoinArbitraryArrayWithLength * rhs)
+    : CoinArrayWithLength(rhs) {}
+  /** Assignment operator. */
+  inline CoinArbitraryArrayWithLength& operator=(const CoinArbitraryArrayWithLength & rhs)
+  { CoinArrayWithLength::operator=(rhs);  return *this;}
+  //@}
+
+protected:
+  /**@name Private member data */
+  //@{
+  /// Length in bytes
+  int lengthInBytes_;
+   //@}
+};
+class CoinPartitionedVector : public CoinIndexedVector {
+  
+public:
+#ifndef COIN_PARTITIONS
+#define COIN_PARTITIONS 8
+#endif
+   /**@name Get methods. */
+   //@{
+   /// Get the size of a partition
+   inline int getNumElements(int partition) const { assert (partition<COIN_PARTITIONS);
+     return numberElementsPartition_[partition]; }
+   /// Get number of partitions
+   inline int getNumPartitions() const
+  { return numberPartitions_; }
+   /// Get the size
+   inline int getNumElements() const { return nElements_; }
+   /// Get starts
+  inline int startPartition(int partition) const  { assert (partition<=COIN_PARTITIONS);
+    return startPartition_[partition]; }
+   /// Get starts
+  inline const int * startPartitions() const
+  { return startPartition_; }
+   //@}
+ 
+   //-------------------------------------------------------------------
+   // Set indices and elements
+   //------------------------------------------------------------------- 
+   /**@name Set methods */
+   //@{
+   /// Set the size of a partition
+  inline void setNumElementsPartition(int partition, int value) { assert (partition<COIN_PARTITIONS);
+    if (numberPartitions_) numberElementsPartition_[partition]=value; }
+   /// Set the size of a partition (just for a tiny while)
+  inline void setTempNumElementsPartition(int partition, int value) { assert (partition<COIN_PARTITIONS);
+    numberElementsPartition_[partition]=value; }
+  /// Add up number of elements in partitions
+  void computeNumberElements();
+  /// Add up number of elements in partitions and pack and get rid of partitions
+  void compact();
+   /** Reserve space.
+   */
+   void reserve(int n);
+  /// Setup partitions (needs end as well)
+  void setPartitions(int number,const int * starts);
+   /// Reset the vector (as if were just created an empty vector). Gets rid of partitions
+   void clearAndReset();
+   /// Reset the vector (as if were just created an empty vector). Keeps partitions
+   void clearAndKeep();
+   /// Clear a partition.
+   void clearPartition(int partition);
+#ifndef NDEBUG
+   /// For debug check vector is clear i.e. no elements
+   void checkClear();
+   /// For debug check vector is clean i.e. elements match indices
+   void checkClean();
+#else
+  inline void checkClear() {};
+  inline void checkClean() {};
+#endif
+   /// Scan dense region and set up indices (returns number found)
+  int scan(int partition, double tolerance=0.0);
+   /** Scan dense region from start to < end and set up indices
+       returns number found
+   */
+   ///  Print out
+   void print() const;
+   //@}
+ 
+   /**@name Sorting */
+   //@{ 
+   /** Sort the indexed storage vector (increasing indices). */
+  void sort();
+   //@}
+
+   /**@name Constructors and destructors (not all wriiten) */
+   //@{
+   /** Default constructor */
+   CoinPartitionedVector();
+   /** Alternate Constructors - set elements to vector of doubles */
+  CoinPartitionedVector(int size, const int * inds, const double * elems);
+   /** Alternate Constructors - set elements to same scalar value */
+  CoinPartitionedVector(int size, const int * inds, double element);
+   /** Alternate Constructors - construct full storage with indices 0 through
+       size-1. */
+  CoinPartitionedVector(int size, const double * elements);
+   /** Alternate Constructors - just size */
+  CoinPartitionedVector(int size);
+   /** Copy constructor. */
+   CoinPartitionedVector(const CoinPartitionedVector &);
+   /** Copy constructor.2 */
+   CoinPartitionedVector(const CoinPartitionedVector *);
+   /** Assignment operator. */
+   CoinPartitionedVector & operator=(const CoinPartitionedVector &);
+   /** Destructor */
+   ~CoinPartitionedVector ();
+   //@}
+protected:
+   /**@name Private member data */
+   //@{
+   /// Starts
+   int startPartition_[COIN_PARTITIONS+1];
+   /// Size of indices in a partition
+   int numberElementsPartition_[COIN_PARTITIONS];
+  /// Number of partitions (0 means off)
+  int numberPartitions_;
+   //@}
 };
 #endif

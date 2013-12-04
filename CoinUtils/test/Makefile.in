@@ -74,8 +74,9 @@ CONFIG_HEADER = $(top_builddir)/src/config.h \
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
-am_unitTest_OBJECTS = CoinDenseVectorTest.$(OBJEXT) \
-	CoinErrorTest.$(OBJEXT) CoinIndexedVectorTest.$(OBJEXT) \
+am_unitTest_OBJECTS = CoinLpIOTest.$(OBJEXT) \
+	CoinDenseVectorTest.$(OBJEXT) CoinErrorTest.$(OBJEXT) \
+	CoinIndexedVectorTest.$(OBJEXT) \
 	CoinMessageHandlerTest.$(OBJEXT) CoinModelTest.$(OBJEXT) \
 	CoinMpsIOTest.$(OBJEXT) CoinPackedMatrixTest.$(OBJEXT) \
 	CoinPackedVectorTest.$(OBJEXT) \
@@ -314,6 +315,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 unitTest_SOURCES = \
+	CoinLpIOTest.cpp \
 	CoinDenseVectorTest.cpp \
 	CoinErrorTest.cpp \
 	CoinIndexedVectorTest.cpp \
@@ -405,6 +407,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseVectorTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinErrorTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinIndexedVectorTest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinLpIOTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinMessageHandlerTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinModelTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinMpsIOTest.Po@am__quote@

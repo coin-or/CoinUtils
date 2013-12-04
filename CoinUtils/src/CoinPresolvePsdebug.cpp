@@ -47,9 +47,10 @@ namespace { // begin unnamed file-local namespace
 
 #if PRESOLVE_DEBUG || PRESOLVE_CONSISTENCY
 /*
-  Check for duplicate entries in a major vector by walking the vector. For each
-  coefficient, use presolve_find_row to search the remainder of the column
-  for an entry with the same row index. We don't want to find anything.
+  Check for duplicate entries in a major vector by walking the vector. For
+  each coefficient, use presolve_find_minor1 to search the remainder of the
+  major vector for an entry with the same minor index. We don't want to find
+  anything.
 */
   
 void no_majvec_dups (const char *majdones, const CoinBigIndex *majstrts,
@@ -62,7 +63,7 @@ void no_majvec_dups (const char *majdones, const CoinBigIndex *majstrts,
       for (CoinBigIndex k = ks ; k < ke ; k++)
       { 
 /*
-  Assert we fell off the end of the column without finding the entry. 
+  Assert we fell off the end of the major vector without finding the entry. 
 */
 	PRESOLVEASSERT(presolve_find_minor1(minndxs[k],k+1,
 					    ke,minndxs) == ke) ; } } }
@@ -149,28 +150,30 @@ void matrix_consistent (const CoinBigIndex *mrstrt, const int *hinrow,
 			int nrows, int testvals,
 			const char *ROW, const char *COL)
 {
-  for (int irow=0; irow<nrows; irow++) {
+  for (int irow = 0 ; irow < nrows ; irow++) {
     if (hinrow[irow] > 0) {
-      CoinBigIndex krs = mrstrt[irow];
-      CoinBigIndex kre = krs + hinrow[irow];
+      const CoinBigIndex krs = mrstrt[irow] ;
+      const CoinBigIndex kre = krs+hinrow[irow] ;
 
-      for (CoinBigIndex k=krs; k<kre; k++) {
-	int jcol = hcol[k];
-	CoinBigIndex kcs = mcstrt[jcol];
-	CoinBigIndex kce = kcs + hincol[jcol];
+      for (CoinBigIndex k = krs ; k < kre ; k++) {
+	int jcol = hcol[k] ;
+	const CoinBigIndex kcs = mcstrt[jcol] ;
+	const CoinBigIndex kce = kcs+hincol[jcol] ;
 
-	CoinBigIndex kk = presolve_find_row1(irow, kcs, kce, hrow);
+	CoinBigIndex kk = presolve_find_row1(irow,kcs,kce,hrow) ;
 	if (kk == kce) {
-	  printf("MATRIX INCONSISTENT:  can't find %s %d in %s %d\n",
-		 ROW, irow, COL, jcol);
-	  fflush(stdout);
-	  abort();
+	  std::cout
+	    << "MATRIX INCONSISTENT:  can't find " << ROW << " " << irow
+	    << " in " << COL << " " << jcol << std::endl ;
+	  fflush(stdout) ;
+	  abort() ;
 	}
 	if (testvals && colels[kk] != rowels[k]) {
-	  printf("MATRIX INCONSISTENT:  value for %s %d and %s %d\n",
-		 ROW, irow, COL, jcol);
-	  fflush(stdout);
-	  abort();
+	  std::cout
+	    << "MATRIX INCONSISTENT: values differ for " << ROW << " " << irow
+	    << " and " << COL << " " << jcol << std::endl ;
+	  fflush(stdout) ;
+	  abort() ;
 	}
       }
     }
@@ -433,7 +436,6 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
     allocSize = 0 ;
     lastObj = postObj ; }
 
-
   double *rcosts = postObj->rcosts_ ;
 
 /*
@@ -470,7 +472,7 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
 
   double maxmin = postObj->maxmin_ ;
   std::string strMaxmin((maxmin < 0)?"max":"min") ;
-  int checkCol=-1;
+  int checkCol = -1 ;
 /*
   Scan all columns, but only check the ones that are marked as having been
   postprocessed.
@@ -488,17 +490,18 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
       CoinBigIndex k = mcstrt[j] ;
       int len = hincol[j] ;
       double chkdj = maxmin*dcost[j] ;
-      if (j==checkCol)
-        printf("dj for %d is %g - cost is %g\n",
-               j,dj,chkdj);
+      if (j == checkCol)
+        std::cout
+	  << "dj for " << j << " is " << dj << " - cost is " << chkdj
+	  << std::endl ;
       for (ndx = 0 ; ndx < len ; ndx++)
       { int row = hrow[k] ;
 	PRESOLVEASSERT(rdone[row] != 0) ;
 	chkdj -= rowduals[row]*colels[k] ;
-        if (j==checkCol)
-          printf("row %d coeff %g dual %g => dj %g\n",
-                 row,colels[k],rowduals[row],chkdj);
-
+        if (j == checkCol)
+	  std::cout
+	    << "row " << row << " coeff " << colels[k] << " dual "
+	    << rowduals[row] << " => dj " << chkdj << std::endl ;
 	k = link[k] ; }
       if (fabs(dj-chkdj) > ztoldj && wrndj != dj)
       { std::cout

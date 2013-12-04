@@ -123,6 +123,7 @@ fi
 #############################################################################
 
 AC_COIN_CHECK_CXX_CHEADER(inttypes)
+AC_COIN_CHECK_CXX_CHEADER(stdint)
 
 ##### 64bit Integer types
 # The problem here is that you can't extend `int64_t' to `unsigned int64_t'.
@@ -230,6 +231,10 @@ if test x"$CoinIntPtr" = x; then
   AC_MSG_ERROR([Cannot find integer type capturing pointer])
 fi
 AC_DEFINE_UNQUOTED([COIN_INTPTR_T],[$CoinIntPtr],[Define to integer type capturing pointer])
+
+if test "x$ac_cv_header_stdint_h" = xyes ; then
+  AC_DEFINE([COINUTILS_HAS_STDINT_H], [1], [Define to 1 if stdint.h is available for CoinUtils])
+fi
 
 #############################################################################
 #                           Check whether we have windows.h                 #

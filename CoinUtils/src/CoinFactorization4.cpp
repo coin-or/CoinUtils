@@ -1437,10 +1437,18 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
       if (goSparse>0||!numberL_)
 	regionSparse->scan(lastSparse,numberRows_,zeroTolerance_);
     } 
-    if (!numberL_)
+    if (!numberL_) {
+      // could be odd combination of sparse/dense
+      if (number>numberRows_) {
+	regionSparse->setNumElements(0);
+	regionSparse->scan(0,numberRows_,zeroTolerance_);
+      }
       return;
+    }
   } 
 #endif
+  if (goSparse>0&&regionSparse->getNumElements()>numberRows_)
+    goSparse=0;
   switch (goSparse) {
   case -1: // No row copy
     updateColumnTransposeLDensish(regionSparse);

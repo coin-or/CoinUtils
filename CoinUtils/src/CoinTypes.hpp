@@ -7,6 +7,10 @@
 #define _CoinTypes_hpp
 
 #include "CoinUtilsConfig.h"
+/* On some systems, we require stdint.h to have the 64bit integer type defined. */
+#ifdef COINUTILS_HAS_STDINT_H
+#include <stdint.h>
+#endif
 
 #define CoinInt64 COIN_INT64_T
 #define CoinUInt64 COIN_UINT64_T

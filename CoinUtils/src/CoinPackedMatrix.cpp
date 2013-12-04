@@ -2198,12 +2198,16 @@ CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix & rhs) :
 		rhs.extraMajor_, rhs.extraGap_);
   }
 }
-/* Copy constructor - fine tuning - allowing extra space and/or reverse ordering.
-   extraForMajor is exact extra after any possible reverse ordering.
+/* Copy constructor - fine tuning - allowing extra space and/or reverse
+   ordering.
+
+   extraForMajor is exact extra after any possible reverse ordering. If
+    < 0 then gaps and small values are removed as the copy is created.
    extraMajor_ and extraGap_ set to zero.
 */
-CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix& rhs, int extraForMajor, 
-				   int extraElements, bool reverseOrdering)
+CoinPackedMatrix::CoinPackedMatrix (const CoinPackedMatrix& rhs,
+				    int extraForMajor, 
+				    int extraElements, bool reverseOrdering)
   :  colOrdered_(rhs.colOrdered_),
    extraGap_(0),
    extraMajor_(0),
@@ -3092,7 +3096,7 @@ CoinPackedMatrix::appendMajor(const int number,
     // we got to resize before we add. note that the resizing method
     // properly fills out start_ and length_ for the major-dimension
     // vectors to be added!
-    if (!extraGap_&&!extraMajor_&&numberOther<=0) {
+    if (!extraGap_&&!extraMajor_&&numberOther<=0&&!hasGaps()) {
       // can do faster
       if (majorDim_+number>maxMajorDim_) {
 	maxMajorDim_ = majorDim_+number;
@@ -3117,6 +3121,14 @@ CoinPackedMatrix::appendMajor(const int number,
 	index_ = newIndex;
       }
       CoinMemcpyN(index,numberElements,index_+size_);
+      // Do minor dimension
+      int lastMinor=-1;
+      for (CoinBigIndex j=0;j<numberElements;j++) {
+	int iIndex = index[j];
+	lastMinor = CoinMax(lastMinor,iIndex);
+      }
+      // update minorDim if necessary
+      minorDim_ = CoinMax(minorDim_,lastMinor+1);
       CoinMemcpyN(element,numberElements,element_+size_);
       i=majorDim_;
       starts -= majorDim_;
@@ -3390,8 +3402,8 @@ CoinPackedMatrix::appendMinorFast(const int number,
   // first compute how many entries will be added to each major-dimension
   // vector, and if needed, resize the matrix to accommodate all
   // Will be used as new start array
-  CoinBigIndex * newStart = new CoinBigIndex [majorDim_+1];
-  CoinZeroN(newStart,majorDim_);
+  CoinBigIndex * newStart = new CoinBigIndex [maxMajorDim_+1];
+  CoinZeroN(newStart,maxMajorDim_);
   // no checking
   int numberAdded = starts[number];
   for (CoinBigIndex j = 0; j < numberAdded; j++) {

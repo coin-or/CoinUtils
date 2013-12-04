@@ -164,7 +164,6 @@ class CoinPresolveAction
   static void throwCoinError(const char *error, const char *ps_routine)
   { throw CoinError(error, ps_routine, "CoinPresolve"); } 
 
-
   /*! \brief The next presolve transformation
   
     Set at object construction.
@@ -625,8 +624,8 @@ class CoinPrePostsolveMatrix
 
   /*! \brief Maximization/minimization
 
-    Yes, there's a variable here. No, you really don't want to set this to maximise.
-    See the main notes for CoinPresolveMatrix.
+    Yes, there's a variable here. No, you really don't want to set this to
+    maximise. See the main notes for CoinPresolveMatrix.
   */
   double maxmin_;
   //@}
@@ -1000,17 +999,17 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   //@}
 
   /// Objective function offset introduced during presolve
-  double dobias_;
+  double dobias_ ;
 
   /// Adjust objective function constant offset
   inline void change_bias(double change_amount)
   {
-    dobias_ += change_amount;
-  # if PRESOLVE_DEBUG > 0
-    assert(fabs(change_amount)<1.0e50);
+    dobias_ += change_amount ;
+  # if PRESOLVE_DEBUG > 2
+    assert(fabs(change_amount)<1.0e50) ;
     if (change_amount)
       PRESOLVE_STMT(printf("changing bias by %g to %g\n",
-			    change_amount, dobias_));
+			    change_amount, dobias_)) ;
   # endif
   }
 
@@ -1149,12 +1148,14 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
       - 0x02 not used
       - 0x04 set to inhibit x+y+z=1 mods
       - 0x08 not used
-      - 0x10 set to allow stuff which won't unroll easily
-          (overlapping duplicate rows; an undocumented block in
-	  implied_free::testRedundant)
+      - 0x10 set to allow stuff which won't unroll easily (overlapping
+          duplicate rows; opportunistic fixing of variables from bound
+	  propagation).
       - 0x04000 allow presolve transforms to arbitrarily ignore infeasibility
           and set arbitrary feasible bounds.
-      - 0x10000 undocumented option in implied_free_action
+      - 0x10000 instructs implied_free_action to be `more lightweight'; will
+          return without doing anything after 15 presolve passes.
+      - 0x20000 instructs implied_free_action to remove small created elements
       - 0x80000000 set by presolve to say dupcol_action compressed columns
   */
   int presolveOptions_;
@@ -1792,7 +1793,7 @@ inline void presolve_delete_from_row(int row, int col,
 */
 void presolve_delete_from_major2 (int majndx, int minndx,
 				  CoinBigIndex *majstrts, int *majlens,
-				  int *minndxs, /*double *els,*/ int *majlinks,
+				  int *minndxs, int *majlinks,
 				   CoinBigIndex *free_listp) ;
 
 /*! \relates CoinPostsolveMatrix
@@ -1807,10 +1808,8 @@ void presolve_delete_from_major2 (int majndx, int minndx,
 */
 inline void presolve_delete_from_col2(int row, int col, CoinBigIndex *mcstrt,
 				      int *hincol, int *hrow,
-				      /*double *colels,*/ int *clinks,
-				      CoinBigIndex *free_listp)
-{ presolve_delete_from_major2(col,row,mcstrt,hincol,hrow,/*colels,*/clinks,
-			      free_listp) ; }
+				      int *clinks, CoinBigIndex *free_listp)
+{ presolve_delete_from_major2(col,row,mcstrt,hincol,hrow,clinks,free_listp) ; }
 
 //@}
 
