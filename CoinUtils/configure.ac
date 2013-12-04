@@ -41,25 +41,33 @@ AC_CANONICAL_BUILD
 # the source root directory contains definition of where to find those
 # externals.  The following macro ensures that those externals are
 # retrieved by svn if they are not there yet.
-AC_COIN_PROJECTDIR_INIT(CoinUtils)
+#AC_COIN_PROJECTDIR_INIT(CoinUtils)
 
 # Check if user wants to produce debugging code
-AC_COIN_DEBUG_COMPILE(CoinUtils)
+#AC_COIN_DEBUG_COMPILE(CoinUtils)
 
 # Get the name of the C++ compiler and appropriate compiler options
-AC_COIN_PROG_CXX
+#AC_COIN_PROG_CXX
+AC_PROG_CXX
 
 # Get the name of the Fortran compiler and appropriate compiler options
-AC_COIN_PROG_F77
+#AC_COIN_PROG_F77
 
 # Find out how to call Fortran from C and determine Fortran runtime libraries
-if test "x$F77" != xunavailable
-then
-  AC_COIN_F77_WRAPPERS
-fi
+#if test "x$F77" != xunavailable
+#then
+#  AC_COIN_F77_WRAPPERS
+#fi
+AC_F77_WRAPPERS
 
 # Initialize automake and libtool
-AC_COIN_INIT_AUTO_TOOLS
+#AC_COIN_INIT_AUTO_TOOLS
+AM_INIT_AUTOMAKE
+AM_MAINTAINER_MODE
+
+AC_PROG_LIBTOOL
+
+CPPFLAGS=-DCOINUTILS_BUILD
 
 ############################################################################
 #                   Stuff that we need for finite and isnan                #
@@ -122,8 +130,12 @@ fi
 #                       Finding certain integer types                       #
 #############################################################################
 
-AC_COIN_CHECK_CXX_CHEADER(inttypes)
-AC_COIN_CHECK_CXX_CHEADER(stdint)
+#AC_COIN_CHECK_CXX_CHEADER(inttypes)
+#AC_COIN_CHECK_CXX_CHEADER(stdint)
+AC_LANG_PUSH(C++)
+AC_CHECK_HEADER(inttypes)
+AC_CHECK_HEADER(stdint)
+AC_LANG_POP(C++)
 
 ##### 64bit Integer types
 # The problem here is that you can't extend `int64_t' to `unsigned int64_t'.
@@ -250,25 +262,27 @@ AC_CHECK_HEADERS([endian.h])
 #                             COIN-OR components                            #
 #############################################################################
 
-AC_COIN_CHECK_LIBM(CoinUtilsLib)
+#AC_COIN_CHECK_LIBM(CoinUtilsLib)
 
-AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
-AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
-AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
-AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
-AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
+#AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
+#AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
+#AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
+#AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
+#AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
+AM_CONDITIONAL(COIN_HAS_SAMPLE, test 1 = 0)
+AM_CONDITIONAL(COIN_HAS_NETLIB, test 1 = 0)
 
-AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
-AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
-AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
+#AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
+#AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
+#AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
 
-AC_COIN_VPATH_LINK(test/plan.mod)
+#AC_COIN_VPATH_LINK(test/plan.mod)
 
 #############################################################################
 #                  Check for doxygen                                        #
 #############################################################################
 
-AC_COIN_DOXYGEN()
+#AC_COIN_DOXYGEN()
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #
@@ -286,4 +300,5 @@ AC_CONFIG_FILES([doxydoc/doxygen.conf])
 AC_CONFIG_HEADER([src/config.h src/config_coinutils.h])
 
 # Finally, we let configure write all the output...
-AC_COIN_FINALIZE
+#AC_COIN_FINALIZE
+AC_OUTPUT

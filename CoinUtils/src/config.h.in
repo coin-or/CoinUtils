@@ -12,56 +12,11 @@
 /* Define to 1 if the thread aware version of CoinUtils should be compiled */
 #undef COINUTILS_PTHREADS
 
-/* SVN revision number of project */
-#undef COINUTILS_SVN_REV
-
-/* Version number of project */
-#undef COINUTILS_VERSION
-
-/* Major Version number of project */
-#undef COINUTILS_VERSION_MAJOR
-
-/* Minor Version number of project */
-#undef COINUTILS_VERSION_MINOR
-
-/* Release Version number of project */
-#undef COINUTILS_VERSION_RELEASE
-
-/* Define to the debug sanity check level (0 is no test) */
-#undef COIN_COINUTILS_CHECKLEVEL
-
-/* Define to the debug verbosity level (0 is no output) */
-#undef COIN_COINUTILS_VERBOSITY
-
 /* Define to be the name of C-function for Inf check */
 #undef COIN_C_FINITE
 
 /* Define to be the name of C-function for NaN check */
 #undef COIN_C_ISNAN
-
-/* If defined, the BLAS Library is available. */
-#undef COIN_HAS_BLAS
-
-/* Define to 1 if bzlib is available */
-#undef COIN_HAS_BZLIB
-
-/* Define to 1 if the Glpk package is available */
-#undef COIN_HAS_GLPK
-
-/* If defined, the LAPACK Library is available. */
-#undef COIN_HAS_LAPACK
-
-/* Define to 1 if the Netlib package is available */
-#undef COIN_HAS_NETLIB
-
-/* Define to 1 if readline is available */
-#undef COIN_HAS_READLINE
-
-/* Define to 1 if the Sample package is available */
-#undef COIN_HAS_SAMPLE
-
-/* Define to 1 if zlib is available */
-#undef COIN_HAS_ZLIB
 
 /* Define to 64bit integer type */
 #undef COIN_INT64_T
@@ -86,23 +41,14 @@
 /* Define if F77 and FC dummy `main' functions are identical. */
 #undef FC_DUMMY_MAIN_EQ_F77
 
-/* Define to 1 if you have the <bzlib.h> header file. */
-#undef HAVE_BZLIB_H
-
 /* Define to 1 if you have the <cfloat> header file. */
 #undef HAVE_CFLOAT
 
 /* Define to 1 if you have the <cieeefp> header file. */
 #undef HAVE_CIEEEFP
 
-/* Define to 1 if you have the <cinttypes> header file. */
-#undef HAVE_CINTTYPES
-
 /* Define to 1 if you have the <cmath> header file. */
 #undef HAVE_CMATH
-
-/* Define to 1 if you have the <cstdint> header file. */
-#undef HAVE_CSTDINT
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
@@ -124,9 +70,6 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
-
-/* Define to 1 if you have the <readline/readline.h> header file. */
-#undef HAVE_READLINE_READLINE_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -151,9 +94,6 @@
 
 /* Define to 1 if you have the <windows.h> header file. */
 #undef HAVE_WINDOWS_H
-
-/* Define to 1 if you have the <zlib.h> header file. */
-#undef HAVE_ZLIB_H
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */

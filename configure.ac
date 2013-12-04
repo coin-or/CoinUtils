@@ -32,28 +32,34 @@ AC_CONFIG_SRCDIR(configure.ac)
 # /usr/local.
 AC_PREFIX_DEFAULT([`pwd`])
 
+AM_INIT_AUTOMAKE
+AM_MAINTAINER_MODE
+
+
 #############################################################################
 #  Do the tests necessary to configure compilers and initialise autotools   #
 #############################################################################
 
-AC_COIN_CREATE_LIBTOOL
+#AC_COIN_CREATE_LIBTOOL
+AC_PROG_LIBTOOL
 
 #############################################################################
 #         Check which subprojects might need to be configured               #
 #############################################################################
 
-AC_COIN_MAIN_PACKAGEDIR(Glpk,ThirdParty,[glpk/src/glplpx01.c])
-AC_COIN_MAIN_PACKAGEDIR(Blas,ThirdParty,[daxpy.f])
-AC_COIN_MAIN_PACKAGEDIR(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
-AC_COIN_MAIN_PACKAGEDIR(Sample,Data)
-AC_COIN_MAIN_PACKAGEDIR(Netlib,Data)
-AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
+#AC_COIN_MAIN_PACKAGEDIR(Glpk,ThirdParty,[glpk/src/glplpx01.c])
+#AC_COIN_MAIN_PACKAGEDIR(Blas,ThirdParty,[daxpy.f])
+#AC_COIN_MAIN_PACKAGEDIR(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
+#AC_COIN_MAIN_PACKAGEDIR(Sample,Data)
+#AC_COIN_MAIN_PACKAGEDIR(Netlib,Data)
+#AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
+AC_CONFIG_SUBDIRS(CoinUtils)
 
 #############################################################################
 #                  Check for doxygen                                        #
 #############################################################################
 
-AC_COIN_DOXYGEN()
+#AC_COIN_DOXYGEN()
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #
@@ -65,4 +71,5 @@ AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Finally, we let configure write all the output...
-AC_COIN_FINALIZE
+#AC_COIN_FINALIZE
+AC_OUTPUT
