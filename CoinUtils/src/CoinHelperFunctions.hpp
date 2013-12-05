@@ -12,6 +12,7 @@
 #  include <direct.h>
 #  include <cctype>
 #  define getcwd _getcwd
+#  include <cctype>
 #else
 #  include <unistd.h>
 #endif
