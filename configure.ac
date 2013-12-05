@@ -53,6 +53,7 @@ AC_PROG_LIBTOOL
 #AC_COIN_MAIN_PACKAGEDIR(Sample,Data)
 #AC_COIN_MAIN_PACKAGEDIR(Netlib,Data)
 #AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
+AC_CONFIG_SUBDIRS(Data/Sample)
 AC_CONFIG_SUBDIRS(CoinUtils)
 
 #############################################################################
