@@ -93,6 +93,11 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
 	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
 
+# List all additionally required libraries
+if DEPENDENCY_LINKING
+libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
+endif
+
 # This is for libtool
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
