@@ -285,7 +285,7 @@ public:
 	if (incrInserted) {
 	    numInserted_ += sib.toProcess();
 	}
-	size_ += sib.size();
+	size_ += sib.toProcess();
     }
 };
 
