@@ -3719,6 +3719,7 @@ void
 CoinModel::setObjective(int numberColumns,const double * objective) 
 {
   fillColumns(numberColumns,true,true);
+  numberColumns_ = CoinMax(numberColumns_,numberColumns);
   for (int i=0;i<numberColumns;i++) {
     objective_[i]=objective[i];
     columnType_[i] &= ~4;
@@ -3730,6 +3731,7 @@ void
 CoinModel::setColumnLower(int numberColumns,const double * columnLower)
 {
   fillColumns(numberColumns,true,true);
+  numberColumns_ = CoinMax(numberColumns_,numberColumns);
   for (int i=0;i<numberColumns;i++) {
     columnLower_[i]=columnLower[i];
     columnType_[i] &= ~1;
@@ -3741,6 +3743,7 @@ void
 CoinModel::setColumnUpper(int numberColumns,const double * columnUpper)
 {
   fillColumns(numberColumns,true,true);
+  numberColumns_ = CoinMax(numberColumns_,numberColumns);
   for (int i=0;i<numberColumns;i++) {
     columnUpper_[i]=columnUpper[i];
     columnType_[i] &= ~2;
@@ -3751,7 +3754,8 @@ CoinModel::setColumnUpper(int numberColumns,const double * columnUpper)
 void 
 CoinModel::setRowLower(int numberRows,const double * rowLower)
 {
-  fillColumns(numberRows,true,true);
+  fillRows(numberRows,true,true);
+  numberRows_ = CoinMax(numberRows_,numberRows);
   for (int i=0;i<numberRows;i++) {
     rowLower_[i]=rowLower[i];
     rowType_[i] &= ~1;
@@ -3762,7 +3766,8 @@ CoinModel::setRowLower(int numberRows,const double * rowLower)
 void 
 CoinModel::setRowUpper(int numberRows,const double * rowUpper)
 {
-  fillColumns(numberRows,true,true);
+  fillRows(numberRows,true,true);
+  numberRows_ = CoinMax(numberRows_,numberRows);
   for (int i=0;i<numberRows;i++) {
     rowUpper_[i]=rowUpper[i];
     rowType_[i] &= ~2;
