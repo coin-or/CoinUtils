@@ -17,7 +17,7 @@ AC_INIT([CoinUtils],[trunk],[http://projects.coin-or.org/CoinUtils])
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.
 All Rights Reserved.
-This file is part of the open source package Coin which is distributed
+This file is part of the open source package CoinUtils which is distributed
 under the Eclipse Public License.])
 
 # List one file in the package so that the configure script can test
@@ -29,6 +29,8 @@ AC_CONFIG_SRCDIR(src/CoinError.cpp)
 # of the directory where configure is run.  The default would be
 # /usr/local.      
 AC_PREFIX_DEFAULT([`pwd`])
+
+AC_COIN_INITIALIZE(CoinUtils)
 
 #############################################################################
 #                         Standard build tool stuff                         #
@@ -266,11 +268,17 @@ AC_CHECK_HEADERS([endian.h])
 
 #AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
 #AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
-#AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
+AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
 #AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 #AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
 AM_CONDITIONAL(COIN_HAS_SAMPLE, test 1 = 0)
 AM_CONDITIONAL(COIN_HAS_NETLIB, test 1 = 0)
+
+#AM_CONDITIONAL(COIN_HAS_GLPK, test 1 = 1)
+#AC_DEFINE(COIN_HAS_GLPK, 1, [Define to 1 if GLPK is available])
+#eval dir=../coinstash/${libdir}/pkgconfig
+#GLPK_CFLAGS=`PKG_CONFIG_PATH=../coinstash/${libdir}/pkgconfig pkg-config --cflags coinglpk`
+#AC_SUBST(GLPK_CFLAGS)
 
 #AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
 #AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
@@ -300,5 +308,4 @@ AC_CONFIG_FILES([doxydoc/doxygen.conf])
 AC_CONFIG_HEADER([src/config.h src/config_coinutils.h])
 
 # Finally, we let configure write all the output...
-#AC_COIN_FINALIZE
-AC_OUTPUT
+AC_COIN_FINALIZE

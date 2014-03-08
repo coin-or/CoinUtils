@@ -103,7 +103,14 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Windows
-AM_CPPFLAGS = $(GLPK_CFLAGS)
+#AM_CPPFLAGS = $(GLPK_CFLAGS)
+
+#COIN_PKG_CONFIG_PATH=../@top_builddir@/@COIN_DESTDIR@/@libdir@/pkgconfig
+#AM_CPPFLAGS += `PKG_CONFIG_PATH=$$PKG_CONFIG_PATH:$(COIN_PKG_CONFIG_PATH) pkg-config --cflags coinglpk --define-variable=DESTDIR=../@top_builddir@/@COIN_DESTDIR@`
+
+#COIN_PKG_CONFIG_PATH=$(DESTDIR)/@libdir@/pkgconfig
+AM_CPPFLAGS = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --cflags coinglpk --define-variable=DESTDIR=@COIN_DESTDIR@`
+
 
 # This line is necessary to allow VPATH compilation
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`

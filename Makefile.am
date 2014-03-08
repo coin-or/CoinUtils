@@ -80,3 +80,6 @@ uninstall-local: uninstall-doxydoc
 DISTCLEANFILES = coin_subdirs.txt
 
 include BuildTools/Makemain.inc
+
+all-recursive:
+	DESTDIR=`pwd`/coinstash $(MAKE) install-recursive

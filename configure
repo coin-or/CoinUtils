@@ -15,7 +15,7 @@
 #
 # Copyright 2006, 2009 International Business Machines and others.
 # All Rights Reserved.
-# This file is part of the open source package Coin which is distributed
+# This file is part of the open source package CoinUtils which is distributed
 # under the Eclipse Public License.
 ## -------------------- ##
 ## M4sh Initialization. ##
@@ -784,7 +784,8 @@ LDFLAGS
 LIBS
 CPPFLAGS
 CPP'
-ac_subdirs_all='Data/Sample
+ac_subdirs_all='ThirdParty/Glpk
+Data/Sample
 CoinUtils'
 
 # Initialize some variables set by options.
@@ -1513,7 +1514,7 @@ gives unlimited permission to copy, distribute and modify it.
 
 Copyright 2006, 2009 International Business Machines and others.
 All Rights Reserved.
-This file is part of the open source package Coin which is distributed
+This file is part of the open source package CoinUtils which is distributed
 under the Eclipse Public License.
 _ACEOF
   exit
@@ -11413,17 +11414,126 @@ CC="$lt_save_CC"
 #         Check which subprojects might need to be configured               #
 #############################################################################
 
-#AC_COIN_MAIN_PACKAGEDIR(Glpk,ThirdParty,[glpk/src/glplpx01.c])
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether source of project Glpk is available and should be compiled" >&5
+$as_echo_n "checking whether source of project Glpk is available and should be compiled... " >&6; }
+
+coin_has_glpk=notGiven
+coin_reason=
+
+# check if project is available in present directory
+if test "$coin_has_glpk" = notGiven; then
+  coin_has_glpk=no
+  if test -d $srcdir/ThirdParty/Glpk; then
+    coin_reason="source in ThirdParty/Glpk"
+    # If a third argument is given, then we have to check if one one the files given in that third argument is present.
+    # If none of the files in the third argument is available, then we consider the project directory as non-existing.
+    # However, if no third argument is given, then this means that there should be no check, and existence of the directory is sufficient.
+    for i in $srcdir/ThirdParty/Glpk/glpk/src/glplpx01.c; do
+         if test -r $i; then
+           coin_has_glpk="yes"
+         else
+           coin_has_glpk="no"
+           coin_reason="source file $i not available"
+           break
+         fi
+       done
+
+  fi
+fi
+
+if test -z "$coin_reason" ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_glpk" >&5
+$as_echo "$coin_has_glpk" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_glpk, $coin_reason" >&5
+$as_echo "$coin_has_glpk, $coin_reason" >&6; }
+fi
+
+if test "$coin_has_glpk" = yes ; then
+  if test -r $srcdir/ThirdParty/Glpk/configure; then
+    coin_subdirs="$coin_subdirs ThirdParty/Glpk"
+    subdirs="$subdirs ThirdParty/Glpk"
+
+  fi
+fi
+
 #AC_COIN_MAIN_PACKAGEDIR(Blas,ThirdParty,[daxpy.f])
 #AC_COIN_MAIN_PACKAGEDIR(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
-#AC_COIN_MAIN_PACKAGEDIR(Sample,Data)
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether source of project Sample is available and should be compiled" >&5
+$as_echo_n "checking whether source of project Sample is available and should be compiled... " >&6; }
+
+coin_has_sample=notGiven
+coin_reason=
+
+# check if project is available in present directory
+if test "$coin_has_sample" = notGiven; then
+  coin_has_sample=no
+  if test -d $srcdir/Data/Sample; then
+    coin_reason="source in Data/Sample"
+    # If a third argument is given, then we have to check if one one the files given in that third argument is present.
+    # If none of the files in the third argument is available, then we consider the project directory as non-existing.
+    # However, if no third argument is given, then this means that there should be no check, and existence of the directory is sufficient.
+     coin_has_sample="yes"
+
+  fi
+fi
+
+if test -z "$coin_reason" ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_sample" >&5
+$as_echo "$coin_has_sample" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_sample, $coin_reason" >&5
+$as_echo "$coin_has_sample, $coin_reason" >&6; }
+fi
+
+if test "$coin_has_sample" = yes ; then
+  if test -r $srcdir/Data/Sample/configure; then
+    coin_subdirs="$coin_subdirs Data/Sample"
+    subdirs="$subdirs Data/Sample"
+
+  fi
+fi
+
 #AC_COIN_MAIN_PACKAGEDIR(Netlib,Data)
-#AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether source of project CoinUtils is available and should be compiled" >&5
+$as_echo_n "checking whether source of project CoinUtils is available and should be compiled... " >&6; }
 
-subdirs="$subdirs Data/Sample"
+coin_has_coinutils=notGiven
+coin_reason=
 
-subdirs="$subdirs CoinUtils"
+# check if project is available in present directory
+if test "$coin_has_coinutils" = notGiven; then
+  coin_has_coinutils=no
+  if test -d $srcdir/CoinUtils; then
+    coin_reason="source in CoinUtils"
+    # If a third argument is given, then we have to check if one one the files given in that third argument is present.
+    # If none of the files in the third argument is available, then we consider the project directory as non-existing.
+    # However, if no third argument is given, then this means that there should be no check, and existence of the directory is sufficient.
+     coin_has_coinutils="yes"
+
+  fi
+fi
+
+if test -z "$coin_reason" ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_coinutils" >&5
+$as_echo "$coin_has_coinutils" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_coinutils, $coin_reason" >&5
+$as_echo "$coin_has_coinutils, $coin_reason" >&6; }
+fi
+
+if test "$coin_has_coinutils" = yes ; then
+  if test -r $srcdir/CoinUtils/configure; then
+    coin_subdirs="$coin_subdirs CoinUtils"
+    subdirs="$subdirs CoinUtils"
+
+  fi
+fi
 
 
 #############################################################################
@@ -11444,7 +11554,18 @@ ac_config_files="$ac_config_files doxydoc/doxygen.conf"
 
 
 # Finally, we let configure write all the output...
-#AC_COIN_FINALIZE
+
+# need to come before AC_OUTPUT
+if test "x$coin_subdirs" != x; then
+  # write coin_subdirs to a file so that project configuration knows where to find uninstalled projects
+  echo $coin_subdirs > coin_subdirs.txt
+else
+  # substitute for OBJDIR, needed to setup .pc file for uninstalled project
+  #ABSBUILDDIR="`pwd`"
+  #AC_SUBST(ABSBUILDDIR)
+  :
+fi
+
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -13805,4 +13926,15 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: In case of trouble, first consult the troubleshooting page at https://projects.coin-or.org/BuildTools/wiki/user-troubleshooting" >&5
+$as_echo "$as_me: In case of trouble, first consult the troubleshooting page at https://projects.coin-or.org/BuildTools/wiki/user-troubleshooting" >&6;}
+#if test x$coin_projectdir = xyes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: Configuration of $PACKAGE_NAME successful" >&5
+$as_echo "$as_me: Configuration of $PACKAGE_NAME successful" >&6;}
+#else
+#  AC_MSG_NOTICE([Main configuration of $PACKAGE_NAME successful])
+#fi
+
 

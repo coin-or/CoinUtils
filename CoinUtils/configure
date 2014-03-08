@@ -14,7 +14,7 @@
 #
 # Copyright 2006 International Business Machines and others.
 # All Rights Reserved.
-# This file is part of the open source package Coin which is distributed
+# This file is part of the open source package CoinUtils which is distributed
 # under the Eclipse Public License.
 ## -------------------- ##
 ## M4sh Initialization. ##
@@ -647,6 +647,12 @@ COIN_HAS_NETLIB_FALSE
 COIN_HAS_NETLIB_TRUE
 COIN_HAS_SAMPLE_FALSE
 COIN_HAS_SAMPLE_TRUE
+COIN_HAS_GLPK_FALSE
+COIN_HAS_GLPK_TRUE
+COIN_PKG_CONFIG_PATH
+COIN_HAS_PKGCONFIG_FALSE
+COIN_HAS_PKGCONFIG_TRUE
+PKG_CONFIG
 CXXCPP
 CPP
 OTOOL64
@@ -673,6 +679,10 @@ LIBTOOL
 MAINT
 MAINTAINER_MODE_FALSE
 MAINTAINER_MODE_TRUE
+AM_BACKSLASH
+AM_DEFAULT_VERBOSITY
+AM_DEFAULT_V
+AM_V
 am__fastdepCXX_FALSE
 am__fastdepCXX_TRUE
 CXXDEPMODE
@@ -731,6 +741,9 @@ build_os
 build_vendor
 build_cpu
 build
+COINUTILS_SVN_REV
+have_svnversion
+COIN_DESTDIR
 target_alias
 host_alias
 build_alias
@@ -773,6 +786,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_dependency_tracking
+enable_silent_rules
 enable_maintainer_mode
 enable_shared
 enable_static
@@ -784,6 +798,7 @@ enable_libtool_lock
 enable_coinutils_threads
 enable_coinutils_mempool_override_new
 enable_coinutils_mempool_maxpooled
+enable_pkg_config
 '
       ac_precious_vars='build_alias
 host_alias
@@ -799,7 +814,8 @@ FFLAGS
 CC
 CFLAGS
 CPP
-CXXCPP'
+CXXCPP
+PKG_CONFIG'
 
 
 # Initialize some variables set by options.
@@ -1422,6 +1438,8 @@ Optional Features:
                           do not reject slow dependency extractors
   --disable-dependency-tracking
                           speeds up one-time build
+  --enable-silent-rules   less verbose build output (undo: "make V=1")
+  --disable-silent-rules  verbose build output (undo: "make V=0")
   --enable-maintainer-mode
                           enable make rules and dependencies not useful (and
                           sometimes confusing) to the casual installer
@@ -1443,6 +1461,7 @@ Optional Features:
                           Otherwise its value can be overridden at runtime
                           using the COINUTILS_MEMPOOL_MAXPOOLED environment
                           variable.
+  --disable-pkg-config    disable use of pkg-config (if available)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1467,6 +1486,7 @@ Some influential environment variables:
   CFLAGS      C compiler flags
   CPP         C preprocessor
   CXXCPP      C++ preprocessor
+  PKG_CONFIG  path to pkg-config utility
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -1544,7 +1564,7 @@ gives unlimited permission to copy, distribute and modify it.
 
 Copyright 2006 International Business Machines and others.
 All Rights Reserved.
-This file is part of the open source package Coin which is distributed
+This file is part of the open source package CoinUtils which is distributed
 under the Eclipse Public License.
 _ACEOF
   exit
@@ -2838,6 +2858,115 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 # /usr/local.
 
 
+
+# figure out whether there is a base directory up from here
+coin_base_directory=
+if test -e ../coin_subdirs.txt ; then
+  coin_base_directory=`cd ..; pwd`
+elif test -e ../../coin_subdirs.txt ; then
+  coin_base_directory=`cd ../..; pwd`
+fi
+
+if test "x$coin_base_directory" != x ; then
+  COIN_DESTDIR=$coin_base_directory/coinstash
+fi
+
+
+# Set the project's version numbers
+
+
+cat >>confdefs.h <<_ACEOF
+#define COINUTILS_VERSION "$PACKAGE_VERSION"
+_ACEOF
+
+
+  coin_majorver=`echo $PACKAGE_VERSION | sed -n -e 's/^\([0-9]*\).*/\1/gp'`
+  coin_minorver=`echo $PACKAGE_VERSION | sed -n -e 's/^[0-9]*\.\([0-9]*\).*/\1/gp'`
+  coin_releasever=`echo $PACKAGE_VERSION | sed -n -e 's/^[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/gp'`
+  if test "x$coin_majorver" = x ; then coin_majorver=9999 ; fi
+  if test "x$coin_minorver" = x ; then coin_minorver=9999 ; fi
+  if test "x$coin_releasever" = x ; then coin_releasever=9999 ; fi
+
+cat >>confdefs.h <<_ACEOF
+#define COINUTILS_VERSION_MAJOR $coin_majorver
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define COINUTILS_VERSION_MINOR $coin_minorver
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define COINUTILS_VERSION_RELEASE $coin_releasever
+_ACEOF
+
+
+  # We use the following variable to have a string with the upper case
+  # version of the project name
+  COIN_PRJCT=COINUTILS
+
+  # Set the project's SVN revision number. The complicated sed expression
+  # (made worse by quadrigraphs) ensures that things like 4123:4168MS end up
+  # as a single number.
+  # Extract the first word of "svnversion", so it can be a program name with args.
+set dummy svnversion; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_have_svnversion+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$have_svnversion"; then
+  ac_cv_prog_have_svnversion="$have_svnversion" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_have_svnversion="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_have_svnversion" && ac_cv_prog_have_svnversion="no"
+fi
+fi
+have_svnversion=$ac_cv_prog_have_svnversion
+if test -n "$have_svnversion"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_svnversion" >&5
+$as_echo "$have_svnversion" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  if test "x$have_svnversion" = xyes; then
+
+    svn_rev_tmp=`LANG=en_EN svnversion $srcdir 2>/dev/null`
+    if test "x$svn_rev_tmp" != xexported -a "x$svn_rev_tmp" != x -a "x$svn_rev_tmp" != "xUnversioned directory"; then
+      COINUTILS_SVN_REV=`echo $svn_rev_tmp | sed -n -e 's/^[0-9]*://' -e 's/\([0-9]\)[^0-9]*$/\1/p'`
+
+cat >>confdefs.h <<_ACEOF
+#define COINUTILS_SVN_REV $COINUTILS_SVN_REV
+_ACEOF
+
+    fi
+  fi
+
+
+
+# Capture libtool library version, if given.
+
+
+
+
 #############################################################################
 #                         Standard build tool stuff                         #
 #############################################################################
@@ -4030,6 +4159,9 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+# expand $ac_aux_dir to an absolute path
+am_aux_dir=`cd $ac_aux_dir && pwd`
+
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -4609,6 +4741,73 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC understands -c and -o together" >&5
+$as_echo_n "checking whether $CC understands -c and -o together... " >&6; }
+if ${am_cv_prog_cc_c_o+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifdef F77_DUMMY_MAIN
+
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+
+#endif
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+  # Make sure it works both with $CC and with simple cc.
+  # Following AC_PROG_CC_C_O, we do the test twice because some
+  # compilers refuse to overwrite an existing .o file with -o,
+  # though they will create one.
+  am_cv_prog_cc_c_o=yes
+  for am_i in 1 2; do
+    if { echo "$as_me:$LINENO: $CC -c conftest.$ac_ext -o conftest2.$ac_objext" >&5
+   ($CC -c conftest.$ac_ext -o conftest2.$ac_objext) >&5 2>&5
+   ac_status=$?
+   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+   (exit $ac_status); } \
+         && test -f conftest2.$ac_objext; then
+      : OK
+    else
+      am_cv_prog_cc_c_o=no
+      break
+    fi
+  done
+  rm -f core conftest*
+  unset am_i
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_prog_cc_c_o" >&5
+$as_echo "$am_cv_prog_cc_c_o" >&6; }
+if test "$am_cv_prog_cc_c_o" != yes; then
+   # Losing compiler, so override with the script.
+   # FIXME: It is wrong to rewrite CC.
+   # But if we don't then we get into trouble of one sort or another.
+   # A longer-term fix would be to have automake use am__CC in this case,
+   # and then we could set am__CC="\$(top_srcdir)/compile \$(CC)"
+   CC="$am_aux_dir/compile $CC"
+fi
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
 
 ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
@@ -4950,7 +5149,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 # Initialize automake and libtool
 #AC_COIN_INIT_AUTO_TOOLS
-am__api_version='1.12'
+am__api_version='1.14'
 
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -5122,9 +5321,6 @@ test "$program_suffix" != NONE &&
 ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
-# expand $ac_aux_dir to an absolute path
-am_aux_dir=`cd $ac_aux_dir && pwd`
-
 if test x"${MISSING+set}" != xset; then
   case $am_aux_dir in
   *\ * | *\	*)
@@ -5134,8 +5330,8 @@ if test x"${MISSING+set}" != xset; then
   esac
 fi
 # Use eval to expand $SHELL
-if eval "$MISSING --run true"; then
-  am_missing_run="$MISSING --run "
+if eval "$MISSING --is-lightweight"; then
+  am_missing_run="$MISSING "
 else
   am_missing_run=
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: 'missing' script is too old or missing" >&5
@@ -5293,12 +5489,6 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MKDIR_P" >&5
 $as_echo "$MKDIR_P" >&6; }
 
-mkdir_p="$MKDIR_P"
-case $mkdir_p in
-  [\\/$]* | ?:[\\/]*) ;;
-  */*) mkdir_p="\$(top_builddir)/$mkdir_p" ;;
-esac
-
 for ac_prog in gawk mawk nawk awk
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -5444,6 +5634,45 @@ else
 fi
 
 
+# Check whether --enable-silent-rules was given.
+if test "${enable_silent_rules+set}" = set; then :
+  enableval=$enable_silent_rules;
+fi
+
+case $enable_silent_rules in # (((
+  yes) AM_DEFAULT_VERBOSITY=0;;
+   no) AM_DEFAULT_VERBOSITY=1;;
+    *) AM_DEFAULT_VERBOSITY=1;;
+esac
+am_make=${MAKE-make}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $am_make supports nested variables" >&5
+$as_echo_n "checking whether $am_make supports nested variables... " >&6; }
+if ${am_cv_make_support_nested_variables+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if $as_echo 'TRUE=$(BAR$(V))
+BAR0=false
+BAR1=true
+V=1
+am__doit:
+	@$(TRUE)
+.PHONY: am__doit' | $am_make -f - >/dev/null 2>&1; then
+  am_cv_make_support_nested_variables=yes
+else
+  am_cv_make_support_nested_variables=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_make_support_nested_variables" >&5
+$as_echo "$am_cv_make_support_nested_variables" >&6; }
+if test $am_cv_make_support_nested_variables = yes; then
+    AM_V='$(V)'
+  AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
+else
+  AM_V=$AM_DEFAULT_VERBOSITY
+  AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY
+fi
+AM_BACKSLASH='\'
+
 if test "`cd $srcdir && pwd`" != "`pwd`"; then
   # Use -I$(srcdir) only when $(srcdir) != ., so that make's output
   # is not polluted with repeated "-I."
@@ -5494,13 +5723,24 @@ AUTOHEADER=${AUTOHEADER-"${am_missing_run}autoheader"}
 
 MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 
+# For better backward compatibility.  To be removed once Automake 1.9.x
+# dies out for good.  For more background, see:
+# <http://lists.gnu.org/archive/html/automake/2012-07/msg00001.html>
+# <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
+mkdir_p='$(MKDIR_P)'
+
 # We need awk for the "check" target.  The system "awk" is bad on
 # some platforms.
 # Always define AMTAR for backward compatibility.  Yes, it's still used
 # in the wild :-(  We should find a proper way to deprecate it ...
 AMTAR='$${TAR-tar}'
 
+
+# We'll loop over all known methods to create a tar archive until one works.
+_am_tools='gnutar  pax cpio none'
+
 am__tar='$${TAR-tar} chof - "$$tardir"' am__untar='$${TAR-tar} xf -'
+
 
 
 
@@ -5762,6 +6002,47 @@ fi
 
 
 
+# POSIX will say in a future version that running "rm -f" with no argument
+# is OK; and we want to be able to make that assumption in our Makefile
+# recipes.  So use an aggressive probe to check that the usage we want is
+# actually supported "in the wild" to an acceptable degree.
+# See automake bug#10828.
+# To make any issue more visible, cause the running configure to be aborted
+# by default if the 'rm' program in use doesn't match our expectations; the
+# user can still override this though.
+if rm -f && rm -fr && rm -rf; then : OK; else
+  cat >&2 <<'END'
+Oops!
+
+Your 'rm' program seems unable to run without file operands specified
+on the command line, even when the '-f' option is present.  This is contrary
+to the behaviour of most rm programs out there, and not conforming with
+the upcoming POSIX standard: <http://austingroupbugs.net/view.php?id=542>
+
+Please tell bug-automake@gnu.org about your system, including the value
+of your $PATH and any error possibly output before this message.  This
+can help us improve future automake versions.
+
+END
+  if test x"$ACCEPT_INFERIOR_RM_PROGRAM" = x"yes"; then
+    echo 'Configuration will proceed anyway, since you have set the' >&2
+    echo 'ACCEPT_INFERIOR_RM_PROGRAM variable to "yes"' >&2
+    echo >&2
+  else
+    cat >&2 <<'END'
+Aborting the configuration process, to ensure you take notice of the issue.
+
+You can download and install GNU coreutils to get an 'rm' implementation
+that behaves properly: <http://www.gnu.org/software/coreutils/>.
+
+If you want to complete the configuration process using your problematic
+'rm' anyway, export the environment variable ACCEPT_INFERIOR_RM_PROGRAM
+to "yes", and re-run configure.
+
+END
+    as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
+  fi
+fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
 $as_echo_n "checking whether to enable maintainer-specific portions of Makefiles... " >&6; }
@@ -19658,10 +19939,11 @@ fi
 # It appears that for some systems (e.g., Mac OSX), cmath will provide only
 # std::isnan, and bare isnan will be unavailable. Typically we need a parameter
 # in the test to allow C++ to do overload resolution.
+# With newer autoconf, this parameter now gets interpreted as a typecast.
 
 if test -z "$COIN_C_ISNAN"; then
-  as_ac_Symbol=`$as_echo "ac_cv_have_decl_std::isnan(42.42)" | $as_tr_sh`
-ac_fn_cxx_check_decl "$LINENO" "std::isnan(42.42)" "$as_ac_Symbol" "
+  as_ac_Symbol=`$as_echo "ac_cv_have_decl_std::isnan(double)" | $as_tr_sh`
+ac_fn_cxx_check_decl "$LINENO" "std::isnan(double)" "$as_ac_Symbol" "
 #ifdef HAVE_CMATH
 # include <cmath>
 #else
@@ -20385,7 +20667,246 @@ done
 
 #AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
 #AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
-#AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
+
+
+# Check whether --enable-pkg-config was given.
+if test "${enable_pkg_config+set}" = set; then :
+  enableval=$enable_pkg_config; use_pkgconfig="$enableval"
+else
+  #if test x$coin_cc_is_cl = xtrue; then
+   #  use_pkgconfig=no
+   #else
+     use_pkgconfig=yes
+   #fi
+
+fi
+
+
+if test $use_pkgconfig = yes ; then
+  if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+    if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$PKG_CONFIG"; then
+  ac_cv_prog_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_PKG_CONFIG="${ac_tool_prefix}pkg-config"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+PKG_CONFIG=$ac_cv_prog_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_prog_PKG_CONFIG"; then
+  ac_ct_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_ac_ct_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$ac_ct_PKG_CONFIG"; then
+  ac_cv_prog_ac_ct_PKG_CONFIG="$ac_ct_PKG_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_ac_ct_PKG_CONFIG="pkg-config"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+ac_ct_PKG_CONFIG=$ac_cv_prog_ac_ct_PKG_CONFIG
+if test -n "$ac_ct_PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_ct_PKG_CONFIG" >&5
+$as_echo "$ac_ct_PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_ct_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_ct_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_prog_PKG_CONFIG"
+fi
+
+  fi
+  if test -n "$PKG_CONFIG"; then
+    _pkg_min_version=0.16.0
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
+$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
+    if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+      PKG_CONFIG=""
+    fi
+  fi
+
+  # check if pkg-config supports the short-errors flag
+  if test -n "$PKG_CONFIG" && \
+    $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+    pkg_short_errors=" --short-errors "
+  else
+    pkg_short_errors=""
+  fi
+fi
+
+ if test -n "$PKG_CONFIG"; then
+  COIN_HAS_PKGCONFIG_TRUE=
+  COIN_HAS_PKGCONFIG_FALSE='#'
+else
+  COIN_HAS_PKGCONFIG_TRUE='#'
+  COIN_HAS_PKGCONFIG_FALSE=
+fi
+
+
+
+# assemble pkg-config search path for installed projects
+#COIN_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+COIN_PKG_CONFIG_PATH=
+
+# let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+# best would actually to use ${libdir}, since .pc files get installed into ${libdir}/pkgconfig,
+# unfortunately, ${libdir} expands to ${exec_prefix}/lib and ${exec_prefix} to ${prefix}...
+#if test "x${prefix}" = xNONE ; then
+#  COIN_PKG_CONFIG_PATH="${ac_default_prefix}/lib64/pkgconfig:${ac_default_prefix}/lib/pkgconfig:${ac_default_prefix}/share/pkgconfig:${COIN_PKG_CONFIG_PATH}"
+#else
+#  COIN_PKG_CONFIG_PATH="${prefix}/lib64/pkgconfig:${prefix}/lib/pkgconfig:${prefix}/share/pkgconfig:${COIN_PKG_CONFIG_PATH}"
+#fi
+
+if test "x$coin_base_directory" != x ; then
+  if test -f $coin_base_directory/coin_subdirs.txt ; then
+    for i in `cat $coin_base_directory/coin_subdirs.txt` ; do
+      if test -d $coin_base_directory/$i ; then
+        COIN_PKG_CONFIG_PATH="$coin_base_directory/$i:${COIN_PKG_CONFIG_PATH}"
+      fi
+      if test -d $coin_base_directory/$i/pkgconfig ; then
+        COIN_PKG_CONFIG_PATH="$coin_base_directory/$i/pkgconfig:${COIN_PKG_CONFIG_PATH}"
+      fi
+    done
+  fi
+fi
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for COIN-OR package Glpk" >&5
+$as_echo_n "checking for COIN-OR package Glpk... " >&6; }
+
+coin_has_glpk=notGiven
+
+if test $coin_has_glpk = notGiven; then
+  if test -n "$PKG_CONFIG" ; then
+    # set search path for pkg-config
+    # need to export variable to be sure that the following pkg-config gets these values
+    coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+    PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
+    export PKG_CONFIG_PATH
+
+    # let pkg-config do it's magic
+
+if test -n "$PKG_CONFIG" ; then
+  if $PKG_CONFIG --exists "coinglpk"; then
+    GLPK_VERSIONS=`$PKG_CONFIG --modversion "coinglpk" 2>/dev/null | tr '\n' ' '`
+     coin_has_glpk=yes
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $GLPK_VERSIONS" >&5
+$as_echo "yes: $GLPK_VERSIONS" >&6; }
+
+  else
+    GLPK_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "coinglpk"`
+     coin_has_glpk=notGiven
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not given: $GLPK_PKG_ERRORS" >&5
+$as_echo "not given: $GLPK_PKG_ERRORS" >&6; }
+
+  fi
+else
+  as_fn_error $? "\"Cannot check for existance of module Glpk without pkg-config\"" "$LINENO" 5
+fi
+
+
+    # reset PKG_CONFIG_PATH variable
+    PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
+    export PKG_CONFIG_PATH
+
+  else
+    as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
+    # TODO
+    #AC_COIN_CHECK_PACKAGE_FALLBACK([Glpk], [coinglpk], [CoinUtilsLib])
+  fi
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_glpk" >&5
+$as_echo "$coin_has_glpk" >&6; }
+fi
+
+if test $coin_has_glpk != skipping &&
+   test $coin_has_glpk != notGiven ; then
+
+$as_echo "#define COIN_HAS_GLPK 1" >>confdefs.h
+
+fi
+
+# Define the Makefile conditional
+ if test $coin_has_glpk != notGiven &&
+                test $coin_has_glpk != skipping; then
+  COIN_HAS_GLPK_TRUE=
+  COIN_HAS_GLPK_FALSE='#'
+else
+  COIN_HAS_GLPK_TRUE='#'
+  COIN_HAS_GLPK_FALSE=
+fi
+
+
+
 #AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 #AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
  if test 1 = 0; then
@@ -20404,6 +20925,12 @@ else
   COIN_HAS_NETLIB_FALSE=
 fi
 
+
+#AM_CONDITIONAL(COIN_HAS_GLPK, test 1 = 1)
+#AC_DEFINE(COIN_HAS_GLPK, 1, [Define to 1 if GLPK is available])
+#eval dir=../coinstash/${libdir}/pkgconfig
+#GLPK_CFLAGS=`PKG_CONFIG_PATH=../coinstash/${libdir}/pkgconfig pkg-config --cflags coinglpk`
+#AC_SUBST(GLPK_CFLAGS)
 
 #AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
 #AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
@@ -20433,7 +20960,18 @@ ac_config_headers="$ac_config_headers src/config.h src/config_coinutils.h"
 
 
 # Finally, we let configure write all the output...
-#AC_COIN_FINALIZE
+
+# need to come before AC_OUTPUT
+if test "x$coin_subdirs" != x; then
+  # write coin_subdirs to a file so that project configuration knows where to find uninstalled projects
+  echo $coin_subdirs > coin_subdirs.txt
+else
+  # substitute for OBJDIR, needed to setup .pc file for uninstalled project
+  #ABSBUILDDIR="`pwd`"
+  #AC_SUBST(ABSBUILDDIR)
+  :
+fi
+
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -20573,6 +21111,14 @@ fi
 
 if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
   as_fn_error $? "conditional \"MAINTAINER_MODE\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${COIN_HAS_PKGCONFIG_TRUE}" && test -z "${COIN_HAS_PKGCONFIG_FALSE}"; then
+  as_fn_error $? "conditional \"COIN_HAS_PKGCONFIG\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${COIN_HAS_GLPK_TRUE}" && test -z "${COIN_HAS_GLPK_FALSE}"; then
+  as_fn_error $? "conditional \"COIN_HAS_GLPK\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${COIN_HAS_SAMPLE_TRUE}" && test -z "${COIN_HAS_SAMPLE_FALSE}"; then
@@ -22242,7 +22788,7 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
 
   case $ac_file$ac_mode in
     "depfiles":C) test x"$AMDEP_TRUE" != x"" || {
-  # Autoconf 2.62 quotes --file arguments for eval, but not when files
+  # Older Autoconf quotes --file arguments for eval, but not when files
   # are listed without --file.  Let's play safe and only enable the eval
   # if we detect the quoting.
   case $CONFIG_FILES in
@@ -22293,7 +22839,7 @@ $as_echo X"$mf" |
     DEPDIR=`sed -n 's/^DEPDIR = //p' < "$mf"`
     test -z "$DEPDIR" && continue
     am__include=`sed -n 's/^am__include = //p' < "$mf"`
-    test -z "am__include" && continue
+    test -z "$am__include" && continue
     am__quote=`sed -n 's/^am__quote = //p' < "$mf"`
     # Find all dependency output files, they are included files with
     # $(DEPDIR) in their names.  We invoke sed twice because it is the
@@ -23321,4 +23867,15 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: In case of trouble, first consult the troubleshooting page at https://projects.coin-or.org/BuildTools/wiki/user-troubleshooting" >&5
+$as_echo "$as_me: In case of trouble, first consult the troubleshooting page at https://projects.coin-or.org/BuildTools/wiki/user-troubleshooting" >&6;}
+#if test x$coin_projectdir = xyes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: Configuration of $PACKAGE_NAME successful" >&5
+$as_echo "$as_me: Configuration of $PACKAGE_NAME successful" >&6;}
+#else
+#  AC_MSG_NOTICE([Main configuration of $PACKAGE_NAME successful])
+#fi
+
 

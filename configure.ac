@@ -17,7 +17,7 @@ AC_INIT([CoinUtils],[trunk],[coinutils@lists.coin-or.org])
 AC_COPYRIGHT([
 Copyright 2006, 2009 International Business Machines and others.
 All Rights Reserved.
-This file is part of the open source package Coin which is distributed
+This file is part of the open source package CoinUtils which is distributed
 under the Eclipse Public License.])
 
 AC_REVISION(0.9)
@@ -47,14 +47,12 @@ AC_PROG_LIBTOOL
 #         Check which subprojects might need to be configured               #
 #############################################################################
 
-#AC_COIN_MAIN_PACKAGEDIR(Glpk,ThirdParty,[glpk/src/glplpx01.c])
+AC_COIN_MAIN_PACKAGEDIR(Glpk,ThirdParty,[glpk/src/glplpx01.c])
 #AC_COIN_MAIN_PACKAGEDIR(Blas,ThirdParty,[daxpy.f])
 #AC_COIN_MAIN_PACKAGEDIR(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
-#AC_COIN_MAIN_PACKAGEDIR(Sample,Data)
+AC_COIN_MAIN_PACKAGEDIR(Sample,Data)
 #AC_COIN_MAIN_PACKAGEDIR(Netlib,Data)
-#AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
-AC_CONFIG_SUBDIRS(Data/Sample)
-AC_CONFIG_SUBDIRS(CoinUtils)
+AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
 
 #############################################################################
 #                  Check for doxygen                                        #
@@ -72,5 +70,4 @@ AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Finally, we let configure write all the output...
-#AC_COIN_FINALIZE
-AC_OUTPUT
+AC_COIN_FINALIZE
