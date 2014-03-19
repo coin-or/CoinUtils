@@ -61,6 +61,7 @@ static Coin_message us_english[]=
     "dual[%d] = %g inconsistent with status %s (%s)." },
 # endif
   {COIN_GENERAL_INFO,9,1,"%s"},
+  {COIN_GENERAL_INFO2,10,2,"%s"},
   {COIN_GENERAL_WARNING,3007,1,"%s"},
   {COIN_DUMMY_END,999999,0,""}
 };

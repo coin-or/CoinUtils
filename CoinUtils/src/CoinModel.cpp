@@ -6,6 +6,7 @@
 #include "CoinUtilsConfig.h"
 #include "CoinHelperFunctions.hpp"
 #include "CoinModel.hpp"
+#include "CoinMessage.hpp"
 #include "CoinSort.hpp"
 #include "CoinMpsIO.hpp"
 #include "CoinFloatEqual.hpp"
@@ -22,8 +23,10 @@ CoinBaseModel::CoinBaseModel ()
      numberColumns_(0),
      optimizationDirection_(1.0),
      objectiveOffset_(0.0),
+     handler_(NULL),
      logLevel_(0)
 {
+  messages_ = CoinMessage();
   problemName_ = "";
   rowBlockName_ = "row_master";
   columnBlockName_ = "column_master";
@@ -37,6 +40,7 @@ CoinBaseModel::CoinBaseModel (const CoinBaseModel & rhs)
     numberColumns_(rhs.numberColumns_),
     optimizationDirection_(rhs.optimizationDirection_),
     objectiveOffset_(rhs.objectiveOffset_),
+    handler_(rhs.handler_),
     logLevel_(rhs.logLevel_)
 {
   problemName_ = rhs.problemName_;
@@ -65,6 +69,7 @@ CoinBaseModel::operator=(const CoinBaseModel& rhs)
     numberColumns_ = rhs.numberColumns_;
     optimizationDirection_ = rhs.optimizationDirection_;
     objectiveOffset_ = rhs.objectiveOffset_;
+    handler_ = rhs.handler_;
     logLevel_ = rhs.logLevel_;
   }
   return *this;
@@ -72,7 +77,7 @@ CoinBaseModel::operator=(const CoinBaseModel& rhs)
 void 
 CoinBaseModel::setLogLevel(int value)
 {
-  if (value>=0&&value<3)
+  if (value>=0&&value<3) 
     logLevel_=value;
 }
 void
@@ -82,6 +87,16 @@ CoinBaseModel::setProblemName (const char *name)
     problemName_ = name ;
   else
     problemName_ = "";
+}
+// Pass in message handler
+void 
+CoinBaseModel::setMessageHandler(CoinMessageHandler * handler)
+{
+  handler_=handler;
+  if (handler) 
+    logLevel_=-1;
+  else 
+    logLevel_=CoinMax(0,logLevel_);
 }
 //#############################################################################
 // Constructors / Destructor / Assignment
@@ -3719,7 +3734,6 @@ void
 CoinModel::setObjective(int numberColumns,const double * objective) 
 {
   fillColumns(numberColumns,true,true);
-  numberColumns_ = CoinMax(numberColumns_,numberColumns);
   for (int i=0;i<numberColumns;i++) {
     objective_[i]=objective[i];
     columnType_[i] &= ~4;
@@ -3731,7 +3745,6 @@ void
 CoinModel::setColumnLower(int numberColumns,const double * columnLower)
 {
   fillColumns(numberColumns,true,true);
-  numberColumns_ = CoinMax(numberColumns_,numberColumns);
   for (int i=0;i<numberColumns;i++) {
     columnLower_[i]=columnLower[i];
     columnType_[i] &= ~1;
@@ -3743,7 +3756,6 @@ void
 CoinModel::setColumnUpper(int numberColumns,const double * columnUpper)
 {
   fillColumns(numberColumns,true,true);
-  numberColumns_ = CoinMax(numberColumns_,numberColumns);
   for (int i=0;i<numberColumns;i++) {
     columnUpper_[i]=columnUpper[i];
     columnType_[i] &= ~2;
@@ -3754,8 +3766,7 @@ CoinModel::setColumnUpper(int numberColumns,const double * columnUpper)
 void 
 CoinModel::setRowLower(int numberRows,const double * rowLower)
 {
-  fillRows(numberRows,true,true);
-  numberRows_ = CoinMax(numberRows_,numberRows);
+  fillColumns(numberRows,true,true);
   for (int i=0;i<numberRows;i++) {
     rowLower_[i]=rowLower[i];
     rowType_[i] &= ~1;
@@ -3766,8 +3777,7 @@ CoinModel::setRowLower(int numberRows,const double * rowLower)
 void 
 CoinModel::setRowUpper(int numberRows,const double * rowUpper)
 {
-  fillRows(numberRows,true,true);
-  numberRows_ = CoinMax(numberRows_,numberRows);
+  fillColumns(numberRows,true,true);
   for (int i=0;i<numberRows;i++) {
     rowUpper_[i]=rowUpper[i];
     rowType_[i] &= ~2;
