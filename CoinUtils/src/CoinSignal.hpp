@@ -104,7 +104,7 @@
 
 #ifndef CoinSighandler_t_defined
 #  warning("OS and/or compiler is not recognized. Defaulting to:");
-#  warning("extern "C" {")
+#  warning("extern 'C' {")
 #  warning("   typedef void (*CoinSighandler_t) (int);")
 #  warning("}")
    extern "C" {

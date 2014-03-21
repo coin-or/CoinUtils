@@ -1591,11 +1591,17 @@ CoinLpIO::realloc_row(char ***rowNames, int **start, double **rhs,
 void
 CoinLpIO::realloc_col(double **collow, double **colup, char **is_int,
 		      int *maxcol) const {
-  
   *maxcol += 100;
   *collow = reinterpret_cast<double *> (realloc ((*collow), (*maxcol+1) * sizeof(double)));
   *colup = reinterpret_cast<double *> (realloc ((*colup), (*maxcol+1) * sizeof(double)));
   *is_int = reinterpret_cast<char *> (realloc ((*is_int), (*maxcol+1) * sizeof(char)));
+  // clean values
+  double lp_inf = getInfinity();
+  for (int i=(*maxcol)-100; i<*maxcol; i++) {
+    (*collow)[i] = 0;
+    (*colup)[i] = lp_inf;
+    (*is_int)[i] = 0;
+  }
 
 } /* realloc_col */
 
