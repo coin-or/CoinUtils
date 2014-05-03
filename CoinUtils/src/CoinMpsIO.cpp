@@ -270,7 +270,7 @@ const static int allowedLength[] = {
 const static char *mpsTypes[] = {
   "N", "E", "L", "G",
   "  ", "S1", "S2", "S3", "  ", "  ", "  ",
-  "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "LI", "SC",
+  "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "LI", "XX", "SC",
   "X1", "X2", "BS", "XL", "XU", "LL", "UL", "  "
 };
 
