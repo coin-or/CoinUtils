@@ -255,15 +255,10 @@ public:
   /// Mark as packed
   inline void setPacked()
   { packedMode_ = true;}
-#ifndef NDEBUG
    /// For debug check vector is clear i.e. no elements
    void checkClear();
    /// For debug check vector is clean i.e. elements match indices
    void checkClean();
-#else
-  inline void checkClear() {};
-  inline void checkClean() {};
-#endif
    /// Scan dense region and set up indices (returns number found)
    int scan();
    /** Scan dense region from start to < end and set up indices

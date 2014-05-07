@@ -312,11 +312,11 @@ CoinIndexedVector::clean( double tolerance )
   }
   return nElements_;
 }
-#ifndef NDEBUG
 //#############################################################################
 // For debug check vector is clear i.e. no elements
 void CoinIndexedVector::checkClear()
 {
+#ifndef NDEBUG
 #ifndef NDEBUG
   //printf("checkClear %p\n",this);
   assert(!nElements_);
@@ -354,10 +354,12 @@ void CoinIndexedVector::checkClear()
     abort();
   }
 #endif
+#endif
 }
 // For debug check vector is clean i.e. elements match indices
 void CoinIndexedVector::checkClean()
 {
+#ifndef NDEBUG
   //printf("checkClean %p\n",this);
   int i;
   if (packedMode_) {
@@ -384,8 +386,8 @@ void CoinIndexedVector::checkClean()
     assert(!mark[i]);
   }
 #endif
-}
 #endif
+}
 //#############################################################################
 #ifndef CLP_NO_VECTOR
 void
