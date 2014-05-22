@@ -177,6 +177,8 @@ const CoinPresolveAction*
 
   const double tol = ZTOLDP ;
   const double inftol = prob->feasibilityTolerance_ ;
+  // for redundant rows be safe
+  const double inftol2 = 0.01*prob->feasibilityTolerance_ ;
   const int ncols = prob->ncols_ ;
 
   int *fixed_cols = new int[ncols] ;
@@ -250,10 +252,12 @@ const CoinPresolveAction*
   bound from infinite to finite. Once finite, bounds continue to tighten,
   so we're safe.
 */
+    /* Test changed to use +small tolerance rather than -tolerance
+       as test fails often */
     if (((rlo[irow] <= -PRESOLVE_INF) ||
-	 (-PRESOLVE_INF < maxdown && rlo[irow] <= maxdown-inftol)) &&
+	 (-PRESOLVE_INF < maxdown && rlo[irow] <= maxdown+inftol2)) &&
 	((rup[irow] >= PRESOLVE_INF) ||
-	 (maxup < PRESOLVE_INF && rup[irow] >= maxup+inftol))) {
+	 (maxup < PRESOLVE_INF && rup[irow] >= maxup-inftol2))) {
       // check none prohibited
       if (prob->anyProhibited_) {
 	bool anyProhibited=false;

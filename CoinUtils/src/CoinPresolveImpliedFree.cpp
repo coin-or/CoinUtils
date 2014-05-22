@@ -156,15 +156,17 @@ const CoinPresolveAction *implied_free_action::presolve (
 */
 # ifdef COIN_LIGHTWEIGHT_PRESOLVE
   if (prob->pass_ == 1) {
+#else
+    if (prob->presolveOptions_&0x10) {
 # endif
     next = testRedundant(prob,next) ;
     if (prob->status_&0x01 != 0) {
       if ((prob->presolveOptions_&0x4000) != 0)
-        prob->status &= !0x01 ;
+        prob->status_ &= !0x01 ;
       else
 	return (next) ;
     }
-# ifdef COIN_LIGHTWEIGHT_PRESOLVE
+# if 1 //def COIN_LIGHTWEIGHT_PRESOLVE
   }
 # endif
 # endif
@@ -672,9 +674,9 @@ const CoinPresolveAction *implied_free_action::presolve (
 	  maxNewCost=CoinMax(maxNewCost,newCost);
 	}
       }
-      if (maxNewCost>1000.0*(maxOldCost+1.0) /*&& maxOldCost*/) {
+      if (maxNewCost>1000.0*(maxOldCost+1.0) && maxOldCost) {
 	//printf("too big %d tgtcost %g maxOld %g maxNew %g\n",
-	//     tgtcol,tgtcol_cost,maxOldCost,maxNewCost);
+	//   tgtcol,tgtcol_cost,maxOldCost,maxNewCost);
 	continue;
       }
     }

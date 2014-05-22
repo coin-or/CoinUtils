@@ -996,7 +996,7 @@ const CoinPresolveAction
 	CoinBigIndex k;
 	for (k=krs;k<kre;k++) {
 	  if (hcol[k] != hcol[k+ishift] ||
-	      rowels[k] != rowels[k+ishift]) {
+	      fabs(rowels[k]-rowels[k+ishift])>1.0e-14) {
 	    break;
 	  }
 	}
