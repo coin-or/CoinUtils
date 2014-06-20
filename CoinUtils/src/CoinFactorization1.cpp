@@ -291,6 +291,8 @@ int CoinFactorization::factorize (
   const int * columnLength = matrix.getVectorLengths(); 
   const double * element = matrix.getElements();
   int numberRows=matrix.getNumRows();
+  if (!numberRows)
+    return 0;
   int numberColumns=matrix.getNumCols();
   int numberBasic = 0;
   CoinBigIndex numberElements=0;
