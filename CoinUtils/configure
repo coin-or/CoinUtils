@@ -20810,19 +20810,8 @@ fi
 
 
 
-# assemble pkg-config search path for installed projects
-#COIN_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+# assemble pkg-config search path to find projects under base directory
 COIN_PKG_CONFIG_PATH=
-
-# let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
-# best would actually to use ${libdir}, since .pc files get installed into ${libdir}/pkgconfig,
-# unfortunately, ${libdir} expands to ${exec_prefix}/lib and ${exec_prefix} to ${prefix}...
-#if test "x${prefix}" = xNONE ; then
-#  COIN_PKG_CONFIG_PATH="${ac_default_prefix}/lib64/pkgconfig:${ac_default_prefix}/lib/pkgconfig:${ac_default_prefix}/share/pkgconfig:${COIN_PKG_CONFIG_PATH}"
-#else
-#  COIN_PKG_CONFIG_PATH="${prefix}/lib64/pkgconfig:${prefix}/lib/pkgconfig:${prefix}/share/pkgconfig:${COIN_PKG_CONFIG_PATH}"
-#fi
-
 if test "x$coin_base_directory" != x ; then
   if test -f $coin_base_directory/coin_subdirs.txt ; then
     for i in `cat $coin_base_directory/coin_subdirs.txt` ; do

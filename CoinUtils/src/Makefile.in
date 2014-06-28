@@ -127,7 +127,8 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includecoindir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-libCoinUtils_la_LIBADD =
+libCoinUtils_la_DEPENDENCIES =  \
+	$(COIN_DESTDIR)$(libdir)/libcoinglpk.la
 am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinDenseVector.lo CoinError.lo CoinFactorization1.lo \
 	CoinFactorization2.lo CoinFactorization3.lo \
@@ -475,6 +476,8 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
 #COIN_PKG_CONFIG_PATH=$(DESTDIR)/@libdir@/pkgconfig
 AM_CPPFLAGS = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --cflags coinglpk --define-variable=DESTDIR=@COIN_DESTDIR@`
+libCoinUtils_la_LIBADD = $(COIN_DESTDIR)$(libdir)/libcoinglpk.la
+#libCoinUtils_la_LIBADD = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --libs coinglpk --define-variable=DESTDIR=@COIN_DESTDIR@`
 
 # This line is necessary to allow VPATH compilation
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
