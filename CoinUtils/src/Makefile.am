@@ -93,27 +93,14 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
 	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
 
-# List all additionally required libraries
-#if DEPENDENCY_LINKING
-#libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
-#endif
-
 # This is for libtool
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
-# Here list all include flags, relative to this "srcdir" directory.  This
-# "cygpath" stuff is necessary to compile with native compilers on Windows
-#AM_CPPFLAGS = $(GLPK_CFLAGS)
-
-#COIN_PKG_CONFIG_PATH=../@top_builddir@/@COIN_DESTDIR@/@libdir@/pkgconfig
-#AM_CPPFLAGS += `PKG_CONFIG_PATH=$$PKG_CONFIG_PATH:$(COIN_PKG_CONFIG_PATH) pkg-config --cflags coinglpk --define-variable=DESTDIR=../@top_builddir@/@COIN_DESTDIR@`
-
-#COIN_PKG_CONFIG_PATH=$(DESTDIR)/@libdir@/pkgconfig
-#AM_CPPFLAGS = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --cflags coinglpk --define-variable prefix=@COIN_DESTDIR@/@prefix@`
-AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
-
+# Add library dependencies to libCoinUtils
 libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
-#libCoinUtils_la_LIBADD = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --libs coinglpk --define-variable=DESTDIR=@COIN_DESTDIR@`
+
+# Here list all include flags, relative to this "srcdir" directory.
+AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
 
 # This line is necessary to allow VPATH compilation
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`

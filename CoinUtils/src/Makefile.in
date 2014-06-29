@@ -254,7 +254,6 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COINUTILSLIB_CFLAGS = @COINUTILSLIB_CFLAGS@
-COINUTILSLIB_DEPENDENCIES = @COINUTILSLIB_DEPENDENCIES@
 COINUTILSLIB_LIBS = @COINUTILSLIB_LIBS@
 COINUTILSLIB_PCREQUIRES = @COINUTILSLIB_PCREQUIRES@
 COINUTILS_SVN_REV = @COINUTILS_SVN_REV@
@@ -283,7 +282,6 @@ FGREP = @FGREP@
 FLIBS = @FLIBS@
 GLPK_CFLAGS = @GLPK_CFLAGS@
 GLPK_DATA = @GLPK_DATA@
-GLPK_DEPENDENCIES = @GLPK_DEPENDENCIES@
 GLPK_LIBS = @GLPK_LIBS@
 GREP = @GREP@
 INSTALL = @INSTALL@
@@ -321,7 +319,6 @@ PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 SAMPLE_CFLAGS = @SAMPLE_CFLAGS@
 SAMPLE_DATA = @SAMPLE_DATA@
-SAMPLE_DEPENDENCIES = @SAMPLE_DEPENDENCIES@
 SAMPLE_LIBS = @SAMPLE_LIBS@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -471,26 +468,14 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
 
 
-# List all additionally required libraries
-#if DEPENDENCY_LINKING
-#libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
-#endif
-
 # This is for libtool
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
-# Here list all include flags, relative to this "srcdir" directory.  This
-# "cygpath" stuff is necessary to compile with native compilers on Windows
-#AM_CPPFLAGS = $(GLPK_CFLAGS)
-
-#COIN_PKG_CONFIG_PATH=../@top_builddir@/@COIN_DESTDIR@/@libdir@/pkgconfig
-#AM_CPPFLAGS += `PKG_CONFIG_PATH=$$PKG_CONFIG_PATH:$(COIN_PKG_CONFIG_PATH) pkg-config --cflags coinglpk --define-variable=DESTDIR=../@top_builddir@/@COIN_DESTDIR@`
-
-#COIN_PKG_CONFIG_PATH=$(DESTDIR)/@libdir@/pkgconfig
-#AM_CPPFLAGS = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --cflags coinglpk --define-variable prefix=@COIN_DESTDIR@/@prefix@`
-AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
+# Add library dependencies to libCoinUtils
 libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
-#libCoinUtils_la_LIBADD = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --libs coinglpk --define-variable=DESTDIR=@COIN_DESTDIR@`
+
+# Here list all include flags, relative to this "srcdir" directory.
+AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
 
 # This line is necessary to allow VPATH compilation
 DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
