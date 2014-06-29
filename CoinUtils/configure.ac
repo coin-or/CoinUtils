@@ -273,18 +273,12 @@ AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
 AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
 
-#AM_CONDITIONAL(COIN_HAS_GLPK, test 1 = 1)
-#AC_DEFINE(COIN_HAS_GLPK, 1, [Define to 1 if GLPK is available])
-#eval dir=../coinstash/${libdir}/pkgconfig
-#GLPK_CFLAGS=`PKG_CONFIG_PATH=../coinstash/${libdir}/pkgconfig pkg-config --cflags coinglpk`
-#AC_SUBST(GLPK_CFLAGS)
-
 #AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
 #AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
 #AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
 
+# finalize libs and cflags for building CoinUtilsLib by doing pkg-config calls
 AC_COIN_FINALIZE_FLAGS(CoinUtilsLib)
-
 
 #############################################################################
 #                  Check for doxygen                                        #
