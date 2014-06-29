@@ -69,11 +69,11 @@ if test "$enable_coinutils_threads" = yes; then
   AC_CHECK_LIB([rt],[clock_gettime],
                [COINUTILSLIB_LIBS="-lrt $COINUTILSLIB_LIBS"
                 COINUTILSLIB_PCLIBS="-lrt $COINUTILSLIB_PCLIBS"],
-	       [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lrt unavailable])])
+               [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lrt unavailable])])
   AC_CHECK_LIB([pthread],[pthread_create],
                [COINUTILSLIB_LIBS="-lpthread $COINUTILSLIB_LIBS"
                 COINUTILSLIB_PCLIBS="-lpthread $COINUTILSLIB_PCLIBS"],
-	       [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lpthreads unavailable])])
+               [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lpthreads unavailable])])
 fi
 
 AC_ARG_ENABLE([coinutils-mempool-override-new],
@@ -136,8 +136,8 @@ if test x"$CoinInt64" = x; then
   AC_CHECK_SIZEOF([long long])
   case $ac_cv_sizeof_long_long in
     8 | 8?) CoinInt64="long long"
-    	    CoinUInt64="unsigned long long"
-	    ;;
+            CoinUInt64="unsigned long long"
+            ;;
   esac
 fi
 
@@ -146,8 +146,8 @@ if test x"$CoinInt64" = x; then
   AC_CHECK_SIZEOF([long])
   case $ac_cv_sizeof_long in
     8 | 8?) CoinInt64="long"
-    	    CoinUInt64="unsigned long"
-	    ;;
+            CoinUInt64="unsigned long"
+            ;;
   esac
 fi
 
@@ -156,8 +156,8 @@ if test x"$CoinInt64" = x; then
   AC_CHECK_SIZEOF([int])
   case $ac_cv_sizeof_int in
     8 | 8?) CoinInt64="int"
-    	    CoinUInt64="unsigned int"
-	    ;;
+            CoinUInt64="unsigned int"
+            ;;
   esac
 fi
 AC_LANG_POP(C)
@@ -165,9 +165,8 @@ AC_LANG_POP(C)
 if test x"$CoinInt64" = x; then
   AC_MSG_ERROR([Cannot find integer type with 64 bits])
 fi
-AC_DEFINE_UNQUOTED([COIN_INT64_T],[$CoinInt64],[Define to 64bit integer type])
-AC_DEFINE_UNQUOTED([COIN_UINT64_T],[$CoinInt64],
-		   [Define to 64bit unsigned integer type])
+AC_DEFINE_UNQUOTED([COIN_INT64_T], [$CoinInt64],[Define to 64bit integer type])
+AC_DEFINE_UNQUOTED([COIN_UINT64_T],[$CoinInt64],[Define to 64bit unsigned integer type])
 
 
 ##### Integer type for Pointer

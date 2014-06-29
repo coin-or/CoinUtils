@@ -20557,8 +20557,8 @@ _ACEOF
 
   case $ac_cv_sizeof_long_long in
     8 | 8?) CoinInt64="long long"
-    	    CoinUInt64="unsigned long long"
-	    ;;
+            CoinUInt64="unsigned long long"
+            ;;
   esac
 fi
 
@@ -20599,8 +20599,8 @@ _ACEOF
 
   case $ac_cv_sizeof_long in
     8 | 8?) CoinInt64="long"
-    	    CoinUInt64="unsigned long"
-	    ;;
+            CoinUInt64="unsigned long"
+            ;;
   esac
 fi
 
@@ -20641,8 +20641,8 @@ _ACEOF
 
   case $ac_cv_sizeof_int in
     8 | 8?) CoinInt64="int"
-    	    CoinUInt64="unsigned int"
-	    ;;
+            CoinUInt64="unsigned int"
+            ;;
   esac
 fi
 ac_ext=cpp
