@@ -52,15 +52,15 @@ AC_CANONICAL_BUILD
 #AC_COIN_PROG_CXX
 AC_PROG_CXX
 
+# For the Blas/Lapack checks, we want to know how to link against Fortran
 # Get the name of the Fortran compiler and appropriate compiler options
-#AC_COIN_PROG_F77
-
+AC_PROG_F77
 # Find out how to call Fortran from C and determine Fortran runtime libraries
-#if test "x$F77" != xunavailable
-#then
-#  AC_COIN_F77_WRAPPERS
-#fi
-AC_F77_WRAPPERS
+if test "x$F77" != xunavailable
+then
+  AC_F77_WRAPPERS
+  AC_F77_LIBRARY_LDFLAGS
+fi
 
 # Initialize automake and libtool
 #AC_COIN_INIT_AUTO_TOOLS
@@ -267,8 +267,8 @@ AC_CHECK_HEADERS([endian.h])
 
 #AC_COIN_CHECK_LIBM(CoinUtilsLib)
 
-#AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
-#AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
+AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
+AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
 AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
 AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])

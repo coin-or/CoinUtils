@@ -48,8 +48,8 @@ AC_PROG_LIBTOOL
 #############################################################################
 
 AC_COIN_MAIN_PACKAGEDIR(Glpk,ThirdParty,[glpk/src/glplpx01.c])
-#AC_COIN_MAIN_PACKAGEDIR(Blas,ThirdParty,[daxpy.f])
-#AC_COIN_MAIN_PACKAGEDIR(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
+AC_COIN_MAIN_PACKAGEDIR(Blas,ThirdParty,[daxpy.f])
+AC_COIN_MAIN_PACKAGEDIR(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
 AC_COIN_MAIN_PACKAGEDIR(Sample,Data)
 AC_COIN_MAIN_PACKAGEDIR(Netlib,Data)
 AC_COIN_MAIN_PACKAGEDIR(CoinUtils)

@@ -779,6 +779,14 @@ with_glpk
 with_glpk_lib
 with_glpk_incdir
 with_glpk_datadir
+with_blas
+with_blas_lib
+with_blas_incdir
+with_blas_datadir
+with_lapack
+with_lapack_lib
+with_lapack_incdir
+with_lapack_datadir
 with_sample
 with_sample_lib
 with_sample_incdir
@@ -803,6 +811,8 @@ CPPFLAGS
 CPP
 COIN_SKIP_PROJECTS'
 ac_subdirs_all='ThirdParty/Glpk
+ThirdParty/Blas
+ThirdParty/Lapack
 Data/Sample
 Data/Netlib
 CoinUtils'
@@ -1450,6 +1460,16 @@ Optional Packages:
   --with-glpk-lib         linker flags for using project Glpk
   --with-glpk-incdir      directory with header files for using project Glpk
   --with-glpk-datadir     directory with data files for using project Glpk
+  --with-blas-lib         linker flags for using project Blas
+  --with-blas-incdir      directory with header files for using project Blas
+  --with-blas-datadir     directory with data files for using project Blas
+  --with-blas             specify BLAS library (or BUILD to enforce use of
+                          ThirdParty/Blas)
+  --with-lapack-lib       linker flags for using project Lapack
+  --with-lapack-incdir    directory with header files for using project Lapack
+  --with-lapack-datadir   directory with data files for using project Lapack
+  --with-lapack           specify LAPACK library (or BUILD to enforce use of
+                          ThirdParty/Lapack)
   --with-sample-lib       linker flags for using project Sample
   --with-sample-incdir    directory with header files for using project Sample
   --with-sample-datadir   directory with data files for using project Sample
@@ -11536,6 +11556,9 @@ fi
 fi
 
 
+
+
+
 # check if project is available in present directory
 if test "$coin_has_glpk" = notGiven; then
   coin_has_glpk=no
@@ -11573,8 +11596,282 @@ if test "$coin_has_glpk" = yes ; then
   fi
 fi
 
-#AC_COIN_MAIN_PACKAGEDIR(Blas,ThirdParty,[daxpy.f])
-#AC_COIN_MAIN_PACKAGEDIR(Lapack,ThirdParty,[LAPACK/SRC/dlarf.f])
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether source of project Blas is available and should be compiled" >&5
+$as_echo_n "checking whether source of project Blas is available and should be compiled... " >&6; }
+
+coin_has_blas=notGiven
+coin_reason=
+
+# check if user wants to skip project in any case
+
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "Blas"; then
+      coin_has_blas="no"
+      coin_reason="Blas has been specified in COIN_SKIP_PROJECTS"
+    fi
+
+    if test $dir = "ThirdParty/Blas"; then
+      coin_has_blas="no"
+      coin_reason="ThirdParty/Blas has been specified in COIN_SKIP_PROJECTS"
+    fi
+  done
+fi
+
+if test "$coin_has_blas" != no; then
+
+# Check whether --with-blas was given.
+if test "${with_blas+set}" = set; then :
+  withval=$with_blas; if test "$withval" = no ; then
+       coin_has_blas="no"
+       coin_reason="--without-blas has been specified"
+     fi
+
+fi
+
+fi
+
+if test "$coin_has_blas" != no; then
+
+# Check whether --with-blas-lib was given.
+if test "${with_blas_lib+set}" = set; then :
+  withval=$with_blas_lib; if test "$withval" = no ; then
+       coin_has_blas="no"
+       coin_reason="--without-blas-lib has been specified"
+     else
+       coin_has_blas="no"
+       coin_reason="--with-blas-lib has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_blas" != no; then
+
+# Check whether --with-blas-incdir was given.
+if test "${with_blas_incdir+set}" = set; then :
+  withval=$with_blas_incdir; if test "$withval" = no ; then
+       coin_has_blas="no"
+       coin_reason="--without-blas-incdir has been specified"
+     else
+       coin_has_blas="no"
+       coin_reason="--with-blas-incdir has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_blas" != no; then
+
+# Check whether --with-blas-datadir was given.
+if test "${with_blas_datadir+set}" = set; then :
+  withval=$with_blas_datadir; if test "$withval" = no ; then
+       coin_has_blas="no"
+       coin_reason="--without-blas-datadir has been specified"
+     else
+       coin_has_blas="no"
+       coin_reason="--with-blas-datadir has been specified"
+     fi
+fi
+
+fi
+
+
+  if test $coin_has_blas != no; then
+    #--with-blas can overwrite --with-blas-lib, and can be set to BUILD to enforce building blas
+
+# Check whether --with-blas was given.
+if test "${with_blas+set}" = set; then :
+  withval=$with_blas; if test x"$withval" = "xno" ; then
+           coin_has_blas="no"
+           coin_reason="--without-blas has been specified"
+         elif test x"$withval" != "xBUILD" ; then
+           coin_has_blas="no"
+           coin_reason="--with-blas has been specified"
+         fi
+fi
+
+  fi
+
+
+
+
+# check if project is available in present directory
+if test "$coin_has_blas" = notGiven; then
+  coin_has_blas=no
+  if test -d $srcdir/ThirdParty/Blas; then
+    coin_reason="source in ThirdParty/Blas"
+    # If a third argument is given, then we have to check if one one the files given in that third argument is present.
+    # If none of the files in the third argument is available, then we consider the project directory as non-existing.
+    # However, if no third argument is given, then this means that there should be no check, and existence of the directory is sufficient.
+    for i in $srcdir/ThirdParty/Blas/daxpy.f; do
+         if test -r $i; then
+           coin_has_blas="yes"
+         else
+           coin_has_blas="no"
+           coin_reason="source file $i not available"
+           break
+         fi
+       done
+
+  fi
+fi
+
+if test -z "$coin_reason" ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_blas" >&5
+$as_echo "$coin_has_blas" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_blas, $coin_reason" >&5
+$as_echo "$coin_has_blas, $coin_reason" >&6; }
+fi
+
+if test "$coin_has_blas" = yes ; then
+  if test -r $srcdir/ThirdParty/Blas/configure; then
+    coin_subdirs="$coin_subdirs ThirdParty/Blas"
+    subdirs="$subdirs ThirdParty/Blas"
+
+  fi
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether source of project Lapack is available and should be compiled" >&5
+$as_echo_n "checking whether source of project Lapack is available and should be compiled... " >&6; }
+
+coin_has_lapack=notGiven
+coin_reason=
+
+# check if user wants to skip project in any case
+
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "Lapack"; then
+      coin_has_lapack="no"
+      coin_reason="Lapack has been specified in COIN_SKIP_PROJECTS"
+    fi
+
+    if test $dir = "ThirdParty/Lapack"; then
+      coin_has_lapack="no"
+      coin_reason="ThirdParty/Lapack has been specified in COIN_SKIP_PROJECTS"
+    fi
+  done
+fi
+
+if test "$coin_has_lapack" != no; then
+
+# Check whether --with-lapack was given.
+if test "${with_lapack+set}" = set; then :
+  withval=$with_lapack; if test "$withval" = no ; then
+       coin_has_lapack="no"
+       coin_reason="--without-lapack has been specified"
+     fi
+
+fi
+
+fi
+
+if test "$coin_has_lapack" != no; then
+
+# Check whether --with-lapack-lib was given.
+if test "${with_lapack_lib+set}" = set; then :
+  withval=$with_lapack_lib; if test "$withval" = no ; then
+       coin_has_lapack="no"
+       coin_reason="--without-lapack-lib has been specified"
+     else
+       coin_has_lapack="no"
+       coin_reason="--with-lapack-lib has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_lapack" != no; then
+
+# Check whether --with-lapack-incdir was given.
+if test "${with_lapack_incdir+set}" = set; then :
+  withval=$with_lapack_incdir; if test "$withval" = no ; then
+       coin_has_lapack="no"
+       coin_reason="--without-lapack-incdir has been specified"
+     else
+       coin_has_lapack="no"
+       coin_reason="--with-lapack-incdir has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_lapack" != no; then
+
+# Check whether --with-lapack-datadir was given.
+if test "${with_lapack_datadir+set}" = set; then :
+  withval=$with_lapack_datadir; if test "$withval" = no ; then
+       coin_has_lapack="no"
+       coin_reason="--without-lapack-datadir has been specified"
+     else
+       coin_has_lapack="no"
+       coin_reason="--with-lapack-datadir has been specified"
+     fi
+fi
+
+fi
+
+
+
+
+  if test $coin_has_lapack != no; then
+    #--with-lapack can overwrite --with-lapack-lib, and can be set to BUILD to enforce building lapack
+
+# Check whether --with-lapack was given.
+if test "${with_lapack+set}" = set; then :
+  withval=$with_lapack; if test x"$withval" = "xno" ; then
+           coin_has_lapack="no"
+           coin_reason="--without-lapack has been specified"
+         elif test x"$withval" != "xBUILD" ; then
+           coin_has_lapack="no"
+           coin_reason="--with-lapack has been specified"
+         fi
+fi
+
+  fi
+
+
+# check if project is available in present directory
+if test "$coin_has_lapack" = notGiven; then
+  coin_has_lapack=no
+  if test -d $srcdir/ThirdParty/Lapack; then
+    coin_reason="source in ThirdParty/Lapack"
+    # If a third argument is given, then we have to check if one one the files given in that third argument is present.
+    # If none of the files in the third argument is available, then we consider the project directory as non-existing.
+    # However, if no third argument is given, then this means that there should be no check, and existence of the directory is sufficient.
+    for i in $srcdir/ThirdParty/Lapack/LAPACK/SRC/dlarf.f; do
+         if test -r $i; then
+           coin_has_lapack="yes"
+         else
+           coin_has_lapack="no"
+           coin_reason="source file $i not available"
+           break
+         fi
+       done
+
+  fi
+fi
+
+if test -z "$coin_reason" ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_lapack" >&5
+$as_echo "$coin_has_lapack" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_lapack, $coin_reason" >&5
+$as_echo "$coin_has_lapack, $coin_reason" >&6; }
+fi
+
+if test "$coin_has_lapack" = yes ; then
+  if test -r $srcdir/ThirdParty/Lapack/configure; then
+    coin_subdirs="$coin_subdirs ThirdParty/Lapack"
+    subdirs="$subdirs ThirdParty/Lapack"
+
+  fi
+fi
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether source of project Sample is available and should be compiled" >&5
 $as_echo_n "checking whether source of project Sample is available and should be compiled... " >&6; }
@@ -11655,6 +11952,9 @@ if test "${with_sample_datadir+set}" = set; then :
 fi
 
 fi
+
+
+
 
 
 # check if project is available in present directory
@@ -11768,6 +12068,9 @@ fi
 fi
 
 
+
+
+
 # check if project is available in present directory
 if test "$coin_has_netlib" = notGiven; then
   coin_has_netlib=no
@@ -11873,6 +12176,9 @@ if test "${with_coinutils_datadir+set}" = set; then :
 fi
 
 fi
+
+
+
 
 
 # check if project is available in present directory
