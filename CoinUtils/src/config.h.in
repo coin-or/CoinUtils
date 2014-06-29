@@ -36,6 +36,9 @@
 /* Define to 1 if the Glpk package is available */
 #undef COIN_HAS_GLPK
 
+/* Define to 1 if the Netlib package is available */
+#undef COIN_HAS_NETLIB
+
 /* Define to 1 if the Sample package is available */
 #undef COIN_HAS_SAMPLE
 

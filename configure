@@ -783,6 +783,10 @@ with_sample
 with_sample_lib
 with_sample_incdir
 with_sample_datadir
+with_netlib
+with_netlib_lib
+with_netlib_incdir
+with_netlib_datadir
 with_coinutils
 with_coinutils_lib
 with_coinutils_incdir
@@ -800,6 +804,7 @@ CPP
 COIN_SKIP_PROJECTS'
 ac_subdirs_all='ThirdParty/Glpk
 Data/Sample
+Data/Netlib
 CoinUtils'
 
 # Initialize some variables set by options.
@@ -1448,6 +1453,9 @@ Optional Packages:
   --with-sample-lib       linker flags for using project Sample
   --with-sample-incdir    directory with header files for using project Sample
   --with-sample-datadir   directory with data files for using project Sample
+  --with-netlib-lib       linker flags for using project Netlib
+  --with-netlib-incdir    directory with header files for using project Netlib
+  --with-netlib-datadir   directory with data files for using project Netlib
   --with-coinutils-lib    linker flags for using project CoinUtils
   --with-coinutils-incdir directory with header files for using project
                           CoinUtils
@@ -11678,7 +11686,117 @@ if test "$coin_has_sample" = yes ; then
   fi
 fi
 
-#AC_COIN_MAIN_PACKAGEDIR(Netlib,Data)
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether source of project Netlib is available and should be compiled" >&5
+$as_echo_n "checking whether source of project Netlib is available and should be compiled... " >&6; }
+
+coin_has_netlib=notGiven
+coin_reason=
+
+# check if user wants to skip project in any case
+
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "Netlib"; then
+      coin_has_netlib="no"
+      coin_reason="Netlib has been specified in COIN_SKIP_PROJECTS"
+    fi
+
+    if test $dir = "Data/Netlib"; then
+      coin_has_netlib="no"
+      coin_reason="Data/Netlib has been specified in COIN_SKIP_PROJECTS"
+    fi
+  done
+fi
+
+if test "$coin_has_netlib" != no; then
+
+# Check whether --with-netlib was given.
+if test "${with_netlib+set}" = set; then :
+  withval=$with_netlib; if test "$withval" = no ; then
+       coin_has_netlib="no"
+       coin_reason="--without-netlib has been specified"
+     fi
+
+fi
+
+fi
+
+if test "$coin_has_netlib" != no; then
+
+# Check whether --with-netlib-lib was given.
+if test "${with_netlib_lib+set}" = set; then :
+  withval=$with_netlib_lib; if test "$withval" = no ; then
+       coin_has_netlib="no"
+       coin_reason="--without-netlib-lib has been specified"
+     else
+       coin_has_netlib="no"
+       coin_reason="--with-netlib-lib has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_netlib" != no; then
+
+# Check whether --with-netlib-incdir was given.
+if test "${with_netlib_incdir+set}" = set; then :
+  withval=$with_netlib_incdir; if test "$withval" = no ; then
+       coin_has_netlib="no"
+       coin_reason="--without-netlib-incdir has been specified"
+     else
+       coin_has_netlib="no"
+       coin_reason="--with-netlib-incdir has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_netlib" != no; then
+
+# Check whether --with-netlib-datadir was given.
+if test "${with_netlib_datadir+set}" = set; then :
+  withval=$with_netlib_datadir; if test "$withval" = no ; then
+       coin_has_netlib="no"
+       coin_reason="--without-netlib-datadir has been specified"
+     else
+       coin_has_netlib="no"
+       coin_reason="--with-netlib-datadir has been specified"
+     fi
+fi
+
+fi
+
+
+# check if project is available in present directory
+if test "$coin_has_netlib" = notGiven; then
+  coin_has_netlib=no
+  if test -d $srcdir/Data/Netlib; then
+    coin_reason="source in Data/Netlib"
+    # If a third argument is given, then we have to check if one one the files given in that third argument is present.
+    # If none of the files in the third argument is available, then we consider the project directory as non-existing.
+    # However, if no third argument is given, then this means that there should be no check, and existence of the directory is sufficient.
+     coin_has_netlib="yes"
+
+  fi
+fi
+
+if test -z "$coin_reason" ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_netlib" >&5
+$as_echo "$coin_has_netlib" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_netlib, $coin_reason" >&5
+$as_echo "$coin_has_netlib, $coin_reason" >&6; }
+fi
+
+if test "$coin_has_netlib" = yes ; then
+  if test -r $srcdir/Data/Netlib/configure; then
+    coin_subdirs="$coin_subdirs Data/Netlib"
+    subdirs="$subdirs Data/Netlib"
+
+  fi
+fi
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether source of project CoinUtils is available and should be compiled" >&5
 $as_echo_n "checking whether source of project CoinUtils is available and should be compiled... " >&6; }

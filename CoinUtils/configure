@@ -645,6 +645,9 @@ LTLIBOBJS
 LIBOBJS
 COIN_HAS_NETLIB_FALSE
 COIN_HAS_NETLIB_TRUE
+NETLIB_DATA
+NETLIB_CFLAGS
+NETLIB_LIBS
 COIN_HAS_SAMPLE_FALSE
 COIN_HAS_SAMPLE_TRUE
 SAMPLE_DATA
@@ -816,6 +819,10 @@ with_sample
 with_sample_lib
 with_sample_incdir
 with_sample_datadir
+with_netlib
+with_netlib_lib
+with_netlib_incdir
+with_netlib_datadir
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1495,6 +1502,9 @@ Optional Packages:
   --with-sample-lib       linker flags for using package Sample
   --with-sample-incdir    directory with header files for using package Sample
   --with-sample-datadir   directory with data files for using package Sample
+  --with-netlib-lib       linker flags for using package Netlib
+  --with-netlib-incdir    directory with header files for using package Netlib
+  --with-netlib-datadir   directory with data files for using package Netlib
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -21200,14 +21210,174 @@ else
 fi
 
 
-#AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
- if test 1 = 0; then
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for COIN-OR package Netlib" >&5
+$as_echo_n "checking for COIN-OR package Netlib... " >&6; }
+
+coin_has_netlib=notGiven
+
+# check if user wants to skip package in any case
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "Netlib"; then
+      coin_has_netlib=skipping
+    fi
+  done
+fi
+
+if test "$coin_has_netlib" != skipping; then
+
+# Check whether --with-netlib was given.
+if test "${with_netlib+set}" = set; then :
+  withval=$with_netlib; if test "$withval" = no ; then
+       coin_has_netlib=skipping
+     fi
+
+fi
+
+fi
+
+NETLIB_LIBS=
+NETLIB_CFLAGS=
+NETLIB_DATA=
+NETLIB_PCREQUIRES=
+
+
+
+
+
+#check if user provided LIBS for package or disables use of package
+if test $coin_has_netlib != skipping; then
+
+# Check whether --with-netlib-lib was given.
+if test "${with_netlib_lib+set}" = set; then :
+  withval=$with_netlib_lib; if test "$withval" = no ; then
+       coin_has_netlib=skipping
+     else
+       coin_has_netlib=yes
+       NETLIB_LIBS="$withval"
+
+     fi
+
+fi
+
+fi
+
+#check if user provided INCDIR for package or disables use of package
+if test $coin_has_netlib != skipping; then
+
+# Check whether --with-netlib-incdir was given.
+if test "${with_netlib_incdir+set}" = set; then :
+  withval=$with_netlib_incdir; if test "$withval" = no ; then
+       coin_has_netlib=skipping
+     else
+       coin_has_netlib=yes
+       NETLIB_CFLAGS="-I$withval"
+
+     fi
+
+fi
+
+fi
+
+#check if user provided DATADIR for package or disables use of package
+if test $coin_has_netlib != skipping; then
+
+# Check whether --with-netlib-datadir was given.
+if test "${with_netlib_datadir+set}" = set; then :
+  withval=$with_netlib_datadir; if test "$withval" = no ; then
+       coin_has_netlib=skipping
+     else
+       coin_has_netlib=yes
+       NETLIB_DATA="$withval"
+     fi
+
+fi
+
+fi
+
+# now use pkg-config, if nothing of the above applied
+if test $coin_has_netlib = notGiven; then
+  if test -n "$PKG_CONFIG" ; then
+    # set search path for pkg-config
+    # need to export variable to be sure that the following pkg-config gets these values
+    coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+    PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
+    export PKG_CONFIG_PATH
+
+    # let pkg-config do it's magic
+
+if test -n "$PKG_CONFIG" ; then
+  if $PKG_CONFIG --exists "coindatanetlib"; then
+    NETLIB_VERSIONS=`$PKG_CONFIG --modversion "coindatanetlib" 2>/dev/null | tr '\n' ' '`
+     coin_has_netlib=yes
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $NETLIB_VERSIONS" >&5
+$as_echo "yes: $NETLIB_VERSIONS" >&6; }
+
+        NETLIB_DATA=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --variable=datadir coindatanetlib 2>/dev/null`
+
+        NETLIB_PCREQUIRES="coindatanetlib"
+        # augment X_PCREQUIRES for each build target X in
+
+
+  else
+    NETLIB_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "coindatanetlib"`
+     coin_has_netlib=notGiven
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not given: $NETLIB_PKG_ERRORS" >&5
+$as_echo "not given: $NETLIB_PKG_ERRORS" >&6; }
+
+  fi
+else
+  as_fn_error $? "\"Cannot check for existance of module Netlib without pkg-config\"" "$LINENO" 5
+fi
+
+
+    # reset PKG_CONFIG_PATH variable
+    PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
+    export PKG_CONFIG_PATH
+
+
+
+  else
+    as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
+    # TODO
+    #AC_COIN_CHECK_PACKAGE_FALLBACK([Netlib], [coindatanetlib], [])
+  fi
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_netlib" >&5
+$as_echo "$coin_has_netlib" >&6; }
+fi
+
+if test $coin_has_netlib != skipping &&
+   test $coin_has_netlib != notGiven ; then
+
+$as_echo "#define COIN_HAS_NETLIB 1" >>confdefs.h
+
+
+  if test 1 = 0 ; then  #change this test to enable a bit of debugging output
+    if test -n "$NETLIB_DATA" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: Netlib DATA   is  $NETLIB_DATA" >&5
+$as_echo "$as_me: Netlib DATA   is  $NETLIB_DATA" >&6;}
+    fi
+    if test -n "$NETLIB_PCREQUIRES" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: Netlib PCREQUIRES are $NETLIB_PCREQUIRES" >&5
+$as_echo "$as_me: Netlib PCREQUIRES are $NETLIB_PCREQUIRES" >&6;}
+    fi
+  fi
+
+fi
+
+# Define the Makefile conditional
+ if test $coin_has_netlib != notGiven &&
+                test $coin_has_netlib != skipping; then
   COIN_HAS_NETLIB_TRUE=
   COIN_HAS_NETLIB_FALSE='#'
 else
   COIN_HAS_NETLIB_TRUE='#'
   COIN_HAS_NETLIB_FALSE=
 fi
+
 
 
 #AM_CONDITIONAL(COIN_HAS_GLPK, test 1 = 1)
