@@ -643,6 +643,12 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+coin_doxy_excludes
+coin_doxy_tagfiles
+coin_doxy_logname
+coin_doxy_tagname
+coin_doxy_usedot
+coin_have_doxygen
 COIN_HAS_NETLIB_FALSE
 COIN_HAS_NETLIB_TRUE
 NETLIB_DATA
@@ -843,6 +849,7 @@ with_netlib
 with_netlib_lib
 with_netlib_incdir
 with_netlib_datadir
+with_dot
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1535,6 +1542,8 @@ Optional Packages:
   --with-netlib-lib       linker flags for using package Netlib
   --with-netlib-incdir    directory with header files for using package Netlib
   --with-netlib-datadir   directory with data files for using package Netlib
+  --with-dot              use dot (from graphviz) when creating documentation
+                          with doxygen if available; --without-dot to disable
 
 Some influential environment variables:
   CC          C compiler command
@@ -8133,6 +8142,7 @@ fi
 
 
 # initialize automake, don't define PACKAGE or VERSION
+# TODO should we enable warnings by passing an option like -Wall
 if test "`cd $srcdir && pwd`" != "`pwd`"; then
   # Use -I$(srcdir) only when $(srcdir) != ., so that make's output
   # is not polluted with repeated "-I."
@@ -12293,11 +12303,7 @@ fi
 #                         Standard build tool stuff                         #
 #############################################################################
 
-# Check if user wants to produce debugging code
-#AC_COIN_DEBUG_COMPILE(CoinUtils)
-
 # Get the name of the C++ compiler and appropriate compiler options
-#AC_COIN_PROG_CXX
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -24256,7 +24262,129 @@ PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
 #                  Check for doxygen                                        #
 #############################################################################
 
-#AC_COIN_DOXYGEN()
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: configuring doxygen documentation options" >&5
+$as_echo "$as_me: configuring doxygen documentation options" >&6;}
+
+# Check to see if doxygen is available.
+# Extract the first word of "doxygen", so it can be a program name with args.
+set dummy doxygen; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_coin_have_doxygen+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$coin_have_doxygen"; then
+  ac_cv_prog_coin_have_doxygen="$coin_have_doxygen" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_coin_have_doxygen="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_coin_have_doxygen" && ac_cv_prog_coin_have_doxygen="no"
+fi
+fi
+coin_have_doxygen=$ac_cv_prog_coin_have_doxygen
+if test -n "$coin_have_doxygen"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_have_doxygen" >&5
+$as_echo "$coin_have_doxygen" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+# Look for the dot tool from the graphviz package, unless the user has
+# disabled it.
+
+# Check whether --with-dot was given.
+if test "${with_dot+set}" = set; then :
+  withval=$with_dot;
+else
+  withval=yes
+fi
+
+if test x"$withval" = xno ; then
+  coin_doxy_usedot=NO
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dot" >&5
+$as_echo_n "checking for dot... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
+else
+  # Extract the first word of "dot", so it can be a program name with args.
+set dummy dot; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_coin_doxy_usedot+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$coin_doxy_usedot"; then
+  ac_cv_prog_coin_doxy_usedot="$coin_doxy_usedot" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_coin_doxy_usedot="YES"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_coin_doxy_usedot" && ac_cv_prog_coin_doxy_usedot="NO"
+fi
+fi
+coin_doxy_usedot=$ac_cv_prog_coin_doxy_usedot
+if test -n "$coin_doxy_usedot"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_doxy_usedot" >&5
+$as_echo "$coin_doxy_usedot" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+
+# Generate a tag file name and a log file name
+coin_doxy_tagname=doxydoc/${PACKAGE}_doxy.tag
+
+coin_doxy_logname=doxydoc/${PACKAGE}_doxy.log
+
+
+# Process the list of project names and massage them into possible doxygen
+# doc'n directories. Prefer 1) classic external, source processed using
+# a project-specific doxygen.conf, we use the tag file; 2) classic
+# external, source processed using package doxygen.conf; 3) installed
+# doxydoc. Alternatives 1) and 2) are only possible if the directory will be
+# configured, which we can't know unless this is the package base configure,
+# since coin_subdirs is only set there. Hence it's sufficient to check for
+# membership. If we use a tag file from a classic external, exclude the
+# source from doxygen processing when doxygen runs in the base directory.
+coin_doxy_tagfiles=
+coin_doxy_excludes=
+
+
+
+
+
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #

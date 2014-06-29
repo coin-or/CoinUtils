@@ -40,7 +40,7 @@ AC_COIN_MAIN_PACKAGEDIR(CoinUtils)
 #                  Check for doxygen                                        #
 #############################################################################
 
-#AC_COIN_DOXYGEN()
+AC_COIN_DOXYGEN()
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #

@@ -29,11 +29,7 @@ AC_COIN_PROJECTDIR_INITIALIZE(CoinUtils)
 #                         Standard build tool stuff                         #
 #############################################################################
 
-# Check if user wants to produce debugging code
-#AC_COIN_DEBUG_COMPILE(CoinUtils)
-
 # Get the name of the C++ compiler and appropriate compiler options
-#AC_COIN_PROG_CXX
 AC_PROG_CXX
 
 # For the Blas/Lapack checks, we want to know how to link against Fortran
@@ -257,7 +253,7 @@ AC_COIN_FINALIZE_FLAGS(CoinUtilsLib)
 #                  Check for doxygen                                        #
 #############################################################################
 
-#AC_COIN_DOXYGEN()
+AC_COIN_DOXYGEN
 
 ##############################################################################
 #                   Finishing up by writing all the output                   #
