@@ -10,8 +10,6 @@
 #                       Names and other basic things                        #
 #############################################################################
 
-AC_PREREQ(2.59)
-
 AC_INIT([CoinUtils],[trunk],[coinutils@lists.coin-or.org])
 
 AC_COPYRIGHT([
@@ -20,21 +18,15 @@ All Rights Reserved.
 This file is part of the open source package CoinUtils which is distributed
 under the Eclipse Public License.])
 
-AC_REVISION(0.9)
-
 # List one file in the package so that the configure script can test
 # whether the package is actually there
 AC_CONFIG_SRCDIR(configure.ac)
 
-# Where should everything be installed by default?  Here, we want it
-# to be installed directly in 'bin', 'lib', 'include' subdirectories
-# of the directory where configure is run.  The default would be
-# /usr/local.
-AC_PREFIX_DEFAULT([`pwd`])
+# Do some initialization work (version numbers, change prefix default, ...)
+AC_COIN_BASEDIR_INITIALIZE(CoinUtils)
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
-
 
 #############################################################################
 #  Do the tests necessary to configure compilers and initialise autotools   #
