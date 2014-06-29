@@ -89,7 +89,7 @@ noinst_PROGRAMS = unitTest$(EXEEXT)
 @COIN_HAS_NETLIB_TRUE@am__append_2 = -netlibDir=`$(CYGPATH_W) $(NETLIB_DATA)` -testModel=adlittle.mps
 subdir = test
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
-	$(top_srcdir)/depcomp
+	$(srcdir)/plan.mod $(top_srcdir)/depcomp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -99,7 +99,7 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/src/config.h \
 	$(top_builddir)/src/config_coinutils.h
 CONFIG_CLEAN_FILES =
-CONFIG_CLEAN_VPATH_FILES =
+CONFIG_CLEAN_VPATH_FILES = plan.mod
 PROGRAMS = $(noinst_PROGRAMS)
 am_unitTest_OBJECTS = CoinLpIOTest.$(OBJEXT) \
 	CoinDenseVectorTest.$(OBJEXT) CoinErrorTest.$(OBJEXT) \

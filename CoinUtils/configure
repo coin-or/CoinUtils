@@ -21250,7 +21250,6 @@ PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
 
 
 
-#AC_COIN_VPATH_LINK(test/plan.mod)
 
 #############################################################################
 #                  Check for doxygen                                        #
@@ -21271,6 +21270,10 @@ ac_config_files="$ac_config_files doxydoc/doxygen.conf"
 
 # Here put the location and name of the configuration header file
 ac_config_headers="$ac_config_headers src/config.h src/config_coinutils.h"
+
+
+# Here make sure we have data files in the build directory
+ac_config_links="$ac_config_links test/plan.mod:test/plan.mod"
 
 
 # Finally, we let configure write all the output...
@@ -21867,6 +21870,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 # Files that config.status was made for.
 config_files="$ac_config_files"
 config_headers="$ac_config_headers"
+config_links="$ac_config_links"
 config_commands="$ac_config_commands"
 
 _ACEOF
@@ -21896,6 +21900,9 @@ $config_files
 
 Configuration headers:
 $config_headers
+
+Configuration links:
+$config_links
 
 Configuration commands:
 $config_commands
@@ -22506,6 +22513,7 @@ do
     "doxydoc/doxygen.conf") CONFIG_FILES="$CONFIG_FILES doxydoc/doxygen.conf" ;;
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
     "src/config_coinutils.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config_coinutils.h" ;;
+    "test/plan.mod") CONFIG_LINKS="$CONFIG_LINKS test/plan.mod:test/plan.mod" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -22519,6 +22527,7 @@ done
 if $ac_need_defaults; then
   test "${CONFIG_FILES+set}" = set || CONFIG_FILES=$config_files
   test "${CONFIG_HEADERS+set}" = set || CONFIG_HEADERS=$config_headers
+  test "${CONFIG_LINKS+set}" = set || CONFIG_LINKS=$config_links
   test "${CONFIG_COMMANDS+set}" = set || CONFIG_COMMANDS=$config_commands
 fi
 
@@ -22816,7 +22825,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 fi # test -n "$CONFIG_HEADERS"
 
 
-eval set X "  :F $CONFIG_FILES  :H $CONFIG_HEADERS    :C $CONFIG_COMMANDS"
+eval set X "  :F $CONFIG_FILES  :H $CONFIG_HEADERS  :L $CONFIG_LINKS  :C $CONFIG_COMMANDS"
 shift
 for ac_tag
 do
@@ -23093,7 +23102,38 @@ $as_echo X"$_am_arg" |
 	  }
 	  s/.*/./; q'`/stamp-h$_am_stamp_count
  ;;
+  :L)
+  #
+  # CONFIG_LINK
+  #
 
+  if test "$ac_source" = "$ac_file" && test "$srcdir" = '.'; then
+    :
+  else
+    # Prefer the file from the source tree if names are identical.
+    if test "$ac_source" = "$ac_file" || test ! -r "$ac_source"; then
+      ac_source=$srcdir/$ac_source
+    fi
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: linking $ac_source to $ac_file" >&5
+$as_echo "$as_me: linking $ac_source to $ac_file" >&6;}
+
+    if test ! -r "$ac_source"; then
+      as_fn_error $? "$ac_source: file not found" "$LINENO" 5
+    fi
+    rm -f "$ac_file"
+
+    # Try a relative symlink, then a hard link, then a copy.
+    case $ac_source in
+    [\\/$]* | ?:[\\/]* ) ac_rel_source=$ac_source ;;
+	*) ac_rel_source=$ac_top_build_prefix$ac_source ;;
+    esac
+    ln -s "$ac_rel_source" "$ac_file" 2>/dev/null ||
+      ln "$ac_source" "$ac_file" 2>/dev/null ||
+      cp -p "$ac_source" "$ac_file" ||
+      as_fn_error $? "cannot link or copy $ac_source to $ac_file" "$LINENO" 5
+  fi
+ ;;
   :C)  { $as_echo "$as_me:${as_lineno-$LINENO}: executing $ac_file commands" >&5
 $as_echo "$as_me: executing $ac_file commands" >&6;}
  ;;
