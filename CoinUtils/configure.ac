@@ -45,13 +45,6 @@ if test -n "$F77" ; then
   AC_F77_LIBRARY_LDFLAGS
 fi
 
-# Initialize automake and libtool
-#AC_COIN_INIT_AUTO_TOOLS
-AM_INIT_AUTOMAKE
-AM_MAINTAINER_MODE
-
-AC_PROG_LIBTOOL
-
 ############################################################################
 #                   Stuff that we need for finite and isnan                #
 ############################################################################

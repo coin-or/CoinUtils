@@ -22,18 +22,8 @@ under the Eclipse Public License.])
 # whether the package is actually there
 AC_CONFIG_SRCDIR(configure.ac)
 
-# Do some initialization work (version numbers, change prefix default, ...)
+# Do some generic initialization work.
 AC_COIN_BASEDIR_INITIALIZE(CoinUtils)
-
-AM_INIT_AUTOMAKE
-AM_MAINTAINER_MODE
-
-#############################################################################
-#  Do the tests necessary to configure compilers and initialise autotools   #
-#############################################################################
-
-#AC_COIN_CREATE_LIBTOOL
-AC_PROG_LIBTOOL
 
 #############################################################################
 #         Check which subprojects might need to be configured               #
