@@ -19,27 +19,15 @@
  * by the files config_*default.h. The project maintainer needs to remember
  * to update these file and choose reasonable defines.
  * A user can modify the default setting by editing the config_*default.h files.
- *
  */
 
 #ifndef __COINUTILSCONFIG_H__
 #define __COINUTILSCONFIG_H__
 
 #ifdef HAVE_CONFIG_H
-#ifdef COINUTILS_BUILD
 #include "config.h"
 #else
-#include "config_coinutils.h"
-#endif
-
-#else /* HAVE_CONFIG_H */
-
-#ifdef COINUTILS_BUILD
 #include "config_default.h"
-#else
-#include "config_coinutils_default.h"
 #endif
-
-#endif /* HAVE_CONFIG_H */
 
 #endif /*__COINUTILSCONFIG_H__*/

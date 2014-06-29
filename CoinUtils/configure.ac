@@ -10,8 +10,6 @@
 #                       Names and other basic things                        #
 #############################################################################
 
-AC_PREREQ(2.59)
-
 AC_INIT([CoinUtils],[trunk],[http://projects.coin-or.org/CoinUtils])
 
 AC_COPYRIGHT([
@@ -24,26 +22,12 @@ under the Eclipse Public License.])
 # whether the package is actually there
 AC_CONFIG_SRCDIR(src/CoinError.cpp)
 
-# Where should everything be installed by default?  Here, we want it
-# to be installed directly in 'bin', 'lib', 'include' subdirectories
-# of the directory where configure is run.  The default would be
-# /usr/local.      
-AC_PREFIX_DEFAULT([`pwd`])
-
-AC_COIN_INITIALIZE(CoinUtils)
+# Do some initialization work (version numbers, change prefix default, ...)
+AC_COIN_PROJECTDIR_INITIALIZE(CoinUtils)
 
 #############################################################################
 #                         Standard build tool stuff                         #
 #############################################################################
-
-# Get the system type
-AC_CANONICAL_BUILD
-
-# If this project depends on external projects, the Externals file in
-# the source root directory contains definition of where to find those
-# externals.  The following macro ensures that those externals are
-# retrieved by svn if they are not there yet.
-#AC_COIN_PROJECTDIR_INIT(CoinUtils)
 
 # Check if user wants to produce debugging code
 #AC_COIN_DEBUG_COMPILE(CoinUtils)
@@ -67,9 +51,6 @@ AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 
 AC_PROG_LIBTOOL
-
-# TODO should be able to get rid of this
-CPPFLAGS=-DCOINUTILS_BUILD
 
 ############################################################################
 #                   Stuff that we need for finite and isnan                #
