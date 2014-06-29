@@ -109,9 +109,10 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 #AM_CPPFLAGS += `PKG_CONFIG_PATH=$$PKG_CONFIG_PATH:$(COIN_PKG_CONFIG_PATH) pkg-config --cflags coinglpk --define-variable=DESTDIR=../@top_builddir@/@COIN_DESTDIR@`
 
 #COIN_PKG_CONFIG_PATH=$(DESTDIR)/@libdir@/pkgconfig
-AM_CPPFLAGS = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --cflags coinglpk --define-variable=DESTDIR=@COIN_DESTDIR@`
+#AM_CPPFLAGS = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --cflags coinglpk --define-variable prefix=@COIN_DESTDIR@/@prefix@`
+AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
 
-libCoinUtils_la_LIBADD = @COIN_DESTDIR@$(libdir)/libcoinglpk.la
+libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
 #libCoinUtils_la_LIBADD = `PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$$PKG_CONFIG_PATH pkg-config --libs coinglpk --define-variable=DESTDIR=@COIN_DESTDIR@`
 
 # This line is necessary to allow VPATH compilation

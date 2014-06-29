@@ -647,8 +647,20 @@ COIN_HAS_NETLIB_FALSE
 COIN_HAS_NETLIB_TRUE
 COIN_HAS_SAMPLE_FALSE
 COIN_HAS_SAMPLE_TRUE
+SAMPLE_DEPENDENCIES
+SAMPLE_DATA
+SAMPLE_CFLAGS
+SAMPLE_LIBS
 COIN_HAS_GLPK_FALSE
 COIN_HAS_GLPK_TRUE
+COINUTILSLIB_DEPENDENCIES
+COINUTILSLIB_PCREQUIRES
+COINUTILSLIB_LIBS
+COINUTILSLIB_CFLAGS
+GLPK_DEPENDENCIES
+GLPK_DATA
+GLPK_CFLAGS
+GLPK_LIBS
 COIN_PKG_CONFIG_PATH
 COIN_HAS_PKGCONFIG_FALSE
 COIN_HAS_PKGCONFIG_TRUE
@@ -799,6 +811,14 @@ enable_coinutils_threads
 enable_coinutils_mempool_override_new
 enable_coinutils_mempool_maxpooled
 enable_pkg_config
+with_glpk
+with_glpk_lib
+with_glpk_incdir
+with_glpk_datadir
+with_sample
+with_sample_lib
+with_sample_incdir
+with_sample_datadir
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1471,6 +1491,13 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
+
+  --with-glpk-lib         linker flags for using package Glpk
+  --with-glpk-incdir      directory with header files for using package Glpk
+  --with-glpk-datadir     directory with data files for using package Glpk
+  --with-sample-lib       linker flags for using package Sample
+  --with-sample-incdir    directory with header files for using package Sample
+  --with-sample-datadir   directory with data files for using package Sample
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -19614,6 +19641,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+# TODO should be able to get rid of this
 CPPFLAGS=-DCOINUTILS_BUILD
 
 ############################################################################
@@ -20833,6 +20861,96 @@ $as_echo_n "checking for COIN-OR package Glpk... " >&6; }
 
 coin_has_glpk=notGiven
 
+# check if user wants to skip package in any case
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "Glpk"; then
+      coin_has_glpk=skipping
+    fi
+  done
+fi
+
+if test "$coin_has_glpk" != skipping; then
+
+# Check whether --with-glpk was given.
+if test "${with_glpk+set}" = set; then :
+  withval=$with_glpk; if test "$withval" = no ; then
+       coin_has_glpk=skipping
+     fi
+
+fi
+
+fi
+
+GLPK_LIBS=
+GLPK_CFLAGS=
+GLPK_DATA=
+GLPK_DEPENDENCIES=
+GLPK_PCREQUIRES=
+
+
+
+
+
+
+
+
+
+
+
+#check if user provided LIBS for package or disables use of package
+if test $coin_has_glpk != skipping; then
+
+# Check whether --with-glpk-lib was given.
+if test "${with_glpk_lib+set}" = set; then :
+  withval=$with_glpk_lib; if test "$withval" = no ; then
+       coin_has_glpk=skipping
+     else
+       coin_has_glpk=yes
+       GLPK_LIBS="$withval"
+
+         COINUTILSLIB_LIBS="$withval $COINUTILSLIB_LIBS"
+
+     fi
+
+fi
+
+fi
+
+#check if user provided INCDIR for package or disables use of package
+if test $coin_has_glpk != skipping; then
+
+# Check whether --with-glpk-incdir was given.
+if test "${with_glpk_incdir+set}" = set; then :
+  withval=$with_glpk_incdir; if test "$withval" = no ; then
+       coin_has_glpk=skipping
+     else
+       coin_has_glpk=yes
+       GLPK_CFLAGS="-I$withval"
+       COINUTILSLIB_CFLAGS="-I$withval $COINUTILSLIB_CFLAGS"
+     fi
+
+fi
+
+fi
+
+#check if user provided DATADIR for package or disables use of package
+if test $coin_has_glpk != skipping; then
+
+# Check whether --with-glpk-datadir was given.
+if test "${with_glpk_datadir+set}" = set; then :
+  withval=$with_glpk_datadir; if test "$withval" = no ; then
+       coin_has_glpk=skipping
+     else
+       coin_has_glpk=yes
+       GLPK_DATA="$withval"
+     fi
+
+fi
+
+fi
+
+# now use pkg-config, if nothing of the above applied
 if test $coin_has_glpk = notGiven; then
   if test -n "$PKG_CONFIG" ; then
     # set search path for pkg-config
@@ -20850,6 +20968,14 @@ if test -n "$PKG_CONFIG" ; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $GLPK_VERSIONS" >&5
 $as_echo "yes: $GLPK_VERSIONS" >&6; }
 
+        GLPK_DATA=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --variable=datadir coinglpk 2>/dev/null`
+
+        GLPK_PCREQUIRES="coinglpk"
+        # augment X_PCREQUIRES for each build target X in CoinUtilsLib
+
+          COINUTILSLIB_PCREQUIRES="coinglpk $COINUTILSLIB_PCREQUIRES"
+
+
   else
     GLPK_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "coinglpk"`
      coin_has_glpk=notGiven
@@ -20865,6 +20991,10 @@ fi
     # reset PKG_CONFIG_PATH variable
     PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
     export PKG_CONFIG_PATH
+
+
+      COINUTILSLIB_PCREQUIRES="coinglpk $COINUTILSLIB_PCREQUIRES"
+
 
   else
     as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
@@ -20882,6 +21012,18 @@ if test $coin_has_glpk != skipping &&
 
 $as_echo "#define COIN_HAS_GLPK 1" >>confdefs.h
 
+
+  if test 1 = 0 ; then  #change this test to enable a bit of debugging output
+    if test -n "$GLPK_DATA" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: Glpk DATA   is  $GLPK_DATA" >&5
+$as_echo "$as_me: Glpk DATA   is  $GLPK_DATA" >&6;}
+    fi
+    if test -n "$GLPK_PCREQUIRES" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: Glpk PCREQUIRES are $GLPK_PCREQUIRES" >&5
+$as_echo "$as_me: Glpk PCREQUIRES are $GLPK_PCREQUIRES" >&6;}
+    fi
+  fi
+
 fi
 
 # Define the Makefile conditional
@@ -20896,9 +21038,168 @@ fi
 
 
 
-#AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
-#AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
- if test 1 = 0; then
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for COIN-OR package Sample" >&5
+$as_echo_n "checking for COIN-OR package Sample... " >&6; }
+
+coin_has_sample=notGiven
+
+# check if user wants to skip package in any case
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "Sample"; then
+      coin_has_sample=skipping
+    fi
+  done
+fi
+
+if test "$coin_has_sample" != skipping; then
+
+# Check whether --with-sample was given.
+if test "${with_sample+set}" = set; then :
+  withval=$with_sample; if test "$withval" = no ; then
+       coin_has_sample=skipping
+     fi
+
+fi
+
+fi
+
+SAMPLE_LIBS=
+SAMPLE_CFLAGS=
+SAMPLE_DATA=
+SAMPLE_DEPENDENCIES=
+SAMPLE_PCREQUIRES=
+
+
+
+
+
+
+#check if user provided LIBS for package or disables use of package
+if test $coin_has_sample != skipping; then
+
+# Check whether --with-sample-lib was given.
+if test "${with_sample_lib+set}" = set; then :
+  withval=$with_sample_lib; if test "$withval" = no ; then
+       coin_has_sample=skipping
+     else
+       coin_has_sample=yes
+       SAMPLE_LIBS="$withval"
+
+     fi
+
+fi
+
+fi
+
+#check if user provided INCDIR for package or disables use of package
+if test $coin_has_sample != skipping; then
+
+# Check whether --with-sample-incdir was given.
+if test "${with_sample_incdir+set}" = set; then :
+  withval=$with_sample_incdir; if test "$withval" = no ; then
+       coin_has_sample=skipping
+     else
+       coin_has_sample=yes
+       SAMPLE_CFLAGS="-I$withval"
+
+     fi
+
+fi
+
+fi
+
+#check if user provided DATADIR for package or disables use of package
+if test $coin_has_sample != skipping; then
+
+# Check whether --with-sample-datadir was given.
+if test "${with_sample_datadir+set}" = set; then :
+  withval=$with_sample_datadir; if test "$withval" = no ; then
+       coin_has_sample=skipping
+     else
+       coin_has_sample=yes
+       SAMPLE_DATA="$withval"
+     fi
+
+fi
+
+fi
+
+# now use pkg-config, if nothing of the above applied
+if test $coin_has_sample = notGiven; then
+  if test -n "$PKG_CONFIG" ; then
+    # set search path for pkg-config
+    # need to export variable to be sure that the following pkg-config gets these values
+    coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+    PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
+    export PKG_CONFIG_PATH
+
+    # let pkg-config do it's magic
+
+if test -n "$PKG_CONFIG" ; then
+  if $PKG_CONFIG --exists "coindatasample"; then
+    SAMPLE_VERSIONS=`$PKG_CONFIG --modversion "coindatasample" 2>/dev/null | tr '\n' ' '`
+     coin_has_sample=yes
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $SAMPLE_VERSIONS" >&5
+$as_echo "yes: $SAMPLE_VERSIONS" >&6; }
+
+        SAMPLE_DATA=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --variable=datadir coindatasample 2>/dev/null`
+
+        SAMPLE_PCREQUIRES="coindatasample"
+        # augment X_PCREQUIRES for each build target X in
+
+
+  else
+    SAMPLE_PKG_ERRORS=`$PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "coindatasample"`
+     coin_has_sample=notGiven
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not given: $SAMPLE_PKG_ERRORS" >&5
+$as_echo "not given: $SAMPLE_PKG_ERRORS" >&6; }
+
+  fi
+else
+  as_fn_error $? "\"Cannot check for existance of module Sample without pkg-config\"" "$LINENO" 5
+fi
+
+
+    # reset PKG_CONFIG_PATH variable
+    PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
+    export PKG_CONFIG_PATH
+
+
+
+  else
+    as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
+    # TODO
+    #AC_COIN_CHECK_PACKAGE_FALLBACK([Sample], [coindatasample], [])
+  fi
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_sample" >&5
+$as_echo "$coin_has_sample" >&6; }
+fi
+
+if test $coin_has_sample != skipping &&
+   test $coin_has_sample != notGiven ; then
+
+$as_echo "#define COIN_HAS_SAMPLE 1" >>confdefs.h
+
+
+  if test 1 = 0 ; then  #change this test to enable a bit of debugging output
+    if test -n "$SAMPLE_DATA" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: Sample DATA   is  $SAMPLE_DATA" >&5
+$as_echo "$as_me: Sample DATA   is  $SAMPLE_DATA" >&6;}
+    fi
+    if test -n "$SAMPLE_PCREQUIRES" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: Sample PCREQUIRES are $SAMPLE_PCREQUIRES" >&5
+$as_echo "$as_me: Sample PCREQUIRES are $SAMPLE_PCREQUIRES" >&6;}
+    fi
+  fi
+
+fi
+
+# Define the Makefile conditional
+ if test $coin_has_sample != notGiven &&
+                test $coin_has_sample != skipping; then
   COIN_HAS_SAMPLE_TRUE=
   COIN_HAS_SAMPLE_FALSE='#'
 else
@@ -20906,6 +21207,8 @@ else
   COIN_HAS_SAMPLE_FALSE=
 fi
 
+
+#AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
  if test 1 = 0; then
   COIN_HAS_NETLIB_TRUE=
   COIN_HAS_NETLIB_FALSE='#'
@@ -20924,6 +21227,37 @@ fi
 #AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
 #AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
 #AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
+
+
+
+# do pkg-config calls to complete LIBS and CFLAGS
+coin_save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH:$COIN_PKG_CONFIG_PATH_UNINSTALLED"
+export PKG_CONFIG_PATH
+
+
+  if test -n "${COINUTILSLIB_PCREQUIRES}" ; then
+    COINUTILSLIB_CFLAGS=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} ${COINUTILSLIB_PCREQUIRES}` --cflags ${COINUTILSLIB_CFLAGS}
+    COINUTILSLIB_LIBS=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} ${COINUTILSLIB_PCREQUIRES}` --libs ${COINUTILSLIB_LIBS}
+    #TODO setup _DEPENDENCIES from _LIBS
+  fi
+
+  if test 1 = 0 ; then  #change this test to enable a bit of debugging output
+    if test -n "${COINUTILSLIB_CFLAGS}" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: CoinUtilsLib CFLAGS are ${COINUTILSLIB_CFLAGS}" >&5
+$as_echo "$as_me: CoinUtilsLib CFLAGS are ${COINUTILSLIB_CFLAGS}" >&6;}
+    fi
+    if test -n "${COINUTILSLIB_LIBS}" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: CoinUtilsLib LIBS   are ${COINUTILSLIB_LIBS}" >&5
+$as_echo "$as_me: CoinUtilsLib LIBS   are ${COINUTILSLIB_LIBS}" >&6;}
+    fi
+  fi
+
+
+# reset PKG_CONFIG_PATH variable
+PKG_CONFIG_PATH="$coin_save_PKG_CONFIG_PATH"
+
+
 
 #AC_COIN_VPATH_LINK(test/plan.mod)
 

@@ -646,6 +646,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 subdirs
+COIN_SKIP_PROJECTS
 CPP
 OTOOL64
 OTOOL
@@ -774,6 +775,18 @@ enable_dependency_tracking
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+with_glpk
+with_glpk_lib
+with_glpk_incdir
+with_glpk_datadir
+with_sample
+with_sample_lib
+with_sample_incdir
+with_sample_datadir
+with_coinutils
+with_coinutils_lib
+with_coinutils_incdir
+with_coinutils_datadir
 '
       ac_precious_vars='build_alias
 host_alias
@@ -783,7 +796,8 @@ CFLAGS
 LDFLAGS
 LIBS
 CPPFLAGS
-CPP'
+CPP
+COIN_SKIP_PROJECTS'
 ac_subdirs_all='ThirdParty/Glpk
 Data/Sample
 CoinUtils'
@@ -1428,6 +1442,19 @@ Optional Packages:
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
 
+  --with-glpk-lib         linker flags for using project Glpk
+  --with-glpk-incdir      directory with header files for using project Glpk
+  --with-glpk-datadir     directory with data files for using project Glpk
+  --with-sample-lib       linker flags for using project Sample
+  --with-sample-incdir    directory with header files for using project Sample
+  --with-sample-datadir   directory with data files for using project Sample
+  --with-coinutils-lib    linker flags for using project CoinUtils
+  --with-coinutils-incdir directory with header files for using project
+                          CoinUtils
+  --with-coinutils-datadir
+                          directory with data files for using project
+                          CoinUtils
+
 Some influential environment variables:
   CC          C compiler command
   CFLAGS      C compiler flags
@@ -1437,6 +1464,9 @@ Some influential environment variables:
   CPPFLAGS    (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
               you have headers in a nonstandard directory <include dir>
   CPP         C preprocessor
+  COIN_SKIP_PROJECTS
+              Set to the subdirectories of projects that should be skipped in
+              the configuration
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -11423,6 +11453,81 @@ $as_echo_n "checking whether source of project Glpk is available and should be c
 coin_has_glpk=notGiven
 coin_reason=
 
+# check if user wants to skip project in any case
+
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "Glpk"; then
+      coin_has_glpk="no"
+      coin_reason="Glpk has been specified in COIN_SKIP_PROJECTS"
+    fi
+
+    if test $dir = "ThirdParty/Glpk"; then
+      coin_has_glpk="no"
+      coin_reason="ThirdParty/Glpk has been specified in COIN_SKIP_PROJECTS"
+    fi
+  done
+fi
+
+if test "$coin_has_glpk" != no; then
+
+# Check whether --with-glpk was given.
+if test "${with_glpk+set}" = set; then :
+  withval=$with_glpk; if test "$withval" = no ; then
+       coin_has_glpk="no"
+       coin_reason="--without-glpk has been specified"
+     fi
+
+fi
+
+fi
+
+if test "$coin_has_glpk" != no; then
+
+# Check whether --with-glpk-lib was given.
+if test "${with_glpk_lib+set}" = set; then :
+  withval=$with_glpk_lib; if test "$withval" = no ; then
+       coin_has_glpk="no"
+       coin_reason="--without-glpk-lib has been specified"
+     else
+       coin_has_glpk="no"
+       coin_reason="--with-glpk-lib has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_glpk" != no; then
+
+# Check whether --with-glpk-incdir was given.
+if test "${with_glpk_incdir+set}" = set; then :
+  withval=$with_glpk_incdir; if test "$withval" = no ; then
+       coin_has_glpk="no"
+       coin_reason="--without-glpk-incdir has been specified"
+     else
+       coin_has_glpk="no"
+       coin_reason="--with-glpk-incdir has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_glpk" != no; then
+
+# Check whether --with-glpk-datadir was given.
+if test "${with_glpk_datadir+set}" = set; then :
+  withval=$with_glpk_datadir; if test "$withval" = no ; then
+       coin_has_glpk="no"
+       coin_reason="--without-glpk-datadir has been specified"
+     else
+       coin_has_glpk="no"
+       coin_reason="--with-glpk-datadir has been specified"
+     fi
+fi
+
+fi
+
+
 # check if project is available in present directory
 if test "$coin_has_glpk" = notGiven; then
   coin_has_glpk=no
@@ -11469,6 +11574,81 @@ $as_echo_n "checking whether source of project Sample is available and should be
 coin_has_sample=notGiven
 coin_reason=
 
+# check if user wants to skip project in any case
+
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "Sample"; then
+      coin_has_sample="no"
+      coin_reason="Sample has been specified in COIN_SKIP_PROJECTS"
+    fi
+
+    if test $dir = "Data/Sample"; then
+      coin_has_sample="no"
+      coin_reason="Data/Sample has been specified in COIN_SKIP_PROJECTS"
+    fi
+  done
+fi
+
+if test "$coin_has_sample" != no; then
+
+# Check whether --with-sample was given.
+if test "${with_sample+set}" = set; then :
+  withval=$with_sample; if test "$withval" = no ; then
+       coin_has_sample="no"
+       coin_reason="--without-sample has been specified"
+     fi
+
+fi
+
+fi
+
+if test "$coin_has_sample" != no; then
+
+# Check whether --with-sample-lib was given.
+if test "${with_sample_lib+set}" = set; then :
+  withval=$with_sample_lib; if test "$withval" = no ; then
+       coin_has_sample="no"
+       coin_reason="--without-sample-lib has been specified"
+     else
+       coin_has_sample="no"
+       coin_reason="--with-sample-lib has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_sample" != no; then
+
+# Check whether --with-sample-incdir was given.
+if test "${with_sample_incdir+set}" = set; then :
+  withval=$with_sample_incdir; if test "$withval" = no ; then
+       coin_has_sample="no"
+       coin_reason="--without-sample-incdir has been specified"
+     else
+       coin_has_sample="no"
+       coin_reason="--with-sample-incdir has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_sample" != no; then
+
+# Check whether --with-sample-datadir was given.
+if test "${with_sample_datadir+set}" = set; then :
+  withval=$with_sample_datadir; if test "$withval" = no ; then
+       coin_has_sample="no"
+       coin_reason="--without-sample-datadir has been specified"
+     else
+       coin_has_sample="no"
+       coin_reason="--with-sample-datadir has been specified"
+     fi
+fi
+
+fi
+
+
 # check if project is available in present directory
 if test "$coin_has_sample" = notGiven; then
   coin_has_sample=no
@@ -11505,6 +11685,77 @@ $as_echo_n "checking whether source of project CoinUtils is available and should
 
 coin_has_coinutils=notGiven
 coin_reason=
+
+# check if user wants to skip project in any case
+
+if test x"$COIN_SKIP_PROJECTS" != x; then
+  for dir in $COIN_SKIP_PROJECTS; do
+    if test $dir = "CoinUtils"; then
+      coin_has_coinutils="no"
+      coin_reason="CoinUtils has been specified in COIN_SKIP_PROJECTS"
+    fi
+
+  done
+fi
+
+if test "$coin_has_coinutils" != no; then
+
+# Check whether --with-coinutils was given.
+if test "${with_coinutils+set}" = set; then :
+  withval=$with_coinutils; if test "$withval" = no ; then
+       coin_has_coinutils="no"
+       coin_reason="--without-coinutils has been specified"
+     fi
+
+fi
+
+fi
+
+if test "$coin_has_coinutils" != no; then
+
+# Check whether --with-coinutils-lib was given.
+if test "${with_coinutils_lib+set}" = set; then :
+  withval=$with_coinutils_lib; if test "$withval" = no ; then
+       coin_has_coinutils="no"
+       coin_reason="--without-coinutils-lib has been specified"
+     else
+       coin_has_coinutils="no"
+       coin_reason="--with-coinutils-lib has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_coinutils" != no; then
+
+# Check whether --with-coinutils-incdir was given.
+if test "${with_coinutils_incdir+set}" = set; then :
+  withval=$with_coinutils_incdir; if test "$withval" = no ; then
+       coin_has_coinutils="no"
+       coin_reason="--without-coinutils-incdir has been specified"
+     else
+       coin_has_coinutils="no"
+       coin_reason="--with-coinutils-incdir has been specified"
+     fi
+fi
+
+fi
+
+if test "$coin_has_coinutils" != no; then
+
+# Check whether --with-coinutils-datadir was given.
+if test "${with_coinutils_datadir+set}" = set; then :
+  withval=$with_coinutils_datadir; if test "$withval" = no ; then
+       coin_has_coinutils="no"
+       coin_reason="--without-coinutils-datadir has been specified"
+     else
+       coin_has_coinutils="no"
+       coin_reason="--with-coinutils-datadir has been specified"
+     fi
+fi
+
+fi
+
 
 # check if project is available in present directory
 if test "$coin_has_coinutils" = notGiven; then

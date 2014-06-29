@@ -69,6 +69,7 @@ AM_MAINTAINER_MODE
 
 AC_PROG_LIBTOOL
 
+# TODO should be able to get rid of this
 CPPFLAGS=-DCOINUTILS_BUILD
 
 ############################################################################
@@ -269,9 +270,8 @@ AC_CHECK_HEADERS([endian.h])
 #AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
 #AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
 AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
-#AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
+AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 #AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
-AM_CONDITIONAL(COIN_HAS_SAMPLE, test 1 = 0)
 AM_CONDITIONAL(COIN_HAS_NETLIB, test 1 = 0)
 
 #AM_CONDITIONAL(COIN_HAS_GLPK, test 1 = 1)
@@ -283,6 +283,8 @@ AM_CONDITIONAL(COIN_HAS_NETLIB, test 1 = 0)
 #AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
 #AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
 #AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
+
+AC_COIN_FINALIZE_FLAGS(CoinUtilsLib)
 
 #AC_COIN_VPATH_LINK(test/plan.mod)
 

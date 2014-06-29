@@ -30,9 +30,6 @@ unitTest_SOURCES = \
 # List libraries to link into binary
 unitTest_LDADD = ../src/libCoinUtils.la
 
-# Dependencies of binaries are mostly the same as given in LDADD, but with -l and -L removed
-#unitTest_DEPENDENCIES = ../src/libCoinUtils.la $(COINUTILSLIB_DEPENDENCIES)
-
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
 AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src`

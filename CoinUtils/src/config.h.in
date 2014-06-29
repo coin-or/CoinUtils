@@ -36,6 +36,9 @@
 /* Define to 1 if the Glpk package is available */
 #undef COIN_HAS_GLPK
 
+/* Define to 1 if the Sample package is available */
+#undef COIN_HAS_SAMPLE
+
 /* Define to 64bit integer type */
 #undef COIN_INT64_T
 
