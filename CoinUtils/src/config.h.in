@@ -36,6 +36,9 @@
 /* If defined, the BLAS Library is available. */
 #undef COIN_HAS_BLAS
 
+/* Define to 1 if bzlib is available */
+#undef COIN_HAS_BZLIB
+
 /* Define to 1 if the Glpk package is available */
 #undef COIN_HAS_GLPK
 
@@ -45,8 +48,14 @@
 /* Define to 1 if the Netlib package is available */
 #undef COIN_HAS_NETLIB
 
+/* Define to 1 if readline is available */
+#undef COIN_HAS_READLINE
+
 /* Define to 1 if the Sample package is available */
 #undef COIN_HAS_SAMPLE
+
+/* Define to 1 if zlib is available */
+#undef COIN_HAS_ZLIB
 
 /* Define to 64bit integer type */
 #undef COIN_INT64_T
@@ -94,6 +103,9 @@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `readline' library (-lreadline). */
+#undef HAVE_LIBREADLINE
 
 /* Define to 1 if you have the <math.h> header file. */
 #undef HAVE_MATH_H

@@ -102,8 +102,6 @@ fi
 #                       Finding certain integer types                       #
 #############################################################################
 
-#AC_COIN_CHECK_CXX_CHEADER(inttypes)
-#AC_COIN_CHECK_CXX_CHEADER(stdint)
 AC_LANG_PUSH(C++)
 AC_CHECK_HEADER(inttypes)
 AC_CHECK_HEADER(stdint)
@@ -233,17 +231,16 @@ AC_CHECK_HEADERS([endian.h])
 #                             COIN-OR components                            #
 #############################################################################
 
-#AC_COIN_CHECK_LIBM(CoinUtilsLib)
-
 AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
 AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
 AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
 AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
 
-#AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
-#AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
-#AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
+#Do we need -lm? AC_COIN_CHECK_LIBM(CoinUtilsLib)
+AC_COIN_CHECK_ZLIB(CoinUtilsLib)
+AC_COIN_CHECK_BZLIB(CoinUtilsLib)
+AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
 
 # finalize libs and cflags for building CoinUtilsLib by doing pkg-config calls
 AC_COIN_FINALIZE_FLAGS(CoinUtilsLib)

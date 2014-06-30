@@ -649,6 +649,8 @@ coin_doxy_logname
 coin_doxy_tagname
 coin_doxy_usedot
 coin_have_doxygen
+COIN_HAS_ZLIB_FALSE
+COIN_HAS_ZLIB_TRUE
 COIN_HAS_NETLIB_FALSE
 COIN_HAS_NETLIB_TRUE
 NETLIB_DATA
@@ -849,6 +851,9 @@ with_netlib
 with_netlib_lib
 with_netlib_incdir
 with_netlib_datadir
+enable_zlib
+enable_bzlib
+enable_readline
 with_dot
 '
       ac_precious_vars='build_alias
@@ -1513,6 +1518,9 @@ Optional Features:
                           using the COINUTILS_MEMPOOL_MAXPOOLED environment
                           variable.
   --disable-pkg-config    disable use of pkg-config (if available)
+  --disable-zlib          do not compile with compression library zlib
+  --disable-bzlib         do not compile with compression library bzlib
+  --disable-readline      do not compile with readline library
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2558,6 +2566,97 @@ rm -f conftest.val
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_compute_int
+
+# ac_fn_c_check_header_mongrel LINENO HEADER VAR INCLUDES
+# -------------------------------------------------------
+# Tests whether HEADER exists, giving a warning if it cannot be compiled using
+# the include files in INCLUDES and setting the cache variable VAR
+# accordingly.
+ac_fn_c_check_header_mongrel ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  if eval \${$3+:} false; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+$as_echo_n "checking for $2... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+else
+  # Is the header compilable?
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking $2 usability" >&5
+$as_echo_n "checking $2 usability... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+#include <$2>
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_header_compiler=yes
+else
+  ac_header_compiler=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_header_compiler" >&5
+$as_echo "$ac_header_compiler" >&6; }
+
+# Is the header present?
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking $2 presence" >&5
+$as_echo_n "checking $2 presence... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <$2>
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  ac_header_preproc=yes
+else
+  ac_header_preproc=no
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_header_preproc" >&5
+$as_echo "$ac_header_preproc" >&6; }
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in #((
+  yes:no: )
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $2: accepted by the compiler, rejected by the preprocessor!" >&5
+$as_echo "$as_me: WARNING: $2: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $2: proceeding with the compiler's result" >&5
+$as_echo "$as_me: WARNING: $2: proceeding with the compiler's result" >&2;}
+    ;;
+  no:yes:* )
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $2: present but cannot be compiled" >&5
+$as_echo "$as_me: WARNING: $2: present but cannot be compiled" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $2:     check for missing prerequisite headers?" >&5
+$as_echo "$as_me: WARNING: $2:     check for missing prerequisite headers?" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $2: see the Autoconf documentation" >&5
+$as_echo "$as_me: WARNING: $2: see the Autoconf documentation" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $2:     section \"Present But Cannot Be Compiled\"" >&5
+$as_echo "$as_me: WARNING: $2:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $2: proceeding with the compiler's result" >&5
+$as_echo "$as_me: WARNING: $2: proceeding with the compiler's result" >&2;}
+( $as_echo "## ---------------------------------------------------- ##
+## Report this to http://projects.coin-or.org/CoinUtils ##
+## ---------------------------------------------------- ##"
+     ) | sed "s/^/$as_me: WARNING:     /" >&2
+    ;;
+esac
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+$as_echo_n "checking for $2... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  eval "$3=\$ac_header_compiler"
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+fi
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_header_mongrel
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -20461,8 +20560,6 @@ fi
 #                       Finding certain integer types                       #
 #############################################################################
 
-#AC_COIN_CHECK_CXX_CHEADER(inttypes)
-#AC_COIN_CHECK_CXX_CHEADER(stdint)
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -20901,8 +20998,6 @@ done
 #############################################################################
 #                             COIN-OR components                            #
 #############################################################################
-
-#AC_COIN_CHECK_LIBM(CoinUtilsLib)
 
 
 
@@ -24224,9 +24319,374 @@ fi
 
 
 
-#AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
-#AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
-#AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
+#Do we need -lm? AC_COIN_CHECK_LIBM(CoinUtilsLib)
+
+
+coin_has_zlib=no
+
+# Check whether --enable-zlib was given.
+if test "${enable_zlib+set}" = set; then :
+  enableval=$enable_zlib; coin_enable_zlib=$enableval
+else
+  coin_enable_zlib=yes
+fi
+
+
+if test $coin_enable_zlib = yes; then
+  ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+  ac_fn_c_check_header_mongrel "$LINENO" "zlib.h" "ac_cv_header_zlib_h" "$ac_includes_default"
+if test "x$ac_cv_header_zlib_h" = xyes; then :
+  coin_has_zlib=yes
+fi
+
+
+
+  if test $coin_has_zlib = yes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gzopen in -lz" >&5
+$as_echo_n "checking for gzopen in -lz... " >&6; }
+if ${ac_cv_lib_z_gzopen+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lz  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gzopen ();
+#ifdef F77_DUMMY_MAIN
+
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+
+#endif
+int
+main ()
+{
+return gzopen ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_z_gzopen=yes
+else
+  ac_cv_lib_z_gzopen=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_z_gzopen" >&5
+$as_echo "$ac_cv_lib_z_gzopen" >&6; }
+if test "x$ac_cv_lib_z_gzopen" = xyes; then :
+  :
+else
+  coin_has_zlib=no
+fi
+
+  fi
+
+  if test $coin_has_zlib = yes; then
+    COINUTILSLIB_LIBS="-lz $COINUTILSLIB_LIBS"
+
+$as_echo "#define COIN_HAS_ZLIB 1" >>confdefs.h
+
+  fi
+  ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+fi
+
+ if test x$coin_has_zlib = xyes; then
+  COIN_HAS_ZLIB_TRUE=
+  COIN_HAS_ZLIB_FALSE='#'
+else
+  COIN_HAS_ZLIB_TRUE='#'
+  COIN_HAS_ZLIB_FALSE=
+fi
+
+
+
+
+# Check whether --enable-bzlib was given.
+if test "${enable_bzlib+set}" = set; then :
+  enableval=$enable_bzlib; coin_enable_bzlib=$enableval
+else
+  coin_enable_bzlib=yes
+fi
+
+
+coin_has_bzlib=no
+if test $coin_enable_bzlib = yes; then
+  ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+  ac_fn_c_check_header_mongrel "$LINENO" "bzlib.h" "ac_cv_header_bzlib_h" "$ac_includes_default"
+if test "x$ac_cv_header_bzlib_h" = xyes; then :
+  coin_has_bzlib=yes
+fi
+
+
+
+  if test $coin_has_bzlib = yes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for BZ2_bzReadOpen in -lbz2" >&5
+$as_echo_n "checking for BZ2_bzReadOpen in -lbz2... " >&6; }
+if ${ac_cv_lib_bz2_BZ2_bzReadOpen+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lbz2  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char BZ2_bzReadOpen ();
+#ifdef F77_DUMMY_MAIN
+
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+
+#endif
+int
+main ()
+{
+return BZ2_bzReadOpen ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_bz2_BZ2_bzReadOpen=yes
+else
+  ac_cv_lib_bz2_BZ2_bzReadOpen=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_bz2_BZ2_bzReadOpen" >&5
+$as_echo "$ac_cv_lib_bz2_BZ2_bzReadOpen" >&6; }
+if test "x$ac_cv_lib_bz2_BZ2_bzReadOpen" = xyes; then :
+  :
+else
+  coin_has_bzlib=no
+fi
+
+  fi
+
+  if test $coin_has_bzlib = yes; then
+    COINUTILSLIB_LIBS="-lbz2 $COINUTILSLIB_LIBS"
+
+$as_echo "#define COIN_HAS_BZLIB 1" >>confdefs.h
+
+  fi
+  ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+fi
+
+
+
+# Check whether --enable-readline was given.
+if test "${enable_readline+set}" = set; then :
+  enableval=$enable_readline; coin_enable_readline=$enableval
+else
+  coin_enable_readline=yes
+fi
+
+
+coin_has_readline=no
+if test $coin_enable_readline = yes; then
+  ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+  ac_fn_c_check_header_compile "$LINENO" "readline/readline.h" "ac_cv_header_readline_readline_h" "#include <stdio.h>
+"
+if test "x$ac_cv_header_readline_readline_h" = xyes; then :
+  coin_has_readline=yes
+fi
+
+
+
+  coin_save_LIBS="$LIBS"
+  LIBS=
+  # First we check if tputs and friends are available
+  if test $coin_has_readline = yes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing tputs" >&5
+$as_echo_n "checking for library containing tputs... " >&6; }
+if ${ac_cv_search_tputs+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char tputs ();
+#ifdef F77_DUMMY_MAIN
+
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+
+#endif
+int
+main ()
+{
+return tputs ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' ncurses termcap curses; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_tputs=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_tputs+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_tputs+:} false; then :
+
+else
+  ac_cv_search_tputs=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_tputs" >&5
+$as_echo "$ac_cv_search_tputs" >&6; }
+ac_res=$ac_cv_search_tputs
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  coin_has_readline=no
+fi
+
+  fi
+
+  # Now we check for readline
+  if test $coin_has_readline = yes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline in -lreadline" >&5
+$as_echo_n "checking for readline in -lreadline... " >&6; }
+if ${ac_cv_lib_readline_readline+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lreadline  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char readline ();
+#ifdef F77_DUMMY_MAIN
+
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+
+#endif
+int
+main ()
+{
+return readline ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_readline_readline=yes
+else
+  ac_cv_lib_readline_readline=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_readline_readline" >&5
+$as_echo "$ac_cv_lib_readline_readline" >&6; }
+if test "x$ac_cv_lib_readline_readline" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
+
+  LIBS="-lreadline $LIBS"
+
+else
+  coin_has_readline=no
+fi
+
+  fi
+
+  if test $coin_has_readline = yes; then
+    COINUTILSLIB_LIBS="-lreadline $LIBS $COINUTILSLIB_LIBS"
+
+$as_echo "#define COIN_HAS_READLINE 1" >>confdefs.h
+
+  fi
+
+  LIBS="$coin_save_LIBS"
+  ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+fi
+
 
 # finalize libs and cflags for building CoinUtilsLib by doing pkg-config calls
 
@@ -24601,6 +25061,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${COIN_HAS_NETLIB_TRUE}" && test -z "${COIN_HAS_NETLIB_FALSE}"; then
   as_fn_error $? "conditional \"COIN_HAS_NETLIB\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${COIN_HAS_ZLIB_TRUE}" && test -z "${COIN_HAS_ZLIB_FALSE}"; then
+  as_fn_error $? "conditional \"COIN_HAS_ZLIB\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
