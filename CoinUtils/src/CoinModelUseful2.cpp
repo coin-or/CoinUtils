@@ -767,6 +767,8 @@ yyerror (char const * /*s*/)
      inline double exp_wrapper (double x) { return exp(x) ; }
      inline double sqrt_wrapper (double x) { return sqrt(x) ; }
      inline double fabs_wrapper (double x) { return fabs(x) ; }
+     inline double floor_wrapper (double x) { return floor(x) ; }
+     inline double ceil_wrapper (double x) { return ceil(x) ; }
 
      struct init const arith_fncts[] =
      {
@@ -778,6 +780,8 @@ yyerror (char const * /*s*/)
        {"sqrt", sqrt_wrapper},
        {"fabs", fabs_wrapper},
        {"abs", fabs_wrapper},
+       {"floor", floor_wrapper},
+       {"ceil", ceil_wrapper},
        {NULL, 0}
      };
      
@@ -1550,7 +1554,6 @@ getFunctionValueFromString(const char * string, const char * x, double xValue)
     printf("%s computes as %g\n",string,value);
   }
   freesym( info.symtable);
-  free(info.symbuf);
   return value;
 }
 
