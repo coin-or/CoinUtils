@@ -1984,8 +1984,8 @@ CoinArrayWithLength::setPersistence(int flag,int currentLength)
       if (currentLength&&array_) {
 	size_=currentLength;
       } else {
-	size_=0;
 	conditionalDelete();
+	size_=0;
 	array_=NULL;
       }
     }
