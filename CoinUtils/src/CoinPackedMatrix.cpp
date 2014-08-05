@@ -1191,8 +1191,8 @@ CoinPackedMatrix::countOrthoLength(int * orthoLength) const
     // no gaps 
     const CoinBigIndex last = start_[majorDim_];
     for (CoinBigIndex j = 0; j < last; ++j) {
-      assert( index_[j] < minorDim_ && index_[j]>=0);
-      ++orthoLength[index_[j]];
+	assert( index_[j] < minorDim_ && index_[j]>=0);
+	++orthoLength[index_[j]];
     }
   }
 }
@@ -1632,7 +1632,7 @@ CoinPackedMatrix::deleteMajorVectors(const int numDel,
       return;
    }
 
-   if (!extraGap_&&!extraMajor_) {
+   if (!extraGap_&&!extraMajor_&&false) {
      // See if this is faster
      char * keep = new char[majorDim_];
      memset(keep,1,majorDim_);
