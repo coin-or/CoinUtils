@@ -86,7 +86,7 @@ typedef struct {
   OsiClpSolverInterface * solver_;
   CbcModel              * model_;
   Cbc_MessageHandler    * handler_;
-  char                  * information_;
+  std::vector<std::string> cmdargs_;
 } Cbc_Model;
 #else
 typedef void Cbc_Model;
