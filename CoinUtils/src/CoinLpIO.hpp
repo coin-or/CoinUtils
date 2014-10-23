@@ -66,9 +66,11 @@ Notes: <UL>
       For valid row names, see the method is_invalid_name(). 
  <LI> Column names must be followed by a blank space. They must be distinct. 
       For valid column names, see the method is_invalid_name(). 
- <LI> The objective function name must be followed by ':' without blank space.
-      Objective function name is optional (if no objective function name
-      is given, it is set to "obj" by default).
+ <LI> Multiple objectives may be specified, but when there are multiple
+      objectives, they must have names (to indicate where each one starts).
+ <LI> The objective function names must be followed by ':' without blank space.
+      If there is a single objective, the objective function name is optional.
+      If no name is given, the name is set to "obj" by default.
       For valid objective function names, see the method is_invalid_name(). 
  <LI> Ranged constraints are written as two constraints.
       If a name is given for a ranged constraint, the upper bound constraint 
