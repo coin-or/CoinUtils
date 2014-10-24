@@ -1585,7 +1585,10 @@ CoinLpIO::read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt,
     return(0);
   }
 
-
+  if (*num_objectives == 0){
+    obj_starts[(*num_objectives)++] = *cnt;
+  }
+     
   read_st = is_subject_to(buff);
 
 #ifdef LPIO_DEBUG
@@ -1907,15 +1910,22 @@ CoinLpIO::readLp(FILE* fp)
 
   int objsense, cnt_coeff = 0, cnt_row = 0, cnt_obj = 0;
   int num_objectives = 0;
-  char *objName[MAX_OBJECTIVES];
+  char *objName[MAX_OBJECTIVES] = {NULL, NULL};
   int obj_starts[MAX_OBJECTIVES+1];
-  char **colNames = reinterpret_cast<char **> (malloc ((maxcoeff+1) * sizeof(char *)));
-  double *coeff = reinterpret_cast<double *> (malloc ((maxcoeff+1) * sizeof(double)));
-  char **rowNames = reinterpret_cast<char **> (malloc ((maxrow+1) * sizeof(char *)));
-  int *start = reinterpret_cast<int *> (malloc ((maxrow+1) * sizeof(int)));
-  double *rhs = reinterpret_cast<double *> (malloc ((maxrow+1) * sizeof(double)));
-  double *rowlow = reinterpret_cast<double *> (malloc ((maxrow+1) * sizeof(double)));
-  double *rowup = reinterpret_cast<double *> (malloc ((maxrow+1) * sizeof(double)));
+  char **colNames = reinterpret_cast<char **> 
+     (malloc ((maxcoeff+1) * sizeof(char *)));
+  double *coeff = reinterpret_cast<double *> 
+     (malloc ((maxcoeff+1) * sizeof(double)));
+  char **rowNames = reinterpret_cast<char **> 
+     (malloc ((maxrow+MAX_OBJECTIVES) * sizeof(char *)));
+  int *start = reinterpret_cast<int *> 
+     (malloc ((maxrow+MAX_OBJECTIVES) * sizeof(int)));
+  double *rhs = reinterpret_cast<double *> 
+     (malloc ((maxrow+1) * sizeof(double)));
+  double *rowlow = reinterpret_cast<double *> 
+     (malloc ((maxrow+1) * sizeof(double)));
+  double *rowup = reinterpret_cast<double *> 
+     (malloc ((maxrow+1) * sizeof(double)));
 
   int i;
 
