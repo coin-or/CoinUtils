@@ -108,9 +108,10 @@ CoinLpIO::CoinLpIO(const CoinLpIO& rhs)
     epsilon_(1e-5),
     numberAcross_(10)
 {
-    for (int j = 0; j < MAX_OBJECTIVES; j++){
+    num_objectives_ = rhs.num_objectives_;
+    for (int j = 0; j < num_objectives_; j++){
        objective_[j] = NULL;
-       objName_[j] = NULL;
+       objName_[j] = CoinStrdup(rhs.objName_[j]);
        objectiveOffset_[j] = 0;
     }
     card_previous_names_[0] = 0;
@@ -154,7 +155,6 @@ void CoinLpIO::gutsOfCopy(const CoinLpIO& rhs)
     numberRows_ = rhs.numberRows_;
     numberColumns_ = rhs.numberColumns_;
     decimals_ = rhs.decimals_;
-    num_objectives_ = rhs.num_objectives_;
  
     if (rhs.rowlower_) {
        rowlower_ = reinterpret_cast<double*> (malloc(numberRows_ * sizeof(double)));
@@ -2787,8 +2787,10 @@ CoinLpIO::stopHash(int section)
 
   if(section == 0) {
      for (int j = 0; j < num_objectives_; j++){
-	free(objName_[j]);
-	objName_[j] = NULL;
+	if (objName_[j] != NULL){
+	   free(objName_[j]);
+	   objName_[j] = NULL;
+	}
      }
   }
 } /* stopHash */
