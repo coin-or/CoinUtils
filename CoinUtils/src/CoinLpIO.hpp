@@ -19,6 +19,7 @@
 
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessage.hpp"
+class CoinSet;
 
 const int MAX_OBJECTIVES = 2;
 
@@ -489,6 +490,20 @@ public:
 
   /// Dump the data. Low level method for debugging.
   void print() const;
+  
+  /// Load in SOS stuff
+  void loadSOS(int numberSets,const CoinSet * sets);
+  
+  /// Load in SOS stuff
+  void loadSOS(int numberSets,const CoinSet ** sets);
+  
+  /// Number of SOS sets
+  inline int numberSets() const
+  { return numberSets_;}
+
+  /// Set information
+  inline CoinSet ** setInformation() const
+  { return set_;}
   //@}
 /**@name Message handling */
 //@{
@@ -579,6 +594,12 @@ protected:
   /// Pointer to dense vector specifying if a variable is continuous
   /// (0) or integer (1).
   char * integerType_;
+  
+  /// Pointer to sets
+  CoinSet ** set_;
+
+  /// Number of sets
+  int numberSets_;
   
   /// Current file name
   char * fileName_;
@@ -709,13 +730,15 @@ protected:
   int is_sense(const char *buff) const;
 
   /// Return an integer indicating if one of the keywords "Bounds", "Integers",
-  /// "Generals", "Binaries", "End", or one
-  /// of their variants has been read.
+  /// "Generals", "Binaries", "Semi-continuous", "Sos", "End", or one
+  /// of their variants has been read. (note Semi-continuous not coded)
   /// Return 1 if buff is the keyword "Bounds" or one of its variants.
   /// Return 2 if buff is the keyword "Integers" or "Generals" or one of their 
   /// variants.
   /// Return 3 if buff is the keyword "Binaries" or one of its variants.
-  /// Return 4 if buff is the keyword "End" or one of its variants.
+  /// Return 4 if buff is the keyword "Semi-continuous" or one of its variants.
+  /// Return 5 if buff is the keyword "Sos" or one of its variants.
+  /// Return 6 if buff is the keyword "End" or one of its variants.
   /// Return 0 otherwise.
   int is_keyword(const char *buff) const;
 
