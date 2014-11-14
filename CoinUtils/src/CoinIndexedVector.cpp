@@ -1124,8 +1124,8 @@ CoinIndexedVector::gutsOfSetPackedVector(int size, int numberIndices,
 #ifndef COIN_FAST_CODE
     if (indexValue<0) 
       throw CoinError("negative index", "setVector", "CoinIndexedVector");
-    else if (indexValue>=size) 
-      throw CoinError("too large an index", "setVector", "CoinIndexedVector");
+    //else if (indexValue>=size) 
+    //throw CoinError("too large an index", "setVector", "CoinIndexedVector");
 #endif    
     if (fabs(elems[i])>=COIN_INDEXED_TINY_ELEMENT) {
       elements_[nElements_]=elems[i];

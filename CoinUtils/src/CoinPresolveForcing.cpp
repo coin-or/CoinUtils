@@ -411,6 +411,12 @@ const CoinPresolveAction*
       }
       next = remove_fixed_action::presolve(prob,fixed_cols,nfixed_cols,next) ;
     }
+  } else {
+    // delete arrays
+    for (int i=0;i<nactions;i++) {
+      deleteAction(actions[i].rowcols,int *) ;
+      deleteAction(actions[i].bounds,double *) ;
+    }
   }
 
   deleteAction(actions,action*) ;
