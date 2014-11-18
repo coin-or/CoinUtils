@@ -18,7 +18,7 @@
 #include "CoinHelperFunctions.hpp"
 #include <stdio.h>
 #include <iostream>
-#if DENSE_CODE==1 
+#if COIN_FACTORIZATION_DENSE_CODE==1 
 // using simple lapack interface
 extern "C" 
 {
@@ -27,6 +27,18 @@ extern "C"
                                cipfint *nrhs, const double *A, cipfint *ldA,
                                cipfint * ipiv, double *B, cipfint *ldB, ipfint *info,
 			       int trans_len);
+}
+#elif COIN_FACTORIZATION_DENSE_CODE==2
+// C interface
+enum CBLAS_ORDER {CblasRowMajor=101, CblasColMajor=102};
+enum CBLAS_TRANSPOSE {CblasNoTrans=111, CblasTrans=112};
+extern "C" 
+{
+int clapack_dgetrs ( const enum CBLAS_ORDER Order, 
+		       const enum CBLAS_TRANSPOSE Trans, 
+		       const int N, const int NRHS,
+		       const double *A, const int lda, const int *ipiv, double *B, 
+		       const int ldb );
 }
 #endif
 // For semi-sparse
@@ -196,7 +208,7 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse,
       break;
     }
   }
-#ifdef DENSE_CODE
+#ifdef COIN_FACTORIZATION_DENSE_CODE
   if (numberDense_) {
     //take off list
     int lastSparse = numberRows_-numberDense_;
@@ -214,11 +226,17 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse,
       }
     }
     if (doDense) {
+#if COIN_FACTORIZATION_DENSE_CODE==1
       char trans = 'N';
       int ione=1;
       int info;
       F77_FUNC(dgetrs,DGETRS)(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
 			      densePermute_,region+lastSparse,&numberDense_,&info,1);
+#elif COIN_FACTORIZATION_DENSE_CODE==2
+      clapack_dgetrs ( CblasColMajor,CblasNoTrans,numberDense_,1,
+		       denseArea_,numberDense_,densePermute_,
+		       region+lastSparse,numberDense_);
+#endif
       for (int i=lastSparse;i<numberRows_;i++) {
 	double value = region[i];
 	if (value) {
@@ -251,7 +269,7 @@ CoinFactorization::updateColumnLDensish ( CoinIndexedVector * regionSparse ,
   const CoinFactorizationDouble * COIN_RESTRICT element = elementL_.array();
   int last = numberRows_;
   assert ( last == baseL_ + numberL_);
-#if DENSE_CODE==1
+#if COIN_FACTORIZATION_DENSE_CODE
   //can take out last bit of sparse L as empty
   last -= numberDense_;
 #endif
@@ -312,7 +330,7 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
   const CoinFactorizationDouble *element = elementL_.array();
   int last = numberRows_;
   assert ( last == baseL_ + numberL_);
-#if DENSE_CODE==1
+#if COIN_FACTORIZATION_DENSE_CODE
   //can take out last bit of sparse L as empty
   last -= numberDense_;
 #endif

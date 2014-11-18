@@ -1447,7 +1447,11 @@ protected:
 };
 // Dense coding
 #ifdef COIN_HAS_LAPACK
-#define DENSE_CODE 1
+#ifndef COIN_FACTORIZATION_DENSE_CODE
+#define COIN_FACTORIZATION_DENSE_CODE 1
+#endif
+#endif
+#ifdef COIN_FACTORIZATION_DENSE_CODE
 /* Type of Fortran integer translated into C */
 #ifndef ipfint
 //typedef ipfint FORTRAN_INTEGER_TYPE ;

@@ -17,7 +17,7 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinFinite.hpp"
-#if DENSE_CODE==1
+#if COIN_FACTORIZATION_DENSE_CODE==1
 // using simple lapack interface
 extern "C" 
 {
@@ -25,6 +25,13 @@ extern "C"
   void F77_FUNC(dgetrf,DGETRF)(ipfint * m, ipfint *n,
                                double *A, ipfint *ldA,
                                ipfint * ipiv, ipfint *info);
+}
+#elif COIN_FACTORIZATION_DENSE_CODE==2
+// C interface
+enum CBLAS_ORDER {CblasRowMajor=101, CblasColMajor=102};
+extern "C" 
+{
+int clapack_dgetrf ( const enum CBLAS_ORDER Order, const int M, const int N, double *A, const int lda, int *ipiv );
 }
 #endif
 #ifndef NDEBUG
@@ -552,18 +559,23 @@ int CoinFactorization::factorDense()
       numberGoodU_++;
     } 
   } 
-#ifdef DENSE_CODE
+#ifdef COIN_FACTORIZATION_DENSE_CODE
   if (denseThreshold_>0) {
     assert(numberGoodU_==numberRows_);
     numberGoodL_=numberRows_;
     //now factorize
     //dgef(denseArea_,&numberDense_,&numberDense_,densePermute_);
+#if COIN_FACTORIZATION_DENSE_CODE==1
     int info;
     F77_FUNC(dgetrf,DGETRF)(&numberDense_,&numberDense_,denseArea_,&numberDense_,densePermute_,
 			    &info);
     // need to check size of pivots
-    if(info)
+    if(info) 
       status = -1;
+#elif COIN_FACTORIZATION_DENSE_CODE==2
+    status=clapack_dgetrf ( CblasColMajor, numberDense_,numberDense_,
+      denseArea_,numberDense_, densePermute_ );
+#endif
     return status;
   } 
 #endif

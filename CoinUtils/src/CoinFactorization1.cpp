@@ -200,7 +200,7 @@ void CoinFactorization::gutsOfInitialize(int type)
     maximumPivots_=200;
     numberTrials_ = 4;
     relaxCheck_=1.0;
-#if DENSE_CODE==1
+#if COIN_FACTORIZATION_DENSE_CODE
     denseThreshold_=31;
     denseThreshold_=71;
 #else

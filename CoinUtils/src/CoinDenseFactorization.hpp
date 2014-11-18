@@ -19,6 +19,9 @@
 #include "CoinTypes.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinFactorization.hpp"
+#if COIN_FACTORIZATION_DENSE_CODE == 2
+#undef COIN_FACTORIZATION_DENSE_CODE
+#endif
 class CoinPackedMatrix;
 /// Abstract base class which also has some scalars so can be used from Dense or Simp
 class CoinOtherFactorization {
