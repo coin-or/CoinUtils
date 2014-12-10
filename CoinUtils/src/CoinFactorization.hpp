@@ -1373,6 +1373,9 @@ protected:
   /// Dense area
   double  * denseArea_;
 
+  /// Dense area - actually used (for alignment etc)
+  double  * denseAreaAddress_;
+
   /// Dense permutation
   int * densePermute_;
 

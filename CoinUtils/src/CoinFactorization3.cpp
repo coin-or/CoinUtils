@@ -155,14 +155,36 @@ CoinFactorization::permuteBack ( CoinIndexedVector * regionSparse,
       }
     }
   } else {
-    for (int j = 0; j < oldNumber; j ++ ) {
-      int iRow = regionIndex[j];
+    int j=0;
+    if ((oldNumber&1)!=0) {
+      int iRow = regionIndex[0];
+      j++;
       double value = region[iRow];
       region[iRow]=0.0;
       if (fabs(value)>zeroTolerance_) {
 	iRow = permuteBack[iRow];
 	outIndex[number++]=iRow;
 	out[iRow] = value;
+      }
+    }
+    for (; j < oldNumber; j +=2 ) {
+      int iRow0 = regionIndex[j];
+      int iRow1 = regionIndex[j+1];
+      double value0 = region[iRow0];
+      bool good0 = fabs(value0)>zeroTolerance_;
+      double value1 = region[iRow1];
+      bool good1 = fabs(value1)>zeroTolerance_;
+      region[iRow0]=0.0;
+      region[iRow1]=0.0;
+      if (good0) {
+	iRow0 = permuteBack[iRow0];
+	outIndex[number++]=iRow0;
+	out[iRow0] = value0;
+      }
+      if (good1) {
+	iRow1 = permuteBack[iRow1];
+	outIndex[number++]=iRow1;
+	out[iRow1] = value1;
       }
     }
   }
@@ -230,11 +252,11 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse,
       char trans = 'N';
       int ione=1;
       int info;
-      F77_FUNC(dgetrs,DGETRS)(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
+      F77_FUNC(dgetrs,DGETRS)(&trans,&numberDense_,&ione,denseAreaAddress_,&numberDense_,
 			      densePermute_,region+lastSparse,&numberDense_,&info,1);
 #elif COIN_FACTORIZATION_DENSE_CODE==2
       clapack_dgetrs ( CblasColMajor,CblasNoTrans,numberDense_,1,
-		       denseArea_,numberDense_,densePermute_,
+		       denseAreaAddress_,numberDense_,densePermute_,
 		       region+lastSparse,numberDense_);
 #endif
       for (int i=lastSparse;i<numberRows_;i++) {
@@ -848,6 +870,15 @@ CoinFactorization::updateTwoColumnsUDensish (
   numberNonZero1=numberNonZeroA;
   numberNonZero2=numberNonZeroB;
 }
+#ifdef COIN_FACTORIZATION_DIAGNOSE
+static int numberTimesX=0;
+static int numberSparseX=0;
+double sumNumberSparseX=0.0;
+static int numberSparsishX=0;
+double sumNumberSparsishX=0.0;
+static int numberDensishX=0;
+double sumNumberDensishX=0.0;
+#endif
 //  updateColumnU.  Updates part of column (FTRANU)
 void
 CoinFactorization::updateColumnU ( CoinIndexedVector * regionSparse,
@@ -875,6 +906,28 @@ CoinFactorization::updateColumnU ( CoinIndexedVector * regionSparse,
   } else {
     goSparse=0;
   }
+#ifdef COIN_FACTORIZATION_DIAGNOSE
+  numberTimesX++;
+  if (!goSparse) {
+    numberDensishX++;
+    sumNumberDensishX+=numberNonZero;
+  } else if (goSparse==1) {
+    numberSparsishX++;
+    sumNumberSparsishX+=numberNonZero;
+  } else {
+    numberSparseX++;
+    sumNumberSparseX+=numberNonZero;
+  }
+  if ((numberTimesX%1000)==0) {
+    double averageDensish=(numberDensishX) ? sumNumberDensishX/numberDensishX : 0.0;
+    double averageSparsish=(numberSparsishX) ? sumNumberSparsishX/numberSparsishX : 0.0;
+    double averageSparse=(numberSparseX) ? sumNumberSparseX/numberSparseX : 0.0;
+    printf("sparsity D,ish,S (%d,%g) , (%d,%g) , (%d,%g) - ftranFactor %g\n",
+	   numberDensishX,averageDensish,
+	   numberSparsishX,averageSparsish,
+	   numberSparseX,averageSparse,ftranAverageAfterU_);
+  }
+#endif
   switch (goSparse) {
   case 0: // densish
     {

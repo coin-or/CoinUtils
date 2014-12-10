@@ -822,13 +822,23 @@ CoinFactorization::updateColumnTransposeUDensish
     if ( fabs ( pivotValue ) > tolerance ) {
       CoinBigIndex start = startRow[i];
       int numberIn = numberInRow[i];
-      CoinBigIndex end = start + numberIn;
-      for (CoinBigIndex j = start ; j < end; j ++ ) {
-	int iRow = indexColumn[j];
-	CoinBigIndex getElement = convertRowToColumn[j];
+      CoinBigIndex end = start + (numberIn&(~1));
+      for (CoinBigIndex j = start ; j < end; j += 2 ) {
+	int iRow0 = indexColumn[j];
+	int iRow1 = indexColumn[j+1];
+	CoinBigIndex getElement0 = convertRowToColumn[j];
+	CoinBigIndex getElement1 = convertRowToColumn[j+1];
+	CoinFactorizationDouble value0 = element[getElement0];
+	CoinFactorizationDouble value1 = element[getElement1];
+	region[iRow0] -=  value0 * pivotValue;
+	region[iRow1] -=  value1 * pivotValue;
+      }     
+      if ((numberIn&1)!=0) {
+	int iRow = indexColumn[end];
+	CoinBigIndex getElement = convertRowToColumn[end];
 	CoinFactorizationDouble value = element[getElement];
 	region[iRow] -=  value * pivotValue;
-      }     
+      }
       regionIndex[numberNonZero++] = i;
     } else {
       region[i] = 0.0;
@@ -1456,11 +1466,11 @@ CoinFactorization::updateColumnTransposeL ( CoinIndexedVector * regionSparse ) c
       char trans = 'T';
       int ione=1;
       int info;
-      F77_FUNC(dgetrs,DGETRS)(&trans,&numberDense_,&ione,denseArea_,&numberDense_,
+      F77_FUNC(dgetrs,DGETRS)(&trans,&numberDense_,&ione,denseAreaAddress_,&numberDense_,
 			      densePermute_,region+lastSparse,&numberDense_,&info,1);
 #elif COIN_FACTORIZATION_DENSE_CODE==2
       clapack_dgetrs ( CblasColMajor,CblasTrans,numberDense_,1,
-		       denseArea_,numberDense_,densePermute_,
+		       denseAreaAddress_,numberDense_,densePermute_,
 	region+lastSparse,numberDense_);
 #endif
       //and scan again
@@ -1738,12 +1748,17 @@ CoinFactorization::goSparse ( )
     if (numberRows_>300) {
       if (numberRows_<10000) {
 	sparseThreshold_=CoinMin(numberRows_/6,500);
+	sparseThreshold2_=numberRows_>>2;
 	//sparseThreshold2_=sparseThreshold_;
       } else {
 	sparseThreshold_=1000;
+	sparseThreshold2_=numberRows_>>2;
+	sparseThreshold_=500;
+	sparseThreshold2_=CoinMax(sparseThreshold_,numberRows_>>3);
 	//sparseThreshold2_=sparseThreshold_;
       }
-      sparseThreshold2_=numberRows_>>2;
+      //printf("sparseThreshold %d threshold2 %d - numberDense %d\n",
+      //     sparseThreshold_,sparseThreshold2_,numberDense_);
     } else {
       sparseThreshold_=0;
       sparseThreshold2_=0;
@@ -1845,6 +1860,10 @@ void CoinFactorization::messageLevel (  int value )
 void CoinFactorization::pivotTolerance (  double value )
 {
   if (value>0.0&&value<=1.0) {
+    //if (value<pivotTolerance_) {
+    //printf("reducing pivot tolerance from %g to %g\n",
+    //	     pivotTolerance_,value);
+    //}
     pivotTolerance_=value;
   }
 }
@@ -2539,6 +2558,7 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   denseThreshold_=other.denseThreshold_;
   if (numberDense_) {
     denseArea_ = new double [numberDense_*numberDense_];
+    denseAreaAddress_ = denseArea_;
     CoinMemcpyN(other.denseArea_,
 	   numberDense_*numberDense_,denseArea_);
     densePermute_ = new int [numberDense_];

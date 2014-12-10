@@ -1155,7 +1155,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
           and set arbitrary feasible bounds.
       - 0x10000 instructs implied_free_action to be `more lightweight'; will
           return without doing anything after 15 presolve passes.
-      - 0x20000 instructs implied_free_action to remove small created elements
+      - 0x(2,4,6)0000 instructs implied_free_action to remove small created elements
       - 0x80000000 set by presolve to say dupcol_action compressed columns
   */
   int presolveOptions_;
