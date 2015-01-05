@@ -29131,6 +29131,14 @@ _ACEOF
 
 fi
 
+if test "x$ac_cv_header_cstdint" = xyes ; then
+
+cat >>confdefs.h <<\_ACEOF
+#define COINUTILS_HAS_CSTDINT 1
+_ACEOF
+
+fi
+
 #############################################################################
 #                           Check whether we have windows.h                 #
 #############################################################################

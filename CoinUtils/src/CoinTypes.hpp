@@ -11,6 +11,9 @@
 #ifdef COINUTILS_HAS_STDINT_H
 #include <stdint.h>
 #endif
+#ifdef COINUTILS_HAS_CSTDINT
+#include <cstdint>
+#endif
 
 #define CoinInt64 COIN_INT64_T
 #define CoinUInt64 COIN_UINT64_T
