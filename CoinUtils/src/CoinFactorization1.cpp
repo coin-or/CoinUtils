@@ -16,6 +16,7 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinFinite.hpp"
+#include "CoinTime.hpp"
 #include <stdio.h>
 //:class CoinFactorization.  Deals with Factorization and Updates
 //  CoinFactorization.  Constructor
@@ -228,7 +229,9 @@ void CoinFactorization::gutsOfInitialize(int type)
     pivotColumn_.conditionalNew(1);
     nextColumn_.conditionalNew(1);
     lastColumn_.conditionalNew(1);
+#if 0
     collectStatistics_=false;
+#endif
     
     // Below are all to collect
     ftranCountInput_=0.0;
@@ -987,11 +990,90 @@ CoinFactorization::preProcess ( int state,
     }
   }				/* endswitch */
 }
+#ifdef CLP_FACTORIZATION_INSTRUMENT
+double externalTimeStart=0.0;
+double timeInFactorize=0.0;
+double timeInUpdate=0.0;
+double timeInFactorizeFake=0.0;
+double timeInUpdateFake1=0.0;
+double timeInUpdateFake2=0.0;
+double timeInUpdateTranspose=0.0;
+double timeInUpdateFT=0.0;
+double timeInUpdateTwoFT=0.0;
+double timeInReplace=0.0;
+ double averageLengthR=0.0;
+double averageLengthL=0.0;
+ double averageLengthU=0.0;
+ double scaledLengthDense=0.0;
+ double scaledLengthDenseSquared=0.0;
+ double scaledLengthL=0.0;
+ double scaledLengthR=0.0;
+ double scaledLengthU=0.0;
+int numberUpdate=1;
+int numberUpdateTranspose=0;
+int numberUpdateFT=0;
+int numberUpdateTwoFT=0;
+int numberReplace=0;
+int numberAdded=0;
+int currentLengthR=0;
+int currentLengthU=0;
+int currentTakeoutU=0;
+int startLengthU=0;
+int endLengthU=0;
+int endLengthU2=0;
+#endif
 
 //Does most of factorization
 int
 CoinFactorization::factor (  )
 {
+#ifdef CLP_FACTORIZATION_INSTRUMENT
+  int nUse=numberUpdate+numberUpdateTranspose+numberUpdateFT+
+    2*numberUpdateTwoFT+numberReplace;
+  double dUse=timeInUpdate+timeInUpdateTranspose+timeInUpdateFT+
+    timeInUpdateTwoFT+timeInReplace;
+  printf("%.18g time in factorization, using %.18g (%d) -average %.18g\n",
+	   timeInFactorize,dUse,nUse,dUse/static_cast<double>(nUse));
+  //collectStatistics_=true;
+  int * startColumnU = startColumnU_.array();
+  int numberSlacksX=0;
+  for (int i=0;i<numberRows_;i++) {
+  if (startColumnU[i+1]!=startColumnU[i]+1)
+    break;
+  numberSlacksX++;
+  }
+  int numberInUX=startColumnU[numberRows_];
+  printf("numberCompressions %d ftranInput %g ftranAfterL %g \
+    ftranAfterR %g ftranAfterU %g btranInput %g \
+    btranAfterU %g btranAfterR %g btranAfterL %g \
+    numberFtrans %d numberBtrans %d ftranAvAfterL %g \
+    ftranAvAfterR %g ftranAvAfterU %g btranAvAfterU %g \
+    btranAvAfterR %g btranAvAfterL %g\n", 
+	   numberCompressions_, ftranCountInput_, ftranCountAfterL_, 
+	   ftranCountAfterR_, ftranCountAfterU_, btranCountInput_, 
+	   btranCountAfterU_, btranCountAfterR_, btranCountAfterL_, 
+	   numberFtranCounts_, numberBtranCounts_, ftranAverageAfterL_, 
+	   ftranAverageAfterR_, ftranAverageAfterU_, btranAverageAfterU_, 
+	   btranAverageAfterR_, btranAverageAfterL_); 
+  printf("lengthRend %d lengthUend %d takeoutU %d\n",
+	   currentLengthR,currentLengthU,currentTakeoutU);
+  double timeStart=externalTimeStart;
+  timeInFactorize=0.0;
+  timeInUpdate=0.0;
+  timeInUpdateTranspose=0.0;
+  timeInUpdateFT=0.0;
+  timeInUpdateTwoFT=0.0;
+  timeInReplace=0.0;
+  numberUpdate=1;
+  numberUpdateTranspose=0;
+  numberUpdateFT=0;
+  numberUpdateTwoFT=0;
+  numberReplace=0;
+  numberAdded=0;
+  currentLengthR=0;
+  currentLengthU=0;
+  currentTakeoutU=0;
+#endif
   int * lastColumn = lastColumn_.array();
   int * lastRow = lastRow_.array();
   //sparse
@@ -1083,6 +1165,18 @@ CoinFactorization::factor (  )
     numberCompressions_=0;
     cleanup (  );
   }
+#ifdef CLP_FACTORIZATION_INSTRUMENT
+  timeInFactorize = CoinCpuTime()-timeStart;
+  printf("%d slacks, startU %d, endL %d, endU %d + %d dense (squared)\n",
+	   numberSlacksX,numberInUX,lengthL_,lengthU_,
+	   numberDense_*numberDense_);
+  currentLengthR=0;
+  // remember pivots not included in counts
+  endLengthU = totalElements_ - numberDense_*numberDense_-lengthL_;
+  endLengthU2=lengthU_;
+  currentLengthU=lengthU_;
+  currentTakeoutU=0;
+#endif
   return status_;
 }
 
@@ -1808,10 +1902,12 @@ CoinFactorization::cleanup (  )
   int * nextColumn = nextColumn_.array();
   int * lastColumn = lastColumn_.array();
   // See whether to have extra copy of R
+#ifndef ABC_USE_COIN_FACTORIZATION
   if (maximumU_>10*numberRows_||numberRows_<200) {
     // NO
     numberInColumnPlus_.conditionalDelete() ;
   } else {
+#endif
     for ( i = 0; i < numberColumns_; i++ ) {
       lastColumn[i] = i - 1;
       nextColumn[i] = i + 1;
@@ -1821,7 +1917,9 @@ CoinFactorization::cleanup (  )
     lastColumn[maximumColumnsExtra_] = numberColumns_ - 1;
     nextColumn[maximumColumnsExtra_] = 0;
     lastColumn[0] = maximumColumnsExtra_;
+#ifndef ABC_USE_COIN_FACTORIZATION
   }
+#endif
   numberU_ = numberU;
   numberGoodU_ = numberU;
   numberL_ = numberGoodL_;

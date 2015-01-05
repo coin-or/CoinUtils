@@ -819,7 +819,8 @@ const CoinPresolveAction *implied_free_action::presolve (
   any left.
 */
   if (unprocessed != 0) {
-#ifdef COIN_PRESOLVE_CHECK_FILL 
+#define COIN_PRESOLVE_CHECK_FILL2 
+#ifdef COIN_PRESOLVE_CHECK_FILL2 
     {
       int numberFree=unprocessed;
       int nBad=0;

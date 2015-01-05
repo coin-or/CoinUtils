@@ -439,16 +439,16 @@ CoinFactorization::factorSparseSmall (  )
         //if (leftRows==100)
         //printf("at 100 %d elements\n",totalElements_);
         double ratio;
-#define COIN_DENSE_MULTIPLIER 0
+#define COIN_DENSE_MULTIPLIER 1
         if (leftRows>2000) {
           ratio=4.0;
 #if COIN_DENSE_MULTIPLIER == 1
-	  ratio =6.0;
+	  ratio =3.5;
 #endif
         } else if (leftRows>800) {
           ratio=3.0;
 #if COIN_DENSE_MULTIPLIER == 1
-	  ratio =4.0;
+	  ratio =2.75;
 #endif
         } else if (leftRows>256) {
           ratio=2.0;
@@ -1423,12 +1423,12 @@ CoinFactorization::factorSparseLarge (  )
         if (leftRows>2000) {
           ratio=4.0;
 #if COIN_DENSE_MULTIPLIER == 1
-	  ratio =6.0;
+	  ratio =3.5;
 #endif
         } else if (leftRows>800) {
           ratio=3.0;
 #if COIN_DENSE_MULTIPLIER == 1
-	  ratio =4.0;
+	  ratio =2.75;
 #endif
         } else if (leftRows>256) {
           ratio=2.0;
