@@ -819,8 +819,8 @@ const CoinPresolveAction *implied_free_action::presolve (
   any left.
 */
   if (unprocessed != 0) {
-    // if not full preprocessing - don't allow much fill
-    if ((prob->presolveOptions_&0x10000) == 0)
+    // if not integer - don't allow much fill
+    if (!prob->anyInteger())
     {
       int numberFree=unprocessed;
       int nBad=0;
