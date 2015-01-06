@@ -819,8 +819,8 @@ const CoinPresolveAction *implied_free_action::presolve (
   any left.
 */
   if (unprocessed != 0) {
-#define COIN_PRESOLVE_CHECK_FILL2 
-#ifdef COIN_PRESOLVE_CHECK_FILL2 
+    // if not full preprocessing - don't allow much fill
+    if ((prob->presolveOptions_&0x10000) == 0)
     {
       int numberFree=unprocessed;
       int nBad=0;
@@ -1002,7 +1002,6 @@ const CoinPresolveAction *implied_free_action::presolve (
 	     unprocessed,numberFree,nBad);
 #endif      
     }
-#endif
     next = subst_constraint_action::presolve(prob,implied_free,whichFree,
     					     unprocessed,next,maxLook) ;
   }
