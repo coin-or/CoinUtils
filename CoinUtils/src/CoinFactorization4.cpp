@@ -2625,8 +2625,8 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   if (numberDense_) {
     denseArea_ = new double [numberDense_*numberDense_];
     denseAreaAddress_ = denseArea_;
-    CoinMemcpyN(other.denseArea_,
-	   numberDense_*numberDense_,denseArea_);
+    CoinMemcpyN(other.denseAreaAddress_,
+	   numberDense_*numberDense_,denseAreaAddress_);
     densePermute_ = new int [numberDense_];
     CoinMemcpyN(other.densePermute_,
 	   numberDense_,densePermute_);
