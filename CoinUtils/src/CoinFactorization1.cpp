@@ -18,6 +18,23 @@
 #include "CoinFinite.hpp"
 #include "CoinTime.hpp"
 #include <stdio.h>
+#ifdef COIN_HAS_LAPACK
+#ifndef CLP_USE_OPENBLAS
+#define CLP_USE_OPENBLAS 1
+#endif
+#endif
+/*
+  Somehow with some BLAS we get multithreaded by default
+  For 99.99% of problems this is not a good idea.
+  The openblas_set_num_threads(1) seems to work even with other blas
+ */
+#if CLP_USE_OPENBLAS
+static int blas_initialized=0;
+extern "C" 
+{
+  void openblas_set_num_threads(int num_threads);
+}
+#endif
 //:class CoinFactorization.  Deals with Factorization and Updates
 //  CoinFactorization.  Constructor
 CoinFactorization::CoinFactorization (  )
@@ -148,6 +165,12 @@ void CoinFactorization::gutsOfDestructor(int type)
 // type - 1 bit tolerances etc, 2 rest
 void CoinFactorization::gutsOfInitialize(int type)
 {
+#if CLP_USE_OPENBLAS
+  if (!blas_initialized) {
+    blas_initialized=1;
+    openblas_set_num_threads(CLP_USE_OPENBLAS);
+  }
+#endif
   if ((type&2)!=0) {
     numberCompressions_ = 0;
     biggerDimension_ = 0;
