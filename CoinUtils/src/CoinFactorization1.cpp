@@ -18,11 +18,6 @@
 #include "CoinFinite.hpp"
 #include "CoinTime.hpp"
 #include <stdio.h>
-#ifdef COIN_HAS_LAPACK
-#ifndef CLP_USE_OPENBLAS
-#define CLP_USE_OPENBLAS 1
-#endif
-#endif
 /*
   Somehow with some BLAS we get multithreaded by default
   For 99.99% of problems this is not a good idea.
