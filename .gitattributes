@@ -42,6 +42,8 @@ CoinUtils/src/CoinOslFactorization2.cpp -text
 CoinUtils/src/CoinOslFactorization3.cpp -text
 CoinUtils/src/CoinPresolveMonitor.cpp -text
 CoinUtils/src/CoinPresolveMonitor.hpp -text
+CoinUtils/src/CoinRational.cpp -text
+CoinUtils/src/CoinRational.hpp -text
 CoinUtils/src/CoinSearchTree.cpp -text
 CoinUtils/src/CoinSearchTree.hpp -text
 CoinUtils/src/CoinSimpFactorization.cpp -text
