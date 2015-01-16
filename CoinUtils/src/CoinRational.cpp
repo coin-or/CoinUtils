@@ -2,7 +2,10 @@
 // Copyright 2015, Matthew Saltzman and Ted Ralphs
 // Licensed under the Eclipse Public License 1.0
 
+#include <algorithm>
 #include <cmath>
+
+#include "CoinRational.hpp"
 
 // Based on Python code from
 // http://www.johndcook.com/blog/2010/10/20/best-rational-approximation/
