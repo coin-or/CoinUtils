@@ -2361,7 +2361,7 @@ CoinLpIO::readLp(FILE* fp)
 	    if (!goodLine) {
 	      // print bad line
 	      setType=3;
-	      sprintf(printBuffer,"### CoinLpIO::readLp(): bad SOS item", buff);
+	      sprintf(printBuffer,"### CoinLpIO::readLp(): bad SOS item %s", buff);
 	      handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
 							       <<CoinMessageEol;
 	    }
