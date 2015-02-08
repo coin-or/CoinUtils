@@ -161,6 +161,7 @@ includecoin_HEADERS = \
 	CoinPresolveTripleton.hpp \
 	CoinPresolveUseless.hpp \
 	CoinPresolveZeros.hpp \
+	CoinRational.hpp \
 	CoinSearchTree.hpp \
 	CoinShallowPackedVector.hpp \
 	CoinSignal.hpp \
