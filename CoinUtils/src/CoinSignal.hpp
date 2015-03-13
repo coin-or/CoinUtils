@@ -30,28 +30,28 @@
 //-----------------------------------------------------------------------------
 
 #if defined(__CYGWIN__) && defined(__GNUC__)
-   typedef decltype(SIG_DFL) CoinSighandler_t;
+   typedef __decltype(SIG_DFL) CoinSighandler_t;
 #  define CoinSighandler_t_defined
 #endif
 
 //-----------------------------------------------------------------------------
 
 #if defined(__MINGW32__) && defined(__GNUC__)
-   typedef decltype(SIG_DFL) CoinSighandler_t;
+   typedef __decltype(SIG_DFL) CoinSighandler_t;
 #  define CoinSighandler_t_defined
 #endif
 
 //-----------------------------------------------------------------------------
 
 #if defined(__FreeBSD__) && defined(__GNUC__)
-   typedef decltype(SIG_DFL) CoinSighandler_t;
+   typedef __decltype(SIG_DFL) CoinSighandler_t;
 #  define CoinSighandler_t_defined
 #endif
 
 //-----------------------------------------------------------------------------
 
 #if defined(__NetBSD__) && defined(__GNUC__)
-   typedef decltype(SIG_DFL) CoinSighandler_t;
+   typedef __decltype(SIG_DFL) CoinSighandler_t;
 #  define CoinSighandler_t_defined
 #endif
 
@@ -59,7 +59,7 @@
 
 #if defined(_AIX)
 #  if defined(__GNUC__)
-      typedef decltype(SIG_DFL) CoinSighandler_t;
+      typedef __decltype(SIG_DFL) CoinSighandler_t;
 #     define CoinSighandler_t_defined
 #  endif
 #endif
@@ -69,7 +69,7 @@
 #if defined (__hpux)
 #  define CoinSighandler_t_defined
 #  if defined(__GNUC__)
-      typedef decltype(SIG_DFL) CoinSighandler_t;
+      typedef __decltype(SIG_DFL) CoinSighandler_t;
 #  else
       extern "C" {
          typedef void (*CoinSighandler_t) (int);
@@ -88,7 +88,7 @@
 #     define CoinSighandler_t_defined
 #  endif
 #  if defined(__GNUC__)
-      typedef typeof(SIG_DFL) CoinSighandler_t;
+      typedef __decltype(SIG_DFL) CoinSighandler_t;
 #     define CoinSighandler_t_defined
 #  endif
 #endif
@@ -96,7 +96,7 @@
 //-----------------------------------------------------------------------------
 
 #if defined(__MACH__) && defined(__GNUC__)
-   typedef decltype(SIG_DFL) CoinSighandler_t;
+typedef __decltype(SIG_DFL) CoinSighandler_t;
 #  define CoinSighandler_t_defined
 #endif
 
