@@ -606,7 +606,7 @@ int CoinFactorization::factorDense()
 			    &info);
     // need to check size of pivots
     if(info) {
-      printf("Dense singular\n");
+      //printf("Dense singular\n");
       status = -1;
     }
 #elif COIN_FACTORIZATION_DENSE_CODE==2

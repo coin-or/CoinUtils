@@ -112,6 +112,34 @@ class duprow_action : public CoinPresolveAction {
   //~duprow_action() { delete[]actions_; }
 };
 
+class duprow3_action : public CoinPresolveAction {
+  struct action {
+    int row;
+    double lbound;
+    double ubound;
+  };
+
+  const int nactions_;
+  const action *const actions_;
+
+  duprow3_action():CoinPresolveAction(NULL),nactions_(0),actions_(NULL) {}
+  duprow3_action(int nactions,
+		      const action *actions,
+		      const CoinPresolveAction *next) :
+    CoinPresolveAction(next),
+    nactions_(nactions), actions_(actions) {}
+
+ public:
+  const char *name() const;
+
+  static const CoinPresolveAction *presolve(CoinPresolveMatrix *prob,
+					 const CoinPresolveAction *next);
+
+  void postsolve(CoinPostsolveMatrix *prob) const;
+
+  //~duprow_action() { delete[]actions_; }
+};
+
 /*! \class gubrow_action
     \brief Detect and remove entries whose sum is known
 
