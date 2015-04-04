@@ -243,7 +243,7 @@ public:
     inline int size() const { return size_; }
     inline int numInserted() const { return numInserted_; }
     inline CoinTreeNode* top() const {
-      if (size_ == 0)
+       if (size_ == 0 || candidateList_.size() == 0)
 	return NULL;
 #ifdef DEBUG_PRINT
       char output[44];
