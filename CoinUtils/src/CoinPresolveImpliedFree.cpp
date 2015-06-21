@@ -1018,7 +1018,7 @@ const CoinPresolveAction *implied_free_action::presolve (
   }
 
 # if COIN_PRESOLVE_TUNING > 0
-  double thisTime ;
+  double thisTime = 0.0 ;
   if (prob->tuning_) thisTime = CoinCpuTime() ;
 # endif
 # if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0

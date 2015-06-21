@@ -17,6 +17,7 @@
 #include <cassert>
 #include <cstdlib>
 
+//# define COIN_PRESOLVE_TUNING 2
 #if PRESOLVE_DEBUG > 0
 #include "CoinFinite.hpp"
 #endif

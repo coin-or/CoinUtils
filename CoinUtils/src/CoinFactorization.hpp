@@ -1568,6 +1568,9 @@ protected:
   //@}
 };
 // Dense coding
+#ifdef INTEL_COMPILER
+#define COIN_FACTORIZATION_DENSE_CODE 3
+#endif
 #ifdef COIN_HAS_LAPACK
 #ifndef COIN_FACTORIZATION_DENSE_CODE
 #define COIN_FACTORIZATION_DENSE_CODE 1

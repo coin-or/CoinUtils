@@ -41,6 +41,9 @@ int clapack_dgetrs ( const enum CBLAS_ORDER Order,
 		       const double *A, const int lda, const int *ipiv, double *B, 
 		       const int ldb );
 }
+#elif COIN_FACTORIZATION_DENSE_CODE==3
+// Intel compiler
+#include "mkl_lapacke.h"
 #endif
 // For semi-sparse
 #define BITS_PER_CHECK 8
@@ -297,6 +300,10 @@ CoinFactorization::updateColumnL ( CoinIndexedVector * regionSparse,
 			      densePermute_,region+lastSparse,&numberDense_,&info,1);
 #elif COIN_FACTORIZATION_DENSE_CODE==2
       clapack_dgetrs ( CblasColMajor,CblasNoTrans,numberDense_,1,
+		       denseAreaAddress_,numberDense_,densePermute_,
+		       region+lastSparse,numberDense_);
+#elif COIN_FACTORIZATION_DENSE_CODE==3
+      LAPACKE_dgetrs ( LAPACK_COL_MAJOR,'N',numberDense_,1,
 		       denseAreaAddress_,numberDense_,densePermute_,
 		       region+lastSparse,numberDense_);
 #endif

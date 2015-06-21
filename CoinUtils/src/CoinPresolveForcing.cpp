@@ -424,7 +424,8 @@ const CoinPresolveAction*
   delete [] fixed_cols ;
 
 # if COIN_PRESOLVE_TUNING
-  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+  double thisTime = 0.0;
+  if (prob->tuning_) thisTime = CoinCpuTime() ;
 # endif
 # if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   presolve_check_sol(prob) ;

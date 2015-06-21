@@ -33,6 +33,9 @@ extern "C"
 {
 int clapack_dgetrf ( const enum CBLAS_ORDER Order, const int M, const int N, double *A, const int lda, int *ipiv );
 }
+#elif COIN_FACTORIZATION_DENSE_CODE==3
+// Intel compiler
+#include "mkl_lapacke.h"
 #endif
 #ifndef NDEBUG
 static int counter1=0;
@@ -606,11 +609,14 @@ int CoinFactorization::factorDense()
 			    &info);
     // need to check size of pivots
     if(info) {
-      printf("Dense singular\n");
+      //printf("Dense singular\n");
       status = -1;
     }
 #elif COIN_FACTORIZATION_DENSE_CODE==2
     status=clapack_dgetrf ( CblasColMajor, numberDense_,numberDense_,
+      denseAreaAddress_,numberDense_, densePermute_ );
+#elif COIN_FACTORIZATION_DENSE_CODE==3
+    status=LAPACKE_dgetrf ( LAPACK_COL_MAJOR, numberDense_,numberDense_,
       denseAreaAddress_,numberDense_, densePermute_ );
 #endif
     return status;
