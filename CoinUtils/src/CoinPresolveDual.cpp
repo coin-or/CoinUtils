@@ -9,7 +9,7 @@
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveDual.hpp"
-#include "CoinMessage.hpp"
+#include "CoinMessage.hpp" 
 #include "CoinHelperFunctions.hpp"
 #include "CoinFloatEqual.hpp"
 
@@ -1513,7 +1513,7 @@ const CoinPresolveAction
 	  }
 	}
       }
-      if (canFixThis>0) 
+      if (canFixThis) 
 	canFix[makeEqCnt++] = i ;
     }
   }
