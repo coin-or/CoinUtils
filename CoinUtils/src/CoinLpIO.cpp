@@ -109,9 +109,13 @@ CoinLpIO::CoinLpIO(const CoinLpIO& rhs)
     numberAcross_(10)
 {
     num_objectives_ = rhs.num_objectives_;
-    for (int j = 0; j < num_objectives_; j++){
+    for (int j = 0; j < MAX_OBJECTIVES; j++){
        objective_[j] = NULL;
-       objName_[j] = CoinStrdup(rhs.objName_[j]);
+       if (j < num_objectives_){
+	  objName_[j] = CoinStrdup(rhs.objName_[j]);
+       }else{
+	  objName_[j] = NULL;
+       }
        objectiveOffset_[j] = 0;
     }
     card_previous_names_[0] = 0;
