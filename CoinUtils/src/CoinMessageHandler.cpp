@@ -371,7 +371,7 @@ CoinMessageHandler::internalPrint()
   }
   return returnCode;
 }
-#if FLUSH_PRINT_BUFFER == 2
+#if FLUSH_PRINT_BUFFER >= 2
 extern int coinFlushBufferFlag;
 #endif
 // Print message, return 0 normally
@@ -380,7 +380,7 @@ CoinMessageHandler::print()
 {
   fprintf(fp_,"%s\n",messageBuffer_);
 #if FLUSH_PRINT_BUFFER
-#if FLUSH_PRINT_BUFFER != 2
+#if FLUSH_PRINT_BUFFER < 2
   fflush(fp_);
 #else
   if (coinFlushBufferFlag)
