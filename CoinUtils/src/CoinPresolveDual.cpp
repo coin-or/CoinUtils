@@ -9,7 +9,7 @@
 #include "CoinPresolveMatrix.hpp"
 #include "CoinPresolveFixed.hpp"
 #include "CoinPresolveDual.hpp"
-#include "CoinMessage.hpp" 
+#include "CoinMessage.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinFloatEqual.hpp"
 
@@ -1513,7 +1513,7 @@ const CoinPresolveAction
 	  }
 	}
       }
-      if (canFixThis) 
+      if (canFixThis>0) 
 	canFix[makeEqCnt++] = i ;
     }
   }
@@ -1561,7 +1561,7 @@ const CoinPresolveAction
   delete[] cbarmin ;
   delete[] cbarmax ;
 # endif
-#undef PRESOLVE_DEBUG
+  //#undef PRESOLVE_DEBUG
 # if COIN_PRESOLVE_TUNING > 0
   double thisTime = 0.0 ;
   if (prob->tuning_) thisTime = CoinCpuTime() ;
@@ -1613,10 +1613,11 @@ void remove_dual_action::postsolve (CoinPostsolveMatrix *prob) const
     << " bounds to restore." << std::endl ;
 # endif
   presolve_check_threads(prob) ;
+  presolve_check_duals(prob) ;
   presolve_check_sol(prob,2,2,2) ;
   presolve_check_nbasic(prob) ;
 # endif
-
+ 
 /*
   For each record, restore the row bounds. If we have status arrays, check
   the status of the logical and adjust if necessary.
@@ -1642,6 +1643,13 @@ void remove_dual_action::postsolve (CoinPostsolveMatrix *prob) const
     rlo[i] = rloi ;
     rup[i] = rupi ;
     if (rowstat) {
+      /*
+	It is possible that dual may be of wrong sign.  In that case the slack
+	should be basic.  BUT we can't find out which column to make non-basic
+	without a row copy.  Maybe one day we will keep a row copy ...
+	We could create a row copy if we see problems, but that may be too
+	much work.
+       */
       unsigned char stati = prob->getRowStatus(i) ;
       if (stati == CoinPresolveMatrix::atUpperBound) {
         if (rloi <= -PRESOLVE_INF) {
@@ -1680,6 +1688,7 @@ void remove_dual_action::postsolve (CoinPostsolveMatrix *prob) const
 
 # if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
   presolve_check_threads(prob) ;
+  presolve_check_duals(prob) ;
   presolve_check_sol(prob,2,2,2) ;
   presolve_check_nbasic(prob) ;
 # if PRESOLVE_DEBUG > 0

@@ -203,8 +203,12 @@ bool presolve_expand_major (CoinBigIndex *majstrts, double *els,
       kcex = kcsx + majlens[k] ;
       newkcsx = majstrts[lastcol]+majlens[lastcol] ;
       newkcex = newkcsx+majlens[k] ;
-      if (newkcex+1 >= bulkCap)
-      { return (true) ; } }
+    }
+    /*
+      It is possible (probably on very small problems) that
+      there is not room for two copies of modified column -
+      so allow temporary overflow
+    */
 /*
   Moving the vector requires three actions. First we move the data, then
   update the packed matrix vector start, then relink the storage order list,
@@ -215,7 +219,22 @@ bool presolve_expand_major (CoinBigIndex *majstrts, double *els,
 	   reinterpret_cast<void *>(&els[kcsx]),majlens[k]*sizeof(double)) ;
     majstrts[k] = newkcsx ;
     PRESOLVE_REMOVE_LINK(majlinks,k) ;
-    PRESOLVE_INSERT_LINK(majlinks,k,lastcol) ; }
+    PRESOLVE_INSERT_LINK(majlinks,k,lastcol) ;
+    if (newkcex+1 >= bulkCap) {
+      // compact - faking extra one
+      //majlens[k]++;
+      //majstrts[nmaj]=newkcex;
+      compact_rep(els,minndxs,majstrts,majlens,nmaj,majlinks) ;
+      //majlens[k]--;
+      //majstrts[nmaj]=bulkCap;
+      kcsx = majstrts[k] ;
+      kcex = kcsx + majlens[k] ;
+      if (kcex > bulkCap) {
+	// still no room
+	return (true) ;
+      }
+    }
+  } 
 /*
   Success --- the vector has room for one more coefficient.
 */

@@ -773,7 +773,8 @@ const CoinPresolveAction
   deleteAction(actions,action*) ;
 
 # if COIN_PRESOLVE_TUNING > 0
-  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+  double thisTime = 0.0;
+  if (prob->tuning_) thisTime = CoinCpuTime() ;
 # endif
 # if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
   presolve_check_sol(prob) ;
@@ -850,6 +851,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   char *rdone	= prob->rdone_ ;
 
   presolve_check_threads(prob) ;
+  presolve_check_duals(prob) ;
   presolve_check_sol(prob,2,2,2) ;
   presolve_check_nbasic(prob) ;
   presolve_check_reduced_costs(prob) ;
@@ -1464,6 +1466,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   delete [] element1 ;
 
 # if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+  presolve_check_duals(prob) ;
   presolve_check_sol(prob,2,2,2) ;
   presolve_check_nbasic(prob) ;
   presolve_check_reduced_costs(prob) ;

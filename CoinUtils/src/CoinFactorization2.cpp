@@ -458,6 +458,7 @@ CoinFactorization::factorSparseSmall (  )
 #if COIN_DENSE_MULTIPLIER>10
 	ratio=10000;
 #endif
+	//ratio *= 2.0;
         if ((ratio*leftElements>full&&leftRows>denseThreshold)) {
 #define COIN_ALIGN_DENSE 2
 #if COIN_ALIGN_DENSE == 2

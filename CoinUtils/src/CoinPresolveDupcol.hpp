@@ -152,15 +152,19 @@ class duprow3_action : public CoinPresolveAction {
 
 class gubrow_action : public CoinPresolveAction {
   struct action {
-    int row;
-    double lbound;
-    double ubound;
+    double rhs;
+    // last is row itself
+    int * deletedRow;
+    double * rowels;
+    int * indices; // indices in gub row
+    int nDrop;
+    int ninrow;
   };
 
   const int nactions_;
   const action *const actions_;
 
-  gubrow_action():CoinPresolveAction(NULL),nactions_(0),actions_(NULL) {}
+  //gubrow_action():CoinPresolveAction(NULL),nactions_(0),actions_(NULL) {}
   gubrow_action(int nactions,
 		      const action *actions,
 		      const CoinPresolveAction *next) :
@@ -175,7 +179,7 @@ class gubrow_action : public CoinPresolveAction {
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  //~gubrow_action() { delete[]actions_; }
+  virtual ~gubrow_action();
 };
 
 /*! \class twoxtwo_action

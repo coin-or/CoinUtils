@@ -447,7 +447,7 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
     std::cout
       << "reduced cost" << std::endl ;
     warned_rcosts = new double[ncols0] ;
-    CoinZeroN(warned_rcosts,ncols0) ; }
+    CoinFillN(warned_rcosts,ncols0,COIN_DBL_MAX) ; }
 
   double *colels = postObj->colels_ ;
   int *hrow = postObj->hrow_ ;
@@ -508,7 +508,12 @@ void presolve_check_reduced_costs (const CoinPostsolveMatrix *postObj)
           << "Inacc rcost: " << j << " " << statjstr << " "
 	  << strMaxmin << " have " << dj
 	  << " should be " << chkdj << " err " << fabs(dj-chkdj)
-	  << std::endl ; } }
+	  << std::endl ;
+	//#define FIX_INACC_POSTSOLVE
+#ifdef FIX_INACC_POSTSOLVE
+	rcosts[j] = chkdj;
+#endif
+      } }
 /*
   Check the stored reduced cost for consistency with the variable's status.
   The cases are
@@ -794,8 +799,13 @@ void presolve_check_sol (const CoinPresolveMatrix *preObj,
 		 i,li,evali,lhsi,ui) ; }
 	if (chkRowAct >= 2)
 	{ if (fabs(evali-lhsi) > tol)
-	  { printf("Inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
-		   i,li,evali,lhsi,ui) ; }
+	  { 
+	    printf("Inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+		   i,li,evali,lhsi,ui) ;
+#ifdef FIX_INACC_POSTSOLVE
+	    acts[i] = evali;
+#endif
+	  }
 	  if (evali < li-tol || lhsi < li-tol)
 	  { printf("low RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
 		   i,li,evali,lhsi,ui) ; }
@@ -956,8 +966,13 @@ void presolve_check_sol (const CoinPostsolveMatrix *postObj,
 	       i,li,evali,lhsi,ui) ; }
       if (chkRowAct >= 2)
       { if (fabs(evali-lhsi) > tol)
-	{ printf("Inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
-		 i,li,evali,lhsi,ui) ; }
+	{ 
+	  printf("Inacc RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
+		 i,li,evali,lhsi,ui) ;
+#ifdef FIX_INACC_POSTSOLVE
+	  acts[i] = evali;
+#endif
+	}
         if (evali < li-tol || lhsi < li-tol)
 	{ printf("low RSOL: %d : lb = %g eval = %g (expected %g) ub = %g\n",
 		 i,li,evali,lhsi,ui) ; }
@@ -1093,6 +1108,75 @@ void presolve_check_nbasic (const CoinPresolveMatrix *preObj)
     fflush(stdout) ; }
   return ; }
 
+static int * rowStartsP=NULL;
+static int * columnsP=NULL;
+static double * elementsP=NULL;
+static int maxSizeP=0;
+static int maxRowsP=0;
+void postsolve_get_rowcopy(const CoinPostsolveMatrix *postObj,
+			   int * & rowStart, int * & column, double * & element ) 
+{
+  const double *colels	= postObj->colels_;
+  const int *hrow		= postObj->hrow_;
+  const CoinBigIndex *mcstrt	= postObj->mcstrt_;
+  const int *hincol		= postObj->hincol_;
+  const int *link		= postObj->link_;
+  int numberColumns = postObj->ncols_;
+  int numberRows = postObj->nrows_;
+  assert(numberColumns == postObj->ncols0_);
+  assert(numberRows == postObj->nrows0_);
+  if (numberRows>maxRowsP) {
+    maxRowsP = 100+numberRows;
+    delete [] rowStartsP;
+    rowStartsP = new int [maxRowsP+1];
+  }
+  rowStart = rowStartsP;
+  memset(rowStart,0,numberRows*sizeof(CoinBigIndex));
+  for (int iColumn=0;iColumn<numberColumns;iColumn++) {
+    CoinBigIndex kcs = mcstrt[iColumn] ;
+    int n = hincol[iColumn] ;
+    for (int kcol = 0 ; kcol < n ; ++kcol) {
+      const int row = hrow[kcs] ;
+      //const double coeff = colels[kcs] ;
+      kcs = link[kcs] ;
+      rowStart[row]++;
+    }
+  }
+  CoinBigIndex numberElements=0;
+  for (int iRow=0;iRow<numberRows;iRow++) {
+    CoinBigIndex nel = rowStart[iRow];
+    rowStart[iRow]=numberElements;
+    numberElements += nel;
+  }
+  rowStart[numberRows]=numberElements;
+  if (numberElements>maxSizeP) {
+    maxSizeP=numberElements+1000;
+    delete [] columnsP;
+    delete [] elementsP;
+    columnsP = new int [maxSizeP];
+    elementsP = new double [maxSizeP];
+  }
+  column = columnsP;
+  element = elementsP;
+  for (int iColumn=0;iColumn<numberColumns;iColumn++) {
+    CoinBigIndex kcs = mcstrt[iColumn] ;
+    int n = hincol[iColumn] ;
+    for (int kcol = 0 ; kcol < n ; ++kcol) {
+      const int row = hrow[kcs] ;
+      const double coeff = colels[kcs] ;
+      CoinBigIndex put = rowStart[row];
+      element[put]=coeff;
+      column[put]=iColumn;
+      rowStart[row] = put+1;
+      kcs = link[kcs] ;
+    }
+  }
+  for (int iRow=numberRows;iRow>0;iRow--) {
+    rowStart[iRow]=rowStart[iRow-1];
+  }
+  rowStart[0]=0;
+}
+
 #endif
 /*
   Original comment: I've forgotton what this is all about
@@ -1158,5 +1242,4 @@ void check_pivots (const int *mrstrt, const int *hinrow, const int *hcol,
     }
   PRESOLVEASSERT(nbasic == nrows) ;
 }
-
 # endif

@@ -410,7 +410,7 @@ void CoinPresolveMatrix::initializeStuff ()
   usefulRowInt_ = new int [3*nrows_] ;
   usefulRowDouble_ = new double [2*nrows_] ;
   usefulColumnInt_ = new int [2*ncols_] ;
-  usefulColumnDouble_ = new double[ncols_] ;
+  usefulColumnDouble_ = new double[2*ncols_] ;
   int k = CoinMax(ncols_+1,nrows_+1) ;
   randomNumber_ = new double [k] ;
   coin_init_random_vec(randomNumber_,k) ;

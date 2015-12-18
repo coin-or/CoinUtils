@@ -161,6 +161,9 @@ void presolve_check_nbasic(const CoinPresolveMatrix *preObj) ;
 */
 void presolve_check_nbasic(const CoinPostsolveMatrix *postObj) ;
 
+/// get a row copy in postsolve
+void postsolve_get_rowcopy(const CoinPostsolveMatrix *postObj,
+			   int * & rowStarts, int * & columns, double * & elements ) ;
 //@}
 
 #endif
