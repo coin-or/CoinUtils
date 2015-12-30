@@ -1871,7 +1871,7 @@ gubrow_action::~gubrow_action()
   }
 
   // Must add cast to placate MS compiler
-  deleteAction(actions_,subst_constraint_action::action*) ;
+  deleteAction(actions_,gubrow_action::action*) ;
 }
 
 
