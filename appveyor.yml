@@ -6,7 +6,7 @@ environment:
   matrix:
     - MSYS2_ARCH: x86_64
 install:
-  - "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
+  - C:\"Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
   - appveyor DownloadFile "http://kent.dl.sourceforge.net/project/msys2/Base/%MSYS2_ARCH%/msys2-base-%MSYS2_ARCH%-%MSYS2_BASEVER%.tar.xz" -FileName "msys2.tar.xz"
   - 7z x msys2.tar.xz
   - 7z x msys2.tar > NUL
