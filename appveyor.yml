@@ -16,7 +16,6 @@ environment:
 install:
   - C:\"Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
   - C:\msys64\usr\bin\bash -lc ""
-  - C:\msys64\usr\bin\bash -lc "update-core"
   - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -Su"
   - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -y make wget tar patch dos2unix diffutils ca-certificates mingw-w64-i686-ca-certificates mingw-w64-x86_64-ca-certificates mingw-w64-i686-gcc mingw-w64-i686-gcc-fortran mingw-w64-x86_64-gcc mingw-w64-x86_64-gcc-fortran && break || sleep 15; done"
 
