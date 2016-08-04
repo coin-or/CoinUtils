@@ -371,11 +371,22 @@ CoinMessageHandler::internalPrint()
   }
   return returnCode;
 }
+#if FLUSH_PRINT_BUFFER >= 2
+extern int coinFlushBufferFlag;
+#endif
 // Print message, return 0 normally
 int 
 CoinMessageHandler::print() 
 {
   fprintf(fp_,"%s\n",messageBuffer_);
+#if FLUSH_PRINT_BUFFER
+#if FLUSH_PRINT_BUFFER < 2
+  fflush(fp_);
+#else
+  if (coinFlushBufferFlag)
+    fflush(fp_);
+#endif
+#endif
   return 0;
 }
 // Check severity
@@ -820,7 +831,7 @@ CoinMessageHandler::operator<< (double doublevalue)
 	  sprintf(messageOut_,g_format_,doublevalue);
 	  if (next != format_+2) {
 	    messageOut_+=strlen(messageOut_);
-	    sprintf(messageOut_,format_+2);
+	    sprintf(messageOut_,"%s",format_+2);
 	  }
 	}
 	messageOut_+=strlen(messageOut_);

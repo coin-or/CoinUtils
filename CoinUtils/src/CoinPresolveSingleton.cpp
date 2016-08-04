@@ -343,8 +343,8 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   delete[] actions ;
 
 # if COIN_PRESOLVE_TUNING > 0
-  double thisTime ;
-  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+  double thisTime = 0.0 ;
+  if (prob->tuning_) thisTime = CoinCpuTime() ;
 # endif
 # if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
   presolve_consistent(prob) ;

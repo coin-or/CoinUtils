@@ -7,6 +7,7 @@
 #define CoinModel_H
 
 #include "CoinModelUseful.hpp"
+#include "CoinMessageHandler.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinFinite.hpp"
 class CoinBaseModel {
@@ -81,6 +82,8 @@ public:
   /// Set column block name
   inline void setColumnBlock(const std::string &name) 
   { columnBlockName_ = name;}
+  /// Pass in message handler
+  void setMessageHandler(CoinMessageHandler * handler);
    //@}
   
 protected:
@@ -100,9 +103,15 @@ protected:
   std::string rowBlockName_;
   /// Columnblock name
   std::string columnBlockName_;
+  /// Message handler (Passed in)
+  CoinMessageHandler * handler_;
+  /// Messages 
+  CoinMessages messages_;
+  
   /** Print level.
       I could have gone for full message handling but this should normally
-      be silent and lightweight.  I can always change.
+      be silent and lightweight.
+      -1 - use passed in message handler
       0 - no output
       1 - on errors
       2 - more detailed

@@ -417,7 +417,9 @@ void operator/=(const CoinIndexedVector& op2);
    /** capacity returns the size which could be accomodated without
        having to reallocate storage.
    */
-   int capacity() const { return capacity_; }
+   inline int capacity() const { return capacity_; }
+   inline void setCapacity(int value)
+   { capacity_ = value; }
    /// Sets packed mode
    inline void setPackedMode(bool yesNo)
    { packedMode_=yesNo;}

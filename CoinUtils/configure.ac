@@ -217,6 +217,10 @@ if test "x$ac_cv_header_stdint_h" = xyes ; then
   AC_DEFINE([COINUTILS_HAS_STDINT_H], [1], [Define to 1 if stdint.h is available for CoinUtils])
 fi
 
+if test "x$ac_cv_header_cstdint" = xyes ; then
+  AC_DEFINE([COINUTILS_HAS_CSTDINT], [1], [Define to 1 if cstdint is available for CoinUtils])
+fi
+
 #############################################################################
 #                           Check whether we have windows.h                 #
 #############################################################################

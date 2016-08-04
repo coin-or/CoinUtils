@@ -613,6 +613,10 @@ const CoinPresolveAction
 	  << "  x(" << tgtcolx << ") lb " << clo[tgtcolx] << " --> " << lo2
 	  << ", ub " << cup[tgtcolx] << " --> " << up2 << std::endl ;
 #       endif
+	if (integerType[tgtcolx]) {
+	  lo2 = ceil(lo2-1.0e-7);
+	  up2 = floor(up2+1.0e-7);
+	}
 	clo[tgtcolx] = lo2 ;
 	cup[tgtcolx] = up2 ;
 /*
@@ -769,7 +773,8 @@ const CoinPresolveAction
   deleteAction(actions,action*) ;
 
 # if COIN_PRESOLVE_TUNING > 0
-  if (prob->tuning_) double thisTime = CoinCpuTime() ;
+  double thisTime = 0.0;
+  if (prob->tuning_) thisTime = CoinCpuTime() ;
 # endif
 # if PRESOLVE_CONSISTENCY > 0 || PRESOLVE_DEBUG > 0
   presolve_check_sol(prob) ;

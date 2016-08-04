@@ -1,4 +1,5 @@
 * text=auto !eol
+/.travis.yml -text
 /AUTHORS -text
 CoinUtils/INSTALL -text
 CoinUtils/LICENSE -text
@@ -42,6 +43,8 @@ CoinUtils/src/CoinOslFactorization2.cpp -text
 CoinUtils/src/CoinOslFactorization3.cpp -text
 CoinUtils/src/CoinPresolveMonitor.cpp -text
 CoinUtils/src/CoinPresolveMonitor.hpp -text
+CoinUtils/src/CoinRational.cpp -text
+CoinUtils/src/CoinRational.hpp -text
 CoinUtils/src/CoinSearchTree.cpp -text
 CoinUtils/src/CoinSearchTree.hpp -text
 CoinUtils/src/CoinSimpFactorization.cpp -text
@@ -66,6 +69,7 @@ CoinUtils/test/plan.mod -text
 /INSTALL -text
 /LICENSE -text
 /README -text
+/appveyor.yml -text
 /config.guess -text
 /config.sub -text
 /configure -text
