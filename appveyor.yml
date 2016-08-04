@@ -16,12 +16,13 @@ environment:
 install:
   - C:\"Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
   - C:\msys64\usr\bin\bash -lc ""
-  - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S make wget tar patch dos2unix diffutils ca-certificates mingw-w64-i686-ca-certificates mingw-w64-x86_64-ca-certificates mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain"
 
 build_script:
   - C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; git clone --branch=stable/0.8 https://github.com/coin-or-tools/BuildTools"
   - C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; BuildTools/get.dependencies.sh fetch --no-third-party"
   - C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; export PATH=$PATH:$ADD_PATH; BuildTools/get.dependencies.sh build --monolithic --build=x86_64-w64-mingw32 $HOST_ARCH_ARG; cd build/CoinUtils/test; make; ls -l; nm unitTest.exe; dumpbin -SUMMARY unitTest.exe"
-  - CALL %APPVEYOR_BUILD_FOLDER%\build\CoinUtils\test\unitTest.exe -mpsDir=%APPVEYOR_BUILD_FOLDER%\build\Data\Sample"
+  - set PATH=C:\msys64\usr\bin;C:\msys64\mingw32\bin;%PATH%
+  - cd %APPVEYOR_BUILD_FOLDER%\build\CoinUtils\test
+  - CALL .\unitTest.exe -mpsDir=..\..\Data\Sample"
 
 test: off
