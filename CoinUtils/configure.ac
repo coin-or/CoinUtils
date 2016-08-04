@@ -23,7 +23,7 @@ under the Eclipse Public License.])
 AC_CONFIG_SRCDIR(src/CoinError.cpp)
 
 # Do some initialization work (version numbers, change prefix default, ...)
-AC_COIN_PROJECTDIR_INITIALIZE(CoinUtils)
+AC_COIN_INITIALIZE(CoinUtils)
 
 #############################################################################
 #                         Standard build tool stuff                         #

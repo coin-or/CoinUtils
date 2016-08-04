@@ -694,7 +694,6 @@ CXXDEPMODE
 ac_ct_CXX
 CXXFLAGS
 CXX
-COIN_DESTDIR
 CPP
 LT_SYS_LIBRARY_PATH
 OTOOL64
@@ -8329,7 +8328,6 @@ done
 
 
 
-
 # Set the project's version numbers
 
 
@@ -12877,20 +12875,6 @@ CC=$lt_save_CC
 
 # Only expand once:
 
-
-
-
-# figure out whether there is a base directory up from here
-coin_base_directory=
-if test -e ../.coin_subdirs.txt ; then
-  coin_base_directory=`cd ..; pwd`
-elif test -e ../../.coin_subdirs.txt ; then
-  coin_base_directory=`cd ../..; pwd`
-fi
-
-if test "x$coin_base_directory" != x ; then
-  COIN_DESTDIR=$coin_base_directory/.coinstash
-fi
 
 
 
