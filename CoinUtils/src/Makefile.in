@@ -372,6 +372,7 @@ coin_doxy_tagfiles = @coin_doxy_tagfiles@
 coin_doxy_tagname = @coin_doxy_tagname@
 coin_doxy_usedot = @coin_doxy_usedot@
 coin_have_doxygen = @coin_have_doxygen@
+coin_have_latex = @coin_have_latex@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
