@@ -29,6 +29,7 @@ CoinUtils/configure -text
 CoinUtils/configure.ac -text
 CoinUtils/depcomp -text
 CoinUtils/doxydoc/doxygen.conf.in -text
+CoinUtils/get.dependencies.sh -text
 CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
 CoinUtils/missing -text
