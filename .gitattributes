@@ -70,11 +70,4 @@ CoinUtils/test/plan.mod -text
 /LICENSE -text
 /README -text
 /appveyor.yml -text
-/config.guess -text
-/config.sub -text
-/configure -text
-/configure.ac -text
-/depcomp -text
 doxydoc/doxygen.conf.in -text
-/install-sh -text
-/missing -text
