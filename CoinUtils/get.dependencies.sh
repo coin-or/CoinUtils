@@ -3,9 +3,18 @@
 # Author: Ted Ralphs (ted@lehigh.edu)
 # Copyright 2016, Ted Ralphs
 # Released Under the Eclipse Public License 
+#
+# TODO
+# - fix dependency-tracking or remove it from configure
+# - consider using pushd/popd instead of cd somewhere/cd ..
+# - look at TODO and FIXME below
 
 #Exit when command fails
 set -e
+
+# TODO consider using these options for safety
+#set -u
+#set -o pipefail
 
 # script debugging
 #set -x
@@ -172,7 +181,7 @@ if [ $num_actions == 0 ]; then
     echo "             --xxx=yyy (will be passed through to configure)"
     echo "             --monlithic do 'old style' monlithic build"
     echo "             --threads=n build in parallel with 'n' threads"
-    echo "             --build-dir=\dir\to\build\in do a VPATH build"
+    echo "             --build-dir=\dir\to\build\in do a VPATH build (default: $PWD/build)"
     echo "             --test run unit test of main project before install"
     echo "             --test-all run unit tests of all projects before install"
     echo "             --quiet suppress build output to stdout"

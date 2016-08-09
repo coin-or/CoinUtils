@@ -23,6 +23,7 @@ CoinUtils/MSVisualStudio/v9alt/libCoinUtils.vcproj -text
 CoinUtils/README -text
 CoinUtils/coinutils-uninstalled.pc.in -text
 CoinUtils/coinutils.pc.in -text
+CoinUtils/compile -text
 CoinUtils/config.guess -text
 CoinUtils/config.sub -text
 CoinUtils/configure -text
