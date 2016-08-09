@@ -23,7 +23,7 @@ under the Eclipse Public License.])
 AC_CONFIG_SRCDIR(configure.ac)
 
 # Do some generic initialization work.
-AC_COIN_BASEDIR_INITIALIZE(CoinUtils)
+AC_COIN_INITIALIZE(CoinUtils)
 
 #############################################################################
 #         Check which subprojects might need to be configured               #

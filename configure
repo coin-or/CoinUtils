@@ -657,7 +657,6 @@ coin_have_latex
 coin_have_doxygen
 subdirs
 COIN_SKIP_PROJECTS
-COIN_DESTDIR
 CPP
 LT_SYS_LIBRARY_PATH
 OTOOL64
@@ -7530,7 +7529,7 @@ fi
 done
 
 
-
+# required autoconf version
 
 
 # Set the project's version numbers
@@ -12083,10 +12082,6 @@ CC=$lt_save_CC
 
 
 
-COIN_DESTDIR=`pwd`/.coinstash
-
-
-
 #############################################################################
 #         Check which subprojects might need to be configured               #
 #############################################################################
@@ -12209,7 +12204,6 @@ fi
 
 if test "$coin_has_glpk" = yes ; then
   if test -r $srcdir/ThirdParty/Glpk/configure; then
-    coin_subdirs="$coin_subdirs ThirdParty/Glpk"
     subdirs="$subdirs ThirdParty/Glpk"
 
   fi
@@ -12347,7 +12341,6 @@ fi
 
 if test "$coin_has_blas" = yes ; then
   if test -r $srcdir/ThirdParty/Blas/configure; then
-    coin_subdirs="$coin_subdirs ThirdParty/Blas"
     subdirs="$subdirs ThirdParty/Blas"
 
   fi
@@ -12485,7 +12478,6 @@ fi
 
 if test "$coin_has_lapack" = yes ; then
   if test -r $srcdir/ThirdParty/Lapack/configure; then
-    coin_subdirs="$coin_subdirs ThirdParty/Lapack"
     subdirs="$subdirs ThirdParty/Lapack"
 
   fi
@@ -12599,7 +12591,6 @@ fi
 
 if test "$coin_has_sample" = yes ; then
   if test -r $srcdir/Data/Sample/configure; then
-    coin_subdirs="$coin_subdirs Data/Sample"
     subdirs="$subdirs Data/Sample"
 
   fi
@@ -12713,7 +12704,6 @@ fi
 
 if test "$coin_has_netlib" = yes ; then
   if test -r $srcdir/Data/Netlib/configure; then
-    coin_subdirs="$coin_subdirs Data/Netlib"
     subdirs="$subdirs Data/Netlib"
 
   fi
@@ -12823,7 +12813,6 @@ fi
 
 if test "$coin_has_coinutils" = yes ; then
   if test -r $srcdir/CoinUtils/configure; then
-    coin_subdirs="$coin_subdirs CoinUtils"
     subdirs="$subdirs CoinUtils"
 
   fi
@@ -13067,17 +13056,6 @@ ac_config_files="$ac_config_files doxydoc/doxygen.conf"
 
 
 # Finally, we let configure write all the output...
-
-# need to come before AC_OUTPUT
-if test "x$coin_subdirs" != x; then
-  # write coin_subdirs to a file so that project configuration knows where to find uninstalled projects
-  echo $coin_subdirs > .coin_subdirs.txt
-else
-  # substitute for OBJDIR, needed to setup .pc file for uninstalled project
-  #ABSBUILDDIR="`pwd`"
-  #AC_SUBST(ABSBUILDDIR)
-  :
-fi
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure

@@ -8331,6 +8331,7 @@ fi
 done
 
 
+# required autoconf version
 
 
 # Set the project's version numbers
@@ -21973,20 +21974,8 @@ fi
 
 
 
-# assemble pkg-config search path to find projects under base directory
+# assemble pkg-config search path
 COIN_PKG_CONFIG_PATH=
-if test "x$coin_base_directory" != x ; then
-  if test -f $coin_base_directory/.coin_subdirs.txt ; then
-    for i in `cat $coin_base_directory/.coin_subdirs.txt` ; do
-      if test -d $coin_base_directory/$i ; then
-        COIN_PKG_CONFIG_PATH="$coin_base_directory/$i:${COIN_PKG_CONFIG_PATH}"
-      fi
-      if test -d $coin_base_directory/$i/pkgconfig ; then
-        COIN_PKG_CONFIG_PATH="$coin_base_directory/$i/pkgconfig:${COIN_PKG_CONFIG_PATH}"
-      fi
-    done
-  fi
-fi
 
 
 
@@ -23712,7 +23701,7 @@ if test -n "$PKG_CONFIG" ; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $BLAS_VERSIONS" >&5
 $as_echo "yes: $BLAS_VERSIONS" >&6; }
 
-        BLAS_DATA=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --variable=datadir coinblas 2>/dev/null`
+        BLAS_DATA=`$PKG_CONFIG --variable=datadir coinblas 2>/dev/null`
 
         BLAS_PCREQUIRES="coinblas"
         # augment X_PCREQUIRES for each build target X in CoinUtilsLib
@@ -25096,7 +25085,7 @@ if test -n "$PKG_CONFIG" ; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $LAPACK_VERSIONS" >&5
 $as_echo "yes: $LAPACK_VERSIONS" >&6; }
 
-        LAPACK_DATA=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --variable=datadir coinlapack 2>/dev/null`
+        LAPACK_DATA=`$PKG_CONFIG --variable=datadir coinlapack 2>/dev/null`
 
         LAPACK_PCREQUIRES="coinlapack"
         # augment X_PCREQUIRES for each build target X in CoinUtilsLib
@@ -25316,7 +25305,7 @@ if test -n "$PKG_CONFIG" ; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $GLPK_VERSIONS" >&5
 $as_echo "yes: $GLPK_VERSIONS" >&6; }
 
-        GLPK_DATA=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --variable=datadir coinglpk 2>/dev/null`
+        GLPK_DATA=`$PKG_CONFIG --variable=datadir coinglpk 2>/dev/null`
 
         GLPK_PCREQUIRES="coinglpk"
         # augment X_PCREQUIRES for each build target X in CoinUtilsLib
@@ -25489,7 +25478,7 @@ if test -n "$PKG_CONFIG" ; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $SAMPLE_VERSIONS" >&5
 $as_echo "yes: $SAMPLE_VERSIONS" >&6; }
 
-        SAMPLE_DATA=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --variable=datadir coindatasample 2>/dev/null`
+        SAMPLE_DATA=`$PKG_CONFIG --variable=datadir coindatasample 2>/dev/null`
 
         SAMPLE_PCREQUIRES="coindatasample"
         # augment X_PCREQUIRES for each build target X in
@@ -25658,7 +25647,7 @@ if test -n "$PKG_CONFIG" ; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $NETLIB_VERSIONS" >&5
 $as_echo "yes: $NETLIB_VERSIONS" >&6; }
 
-        NETLIB_DATA=`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --variable=datadir coindatanetlib 2>/dev/null`
+        NETLIB_DATA=`$PKG_CONFIG --variable=datadir coindatanetlib 2>/dev/null`
 
         NETLIB_PCREQUIRES="coindatanetlib"
         # augment X_PCREQUIRES for each build target X in
@@ -26103,8 +26092,8 @@ export PKG_CONFIG_PATH
 
 
   if test -n "${COINUTILSLIB_PCREQUIRES}" ; then
-    COINUTILSLIB_CFLAGS="`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --cflags ${COINUTILSLIB_PCREQUIRES}` ${COINUTILSLIB_CFLAGS}"
-    COINUTILSLIB_LIBS="`$PKG_CONFIG --define-variable prefix=${COIN_DESTDIR}${prefix} --libs ${COINUTILSLIB_PCREQUIRES}` ${COINUTILSLIB_LIBS}"
+    COINUTILSLIB_CFLAGS="`$PKG_CONFIG --cflags ${COINUTILSLIB_PCREQUIRES}` ${COINUTILSLIB_CFLAGS}"
+    COINUTILSLIB_LIBS="`$PKG_CONFIG --libs ${COINUTILSLIB_PCREQUIRES}` ${COINUTILSLIB_LIBS}"
   fi
 
   if test 1 = 0 ; then  #change this test to enable a bit of debugging output
@@ -26368,17 +26357,6 @@ ac_config_links="$ac_config_links test/plan.mod:test/plan.mod"
 
 
 # Finally, we let configure write all the output...
-
-# need to come before AC_OUTPUT
-if test "x$coin_subdirs" != x; then
-  # write coin_subdirs to a file so that project configuration knows where to find uninstalled projects
-  echo $coin_subdirs > .coin_subdirs.txt
-else
-  # substitute for OBJDIR, needed to setup .pc file for uninstalled project
-  #ABSBUILDDIR="`pwd`"
-  #AC_SUBST(ABSBUILDDIR)
-  :
-fi
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure

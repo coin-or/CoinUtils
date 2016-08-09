@@ -230,7 +230,6 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COINUTILS_SVN_REV = @COINUTILS_SVN_REV@
-COIN_DESTDIR = @COIN_DESTDIR@
 COIN_SKIP_PROJECTS = @COIN_SKIP_PROJECTS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -1037,9 +1036,6 @@ uninstall-doc:
 @MAINTAINER_MODE_TRUE@	cp $< $@
 
 .PHONY: install-doc uninstall-doc update-externals
-
-all-recursive:
-	DESTDIR=@COIN_DESTDIR@ $(MAKE) install-recursive
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
