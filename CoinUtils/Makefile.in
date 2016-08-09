@@ -433,6 +433,22 @@ pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
 addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
 
+#install-data-hook:
+#	@$(mkdir_p) "$(addlibsdir)"
+#if COIN_HAS_PKGCONFIG
+#	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$(DESTDIR)$(pkgconfiglibdir) \
+#	"$(PKG_CONFIG)" --libs coinutils > $(addlibsdir)/coinutils_addlibs.txt
+#else
+#if COIN_CXX_IS_CL
+#	echo "-libpath:`$(CYGPATH_W) @abs_lib_dir@` libCoinUtils.lib @COINUTILSLIB_LIBS_INSTALLED@" > $(addlibsdir)/coinutils_addlibs.txt
+#else
+#	echo -L@abs_lib_dir@ -lCoinUtils @COINUTILSLIB_LIBS_INSTALLED@ > $(addlibsdir)/coinutils_addlibs.txt
+#endif
+#endif
+
+#uninstall-hook:
+#	rm -f $(addlibsdir)/coinutils_addlibs.txt
+
 ########################################################################
 #                         Maintainer Stuff                             #
 ########################################################################
@@ -939,9 +955,8 @@ ps: ps-recursive
 ps-am:
 
 uninstall-am: uninstall-local uninstall-pkgconfiglibDATA
-	@$(NORMAL_INSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
-.MAKE: $(am__recursive_targets) install-am install-strip uninstall-am
+
+.MAKE: $(am__recursive_targets) install-am install-strip
 
 .PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am \
 	am--refresh check check-am clean clean-cscope clean-generic \
@@ -959,8 +974,7 @@ uninstall-am: uninstall-local uninstall-pkgconfiglibDATA
 	installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-hook uninstall-local \
-	uninstall-pkgconfiglibDATA
+	uninstall-am uninstall-local uninstall-pkgconfiglibDATA
 
 .PRECIOUS: Makefile
 
@@ -974,7 +988,7 @@ test: all
 
 unitTest: test
 
-# Doxygen documentation
+# Doxygen documentation (TODO some of these are taken care of by Makemain.inc now)
 
 doxydoc:
 	doxygen doxydoc/doxygen.conf
@@ -993,22 +1007,6 @@ install-exec-local: install-doc
 uninstall-local: uninstall-doc
 
 .PHONY: test unitTest doxydoc
-
-#install-data-hook:
-#	@$(mkdir_p) "$(addlibsdir)"
-#if COIN_HAS_PKGCONFIG
-#	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$(DESTDIR)$(pkgconfiglibdir) \
-#	"$(PKG_CONFIG)" --libs coinutils > $(addlibsdir)/coinutils_addlibs.txt
-#else
-#if COIN_CXX_IS_CL
-#	echo "-libpath:`$(CYGPATH_W) @abs_lib_dir@` libCoinUtils.lib @COINUTILSLIB_LIBS_INSTALLED@" > $(addlibsdir)/coinutils_addlibs.txt
-#else
-#	echo -L@abs_lib_dir@ -lCoinUtils @COINUTILSLIB_LIBS_INSTALLED@ > $(addlibsdir)/coinutils_addlibs.txt
-#endif
-#endif
-
-uninstall-hook:
-	rm -f $(addlibsdir)/coinutils_addlibs.txt
 
 doxygen-docs: 
 	if test "$(COIN_HAS_DOXYGEN)" = TRUE; then \

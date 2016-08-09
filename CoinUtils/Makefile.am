@@ -39,7 +39,7 @@ test: all
 
 unitTest: test
 
-# Doxygen documentation
+# Doxygen documentation (TODO some of these are taken care of by Makemain.inc now)
 
 doxydoc:
 	doxygen doxydoc/doxygen.conf
@@ -81,8 +81,8 @@ addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
 #endif
 #endif
 
-uninstall-hook:
-	rm -f $(addlibsdir)/coinutils_addlibs.txt
+#uninstall-hook:
+#	rm -f $(addlibsdir)/coinutils_addlibs.txt
 
 ########################################################################
 #                         Maintainer Stuff                             #
