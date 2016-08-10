@@ -21286,7 +21286,6 @@ fi
 $as_echo "$ac_cv_lib_rt_clock_gettime" >&6; }
 if test "x$ac_cv_lib_rt_clock_gettime" = xyes; then :
   COINUTILSLIB_LIBS="-lrt $COINUTILSLIB_LIBS"
-                COINUTILSLIB_PCLIBS="-lrt $COINUTILSLIB_PCLIBS"
 else
   as_fn_error $? "--enable-coinutils-threads selected, but -lrt unavailable" "$LINENO" 5
 fi
@@ -21337,7 +21336,6 @@ fi
 $as_echo "$ac_cv_lib_pthread_pthread_create" >&6; }
 if test "x$ac_cv_lib_pthread_pthread_create" = xyes; then :
   COINUTILSLIB_LIBS="-lpthread $COINUTILSLIB_LIBS"
-                COINUTILSLIB_PCLIBS="-lpthread $COINUTILSLIB_PCLIBS"
 else
   as_fn_error $? "--enable-coinutils-threads selected, but -lpthreads unavailable" "$LINENO" 5
 fi

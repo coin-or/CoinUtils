@@ -67,12 +67,10 @@ if test "$enable_coinutils_threads" = yes; then
   # Define the preprocessor macro
   AC_DEFINE([COINUTILS_PTHREADS],[1],[Define to 1 if the thread aware version of CoinUtils should be compiled])
   AC_CHECK_LIB([rt],[clock_gettime],
-               [COINUTILSLIB_LIBS="-lrt $COINUTILSLIB_LIBS"
-                COINUTILSLIB_PCLIBS="-lrt $COINUTILSLIB_PCLIBS"],
+               [COINUTILSLIB_LIBS="-lrt $COINUTILSLIB_LIBS"],
                [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lrt unavailable])])
   AC_CHECK_LIB([pthread],[pthread_create],
-               [COINUTILSLIB_LIBS="-lpthread $COINUTILSLIB_LIBS"
-                COINUTILSLIB_PCLIBS="-lpthread $COINUTILSLIB_PCLIBS"],
+               [COINUTILSLIB_LIBS="-lpthread $COINUTILSLIB_LIBS"],
                [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lpthreads unavailable])])
 fi
 
