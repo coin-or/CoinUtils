@@ -1,6 +1,5 @@
 * text=auto !eol
 /.travis.yml -text
-/AUTHORS -text
 CoinUtils/Dependencies -text
 CoinUtils/INSTALL -text
 CoinUtils/LICENSE -text
@@ -67,7 +66,4 @@ CoinUtils/src/config_default.h -text
 CoinUtils/test/CoinLpIOTest.cpp -text
 CoinUtils/test/CoinMessageHandlerTest.cpp -text
 CoinUtils/test/plan.mod -text
-/INSTALL -text
-/LICENSE -text
-/README -text
 /appveyor.yml -text
