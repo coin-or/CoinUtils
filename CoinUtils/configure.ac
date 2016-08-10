@@ -264,7 +264,7 @@ AC_COIN_DOXYGEN
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  test/Makefile
-                 coinutils.pc coinutils-uninstalled.pc])
+                 coinutils.pc])
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Here put the location and name of the configuration header file

@@ -21,7 +21,6 @@ CoinUtils/MSVisualStudio/v9alt/coinutils.vsprops -text
 CoinUtils/MSVisualStudio/v9alt/genDefForCoinUtils.ps1 -text
 CoinUtils/MSVisualStudio/v9alt/libCoinUtils.vcproj -text
 CoinUtils/README -text
-CoinUtils/coinutils-uninstalled.pc.in -text
 CoinUtils/coinutils.pc.in -text
 CoinUtils/compile -text
 CoinUtils/config.guess -text
