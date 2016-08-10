@@ -8,6 +8,6 @@ Description: COIN-OR Utilities
 URL: https://projects.coin-or.org/CoinUtils
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lCoinUtils
-Libs.static: @COINUTILSLIB_LIBS@
+Libs.private: @COINUTILSLIB_LIBS@
 Cflags: -I${includedir}
-Requires: @COINUTILSLIB_PCREQUIRES@
+Requires.private: @COINUTILSLIB_PCREQUIRES@
