@@ -25,6 +25,7 @@ matrix:
 before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" != "10.9" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$OSX" != "10.9" ]]; then brew install gcc; fi
-  - bash cd CoinUtils && ./get.dependencies.sh fetch > /dev/null
+  - git clone https://github.com/coin-or-tools/BuildTools
+  - bash BuildTools/get.dependencies.sh fetch > /dev/null
 
-script: bash cd CoinUtils && ./get.dependencies.sh build --quiet --test 
+script: bash cd CoinUtils && ./get.dependencies.sh build --verbosity=1 --test 
