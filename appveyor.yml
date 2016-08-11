@@ -6,7 +6,7 @@ environment:
     MSYS2_BASEVER: 20150512
     MSYS2_ARCH: x86_64
   matrix:
-    - HOST_ARCH_ARG: "CC=cl CXX=cl F77=unavailable LD=lib --disable-silent-rules"
+    - HOST_ARCH_ARG: "CC=cl CXX=cl F77=unavailable --disable-silent-rules"
       ADD_PATH_BASH: /mingw64/bin
       ADD_PATH_CMD: C:\msys64\usr\bin
     - HOST_ARCH_ARG:
