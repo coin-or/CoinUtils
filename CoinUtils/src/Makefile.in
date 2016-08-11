@@ -501,9 +501,6 @@ libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
 # Here list all include flags, relative to this "srcdir" directory.
 AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
 
-# This line is necessary to allow VPATH compilation
-#DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
-
 ########################################################################
 #                Headers that need to be installed                     #
 ########################################################################

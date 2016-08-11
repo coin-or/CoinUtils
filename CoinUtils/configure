@@ -8450,7 +8450,7 @@ fi
 # initialize automake
 # - don't define PACKAGE or VERSION
 # - disable dist target
-# - enable more automake warnings (all except override)
+# - enable all automake warnings
 if test "`cd $srcdir && pwd`" != "`pwd`"; then
   # Use -I$(srcdir) only when $(srcdir) != ., so that make's output
   # is not polluted with repeated "-I."

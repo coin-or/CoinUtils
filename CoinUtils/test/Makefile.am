@@ -34,9 +34,6 @@ unitTest_LDADD = ../src/libCoinUtils.la
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
 AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src`
 
-# This line is necessary to allow VPATH compilation
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)` -I$(top_builddir)/src
-
 unittestflags =
 if COIN_HAS_SAMPLE
   unittestflags += -mpsDir=`$(CYGPATH_W) $(SAMPLE_DATA)`
