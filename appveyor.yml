@@ -12,7 +12,7 @@ environment:
     - HOST_ARCH_ARG: --host=i686-w64-mingw32
       ADD_PATH_BASH: /mingw32/bin
       ADD_PATH_CMD: C:\msys64\usr\bin;C:\msys64\mingw32\bin
-    - HOST_ARCH_ARG: --enable-msvc
+    - HOST_ARCH_ARG: "CC=cl CXX=cl"
       ADD_PATH_BASH: /mingw64/bin
       ADD_PATH_CMD: C:\msys64\usr\bin
 
