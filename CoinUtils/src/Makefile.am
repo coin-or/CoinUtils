@@ -104,7 +104,7 @@ libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
 AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
 
 # This line is necessary to allow VPATH compilation
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
+#DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
 
 ########################################################################
 #                Headers that need to be installed                     #

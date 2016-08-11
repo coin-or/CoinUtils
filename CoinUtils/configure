@@ -23767,10 +23767,6 @@ else
 fi
 
 
-
-      COINUTILSLIB_PCREQUIRES="coinblas $COINUTILSLIB_PCREQUIRES"
-
-
   else
     as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
     # TODO
@@ -25142,10 +25138,6 @@ else
 fi
 
 
-
-      COINUTILSLIB_PCREQUIRES="coinlapack $COINUTILSLIB_PCREQUIRES"
-
-
   else
     as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
     # TODO
@@ -25353,10 +25345,6 @@ else
 fi
 
 
-
-      COINUTILSLIB_PCREQUIRES="coinglpk $COINUTILSLIB_PCREQUIRES"
-
-
   else
     as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
     # TODO
@@ -25515,8 +25503,6 @@ else
 fi
 
 
-
-
   else
     as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
     # TODO
@@ -25673,8 +25659,6 @@ $as_echo "not given: $NETLIB_PKG_ERRORS" >&6; }
 else
   as_fn_error $? "\"Cannot check for existance of module Netlib without pkg-config\"" "$LINENO" 5
 fi
-
-
 
 
   else
