@@ -66,6 +66,20 @@ function invoke_make {
     fi
 }
 
+function get_project {
+    TMP_IFS=$IFS
+    unset IFS
+    for i in $coin_skip_projects
+    do
+	if [ $1 = $i ]; then
+	    IFS=$TMP_IFS
+	    return 1
+	fi
+    done
+    IFS=$TMP_IFS
+    return 0
+}
+
 # Parse arguments
 function parse_args {
     for arg in "$@"
@@ -182,6 +196,10 @@ function parse_args {
                 num_actions+=1
                 uninstall=true
                 ;;
+	    *)
+		echo "Unrecognized command...exiting"
+		exit 3
+		;;
         esac
     done
 }
@@ -196,8 +214,15 @@ function fetch {
     subdirs=
 
     # Build list of sources for dependencies
-    deps=`cat Dependencies | tr '\t' ' ' | tr -s ' '| cut -d ' ' -f 2-`
-
+    if [ -e Dependencies ]; then
+	deps=`cat Dependencies | tr '\t' ' ' | tr -s ' '| cut -d ' ' -f 2-`
+    elif [ -e $main_proj/Dependencies ]; then 
+	deps=`cat $main_proj/Dependencies | tr '\t' ' ' | tr -s ' '| cut -d ' ' -f 2-`
+    else
+	echo "Can't find dependencies file...exiting"
+	exit 3
+    fi
+	
     for url in $deps
     do
         if [ `echo $url | cut -d '/' -f 3` != "projects.coin-or.org" ]; then
@@ -207,15 +232,7 @@ function fetch {
             branch=`echo $url | tr '\t' ' ' | tr -s ' '| cut -d ' ' -f 2`
             dir=`echo $git_url | cut -d '/' -f 5`
             proj=`echo $git_url | cut -d "/" -f 5`
-            # Check whether we're supposed to skip this project
-            skip_proj=false
-            for i in $coin_skip_projects
-            do
-                if [ $proj = $i ]; then
-                    skip_proj=true
-                fi
-            done
-            if [ $skip_proj = "false" ]; then
+	    if get_project $proj; then
                 print_action "Clone $git_url branch $branch"
                 if [ ! -e $dir ]; then
                     git clone --branch=$branch $git_url
@@ -239,14 +256,7 @@ function fetch {
                     else
                         version=`echo $url | cut -d '/' -f 9`
                     fi
-                    skip_proj=false
-                    for i in $coin_skip_projects
-                    do
-                        if [ $tp_proj = $i ]; then
-                            skip_proj=true
-                        fi
-                    done
-                    if [ $skip_proj = "false" ]; then
+                    if get_project $tp_proj; then
                         mkdir -p ThirdParty
                         print_action "Checking out ThirdParty/$tp_proj"
                         svn co --non-interactive --trust-server-cert $url \
@@ -287,14 +297,7 @@ function fetch {
                         version=`echo $url | cut -d '/' -f 7`
                     fi
                 fi
-                skip_proj=false
-                for i in $coin_skip_projects
-                do
-                    if [ $proj = $i ]; then
-                        skip_proj=true
-                    fi
-                done
-                if [ $skip_proj = "false" ]; then
+                if get_project $proj; then
                     print_action "Checking out $proj"
                     svn co --non-interactive --trust-server-cert $url $proj
                     subdirs+="$proj "
@@ -322,14 +325,7 @@ function fetch {
                         branch=`echo $url | cut -d '/' -f 8-9`
                         version=`echo $url | cut -d '/' -f 9`
                     fi
-                    skip_proj=false
-                    for i in $coin_skip_projects
-                    do
-                        if [ $tp_proj = $i ]; then
-                            skip_proj=true
-                        fi
-                    done
-                    if [ $skip_proj = "false" ]; then
+                    if get_project $tp_proj; then
                         print_action "Getting ThirdParty/$tp_proj branch $branch"
                         if [ ! -e ThirdParty/$tp_proj ]; then
                             git clone --branch=$branch \
@@ -378,14 +374,7 @@ function fetch {
                         version=`echo $url | cut -d '/' -f 7`
                     fi
                 fi
-                skip_proj=false
-                for i in $coin_skip_projects
-                do
-                    if [ $proj = $i ]; then
-                        skip_proj=true
-                    fi
-                done
-                if [ $skip_proj = "false" ]; then
+                if get_project $proj; then
                     print_action "Getting $git_repo branch $branch"
                     if [ sparse = "true" ]; then
                         mkdir $proj
@@ -630,11 +619,17 @@ echo
 
 if [ -e configure.ac ]; then
     main_proj=`fgrep AC_INIT configure.ac | cut -d '[' -f 2 | cut -d ']' -f 1`
+elif git remote > /dev/null; then
+    main_proj=`git remote show origin | fgrep "Fetch URL" | xargs | cut -d " " -f 3 | cut -d "/" -f 5 | cut -d "." -f 1`
+elif svn info; then
+    main_proj=`svn info | fgrep "URL: https" | cut -d " " -f 2 | cut -d "/" -f 5`
 else
-    echo "Unable to find root configure script."
+    echo "Unable to figure out what project this is."
     echo "Please run script in root directory of checkout."
     exit 2
 fi
+
+print_action "Main project is $main_proj"
 
 parse_args "$@"
 
@@ -646,7 +641,7 @@ if [ x"$prefix" = x ]; then
     prefix=$build_dir
 fi
 
-if [ -e $build_dir/.config ]; then
+if [ -e $build_dir/.config ] && [ $build = "true" ]; then
     echo "Previous configuration options found."
     if [ x"$configure_options" != x ]; then
         echo "Options cannot be changed after initial configuration."
@@ -658,13 +653,15 @@ if [ -e $build_dir/.config ]; then
     fi
     configure_options=`cat $build_dir/.config`
 else
-    if [ x"$configure_options" != x ] && [ build = "false" ]; then
+    if [ x"$configure_options" != x ] && [ $build = "false" ]; then
         echo "Configuration options should be specified with build command"
         exit 3
     fi
-    echo "Caching configuration options..."
-    mkdir -p $build_dir
-    echo "$configure_options" > $build_dir/.config
+    if [ $build = "true" ]; then
+	echo "Caching configuration options..."
+	mkdir -p $build_dir
+	echo "$configure_options" > $build_dir/.config
+    fi
 fi
 
 # Help
