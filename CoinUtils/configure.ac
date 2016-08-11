@@ -33,10 +33,11 @@ AC_COIN_INITIALIZE(CoinUtils)
 AC_PROG_CXX
 
 # For the Blas/Lapack checks, we want to know how to link against Fortran
+# TODO the Blas/Lapack checks should then do this
 # Get the name of the Fortran compiler and appropriate compiler options
 AC_PROG_F77
 # Find out how to call Fortran from C and determine Fortran runtime libraries
-if test -n "$F77" ; then
+if test "$F77" != "unavailable" ; then
   AC_F77_WRAPPERS
   AC_F77_LIBRARY_LDFLAGS
 fi
