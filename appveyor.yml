@@ -6,15 +6,15 @@ environment:
     MSYS2_BASEVER: 20150512
     MSYS2_ARCH: x86_64
   matrix:
+    - HOST_ARCH_ARG: "CC=cl CXX=cl F77=unavailable"
+      ADD_PATH_BASH: /mingw64/bin
+      ADD_PATH_CMD: C:\msys64\usr\bin
     - HOST_ARCH_ARG: --host=x86_64-w64-mingw32
       ADD_PATH_BASH: /mingw64/bin
       ADD_PATH_CMD: C:\msys64\usr\bin;C:\msys64\mingw64\bin
     - HOST_ARCH_ARG: --host=i686-w64-mingw32
       ADD_PATH_BASH: /mingw32/bin
       ADD_PATH_CMD: C:\msys64\usr\bin;C:\msys64\mingw32\bin
-    - HOST_ARCH_ARG: "CC=cl CXX=cl"
-      ADD_PATH_BASH: /mingw64/bin
-      ADD_PATH_CMD: C:\msys64\usr\bin
 
 install:
   - C:\"Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
