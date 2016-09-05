@@ -37,7 +37,7 @@ AC_PROG_CXX
 # Get the name of the Fortran compiler and appropriate compiler options
 AC_PROG_F77
 # Find out how to call Fortran from C and determine Fortran runtime libraries
-if test "$F77" != "unavailable" ; then
+if test "${F77:-unavailable}" != "unavailable" ; then
   AC_F77_WRAPPERS
   AC_F77_LIBRARY_LDFLAGS
 fi
