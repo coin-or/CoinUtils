@@ -822,6 +822,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_msvc
 enable_silent_rules
 enable_maintainer_mode
 enable_static
@@ -1497,6 +1498,8 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-msvc           Allow only Intel/Microsoft compilers on
+                          MinGW/MSys/Cygwin.
   --enable-silent-rules   less verbose build output (undo: "make V=1")
   --disable-silent-rules  verbose build output (undo: "make V=0")
   --enable-maintainer-mode
@@ -3029,6 +3032,47 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 # Do some initialization work (version numbers, change prefix default, ...)
+
+  # Check whether --enable-msvc was given.
+if test "${enable_msvc+set}" = set; then :
+  enableval=$enable_msvc; enable_msvc=$enableval
+else
+  enable_msvc=no
+fi
+
+
+  if test "$enable_msvc" = yes; then
+    case $build in
+      *-cygwin* | *-mingw* | *-msys*) ;;
+      *) as_fn_error $? "--enable-msvc option makes sense only under Cygwin or MinGW or MSys" "$LINENO" 5 ;;
+    esac
+  fi
+
+
+# we want --enable-msvc setup and checked
+
+
+# this macro should run before the compiler checks (doesn't seem to be sufficient for CFLAGS)
+
+
+
+
+
+# change default compiler flags (TODO bring back --enable-debug)
+# - disable debugging (remove -g, set -DNDEBUG)
+# - enable exceptions for (i)cl
+if test "$enable_msvc" = yes ; then
+  : ${FFLAGS:=""}
+  : ${FCFLAGS:=""}
+  : ${CFLAGS:="-DNDEBUG -EHsc"}
+  : ${CXXFLAGS:="-DNDEBUG -EHsc"}
+else
+  : ${FFLAGS:=""}
+  : ${FCFLAGS:=""}
+  : ${CFLAGS:="-DNDEBUG"}
+  : ${CXXFLAGS:="-DNDEBUG"}
+fi
+
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
   if test -f "$ac_dir/install-sh"; then
@@ -8444,6 +8488,9 @@ fi
 # /usr/local.
 
 
+# change default compiler flags; this needs to run very early (before AC_CANONICAL_BUILD)
+
+
 # Get the system type
 
 
@@ -12927,14 +12974,6 @@ CC=$lt_save_CC
 
 # create libtool
 
-
-# change default compiler flags (should we have an enable-debug again?)
-# - some compilers doesn't understand -g
-# - set -DNDEBUG for C/C++ code
-: ${FFLAGS:=""}
-: ${FCFLAGS:=""}
-: ${CFLAGS:="-DNDEBUG"}
-: ${CXXFLAGS:="-DNDEBUG"}
 
 
 #############################################################################
