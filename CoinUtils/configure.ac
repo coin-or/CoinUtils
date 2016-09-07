@@ -30,17 +30,20 @@ AC_COIN_INITIALIZE(CoinUtils)
 #############################################################################
 
 # Get the name of the C++ compiler and appropriate compiler options
-AC_PROG_CXX
+AC_COIN_PROG_CXX
 
 # For the Blas/Lapack checks, we want to know how to link against Fortran
 # TODO the Blas/Lapack checks should then do this
 # Get the name of the Fortran compiler and appropriate compiler options
-AC_PROG_F77
+AC_COIN_PROG_F77
 # Find out how to call Fortran from C and determine Fortran runtime libraries
 if test "${F77:-unavailable}" != "unavailable" ; then
   AC_F77_WRAPPERS
   AC_F77_LIBRARY_LDFLAGS
 fi
+
+# Initialize libtool
+AC_COIN_PROG_LIBTOOL
 
 ############################################################################
 #                   Stuff that we need for finite and isnan                #
