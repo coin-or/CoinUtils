@@ -3067,6 +3067,8 @@ if test "$enable_msvc" = yes ; then
   : ${FCFLAGS:=""}
   : ${CFLAGS:="-DNDEBUG -nologo"}
   : ${CXXFLAGS:="-DNDEBUG -EHsc -nologo"}
+  : ${AR:="lib"}
+  : ${AR_FLAGS:="-nologo -out:"}
 else
   : ${FFLAGS:=""}
   : ${FCFLAGS:=""}
@@ -20844,6 +20846,15 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 # create libtool
 
 
+# setup patch-up for libtool (need to be run after config.status created libtool)
+case "$AR" in
+  *lib* | *LIB* )
+     ac_config_commands="$ac_config_commands libtoolpatch"
+
+	 ;;
+esac
+
+
 
 ############################################################################
 #                   Stuff that we need for finite and isnan                #
@@ -27627,6 +27638,7 @@ do
   case $ac_config_target in
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
+    "libtoolpatch") CONFIG_COMMANDS="$CONFIG_COMMANDS libtoolpatch" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "test/Makefile") CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
@@ -29218,6 +29230,12 @@ compiler_lib_search_path=$lt_compiler_lib_search_path_F77
 _LT_EOF
 
  ;;
+    "libtoolpatch":C)
+       # eliminate space after AR_FLAGS
+       sed -e 's|AR_FLAGS |AR_FLAGS|g' libtool > libtool.tmp
+       mv libtool.tmp libtool
+       chmod 755 libtool
+	  ;;
 
   esac
 done # for ac_tag
