@@ -23762,7 +23762,7 @@ if test $coin_has_blas = notGiven; then
     # let pkg-config do it's magic
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "coinblas"; then
+  if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "coinblas"; then
     BLAS_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "coinblas" 2>/dev/null | tr '\n' ' '`
      coin_has_blas=yes
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $BLAS_VERSIONS" >&5
@@ -25133,7 +25133,7 @@ if test $coin_has_lapack = notGiven; then
     # let pkg-config do it's magic
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "coinlapack"; then
+  if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "coinlapack"; then
     LAPACK_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "coinlapack" 2>/dev/null | tr '\n' ' '`
      coin_has_lapack=yes
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $LAPACK_VERSIONS" >&5
@@ -25340,7 +25340,7 @@ if test $coin_has_glpk = notGiven; then
     # let pkg-config do it's magic
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "coinglpk"; then
+  if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "coinglpk"; then
     GLPK_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "coinglpk" 2>/dev/null | tr '\n' ' '`
      coin_has_glpk=yes
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $GLPK_VERSIONS" >&5
@@ -25500,7 +25500,7 @@ if test $coin_has_sample = notGiven; then
     # let pkg-config do it's magic
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "coindatasample"; then
+  if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "coindatasample"; then
     SAMPLE_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "coindatasample" 2>/dev/null | tr '\n' ' '`
      coin_has_sample=yes
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $SAMPLE_VERSIONS" >&5
@@ -25658,7 +25658,7 @@ if test $coin_has_netlib = notGiven; then
     # let pkg-config do it's magic
 
 if test -n "$PKG_CONFIG" ; then
-  if $PKG_CONFIG --exists "coindatanetlib"; then
+  if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "coindatanetlib"; then
     NETLIB_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "coindatanetlib" 2>/dev/null | tr '\n' ' '`
      coin_has_netlib=yes
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $NETLIB_VERSIONS" >&5

@@ -50,7 +50,7 @@ func_file_conv ()
       if test -z "$file_conv"; then
 	# lazily determine how to convert abs files
 	case `uname -s` in
-	  MINGW*)
+	  MINGW* | MSYS* )
 	    file_conv=mingw
 	    ;;
 	  CYGWIN*)
