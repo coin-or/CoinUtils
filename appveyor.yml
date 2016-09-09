@@ -1,15 +1,15 @@
 platform:
   - x64
 
-init:
-  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#init:
+#  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 environment:
   global:
     MSYS2_BASEVER: 20150512
     MSYS2_ARCH: x86_64
   matrix:
-    - HOST_ARCH_ARG: "CC=cl CXX=cl F77=unavailable LD=link --disable-silent-rules"
+    - HOST_ARCH_ARG: "--enable-msvc"
       ADD_PATH_BASH: /mingw64/bin
       ADD_PATH_CMD: C:\msys64\usr\bin
     - HOST_ARCH_ARG:
