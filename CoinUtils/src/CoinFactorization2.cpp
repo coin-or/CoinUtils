@@ -442,15 +442,19 @@ CoinFactorization::factorSparseSmall (  )
         //if (leftRows==100)
         //printf("at 100 %d elements\n",totalElements_);
         double ratio;
-#define COIN_DENSE_MULTIPLIER 1
+#define COIN_DENSE_MULTIPLIER 1.0
+#ifndef COIN_DENSE_MULTIPLIER
+#define COIN_DENSE_MULTIPLIER 1.0
+#endif
+#define COIN_DENSE_MULTIPLIER2 1
         if (leftRows>2000) {
           ratio=4.0;
-#if COIN_DENSE_MULTIPLIER == 1
+#if COIN_DENSE_MULTIPLIER2 == 1
 	  ratio =3.5;
 #endif
         } else if (leftRows>800) {
           ratio=3.0;
-#if COIN_DENSE_MULTIPLIER == 1
+#if COIN_DENSE_MULTIPLIER2 == 1
 	  ratio =2.75;
 #endif
         } else if (leftRows>256) {
@@ -458,9 +462,10 @@ CoinFactorization::factorSparseSmall (  )
         } else {
           ratio=1.5;
 	}
-#if COIN_DENSE_MULTIPLIER>10
+#if COIN_DENSE_MULTIPLIER2>10
 	ratio=10000;
 #endif
+	ratio *= COIN_DENSE_MULTIPLIER;
         if ((ratio*leftElements>full&&leftRows>denseThreshold)) {
 #define COIN_ALIGN_DENSE 2
 #if COIN_ALIGN_DENSE == 2
@@ -1428,12 +1433,12 @@ CoinFactorization::factorSparseLarge (  )
         double ratio;
         if (leftRows>2000) {
           ratio=4.0;
-#if COIN_DENSE_MULTIPLIER == 1
+#if COIN_DENSE_MULTIPLIER2 == 1
 	  ratio =3.5;
 #endif
         } else if (leftRows>800) {
           ratio=3.0;
-#if COIN_DENSE_MULTIPLIER == 1
+#if COIN_DENSE_MULTIPLIER2 == 1
 	  ratio =2.75;
 #endif
         } else if (leftRows>256) {
@@ -1441,9 +1446,10 @@ CoinFactorization::factorSparseLarge (  )
         } else {
           ratio=1.5;
 	}
-#if COIN_DENSE_MULTIPLIER>10
+#if COIN_DENSE_MULTIPLIER2>10
 	ratio=10000;
 #endif
+	ratio *= COIN_DENSE_MULTIPLIER;
         if ((ratio*leftElements>full&&leftRows>denseThreshold)) {
 #if COIN_ALIGN_DENSE == 2
 	  if ((leftRows&7)==0) {

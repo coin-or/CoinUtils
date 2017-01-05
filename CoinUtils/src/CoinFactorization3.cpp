@@ -406,7 +406,13 @@ CoinFactorization::updateColumnLSparsish ( CoinIndexedVector * regionSparse,
 #endif
   // mark known to be zero
   int nInBig = sizeof(CoinBigIndex)/sizeof(int);
-  CoinCheckZero * COIN_RESTRICT mark = reinterpret_cast<CoinCheckZero *> (sparse_.array()+(2+nInBig)*maximumRowsExtra_);
+#if ABOCA_LITE_FACTORIZATION==0
+#define sparseOffset 0
+#else
+  int sparseOffset = ((regionSparse->capacity()&0x80000000)!=0) ? sparseOffset_ : 0; 
+  assert (!sparseOffset);
+#endif
+  CoinCheckZero * COIN_RESTRICT mark = reinterpret_cast<CoinCheckZero *> (sparse_.array()+(2+nInBig)*maximumRowsExtra_+sparseOffset);
   int smallestIndex = numberRowsExtra_;
   // do easy ones
   for (int k=0;k<number;k++) {
@@ -543,7 +549,13 @@ CoinFactorization::updateColumnLSparse ( CoinIndexedVector * regionSparse ,
   const CoinFactorizationDouble *element = elementL_.array();
   // use sparse_ as temporary area
   // mark known to be zero
-  int * COIN_RESTRICT stack = sparse_.array();  /* pivot */
+#if ABOCA_LITE_FACTORIZATION==0
+#define sparseOffset 0
+#else
+  int sparseOffset = ((regionSparse->capacity()&0x80000000)!=0) ? sparseOffset_ : 0; 
+  assert (!sparseOffset);
+#endif
+  int * COIN_RESTRICT stack = sparse_.array()+sparseOffset;  /* pivot */
   int * COIN_RESTRICT list = stack + maximumRowsExtra_;  /* final list */
   CoinBigIndex * COIN_RESTRICT next = reinterpret_cast<CoinBigIndex *> (list + maximumRowsExtra_);  /* jnext */
   char * COIN_RESTRICT mark = reinterpret_cast<char *> (next + maximumRowsExtra_);
@@ -1193,7 +1205,13 @@ CoinFactorization::updateColumnUSparse ( CoinIndexedVector * regionSparse,
   const CoinFactorizationDouble *pivotRegion = pivotRegion_.array();
   // use sparse_ as temporary area
   // mark known to be zero
-  int * COIN_RESTRICT stack = sparse_.array();  /* pivot */
+#if ABOCA_LITE_FACTORIZATION==0
+#define sparseOffset 0
+#else
+  int sparseOffset = ((regionSparse->capacity()&0x80000000)!=0) ? sparseOffset_ : 0; 
+  assert (!sparseOffset);
+#endif
+  int * COIN_RESTRICT stack = sparse_.array()+sparseOffset;  /* pivot */
   int * COIN_RESTRICT list = stack + maximumRowsExtra_;  /* final list */
   CoinBigIndex * COIN_RESTRICT next = reinterpret_cast<CoinBigIndex *> (list + maximumRowsExtra_);  /* jnext */
   char * COIN_RESTRICT mark = reinterpret_cast<char *> (next + maximumRowsExtra_);
@@ -1353,7 +1371,13 @@ CoinFactorization::updateColumnUSparsish ( CoinIndexedVector * regionSparse,
 {
   int * COIN_RESTRICT regionIndex = regionSparse->getIndices (  );
   // mark known to be zero
-  int * COIN_RESTRICT stack = sparse_.array();  /* pivot */
+#if ABOCA_LITE_FACTORIZATION==0
+#define sparseOffset 0
+#else
+  int sparseOffset = ((regionSparse->capacity()&0x80000000)!=0) ? sparseOffset_ : 0; 
+  assert (!sparseOffset);
+#endif
+  int * COIN_RESTRICT stack = sparse_.array()+sparseOffset;  /* pivot */
   int * COIN_RESTRICT list = stack + maximumRowsExtra_;  /* final list */
   CoinBigIndex * COIN_RESTRICT next = reinterpret_cast<CoinBigIndex *> (list + maximumRowsExtra_);  /* jnext */
   CoinCheckZero * COIN_RESTRICT mark = reinterpret_cast<CoinCheckZero *> (next + maximumRowsExtra_);
@@ -1668,7 +1692,13 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
     {
       // use sparse_ as temporary area
       // mark known to be zero
-      int * COIN_RESTRICT stack = sparse_.array();  /* pivot */
+#if ABOCA_LITE_FACTORIZATION==0
+#define sparseOffset 0
+#else
+  int sparseOffset = ((regionSparse->capacity()&0x80000000)!=0) ? sparseOffset_ : 0; 
+  assert (!sparseOffset);
+#endif
+      int * COIN_RESTRICT stack = sparse_.array()+sparseOffset;  /* pivot */
       int * COIN_RESTRICT list = stack + maximumRowsExtra_;  /* final list */
       CoinBigIndex * COIN_RESTRICT next = (CoinBigIndex *) (list + maximumRowsExtra_);  /* jnext */
       char * COIN_RESTRICT mark = (char *) (next + maximumRowsExtra_);
@@ -1767,7 +1797,13 @@ CoinFactorization::updateColumnR ( CoinIndexedVector * regionSparse ) const
       
       // use sparse_ as temporary area
       // mark known to be zero
-      int * COIN_RESTRICT stack = sparse_.array();  /* pivot */
+#if ABOCA_LITE_FACTORIZATION==0
+#define sparseOffset 0
+#else
+  int sparseOffset = ((regionSparse->capacity()&0x80000000)!=0) ? sparseOffset_ : 0; 
+  assert (!sparseOffset);
+#endif
+      int * COIN_RESTRICT stack = sparse_.array()+sparseOffset;  /* pivot */
       int * COIN_RESTRICT list = stack + maximumRowsExtra_;  /* final list */
       CoinBigIndex * COIN_RESTRICT next = reinterpret_cast<CoinBigIndex *> (list + maximumRowsExtra_);  /* jnext */
       char * COIN_RESTRICT mark = reinterpret_cast<char *> (next + maximumRowsExtra_);
@@ -1983,7 +2019,13 @@ CoinFactorization::updateColumnRFT ( CoinIndexedVector * regionSparse,
       {
 	// use sparse_ as temporary area
 	// mark known to be zero
-	int * COIN_RESTRICT stack = sparse_.array();  /* pivot */
+#if ABOCA_LITE_FACTORIZATION==0
+#define sparseOffset 0
+#else
+	int sparseOffset = ((regionSparse->capacity()&0x80000000)!=0) ? sparseOffset_ : 0; 
+	assert (!sparseOffset);
+#endif
+	int * COIN_RESTRICT stack = sparse_.array()+sparseOffset;  /* pivot */
 	int * COIN_RESTRICT list = stack + maximumRowsExtra_;  /* final list */
 	CoinBigIndex * COIN_RESTRICT next = reinterpret_cast<CoinBigIndex *> (list + maximumRowsExtra_);  /* jnext */
 	char * COIN_RESTRICT mark = reinterpret_cast<char *> (next + maximumRowsExtra_);

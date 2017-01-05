@@ -11,6 +11,7 @@
  */
 #ifndef CoinFactorization_H
 #define CoinFactorization_H
+#define EXTRA_U_SPACE 4
 //#define COIN_ONE_ETA_COPY 100
 
 #include <iostream>
@@ -482,6 +483,14 @@ public:
   /// Makes a non-singular basis by replacing variables
   void makeNonSingular(int *  COIN_RESTRICT sequence);
 #endif
+#if ABOCA_LITE_FACTORIZATION
+  /// Does btranU part of replaceColumn (skipping entries)
+  void replaceColumn1(CoinIndexedVector * regionSparse, int pivotRow);
+  /// Does replaceColumn - having already done btranU
+  int replaceColumn2 ( CoinIndexedVector * regionSparse,
+		      int pivotRow,
+		       double pivotCheck);
+#endif
   //@}
 
   /**@name various uses of factorization (return code number elements) 
@@ -515,6 +524,16 @@ public:
   */
   int updateColumnTranspose ( CoinIndexedVector * regionSparse,
 			      CoinIndexedVector * regionSparse2) const;
+  /// Part of twocolumnsTranspose
+  void updateOneColumnTranspose ( CoinIndexedVector * regionWork,int & statistics) const;
+  /** Updates two columns (BTRAN) from regionSparse2 and 3
+      regionSparse starts as zero and is zero at end 
+      Note - if regionSparse2 packed on input - will be packed on output - same for 3
+  */
+  void updateTwoColumnsTranspose ( CoinIndexedVector * regionSparse,
+				  CoinIndexedVector * regionSparse2,
+				   CoinIndexedVector * regionSparse3,
+				   int type) const;
   /** makes a row copy of L for speed and to allow very sparse problems */
   void goSparse();
   /**  get sparse threshold */
@@ -1551,6 +1570,10 @@ protected:
 
   /// Sparse regions
   mutable CoinIntArrayWithLength sparse_;
+#if ABOCA_LITE_FACTORIZATION
+  /// Offset to second version of sparse
+  int sparseOffset_;
+#endif
   /** L to U bias
       0 - U bias, 1 - some U bias, 2 some L bias, 3 L bias
   */

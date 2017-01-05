@@ -637,15 +637,16 @@ CoinFactorization::getAreas ( int numberOfRows,
     lengthAreaU_ =  static_cast<CoinBigIndex> (areaFactor_*lengthAreaU_);
     lengthAreaL_ =  static_cast<CoinBigIndex> (areaFactor_*lengthAreaL_);
   }
-  elementU_.conditionalNew( lengthAreaU_ );
-  indexRowU_.conditionalNew( lengthAreaU_ );
-  indexColumnU_.conditionalNew( lengthAreaU_ );
+  int lengthU = lengthAreaU_+EXTRA_U_SPACE;
+  elementU_.conditionalNew( lengthU );
+  indexRowU_.conditionalNew( lengthU );
+  indexColumnU_.conditionalNew( lengthU );
   elementL_.conditionalNew( lengthAreaL_ );
   indexRowL_.conditionalNew( lengthAreaL_ );
   if (persistenceFlag_) {
     // But we can use all we have if bigger
     int length;
-    length = CoinMin(elementU_.getSize(),indexRowU_.getSize());
+    length = CoinMin(elementU_.getSize(),indexRowU_.getSize())-lengthU;
     if (length>lengthAreaU_) {
       lengthAreaU_=length;
       assert (indexColumnU_.getSize()==indexRowU_.getSize());
@@ -1968,7 +1969,8 @@ CoinFactorization::cleanup (  )
   if (numberRows_>=COIN_ONE_ETA_COPY) {
 #endif
     //space for cross reference
-    convertRowToColumnU_.conditionalNew( lengthAreaU_ );
+    int lengthU = lengthAreaU_+EXTRA_U_SPACE;
+    convertRowToColumnU_.conditionalNew( lengthU );
     CoinBigIndex *convertRowToColumn = convertRowToColumnU_.array();
     CoinBigIndex j = 0;
     CoinBigIndex *startRow = startRowU_.array();
