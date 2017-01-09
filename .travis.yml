@@ -2,6 +2,12 @@ language: cpp
 
 matrix:
   include:
+    - os: linux
+      addons:
+        apt:
+          packages:
+          - gfortran
+    - os: osx
       osx_image: xcode8.2
       env: OSX=10.12
       compiler: clang
@@ -13,11 +19,6 @@ matrix:
       osx_image: xcode6.4
       env: OSX=10.10
       compiler: clang
-    - os: linux
-      addons:
-        apt:
-          packages:
-          - gfortran
   allow_failures:
     - os: osx
 
