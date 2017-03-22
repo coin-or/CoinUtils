@@ -143,6 +143,8 @@ public:
    void clear();
    /// Reset the vector (as if were just created an empty vector)
    void empty();
+   /// Clear even if in a bad way
+   void reallyClear();
    /** Assignment operator. */
    CoinIndexedVector & operator=(const CoinIndexedVector &);
 #ifndef CLP_NO_VECTOR
@@ -1161,4 +1163,13 @@ protected:
   int numberPartitions_;
    //@}
 };
+inline double * roundUpDouble(double * address) {
+  // align on 64 byte boundary
+  CoinInt64 xx = reinterpret_cast<CoinInt64>(address);
+  int iBottom = static_cast<int>(xx & 63);
+  if (iBottom)
+    return address + ((64-iBottom)>>3);
+  else
+    return address;
+}
 #endif
