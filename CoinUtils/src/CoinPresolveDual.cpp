@@ -691,6 +691,8 @@ const CoinPresolveAction
   This is a column singleton. Why are we doing this? It's not like changes
   to other y will affect this.
 */
+	    /* In fact a bug as ymax/min changed */
+#if 0
 	    for (CoinBigIndex k = kcs; k < kce; k++) {
 	      const int i = hrow[k] ;
 	      const double aij = colels[k] ;
@@ -716,6 +718,7 @@ const CoinPresolveAction
 		tightened++ ;
 	      }
 	    }
+#endif
 	  }
 	}   // end u<j> = infty
 #       if PROCESS_INFINITE_LB
