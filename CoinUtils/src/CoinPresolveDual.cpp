@@ -1519,7 +1519,7 @@ const CoinPresolveAction
 	  }
 	}
       }
-      if (canFixThis>0) 
+      if (canFixThis) 
 	canFix[makeEqCnt++] = i ;
     }
   }
