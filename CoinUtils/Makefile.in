@@ -106,8 +106,8 @@ build_triplet = @build@
 host_triplet = @host@
 
 # We don't want to compile the test subdirectory, unless the test target is
-# specified.  But we need to list it as subdirectory to make sure that it is
-# included in the tarball
+# specified. But we need to list it as a subdirectory to make sure that it
+# is included in the tarball
 @ALWAYS_FALSE@am__append_1 = test
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -384,47 +384,13 @@ pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
 addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
 
-#install-data-hook:
-#	@$(mkdir_p) "$(addlibsdir)"
-#if COIN_HAS_PKGCONFIG
-#	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$(DESTDIR)$(pkgconfiglibdir) \
-#	"$(PKG_CONFIG)" --libs coinutils > $(addlibsdir)/coinutils_addlibs.txt
-#else
-#if COIN_CXX_IS_CL
-#	echo "-libpath:`$(CYGPATH_W) @abs_lib_dir@` libCoinUtils.lib @COINUTILSLIB_LIBS_INSTALLED@" > $(addlibsdir)/coinutils_addlibs.txt
-#else
-#	echo -L@abs_lib_dir@ -lCoinUtils @COINUTILSLIB_LIBS_INSTALLED@ > $(addlibsdir)/coinutils_addlibs.txt
-#endif
-#endif
-
-#uninstall-hook:
-#	rm -f $(addlibsdir)/coinutils_addlibs.txt
-
 ########################################################################
 #                         Maintainer Stuff                             #
 ########################################################################
 CLEANFILES = 
 
 # Files that are generated and should be cleaned with make distclean
-
-# Take care of updating externals (if Dependencies file exists)
-#if HAVE_EXTERNALS
-#$(top_builddir)/Makefile: .Dependencies-stamp
-#
-#.Dependencies-stamp: $(srcdir)/Dependencies
-#	cd $(srcdir); BuildTools/set_externals Dependencies
-#	touch .Dependencies-stamp
-#
-#update-externals: .Dependencies-stamp
-#	cd $(srcdir); svn update
-#
-#endif
-
-#if HAVE_EXTERNALS
-#EXTRA_DIST += Dependencies
-#DISTCLEANFILES += .Dependencies-stamp
-#endif
-DISTCLEANFILES = $(VPATH_DISTCLEANFILES)
+DISTCLEANFILES = 
 DocFiles = README AUTHORS LICENSE
 DocInstallDir = $(datadir)/coin/doc/$(PACKAGE_NAME)
 COIN_HAS_DOXYGEN = @COIN_HAS_DOXYGEN_TRUE@TRUE
@@ -746,15 +712,7 @@ test: all
 
 unitTest: test
 
-# Doxygen documentation (TODO some of these are taken care of by Makemain.inc now)
-
-doxydoc:
-	doxygen doxydoc/doxygen.conf
-
-clean-doxydoc:
-	( cd doxydoc ; rm -rf html *.log *.tag )
-
-clean-local: clean-doxydoc
+clean-local: clean-doxygen-docs
 	if test -r test/Makefile; then cd test; $(MAKE) clean; fi
 
 distclean-local:
@@ -764,7 +722,7 @@ install-exec-local: install-doc
 
 uninstall-local: uninstall-doc
 
-.PHONY: test unitTest doxydoc
+.PHONY: test unitTest
 
 doxygen-docs: 
 	if test "$(COIN_HAS_DOXYGEN)" = TRUE; then \
@@ -793,15 +751,21 @@ clean-doxygen-docs:
 install-doxygen-docs: doxygen-docs
 	if test "$(COIN_HAS_DOXYGEN)" = TRUE; then \
 	  if test -d "doxydoc/"; then \
-	    test -d "$(DESTDIR)$(DocInstallDir)/doxydoc" || $(mkdir_p) "$(DESTDIR)$(DocInstallDir)/doxydoc"; \
-	    $(INSTALL_DATA) @coin_doxy_tagname@ "$(DESTDIR)$(DocInstallDir)/@coin_doxy_tagname@";\
+	    test -d "$(DESTDIR)$(DocInstallDir)/doxydoc" || \
+	         $(mkdir_p) "$(DESTDIR)$(DocInstallDir)/doxydoc"; \
+	    $(INSTALL_DATA) @coin_doxy_tagname@ \
+	        "$(DESTDIR)$(DocInstallDir)/@coin_doxy_tagname@";\
 	    if test -f "doxydoc/latex/refman.pdf"; then \
-	      $(INSTALL_DATA) doxydoc/latex/refman.pdf "$(DESTDIR)$(DocInstallDir)";\
+	      $(INSTALL_DATA) doxydoc/latex/refman.pdf \
+	          "$(DESTDIR)$(DocInstallDir)";\
 	    fi;\
 	    if test -d "doxydoc/html"; then \
-	      test -d "$(DESTDIR)$(DocInstallDir)/doxydoc/search/" || $(mkdir_p) "$(DESTDIR)$(DocInstallDir)/doxydoc/search/"; \
-	      $(INSTALL_DATA) doxydoc/html/*.* "$(DESTDIR)$(DocInstallDir)/doxydoc";\
-	      $(INSTALL_DATA) doxydoc/html/search/*.* "$(DESTDIR)$(DocInstallDir)/doxydoc/search";\
+	      test -d "$(DESTDIR)$(DocInstallDir)/doxydoc/search/" || \
+	           $(mkdir_p) "$(DESTDIR)$(DocInstallDir)/doxydoc/search/"; \
+	      $(INSTALL_DATA) doxydoc/html/*.* \
+	          "$(DESTDIR)$(DocInstallDir)/doxydoc";\
+	      $(INSTALL_DATA) doxydoc/html/search/*.* \
+	          "$(DESTDIR)$(DocInstallDir)/doxydoc/search";\
             fi;\
           fi;\
         fi
@@ -813,52 +777,16 @@ uninstall-doxygen-docs:
 	if test -f "$(DESTDIR)$(DocInstallDir)/refman.pdf"; then \
 	  rm -f "$(DESTDIR)$(DocInstallDir)/refman.pdf"; \
 	fi
-
-all-doxygen-docs:
-	for dir in $(subdirs) ; do \
-	  do_project=true;\
-	  for proj in $(COIN_SKIP_DOXYGEN); do\
-	    if test $$dir = $$proj; then\
-	      do_project=false;\
-	    fi;\
-	  done;\
-	  if test -r $$dir/doxydoc & $$do_project = true; then \
-	    (cd $$dir ; $(MAKE) doxygen-docs) \
-	  fi ; \
-	done ; 
-
-clean-all-doxygen-docs:
-	for dir in $(subdirs) ; do \
-	  if test -r $$dir/doxydoc ; then \
-	    (cd $$dir ; $(MAKE) clean-doxygen-docs) \
-	  fi ; \
-	done ; 
-
-install-all-doxygen-docs: all-doxygen-docs
-	for dir in $(subdirs) ; do \
-	  do_project=true;\
-	  for proj in $(COIN_SKIP_DOXYGEN); do\
-	    if test $$dir = $$proj; then\
-	      do_project=false;\
-	    fi;\
-	  done;\
-	  if test -r $$dir/doxydoc & $$do_project = true; then \
-	    (cd $$dir ; $(MAKE) install-doxygen-docs) \
-	  fi ; \
-	done ; 
-
-uninstall-all-doxygen-docs:
-	for dir in $(subdirs) ; do \
-	  if test -r $$dir/doxydoc ; then \
-	    (cd $$dir ; $(MAKE) uninstall-doxygen-docs) \
-	  fi ; \
-	done ; 
+	rmdir "$(DESTDIR)$(DocInstallDir)"
 
 install-doc: $(DocFiles)
 	test -z "$(DocInstallDir)" || $(mkdir_p) "$(DESTDIR)$(DocInstallDir)"
 	for file in $(DocFiles); do \
 	  if test -f "$$file"; then dir=; else dir="$(srcdir)/"; fi; \
-	  if test -f "$$dir$$file"; then $(INSTALL_DATA) "$$dir$$file" "$(DESTDIR)$(DocInstallDir)/$$file"; fi; \
+	  if test -f "$$dir$$file"; then \
+	    $(INSTALL_DATA) "$$dir$$file" \
+	        "$(DESTDIR)$(DocInstallDir)/$$file"; \
+	  fi; \
 	done
 
 uninstall-doc:
@@ -893,7 +821,9 @@ uninstall-doc:
 @MAINTAINER_MODE_TRUE@$(AUX_DIR)/ltmain.sh: $(BUILDTOOLSDIR)/ltmain.sh
 @MAINTAINER_MODE_TRUE@	cp $< $@
 
-.PHONY: install-doc uninstall-doc update-externals
+.PHONY: install-doc uninstall-doc \
+	doxygen-docs pdf-doxygen-docs clean-doxygen-docs \
+	install-doxygen-docs uninstall-doxygen-docs
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

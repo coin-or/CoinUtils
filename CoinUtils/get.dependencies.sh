@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Author: Ted Ralphs (ted@lehigh.edu)
 # Copyright 2016, Ted Ralphs
@@ -8,10 +8,6 @@
 # - fix dependency-tracking or remove it from configure
 # - consider using pushd/popd instead of cd somewhere/cd ..
 # - look at TODO and FIXME below
-
-# TODO consider using these options for safety
-#set -u
-#set -o pipefail
 
 # script debugging
 #set -x
@@ -31,15 +27,15 @@ function help {
     echo "  build: Configure, build, test (optional), and pre-install all projects"
     echo "    options: --xxx=yyy (will be passed through to configure)"
     echo "             --monolithic do 'old style' monolithic build"
-    echo "             --threads=n build in parallel with 'n' threads"
+    echo "             --parallel-jobs=n build in parallel with maximum 'n' jobs"
     echo "             --build-dir=\dir\to\build\in do a VPATH build (default: $PWD/build)"
     echo "             --test run unit test of main project before install"
     echo "             --test-all run unit tests of all projects before install"
-    echo "             --verbosity=i set verbosity level"
+    echo "             --verbosity=i set verbosity level (1-4)"
     echo "             --reconfigure re-run configure"
     echo
     echo "  install: Install all projects in location specified by prefix"
-    echo "    options: --prefix=\dir\to\install (where to install, default: $PWD)"
+    echo "    options: --prefix=\dir\to\install (where to install, default: $PWD/build)"
     echo
     echo "  uninstall: Uninstall all projects"
     echo
@@ -56,13 +52,32 @@ function print_action {
     echo
 }
 
+function get_cached_options {
+    echo "Reading cached options:"
+    # read options from file, one option per line, and store into array copts
+    readarray -t copts < "$build_dir/.config"
+    # move options from copts[0], copts[1], ... into
+    # configure_options, where they are stored as the keys
+    # skip options that are empty (happens when reading empty .config file)
+    for c in ${!copts[*]} ; do
+        [ -z "${copts[$c]}" ] && continue
+        configure_options["${copts[$c]}"]=""
+    done
+    # print configuration options, one per line
+    # (TODO might need verbosity level check)
+    printf "%s\n" "${!configure_options[@]}"
+    if [ -e $build_dir/.monolithic ]; then
+        monolithic=true
+    fi
+}
+
 function invoke_make {
-    if [ $1 = 0 ]; then
-        $MAKE -j $threads $2 >& /dev/null
-    elif [ $1 = 1 ]; then
-        $MAKE -j $threads $2 > /dev/null
+    if [ $1 = 1 ]; then
+        $MAKE -j $jobs $2 >& /dev/null
+    elif [ $1 = 2 ]; then
+        $MAKE -j $jobs $2 > /dev/null
     else
-        $MAKE -j $threads $2
+        $MAKE -j $jobs $2
     fi
 }
 
@@ -71,10 +86,10 @@ function get_project {
     unset IFS
     for i in $coin_skip_projects
     do
-	if [ $1 = $i ]; then
-	    IFS=$TMP_IFS
-	    return 1
-	fi
+        if [ $1 = $i ]; then
+            IFS=$TMP_IFS
+            return 1
+        fi
     done
     IFS=$TMP_IFS
     return 0
@@ -82,12 +97,19 @@ function get_project {
 
 # Parse arguments
 function parse_args {
+    echo "Script run with the following arguments:"
     for arg in "$@"
     do
+        echo $arg
+        option=
+        option_arg=
         case $arg in
             *=*)
                 option=`expr "x$arg" : 'x\(.*\)=[^=]*'`
                 option_arg=`expr "x$arg" : 'x[^=]*=\(.*\)'`
+                # with bash, one could also do it in the following way:
+                # option=${arg%%=*}    # remove longest suffix matching =*
+                # option_arg=${arg#*=} # remove shortest prefix matching *=
                 case $option in
                     --prefix)
                         if [ "x$option_arg" != x ]; then
@@ -120,13 +142,18 @@ function parse_args {
                             exit 3
                         fi
                         ;;
-                    --threads)  # FIXME these are actually not threads, but parallel processes (--jobs in makefile-speak)
+                    --parallel-jobs)
                         if [ "x$option_arg" != x ]; then
-                            threads=$option_arg
+                            jobs=$option_arg
                         else
-                            echo "No thread number specified for --threads"
+                            echo "No number specified for --parallel-jobs"
                             exit 3
                         fi
+                        ;;
+                    --threads)
+                        echo "The 'threads' argument has been re-named 'parallel-jobs'."
+                        echo "Please re-run with correct argument name"
+                        exit 3
                         ;;
                     --verbosity)
                         if [ "x$option_arg" != x ]; then
@@ -146,7 +173,7 @@ function parse_args {
                         fi
                         ;;
                     *)
-                        configure_options+="$arg "
+                        configure_options["$arg"]=""
                         ;;            
                 esac
                 ;;
@@ -178,7 +205,7 @@ function parse_args {
                 get_third_party=false
                 ;;
             --*)
-                configure_options+="$arg "
+                configure_options["$arg"]=""
                 ;;
             fetch)
                 num_actions+=1
@@ -196,10 +223,10 @@ function parse_args {
                 num_actions+=1
                 uninstall=true
                 ;;
-	    *)
-		echo "Unrecognized command...exiting"
-		exit 3
-		;;
+            *)
+                echo "Unrecognized command...exiting"
+                exit 3
+                ;;
         esac
     done
 }
@@ -215,14 +242,14 @@ function fetch {
 
     # Build list of sources for dependencies
     if [ -e Dependencies ]; then
-	deps=`cat Dependencies | tr '\t' ' ' | tr -s ' '| cut -d ' ' -f 2-`
+        deps=`cat Dependencies | tr '\t' ' ' | tr -s ' '| cut -d ' ' -f 2-`
     elif [ -e $main_proj/Dependencies ]; then 
-	deps=`cat $main_proj/Dependencies | tr '\t' ' ' | tr -s ' '| cut -d ' ' -f 2-`
+        deps=`cat $main_proj/Dependencies | tr '\t' ' ' | tr -s ' '| cut -d ' ' -f 2-`
     else
-	echo "Can't find dependencies file...exiting"
-	exit 3
+        echo "Can't find dependencies file...exiting"
+        exit 3
     fi
-	
+        
     for url in $deps
     do
         if [ `echo $url | cut -d '/' -f 3` != "projects.coin-or.org" ]; then
@@ -232,7 +259,7 @@ function fetch {
             branch=`echo $url | tr '\t' ' ' | tr -s ' '| cut -d ' ' -f 2`
             dir=`echo $git_url | cut -d '/' -f 5`
             proj=`echo $git_url | cut -d "/" -f 5`
-	    if get_project $proj; then
+            if get_project $proj; then
                 print_action "Clone $git_url branch $branch"
                 if [ ! -e $dir ]; then
                     git clone --branch=$branch $git_url
@@ -241,7 +268,19 @@ function fetch {
                     git pull origin $branch
                     cd -
                 fi
-                subdirs+="$dir "
+                if [ `echo $proj | cut -d '-' -f 1` = "CHiPPS" ]; then
+                    subdir=`echo $proj | cut -d '-' -f 2`
+                    case $subdir in
+                        ALPS) subdir=Alps;;
+                        BiCePS) subdir=Bcps;;
+                        BLIS) subdir=Blis;;
+                    esac
+                    subdirs+="$dir/$subdir "
+                elif [ -e $dir/$dir/configure ]; then 
+                    subdirs+="$dir/$dir "
+                else
+                    subdirs+="$dir "
+                fi
             else
                 echo "Skipping $proj..."
             fi
@@ -412,9 +451,10 @@ function build {
     if [ $monolithic = "false" ]; then
         if [ ! -e ".subdirs" ]; then
             echo "No .subdirs file. Please fetch first"
+            exit 3
         else
             mkdir -p $build_dir
-            cp .subdirs $build_dir/coin_subdirs.txt
+            rm -f $build_dir/coin_subdirs.txt
         fi
         for dir in `cat .subdirs`
         do
@@ -424,6 +464,7 @@ function build {
                     proj_dir=$dir
                 fi
                 mkdir -p $build_dir/$proj_dir
+                echo -n $proj_dir" " >> $build_dir/coin_subdirs.txt
                 cd $build_dir/$proj_dir
             else
                 cd $dir
@@ -434,16 +475,18 @@ function build {
                 else
                     print_action "Configuring $proj_dir"
                 fi
-                if [ $verbosity != 0 ]; then
-                    $root_dir/$dir/configure --disable-dependency-tracking \
-                        --prefix=$1 $configure_options
+                if [ $verbosity -ge 3 ]; then
+                    "$root_dir/$dir/configure" --disable-dependency-tracking --prefix=$1 "${!configure_options[@]}"
                 else
-                    $root_dir/$dir/configure --disable-dependency-tracking \
-                        --prefix=$1 $configure_options > /dev/null
+                    "$root_dir/$dir/configure" --disable-dependency-tracking --prefix=$1 "${!configure_options[@]}" > /dev/null
                 fi
             fi
             print_action "Building $proj_dir"
-            invoke_make $verbosity
+            if [ $verbosity -ge 3 ]; then
+                invoke_make $(($verbosity-1)) ""
+            else
+                invoke_make 1 ""
+            fi
             if [ $run_all_tests = "true" ]; then
                 print_action "Running $proj_dir unit test"
                 invoke_make "false" test
@@ -453,19 +496,15 @@ function build {
             else
                 print_action "Installing $proj_dir"
             fi
-            invoke_make $verbosity install
+            if [ $verbosity -ge 3 ]; then
+                invoke_make $(($verbosity-1)) install
+            else
+                invoke_make 1 install
+            fi
             cd $root_dir
         done
-        if [ -e $main_proj ]; then
-            if [ build_dir != $PWD ]; then
-                mkdir -p $build_dir/$main_proj
-                cd $build_dir/$main_proj
-            else
-                cd $main_proj
-            fi
-        else
-            cd $build_dir
-        fi
+        mkdir -p $build_dir/$main_proj
+        cd $build_dir/$main_proj
         if [ ! -e config.status ] || [ $reconfigure = "true" ]; then 
             if [ $reconfigure = "true" ]; then
                 print_action "Reconfiguring $main_proj"
@@ -479,16 +518,18 @@ function build {
                 root_config=$root_dir/configure
             fi
             # Now, do the actual configuration
-            if [ $verbosity != 0 ]; then
-                $root_config --disable-dependency-tracking \
-                        --prefix=$1 $configure_options
+            if [ $verbosity -ge 2 ]; then
+                "$root_config" --disable-dependency-tracking --prefix=$1 "${!configure_options[@]}"
             else
-                $root_config --disable-dependency-tracking \
-                        --prefix=$1 $configure_options > /dev/null
+                "$root_config" --disable-dependency-tracking --prefix=$1 "${!configure_options[@]}" > /dev/null
             fi
         fi
         print_action "Building $main_proj"
-        invoke_make $verbosity
+        if [ $verbosity -ge 2 ]; then
+            invoke_make 3 ""
+        else
+            invoke_make 1 ""
+        fi
         if [ $run_test = "true" ]; then
             print_action "Running $main_proj unit test"
             invoke_make "false" test
@@ -498,7 +539,11 @@ function build {
         else
             print_action "Installing $main_proj"
         fi
-        invoke_make $verbosity install
+        if [ $verbosity -ge 2 ]; then
+            invoke_make 3 install
+        else
+            invoke_make 1 install
+        fi
         cd $root_dir
     else
         if [ build_dir != $PWD ]; then
@@ -508,24 +553,24 @@ function build {
         if [ ! -e config.status ]; then
             print_action "Configuring"
         else
-            if [ $reconfigure = true ]; then
+            if [ $reconfigure = "true" ]; then
                 print_action "Reconfiguring"
             fi
         fi
-        if [ $verbosity != 0 ]; then
-            $root_dir/configure --disable-dependency-tracking \
-                                --prefix=$1 $configure_options
-        else
-            $root_dir/configure --disable-dependency-tracking \
-                                --prefix=$1 $configure_options > /dev/null
+        if [ ! -e config.status ] || [ $reconfigure = "true" ]; then
+            if [ $verbosity != 1 ]; then
+                "$root_dir/configure" --disable-dependency-tracking --prefix=$1 "${!configure_options[@]}"
+            else
+                "$root_dir/configure" --disable-dependency-tracking --prefix=$1 "${!configure_options[@]}" > /dev/null
+            fi
         fi
-        if [ $run_all_tests = "true"]; then
+        if [ $run_all_tests = "true" ]; then
             echo "Warning: Can't run all tests with a monolithic build."
             echo "Disabling setting"
             run_test=true
         fi
         print_action "Building"
-        invoke_make $verbosity
+        invoke_make $verbosity ""
         if [ $run_test = "true" ]; then 
             print_action "Running unit test"
             invoke_make "false" test
@@ -588,6 +633,11 @@ function uninstall {
     
 # Exit when command fails
 set -e
+#Attempt to use undefined variable outputs error message, and forces an exit
+set -u
+#Causes a pipeline to return the exit status of the last command in the pipe
+#that returned a non-zero return value.
+set -o pipefail
 
 # Set defaults
 root_dir=$PWD
@@ -603,13 +653,14 @@ install=false
 uninstall=false
 run_test=false
 run_all_tests=false
-configure_options=
+declare -A configure_options
+configure_options=()
 monolithic=false
-threads=1
+jobs=1
 build_dir=$PWD/build
 reconfigure=false
 get_third_party=true
-verbosity=2
+verbosity=4
 MAKE=make
 
 echo "Welcome to the COIN-OR fetch and build utility"
@@ -641,27 +692,79 @@ if [ x"$prefix" = x ]; then
     prefix=$build_dir
 fi
 
-if [ -e $build_dir/.config ] && [ $build = "true" ]; then
+if [ -e $build_dir/.config ] && [ $build = "true" ] && \
+       [ $reconfigure = false ]; then
     echo "Previous configuration options found."
-    if [ x"$configure_options" != x ]; then
-        echo "Options cannot be changed after initial configuration."
-        echo "To build with a new configuration:"
-        echo "   1. Specify new build directory"
-        echo "   2. Delete $build_dir/.config and"
-        echo "      re-run with --reconfigure (not recommended)"
-        exit 3
+    if [ x"${#configure_options[*]}" != x0 ]; then
+        echo
+        echo "You are trying to run the build again and have specified"
+        echo "configuration options on the command line."
+        echo
+        echo "Please choose one of the following options."
+        echo " The indicated action will be performed for you AUTOMATICALLY"
+        echo "1. Run the build again with the previously specified options."
+        echo "   This can also be accomplished invoking the build"
+        echo "   command without any arguments."
+        echo "2. Configure in a new build directory (whose name you will be"
+        echo "   prmpted to specify) with new options."
+        echo "3. Re-configure in the same build directory with the new"
+        echo "   options. This option is not recommended unless you know"
+        echo "   what you're doing!."
+        echo "4. Quit"
+        echo
+        got_choice=false
+        while [ $got_choice = "false" ]; do
+            echo "Please type 1, 2, 3, or 4"
+            read choice
+            case $choice in
+                1|2|3|4) got_choice=true;;
+                *) ;;
+            esac
+        done
+        case $choice in
+            1)  ;;
+            2)
+                echo "Please enter a new build directory:"
+                read dir
+                if [ "x$dir" != x ]; then
+                    case $dir in
+                        [\\/$]* | ?:[\\/]* | NONE | '' )
+                            build_dir=$dir
+                            ;;
+                        *)
+                            build_dir=$PWD/$dir
+                            ;;
+                    esac
+                fi
+                ;;
+            3)
+                rm $build_dir/.config
+                reconfigure=true
+                ;;
+            4)
+                exit 0
+        esac
     fi
-    configure_options=`cat $build_dir/.config`
-else
-    if [ x"$configure_options" != x ] && [ $build = "false" ]; then
-        echo "Configuration options should be specified with build command"
-        exit 3
+
+fi
+
+if [ x"${#configure_options[*]}" != x0 ] && [ $build = "false" ]; then
+    echo "Configuration options should be specified only with build command"
+    exit 3
+fi
+
+if [ $build = "true" ]; then
+    if [ ! -e $build_dir/.config ] ; then
+        echo "Caching configuration options..."
+        mkdir -p $build_dir
+        printf "%s\n" "${!configure_options[@]}" > $build_dir/.config
+        if [ $monolithic = "true" ]; then
+            touch $build_dir/.monolithic
+        fi
+    else
+        get_cached_options
     fi
-    if [ $build = "true" ]; then
-	echo "Caching configuration options..."
-	mkdir -p $build_dir
-	echo "$configure_options" > $build_dir/.config
-    fi
+    echo "Options to be passed to configure: ${!configure_options[@]}"
 fi
 
 # Help

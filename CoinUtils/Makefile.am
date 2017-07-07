@@ -15,8 +15,8 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = src
 
 # We don't want to compile the test subdirectory, unless the test target is
-# specified.  But we need to list it as subdirectory to make sure that it is
-# included in the tarball
+# specified. But we need to list it as a subdirectory to make sure that it
+# is included in the tarball
 
 if ALWAYS_FALSE
   SUBDIRS += test
@@ -39,15 +39,7 @@ test: all
 
 unitTest: test
 
-# Doxygen documentation (TODO some of these are taken care of by Makemain.inc now)
-
-doxydoc:
-	doxygen doxydoc/doxygen.conf
-
-clean-doxydoc:
-	( cd doxydoc ; rm -rf html *.log *.tag )
-
-clean-local: clean-doxydoc
+clean-local: clean-doxygen-docs
 	if test -r test/Makefile; then cd test; $(MAKE) clean; fi
 
 distclean-local:
@@ -57,7 +49,7 @@ install-exec-local: install-doc
 
 uninstall-local: uninstall-doc
 
-.PHONY: test unitTest doxydoc
+.PHONY: test unitTest
 
 ########################################################################
 #                  Installation of the addlibs and .pc file            #
@@ -68,21 +60,6 @@ pkgconfiglib_DATA = coinutils.pc
 
 addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
 
-#install-data-hook:
-#	@$(mkdir_p) "$(addlibsdir)"
-#if COIN_HAS_PKGCONFIG
-#	PKG_CONFIG_PATH=@COIN_PKG_CONFIG_PATH@:$(DESTDIR)$(pkgconfiglibdir) \
-#	"$(PKG_CONFIG)" --libs coinutils > $(addlibsdir)/coinutils_addlibs.txt
-#else
-#if COIN_CXX_IS_CL
-#	echo "-libpath:`$(CYGPATH_W) @abs_lib_dir@` libCoinUtils.lib @COINUTILSLIB_LIBS_INSTALLED@" > $(addlibsdir)/coinutils_addlibs.txt
-#else
-#	echo -L@abs_lib_dir@ -lCoinUtils @COINUTILSLIB_LIBS_INSTALLED@ > $(addlibsdir)/coinutils_addlibs.txt
-#endif
-#endif
-
-#uninstall-hook:
-#	rm -f $(addlibsdir)/coinutils_addlibs.txt
 
 ########################################################################
 #                         Maintainer Stuff                             #
@@ -91,6 +68,7 @@ addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
 CLEANFILES =
 
 # Files that are generated and should be cleaned with make distclean
+
 DISTCLEANFILES =
 
 include BuildTools/Makemain.inc
