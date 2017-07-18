@@ -2638,10 +2638,12 @@ namespace {
   int n = 0;
   int j;
 
+  const int nEntriesMMult = sizeof(mmult)/sizeof(int);
+
   for ( j = 0; j < length; ++j ) {
     int iname = name[j];
 
-    n += mmult[j] * iname;
+    n += mmult[j%nEntriesMMult] * iname;
   }
   return ( abs ( n ) % maxsiz );	/* integer abs */
 }
