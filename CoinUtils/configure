@@ -687,6 +687,7 @@ BLAS_LIBS
 COIN_PKG_CONFIG_PATH
 COIN_HAS_PKGCONFIG_FALSE
 COIN_HAS_PKGCONFIG_TRUE
+ac_ct_PKG_CONFIG
 PKG_CONFIG
 LT_LDFLAGS
 CXXCPP
@@ -840,7 +841,6 @@ enable_coinutils_mempool_override_new
 enable_coinutils_mempool_maxpooled
 with_blas
 with_blas_lib
-enable_pkg_config
 with_blas_incdir
 with_blas_datadir
 with_lapack
@@ -1528,7 +1528,6 @@ Optional Features:
                           Otherwise its value can be overridden at runtime
                           using the COINUTILS_MEMPOOL_MAXPOOLED environment
                           variable.
-  --disable-pkg-config    disable use of pkg-config (if available)
   --disable-zlib          do not compile with compression library zlib
   --disable-bzlib         do not compile with compression library bzlib
   --disable-readline      do not compile with readline library
@@ -13602,9 +13601,6 @@ fi
   # before this can be enabled.
   hardcode_into_libs=yes
 
-  # Add ABI-specific directories to the system library path.
-  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
-
   # Ideally, we could use ldconfig to report *all* directores which are
   # searched for libraries, however this is still not possible.  Aside from not
   # being certain /sbin/ldconfig is available, command
@@ -13613,7 +13609,7 @@ fi
   # appending ld.so.conf contents (and includes) to the search path.
   if test -f /etc/ld.so.conf; then
     lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \$2)); skip = 1; } { if (!skip) print \$0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;s/"//g;/^$/d' | tr '\n' ' '`
-    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
+    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
   fi
 
   # We used to test for /lib/ld.so.1 and disable shared libraries on
@@ -17631,9 +17627,6 @@ fi
   # before this can be enabled.
   hardcode_into_libs=yes
 
-  # Add ABI-specific directories to the system library path.
-  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
-
   # Ideally, we could use ldconfig to report *all* directores which are
   # searched for libraries, however this is still not possible.  Aside from not
   # being certain /sbin/ldconfig is available, command
@@ -17642,7 +17635,7 @@ fi
   # appending ld.so.conf contents (and includes) to the search path.
   if test -f /etc/ld.so.conf; then
     lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \$2)); skip = 1; } { if (!skip) print \$0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;s/"//g;/^$/d' | tr '\n' ' '`
-    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
+    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
   fi
 
   # We used to test for /lib/ld.so.1 and disable shared libraries on
@@ -20584,9 +20577,6 @@ fi
   # before this can be enabled.
   hardcode_into_libs=yes
 
-  # Add ABI-specific directories to the system library path.
-  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
-
   # Ideally, we could use ldconfig to report *all* directores which are
   # searched for libraries, however this is still not possible.  Aside from not
   # being certain /sbin/ldconfig is available, command
@@ -20595,7 +20585,7 @@ fi
   # appending ld.so.conf contents (and includes) to the search path.
   if test -f /etc/ld.so.conf; then
     lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \$2)); skip = 1; } { if (!skip) print \$0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;s/"//g;/^$/d' | tr '\n' ' '`
-    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
+    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
   fi
 
   # We used to test for /lib/ld.so.1 and disable shared libraries on
@@ -22012,24 +22002,12 @@ done
 
 
 
-# Check whether --enable-pkg-config was given.
-if test "${enable_pkg_config+set}" = set; then :
-  enableval=$enable_pkg_config; use_pkgconfig="$enableval"
-else
-  #if test x$coin_cc_is_cl = xtrue; then
-   #  use_pkgconfig=no
-   #else
-     use_pkgconfig=yes
-   #fi
-
-fi
-
-
-if test $use_pkgconfig = yes ; then
-  if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
-    if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
-set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+if test -z "$PKG_CONFIG"; then
+ if test -n "$ac_tool_prefix"; then
+  for ac_prog in pkg-config pkgconf
+  do
+    # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
+set dummy $ac_tool_prefix$ac_prog; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_prog_PKG_CONFIG+:} false; then :
@@ -22045,7 +22023,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_PKG_CONFIG="${ac_tool_prefix}pkg-config"
+    ac_cv_prog_PKG_CONFIG="$ac_tool_prefix$ac_prog"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -22065,11 +22043,15 @@ $as_echo "no" >&6; }
 fi
 
 
+    test -n "$PKG_CONFIG" && break
+  done
 fi
-if test -z "$ac_cv_prog_PKG_CONFIG"; then
+if test -z "$PKG_CONFIG"; then
   ac_ct_PKG_CONFIG=$PKG_CONFIG
-  # Extract the first word of "pkg-config", so it can be a program name with args.
-set dummy pkg-config; ac_word=$2
+  for ac_prog in pkg-config pkgconf
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_prog_ac_ct_PKG_CONFIG+:} false; then :
@@ -22085,7 +22067,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_ac_ct_PKG_CONFIG="pkg-config"
+    ac_cv_prog_ac_ct_PKG_CONFIG="$ac_prog"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -22104,6 +22086,10 @@ else
 $as_echo "no" >&6; }
 fi
 
+
+  test -n "$ac_ct_PKG_CONFIG" && break
+done
+
   if test "x$ac_ct_PKG_CONFIG" = x; then
     PKG_CONFIG=""
   else
@@ -22115,32 +22101,29 @@ ac_tool_warned=yes ;;
 esac
     PKG_CONFIG=$ac_ct_PKG_CONFIG
   fi
-else
-  PKG_CONFIG="$ac_cv_prog_PKG_CONFIG"
 fi
 
-  fi
-  if test -n "$PKG_CONFIG"; then
-    _pkg_min_version=0.16.0
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
-$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
-    if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+fi
+if test -n "$PKG_CONFIG"; then
+ _pkg_min_version=0.16.0
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking $PKG_CONFIG is at least version $_pkg_min_version" >&5
+$as_echo_n "checking $PKG_CONFIG is at least version $_pkg_min_version... " >&6; }
+ if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+ else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-      PKG_CONFIG=""
-    fi
-  fi
+   PKG_CONFIG=""
+ fi
+fi
 
-  # check if pkg-config supports the short-errors flag
-  if test -n "$PKG_CONFIG" && \
-    $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-    pkg_short_errors=" --short-errors "
-  else
-    pkg_short_errors=""
-  fi
+# check if pkg-config supports the short-errors flag
+if test -n "$PKG_CONFIG" && \
+ $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+ pkg_short_errors=" --short-errors "
+else
+ pkg_short_errors=""
 fi
 
  if test -n "$PKG_CONFIG"; then
@@ -23871,7 +23854,7 @@ fi
 
 fi
 
-# now use pkg-config, if nothing of the above applied
+# now use pkg-config, if available and nothing of the above applied
 if test $coin_has_blas = notGiven; then
   if test -n "$PKG_CONFIG" ; then
 
@@ -23905,9 +23888,8 @@ fi
 
 
   else
-    as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
-    # TODO
-    #AC_COIN_CHECK_PACKAGE_FALLBACK([Blas], [coinblas], [CoinUtilsLib])
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: skipped check via pkg-config as no pkg-config available" >&5
+$as_echo "$as_me: WARNING: skipped check via pkg-config as no pkg-config available" >&2;}
   fi
 
 else
@@ -25242,7 +25224,7 @@ fi
 
 fi
 
-# now use pkg-config, if nothing of the above applied
+# now use pkg-config, if available and nothing of the above applied
 if test $coin_has_lapack = notGiven; then
   if test -n "$PKG_CONFIG" ; then
 
@@ -25276,9 +25258,8 @@ fi
 
 
   else
-    as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
-    # TODO
-    #AC_COIN_CHECK_PACKAGE_FALLBACK([Lapack], [coinlapack], [CoinUtilsLib])
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: skipped check via pkg-config as no pkg-config available" >&5
+$as_echo "$as_me: WARNING: skipped check via pkg-config as no pkg-config available" >&2;}
   fi
 
 else
@@ -25449,7 +25430,7 @@ fi
 
 fi
 
-# now use pkg-config, if nothing of the above applied
+# now use pkg-config, if available and nothing of the above applied
 if test $coin_has_glpk = notGiven; then
   if test -n "$PKG_CONFIG" ; then
 
@@ -25483,9 +25464,8 @@ fi
 
 
   else
-    as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
-    # TODO
-    #AC_COIN_CHECK_PACKAGE_FALLBACK([Glpk], [coinglpk], [CoinUtilsLib])
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: skipped check via pkg-config as no pkg-config available" >&5
+$as_echo "$as_me: WARNING: skipped check via pkg-config as no pkg-config available" >&2;}
   fi
 
 else
@@ -25609,7 +25589,7 @@ fi
 
 fi
 
-# now use pkg-config, if nothing of the above applied
+# now use pkg-config, if available and nothing of the above applied
 if test $coin_has_sample = notGiven; then
   if test -n "$PKG_CONFIG" ; then
 
@@ -25641,9 +25621,8 @@ fi
 
 
   else
-    as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
-    # TODO
-    #AC_COIN_CHECK_PACKAGE_FALLBACK([Sample], [coindatasample], [])
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: skipped check via pkg-config as no pkg-config available" >&5
+$as_echo "$as_me: WARNING: skipped check via pkg-config as no pkg-config available" >&2;}
   fi
 
 else
@@ -25767,7 +25746,7 @@ fi
 
 fi
 
-# now use pkg-config, if nothing of the above applied
+# now use pkg-config, if available and nothing of the above applied
 if test $coin_has_netlib = notGiven; then
   if test -n "$PKG_CONFIG" ; then
 
@@ -25799,9 +25778,8 @@ fi
 
 
   else
-    as_fn_error $? "skipped check via pkg-config, redirect to fallback... -- oops, not there yet" "$LINENO" 5
-    # TODO
-    #AC_COIN_CHECK_PACKAGE_FALLBACK([Netlib], [coindatanetlib], [])
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: skipped check via pkg-config as no pkg-config available" >&5
+$as_echo "$as_me: WARNING: skipped check via pkg-config as no pkg-config available" >&2;}
   fi
 
 else
