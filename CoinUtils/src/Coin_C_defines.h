@@ -62,9 +62,15 @@ typedef void Clp_Simplex;
 #ifndef COIN_NO_CLP
 /** typedef for user call back.
  The cvec are constructed so don't need to be const*/
+#if COIN_BIG_INDEX==0
 typedef  void (COINLINKAGE_CB *clp_callback) (Clp_Simplex * model,int  msgno, int ndouble,
                             const double * dvec, int nint, const int * ivec,
                             int nchar, char ** cvec);
+#else
+typedef  void (COINLINKAGE_CB *clp_callback) (Clp_Simplex * model,int  msgno, int ndouble,
+                            const double * dvec, int nint, const long long * ivec,
+                            int nchar, char ** cvec);
+#endif
 #endif
 /** User does not need to see structure of model but C++ code does */
 #if defined (SBB_EXTERN_C)

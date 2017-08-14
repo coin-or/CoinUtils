@@ -2,7 +2,6 @@
 // Copyright (C) 2005, International Business Machines
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
-
 #include "CoinUtilsConfig.h"
 #include "CoinHelperFunctions.hpp"
 #include "CoinModel.hpp"
@@ -365,7 +364,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     }
     // get quadratic part
     if (m.reader()->whichSection (  ) == COIN_QUAD_SECTION ) {
-      int * start=NULL;
+      CoinBigIndex * start=NULL;
       int * column = NULL;
       double * element = NULL;
       status=m.readQuadraticMps(NULL,start,column,element,2);
@@ -1847,7 +1846,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix,
     }
   }
   int numberErrors=0;
-  CoinBigIndex * start = new int[numberColumns_+1];
+  CoinBigIndex * start = new CoinBigIndex[numberColumns_+1];
   int * row = new int[numberElements];
   double * element = new double[numberElements];
   start[0]=0;

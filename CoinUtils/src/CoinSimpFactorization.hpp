@@ -60,8 +60,8 @@ public:
   /// Gets space for a factorization
   virtual void getAreas ( int numberRows,
 		  int numberColumns,
-		  CoinBigIndex maximumL,
-		  CoinBigIndex maximumU );
+		  int maximumL,
+		  int maximumU );
   
   /// PreProcesses column ordered copy of basis
   virtual void preProcess ( );

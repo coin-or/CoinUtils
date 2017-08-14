@@ -261,7 +261,7 @@ const CoinPresolveAction*
       // check none prohibited
       if (prob->anyProhibited_) {
 	bool anyProhibited=false;
-	for (int k=krs; k<kre; k++) {
+	for (CoinBigIndex k=krs; k<kre; k++) {
 	  int jcol = hcol[k];
 	  if (prob->colProhibited(jcol)) {
 	    anyProhibited=true;
@@ -294,7 +294,7 @@ const CoinPresolveAction*
     // check none prohibited
     if (prob->anyProhibited_) {
       bool anyProhibited=false;
-      for (int k=krs; k<kre; k++) {
+      for (CoinBigIndex k=krs; k<kre; k++) {
 	int jcol = hcol[k];
 	if (prob->colProhibited(jcol)) {
 	  anyProhibited=true;
@@ -365,8 +365,8 @@ const CoinPresolveAction*
     action *f = &actions[nactions] ;
     nactions++ ;
     f->row = irow ;
-    f->nlo = lk-krs ;
-    f->nup = kre-uk ;
+    f->nlo = static_cast<int>(lk-krs) ;
+    f->nup = static_cast<int>(kre-uk) ;
     f->rowcols = rowcols ;
     f->bounds = bounds ;
   }
@@ -480,7 +480,7 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   const int *hrow = prob->hrow_ ;
   const CoinBigIndex *mcstrt = prob->mcstrt_ ;
   const int *hincol = prob->hincol_ ;
-  const int *link = prob->link_ ;
+  const CoinBigIndex *link = prob->link_ ;
 
   double *clo = prob->clo_ ;
   double *cup = prob->cup_ ;

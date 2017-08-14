@@ -813,7 +813,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   int *hrow		= prob->hrow_ ;
   CoinBigIndex *mcstrt	= prob->mcstrt_ ;
   int *hincol		= prob->hincol_ ;
-  int *link		= prob->link_ ;
+  CoinBigIndex *link		= prob->link_ ;
 
   double *clo	= prob->clo_ ;
   double *cup	= prob->cup_ ;
@@ -986,7 +986,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 
   The PRESOLVEASSERT says this row should already be present. 
 */
-      int ystart = NO_LINK ;
+      CoinBigIndex ystart = NO_LINK ;
       int nX = 0 ;
       for (int kcol = 0 ; kcol < ncoly ; ++kcol) {
 	const int i = indy[kcol] ;
@@ -1091,7 +1091,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 
 	  numberInColumn-- ;
 	  // add to free list
-	  int nextk = link[kcs] ;
+	  CoinBigIndex nextk = link[kcs] ;
 	  assert(free_list >= 0) ;
 	  link[kcs] = free_list ;
 	  free_list = kcs ;
@@ -1189,7 +1189,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 */
       link[kcs] = free_list ;
       free_list = mcstrt[jcolx] ;
-      int xstart = NO_LINK ;
+      CoinBigIndex xstart = NO_LINK ;
       for (int kcol = 0 ; kcol < ncolx ; ++kcol) {
 	const int i = indx[kcol] ;
 	PRESOLVEASSERT(rdone[i] && i != irow) ;
@@ -1240,7 +1240,7 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   Now get to work building a threaded column y from the nonzeros in element1.
   As before, build the thread in reverse.
 */
-      int ystart = NO_LINK ;
+      CoinBigIndex ystart = NO_LINK ;
       int leny = 0 ;
       for (int kcol = 0 ; kcol < nX ; kcol++) {
 	const int i = index1[kcol] ;

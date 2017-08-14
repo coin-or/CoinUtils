@@ -158,7 +158,7 @@ public:
   int getNumRows() const;
 
   /// Get number of nonzero elements
-  int getNumElements() const;
+  CoinBigIndex getNumElements() const;
   
   /// Get pointer to array[getNumCols()] of column lower bounds
   const double * getColLower() const;
@@ -551,7 +551,7 @@ protected:
   int numberColumns_;
   
   /// Number of elements
-  int numberElements_;
+  CoinBigIndex numberElements_;
   
   /// Pointer to column-wise copy of problem matrix coefficients.
   mutable CoinPackedMatrix *matrixByColumn_;  
@@ -758,7 +758,7 @@ protected:
   void realloc_coeff(double **coeff, char ***colNames, int *maxcoeff) const;
 
   /// Reallocate vectors related to rows.
-  void realloc_row(char ***rowNames, int **start, double **rhs, 
+  void realloc_row(char ***rowNames, CoinBigIndex **start, double **rhs, 
 		   double **rowlow, double **rowup, int *maxrow) const;
     
   /// Reallocate vectors related to columns.

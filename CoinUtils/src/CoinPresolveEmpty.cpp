@@ -513,7 +513,7 @@ const CoinPresolveAction
 
   // remap matrix
   for (i=0;i<ncols;i++) {
-    int j;
+    CoinBigIndex j;
     for (j=mcstrt[i];j<mcstrt[i]+hincol[i];j++) 
       hrow[j] = rowmapping[hrow[j]];
   }

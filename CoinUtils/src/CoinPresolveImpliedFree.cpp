@@ -960,7 +960,7 @@ const CoinPresolveAction *implied_free_action::presolve (
 	CoinBigIndex end = start+colLengths[tgtcol];
 	numberBadElements=0;
 	int numberFill=-rowLengths[tgtrow];
-	for (int colndx = start ; colndx < end ; ++colndx) {
+	for (CoinBigIndex colndx = start ; colndx < end ; ++colndx) {
 	  int i = rowIndices[colndx] ;
 	  if (i == tgtrow) continue ;
 	  

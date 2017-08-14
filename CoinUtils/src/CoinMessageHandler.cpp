@@ -891,7 +891,7 @@ CoinMessageHandler::operator<< (long long longvalue)
       }
       format_=next;
     } else {
-      sprintf(messageOut_," %ld",longvalue);
+      sprintf(messageOut_," %lld",longvalue);
       messageOut_+=strlen(messageOut_);
     } 
   }

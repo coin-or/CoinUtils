@@ -69,12 +69,13 @@ namespace {	// begin unnamed file-local namespace
 
 
 void create_col (int col, int n, double *els,
-		 CoinBigIndex *mcstrt, double *colels, int *hrow, int *link,
+		 CoinBigIndex *mcstrt, double *colels, int *hrow,
+		 CoinBigIndex *link,
 		 CoinBigIndex *free_listp)
 {
   int *rows = reinterpret_cast<int *>(els+n) ;
   CoinBigIndex free_list = *free_listp;
-  int xstart = NO_LINK;
+  CoinBigIndex xstart = NO_LINK;
   for (int i=0; i<n; ++i) {
     CoinBigIndex k = free_list;
     assert(k >= 0) ;
@@ -188,7 +189,7 @@ const CoinPresolveAction
     if (allPositive) {
       double lower = clo[j];
       if (lower<cup[j]) {
-        for (int k=mcstrt[j];k<mcstrt[j]+hincol[j];k++) {
+        for (CoinBigIndex k=mcstrt[j];k<mcstrt[j]+hincol[j];k++) {
           double value=colels[k];
           if (value<0.0)
             allPositive=false;
@@ -196,7 +197,7 @@ const CoinPresolveAction
             rhs[hrow[k]] -= lower*value;
         }
       } else {
-        for (int k=mcstrt[j];k<mcstrt[j]+hincol[j];k++) {
+        for (CoinBigIndex k=mcstrt[j];k<mcstrt[j]+hincol[j];k++) {
           double value=colels[k];
           rhs[hrow[k]] -= lower*value;
         }
@@ -331,7 +332,7 @@ const CoinPresolveAction
 */
     CoinBigIndex kcs = mcstrt[j2] ;
     CoinBigIndex kce = kcs+hincol[j2] ;
-    int ishift = mcstrt[j1]-kcs ;
+    CoinBigIndex ishift = mcstrt[j1]-kcs ;
 
     if (len1 > 1 && isorted < j1)
     { CoinSort_2(hrow+mcstrt[j1],hrow+mcstrt[j1]+len1,
@@ -957,7 +958,7 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt		= prob->mcstrt_;
   int *hincol		= prob->hincol_;
-  int *link		= prob->link_;
+  CoinBigIndex *link		= prob->link_;
 
   double *rcosts	= prob->rcosts_;
   double tolerance = prob->ztolzb_;
@@ -1146,7 +1147,7 @@ const CoinPresolveAction
       CoinBigIndex krs = mrstrt[ithis];
       CoinBigIndex kre = krs + hinrow[ithis];
       if (hinrow[ithis] == hinrow[ilast]) {
-	int ishift = mrstrt[ilast] - krs;
+	CoinBigIndex ishift = mrstrt[ilast] - krs;
 	CoinBigIndex k;
 	for (k=krs;k<kre;k++) {
 	  if (hcol[k] != hcol[k+ishift] ||
@@ -1400,7 +1401,7 @@ const CoinPresolveAction
     double * element = matrix.getMutableElements();
     int * row = matrix.getMutableIndices();
     CoinBigIndex * columnStart = matrix.getMutableVectorStarts();
-    CoinBigIndex * columnLength = matrix.getMutableVectorLengths();
+    int * columnLength = matrix.getMutableVectorLengths();
     // scale rows
     for (int i=0;i<numberRows;i++) {
       minValue[i]=1.0/sqrt(minValue[i]*maxValue[i]);
@@ -1417,7 +1418,7 @@ const CoinPresolveAction
 	  element[nElements++]=minValue[iRow]*colels[j];
 	}
       }
-      columnLength[i]=nElements-columnStart[i];
+      columnLength[i]=static_cast<int>(nElements-columnStart[i]);
       columnStart[i+1]=nElements;
     }
     matrix.setNumElements(nElements);
@@ -2094,7 +2095,7 @@ void twoxtwo_action::postsolve(CoinPostsolveMatrix * prob) const
   const int *const hincol = prob->hincol_ ;
   const int *const hrow = prob->hrow_ ;
   const double * colels = prob->colels_ ;
-  int *link		= prob->link_;
+  CoinBigIndex *link		= prob->link_;
   double * cost = prob->cost_ ;
 
   // column type, bounds, solution, and status

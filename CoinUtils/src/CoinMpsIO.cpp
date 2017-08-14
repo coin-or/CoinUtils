@@ -4276,7 +4276,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
        }
        int j;
        int numberEntries = lengths[i];
-       int start = starts[i];
+       CoinBigIndex start = starts[i];
        for (j=0;j<numberEntries;j++) {
 	 tempRow[j] = rows[start+j];
 	 tempValue[j] = elements[start+j];
@@ -4617,7 +4617,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
      const double * quadraticElement = quadratic->getElements();
      for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
        int numberFields=0;
-       for (int j=columnQuadraticStart[iColumn];
+       for (CoinBigIndex j=columnQuadraticStart[iColumn];
 	    j<columnQuadraticStart[iColumn]+columnQuadraticLength[iColumn];j++) {
 	 int jColumn = columnQuadratic[j];
 	 double elementValue = quadraticElement[j];
@@ -4718,7 +4718,7 @@ int CoinMpsIO::getNumRows() const
 {
   return numberRows_;
 }
-int CoinMpsIO::getNumElements() const
+CoinBigIndex CoinMpsIO::getNumElements() const
 {
   return numberElements_;
 }
@@ -5557,7 +5557,7 @@ CoinMpsIO::newLanguage(CoinMessages::Language language)
 */
 int 
 CoinMpsIO::readQuadraticMps(const char * filename,
-			    int * &columnStart, int * &column2, double * &elements,
+			    CoinBigIndex * &columnStart, int * &column2, double * &elements,
 			    int checkSymmetry)
 {
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
@@ -5679,10 +5679,10 @@ CoinMpsIO::readQuadraticMps(const char * filename,
 
   stopHash(1);
   // Do arrays as new [] and make column ordered
-  columnStart = new int [numberColumns_+1];
+  columnStart = new CoinBigIndex [numberColumns_+1];
   // for counts
-  int * count = new int[numberColumns_];
-  memset(count,0,numberColumns_*sizeof(int));
+  CoinBigIndex * count = new CoinBigIndex[numberColumns_];
+  memset(count,0,numberColumns_*sizeof(CoinBigIndex));
   CoinBigIndex i;
   // See about lower triangular
   if (checkSymmetry&&numberErrors) 
@@ -5716,7 +5716,7 @@ CoinMpsIO::readQuadraticMps(const char * filename,
     count[iColumn]++;
   }
   // Do starts
-  int number = 0;
+  CoinBigIndex number = 0;
   columnStart[0]=0;
   for (i=0;i<numberColumns_;i++) {
     number += count[i];
@@ -5730,7 +5730,7 @@ CoinMpsIO::readQuadraticMps(const char * filename,
   for ( i = 0; i < numberElements; i++ ) {
     int iColumn = column[i];
     int iColumn2 = column2Temp[i];
-    int put = count[iColumn];
+    CoinBigIndex put = count[iColumn];
     elements[put]=elementTemp[i];
     column2[put++]=iColumn2;
     count[iColumn]=put;
@@ -5743,17 +5743,17 @@ CoinMpsIO::readQuadraticMps(const char * filename,
   for (i=0;i<numberColumns_;i++) 
     count[i] = -1;
 
-  int start = 0;
+  CoinBigIndex start = 0;
   number=0;
   for (i=0;i<numberColumns_;i++) {
-    int j;
+    CoinBigIndex j;
     for (j=start;j<columnStart[i+1];j++) {
       int iColumn2 = column2[j];
       if (count[iColumn2]<0) {
 	count[iColumn2]=j;
       } else {
 	// duplicate
-	int iOther = count[iColumn2];
+	CoinBigIndex iOther = count[iColumn2];
 	double value = elements[iOther]+elements[j];
 	elements[iOther]=value;
 	elements[j]=0.0;
@@ -5973,6 +5973,7 @@ CoinMpsIO::decodeString(int iString, int & iRow, int & iColumn, const char * & v
 int 
 CoinMpsIO::copyStringElements(const CoinModel * model)
 {
+#if COIN_BIG_INDEX==0
   if (!model->stringsExist())
     return 0; // no strings
   assert (!numberStringElements_);
@@ -6041,6 +6042,10 @@ CoinMpsIO::copyStringElements(const CoinModel * model)
     }
   }
   return numberStringElements_;
+#else
+  abort();
+  return 0;
+#endif
 }
 // Constructor 
 CoinSet::CoinSet ( int numberEntries, const int * which)

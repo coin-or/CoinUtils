@@ -349,7 +349,7 @@ public:
     int getNumRows() const;
 
     /// Get number of nonzero elements
-    int getNumElements() const;
+    CoinBigIndex getNumElements() const;
 
     /// Get pointer to array[getNumCols()] of column lower bounds
     const double * getColLower() const;
@@ -722,7 +722,7 @@ public:
       columnStart is numberColumns+1 long, others numberNonZeros
     */
     int readQuadraticMps(const char * filename,
-			 int * &columnStart, int * &column, double * &elements,
+			 CoinBigIndex * &columnStart, int * &column, double * &elements,
 			 int checkSymmetry);
 
     /** Read in a list of cones from the given filename.  

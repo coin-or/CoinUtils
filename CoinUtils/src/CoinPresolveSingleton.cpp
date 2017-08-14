@@ -379,7 +379,7 @@ void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   int *hrow = prob->hrow_ ;
   CoinBigIndex *mcstrt = prob->mcstrt_ ;
   int *hincol = prob->hincol_ ;
-  int *link = prob->link_ ;
+  CoinBigIndex *link = prob->link_ ;
 
   double *clo = prob->clo_ ;
   double *cup = prob->cup_ ;
@@ -793,7 +793,7 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
   int *hrow		= prob->hrow_ ;
   CoinBigIndex *mcstrt		= prob->mcstrt_ ;
   int *hincol		= prob->hincol_ ;
-  int *link		= prob->link_ ;
+  CoinBigIndex *link		= prob->link_ ;
   //  int ncols		= prob->ncols_ ;
 
   //double *rowels	= prob->rowels_ ;

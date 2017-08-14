@@ -5,6 +5,7 @@
 
   This code is licensed under the terms of the Eclipse Public License (EPL).
 */
+#if COIN_BIG_INDEX==0
 /*
   CLP_OSL - if defined use osl
   0 - don't unroll 2 and 3 - don't use in Gomory
@@ -4203,5 +4204,5 @@ void c_ekkftrn2(COIN_REGISTER EKKfactinfo * COIN_RESTRICT2 fact, double * COIN_R
 		      dpermu1,lastSlack, dwork1, mpt1);
 
 }
-
+#endif
 

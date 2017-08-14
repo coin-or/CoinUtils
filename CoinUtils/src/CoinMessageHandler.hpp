@@ -8,6 +8,7 @@
 
 #include "CoinUtilsConfig.h"
 #include "CoinPragma.hpp"
+#include "CoinTypes.hpp"
 
 #include <iostream>
 #include <cstdio>
@@ -416,7 +417,7 @@ public:
     As the parameter for a integer field is processed, the value is saved
     and can be retrieved using this function.
   */
-  inline int intValue(int position) const
+  inline CoinBigIndex intValue(int position) const
   { return longValue_[position];}
   /*! \brief Number of integer fields already processed.
 
@@ -591,7 +592,7 @@ protected:
   //@{
   /// values in message
   std::vector<double> doubleValue_;
-  std::vector<int> longValue_;
+  std::vector<CoinBigIndex> longValue_;
   std::vector<char> charValue_;
   std::vector<std::string> stringValue_;
   /// Log level

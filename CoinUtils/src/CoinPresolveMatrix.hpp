@@ -466,7 +466,7 @@ class CoinPrePostsolveMatrix
   inline int getNumRows() const
   { return (nrows_) ; }
   /// Get current number of non-zero coefficients
-  inline int getNumElems() const
+  inline CoinBigIndex getNumElems() const
   { return (nelems_) ; }
   /// Get column start vector for column-major packed matrix
   inline const CoinBigIndex *getColStarts() const
@@ -1501,7 +1501,7 @@ class CoinPostsolveMatrix : public CoinPrePostsolveMatrix
   /*! \brief First entry in free entries thread */
   CoinBigIndex free_list_;
   /// Allocated size of #link_
-  int maxlink_;
+  CoinBigIndex maxlink_;
   /*! \brief Thread array
 
     Within a thread, link_[k] points to the next entry in the thread.
@@ -1748,7 +1748,7 @@ inline void presolve_delete_many_from_major(int majndx, char *marked,
       marked[iMinor] = 0 ;
     }
   } 
-  majlens[majndx] = put-ks ;
+  majlens[majndx] = static_cast<int>(put-ks) ;
   return ;
 }
 
@@ -1794,7 +1794,7 @@ inline void presolve_delete_from_row(int row, int col,
 */
 void presolve_delete_from_major2 (int majndx, int minndx,
 				  CoinBigIndex *majstrts, int *majlens,
-				  int *minndxs, int *majlinks,
+				  int *minndxs, CoinBigIndex *majlinks,
 				   CoinBigIndex *free_listp) ;
 
 /*! \relates CoinPostsolveMatrix
@@ -1809,7 +1809,7 @@ void presolve_delete_from_major2 (int majndx, int minndx,
 */
 inline void presolve_delete_from_col2(int row, int col, CoinBigIndex *mcstrt,
 				      int *hincol, int *hrow,
-				      int *clinks, CoinBigIndex *free_listp)
+				      CoinBigIndex *clinks, CoinBigIndex *free_listp)
 { presolve_delete_from_major2(col,row,mcstrt,hincol,hrow,clinks,free_listp) ; }
 
 //@}

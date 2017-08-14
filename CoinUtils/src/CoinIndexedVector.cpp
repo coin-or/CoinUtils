@@ -1825,7 +1825,7 @@ CoinArrayWithLength::clear()
 }
 // Get array with alignment
 void 
-CoinArrayWithLength::getArray(int size)
+CoinArrayWithLength::getArray(CoinBigIndex size)
 {
   if (size>0) {
     if(alignment_>2) {
@@ -1878,11 +1878,11 @@ CoinArrayWithLength::reallyFreeArray()
 }
 // Get enough space
 void 
-CoinArrayWithLength::getCapacity(int numberBytes,int numberNeeded)
+CoinArrayWithLength::getCapacity(CoinBigIndex numberBytes,CoinBigIndex numberNeeded)
 {
-  int k=capacity();
+  CoinBigIndex k=capacity();
   if (k<numberBytes) {
-    int saveSize=size_;
+    CoinBigIndex saveSize=size_;
     reallyFreeArray();
     size_=saveSize;
     getArray(CoinMax(numberBytes,numberNeeded));
@@ -1896,7 +1896,7 @@ CoinArrayWithLength::getCapacity(int numberBytes,int numberNeeded)
    if size<=0 just does alignment
    If abs(mode) >2 then align on that as power of 2
 */
-CoinArrayWithLength::CoinArrayWithLength(int size, int mode)
+CoinArrayWithLength::CoinArrayWithLength(CoinBigIndex size, int mode)
 {
   alignment_=abs(mode);
   size_=size;
@@ -1911,7 +1911,7 @@ CoinArrayWithLength::~CoinArrayWithLength ()
 }
 // Conditionally gets new array
 char * 
-CoinArrayWithLength::conditionalNew(long sizeWanted)
+CoinArrayWithLength::conditionalNew(CoinBigIndex sizeWanted)
 {
   if (size_==-1) {
     getCapacity(static_cast<int>(sizeWanted));
@@ -2027,7 +2027,7 @@ CoinArrayWithLength::swap(CoinArrayWithLength & other)
   char * swapArray = other.array_;
   other.array_=array_;
   array_=swapArray;
-  int swapSize = other.size_;
+  CoinBigIndex swapSize = other.size_;
   other.size_=size_;
   size_=swapSize;
   int swapOffset = other.offset_;

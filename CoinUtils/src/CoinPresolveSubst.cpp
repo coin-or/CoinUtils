@@ -155,7 +155,7 @@ add_row (CoinBigIndex *mrstrt, double *rlo, double *acts, double *rup,
       if (fabs(newcoeff) <tolerance) 
 	newcoeff=0.0;
       rowels[krowx] = newcoeff ;
-      x_to_y[x_to_y_i++] = krowx-krsx ;
+      x_to_y[x_to_y_i++] = static_cast<int>(krowx-krsx) ;
       krowx++ ;
     } else {
 /*
@@ -180,7 +180,7 @@ add_row (CoinBigIndex *mrstrt, double *rlo, double *acts, double *rup,
       
       hcol[krex] = j ;
       rowels[krex] = newValue;
-      x_to_y[x_to_y_i++] = krex-krsx ;
+      x_to_y[x_to_y_i++] = static_cast<int>(krex-krsx) ;
       hinrow[irowx]++ ;
       krex++ ;
       
@@ -456,7 +456,7 @@ const CoinPresolveAction *subst_constraint_action::presolve (
 
     ntotels = 0 ;
     for (CoinBigIndex kcol = tgtcs ; kcol < tgtce ; ++kcol) {
-      const int ndx = kcol-tgtcs ;
+      const int ndx = static_cast<int>(kcol-tgtcs) ;
       const int i = rowIndices[kcol] ;
       const CoinBigIndex krs = rowStarts[i] ;
       prob->addRow(i) ;

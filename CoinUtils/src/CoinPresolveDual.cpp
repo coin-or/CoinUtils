@@ -227,14 +227,14 @@ const CoinPresolveAction
     const CoinBigIndex kre = krs + hinrow[i] ;
     int positive = 0 ;
     int negative = 0 ;
-    int onlyPositive = -1 ;
-    int onlyNegative = -1 ;
+    CoinBigIndex onlyPositive = -1 ;
+    CoinBigIndex onlyNegative = -1 ;
     for (CoinBigIndex k = krs ; k < kre ; k++) {
       const double coeff = rowels[k] ;
       const int icol = hcol[k] ;
       char type = active[icol];
-      const double lb = clo[icol] ;
-      const double ub = cup[icol] ;
+      //const double lb = clo[icol] ;
+      //const double ub = cup[icol] ;
       if (type==0 || (type&8) != 0) {
 	// free or already used
 	positive=2;
@@ -636,10 +636,10 @@ const CoinPresolveAction
       if (!integerType[j]) {
 #ifndef USE_ACTIVE
 	const bool no_cub = (cup[j] >= ekkinf) ;
-	const bool no_clb = (clo[j] <= -ekkinf) ;
+	//const bool no_clb = (clo[j] <= -ekkinf) ;
 #else
 	const bool no_cub = (active[j]&6)==0 ;
-	const bool no_clb = (active[j]&5)==0 ;
+	//const bool no_clb = (active[j]&5)==0 ;
 #endif
 	if (no_cub) {
 	  if (nflagu == 1 && cbarjmax < -ztolcbarj) {
@@ -1264,8 +1264,8 @@ const CoinPresolveAction
   int * infCount = prob->usefulRowInt_+2*nrows;
   {
     // copied from CglProbing 
-    int i, j, k, kre;
-    int krs;
+    int i, j;
+    CoinBigIndex k,krs,kre;
     int iflagu, iflagl;
     double dmaxup, dmaxdown;
     

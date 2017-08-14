@@ -307,7 +307,7 @@ void drop_zero_coefficients_action::postsolve(CoinPostsolveMatrix *prob) const
   int *hrow = prob->hrow_ ;
   CoinBigIndex *mcstrt = prob->mcstrt_ ;
   int *hincol = prob->hincol_ ;
-  int *link = prob->link_ ;
+  CoinBigIndex *link = prob->link_ ;
   CoinBigIndex &free_list = prob->free_list_ ;
 
   for (const dropped_zero *z = &zeros[nzeros-1] ; zeros <= z ; z--) {

@@ -360,7 +360,7 @@ int CoinLpIO::getNumRows() const
 }
 
 /*************************************************************************/
-int CoinLpIO::getNumElements() const
+CoinBigIndex CoinLpIO::getNumElements() const
 {
   return numberElements_;
 }
@@ -1017,7 +1017,8 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
    double lp_inf = getInfinity();
    int numberAcross = getNumberAcross();
 
-   int i, j, cnt_print, loc_row_names = 0, loc_col_names = 0;
+   int i, cnt_print, loc_row_names = 0, loc_col_names = 0;
+   CoinBigIndex j;
    char **prowNames = NULL, **pcolNames = NULL;
 
    const int *indices = matrixByRow_->getIndices();
@@ -1745,12 +1746,12 @@ CoinLpIO::realloc_coeff(double **coeff, char ***colNames,
 
 /*************************************************************************/
 void
-CoinLpIO::realloc_row(char ***rowNames, int **start, double **rhs, 
+CoinLpIO::realloc_row(char ***rowNames, CoinBigIndex **start, double **rhs, 
 		      double **rowlow, double **rowup, int *maxrow) const {
 
   *maxrow *= 5;
   *rowNames = reinterpret_cast<char **> (realloc ((*rowNames), (*maxrow+1) * sizeof(char *)));
-  *start = reinterpret_cast<int *> (realloc ((*start), (*maxrow+1) * sizeof(int)));
+  *start = reinterpret_cast<CoinBigIndex *> (realloc ((*start), (*maxrow+1) * sizeof(CoinBigIndex)));
   *rhs = reinterpret_cast<double *> (realloc ((*rhs), (*maxrow+1) * sizeof(double)));
   *rowlow = reinterpret_cast<double *> (realloc ((*rowlow), (*maxrow+1) * sizeof(double)));
   *rowup = reinterpret_cast<double *> (realloc ((*rowup), (*maxrow+1) * sizeof(double)));
@@ -1922,8 +1923,8 @@ CoinLpIO::readLp(FILE* fp)
      (malloc ((maxcoeff+1) * sizeof(double)));
   char **rowNames = reinterpret_cast<char **> 
      (malloc ((maxrow+MAX_OBJECTIVES) * sizeof(char *)));
-  int *start = reinterpret_cast<int *> 
-     (malloc ((maxrow+MAX_OBJECTIVES) * sizeof(int)));
+  CoinBigIndex *start = reinterpret_cast<CoinBigIndex *> 
+     (malloc ((maxrow+MAX_OBJECTIVES) * sizeof(CoinBigIndex)));
   double *rhs = reinterpret_cast<double *> 
      (malloc ((maxrow+1) * sizeof(double)));
   double *rowlow = reinterpret_cast<double *> 
