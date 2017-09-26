@@ -12,18 +12,19 @@
 
 AC_INIT([CoinUtils],[trunk],[coinutils@lists.coin-or.org],[coinutils],
 	[http://projects.coin-or.org/CoinUtils])
-
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.
 All Rights Reserved.
 This file is part of the open source package CoinUtils which is distributed
 under the Eclipse Public License.])
 
-# List one file in the package so that the configure script can test
-# whether the package is actually there
+# List one file in the package so that the configure script can test whether
+# the package is actually there.
+
 AC_CONFIG_SRCDIR(src/CoinError.cpp)
 
 # Do some initialization work (version numbers, change prefix default, ...)
+
 AC_COIN_INITIALIZE(CoinUtils)
 
 #############################################################################
@@ -31,19 +32,20 @@ AC_COIN_INITIALIZE(CoinUtils)
 #############################################################################
 
 # Get the name of the C++ compiler and appropriate compiler options
+
 AC_COIN_PROG_CXX
 
-# For the Blas/Lapack checks, we want to know how to link against Fortran
-# TODO the Blas/Lapack checks should then do this
-# Get the name of the Fortran compiler and appropriate compiler options
+# Sort out what we need to link to Fortran libraries.
+
 AC_COIN_PROG_F77
-# Find out how to call Fortran from C and determine Fortran runtime libraries
-if test "${F77:-unavailable}" != "unavailable" ; then
-  AC_F77_WRAPPERS
-  AC_F77_LIBRARY_LDFLAGS
+if test "$F77" != "unavailable" ; then
+  AC_COIN_F77_SETUP
+else
+  AC_COIN_F77_WRAPPERS(blas,DAXPY)
 fi
 
 # Initialize libtool
+
 AC_COIN_PROG_LIBTOOL
 
 ############################################################################
@@ -62,44 +64,15 @@ AC_COIN_CHECK_ISNAN
 #    --enable-coinutils-mempool-override-new
 #    --enable-coinutils-mempool-maxpooled
 
-AC_LANG_PUSH(C++)
+# Enable compilation of thread-aware features in CoinUtils
+AC_COINUTILS_THREADS(yes)
 
-AC_ARG_ENABLE([coinutils-threads],
-[AC_HELP_STRING([--enable-coinutils-threads],
-                [enables compilation of thread aware CoinUtils (mempool so far)])])
-
-if test "$enable_coinutils_threads" = yes; then
-  # Define the preprocessor macro
-  AC_DEFINE([COINUTILS_PTHREADS],[1],[Define to 1 if the thread aware version of CoinUtils should be compiled])
-  AC_CHECK_LIB([rt],[clock_gettime],
-               [COINUTILSLIB_LIBS="-lrt $COINUTILSLIB_LIBS"],
-               [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lrt unavailable])])
-  AC_CHECK_LIB([pthread],[pthread_create],
-               [COINUTILSLIB_LIBS="-lpthread $COINUTILSLIB_LIBS"],
-               [AC_MSG_ERROR([--enable-coinutils-threads selected, but -lpthreads unavailable])])
-fi
-
-AC_ARG_ENABLE([coinutils-mempool-override-new],
-[AC_HELP_STRING([--enable-coinutils-mempool-override-new],
-                [enables the CoinUtils mempool to override global new/delete])])
-
-if test "$enable_coinutils_mempool_override_new" = yes; then
-   AC_DEFINE([COINUTILS_MEMPOOL_OVERRIDE_NEW],[1],[Define to 1 CoinUtils should override global new/delete])
-fi
-
-AC_ARG_ENABLE([coinutils-mempool-maxpooled],
-[AC_HELP_STRING([--enable-coinutils-mempool-maxpooled],
-                [Specify the default maximum memory allocation size that is served by the memory pool. If negative (or 'no') then the memory pool is disabled completely. Otherwise its value can be overridden at runtime using the COINUTILS_MEMPOOL_MAXPOOLED environment variable.])])
-
-if test "$enable_coinutils_mempool_maxpooled" = yes; then
-   AC_DEFINE([COINUTILS_MEMPOOL_MAXPOOLED],[4096],[Default maximum pooled allocation size])
-elif test "$enable_coinutils_mempool_maxpooled" = no; then
-   AC_DEFINE([COINUTILS_MEMPOOL_MAXPOOLED],[-1],[Disable CoinUtils memory pool])
-elif test x"$enable_coinutils_mempool_maxpooled" = x; then
-   AC_DEFINE([COINUTILS_MEMPOOL_MAXPOOLED],[-1],[Disable CoinUtils memory pool])
-else
-   AC_DEFINE_UNQUOTED([COINUTILS_MEMPOOL_MAXPOOLED],${enable_coinutils_mempool_maxpooled},[Default maximum pooled allocation size])
-fi
+# Activate the CoinUtils mempool for blocks up to 4096 bytes, but do not
+# redirect global new/delete to the CoinUtils mempool.
+# 170909  (lh) Changing the second parameter to yes causes compilation errors
+#         in CoinAlloc with C++11. Likely the best solution is to remove the
+#         dynamic throw spec.
+AC_COINUTILS_MEMPOOL(4096,no)
 
 #############################################################################
 #                       Finding certain integer types                       #
