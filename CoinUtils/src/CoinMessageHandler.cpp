@@ -364,6 +364,19 @@ CoinMessageHandler::internalPrint()
 	break;
       } 
     }
+    // take off %%
+    if (strstr(messageBuffer_,"%%")) {
+      // can be inefficient
+      char * buffer = messageBuffer_;
+      int n = static_cast<int>(strlen(buffer));
+      for (int i=0;i<n;i++) {
+	if (messageBuffer_[i]!='%'||messageBuffer_[i+1]!='%') {
+	  *buffer=messageBuffer_[i];
+	  buffer++;
+	} 
+      }
+      *buffer='\0';
+    }
     // Now do print which can be overridden
     returnCode=print();
     // See what to do on error
