@@ -342,9 +342,9 @@ public:
   inline void deleteCol(int whichColumn)
   { deleteColumn(whichColumn);}
   /// Takes element out of matrix - returning position (<0 if not there);
-  int deleteElement(int row, int column);
+  CoinBigIndex deleteElement(int row, int column);
   /// Takes element out of matrix when position known
-  void deleteThisElement(int row, int column,int position);
+  void deleteThisElement(int row, int column,CoinBigIndex position);
   /** Packs down all rows i.e. removes empty rows permanently.  Empty rows
       have no elements and feasible bounds. returns number of rows deleted. */
   int packRows();
@@ -472,7 +472,7 @@ public:
   /** Returns position in elements for row i column j.
       Only valid until next modification. 
       -1 if element does not exist */
-  int position (int i,int j) const;
+  CoinBigIndex position (int i,int j) const;
   
   
   /** Returns first element in given row - index is -1 if none.
@@ -826,7 +826,7 @@ public:
    /** Default constructor. */
    CoinModel();
    /** Constructor with sizes. */
-   CoinModel(int firstRows, int firstColumns, int firstElements,bool noNames=false);
+   CoinModel(int firstRows, int firstColumns, CoinBigIndex firstElements,bool noNames=false);
    /** Read a problem in MPS or GAMS format from the given filename.
    */
    CoinModel(const char *fileName, int allowStrings=0);
@@ -862,7 +862,7 @@ public:
    //@}
 private:
   /// Resize
-  void resize(int maximumRows, int maximumColumns, int maximumElements);
+  void resize(int maximumRows, int maximumColumns, CoinBigIndex maximumElements);
   /// Fill in default row information
   void fillRows(int which,bool forceCreation,bool fromAddRow=false);
   /// Fill in default column information
@@ -937,13 +937,13 @@ private:
   /// Maximum number of columns
   int maximumColumns_;
   /// Current number of elements
-  int numberElements_;
+  CoinBigIndex numberElements_;
   /// Maximum number of elements
-  int maximumElements_;
+  CoinBigIndex maximumElements_;
   /// Current number of quadratic elements
-  int numberQuadraticElements_;
+  CoinBigIndex numberQuadraticElements_;
   /// Maximum number of quadratic elements
-  int maximumQuadraticElements_;
+  CoinBigIndex maximumQuadraticElements_;
   /// Row lower 
   double * rowLower_;
   /// Row upper 
@@ -981,7 +981,7 @@ private:
   */
   int * columnType_;
   /// If simple then start of each row/column
-  int * start_;
+  CoinBigIndex * start_;
   /// Actual elements
   CoinModelTriple * elements_;
   /// Actual elements as CoinPackedMatrix

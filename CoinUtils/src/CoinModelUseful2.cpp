@@ -71,8 +71,8 @@
 
 #include <cstdlib>
 
-#include "CoinModel.hpp"
 #include "CoinHelperFunctions.hpp"
+#include "CoinModel.hpp"
 
 
 /* Copy the first part of user declarations.  */
