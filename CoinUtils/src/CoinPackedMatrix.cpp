@@ -1487,16 +1487,14 @@ CoinPackedMatrix::minorAppendSameOrdered(const CoinPackedMatrix& matrix)
    }
    if (i >= 0)
       resizeForAddingMinorVectors(matrix.length_);
-
    // now insert the entries of matrix
    for (i = majorDim_ - 1; i >= 0; --i) {
-      const int l = matrix.length_[i];
-      std::transform(matrix.index_ + matrix.start_[i],
-		matrix.index_ + (matrix.start_[i] + l),
-		index_ + (start_[i] + length_[i]),
-		std::bind2nd(std::plus<int>(), minorDim_));
-      CoinMemcpyN(matrix.element_ + matrix.start_[i], l,
-		       element_ + (start_[i] + length_[i]));
+      int l = matrix.length_[i];
+      CoinBigIndex put = start_[i]+length_[i];
+      const CoinBigIndex get = matrix.start_[i];
+      for (int j=0;j<l;j++)
+	index_[put+j]=matrix.index_[get+j]+minorDim_;
+      CoinMemcpyN(matrix.element_ + get, l, element_ + put);
       length_[i] += l;
    }
    minorDim_ += matrix.minorDim_;
