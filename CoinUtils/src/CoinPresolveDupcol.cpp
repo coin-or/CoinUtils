@@ -69,8 +69,7 @@ namespace {	// begin unnamed file-local namespace
 
 
 void create_col (int col, int n, double *els,
-		 CoinBigIndex *mcstrt, double *colels, int *hrow,
-		 CoinBigIndex *link,
+		 CoinBigIndex *mcstrt, double *colels, int *hrow, CoinBigIndex *link,
 		 CoinBigIndex *free_listp)
 {
   int *rows = reinterpret_cast<int *>(els+n) ;
@@ -1033,7 +1032,7 @@ void dupcol_action::postsolve(CoinPostsolveMatrix *prob) const
 	     printf("BAD DUPCOL BOUNDS:  %g %g %g\n", clo[icol2], sol[icol2], cup[icol2]);
 #   endif
   }
-  // leave until desctructor
+  // leave until destructor
   //  deleteAction(actions_,action *);
 }
 
@@ -1587,6 +1586,9 @@ const CoinPresolveAction
   double *rlo	= prob->rlo_;
   double *rup	= prob->rup_;
 
+  // maximum number of records
+  action * actions = new action[nrows];
+  int nactions=0;
 /*
   Scan the rows.  We're not
   interested in rows that are empty or prohibited.
@@ -1636,12 +1638,11 @@ const CoinPresolveAction
 	  }
 	}
 	// Now see if any promising
+	int nDrop = 0;
 	for (int j=0;j<nLook;j++) {
 	  int iRow = which[j];
 	  if (number[iRow]==nInRow) {
 	    // can delete elements and adjust rhs
-	    affectedRows++;
-	    droppedElements += nInRow;
 	    for (CoinBigIndex kk=rStart; kk<rEnd; kk++) 
 	      presolve_delete_from_col(iRow,hcol[kk],mcstrt,hincol,hrow,colels) ;
 	    int nInRow2 = hinrow[iRow];
@@ -1655,6 +1656,7 @@ const CoinPresolveAction
 	      }
 	    }
 	    hinrow[iRow] = nInRow2-nInRow;
+	    nDrop++;
 	    if (!hinrow[iRow])
 	      PRESOLVE_REMOVE_LINK(prob->rlink_,iRow) ;
 	    double value =(rlo[i]/value1)*els[iRow];
@@ -1663,7 +1665,37 @@ const CoinPresolveAction
 	      rlo[iRow] -= value;
 	    if (rup[iRow]<1.0e20)
 	      rup[iRow] -= value;
+	  } else {
+	    number[iRow]=0;
 	  }
+	}
+	if (nDrop) {
+	  affectedRows += nDrop;
+	  droppedElements += nDrop*nInRow;
+	  action & thisAction = actions[nactions];
+	  int * deletedRow = new int [nDrop+1];
+	  int * indices = CoinCopyOfArray(hcol+rStart,nInRow);
+	  thisAction.indices = indices;
+	  double * rowels = new double [nDrop+1];
+	  thisAction.rhs = rlo[i];
+	  deletedRow[nDrop]=i;
+	  rowels[nDrop] = value1;
+	  nDrop=0;
+	  for (int j=0;j<nLook;j++) {
+	    int iRow = which[j];
+	    if (number[iRow]) {
+	      deletedRow[nDrop]=iRow;
+	      rowels[nDrop++]=els[iRow];
+	    }
+	  }
+	  thisAction.nDrop=nDrop;
+	  thisAction.ninrow=nInRow;
+	  thisAction.deletedRow = deletedRow;
+	  thisAction.rowels = rowels;
+	  nactions++;
+	}
+	for (int j=0;j<nLook;j++) {
+	  int iRow = which[j];
 	  els[iRow]=0.0;
 	}
 	for (k=rStart;k<rEnd;k++) {
@@ -1673,6 +1705,11 @@ const CoinPresolveAction
       }
     }
   }
+  if (nactions) {
+    next = new gubrow_action(nactions,
+				   CoinCopyOfArray(actions,nactions),next) ;
+  }
+  deleteAction(actions,action*) ;
   if (prob->tuning_) {
     double thisTime=CoinCpuTime();
     printf("CoinPresolveGubrow(1024) - %d elements dropped (%d rows) in time %g, total %g\n",
@@ -1686,12 +1723,156 @@ const CoinPresolveAction
   return (next);
 }
 
-void gubrow_action::postsolve(CoinPostsolveMatrix *) const
+void gubrow_action::postsolve(CoinPostsolveMatrix * prob) const
 {
-  printf("STILL NO POSTSOLVE FOR GUBROW!\n");
-  abort();
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+# if PRESOLVE_DEBUG > 0
+  std::cout
+    << "Entering gubrow_action::postsolve, "
+    << nactions_ << " constraints to process." << std::endl ;
+# endif
+  //int ncols = prob->ncols_ ;
+  //char *cdone = prob->cdone_ ;
+  //char *rdone = prob->rdone_ ;
+  //const double ztolzb = prob->ztolzb_ ;
+
+  presolve_check_threads(prob) ;
+  presolve_check_free_list(prob) ;
+  presolve_check_reduced_costs(prob) ;
+  presolve_check_duals(prob) ;
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+# endif
+
+/*
+  Unpack the column-major representation.
+*/
+  CoinBigIndex *colStarts = prob->mcstrt_ ;
+  int *colLengths = prob->hincol_ ;
+  int *rowIndices = prob->hrow_ ;
+  double *colCoeffs = prob->colels_ ;
+/*
+  Rim vectors, solution, reduced costs, duals, row activity.
+*/
+  double *rlo = prob->rlo_ ;
+  double *rup = prob->rup_ ;
+  //double *cost = prob->cost_ ;
+  //double *sol = prob->sol_ ;
+  //double *rcosts = prob->rcosts_ ;
+  double *acts = prob->acts_ ;
+  double *rowduals = prob->rowduals_ ;
+
+  CoinBigIndex *link = prob->link_ ;
+  CoinBigIndex &free_list = prob->free_list_ ;
+
+  //const double maxmin = prob->maxmin_ ;
+
+  const action *const actions = actions_ ;
+  const int nactions = nactions_ ;
+
+/*
+  Open the main loop to step through the postsolve objects.
+
+*/
+  for (const action *f = &actions[nactions-1] ; actions <= f ; f--) {
+    int * deletedRow = f->deletedRow;
+    double * els = f->rowels;
+    int * indices = f->indices;
+    int nDrop = f->nDrop;
+    int ninrow = f->ninrow;
+    double rhs = f->rhs;
+    double coeff = els[nDrop];
+    int iRow = deletedRow[nDrop];
+    for (int i = 0; i<nDrop;i++) {
+      int tgtrow=deletedRow[i];
+      double coeffy=els[i];
+      double dualValue = rowduals[tgtrow];
+#     if PRESOLVE_DEBUG > 2
+      std::cout << "    restoring row " << tgtrow <<" coeff "<<coeffy
+		<<" dual " << dualValue 
+		<< " dual on " << iRow <<" goes from " 
+		<< rowduals[iRow] << " to " 
+		<< rowduals[iRow] - (coeffy*dualValue)/coeff
+		<< std::endl ;
+#     endif
+      // adjust dual on iRow
+      rowduals[iRow] -= (coeffy*dualValue)/coeff;
+#     if 0 //PRESOLVE_DEBUG > 2
+      int * rowStart;
+      int * column;
+      double * element;
+      postsolve_get_rowcopy(prob,rowStart,column,element);
+      for (int k=rowStart[tgtrow];k<rowStart[tgtrow+1];k++) {
+	printf("(%d, %g, %s - rcost %g) ",column[k],element[k],
+	       statusName(prob->getColumnStatus(column[k])),rcosts[column[k]]);
+	if ((k-rowStart[tgtrow])%10==9)
+	  printf("\n");
+      }
+      printf("\n");
+#endif
+      
+      for (int rndx = 0 ; rndx < ninrow ; ++rndx) {
+	int j = indices[rndx] ;
+#       if PRESOLVE_DEBUG > 2
+	std::cout << " a(" << j << " rcost " << rcosts[j] 
+		  << " -> " << rcosts[j]-dualValue*coeffy<<" "<<
+	  statusName(prob->getColumnStatus(j))<<")" ;
+#       endif
+	CoinBigIndex kk = free_list ;
+	assert(kk >= 0 && kk < prob->bulk0_) ;
+	free_list = link[free_list] ;
+	link[kk] = colStarts[j] ;
+	colStarts[j] = kk ;
+	colCoeffs[kk] = coeffy ;
+	rowIndices[kk] = tgtrow ;
+	++colLengths[j] ;
+      }
+      double value = (rhs/coeff)*coeffy;
+      acts[tgtrow] += value;  ;
+      // correct rhs
+      if (rlo[tgtrow]>-1.0e20)
+	rlo[tgtrow] += value;
+      if (rup[tgtrow]<1.0e20)
+	rup[tgtrow] += value;
+#     if PRESOLVE_DEBUG > 2
+      std::cout << std::endl ;
+#     endif
+
+#     if PRESOLVE_CONSISTENCY > 0
+      presolve_check_threads(prob) ;
+      presolve_check_free_list(prob) ;
+#     endif
+    }
+  }
+
+# if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
+  presolve_check_threads(prob) ;
+  presolve_check_free_list(prob) ;
+  presolve_check_reduced_costs(prob) ;
+  presolve_check_duals(prob) ;
+  presolve_check_sol(prob,2,2,2) ;
+  presolve_check_nbasic(prob) ;
+# if PRESOLVE_DEBUG > 0
+  std::cout << "Leaving gubrow_action::postsolve." << std::endl ;
+# endif
+# endif
+
+  return ;
 }
 
+gubrow_action::~gubrow_action()
+{
+  const action *actions = actions_ ;
+
+  for (int i = 0 ; i < nactions_ ; ++i) {
+    delete [] actions[i].rowels ;
+    delete [] actions[i].deletedRow ;
+    delete [] actions[i].indices;
+  }
+
+  // Must add cast to placate MS compiler
+  deleteAction(actions_,gubrow_action::action*) ;
+}
 
 
 /*
