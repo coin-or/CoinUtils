@@ -99,7 +99,8 @@ noinst_PROGRAMS = unitTest$(EXEEXT)
 @COIN_HAS_NETLIB_TRUE@am__append_2 = -netlibDir=`$(CYGPATH_W) $(NETLIB_DATA)` -testModel=adlittle.mps
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ac_coinutils_mempool.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ac_coinutils_inttypes.m4 \
+	$(top_srcdir)/m4/ac_coinutils_mempool.m4 \
 	$(top_srcdir)/m4/ac_coinutils_threads.m4 \
 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \

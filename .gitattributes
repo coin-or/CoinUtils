@@ -31,6 +31,7 @@ CoinUtils/doxydoc/doxygen.conf.in -text
 CoinUtils/get.dependencies.sh -text
 CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
+CoinUtils/m4/ac_coinutils_inttypes.m4 -text
 CoinUtils/m4/ac_coinutils_mempool.m4 -text
 CoinUtils/m4/ac_coinutils_threads.m4 -text
 CoinUtils/missing -text

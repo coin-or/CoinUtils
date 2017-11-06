@@ -2235,65 +2235,11 @@ fi
 
 } # ac_fn_cxx_check_header_mongrel
 
-# ac_fn_cxx_check_decl LINENO SYMBOL VAR INCLUDES
-# -----------------------------------------------
-# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
-# accordingly.
-ac_fn_cxx_check_decl ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  as_decl_name=`echo $2|sed 's/ *(.*//'`
-  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
-$as_echo_n "checking whether $as_decl_name is declared... " >&6; }
-if eval \${$3+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-#ifdef F77_DUMMY_MAIN
-
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int F77_DUMMY_MAIN() { return 1; }
-
-#endif
-int
-main ()
-{
-#ifndef $as_decl_name
-#ifdef __cplusplus
-  (void) $as_decl_use;
-#else
-  (void) $as_decl_name;
-#endif
-#endif
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"; then :
-  eval "$3=yes"
-else
-  eval "$3=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$3
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-
-} # ac_fn_cxx_check_decl
-
-# ac_fn_c_check_type LINENO TYPE VAR INCLUDES
-# -------------------------------------------
+# ac_fn_cxx_check_type LINENO TYPE VAR INCLUDES
+# ---------------------------------------------
 # Tests whether TYPE exists after having included INCLUDES, setting cache
 # variable VAR accordingly.
-ac_fn_c_check_type ()
+ac_fn_cxx_check_type ()
 {
   as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
@@ -2322,7 +2268,7 @@ if (sizeof ($2))
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_cxx_try_compile "$LINENO"; then :
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 $4
@@ -2343,7 +2289,7 @@ if (sizeof (($2)))
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
+if ac_fn_cxx_try_compile "$LINENO"; then :
 
 else
   eval "$3=yes"
@@ -2357,7 +2303,7 @@ eval ac_res=\$$3
 $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
-} # ac_fn_c_check_type
+} # ac_fn_cxx_check_type
 
 # ac_fn_c_compute_int LINENO EXPR VAR INCLUDES
 # --------------------------------------------
@@ -2589,6 +2535,60 @@ rm -f conftest.val
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_compute_int
+
+# ac_fn_cxx_check_decl LINENO SYMBOL VAR INCLUDES
+# -----------------------------------------------
+# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
+# accordingly.
+ac_fn_cxx_check_decl ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  as_decl_name=`echo $2|sed 's/ *(.*//'`
+  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
+$as_echo_n "checking whether $as_decl_name is declared... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+#ifdef F77_DUMMY_MAIN
+
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+
+#endif
+int
+main ()
+{
+#ifndef $as_decl_name
+#ifdef __cplusplus
+  (void) $as_decl_use;
+#else
+  (void) $as_decl_name;
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_cxx_check_decl
 
 # ac_fn_c_check_header_mongrel LINENO HEADER VAR INCLUDES
 # -------------------------------------------------------
@@ -5266,11 +5266,11 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   fi
 
 
-# Sort out what we need to link to Fortran libraries.
+# Sort out what we need to do to link to Fortran libraries. Check if there's a
+# Fortran compiler and call the appropriate macro based on the result.
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: In COIN_PROG_F77" >&5
-$as_echo "$as_me: In COIN_PROG_F77" >&6;}
+  # AC_MSG_NOTICE([In COIN_PROG_F77])
 
 
 # If enable-msvc, then test only for Intel (on Windows) Fortran compiler
@@ -5501,8 +5501,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
     { $as_echo "$as_me:${as_lineno-$LINENO}: No Fortran compiler available." >&5
 $as_echo "$as_me: No Fortran compiler available." >&6;}
   fi
-  { $as_echo "$as_me:${as_lineno-$LINENO}: Leaving COIN_PROG_F77" >&5
-$as_echo "$as_me: Leaving COIN_PROG_F77" >&6;}
+  # AC_MSG_NOTICE([Leaving COIN_PROG_F77])
 
 if test "$F77" != "unavailable" ; then
 
@@ -6135,8 +6134,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: In COIN_F77_SETUP" >&5
-$as_echo "$as_me: In COIN_F77_SETUP" >&6;}
+  # AC_MSG_NOTICE([In COIN_F77_SETUP])
 
 # F77_WRAPPERS will trigger the necessary F77 setup macros (F77_MAIN,
 # F77_LIBRARY_LDFLAGS, etc.)
@@ -6260,8 +6258,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
   if test $ac_cv_prog_f77_c_o = no ; then
     F77="$am_aux_dir/compile $F77"
   fi
-  { $as_echo "$as_me:${as_lineno-$LINENO}: Leaving COIN_F77_SETUP" >&5
-$as_echo "$as_me: Leaving COIN_F77_SETUP" >&6;}
+  # AC_MSG_NOTICE([Leaving COIN_F77_SETUP])
 
 else
 
@@ -20825,199 +20822,594 @@ LT_LDFLAGS="-no-undefined"
 
 
 ############################################################################
-#                   Stuff that we need for finite and isnan                #
+#                 Data type and math function definitions                  #
 ############################################################################
 
 
-
-
-ac_ext=cpp
+ ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
-#AC_COIN_CHECK_CXX_CHEADER(math)
-#AC_COIN_CHECK_CXX_CHEADER(float)
-#AC_COIN_CHECK_CXX_CHEADER(ieeefp)
-for ac_header in cmath
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "cmath" "ac_cv_header_cmath" "$ac_includes_default"
-if test "x$ac_cv_header_cmath" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_CMATH 1
-_ACEOF
+# stdint.h is part of autoconf's default standard includes and is checked very
+# early on, as part of libtool setup. CHECK_HEADERS will stop if if finds
+# cstdint, but it's possible (indeed, likely) for both ac_cv_header_cstdint
+# and ac_cv_header_stdint_h to be defined.
 
+# 171102 lh Why do we need COINUTILS_HAS_CSTDINT and COINUTILS_HAS_STDINT_H?
+#        Seems like HAVE_CSTDINT and HAVE_STDINT_H should suffice. These
+#        symbols are exported in config_coinutils.h.
+
+  for ac_header in cstdint stdint.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ break
 fi
 
 done
 
-if test "$ac_cv_header_cmath" != "yes"; then
-  for ac_header in math.h
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "math.h" "ac_cv_header_math_h" "$ac_includes_default"
-if test "x$ac_cv_header_math_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_MATH_H 1
-_ACEOF
+  if test "x$ac_cv_header_cstdint" = xyes ; then
 
-fi
-
-done
-
-fi
-for ac_header in cfloat
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "cfloat" "ac_cv_header_cfloat" "$ac_includes_default"
-if test "x$ac_cv_header_cfloat" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_CFLOAT 1
-_ACEOF
-
-fi
-
-done
-
-if test "$ac_cv_header_cfloat" != "yes"; then
-  for ac_header in float.h
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "float.h" "ac_cv_header_float_h" "$ac_includes_default"
-if test "x$ac_cv_header_float_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_FLOAT_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-for ac_header in cieeefp
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "cieeefp" "ac_cv_header_cieeefp" "$ac_includes_default"
-if test "x$ac_cv_header_cieeefp" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_CIEEEFP 1
-_ACEOF
-
-fi
-
-done
-
-if test "$ac_cv_header_cieeefp" != "yes"; then
-  for ac_header in ieeefp.h
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "ieeefp.h" "ac_cv_header_ieeefp_h" "$ac_includes_default"
-if test "x$ac_cv_header_ieeefp_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_IEEEFP_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-
-COIN_C_FINITE=
-ac_fn_cxx_check_decl "$LINENO" "isfinite" "ac_cv_have_decl_isfinite" "
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif
-"
-if test "x$ac_cv_have_decl_isfinite" = xyes; then :
-  COIN_C_FINITE=isfinite
-fi
-
-if test -z "$COIN_C_FINITE"; then
-  ac_fn_cxx_check_decl "$LINENO" "finite" "ac_cv_have_decl_finite" "
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif
-"
-if test "x$ac_cv_have_decl_finite" = xyes; then :
-  COIN_C_FINITE=finite
-fi
-
-  if test -z "$COIN_C_FINITE"; then
-    ac_fn_cxx_check_decl "$LINENO" "_finite" "ac_cv_have_decl__finite" "
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif
-"
-if test "x$ac_cv_have_decl__finite" = xyes; then :
-  COIN_C_FINITE=_finite
-fi
+$as_echo "#define COINUTILS_HAS_CSTDINT 1" >>confdefs.h
 
   fi
+  if test "x$ac_cv_header_stdint_h" = xyes ; then
+
+$as_echo "#define COINUTILS_HAS_STDINT_H 1" >>confdefs.h
+
+  fi
+
+  CoinInt64=
+  CoinUInt64=
+
+  # Try int64_t. Assume uint64_t exists if int64_t exists.
+
+  ac_fn_cxx_check_type "$LINENO" "int64_t" "ac_cv_type_int64_t" "
+  #ifdef HAVE_CSTDINT
+  # include <cstdint>
+  #else
+  # ifdef HAVE_STDINT_H
+  #  include <stdint.h>
+  # endif
+  #endif
+
+"
+if test "x$ac_cv_type_int64_t" = xyes; then :
+  CoinInt64=int64_t ; CoinUInt64=uint64_t
 fi
-if test -z "$COIN_C_FINITE"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find C-function for checking Inf." >&5
-$as_echo "$as_me: WARNING: Cannot find C-function for checking Inf." >&2;}
+
+  ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+# We need to use the C compiler in CHECK_SIZEOF. Otherwise, the MSVC compiler
+# complains about redefinition of "exit". ac_cv_sizeof_<type> sometimes adds
+# `^M' to the number, hence the check for `8?'.
+
+  if test -z "$CoinInt64" ; then
+    ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+    # The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long long" >&5
+$as_echo_n "checking size of long long... " >&6; }
+if ${ac_cv_sizeof_long_long+:} false; then :
+  $as_echo_n "(cached) " >&6
 else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long long))" "ac_cv_sizeof_long_long"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_long_long" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (long long)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_long_long=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long_long" >&5
+$as_echo "$ac_cv_sizeof_long_long" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_LONG_LONG $ac_cv_sizeof_long_long
+_ACEOF
+
+
+    case $ac_cv_sizeof_long_long in
+      8 | 8?) CoinInt64="long long"
+	      CoinUInt64="unsigned long long"
+	      ;;
+      esac
+
+    if test -z "$CoinInt64" ; then
+      # The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long" >&5
+$as_echo_n "checking size of long... " >&6; }
+if ${ac_cv_sizeof_long+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long))" "ac_cv_sizeof_long"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_long" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (long)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_long=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long" >&5
+$as_echo "$ac_cv_sizeof_long" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_LONG $ac_cv_sizeof_long
+_ACEOF
+
+
+      case $ac_cv_sizeof_long in
+	8 | 8?) CoinInt64="long"
+		CoinUInt64="unsigned long"
+		;;
+      esac
+    fi
+
+    if test -z "$CoinInt64" ; then
+      # The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of int" >&5
+$as_echo_n "checking size of int... " >&6; }
+if ${ac_cv_sizeof_int+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (int))" "ac_cv_sizeof_int"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_int" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (int)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_int=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_int" >&5
+$as_echo "$ac_cv_sizeof_int" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_INT $ac_cv_sizeof_int
+_ACEOF
+
+
+      case $ac_cv_sizeof_int in
+	8 | 8?) CoinInt64="int"
+		CoinUInt64="unsigned int"
+		;;
+      esac
+    fi
+    ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+  fi
+
+  if test -z "$CoinInt64" ; then
+    as_fn_error $? "Cannot find 64-bit integer type." "$LINENO" 5
+  fi
+
+cat >>confdefs.h <<_ACEOF
+#define COIN_INT64_T $CoinInt64
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define COIN_UINT64_T $CoinUInt64
+_ACEOF
+
+
+
+  CoinIntPtr=
+
+  ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+  # Try intptr_t, preferred if we can get it.
+
+  ac_fn_cxx_check_type "$LINENO" "intptr_t" "ac_cv_type_intptr_t" "
+  #ifdef HAVE_CSTDINT
+  # include <cstdint>
+  #else
+  # ifdef HAVE_STDINT_H
+  #  include <stdint.h>
+  # endif
+  #endif
+
+"
+if test "x$ac_cv_type_intptr_t" = xyes; then :
+  CoinIntPtr=intptr_t
+fi
+
+
+  ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+  if test -z "$CoinIntPtr" ; then
+    ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+    # The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of int *" >&5
+$as_echo_n "checking size of int *... " >&6; }
+if ${ac_cv_sizeof_int_p+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (int *))" "ac_cv_sizeof_int_p"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_int_p" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (int *)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_int_p=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_int_p" >&5
+$as_echo "$ac_cv_sizeof_int_p" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_INT_P $ac_cv_sizeof_int_p
+_ACEOF
+
+
+    # The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long long" >&5
+$as_echo_n "checking size of long long... " >&6; }
+if ${ac_cv_sizeof_long_long+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long long))" "ac_cv_sizeof_long_long"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_long_long" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (long long)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_long_long=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long_long" >&5
+$as_echo "$ac_cv_sizeof_long_long" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_LONG_LONG $ac_cv_sizeof_long_long
+_ACEOF
+
+
+    if test "$ac_cv_sizeof_long_long" = "$ac_cv_sizeof_int_p" ; then
+      CoinIntPtr="long long"
+    fi
+
+    if test x"$CoinIntPtr" = x ; then
+      # The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long" >&5
+$as_echo_n "checking size of long... " >&6; }
+if ${ac_cv_sizeof_long+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long))" "ac_cv_sizeof_long"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_long" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (long)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_long=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long" >&5
+$as_echo "$ac_cv_sizeof_long" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_LONG $ac_cv_sizeof_long
+_ACEOF
+
+
+      if test "$ac_cv_sizeof_long" = "$ac_cv_sizeof_int_p" ; then
+	CoinIntPtr="long"
+      fi
+    fi
+
+    if test x"$CoinIntPtr" = x ; then
+      # The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of int" >&5
+$as_echo_n "checking size of int... " >&6; }
+if ${ac_cv_sizeof_int+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (int))" "ac_cv_sizeof_int"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_int" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (int)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_int=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_int" >&5
+$as_echo "$ac_cv_sizeof_int" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_INT $ac_cv_sizeof_int
+_ACEOF
+
+
+      if test "$ac_cv_sizeof_int" = "$ac_cv_sizeof_int_p" ; then
+	CoinIntPtr="int"
+      fi
+    fi
+    ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+  fi
+
+  if test -z "$CoinIntPtr" ; then
+    as_fn_error $? "Cannot find integer type capturing pointer" "$LINENO" 5
+  fi
+
+cat >>confdefs.h <<_ACEOF
+#define COIN_INTPTR_T $CoinIntPtr
+_ACEOF
+
+
+
+  ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+  for ac_header in cmath math.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ break
+fi
+
+done
+
+  for ac_header in cfloat float.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ break
+fi
+
+done
+
+  for ac_header in cieeefp ieeefp.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ break
+fi
+
+done
+
+  ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+
+  ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+
+  COIN_C_FINITE=
+
+
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for std::isfinite" >&5
+$as_echo_n "checking for std::isfinite... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+  #ifdef HAVE_CMATH
+  # include <cmath>
+  #else
+  # ifdef HAVE_MATH_H
+  #  include <math.h>
+  # endif
+  #endif
+  #ifdef HAVE_CFLOAT
+  # include <cfloat>
+  #else
+  # ifdef HAVE_FLOAT_H
+  #  include <float.h>
+  # endif
+  #endif
+  #ifdef HAVE_CIEEEFP
+  # include <cieeefp>
+  #else
+  # ifdef HAVE_IEEEFP_H
+  #  include <ieeefp.h>
+  # endif
+  #endif
+
+      int main ()
+      { (void) std::isfinite(1.0) ;
+        return 0 ; }
+
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  COIN_C_FINITE=std::isfinite
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+  if test -z "$COIN_C_FINITE"; then
+    for fname in isfinite finite _finite ; do
+      as_ac_Symbol=`$as_echo "ac_cv_have_decl_$fname" | $as_tr_sh`
+ac_fn_cxx_check_decl "$LINENO" "$fname" "$as_ac_Symbol" "
+  #ifdef HAVE_CMATH
+  # include <cmath>
+  #else
+  # ifdef HAVE_MATH_H
+  #  include <math.h>
+  # endif
+  #endif
+  #ifdef HAVE_CFLOAT
+  # include <cfloat>
+  #else
+  # ifdef HAVE_FLOAT_H
+  #  include <float.h>
+  # endif
+  #endif
+  #ifdef HAVE_CIEEEFP
+  # include <cieeefp>
+  #else
+  # ifdef HAVE_IEEEFP_H
+  #  include <ieeefp.h>
+  # endif
+  #endif
+
+"
+if eval test \"x\$"$as_ac_Symbol"\" = x"yes"; then :
+  COIN_C_FINITE=$fname
+fi
+
+      if test -n "$COIN_C_FINITE" ; then
+        break
+      fi
+    done
+  fi
+
+  if test -z "$COIN_C_FINITE"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find C-function for checking Inf." >&5
+$as_echo "$as_me: WARNING: Cannot find C-function for checking Inf." >&2;}
+  else
 
 cat >>confdefs.h <<_ACEOF
 #define COIN_C_FINITE $COIN_C_FINITE
 _ACEOF
 
-fi
+  fi
 
-ac_ext=c
+  ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -21025,231 +21417,112 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-
-ac_ext=cpp
+  ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
-#AC_COIN_CHECK_CXX_CHEADER(math)
-#AC_COIN_CHECK_CXX_CHEADER(float)
-#AC_COIN_CHECK_CXX_CHEADER(ieeefp)
-for ac_header in cmath
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "cmath" "ac_cv_header_cmath" "$ac_includes_default"
-if test "x$ac_cv_header_cmath" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_CMATH 1
+
+  COIN_C_ISNAN=
+
+
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for std::isnan" >&5
+$as_echo_n "checking for std::isnan... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+  #ifdef HAVE_CMATH
+  # include <cmath>
+  #else
+  # ifdef HAVE_MATH_H
+  #  include <math.h>
+  # endif
+  #endif
+  #ifdef HAVE_CFLOAT
+  # include <cfloat>
+  #else
+  # ifdef HAVE_FLOAT_H
+  #  include <float.h>
+  # endif
+  #endif
+  #ifdef HAVE_CIEEEFP
+  # include <cieeefp>
+  #else
+  # ifdef HAVE_IEEEFP_H
+  #  include <ieeefp.h>
+  # endif
+  #endif
+
+      int main ()
+      { (void) std::isnan(1.0) ;
+        return 0 ; }
+
 _ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  COIN_C_ISNAN=std::isnan
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
 
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
-
-done
-
-if test "$ac_cv_header_cmath" != "yes"; then
-  for ac_header in math.h
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "math.h" "ac_cv_header_math_h" "$ac_includes_default"
-if test "x$ac_cv_header_math_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_MATH_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-for ac_header in cfloat
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "cfloat" "ac_cv_header_cfloat" "$ac_includes_default"
-if test "x$ac_cv_header_cfloat" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_CFLOAT 1
-_ACEOF
-
-fi
-
-done
-
-if test "$ac_cv_header_cfloat" != "yes"; then
-  for ac_header in float.h
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "float.h" "ac_cv_header_float_h" "$ac_includes_default"
-if test "x$ac_cv_header_float_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_FLOAT_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-for ac_header in cieeefp
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "cieeefp" "ac_cv_header_cieeefp" "$ac_includes_default"
-if test "x$ac_cv_header_cieeefp" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_CIEEEFP 1
-_ACEOF
-
-fi
-
-done
-
-if test "$ac_cv_header_cieeefp" != "yes"; then
-  for ac_header in ieeefp.h
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "ieeefp.h" "ac_cv_header_ieeefp_h" "$ac_includes_default"
-if test "x$ac_cv_header_ieeefp_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_IEEEFP_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-
-COIN_C_ISNAN=
-ac_fn_cxx_check_decl "$LINENO" "isnan" "ac_cv_have_decl_isnan" "
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif
-"
-if test "x$ac_cv_have_decl_isnan" = xyes; then :
-  COIN_C_ISNAN=isnan
-fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
-# It appears that for some systems (e.g., Mac OSX), cmath will provide only
-# std::isnan, and bare isnan will be unavailable. Typically we need a parameter
-# in the test to allow C++ to do overload resolution.
-# With newer autoconf, this parameter now gets interpreted as a typecast.
+  if test -z "$COIN_C_ISNAN"; then
+    for fname in isnan _isnan isnand ; do
+      as_ac_Symbol=`$as_echo "ac_cv_have_decl_$fname" | $as_tr_sh`
+ac_fn_cxx_check_decl "$LINENO" "$fname" "$as_ac_Symbol" "
+  #ifdef HAVE_CMATH
+  # include <cmath>
+  #else
+  # ifdef HAVE_MATH_H
+  #  include <math.h>
+  # endif
+  #endif
+  #ifdef HAVE_CFLOAT
+  # include <cfloat>
+  #else
+  # ifdef HAVE_FLOAT_H
+  #  include <float.h>
+  # endif
+  #endif
+  #ifdef HAVE_CIEEEFP
+  # include <cieeefp>
+  #else
+  # ifdef HAVE_IEEEFP_H
+  #  include <ieeefp.h>
+  # endif
+  #endif
 
-if test -z "$COIN_C_ISNAN"; then
-  as_ac_Symbol=`$as_echo "ac_cv_have_decl_std::isnan(double)" | $as_tr_sh`
-ac_fn_cxx_check_decl "$LINENO" "std::isnan(double)" "$as_ac_Symbol" "
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif
 "
 if eval test \"x\$"$as_ac_Symbol"\" = x"yes"; then :
-  COIN_C_ISNAN=std::isnan
+  COIN_C_ISNAN=$fname
 fi
 
-fi
+      if test -z "$COIN_C_ISNAN"; then
+	break
+      fi
+    done
+  fi
 
-if test -z "$COIN_C_ISNAN"; then
-  ac_fn_cxx_check_decl "$LINENO" "_isnan" "ac_cv_have_decl__isnan" "
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif
-"
-if test "x$ac_cv_have_decl__isnan" = xyes; then :
-  COIN_C_ISNAN=_isnan
-fi
-
-fi
-if test -z "$COIN_C_ISNAN"; then
-  ac_fn_cxx_check_decl "$LINENO" "isnand" "ac_cv_have_decl_isnand" "
-#ifdef HAVE_CMATH
-# include <cmath>
-#else
-# ifdef HAVE_MATH_H
-#  include <math.h>
-# endif
-#endif
-#ifdef HAVE_CFLOAT
-# include <cfloat>
-#else
-# ifdef HAVE_FLOAT_H
-#  include <float.h>
-# endif
-#endif
-#ifdef HAVE_CIEEEFP
-# include <cieeefp>
-#else
-# ifdef HAVE_IEEEFP_H
-#  include <ieeefp.h>
-# endif
-#endif
-"
-if test "x$ac_cv_have_decl_isnand" = xyes; then :
-  COIN_C_ISNAN=isnand
-fi
-
-fi
-if test -z "$COIN_C_ISNAN"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find C-function for checking NaN." >&5
+  if test -z "$COIN_C_ISNAN"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find C-function for checking NaN." >&5
 $as_echo "$as_me: WARNING: Cannot find C-function for checking NaN." >&2;}
-else
+  else
 
 cat >>confdefs.h <<_ACEOF
 #define COIN_C_ISNAN $COIN_C_ISNAN
 _ACEOF
 
-fi
+  fi
 
-ac_ext=c
+  ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -21477,415 +21750,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #############################################################################
 #                       Finding certain integer types                       #
 #############################################################################
-
-ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-
-ac_fn_cxx_check_header_mongrel "$LINENO" "inttypes" "ac_cv_header_inttypes" "$ac_includes_default"
-if test "x$ac_cv_header_inttypes" = xyes; then :
-
-fi
-
-
-ac_fn_cxx_check_header_mongrel "$LINENO" "stdint" "ac_cv_header_stdint" "$ac_includes_default"
-if test "x$ac_cv_header_stdint" = xyes; then :
-
-fi
-
-
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-##### 64bit Integer types
-# The problem here is that you can't extend `int64_t' to `unsigned int64_t'.
-# So we need distinct CoinInt64 and CoinUInt64. It should be safe to assume
-# uint64_t, given int64_t.
-CoinInt64=
-CoinUInt64=
-
-# try int64_t
-ac_fn_c_check_type "$LINENO" "int64_t" "ac_cv_type_int64_t" "
-#ifdef HAVE_CINTTYPES
-# include <cinttypes>
-#else
-# ifdef HAVE_INTTYPES_H
-#  include <inttypes.h>
-# endif
-#endif
-
-"
-if test "x$ac_cv_type_int64_t" = xyes; then :
-  CoinInt64=int64_t ; CoinUInt64=uint64_t
-fi
-
-
-# We need to use the C compiler in the AC_CHECK_SIZEOF since otherwise the
-# MSCV compiler complains about redefinition of "exit". ac_cv_sizeof_<type>
-# sometimes adds `^M' to the number, hence the check for `8?'.
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-# try long long
-if test x"$CoinInt64" = x; then
-  # The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long long" >&5
-$as_echo_n "checking size of long long... " >&6; }
-if ${ac_cv_sizeof_long_long+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long long))" "ac_cv_sizeof_long_long"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_long_long" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (long long)
-See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_long_long=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long_long" >&5
-$as_echo "$ac_cv_sizeof_long_long" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_LONG_LONG $ac_cv_sizeof_long_long
-_ACEOF
-
-
-  case $ac_cv_sizeof_long_long in
-    8 | 8?) CoinInt64="long long"
-            CoinUInt64="unsigned long long"
-            ;;
-  esac
-fi
-
-#try long
-if test x"$CoinInt64" = x; then
-  # The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long" >&5
-$as_echo_n "checking size of long... " >&6; }
-if ${ac_cv_sizeof_long+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long))" "ac_cv_sizeof_long"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_long" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (long)
-See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_long=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long" >&5
-$as_echo "$ac_cv_sizeof_long" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_LONG $ac_cv_sizeof_long
-_ACEOF
-
-
-  case $ac_cv_sizeof_long in
-    8 | 8?) CoinInt64="long"
-            CoinUInt64="unsigned long"
-            ;;
-  esac
-fi
-
-#try int
-if test x"$CoinInt64" = x; then
-  # The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of int" >&5
-$as_echo_n "checking size of int... " >&6; }
-if ${ac_cv_sizeof_int+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (int))" "ac_cv_sizeof_int"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_int" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (int)
-See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_int=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_int" >&5
-$as_echo "$ac_cv_sizeof_int" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_INT $ac_cv_sizeof_int
-_ACEOF
-
-
-  case $ac_cv_sizeof_int in
-    8 | 8?) CoinInt64="int"
-            CoinUInt64="unsigned int"
-            ;;
-  esac
-fi
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-if test x"$CoinInt64" = x; then
-  as_fn_error $? "Cannot find integer type with 64 bits" "$LINENO" 5
-fi
-
-cat >>confdefs.h <<_ACEOF
-#define COIN_INT64_T $CoinInt64
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define COIN_UINT64_T $CoinInt64
-_ACEOF
-
-
-
-##### Integer type for Pointer
-CoinIntPtr=
-
-# try intptr_t
-ac_fn_c_check_type "$LINENO" "intptr_t" "ac_cv_type_intptr_t" "
-#ifdef HAVE_CINTTYPES
-# include <cinttypes>
-#else
-# ifdef HAVE_INTTYPES_H
-#  include <inttypes.h>
-# endif
-#endif
-
-"
-if test "x$ac_cv_type_intptr_t" = xyes; then :
-  CoinIntPtr=intptr_t
-fi
-
-
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-# try long long
-if test x"$CoinIntPtr" = x; then
-  # The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of int *" >&5
-$as_echo_n "checking size of int *... " >&6; }
-if ${ac_cv_sizeof_int_p+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (int *))" "ac_cv_sizeof_int_p"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_int_p" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (int *)
-See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_int_p=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_int_p" >&5
-$as_echo "$ac_cv_sizeof_int_p" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_INT_P $ac_cv_sizeof_int_p
-_ACEOF
-
-
-  # The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long long" >&5
-$as_echo_n "checking size of long long... " >&6; }
-if ${ac_cv_sizeof_long_long+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long long))" "ac_cv_sizeof_long_long"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_long_long" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (long long)
-See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_long_long=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long_long" >&5
-$as_echo "$ac_cv_sizeof_long_long" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_LONG_LONG $ac_cv_sizeof_long_long
-_ACEOF
-
-
-  if test "$ac_cv_sizeof_long_long" = "$ac_cv_sizeof_int_p"; then
-    CoinIntPtr="long long"
-  fi
-fi
-
-# try long
-if test x"$CoinIntPtr" = x; then
-  # The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long" >&5
-$as_echo_n "checking size of long... " >&6; }
-if ${ac_cv_sizeof_long+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long))" "ac_cv_sizeof_long"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_long" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (long)
-See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_long=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long" >&5
-$as_echo "$ac_cv_sizeof_long" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_LONG $ac_cv_sizeof_long
-_ACEOF
-
-
-  if test "$ac_cv_sizeof_long" = "$ac_cv_sizeof_int_p"; then
-    CoinIntPtr="long"
-  fi
-fi
-
-# try int
-if test x"$CoinIntPtr" = x; then
-  # The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of int" >&5
-$as_echo_n "checking size of int... " >&6; }
-if ${ac_cv_sizeof_int+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (int))" "ac_cv_sizeof_int"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_int" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (int)
-See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_int=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_int" >&5
-$as_echo "$ac_cv_sizeof_int" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_INT $ac_cv_sizeof_int
-_ACEOF
-
-
-  if test "$ac_cv_sizeof_int" = "$ac_cv_sizeof_int_p"; then
-    CoinIntPtr="int"
-  fi
-fi
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-if test x"$CoinIntPtr" = x; then
-  as_fn_error $? "Cannot find integer type capturing pointer" "$LINENO" 5
-fi
-
-cat >>confdefs.h <<_ACEOF
-#define COIN_INTPTR_T $CoinIntPtr
-_ACEOF
-
-
-if test "x$ac_cv_header_stdint_h" = xyes ; then
-
-$as_echo "#define COINUTILS_HAS_STDINT_H 1" >>confdefs.h
-
-fi
-
-if test "x$ac_cv_header_cstdint" = xyes ; then
-
-$as_echo "#define COINUTILS_HAS_CSTDINT 1" >>confdefs.h
-
-fi
 
 #############################################################################
 #                           Check whether we have windows.h                 #
@@ -22181,7 +22045,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -22264,7 +22128,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -22302,7 +22166,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     if test $coin_need_flibs = yes ; then
                            use_blas="$use_blas $FLIBS"
                          fi
@@ -22428,7 +22292,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -22511,7 +22375,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -22549,7 +22413,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_blas="-lcomplib.sgimath"
                          if test $coin_need_flibs = yes ; then
                            use_blas="$use_blas $FLIBS"
@@ -22655,7 +22519,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -22738,7 +22602,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -22776,7 +22640,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_blas='-lsunperf'
                          if test $coin_need_flibs = yes ; then
                            use_blas="$use_blas $FLIBS"
@@ -22879,7 +22743,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -22962,7 +22826,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -23000,7 +22864,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_blas='mkl_intel_c.lib mkl_sequential.lib mkl_core.lib'
                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $use_blas" >&5
 $as_echo "yes: $use_blas" >&6; }
@@ -23116,7 +22980,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -23199,7 +23063,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -23237,7 +23101,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_blas='mkl_intel_lp64.lib mkl_sequential.lib mkl_core.lib'
                                  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $use_blas" >&5
 $as_echo "yes: $use_blas" >&6; }
@@ -23360,7 +23224,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -23443,7 +23307,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -23481,7 +23345,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_blas='-framework Accelerate'
                          if test $coin_need_flibs = yes ; then
                            use_blas="$use_blas $FLIBS"
@@ -23582,7 +23446,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -23665,7 +23529,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -23703,7 +23567,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_blas='-lblas'
                        if test $coin_need_flibs = yes ; then
                          use_blas="$use_blas $FLIBS"
@@ -24041,7 +23905,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -24124,7 +23988,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -24162,7 +24026,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     if test $coin_need_flibs = yes ; then
                            use_lapack="$use_lapack $FLIBS"
                          fi
@@ -24289,7 +24153,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -24372,7 +24236,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -24410,7 +24274,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_lapack="$BLAS_LIBS"
 		       if test $coin_need_flibs = yes ; then
 			 use_lapack="$use_lapack $FLIBS"
@@ -24535,7 +24399,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -24618,7 +24482,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -24656,7 +24520,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_lapack="-lcomplib.sgimath $BLAS_LIBS"
                            if test $coin_need_flibs = yes ; then
                              use_lapack="$use_lapack $FLIBS"
@@ -24759,7 +24623,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -24842,7 +24706,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -24880,7 +24744,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_lapack='-lsunperf $BLAS_LIBS'
                            if test $coin_need_flibs = yes ; then
                              use_lapack="$use_lapack $FLIBS"
@@ -24984,7 +24848,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -25067,7 +24931,7 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x; then
+  if test x"$FLIBS" != x ; then
 	   flink_save_libs="$LIBS"
 	   LIBS="$LIBS $FLIBS"
 	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -25105,7 +24969,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
       ;;
   esac
-  if test $flink_try = yes; then
+  if test $flink_try = yes ; then
     use_lapack='-llapack'
                        if test $coin_need_flibs = yes ; then
                          use_lapack="$use_lapack $FLIBS"

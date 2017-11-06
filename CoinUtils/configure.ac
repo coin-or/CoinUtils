@@ -35,7 +35,8 @@ AC_COIN_INITIALIZE(CoinUtils)
 
 AC_COIN_PROG_CXX
 
-# Sort out what we need to link to Fortran libraries.
+# Sort out what we need to do to link to Fortran libraries. Check if there's a
+# Fortran compiler and call the appropriate macro based on the result.
 
 AC_COIN_PROG_F77
 if test "$F77" != "unavailable" ; then
@@ -49,9 +50,11 @@ fi
 AC_COIN_PROG_LIBTOOL
 
 ############################################################################
-#                   Stuff that we need for finite and isnan                #
+#                 Data type and math function definitions                  #
 ############################################################################
 
+AC_COINUTILS_INT64
+AC_COINUTILS_INTPTR
 AC_COIN_CHECK_ISFINITE
 AC_COIN_CHECK_ISNAN
 
@@ -77,125 +80,6 @@ AC_COINUTILS_MEMPOOL(4096,no)
 #############################################################################
 #                       Finding certain integer types                       #
 #############################################################################
-
-AC_LANG_PUSH(C++)
-AC_CHECK_HEADER(inttypes)
-AC_CHECK_HEADER(stdint)
-AC_LANG_POP(C++)
-
-##### 64bit Integer types
-# The problem here is that you can't extend `int64_t' to `unsigned int64_t'.
-# So we need distinct CoinInt64 and CoinUInt64. It should be safe to assume
-# uint64_t, given int64_t.
-CoinInt64=
-CoinUInt64=
-
-# try int64_t
-AC_CHECK_TYPE([int64_t],[CoinInt64=int64_t ; CoinUInt64=uint64_t],[],[
-#ifdef HAVE_CINTTYPES
-# include <cinttypes>
-#else
-# ifdef HAVE_INTTYPES_H
-#  include <inttypes.h>
-# endif
-#endif
-])
-
-# We need to use the C compiler in the AC_CHECK_SIZEOF since otherwise the
-# MSCV compiler complains about redefinition of "exit". ac_cv_sizeof_<type>
-# sometimes adds `^M' to the number, hence the check for `8?'.
-AC_LANG_PUSH(C)
-# try long long
-if test x"$CoinInt64" = x; then
-  AC_CHECK_SIZEOF([long long])
-  case $ac_cv_sizeof_long_long in
-    8 | 8?) CoinInt64="long long"
-            CoinUInt64="unsigned long long"
-            ;;
-  esac
-fi
-
-#try long
-if test x"$CoinInt64" = x; then
-  AC_CHECK_SIZEOF([long])
-  case $ac_cv_sizeof_long in
-    8 | 8?) CoinInt64="long"
-            CoinUInt64="unsigned long"
-            ;;
-  esac
-fi
-
-#try int
-if test x"$CoinInt64" = x; then
-  AC_CHECK_SIZEOF([int])
-  case $ac_cv_sizeof_int in
-    8 | 8?) CoinInt64="int"
-            CoinUInt64="unsigned int"
-            ;;
-  esac
-fi
-AC_LANG_POP(C)
-
-if test x"$CoinInt64" = x; then
-  AC_MSG_ERROR([Cannot find integer type with 64 bits])
-fi
-AC_DEFINE_UNQUOTED([COIN_INT64_T], [$CoinInt64],[Define to 64bit integer type])
-AC_DEFINE_UNQUOTED([COIN_UINT64_T],[$CoinInt64],[Define to 64bit unsigned integer type])
-
-
-##### Integer type for Pointer
-CoinIntPtr=
-
-# try intptr_t
-AC_CHECK_TYPE([intptr_t],[CoinIntPtr=intptr_t],[],[
-#ifdef HAVE_CINTTYPES
-# include <cinttypes>
-#else
-# ifdef HAVE_INTTYPES_H
-#  include <inttypes.h>
-# endif
-#endif
-])
-
-AC_LANG_PUSH(C)
-# try long long
-if test x"$CoinIntPtr" = x; then
-  AC_CHECK_SIZEOF([int *])
-  AC_CHECK_SIZEOF([long long])
-  if test "$ac_cv_sizeof_long_long" = "$ac_cv_sizeof_int_p"; then
-    CoinIntPtr="long long"
-  fi
-fi
-
-# try long
-if test x"$CoinIntPtr" = x; then
-  AC_CHECK_SIZEOF([long])
-  if test "$ac_cv_sizeof_long" = "$ac_cv_sizeof_int_p"; then
-    CoinIntPtr="long"
-  fi
-fi
-
-# try int
-if test x"$CoinIntPtr" = x; then
-  AC_CHECK_SIZEOF([int])
-  if test "$ac_cv_sizeof_int" = "$ac_cv_sizeof_int_p"; then
-    CoinIntPtr="int"
-  fi
-fi
-AC_LANG_POP(C)
-
-if test x"$CoinIntPtr" = x; then
-  AC_MSG_ERROR([Cannot find integer type capturing pointer])
-fi
-AC_DEFINE_UNQUOTED([COIN_INTPTR_T],[$CoinIntPtr],[Define to integer type capturing pointer])
-
-if test "x$ac_cv_header_stdint_h" = xyes ; then
-  AC_DEFINE([COINUTILS_HAS_STDINT_H], [1], [Define to 1 if stdint.h is available for CoinUtils])
-fi
-
-if test "x$ac_cv_header_cstdint" = xyes ; then
-  AC_DEFINE([COINUTILS_HAS_CSTDINT], [1], [Define to 1 if cstdint is available for CoinUtils])
-fi
 
 #############################################################################
 #                           Check whether we have windows.h                 #
