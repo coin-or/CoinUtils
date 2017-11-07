@@ -67,11 +67,16 @@ AC_COIN_CHECK_ISNAN
 #    --enable-coinutils-mempool-override-new
 #    --enable-coinutils-mempool-maxpooled
 
-# Enable compilation of thread-aware features in CoinUtils
-AC_COINUTILS_THREADS(yes)
+# Thread-aware features are disabled by default. Specifying
+# --enable-coinutils-threads on the command line will turn them on.
+AC_COINUTILS_THREADS(no)
 
-# Activate the CoinUtils mempool for blocks up to 4096 bytes, but do not
-# redirect global new/delete to the CoinUtils mempool.
+# Configure the CoinUtils mempool. Set the default maximum block size to 4096
+# bytes. This can be overridden at configuration by specifying a value, as
+# --enable-coinutils-mempool-maxpooled=NNN
+# or at run time with environment variable
+#   COINUTILS_MEMPOOL_MAXPOOLED=NNN
+# Do not redirect global new/delete to the CoinUtils mempool.
 # 170909  (lh) Changing the second parameter to yes causes compilation errors
 #         in CoinAlloc with C++11. Likely the best solution is to remove the
 #         dynamic throw spec.

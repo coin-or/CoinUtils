@@ -21539,7 +21539,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #    --enable-coinutils-mempool-override-new
 #    --enable-coinutils-mempool-maxpooled
 
-# Enable compilation of thread-aware features in CoinUtils
+# Thread-aware features are disabled by default. Specifying
+# --enable-coinutils-threads on the command line will turn them on.
  ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -21551,7 +21552,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 if test "${enable_coinutils_threads+set}" = set; then :
   enableval=$enable_coinutils_threads; enable_coinutils_threads=$enableval
 else
-  enable_coinutils_threads=yes
+  enable_coinutils_threads=no
 
 fi
 
@@ -21660,6 +21661,11 @@ else
   as_fn_error $? "--enable-coinutils-threads selected, but -lpthreads unavailable." "$LINENO" 5
 fi
 
+    { $as_echo "$as_me:${as_lineno-$LINENO}: CoinUtils will be thread-aware." >&5
+$as_echo "$as_me: CoinUtils will be thread-aware." >&6;}
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: CoinUtils will not be thread-aware." >&5
+$as_echo "$as_me: CoinUtils will not be thread-aware." >&6;}
   fi
 
   ac_ext=c
@@ -21670,8 +21676,12 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-# Activate the CoinUtils mempool for blocks up to 4096 bytes, but do not
-# redirect global new/delete to the CoinUtils mempool.
+# Configure the CoinUtils mempool. Set the default maximum block size to 4096
+# bytes. This can be overridden at configuration by specifying a value, as
+# --enable-coinutils-mempool-maxpooled=NNN
+# or at run time with environment variable
+#   COINUTILS_MEMPOOL_MAXPOOLED=NNN
+# Do not redirect global new/delete to the CoinUtils mempool.
 # 170909  (lh) Changing the second parameter to yes causes compilation errors
 #         in CoinAlloc with C++11. Likely the best solution is to remove the
 #         dynamic throw spec.
@@ -21686,8 +21696,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 if test "${enable_coinutils_mempool_maxpooled+set}" = set; then :
   enableval=$enable_coinutils_mempool_maxpooled; coinutils_mempool_maxpooled=$enableval
 else
-  coinutils_mempool_maxpooled=4096
-
+  coinutils_mempool_maxpooled=no
 fi
 
 
@@ -21707,20 +21716,13 @@ $as_echo "#define COINUTILS_MEMPOOL_OVERRIDE_NEW 1" >>confdefs.h
   fi
 
   if test x"$coinutils_mempool_maxpooled" = xyes ; then
+    coinutils_mempool_maxpooled=4096
 
-cat >>confdefs.h <<_ACEOF
-#define COINUTILS_MEMPOOL_MAXPOOLED $coinutils_mempool_maxpooled
-_ACEOF
-
-  elif test x"$coinutils_mempool_maxpooled" = xno ; then
+  fi
+  if test x"$coinutils_mempool_maxpooled" = xno ; then
+    coinutils_mempool_maxpooled=-1
 
 $as_echo "#define COINUTILS_MEMPOOL_MAXPOOLED -1" >>confdefs.h
-
-  elif test x"$coinutils_mempool_maxpooled" = x ; then
-
-cat >>confdefs.h <<_ACEOF
-#define COINUTILS_MEMPOOL_MAXPOOLED $coinutils_mempool_maxpooled
-_ACEOF
 
   else
 
@@ -21737,6 +21739,9 @@ $as_echo "$as_me: CoinUtils mempool enabled for blocks up to $coinutils_mempool_
       { $as_echo "$as_me:${as_lineno-$LINENO}: New/delete in global namespace redirected to CoinUtils mempool." >&5
 $as_echo "$as_me: New/delete in global namespace redirected to CoinUtils mempool." >&6;}
     fi
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: CoinUtils mempool will not be used." >&5
+$as_echo "$as_me: CoinUtils mempool will not be used." >&6;}
   fi
 
   ac_ext=c

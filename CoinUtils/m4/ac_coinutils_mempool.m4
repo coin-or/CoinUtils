@@ -1,7 +1,7 @@
 
 # COINUTILS_MEMPOOL(dflt_size, dflt_global)
 # -------------------------------------------------------------------------
-# Control the CoinUtils private mempool facility.
+# Control the CoinUtils private mempool facility. Off by default.
 #   dflt_size ($1) sets the default size (in bytes) for the largest block
 #                  that will be allocated from the private mempool; if not
 #                  given, default is 4096. A value less than zero disables the
@@ -23,7 +23,7 @@ AC_DEFUN([AC_COINUTILS_MEMPOOL],
 	    overridden at runtime using the COINUTILS_MEMPOOL_MAXPOOLED
 	    environment variable.])],
 	   [coinutils_mempool_maxpooled=$enableval],
-	   [coinutils_mempool_maxpooled=m4_ifvaln([$1],[$1],[4096])])
+	   [coinutils_mempool_maxpooled=no])
 
   AC_ARG_ENABLE([coinutils-mempool-override-new],
       [AS_HELP_STRING([--enable-coinutils-mempool-override-new],
@@ -37,16 +37,12 @@ AC_DEFUN([AC_COINUTILS_MEMPOOL],
   fi
 
   if test x"$coinutils_mempool_maxpooled" = xyes ; then
-    AC_DEFINE_UNQUOTED([COINUTILS_MEMPOOL_MAXPOOLED],
-	[$coinutils_mempool_maxpooled],
-	[Default maximum size allocated from pool.])
-  elif test x"$coinutils_mempool_maxpooled" = xno ; then
+    coinutils_mempool_maxpooled=m4_ifvaln([$1],[$1],[4096])
+  fi
+  if test x"$coinutils_mempool_maxpooled" = xno ; then
+    coinutils_mempool_maxpooled=-1
     AC_DEFINE([COINUTILS_MEMPOOL_MAXPOOLED],[-1],
 	[Disable CoinUtils memory pool.])
-  elif test x"$coinutils_mempool_maxpooled" = x ; then
-    AC_DEFINE_UNQUOTED([COINUTILS_MEMPOOL_MAXPOOLED],
-        [$coinutils_mempool_maxpooled],
-	[Default maximum size allocated from pool.])
   else
     AC_DEFINE_UNQUOTED([COINUTILS_MEMPOOL_MAXPOOLED],
 	[$coinutils_mempool_maxpooled],
@@ -58,6 +54,8 @@ AC_DEFUN([AC_COINUTILS_MEMPOOL],
     if test $coinutils_mempool_override = yes ; then
       AC_MSG_NOTICE([New/delete in global namespace redirected to CoinUtils mempool.])
     fi
+  else
+    AC_MSG_NOTICE([CoinUtils mempool will not be used.])
   fi
 
   AC_LANG_POP(C++)
