@@ -662,6 +662,7 @@ const char *statusName (CoinWarmStartBasis::Status status) {
     case CoinWarmStartBasis::basic: { return ("B") ; }
     case CoinWarmStartBasis::atUpperBound: { return ("NBUB") ; }
     case CoinWarmStartBasis::atLowerBound: { return ("NBLB") ; }
+    case CoinWarmStartBasis::superBasic: { return ("SB") ; }
     default: { return ("INVALID!") ; }
   }
 }

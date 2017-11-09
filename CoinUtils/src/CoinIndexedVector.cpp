@@ -553,8 +553,16 @@ void
 CoinIndexedVector::reserve(int n) 
 {
   int i;
+    int nPlus;
+    if (sizeof(int)==4*sizeof(char))
+      nPlus=(n+3)>>2;
+    else
+      nPlus=(n+7)>>4;
+#ifdef COIN_AVX2
+    nPlus += 16;
+#endif
   // don't make allocated space smaller but do take off values
-  if ( n < capacity_ ) {
+  if ( n+nPlus < capacity_ ) {
 #ifndef COIN_FAST_CODE
     if (n<0) 
       throw CoinError("negative capacity", "reserve", "CoinIndexedVector");
@@ -577,14 +585,6 @@ CoinIndexedVector::reserve(int n)
     double * delTemp = elements_-offset_;
     
     // allocate new space
-    int nPlus;
-    if (sizeof(int)==4*sizeof(char))
-      nPlus=(n+3)>>2;
-    else
-      nPlus=(n+7)>>4;
-#ifdef COIN_AVX2
-    nPlus += 16;
-#endif
     indices_ = new int [n+nPlus];
     CoinZeroN(indices_+n,nPlus);
     // align on 64 byte boundary

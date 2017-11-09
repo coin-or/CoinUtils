@@ -58,7 +58,8 @@ public:
     isFree = 0x00,		///< Nonbasic free variable
     basic = 0x01,		///< Basic variable
     atUpperBound = 0x02,	///< Nonbasic at upper bound
-    atLowerBound = 0x03		///< Nonbasic at lower bound
+    atLowerBound = 0x03,	///< Nonbasic at lower bound
+    superBasic = 0x04           ///< Not basic and not at bound
   };
 
   /** \brief Transfer vector entry for
