@@ -623,6 +623,10 @@ CoinMessageHandler::message (int messageNumber,
   }
   // Acquire the new message
   internalNumber_ = messageNumber ;
+  /* Check validity - although it is up to coder of relevant handler
+     to only pass valid messages */
+  assert (normalMessages.message_!=NULL);
+  assert (messageNumber<normalMessages.numberMessages_);
   currentMessage_ = *(normalMessages.message_[messageNumber]) ;
   source_ = normalMessages.source_ ;
   format_ = currentMessage_.message_ ;
