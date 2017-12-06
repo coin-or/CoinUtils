@@ -31,12 +31,21 @@ AC_COIN_INITIALIZE(CoinUtils)
 #                         Standard build tool stuff                         #
 #############################################################################
 
-# Get the name of the C++ compiler and appropriate compiler options
+# Get the name of the C++ compiler and appropriate compiler options.
 
 AC_COIN_PROG_CXX
 
+# This is a C++ package, set the language accordingly.
+
+AC_LANG_PUSH(C++)
+
 # Sort out what we need to do to link to Fortran libraries. Check if there's a
-# Fortran compiler and call the appropriate macro based on the result.
+# Fortran compiler and call the appropriate macro based on the result. If
+# there's no Fortran compiler, it's necessary to specify a library and
+# function to use when attempting a link. For CoinUtils, libblas (-lblas) and
+# DAXPY are appropriate choices.
+# Yes, we should be able to leverage this and avoid the check for BLAS below,
+# but I haven't quite figured it out yet.
 
 AC_COIN_PROG_F77
 if test "$F77" != "unavailable" ; then
@@ -48,6 +57,13 @@ fi
 # Initialize libtool
 
 AC_COIN_PROG_LIBTOOL
+
+#############################################################################
+#                           Header files                                    #
+#############################################################################
+
+AC_CHECK_HEADERS([windows.h])
+AC_CHECK_HEADERS([endian.h])
 
 ############################################################################
 #                 Data type and math function definitions                  #
@@ -83,36 +99,24 @@ AC_COINUTILS_THREADS(no)
 AC_COINUTILS_MEMPOOL(4096,no)
 
 #############################################################################
-#                       Finding certain integer types                       #
-#############################################################################
-
-#############################################################################
-#                           Check whether we have windows.h                 #
-#############################################################################
-AC_CHECK_HEADERS([windows.h])
-
-#############################################################################
-#                           Check whether we have endian.h                  #
-#############################################################################
-AC_CHECK_HEADERS([endian.h])
-
-#############################################################################
 #                             COIN-OR components                            #
 #############################################################################
 
 AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
 AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
-AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
-AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
-AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
+AC_COIN_CHECK_PACKAGE(Glpk,[build],[],[CoinUtilsLib])
+AC_COIN_CHECK_PACKAGE(Sample,[],[coindatasample])
+AC_COIN_CHECK_PACKAGE(Netlib,[],[coindatanetlib])
 
-#Do we need -lm? AC_COIN_CHECK_LIBM(CoinUtilsLib)
+AC_COIN_CHECK_LIBM(CoinUtilsLib)
 AC_COIN_CHECK_ZLIB(CoinUtilsLib)
 AC_COIN_CHECK_BZLIB(CoinUtilsLib)
 AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
 
 # finalize libs and cflags for building CoinUtilsLib by doing pkg-config calls
 AC_COIN_FINALIZE_FLAGS(CoinUtilsLib)
+
+AC_LANG_POP(C++)
 
 #############################################################################
 #                  Check for doxygen                                        #

@@ -6,8 +6,7 @@
 # -------------------------------------------------------------------------
 
 AC_DEFUN([AC_COINUTILS_THREADS],
-[ AC_LANG_PUSH(C++)
-
+[ 
   AC_ARG_ENABLE([coinutils-threads],
       [ AS_HELP_STRING([--enable-coinutils-threads],
 	   [enables compilation of thread aware CoinUtils (mempool so far)])],
@@ -28,7 +27,5 @@ AC_DEFUN([AC_COINUTILS_THREADS],
   else
     AC_MSG_NOTICE([CoinUtils will not be thread-aware.])
   fi
-
-  AC_LANG_POP(C++)
 ])
 

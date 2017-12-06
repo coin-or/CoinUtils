@@ -462,6 +462,7 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
 #ifdef COIN_HAS_GLPK
     // test GMPL reader
     {
+      printf("Testing readGMPL (glpk) ...\n") ;
       CoinMessageHandler msghandler;
       CoinMpsIO mpsio;
       mpsio.passInMessageHandler(&msghandler);

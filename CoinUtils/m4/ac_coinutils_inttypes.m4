@@ -18,8 +18,7 @@ AC_DEFUN([AC_COINUTILS_INTTYPE_HDRS],
 # not legal to decorate int64_t with `unsigned'.
 
 AC_DEFUN([AC_COINUTILS_INT64],
-[ AC_LANG_PUSH(C++)
-
+[
 # stdint.h is part of autoconf's default standard includes and is checked very
 # early on, as part of libtool setup. CHECK_HEADERS will stop if if finds
 # cstdint, but it's possible (indeed, likely) for both ac_cv_header_cstdint
@@ -46,7 +45,6 @@ AC_DEFUN([AC_COINUTILS_INT64],
 
   AC_CHECK_TYPE([int64_t],[CoinInt64=int64_t ; CoinUInt64=uint64_t],[],
                 AC_COINUTILS_INTTYPE_HDRS)
-  AC_LANG_POP(C++)
 
 # We need to use the C compiler in CHECK_SIZEOF. Otherwise, the MSVC compiler
 # complains about redefinition of "exit". ac_cv_sizeof_<type> sometimes adds
@@ -99,13 +97,9 @@ AC_DEFUN([AC_COINUTILS_INTPTR],
 [
   CoinIntPtr=
 
-  AC_LANG_PUSH(C++)
-
   # Try intptr_t, preferred if we can get it.
 
   AC_CHECK_TYPE([intptr_t],[CoinIntPtr=intptr_t],[],AC_COINUTILS_INTTYPE_HDRS)
-
-  AC_LANG_POP(C++)
 
   if test -z "$CoinIntPtr" ; then
     AC_LANG_PUSH(C)

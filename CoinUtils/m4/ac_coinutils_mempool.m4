@@ -13,8 +13,7 @@
 # -------------------------------------------------------------------------
 
 AC_DEFUN([AC_COINUTILS_MEMPOOL],
-[ AC_LANG_PUSH(C++)
-
+[
   AC_ARG_ENABLE([coinutils-mempool-maxpooled],
       [AS_HELP_STRING([--enable-coinutils-mempool-maxpooled],
 	   [Specify the size in bytes of the largest block that will be
@@ -57,7 +56,5 @@ AC_DEFUN([AC_COINUTILS_MEMPOOL],
   else
     AC_MSG_NOTICE([CoinUtils mempool will not be used.])
   fi
-
-  AC_LANG_POP(C++)
 ])
 

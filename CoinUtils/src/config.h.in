@@ -21,13 +21,13 @@
 /* Version number of project */
 #undef COINUTILS_VERSION
 
-/* Major Version number of project */
+/* Major version number of project. */
 #undef COINUTILS_VERSION_MAJOR
 
-/* Minor Version number of project */
+/* Minor version number of project. */
 #undef COINUTILS_VERSION_MINOR
 
-/* Release Version number of project */
+/* Release version number of project. */
 #undef COINUTILS_VERSION_RELEASE
 
 /* Define to be the name of C-function for Inf check */
@@ -116,8 +116,14 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the `bz2' library (-lbz2). */
+#undef HAVE_LIBBZ2
+
 /* Define to 1 if you have the `readline' library (-lreadline). */
 #undef HAVE_LIBREADLINE
+
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
 
 /* Define to 1 if you have the <math.h> header file. */
 #undef HAVE_MATH_H
