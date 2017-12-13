@@ -666,6 +666,27 @@ const char *statusName (CoinWarmStartBasis::Status status) {
     default: { return ("INVALID!") ; }
   }
 }
+char statusToChar (CoinWarmStartBasis::Status status) {
+  switch (status) {
+    case CoinWarmStartBasis::isFree: { return ('F') ; }
+    case CoinWarmStartBasis::basic: { return ('B') ; }
+    case CoinWarmStartBasis::atUpperBound: { return ('U') ; }
+    case CoinWarmStartBasis::atLowerBound: { return ('L') ; }
+    case CoinWarmStartBasis::superBasic: { return ('S') ; }
+    default: { return ('I') ; } // invalid! 
+  }
+}
+CoinWarmStartBasis::Status charToStatus(char status) {
+  switch (status) {
+    case 'F': { return (CoinWarmStartBasis::isFree);}
+    case 'B': { return (CoinWarmStartBasis::basic);}
+    case 'U': { return (CoinWarmStartBasis::atUpperBound);}
+    case 'L': { return (CoinWarmStartBasis::atLowerBound);}
+    case 'S': { return (CoinWarmStartBasis::superBasic);}
+    case 'X': { return (CoinWarmStartBasis::atLowerBound);} // fixed
+    default: { abort();} // invalid! 
+  }
+}
 
 /* Routines for CoinWarmStartBasisDiff */
 
