@@ -245,6 +245,9 @@ public:
   /// Returns number of entries
   inline int numberEntries (  ) const 
   { return numberEntries_;  }
+  /// Sets number of entries
+  inline void setNumberEntries (int number)
+  { numberEntries_ = number;  }
   /// Returns type of set - 1 =SOS1, 2 =SOS2
   inline int setType (  ) const 
   { return setType_;  }
@@ -253,6 +256,12 @@ public:
   { return which_;  }
   /// Returns weights
   inline const double * weights (  ) const 
+  { return weights_;  }
+  /// Returns modifiable list of variables
+  inline int * modifiableWhich (  ) const 
+  { return which_;  }
+  /// Returns modifiable weights
+  inline double * modifiableWeights (  ) const 
   { return weights_;  }
   //@}
 
