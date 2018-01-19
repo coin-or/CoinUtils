@@ -1207,11 +1207,12 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
    printf("CoinLpIO::writeLp(): Done with bounds\n");
 #endif
 
+   bool semis=false;
    if(integerType != NULL) {
      int first_int = 1;
      cnt_print = 0;
      for(j=0; j<ncol; j++) {
-       if(integerType[j] == 1) {
+       if(integerType[j] == 1 || integerType[j] == 4) {
 
 	 if(first_int) {
 	   fprintf(fp, "Integers\n");
@@ -1224,10 +1225,35 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 	   fprintf(fp, "\n");
 	 }
        }
+       if (integerType[j]>1)
+	 semis=true;
      }
 
      if(cnt_print % numberAcross != 0) {
        fprintf(fp, "\n");
+     }
+     if (semis) {
+       int first_int = 1;
+       cnt_print = 0;
+       for(j=0; j<ncol; j++) {
+	 if(integerType[j] > 2) {
+	   
+	   if(first_int) {
+	     fprintf(fp, "Semis\n");
+	     first_int = 0;
+	   }
+	   
+	   fprintf(fp, "%s ", colNames[j]);
+	   cnt_print++;
+	   if(cnt_print % numberAcross == 0) {
+	     fprintf(fp, "\n");
+	   }
+	 }
+       }
+       
+       if(cnt_print % numberAcross != 0) {
+	 fprintf(fp, "\n");
+       }
      }
    }
 
@@ -1447,13 +1473,19 @@ void
 CoinLpIO::scan_next(char *buff, FILE *fp) const {
 
   int x=fscanf(fp, "%s", buff);
-  if (x<=0)
-    throw("bad fscanf");
+  if (x<=0) {
+    handler_->message(COIN_GENERAL_WARNING,messages_)<<
+    "### CoinLpIO::scan_next(): End inserted"<<CoinMessageEol;
+    strcpy(buff,"End");
+  }
   while(is_comment(buff)) {
     skip_comment(buff, fp);
     x=fscanf(fp, "%s", buff);
-    if (x<=0)
+    if (x<=0) {
+      handler_->message(COIN_GENERAL_WARNING,messages_)<<
+	"### CoinLpIO::scan_next(): field expected"<<CoinMessageEol;
       throw("bad fscanf");
+    }
   }
 
 #ifdef LPIO_DEBUG
@@ -2193,7 +2225,10 @@ CoinLpIO::readLp(FILE* fp)
 #endif
 	  
 	}
-	is_int[icol] = 1;
+	if (is_int[icol]==3)
+	  is_int[icol] = 4;
+	else
+	  is_int[icol] = 1;
 	has_int = 1;
 	scan_next(buff, fp);
       };
@@ -2239,6 +2274,44 @@ CoinLpIO::readLp(FILE* fp)
 	}
 	scan_next(buff, fp);
       }
+      break;
+    case 4: /* Semis section */
+
+      scan_next(buff, fp);
+    
+      while(is_keyword(buff) == 0) {
+      
+	icol = findHash(buff, 1);
+
+#ifdef LPIO_DEBUG
+	printf("CoinLpIO::readLp(): Semi: colname: (%s)  icol: %d\n", 
+	       buff, icol);
+#endif
+
+	if(icol < 0) {
+	  char printBuffer[512];
+	  sprintf(printBuffer,"### CoinLpIO::readLp(): Semi-continuous variable %s does not appear in objective function or constraints", buff);
+	  handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+							   <<CoinMessageEol;
+	  insertHash(buff, 1);
+	  icol = findHash(buff, 1);
+	  if(icol == maxcol) {
+	    realloc_col(&collow, &colup, &is_int, &maxcol);
+	  }
+	  
+#ifdef LPIO_DEBUG
+	  printf("CoinLpIO::readLp(): Semi-continuous: colname: (%s)  icol: %d\n", 
+		 buff, icol);
+#endif
+	  
+	}
+	if (is_int[icol]==1)
+	  is_int[icol] = 4;
+	else
+	  is_int[icol] = 3;
+	has_int = 1;
+	scan_next(buff, fp);
+      };
       break;
 
     case 5: /* sos section */

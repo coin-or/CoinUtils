@@ -49,7 +49,7 @@ enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
   COIN_INTORG, COIN_INTEND, COIN_SOSEND, COIN_UNSET_BOUND,
   COIN_UP_BOUND, COIN_FX_BOUND, COIN_LO_BOUND, COIN_FR_BOUND,
                    COIN_MI_BOUND, COIN_PL_BOUND, COIN_BV_BOUND, 
-				   COIN_UI_BOUND, COIN_LI_BOUND, COIN_BOTH_BOUNDS_SET,
+		   COIN_UI_BOUND, COIN_LI_BOUND, COIN_BOTH_BOUNDS_SET,
 		   COIN_SC_BOUND, COIN_S1_BOUND, COIN_S2_BOUND,
 		   COIN_BS_BASIS, COIN_XL_BASIS, COIN_XU_BASIS,
 		   COIN_LL_BASIS, COIN_UL_BASIS, COIN_UNKNOWN_MPS_TYPE
@@ -429,6 +429,13 @@ public:
         is a binary or general integer variable.
     */
     bool isInteger(int columnNumber) const;
+  
+    /** Return 1 if a column is an integer variable, 2 if semi-continuous
+
+        Note: This function returns 1 if the the column
+        is a binary or general integer variable.
+    */
+    int isIntegerOrSemiContinuous(int columnNumber) const;
   
     /** Returns array[getNumCols()] specifying if a variable is integer.
 

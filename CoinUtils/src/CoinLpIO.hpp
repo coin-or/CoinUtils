@@ -53,7 +53,7 @@ typedef int COINColumnIndex;
 
 Notes: <UL>
  <LI> Keywords are: Min, Max, Minimize, Maximize, s.t., Subject To, 
-      Bounds, Integers, Generals, Binaries, End, Free, Inf. 
+      Bounds, Integers, Generals, Binaries, Semis, End, Free, Inf. 
  <LI> Keywords are not case sensitive and may be in plural or singular form.
       They should not be used as objective, row or column names.
  <LI> Bounds, Integers, Generals, Binaries sections are optional.
@@ -592,7 +592,7 @@ protected:
   double objectiveOffset_[MAX_OBJECTIVES];
   
   /// Pointer to dense vector specifying if a variable is continuous
-  /// (0) or integer (1).
+  /// (0) or integer (1).  Added (3) sc (4) sc int.
   char * integerType_;
   
   /// Pointer to sets
