@@ -200,7 +200,10 @@ const CoinPresolveAction
   */
   char * active = reinterpret_cast<char *>(prob->usefulColumnInt_);
   int nOneBound=0;
-  for (int j = 0 ; j < ncols ; j++) {
+  int numberLook = prob->numberColsToDo_ ;
+  int * look = prob->colsToDo_ ;
+  for (int iLook = 0 ; iLook < numberLook ; iLook++) {
+    int j = look[iLook];
     char type;
     if (cup[j] >= ekkinf) {
       if(clo[j] <= -ekkinf) 

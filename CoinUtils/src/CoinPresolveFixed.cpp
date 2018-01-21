@@ -90,10 +90,15 @@ const remove_fixed_action*
 */
   int estsize=0;
   int ckc;
+  int n=0;
   for (ckc = 0 ; ckc < nfcols ; ckc++) {
     int j = fcols[ckc];
-    estsize += hincol[j];
+    if (!prob->colProhibited2(j)) { 
+      estsize += hincol[j];
+      fcols[n++]=j;
+    }
   }
+  nfcols=n;
 // Allocate arrays to hold coefficients and associated row indices
   double * els_action = new double[estsize];
   int * rows_action = new int[estsize];
@@ -541,6 +546,8 @@ make_fixed_action::presolve (CoinPresolveMatrix *prob,
 */
   for (int ckc = 0 ; ckc < nfcols ; ckc++)
   { int j = fcols[ckc] ;
+    if (prob->colProhibited2(j))
+      abort();
     double movement = 0 ;
 
     action &f = actions[ckc] ;

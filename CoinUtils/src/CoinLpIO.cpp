@@ -2324,6 +2324,7 @@ CoinLpIO::readLp(FILE* fp)
 	int * which = new int [maxEntries];
 	char printBuffer[512];
 	int numberBad=0;
+	bool maybeSetName;
 	scan_next(buff, fp);
 	while (true) {
 	  int numberEntries=0;
@@ -2331,6 +2332,7 @@ CoinLpIO::readLp(FILE* fp)
 	  int goodLine=2;
 	  bool endLine=false;
 	  bool gotStart=false;
+	  maybeSetName=false;
 	  while (!endLine) {
 	    if(is_keyword(buff) == 0) {
 	      // see if ::
@@ -2342,7 +2344,17 @@ CoinLpIO::readLp(FILE* fp)
 		    int length=strlen(buff);
 		    if (buff[length-1]==':') {
 		      goodLine=1;
+		      // merge to get rid of space
+		      char temp[200];
+		      strcpy(temp,buff);
 		      scan_next(buff,fp); // try again
+		      strcat(temp,buff);
+		      strcpy(buff,temp);
+		      if (maybeSetName) {
+			// get rid of error
+			numberBad--;
+			maybeSetName=false;
+		      }
 		      continue;
 		    } else {
 		      goodLine=0;
@@ -2426,6 +2438,7 @@ CoinLpIO::readLp(FILE* fp)
 			      "Assuming next set name - consider no set names or use setnn:S1:: (no spaces)");
 		      handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
 								       <<CoinMessageEol;
+		      maybeSetName=true;
 
 		    }
 		    numberBad++;
@@ -2442,6 +2455,9 @@ CoinLpIO::readLp(FILE* fp)
 	      sprintf(printBuffer,"### CoinLpIO::readLp(): bad SOS item %s", buff);
 	      handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
 							       <<CoinMessageEol;
+	      numberBad++;
+	      endLine=true;
+	      break;
 	    }
 	  }
 	  if (setType==1||setType==2) {
@@ -2477,7 +2493,7 @@ CoinLpIO::readLp(FILE* fp)
 	      }
 	    }
 	  }
-	  if(is_keyword(buff)) 
+	  if(is_keyword(buff)||(numberBad&&!maybeSetName)) 
 	    break; // end
 	}
 	delete [] weights;

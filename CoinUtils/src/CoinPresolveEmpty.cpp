@@ -79,6 +79,8 @@ const CoinPresolveAction
 */
   for (int ndx = necols-1 ; ndx >= 0 ; ndx--) {
     const int j = ecols[ndx] ;
+    if (prob->colProhibited2(j))
+      continue;
     colmapping[j] = -1 ;
 /*
   Groom bounds on integral variables. Check for previously undetected
