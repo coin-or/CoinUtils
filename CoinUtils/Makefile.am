@@ -45,21 +45,18 @@ clean-local: clean-doxygen-docs
 distclean-local:
 	if test -r test/Makefile; then cd test; $(MAKE) distclean; fi
 
-install-exec-local: install-doc
+install-data-local: install-doc
 
-uninstall-local: uninstall-doc
+uninstall-local: uninstall-doc uninstall-doxygen-docs
 
 .PHONY: test unitTest
 
 ########################################################################
-#                  Installation of the addlibs and .pc file            #
+#                  Installation of the .pc file                        #
 ########################################################################
 
 pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
-
-addlibsdir = $(DESTDIR)$(datadir)/coin/doc/CoinUtils
-
 
 ########################################################################
 #                         Maintainer Stuff                             #

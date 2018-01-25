@@ -10,8 +10,8 @@
 #                       Names and other basic things                        #
 #############################################################################
 
-AC_INIT([CoinUtils],[trunk],[coinutils@lists.coin-or.org],[coinutils],
-	[http://projects.coin-or.org/CoinUtils])
+AC_INIT([CoinUtils],[trunk],[coinutils@list.coin-or.org],[coinutils],
+	[https://projects.coin-or.org/CoinUtils])
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.
 All Rights Reserved.
@@ -102,18 +102,18 @@ AC_COINUTILS_MEMPOOL(4096,no)
 #                             COIN-OR components                            #
 #############################################################################
 
-AC_COIN_CHECK_PACKAGE_BLAS(CoinUtilsLib)
-AC_COIN_CHECK_PACKAGE_LAPACK(CoinUtilsLib)
-AC_COIN_CHECK_PACKAGE(Glpk,[build],[],[CoinUtilsLib])
-AC_COIN_CHECK_PACKAGE(Sample,[],[coindatasample])
-AC_COIN_CHECK_PACKAGE(Netlib,[],[coindatanetlib])
+AC_COIN_CHK_PKG_BLAS(CoinUtilsLib)
+AC_COIN_CHK_PKG_LAPACK(CoinUtilsLib)
+AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib],[],[build],[])
+AC_COIN_CHK_PKG(Sample,[],[coindatasample])
+AC_COIN_CHK_PKG(Netlib,[],[coindatanetlib])
 
 AC_COIN_CHECK_LIBM(CoinUtilsLib)
 AC_COIN_CHECK_ZLIB(CoinUtilsLib)
 AC_COIN_CHECK_BZLIB(CoinUtilsLib)
 AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
 
-# finalize libs and cflags for building CoinUtilsLib by doing pkg-config calls
+# Finalize libs and cflags for building CoinUtilsLib.
 AC_COIN_FINALIZE_FLAGS(CoinUtilsLib)
 
 AC_LANG_POP(C++)

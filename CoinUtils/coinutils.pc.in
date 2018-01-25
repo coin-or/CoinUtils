@@ -10,4 +10,4 @@ Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lCoinUtils
 Libs.private: @COINUTILSLIB_LIBS@
 Cflags: -I${includedir}
-Requires.private: @COINUTILSLIB_PCREQUIRES@
+Requires.private: @COINUTILSLIB_PCFILES@
