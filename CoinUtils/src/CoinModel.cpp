@@ -26,6 +26,7 @@ CoinBaseModel::CoinBaseModel ()
      logLevel_(0)
 {
   messages_ = CoinMessage();
+  handler_ = new CoinMessageHandler();
   problemName_ = "";
   rowBlockName_ = "row_master";
   columnBlockName_ = "column_master";
