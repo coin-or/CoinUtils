@@ -31,4 +31,4 @@ before_script:
   - git clone https://github.com/coin-or-tools/BuildTools
   - bash BuildTools/get.dependencies.sh fetch > /dev/null
 
-script: bash BuildTools/get.dependencies.sh build --verbosity=1 --test 
+script: bash BuildTools/get.dependencies.sh build --verbosity=2 --test 
