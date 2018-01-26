@@ -26266,12 +26266,9 @@ fi
 
 # Finalize libs and cflags for building CoinUtilsLib.
 
-  save_pkgconfig_path=$PKG_CONFIG_PATH
-  PKG_CONFIG_PATH=$COIN_PKG_CONFIG_PATH
-
   if test -n "${COINUTILSLIB_PCFILES}" ; then
-       temp_CFLAGS=`$PKG_CONFIG --cflags ${COINUTILSLIB_PCFILES}`
-       temp_LIBS=`$PKG_CONFIG --libs ${COINUTILSLIB_PCFILES}`
+       temp_CFLAGS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --cflags ${COINUTILSLIB_PCFILES}`
+       temp_LIBS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --libs ${COINUTILSLIB_PCFILES}`
        COINUTILSLIB_CFLAGS="$temp_CFLAGS ${COINUTILSLIB_CFLAGS}"
        COINUTILSLIB_LIBS="$temp_LIBS ${COINUTILSLIB_LIBS}"
      fi
@@ -26286,8 +26283,6 @@ $as_echo "$as_me: COINUTILSLIB_LIBS is \"${COINUTILSLIB_LIBS}\"" >&6;}
        { $as_echo "$as_me:${as_lineno-$LINENO}: COINUTILSLIB_CFLAGS is \"${COINUTILSLIB_CFLAGS}\"" >&5
 $as_echo "$as_me: COINUTILSLIB_CFLAGS is \"${COINUTILSLIB_CFLAGS}\"" >&6;}
      fi
-
-  PKG_CONFIG_PATH=$save_pkgconfig_path
 
 
 ac_ext=c
