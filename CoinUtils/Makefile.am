@@ -8,6 +8,8 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+include BuildTools/Makemain.inc
+
 ########################################################################
 #                          Subdirectories                              #
 ########################################################################
@@ -68,4 +70,3 @@ CLEANFILES =
 
 DISTCLEANFILES =
 
-include BuildTools/Makemain.inc

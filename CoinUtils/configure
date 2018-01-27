@@ -595,7 +595,7 @@ MAKEFLAGS=
 
 # Identity of this package.
 PACKAGE_NAME='CoinUtils'
-PACKAGE_TARNAME='coinutils'
+PACKAGE_TARNAME='coin-or-coinutils'
 PACKAGE_VERSION='trunk'
 PACKAGE_STRING='CoinUtils trunk'
 PACKAGE_BUGREPORT='coinutils@list.coin-or.org'
@@ -1463,7 +1463,8 @@ Fine tuning of the installation directories:
   --infodir=DIR           info documentation [DATAROOTDIR/info]
   --localedir=DIR         locale-dependent data [DATAROOTDIR/locale]
   --mandir=DIR            man documentation [DATAROOTDIR/man]
-  --docdir=DIR            documentation root [DATAROOTDIR/doc/coinutils]
+  --docdir=DIR            documentation root
+                          [DATAROOTDIR/doc/coin-or-coinutils]
   --htmldir=DIR           html documentation [DOCDIR]
   --dvidir=DIR            dvi documentation [DOCDIR]
   --pdfdir=DIR            pdf documentation [DOCDIR]
@@ -3770,7 +3771,8 @@ AM_BACKSLASH='\'
 
 
 # Initialize automake
-# - don't define PACKAGE or VERSION
+# - don't AC_DEFINE PACKAGE or VERSION (but there're still defined as shell
+#   variables in configure, and as make variables).
 # - disable dist target
 # - enable all automake warnings
 
@@ -3795,7 +3797,7 @@ fi
 
 
 # Define the identity of the package.
- PACKAGE='coinutils'
+ PACKAGE='coin-or-coinutils'
  VERSION='trunk'
 
 
@@ -26440,9 +26442,10 @@ fi
 
 # Generate a tag file name and a log file name
 
-coin_doxy_tagname=${PACKAGE}_doxy.tag
+lc_pkg=`echo ${PACKAGE_NAME} | tr [A-Z] [a-z]`
+coin_doxy_tagname=${lc_pkg}_doxy.tag
 
-coin_doxy_logname=${PACKAGE}_doxy.log
+coin_doxy_logname=${lc_pkg}_doxy.log
 
  if test $coin_have_doxygen = yes; then
   COIN_HAS_DOXYGEN_TRUE=
@@ -26470,7 +26473,8 @@ tmp=""
 for proj in $tmp ; do
   lc_proj=`echo $proj | tr [A-Z] [a-z]`
   doxytag=${lc_proj}_doxy.tag
-  coin_doxy_tagfiles="$coin_doxy_tagfiles @docdir_nosub@/$proj/doxydoc/$doxytag=@docdir_nosub@/$proj/doxydoc"
+  doxydir="@baredocdir_nosub@/coin-or-${lc_proj}/doxydoc"
+  coin_doxy_tagfiles="$coin_doxy_tagfiles $doxydir/$doxytag=$doxydir/html"
 done
 
 
