@@ -53,6 +53,7 @@ CoinBaseModel::CoinBaseModel (const CoinBaseModel & rhs)
 //-------------------------------------------------------------------
 CoinBaseModel::~CoinBaseModel ()
 {
+    delete handler_;
 }
 
 //----------------------------------------------------------------
