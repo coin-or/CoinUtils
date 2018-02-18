@@ -658,6 +658,19 @@ protected:
   /// section = 1 for column names. 
   mutable CoinHashLink *hash_[2];
 
+  /// Current buffer (needed so can get rid of blanks with :
+  mutable char inputBuffer_[1025];
+  /// Current buffer length (negative if not got eol)
+  mutable int bufferLength_;
+  /// Current buffer position
+  mutable int bufferPosition_;
+  /// Current fp
+  FILE * fp_;
+  /// Get next string (returns number in)
+  int fscanfLpIO(char * buff) const;
+  /// Get next line into inputBuffer_ (returns number in)
+  int newCardLpIO() const;
+
   /// Build the hash table for the given names. The parameter number is
   /// the cardinality of parameter names. Remove duplicate names. 
   ///

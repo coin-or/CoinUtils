@@ -79,6 +79,7 @@ CoinLpIO::CoinLpIO() :
   names_[1] = NULL;
   handler_ = new CoinMessageHandler();
   messages_ = CoinMessage();
+  fp_ = NULL;
 }
 
 //-------------------------------------------------------------------
@@ -144,6 +145,7 @@ CoinLpIO::CoinLpIO(const CoinLpIO& rhs)
     }
  
     messages_ = CoinMessage();
+    fp_ = NULL;
 }
 
 
@@ -1447,6 +1449,8 @@ CoinLpIO::is_comment(const char *buff) const {
   return(0);
 } /* is_comment */
 
+#define NEW_SCANF
+
 /*************************************************************************/
 void
 CoinLpIO::skip_comment(char *buff, FILE *fp) const {
@@ -1462,17 +1466,31 @@ CoinLpIO::skip_comment(char *buff, FILE *fp) const {
       sprintf(str,"### ERROR: error while skipping comment\n");
       throw CoinError(str, "skip_comment", "CoinLpIO", __FILE__, __LINE__);
     }
+#ifndef NEW_SCANF
     char * x=fgets(buff, sizeof(buff), fp);    
     if (!x)
       throw("bad fgets");
+#else
+    // keep going until in correct buffer
+    while(bufferLength_<0) {
+      if(fscanfLpIO(buff)==0)
+      throw("bad fgets");
+    }
+    // and throw away
+    bufferPosition_ = bufferLength_;
+    break;
+#endif
   } 
 } /* skip_comment */
-
 /*************************************************************************/
 void
 CoinLpIO::scan_next(char *buff, FILE *fp) const {
 
+#ifndef NEW_SCANF
   int x=fscanf(fp, "%s", buff);
+#else
+  int x=fscanfLpIO(buff);
+#endif
   if (x<=0) {
     handler_->message(COIN_GENERAL_WARNING,messages_)<<
     "### CoinLpIO::scan_next(): End inserted"<<CoinMessageEol;
@@ -1480,7 +1498,11 @@ CoinLpIO::scan_next(char *buff, FILE *fp) const {
   }
   while(is_comment(buff)) {
     skip_comment(buff, fp);
+#ifndef NEW_SCANF
     x=fscanf(fp, "%s", buff);
+#else
+    x=fscanfLpIO(buff);
+#endif
     if (x<=0) {
       handler_->message(COIN_GENERAL_WARNING,messages_)<<
 	"### CoinLpIO::scan_next(): field expected"<<CoinMessageEol;
@@ -1944,6 +1966,9 @@ CoinLpIO::readLp(FILE* fp)
   double lp_inf = getInfinity();
 
   char buff[1024];
+  fp_=fp;
+  bufferPosition_ = 0;
+  bufferLength_ = 0;
 
   int objsense, cnt_coeff = 0, cnt_row = 0, cnt_obj = 0;
   int num_objectives = 0;
@@ -1982,7 +2007,11 @@ CoinLpIO::readLp(FILE* fp)
   cnt_coeff = cnt_obj;
 
   if(read_st == 2) {
+#ifndef NEW_SCANF
     int x=fscanf(fp, "%s", buff);
+#else
+    int x=fscanfLpIO(buff);
+#endif
     if (x<=0)
       throw("bad fscanf");
     size_t lbuff = strlen(buff);
@@ -3011,3 +3040,99 @@ CoinLpIO::newLanguage(CoinMessages::Language language)
   messages_ = CoinMessage(language);
 }
 
+// Get next line into inputBuffer_ (returns number in)
+int
+CoinLpIO::newCardLpIO() const
+{
+  while (bufferPosition_==bufferLength_) {
+    // new line
+    bufferPosition_=0;
+    bufferLength_=0;
+    char * ok = fgets(inputBuffer_,1024,fp_);
+    if (!ok)
+      return 0;
+    // go to single blanks and remove all blanks before :: or :
+    char * colons = strstr(inputBuffer_,"::");
+    int nn=0;
+    if (colons) {
+      nn=colons-inputBuffer_;
+      for (int i=0;i<nn;i++) {
+	if (inputBuffer_[i]!=' ')
+	  inputBuffer_[bufferLength_++]=inputBuffer_[i];
+      }
+    }
+    bool gotEol=false;
+    while (nn<1024) {
+      if (inputBuffer_[nn]==':') {
+	// take out blank before
+	if (inputBuffer_[bufferLength_-1]==' ')
+	  bufferLength_--;
+      }
+      if (inputBuffer_[nn]=='\t')
+	inputBuffer_[nn]=' ';
+      if (inputBuffer_[nn]=='\0'||inputBuffer_[nn]=='\n'||inputBuffer_[nn]=='\r') {
+	if (inputBuffer_[nn]=='\n'||inputBuffer_[nn]=='\r') 
+	  gotEol=true;
+	break;
+      }
+      if (inputBuffer_[nn]!=' '||inputBuffer_[nn+1]!=' ')
+	inputBuffer_[bufferLength_++]=inputBuffer_[nn];
+      nn++;
+    }
+    if (gotEol) {
+      //inputBuffer_[bufferLength_]='\n';
+      inputBuffer_[bufferLength_]='\0';
+    }
+    if (inputBuffer_[0]==' ')
+      bufferPosition_++;
+    if (!gotEol)
+      bufferLength_ = -bufferLength_;
+  }
+  return abs(bufferLength_);
+}
+
+// Get next string (returns number in)
+int
+CoinLpIO::fscanfLpIO(char * buff) const
+{
+  assert (fp_);
+  if (bufferPosition_==bufferLength_) {
+    int returnCode = newCardLpIO();
+    if (!returnCode)
+      return 0;
+  }
+  char * space = strchr(inputBuffer_+bufferPosition_,' ');
+  int n;
+  int start=0;
+  if (space) {
+    n=space-(inputBuffer_+bufferPosition_);
+  } else {
+    if (bufferLength_>=0) {
+      n=bufferLength_-bufferPosition_;
+    } else {
+      // partial line - get more
+      start=abs(bufferLength_)-bufferPosition_;
+      memcpy(buff,inputBuffer_+bufferPosition_,start);
+      bufferPosition_=bufferLength_;
+      int returnCode = newCardLpIO();
+      if (!returnCode)
+	return 0;
+      if (inputBuffer_[0]!=' ') {
+	space = strchr(inputBuffer_,' ');
+	assert (space||bufferLength_>0);
+	if (space) 
+	  n=space-(inputBuffer_+bufferPosition_);
+	else 
+	  n=bufferLength_-bufferPosition_;
+      } else {
+	n=0;
+      }
+    }
+  }
+  memcpy(buff+start,inputBuffer_+bufferPosition_,n);
+  bufferPosition_+=n;
+  if (inputBuffer_[bufferPosition_]==' ')
+    bufferPosition_++;
+  buff[start+n]='\0';
+  return n+start;
+}
