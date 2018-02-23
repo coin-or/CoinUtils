@@ -2,7 +2,6 @@
 // Copyright (C) 2005, International Business Machines
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
-
 #include "CoinUtilsConfig.h"
 #include "CoinHelperFunctions.hpp"
 #include "CoinModel.hpp"
@@ -27,6 +26,7 @@ CoinBaseModel::CoinBaseModel ()
      logLevel_(0)
 {
   messages_ = CoinMessage();
+  handler_ = new CoinMessageHandler();
   problemName_ = "";
   rowBlockName_ = "row_master";
   columnBlockName_ = "column_master";
@@ -53,6 +53,7 @@ CoinBaseModel::CoinBaseModel (const CoinBaseModel & rhs)
 //-------------------------------------------------------------------
 CoinBaseModel::~CoinBaseModel ()
 {
+    delete handler_;
 }
 
 //----------------------------------------------------------------
@@ -145,7 +146,8 @@ CoinModel::CoinModel ()
 {
 }
 /* Constructor with sizes. */
-CoinModel::CoinModel(int firstRows, int firstColumns, int firstElements,bool noNames)
+CoinModel::CoinModel(int firstRows, int firstColumns,
+		     CoinBigIndex firstElements,bool noNames)
   :  CoinBaseModel(),
      maximumRows_(0),
      maximumColumns_(0),
@@ -365,7 +367,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
     }
     // get quadratic part
     if (m.reader()->whichSection (  ) == COIN_QUAD_SECTION ) {
-      int * start=NULL;
+      CoinBigIndex * start=NULL;
       int * column = NULL;
       double * element = NULL;
       status=m.readQuadraticMps(NULL,start,column,element,2);
@@ -771,7 +773,7 @@ CoinModel::addRow(int numberInRow, const int * columns,
     newColumn = CoinMax(newColumn,last);
   }
   int newRow=0;
-  int newElement=0;
+  CoinBigIndex newElement=0;
   if (numberElements_+numberInRow>maximumElements_) {
     newElement = (3*(numberElements_+numberInRow)/2) + 1000;
     if (numberRows_*10>maximumRows_*9)
@@ -804,7 +806,7 @@ CoinModel::addRow(int numberInRow, const int * columns,
   fillColumns(newColumn,false);
   if (type_==0) {
     // can do simply
-    int put = start_[numberRows_];
+    CoinBigIndex put = start_[numberRows_];
     assert (put==numberElements_);
     bool doHash = hashElements_.numberItems()!=0;
     for (int i=0;i<numberInRow;i++) {
@@ -824,7 +826,7 @@ CoinModel::addRow(int numberInRow, const int * columns,
       // must update at least one link
       assert (links_);
       if (links_==1||links_==3) {
-        int first = rowList_.addEasy(numberRows_,numberInRow,sortIndices_,sortElements_,elements_,
+        CoinBigIndex first = rowList_.addEasy(numberRows_,numberInRow,sortIndices_,sortElements_,elements_,
                                      hashElements_);
         if (links_==3)
           columnList_.addHard(first,elements_,rowList_.firstFree(),rowList_.lastFree(),
@@ -905,7 +907,7 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
     newRow = CoinMax(newRow,last);
   }
   int newColumn=0;
-  int newElement=0;
+  CoinBigIndex newElement=0;
   if (numberElements_+numberInColumn>maximumElements_) {
     newElement = (3*(numberElements_+numberInColumn)/2) + 1000;
     if (numberColumns_*10>maximumColumns_*9)
@@ -943,7 +945,7 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
   fillRows(newRow,false);
   if (type_==1) {
     // can do simply
-    int put = start_[numberColumns_];
+    CoinBigIndex put = start_[numberColumns_];
     assert (put==numberElements_);
     bool doHash = hashElements_.numberItems()!=0;
     for (int i=0;i<numberInColumn;i++) {
@@ -963,7 +965,7 @@ CoinModel::addColumn(int numberInColumn, const int * rows,
       // must update at least one link
       assert (links_);
       if (links_==2||links_==3) {
-        int first = columnList_.addEasy(numberColumns_,numberInColumn,sortIndices_,sortElements_,elements_,
+        CoinBigIndex first = columnList_.addEasy(numberColumns_,numberInColumn,sortIndices_,sortElements_,elements_,
                                         hashElements_);
         if (links_==3)
           rowList_.addHard(first,elements_,columnList_.firstFree(),columnList_.lastFree(),
@@ -1001,7 +1003,7 @@ CoinModel::setElement(int i,int j,double value)
   if (!hashElements_.maximumItems()) {
     hashElements_.resize(maximumElements_,elements_);
   }
-  int position = hashElements_.hash(i,j,elements_);
+  CoinBigIndex position = hashElements_.hash(i,j,elements_);
   if (position>=0) {
     elements_[position].value=value;
     setStringInTriple(elements_[position],false);
@@ -1014,7 +1016,7 @@ CoinModel::setElement(int i,int j,double value)
     if (i>=maximumRows_) {
       newRow = i+1;
     }
-    int newElement=0;
+    CoinBigIndex newElement=0;
     if (numberElements_==maximumElements_) {
       newElement = (3*numberElements_/2) + 1000;
     }
@@ -1031,7 +1033,7 @@ CoinModel::setElement(int i,int j,double value)
     fillRows(i,false);
     // treat as addRow unless only columnList_ exists
     if ((links_&1)!=0) {
-      int first = rowList_.addEasy(i,1,&j,&value,elements_,hashElements_);
+      CoinBigIndex first = rowList_.addEasy(i,1,&j,&value,elements_,hashElements_);
       if (links_==3)
         columnList_.addHard(first,elements_,rowList_.firstFree(),rowList_.lastFree(),
                             rowList_.next());
@@ -1078,7 +1080,7 @@ CoinModel::setElement(int i,int j,const char * value)
     hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_);
   }
-  int position = hashElements_.hash(i,j,elements_);
+  CoinBigIndex position = hashElements_.hash(i,j,elements_);
   if (position>=0) {
     int iValue = addString(value);
     elements_[position].value=iValue;
@@ -1092,7 +1094,7 @@ CoinModel::setElement(int i,int j,const char * value)
     if (i>=maximumRows_) {
       newRow = i+1;
     }
-    int newElement=0;
+    CoinBigIndex newElement=0;
     if (numberElements_==maximumElements_) {
       newElement = (3*numberElements_/2) + 1000;
     }
@@ -1109,7 +1111,7 @@ CoinModel::setElement(int i,int j,const char * value)
     fillRows(i,false);
     // treat as addRow unless only columnList_ exists
     if ((links_&1)!=0) {
-      int first = rowList_.addEasy(i,1,&j,&dummyValue,elements_,hashElements_);
+      CoinBigIndex first = rowList_.addEasy(i,1,&j,&dummyValue,elements_,hashElements_);
       if (links_==3)
         columnList_.addHard(first,elements_,rowList_.firstFree(),rowList_.lastFree(),
                             rowList_.next());
@@ -1122,7 +1124,7 @@ CoinModel::setElement(int i,int j,const char * value)
     }
     numberRows_=CoinMax(numberRows_,i+1);;
     numberColumns_=CoinMax(numberColumns_,j+1);;
-    int position = hashElements_.hash(i,j,elements_);
+    CoinBigIndex position = hashElements_.hash(i,j,elements_);
     assert (position>=0);
     int iValue = addString(value);
     elements_[position].value=iValue;
@@ -1567,10 +1569,10 @@ CoinModel::deleteColumn(int whichColumn)
   }
 }
 // Takes element out of matrix
-int
+CoinBigIndex
 CoinModel::deleteElement(int row, int column)
 {
-  int iPos = position(row,column);
+  CoinBigIndex iPos = position(row,column);
   if (iPos>=0)
     deleteThisElement(row,column,iPos);
   return iPos;
@@ -1578,9 +1580,9 @@ CoinModel::deleteElement(int row, int column)
 // Takes element out of matrix when position known
 void
 #ifndef NDEBUG
-CoinModel::deleteThisElement(int row, int column,int position)
+CoinModel::deleteThisElement(int row, int column,CoinBigIndex position)
 #else
-CoinModel::deleteThisElement(int , int ,int position)
+CoinModel::deleteThisElement(int , int ,CoinBigIndex position)
 #endif
 {
   assert (row<numberRows_&&column<numberColumns_);
@@ -1847,7 +1849,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix,
     }
   }
   int numberErrors=0;
-  CoinBigIndex * start = new int[numberColumns_+1];
+  CoinBigIndex * start = new CoinBigIndex[numberColumns_+1];
   int * row = new int[numberElements];
   double * element = new double[numberElements];
   start[0]=0;
@@ -1871,7 +1873,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix,
       }
       if (value) {
         numberElements++;
-        int put=start[column]+length[column];
+        CoinBigIndex put=start[column]+length[column];
         row[put]=rowInTriple(elements_[i]);
         element[put]=value;
         length[column]++;
@@ -1879,7 +1881,7 @@ CoinModel::createPackedMatrix(CoinPackedMatrix & matrix,
     }
   }
   for (i=0;i<numberColumns_;i++) {
-    int put = start[i];
+    CoinBigIndex put = start[i];
     CoinSort_2(row+put,row+put+length[i],element+put);
   }
   matrix=CoinPackedMatrix(true,numberRows_,numberColumns_,numberElements,
@@ -2308,7 +2310,7 @@ CoinModel::getElement(int i,int j) const
     hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_);
   }
-  int position = hashElements_.hash(i,j,elements_);
+  CoinBigIndex position = hashElements_.hash(i,j,elements_);
   if (position>=0) {
     return elements_[position].value;
   } else {
@@ -2326,7 +2328,7 @@ CoinModel::getElement(const char * rowName,const char * columnName) const
   assert (!noNames_); 
   int i=rowName_.hash(rowName);
   int j=columnName_.hash(columnName);
-  int position;
+  CoinBigIndex position;
   if (i>=0&&j>=0)
     position = hashElements_.hash(i,j,elements_);
   else
@@ -2353,7 +2355,7 @@ CoinModel::getElementAsString(int i,int j) const
     hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_);
   }
-  int position = hashElements_.hash(i,j,elements_);
+  CoinBigIndex position = hashElements_.hash(i,j,elements_);
   if (position>=0) {
     if (stringInTriple(elements_[position])) {
       int iString =  static_cast<int> (elements_[position].value);
@@ -2369,7 +2371,7 @@ CoinModel::getElementAsString(int i,int j) const
 /* Returns position of element for row i column j.
    Only valid until next modification. 
    -1 if element does not exist */
-int
+CoinBigIndex
 CoinModel::position (int i,int j) const
 {
   if (!hashElements_.numberItems()) {
@@ -2389,7 +2391,7 @@ CoinModel::pointer (int i,int j) const
     hashElements_.setNumberItems(numberElements_);
     hashElements_.resize(maximumElements_,elements_);
   }
-  int position = hashElements_.hash(i,j,elements_);
+  CoinBigIndex position = hashElements_.hash(i,j,elements_);
   if (position>=0) {
     return &(elements_[position].value);
   } else {
@@ -2409,7 +2411,7 @@ CoinModel::firstInRow(int whichRow) const
     link.setOnRow(true);
     if (type_==0) {
       assert (start_);
-      int position = start_[whichRow];
+      CoinBigIndex position = start_[whichRow];
       if (position<start_[whichRow+1]) {
         link.setRow(whichRow);
         link.setPosition(position);
@@ -2419,7 +2421,7 @@ CoinModel::firstInRow(int whichRow) const
       }
     } else {
       fillList(whichRow,rowList_,1);
-      int position = rowList_.first(whichRow);
+      CoinBigIndex position = rowList_.first(whichRow);
       if (position>=0) {
         link.setRow(whichRow);
         link.setPosition(position);
@@ -2442,7 +2444,7 @@ CoinModel::lastInRow(int whichRow) const
     link.setOnRow(true);
     if (type_==0) {
       assert (start_);
-      int position = start_[whichRow+1]-1;
+      CoinBigIndex position = start_[whichRow+1]-1;
       if (position>=start_[whichRow]) {
         link.setRow(whichRow);
         link.setPosition(position);
@@ -2452,7 +2454,7 @@ CoinModel::lastInRow(int whichRow) const
       }
     } else {
       fillList(whichRow,rowList_,1);
-      int position = rowList_.last(whichRow);
+      CoinBigIndex position = rowList_.last(whichRow);
       if (position>=0) {
         link.setRow(whichRow);
         link.setPosition(position);
@@ -2475,7 +2477,7 @@ CoinModel::firstInColumn(int whichColumn) const
     link.setOnRow(false);
     if (type_==1) {
       assert (start_);
-      int position = start_[whichColumn];
+      CoinBigIndex position = start_[whichColumn];
       if (position<start_[whichColumn+1]) {
         link.setColumn(whichColumn);
         link.setPosition(position);
@@ -2490,7 +2492,7 @@ CoinModel::firstInColumn(int whichColumn) const
         assert (!columnList_.numberMajor());
         createList(2);
       }
-      int position = columnList_.first(whichColumn);
+      CoinBigIndex position = columnList_.first(whichColumn);
       if (position>=0) {
         link.setColumn(whichColumn);
         link.setPosition(position);
@@ -2513,7 +2515,7 @@ CoinModel::lastInColumn(int whichColumn) const
     link.setOnRow(false);
     if (type_==1) {
       assert (start_);
-      int position = start_[whichColumn+1]-1;
+      CoinBigIndex position = start_[whichColumn+1]-1;
       if (position>=start_[whichColumn]) {
         link.setColumn(whichColumn);
         link.setPosition(position);
@@ -2523,7 +2525,7 @@ CoinModel::lastInColumn(int whichColumn) const
       }
     } else {
       fillList(whichColumn,columnList_,2);
-      int position = columnList_.last(whichColumn);
+      CoinBigIndex position = columnList_.last(whichColumn);
       if (position>=0) {
         link.setColumn(whichColumn);
         link.setPosition(position);
@@ -2543,7 +2545,7 @@ CoinModelLink
 CoinModel::next(CoinModelLink & current) const
 {
   CoinModelLink link=current;
-  int position = current.position();
+  CoinBigIndex position = current.position();
   if (position>=0) {
     if (current.onRow()) {
       // Doing by row
@@ -2625,7 +2627,7 @@ CoinModelLink
 CoinModel::previous(CoinModelLink & current) const
 {
   CoinModelLink link=current;
-  int position = current.position();
+  CoinBigIndex position = current.position();
   if (position>=0) {
     if (current.onRow()) {
       // Doing by row
@@ -2814,18 +2816,18 @@ int
 CoinModel::row(const char * rowName) const
 {
   assert (!noNames_) ;
-  return rowName_.hash(rowName);
+  return static_cast<int>(rowName_.hash(rowName));
 }
 // Column index from column name (-1 if no names or no match)
 int 
 CoinModel::column(const char * columnName) const
 {
   assert (!noNames_) ;
-  return columnName_.hash(columnName);
+  return static_cast<int>(columnName_.hash(columnName));
 }
 // Resize
 void 
-CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
+CoinModel::resize(int maximumRows, int maximumColumns, CoinBigIndex maximumElements)
 {
   maximumElements = CoinMax(maximumElements,maximumElements_);
   if (type_==0||type_==2) {
@@ -2865,10 +2867,10 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       }
       // If we have start then we need to resize that
       if (type_==0) {
-        int * tempArray2;
-        tempArray2 = new int[maximumRows+1];
+        CoinBigIndex * tempArray2;
+        tempArray2 = new CoinBigIndex[maximumRows+1];
 #	ifdef ZEROFAULT
-	memset(tempArray2,0,(maximumRows+1)*sizeof(int)) ;
+	memset(tempArray2,0,(maximumRows+1)*sizeof(CoinBigIndex)) ;
 #	endif
         if (start_) {
           CoinMemcpyN(start_,(numberRows_+1),tempArray2);
@@ -2945,10 +2947,10 @@ CoinModel::resize(int maximumRows, int maximumColumns, int maximumElements)
       }
       // If we have start then we need to resize that
       if (type_==1) {
-        int * tempArray2;
-        tempArray2 = new int[maximumColumns+1];
+        CoinBigIndex * tempArray2;
+        tempArray2 = new CoinBigIndex[maximumColumns+1];
 #       ifdef ZEROFAULT
-        memset(tempArray2,0,(maximumColumns+1)*sizeof(int)) ;
+        memset(tempArray2,0,(maximumColumns+1)*sizeof(CoinBigIndex)) ;
 #       endif
         if (start_) {
           CoinMemcpyN(start_,(numberColumns_+1),tempArray2);
@@ -3523,7 +3525,7 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
           /* temp is at most 10000 long, so static_cast is safe */
 	  put = static_cast<int>(strlen(temp));
 	}
-	for (int j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
+	for (CoinBigIndex j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
 	  int jColumn = column[j];
 	  double value = element[j];
 	  if (value<0.0||first) 
@@ -3571,7 +3573,7 @@ CoinModel::replaceQuadraticRow(int rowNumber,const double * linearRow, const Coi
           /* temp is at most 10000 long, so static_cast is safe */
 	  put = static_cast<int>(strlen(temp));
 	}
-	for (int j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
+	for (CoinBigIndex j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
 	  int jColumn = column[j];
 	  double value = element[j];
 	  if (value<0.0||first) 
@@ -3621,7 +3623,7 @@ CoinModel::reorder(const char * mark) const
 	  highPriority[i]=2;
 	else
 	  highPriority[i]=1;
-	for (int j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
+	for (CoinBigIndex j=columnStart[i];j<columnStart[i]+columnLength[i];j++) {
 	  int iColumn = column[j];
 	  if (mark[iColumn])
 	    highPriority[iColumn]=2;
@@ -3646,7 +3648,7 @@ CoinModel::reorder(const char * mark) const
       for (int i=0;i<numberLook;i++) {
 	// this one needs to be available
 	int iPriority = highPriority[i];
-	for (int j=columnHigh[i];j<columnHigh[i]+columnLength[i];j++) {
+	for (CoinBigIndex j=columnHigh[i];j<columnHigh[i]+columnLength[i];j++) {
 	  int iColumn = columnLow[j];
 	  if (highPriority[iColumn]<=1) {
 	    assert (highPriority[iColumn]==1);
@@ -3667,7 +3669,7 @@ CoinModel::reorder(const char * mark) const
 	     then create packedmatrix
 	     then replace row
 	  */
-	  int numberElements=columnHigh[numberLook];
+	  CoinBigIndex numberElements=columnHigh[numberLook];
 	  int * columnHigh2 = new int [numberElements];
 	  int * columnLow2 = new int [numberElements];
 	  double * element2 = new double [numberElements];
@@ -3675,13 +3677,13 @@ CoinModel::reorder(const char * mark) const
 	    // this one needs to be available
 	    int iPriority = highPriority[i];
 	    if (iPriority==2) {
-	      for (int j=columnHigh[i];j<columnHigh[i]+columnLength[i];j++) {
+	      for (CoinBigIndex j=columnHigh[i];j<columnHigh[i]+columnLength[i];j++) {
 		columnHigh2[j]=i;
 		columnLow2[j]=columnLow[j];
 		element2[j]=element[j];
 	      }
 	    } else {
-	      for (int j=columnHigh[i];j<columnHigh[i]+columnLength[i];j++) {
+	      for (CoinBigIndex j=columnHigh[i];j<columnHigh[i]+columnLength[i];j++) {
 		columnLow2[j]=i;
 		columnHigh2[j]=columnLow[j];
 		element2[j]=element[j];
@@ -3959,10 +3961,10 @@ CoinModel::loadBlock(const int numcols, const int numrows,
 		     const double* obj,
 		     const double* rowlb, const double* rowub)
 {
-  int numberElements = start[numcols];
+  CoinBigIndex numberElements = start[numcols];
   int * length = new int [numcols];
   for (int i=0;i<numcols;i++) 
-    length[i]=start[i+1]-start[i];
+    length[i]=static_cast<int>(start[i+1]-start[i]);
   CoinPackedMatrix matrix(true,numrows,numcols,numberElements,value,
 			  index,start,length,0.0,0.0);
   loadBlock(matrix, collb, colub, obj, rowlb, rowub);
@@ -4012,10 +4014,10 @@ CoinModel::loadBlock(const int numcols, const int numrows,
     delete [] rowrhsUse;
   if (rowrng!=rowrngUse)
     delete [] rowrngUse;
-  int numberElements = start[numcols];
+  CoinBigIndex numberElements = start[numcols];
   int * length = new int [numcols];
   for (int i=0;i<numcols;i++) 
-    length[i]=start[i+1]-start[i];
+    length[i]=static_cast<int>(start[i+1]-start[i]);
   CoinPackedMatrix matrix(true,numrows,numcols,numberElements,value,
 			  index,start,length,0.0,0.0);
   loadBlock(matrix, collb, colub, obj, rowlb, rowub);

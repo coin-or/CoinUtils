@@ -284,8 +284,8 @@ CoinPackedVector::truncate( int n )
 void
 CoinPackedVector::operator+=(double value) 
 {
-   std::transform(elements_, elements_ + nElements_, elements_,
-		  std::bind2nd(std::plus<double>(), value) );
+  for (int i=0 ; i < nElements_; i++)
+    elements_[i] += value;
 }
 
 //-----------------------------------------------------------------------------
@@ -293,8 +293,8 @@ CoinPackedVector::operator+=(double value)
 void
 CoinPackedVector::operator-=(double value) 
 {
-   std::transform(elements_, elements_ + nElements_, elements_,
-		  std::bind2nd(std::minus<double>(), value) );
+  for (int i=0 ; i < nElements_; i++)
+    elements_[i] -= value;
 }
 
 //-----------------------------------------------------------------------------
@@ -302,8 +302,8 @@ CoinPackedVector::operator-=(double value)
 void
 CoinPackedVector::operator*=(double value) 
 {
-   std::transform(elements_, elements_ + nElements_, elements_,
-		  std::bind2nd(std::multiplies<double>(), value) );
+  for (int i=0 ; i < nElements_; i++)
+    elements_[i] *= value;
 }
 
 //-----------------------------------------------------------------------------
@@ -311,8 +311,8 @@ CoinPackedVector::operator*=(double value)
 void
 CoinPackedVector::operator/=(double value) 
 {
-   std::transform(elements_, elements_ + nElements_, elements_,
-		  std::bind2nd(std::divides<double>(), value) );
+  for (int i=0 ; i < nElements_; i++)
+    elements_[i] /= value;
 }
 
 //#############################################################################

@@ -199,7 +199,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
   the existing bounds, update. Have a care with integer variables --- don't let
   numerical inaccuracy pull us off an integral bound.
 */
-    if (clo[j] < lo) {
+    if (clo[j] < lo && lo >-1.0e100) {
       // If integer be careful
       if (integerType[j]) {
 	if (fabs(lo-floor(lo+0.5)) < 0.000001) lo = floor(lo+0.5) ;
@@ -208,7 +208,7 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
 	clo[j] = lo ;
       }
     }
-    if (cup[j] > up) {
+    if (cup[j] > up && up <1.0e100) {
       if (integerType[j]) {
 	if (fabs(up-floor(up+0.5)) < 0.000001) up = floor(up+0.5) ;
 	if (cup[j] > up) cup[j] = up ;
@@ -379,7 +379,7 @@ void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   int *hrow = prob->hrow_ ;
   CoinBigIndex *mcstrt = prob->mcstrt_ ;
   int *hincol = prob->hincol_ ;
-  int *link = prob->link_ ;
+  CoinBigIndex *link = prob->link_ ;
 
   double *clo = prob->clo_ ;
   double *cup = prob->cup_ ;
@@ -793,7 +793,7 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
   int *hrow		= prob->hrow_ ;
   CoinBigIndex *mcstrt		= prob->mcstrt_ ;
   int *hincol		= prob->hincol_ ;
-  int *link		= prob->link_ ;
+  CoinBigIndex *link		= prob->link_ ;
   //  int ncols		= prob->ncols_ ;
 
   //double *rowels	= prob->rowels_ ;

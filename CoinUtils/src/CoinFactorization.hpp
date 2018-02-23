@@ -11,6 +11,7 @@
  */
 #ifndef CoinFactorization_H
 #define CoinFactorization_H
+#define EXTRA_U_SPACE 4
 //#define COIN_ONE_ETA_COPY 100
 
 #include <iostream>
@@ -101,9 +102,9 @@ public:
   returns 0 -okay, -1 singular, -99 memory */
   int factorize ( int numberRows,
 		  int numberColumns,
-		  CoinBigIndex numberElements,
-		  CoinBigIndex maximumL,
-		  CoinBigIndex maximumU,
+		  int numberElements,
+		  int maximumL,
+		  int maximumU,
 		  const int indicesRow[],
 		  const int indicesColumn[], const double elements[] ,
 		  int permutation[],
@@ -114,7 +115,7 @@ public:
       returns 0 -okay, -99 memory */
   int factorizePart1 ( int numberRows,
 		       int numberColumns,
-		       CoinBigIndex estimateNumberElements,
+		       int estimateNumberElements,
 		       int * indicesRow[],
 		       int * indicesColumn[],
 		       CoinFactorizationDouble * elements[],
@@ -174,11 +175,11 @@ public:
     return pivotColumnBack_.array();
   }
   /// Start of each row in L
-  inline CoinBigIndex * startRowL() const
+  inline int * startRowL() const
   { return startRowL_.array();}
 
   /// Start of each column in L
-  inline CoinBigIndex * startColumnL() const
+  inline int * startColumnL() const
   { return startColumnL_.array();}
 
   /// Index of column in row for L
@@ -205,11 +206,11 @@ public:
     return numberRows_;
   }
   /// Number in L
-  inline CoinBigIndex numberL() const
+  inline int numberL() const
   { return numberL_;}
 
   /// Base of L
-  inline CoinBigIndex baseL() const
+  inline int baseL() const
   { return baseL_;}
   /// Maximum of Rows after iterating
   inline int maximumRowsExtra (  ) const {
@@ -289,8 +290,8 @@ public:
   /// True if FT update and space
   inline bool spaceForForrestTomlin() const
   {
-    CoinBigIndex start = startColumnU_.array()[maximumColumnsExtra_];
-    CoinBigIndex space = lengthAreaU_ - ( start + numberRowsExtra_ );
+    int start = startColumnU_.array()[maximumColumnsExtra_];
+    int space = lengthAreaU_ - ( start + numberRowsExtra_ );
     return (space>=0)&&doForrestTomlin_;
   }
   //@}
@@ -303,30 +304,30 @@ public:
   { return numberDense_;}
 
   /// Returns number in U area
-  inline CoinBigIndex numberElementsU (  ) const {
+  inline int numberElementsU (  ) const {
     return lengthU_;
   }
   /// Setss number in U area
-  inline void setNumberElementsU(CoinBigIndex value)
+  inline void setNumberElementsU(int value)
   { lengthU_ = value; }
   /// Returns length of U area
-  inline CoinBigIndex lengthAreaU (  ) const {
+  inline int lengthAreaU (  ) const {
     return lengthAreaU_;
   }
   /// Returns number in L area
-  inline CoinBigIndex numberElementsL (  ) const {
+  inline int numberElementsL (  ) const {
     return lengthL_;
   }
   /// Returns length of L area
-  inline CoinBigIndex lengthAreaL (  ) const {
+  inline int lengthAreaL (  ) const {
     return lengthAreaL_;
   }
   /// Returns number in R area
-  inline CoinBigIndex numberElementsR (  ) const {
+  inline int numberElementsR (  ) const {
     return lengthR_;
   }
   /// Number of compressions done
-  inline CoinBigIndex numberCompressions() const
+  inline int numberCompressions() const
   { return numberCompressions_;}
   /// Number of entries in each row
   inline int * numberInRow() const
@@ -341,7 +342,7 @@ public:
   inline int * indexRowU() const
   { return indexRowU_.array();}
   /// Start of each column in U
-  inline CoinBigIndex * startColumnU() const
+  inline int * startColumnU() const
   { return startColumnU_.array();}
   /// Maximum number of Columns after iterating
   inline int maximumColumnsExtra()
@@ -383,7 +384,7 @@ public:
       otherwise store where elements are
   */
   void replaceColumnU ( CoinIndexedVector * regionSparse,
-			CoinBigIndex * deleted,
+			int * deleted,
 			int internalPivotRow);
 #ifdef ABC_USE_COIN_FACTORIZATION
   /** returns empty fake vector carved out of existing
@@ -482,6 +483,14 @@ public:
   /// Makes a non-singular basis by replacing variables
   void makeNonSingular(int *  COIN_RESTRICT sequence);
 #endif
+#if ABOCA_LITE_FACTORIZATION
+  /// Does btranU part of replaceColumn (skipping entries)
+  void replaceColumn1(CoinIndexedVector * regionSparse, int pivotRow);
+  /// Does replaceColumn - having already done btranU
+  int replaceColumn2 ( CoinIndexedVector * regionSparse,
+		      int pivotRow,
+		       double pivotCheck);
+#endif
   //@}
 
   /**@name various uses of factorization (return code number elements) 
@@ -515,6 +524,16 @@ public:
   */
   int updateColumnTranspose ( CoinIndexedVector * regionSparse,
 			      CoinIndexedVector * regionSparse2) const;
+  /// Part of twocolumnsTranspose
+  void updateOneColumnTranspose ( CoinIndexedVector * regionWork,int & statistics) const;
+  /** Updates two columns (BTRAN) from regionSparse2 and 3
+      regionSparse starts as zero and is zero at end 
+      Note - if regionSparse2 packed on input - will be packed on output - same for 3
+  */
+  void updateTwoColumnsTranspose ( CoinIndexedVector * regionSparse,
+				  CoinIndexedVector * regionSparse2,
+				   CoinIndexedVector * regionSparse3,
+				   int type) const;
   /** makes a row copy of L for speed and to allow very sparse problems */
   void goSparse();
   /**  get sparse threshold */
@@ -538,18 +557,18 @@ public:
 
   /** Adds given elements to Basis and updates factorization,
       can increase size of basis. Returns rank */
-  int add ( CoinBigIndex numberElements,
+  int add ( int numberElements,
 	       int indicesRow[],
 	       int indicesColumn[], double elements[] );
 
   /** Adds one Column to basis,
       can increase size of basis. Returns rank */
-  int addColumn ( CoinBigIndex numberElements,
+  int addColumn ( int numberElements,
 		     int indicesRow[], double elements[] );
 
   /** Adds one Row to basis,
       can increase size of basis. Returns rank */
-  int addRow ( CoinBigIndex numberElements,
+  int addRow ( int numberElements,
 		  int indicesColumn[], double elements[] );
 
   /// Deletes one Column from basis, returns rank
@@ -598,8 +617,8 @@ public:
   /// Gets space for a factorization, called by constructors
   void getAreas ( int numberRows,
 		  int numberColumns,
-		  CoinBigIndex maximumL,
-		  CoinBigIndex maximumU );
+		  int maximumL,
+		  int maximumU );
 
   /** PreProcesses raw triplet data.
       state is 0 - triplets, 1 - some counts etc , 2 - .. */
@@ -651,7 +670,7 @@ protected:
        also moves existing vector.
        Returns -1 if no memory or where element was put
        Used by replaceRow (turns off R version) */
-  CoinBigIndex getColumnSpaceIterate ( int iColumn, double value,
+  int getColumnSpaceIterate ( int iColumn, double value,
 			       int iRow);
   /** Gets space for one Row with given length,
   may have to do compression  (returns True if successful),
@@ -811,8 +830,8 @@ protected:
   template <class T>  inline bool
   pivot ( int pivotRow,
 	  int pivotColumn,
-	  CoinBigIndex pivotRowPosition,
-	  CoinBigIndex pivotColumnPosition,
+	  int pivotRowPosition,
+	  int pivotColumnPosition,
 	  CoinFactorizationDouble work[],
 	  unsigned int workArea2[],
 	  int increment2,
@@ -820,11 +839,11 @@ protected:
 	  int largeInteger)
 {
   int *indexColumnU = indexColumnU_.array();
-  CoinBigIndex *startColumnU = startColumnU_.array();
+  int *startColumnU = startColumnU_.array();
   int *numberInColumn = numberInColumn_.array();
   CoinFactorizationDouble *elementU = elementU_.array();
   int *indexRowU = indexRowU_.array();
-  CoinBigIndex *startRowU = startRowU_.array();
+  int *startRowU = startRowU_.array();
   int *numberInRow = numberInRow_.array();
   CoinFactorizationDouble *elementL = elementL_.array();
   int *indexRowL = indexRowL_.array();
@@ -834,12 +853,12 @@ protected:
 
   //store pivot columns (so can easily compress)
   int numberInPivotRow = numberInRow[pivotRow] - 1;
-  CoinBigIndex startColumn = startColumnU[pivotColumn];
+  int startColumn = startColumnU[pivotColumn];
   int numberInPivotColumn = numberInColumn[pivotColumn] - 1;
-  CoinBigIndex endColumn = startColumn + numberInPivotColumn + 1;
+  int endColumn = startColumn + numberInPivotColumn + 1;
   int put = 0;
-  CoinBigIndex startRow = startRowU[pivotRow];
-  CoinBigIndex endRow = startRow + numberInPivotRow + 1;
+  int startRow = startRowU[pivotRow];
+  int endRow = startRow + numberInPivotRow + 1;
 
   if ( pivotColumnPosition < 0 ) {
     for ( pivotColumnPosition = startRow; pivotColumnPosition < endRow; pivotColumnPosition++ ) {
@@ -851,7 +870,7 @@ protected:
       }
     }
   } else {
-    for (CoinBigIndex i = startRow ; i < pivotColumnPosition ; i++ ) {
+    for (int i = startRow ; i < pivotColumnPosition ; i++ ) {
       saveColumn[put++] = indexColumnU[i];
     }
   }
@@ -871,7 +890,7 @@ protected:
   lastRow[pivotRow] = -2;
   numberInRow[pivotRow] = 0;
   //store column in L, compress in U and take column out
-  CoinBigIndex l = lengthL_;
+  int l = lengthL_;
 
   if ( l + numberInPivotColumn > lengthAreaL_ ) {
     //need more memory
@@ -880,9 +899,9 @@ protected:
     return false;
   }
   //l+=currentAreaL_->elementByColumn-elementL;
-  CoinBigIndex lSave = l;
+  int lSave = l;
 
-  CoinBigIndex * startColumnL = startColumnL_.array();
+  int * startColumnL = startColumnL_.array();
   startColumnL[numberGoodL_] = l;	//for luck and first time
   numberGoodL_++;
   startColumnL[numberGoodL_] = l + numberInPivotColumn;
@@ -896,9 +915,9 @@ protected:
 	markRow[iRow] = static_cast<T>(l - lSave);
 	l++;
 	//take out of row list
-	CoinBigIndex start = startRowU[iRow];
-	CoinBigIndex end = start + numberInRow[iRow];
-	CoinBigIndex where = start;
+	int start = startRowU[iRow];
+	int end = start + numberInRow[iRow];
+	int where = start;
 
 	while ( indexColumnU[where] != pivotColumn ) {
 	  where++;
@@ -915,7 +934,7 @@ protected:
       }
     }
   } else {
-    CoinBigIndex i;
+    int i;
 
     for ( i = startColumn; i < pivotRowPosition; i++ ) {
       int iRow = indexRowU[i];
@@ -925,9 +944,9 @@ protected:
       elementL[l] = elementU[i];
       l++;
       //take out of row list
-      CoinBigIndex start = startRowU[iRow];
-      CoinBigIndex end = start + numberInRow[iRow];
-      CoinBigIndex where = start;
+      int start = startRowU[iRow];
+      int end = start + numberInRow[iRow];
+      int where = start;
 
       while ( indexColumnU[where] != pivotColumn ) {
 	where++;
@@ -957,9 +976,9 @@ protected:
     elementL[l] = elementU[pivotRowPosition];
     l++;
     //take out of row list
-    CoinBigIndex start = startRowU[iRow];
-    CoinBigIndex end = start + numberInRow[iRow];
-    CoinBigIndex where = start;
+    int start = startRowU[iRow];
+    int end = start + numberInRow[iRow];
+    int where = start;
     
     while ( indexColumnU[where] != pivotColumn ) {
       where++;
@@ -987,12 +1006,12 @@ protected:
     multipliersL[j] *= pivotMultiplier;
   }
   //zero out fill
-  CoinBigIndex iErase;
+  int iErase;
   for ( iErase = 0; iErase < increment2 * numberInPivotRow;
 	iErase++ ) {
     workArea2[iErase] = 0;
   }
-  CoinBigIndex added = numberInPivotRow * numberInPivotColumn;
+  int added = numberInPivotRow * numberInPivotColumn;
   unsigned int *temp2 = workArea2;
   int * nextColumn = nextColumn_.array();
 
@@ -1000,13 +1019,13 @@ protected:
   int jColumn;
   for ( jColumn = 0; jColumn < numberInPivotRow; jColumn++ ) {
     int iColumn = saveColumn[jColumn];
-    CoinBigIndex startColumn = startColumnU[iColumn];
-    CoinBigIndex endColumn = startColumn + numberInColumn[iColumn];
+    int startColumn = startColumnU[iColumn];
+    int endColumn = startColumn + numberInColumn[iColumn];
     int iRow = indexRowU[startColumn];
     CoinFactorizationDouble value = elementU[startColumn];
     double largest;
-    CoinBigIndex put = startColumn;
-    CoinBigIndex positionLargest = -1;
+    int put = startColumn;
+    int positionLargest = -1;
     CoinFactorizationDouble thisPivotValue = 0.0;
 
     //compress column and find largest not updated
@@ -1034,7 +1053,7 @@ protected:
 	thisPivotValue = value;
       }
     }
-    CoinBigIndex i;
+    int i;
     for ( i = startColumn + 1; i < endColumn; i++ ) {
       iRow = indexRowU[i];
       value = elementU[i];
@@ -1082,7 +1101,7 @@ protected:
     startColumnU[iColumn]++;
     //how much space have we got
     int next = nextColumn[iColumn];
-    CoinBigIndex space;
+    int space;
 
     space = startColumnU[next] - put - numberInColumnPlus[next];
     //assume no zero elements
@@ -1123,9 +1142,9 @@ protected:
 	if ( temp2[word] & ( 1 << bit ) ) {
 	  //take out of row list
 	  iRow = indexL[j];
-	  CoinBigIndex start = startRowU[iRow];
-	  CoinBigIndex end = start + numberInRow[iRow];
-	  CoinBigIndex where = start;
+	  int start = startRowU[iRow];
+	  int end = start + numberInRow[iRow];
+	  int where = start;
 
 	  while ( indexColumnU[where] != iColumn ) {
 	    where++;
@@ -1189,7 +1208,7 @@ protected:
 	number += test;
       }
       int next = nextRow[iRow];
-      CoinBigIndex space;
+      int space;
 
       space = startRowU[next] - startRowU[iRow];
       number += numberInRow[iRow];
@@ -1202,7 +1221,7 @@ protected:
       putThis = putBase;
       next = nextRow[iRow];
       number = numberInRow[iRow];
-      CoinBigIndex end = startRowU[iRow] + number;
+      int end = startRowU[iRow] + number;
       int saveIndex = indexColumnU[startRowU[next]];
 
       //add in
@@ -1242,7 +1261,7 @@ protected:
       number += test;
     }
     int next = nextRow[iRow];
-    CoinBigIndex space;
+    int space;
 
     space = startRowU[next] - startRowU[iRow];
     number += numberInRow[iRow];
@@ -1255,7 +1274,7 @@ protected:
     putThis = putBase;
     next = nextRow[iRow];
     number = numberInRow[iRow];
-    CoinBigIndex end = startRowU[iRow] + number;
+    int end = startRowU[iRow] + number;
     int saveIndex;
 
     saveIndex = indexColumnU[startRowU[next]];
@@ -1330,9 +1349,9 @@ protected:
   int numberPivots_;
   /// Number of elements in U (to go)
   ///       or while iterating total overall
-  CoinBigIndex totalElements_;
+  int totalElements_;
   /// Number of elements after factorization
-  CoinBigIndex factorElements_;
+  int factorElements_;
   /// Pivot order for each Column
   CoinIntArrayWithLength pivotColumn_;
   /// Permutation vector for pivot row order
@@ -1353,7 +1372,7 @@ protected:
   /// Number of trials before rejection
   int numberTrials_;
   /// Start of each Row as pointer
-  CoinBigIndexArrayWithLength startRowU_;
+  CoinIntArrayWithLength startRowU_;
 
   /// Number in each Row
   CoinIntArrayWithLength numberInRow_;
@@ -1414,16 +1433,16 @@ protected:
   int numberU_;
 
   /// Maximum space used in U
-  CoinBigIndex maximumU_;
+  int maximumU_;
 
   /// Base of U is always 0
   //int baseU_;
 
   /// Length of U
-  CoinBigIndex lengthU_;
+  int lengthU_;
 
   /// Length of area reserved for U
-  CoinBigIndex lengthAreaU_;
+  int lengthAreaU_;
 
 /// Elements of U
   CoinFactorizationDoubleArrayWithLength elementU_;
@@ -1432,22 +1451,22 @@ protected:
   CoinIntArrayWithLength indexRowU_;
 
 /// Start of each column in U
-  CoinBigIndexArrayWithLength startColumnU_;
+  CoinIntArrayWithLength startColumnU_;
 
 /// Converts rows to columns in U 
-  CoinBigIndexArrayWithLength convertRowToColumnU_;
+  CoinIntArrayWithLength convertRowToColumnU_;
 
   /// Number in L
-  CoinBigIndex numberL_;
+  int numberL_;
 
 /// Base of L
-  CoinBigIndex baseL_;
+  int baseL_;
 
   /// Length of L
-  CoinBigIndex lengthL_;
+  int lengthL_;
 
   /// Length of area reserved for L
-  CoinBigIndex lengthAreaL_;
+  int lengthAreaL_;
 
   /// Elements of L
   CoinFactorizationDoubleArrayWithLength elementL_;
@@ -1456,7 +1475,7 @@ protected:
   CoinIntArrayWithLength indexRowL_;
 
   /// Start of each column in L
-  CoinBigIndexArrayWithLength startColumnL_;
+  CoinIntArrayWithLength startColumnL_;
 
   /// true if Forrest Tomlin update, false if PFI 
   bool doForrestTomlin_;
@@ -1465,10 +1484,10 @@ protected:
   int numberR_;
 
   /// Length of R stuff
-  CoinBigIndex lengthR_;
+  int lengthR_;
 
   /// length of area reserved for R
-  CoinBigIndex lengthAreaR_;
+  int lengthAreaR_;
 
   /// Elements of R
   CoinFactorizationDouble *elementR_;
@@ -1477,7 +1496,7 @@ protected:
   int *indexRowR_;
 
   /// Start of columns for R
-  CoinBigIndexArrayWithLength startColumnR_;
+  CoinIntArrayWithLength startColumnR_;
 
   /// Dense area
   double  * denseArea_;
@@ -1501,7 +1520,7 @@ protected:
   CoinUnsignedIntArrayWithLength workArea2_;
 
   /// Number of compressions done
-  CoinBigIndex numberCompressions_;
+  int numberCompressions_;
 
 public:
   /// Below are all to collect
@@ -1541,7 +1560,7 @@ protected:
   int sparseThreshold2_;
 
   /// Start of each row in L
-  CoinBigIndexArrayWithLength startRowL_;
+  CoinIntArrayWithLength startRowL_;
 
   /// Index of column in row for L
   CoinIntArrayWithLength indexColumnL_;
@@ -1551,6 +1570,10 @@ protected:
 
   /// Sparse regions
   mutable CoinIntArrayWithLength sparse_;
+#if ABOCA_LITE_FACTORIZATION
+  /// Offset to second version of sparse
+  int sparseOffset_;
+#endif
   /** L to U bias
       0 - U bias, 1 - some U bias, 2 some L bias, 3 L bias
   */
@@ -1591,11 +1614,11 @@ typedef const int cipfint;
 {
   goodPivot=false;
   //store pivot columns (so can easily compress)
-  CoinBigIndex startColumnThis = startColumn[iPivotColumn];
-  CoinBigIndex endColumn = startColumnThis + numberDoColumn + 1;
+  int startColumnThis = startColumn[iPivotColumn];
+  int endColumn = startColumnThis + numberDoColumn + 1;
   int put = 0;
-  CoinBigIndex startRowThis = startRow[iPivotRow];
-  CoinBigIndex endRow = startRowThis + numberDoRow + 1;
+  int startRowThis = startRow[iPivotRow];
+  int endRow = startRowThis + numberDoRow + 1;
   if ( pivotColumnPosition < 0 ) {
     for ( pivotColumnPosition = startRowThis; pivotColumnPosition < endRow; pivotColumnPosition++ ) {
       int iColumn = indexColumn[pivotColumnPosition];
@@ -1606,7 +1629,7 @@ typedef const int cipfint;
       }
     }
   } else {
-    for (CoinBigIndex i = startRowThis ; i < pivotColumnPosition ; i++ ) {
+    for (int i = startRowThis ; i < pivotColumnPosition ; i++ ) {
       saveColumn[put++] = indexColumn[i];
     }
   }
@@ -1626,7 +1649,7 @@ typedef const int cipfint;
   lastRow[iPivotRow] = -2;
   numberInRow[iPivotRow] = 0;
   //store column in L, compress in U and take column out
-  CoinBigIndex l = lengthL_;
+  int l = lengthL_;
   // **** HORRID coding coming up but a goto seems best!
   {
     if ( l + numberDoColumn > lengthAreaL_ ) {
@@ -1636,9 +1659,9 @@ typedef const int cipfint;
       goto BAD_PIVOT;
     }
     //l+=currentAreaL_->elementByColumn-elementL;
-    CoinBigIndex lSave = l;
+    int lSave = l;
     
-    CoinBigIndex * startColumnL = startColumnL_.array();
+    int * startColumnL = startColumnL_.array();
     startColumnL[numberGoodL_] = l;	//for luck and first time
     numberGoodL_++;
     startColumnL[numberGoodL_] = l + numberDoColumn;
@@ -1652,9 +1675,9 @@ typedef const int cipfint;
 	  markRow[iRow] = l - lSave;
 	  l++;
 	  //take out of row list
-	  CoinBigIndex start = startRow[iRow];
-	  CoinBigIndex end = start + numberInRow[iRow];
-	  CoinBigIndex where = start;
+	  int start = startRow[iRow];
+	  int end = start + numberInRow[iRow];
+	  int where = start;
 	  
 	  while ( indexColumn[where] != iPivotColumn ) {
 	    where++;
@@ -1671,7 +1694,7 @@ typedef const int cipfint;
 	}
       }
     } else {
-      CoinBigIndex i;
+      int i;
       
       for ( i = startColumnThis; i < pivotRowPosition; i++ ) {
 	int iRow = indexRow[i];
@@ -1681,9 +1704,9 @@ typedef const int cipfint;
 	elementL[l] = element[i];
 	l++;
 	//take out of row list
-	CoinBigIndex start = startRow[iRow];
-	CoinBigIndex end = start + numberInRow[iRow];
-	CoinBigIndex where = start;
+	int start = startRow[iRow];
+	int end = start + numberInRow[iRow];
+	int where = start;
 	
 	while ( indexColumn[where] != iPivotColumn ) {
 	  where++;
@@ -1713,9 +1736,9 @@ typedef const int cipfint;
       elementL[l] = element[pivotRowPosition];
       l++;
       //take out of row list
-      CoinBigIndex start = startRow[iRow];
-      CoinBigIndex end = start + numberInRow[iRow];
-      CoinBigIndex where = start;
+      int start = startRow[iRow];
+      int end = start + numberInRow[iRow];
+      int where = start;
       
       while ( indexColumn[where] != iPivotColumn ) {
 	where++;
@@ -1743,12 +1766,12 @@ typedef const int cipfint;
       multipliersL[j] *= pivotMultiplier;
     }
     //zero out fill
-    CoinBigIndex iErase;
+    int iErase;
     for ( iErase = 0; iErase < increment2 * numberDoRow;
 	  iErase++ ) {
       workArea2[iErase] = 0;
     }
-    CoinBigIndex added = numberDoRow * numberDoColumn;
+    int added = numberDoRow * numberDoColumn;
     unsigned int *temp2 = workArea2;
     int * nextColumn = nextColumn_.array();
     
@@ -1756,13 +1779,13 @@ typedef const int cipfint;
     int jColumn;
     for ( jColumn = 0; jColumn < numberDoRow; jColumn++ ) {
       int iColumn = saveColumn[jColumn];
-      CoinBigIndex startColumnThis = startColumn[iColumn];
-      CoinBigIndex endColumn = startColumnThis + numberInColumn[iColumn];
+      int startColumnThis = startColumn[iColumn];
+      int endColumn = startColumnThis + numberInColumn[iColumn];
       int iRow = indexRow[startColumnThis];
       CoinFactorizationDouble value = element[startColumnThis];
       double largest;
-      CoinBigIndex put = startColumnThis;
-      CoinBigIndex positionLargest = -1;
+      int put = startColumnThis;
+      int positionLargest = -1;
       CoinFactorizationDouble thisPivotValue = 0.0;
       
       //compress column and find largest not updated
@@ -1790,7 +1813,7 @@ typedef const int cipfint;
 	  thisPivotValue = value;
 	}
       }
-      CoinBigIndex i;
+      int i;
       for ( i = startColumnThis + 1; i < endColumn; i++ ) {
 	iRow = indexRow[i];
 	value = element[i];
@@ -1838,7 +1861,7 @@ typedef const int cipfint;
       startColumn[iColumn]++;
       //how much space have we got
       int next = nextColumn[iColumn];
-      CoinBigIndex space;
+      int space;
       
       space = startColumn[next] - put - numberInColumnPlus[next];
       //assume no zero elements
@@ -1877,9 +1900,9 @@ typedef const int cipfint;
 	  if ( temp2[word] & ( 1 << bit ) ) {
 	    //take out of row list
 	    iRow = indexL[j];
-	    CoinBigIndex start = startRow[iRow];
-	    CoinBigIndex end = start + numberInRow[iRow];
-	    CoinBigIndex where = start;
+	    int start = startRow[iRow];
+	    int end = start + numberInRow[iRow];
+	    int where = start;
 	    
 	    while ( indexColumn[where] != iColumn ) {
 	      where++;
@@ -1943,7 +1966,7 @@ typedef const int cipfint;
 	  number += test;
 	}
 	int next = nextRow[iRow];
-	CoinBigIndex space;
+	int space;
 	
 	space = startRow[next] - startRow[iRow];
 	number += numberInRow[iRow];
@@ -1956,7 +1979,7 @@ typedef const int cipfint;
 	putThis = putBase;
 	next = nextRow[iRow];
 	number = numberInRow[iRow];
-	CoinBigIndex end = startRow[iRow] + number;
+	int end = startRow[iRow] + number;
 	int saveIndex = indexColumn[startRow[next]];
 	
 	//add in
@@ -1996,7 +2019,7 @@ typedef const int cipfint;
 	number += test;
       }
       int next = nextRow[iRow];
-      CoinBigIndex space;
+      int space;
       
       space = startRow[next] - startRow[iRow];
       number += numberInRow[iRow];
@@ -2009,7 +2032,7 @@ typedef const int cipfint;
       putThis = putBase;
       next = nextRow[iRow];
       number = numberInRow[iRow];
-      CoinBigIndex end = startRow[iRow] + number;
+      int end = startRow[iRow] + number;
       int saveIndex;
       
       saveIndex = indexColumn[startRow[next]];

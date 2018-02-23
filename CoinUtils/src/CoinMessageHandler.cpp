@@ -364,6 +364,19 @@ CoinMessageHandler::internalPrint()
 	break;
       } 
     }
+    // take off %%
+    if (strstr(messageBuffer_,"%%")) {
+      // can be inefficient
+      char * buffer = messageBuffer_;
+      int n = static_cast<int>(strlen(buffer));
+      for (int i=0;i<n;i++) {
+	if (messageBuffer_[i]!='%'||messageBuffer_[i+1]!='%') {
+	  *buffer=messageBuffer_[i];
+	  buffer++;
+	} 
+      }
+      *buffer='\0';
+    }
     // Now do print which can be overridden
     returnCode=print();
     // See what to do on error
@@ -610,6 +623,10 @@ CoinMessageHandler::message (int messageNumber,
   }
   // Acquire the new message
   internalNumber_ = messageNumber ;
+  /* Check validity - although it is up to coder of relevant handler
+     to only pass valid messages */
+  assert (normalMessages.message_!=NULL);
+  assert (messageNumber<normalMessages.numberMessages_);
   currentMessage_ = *(normalMessages.message_[messageNumber]) ;
   source_ = normalMessages.source_ ;
   format_ = currentMessage_.message_ ;
@@ -891,7 +908,7 @@ CoinMessageHandler::operator<< (long long longvalue)
       }
       format_=next;
     } else {
-      sprintf(messageOut_," %ld",longvalue);
+      sprintf(messageOut_," %lld",longvalue);
       messageOut_+=strlen(messageOut_);
     } 
   }

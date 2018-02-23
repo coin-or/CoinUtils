@@ -124,7 +124,7 @@ msg
 
       if (kcolx>=kcex&&kcolz<kcez) {
 	// swap
-	int iTemp;
+	CoinBigIndex iTemp;
 	iTemp=kcolx;
 	kcolx=kcolz;
 	kcolz=iTemp;
@@ -134,9 +134,10 @@ msg
 	iTemp=kcex;
 	kcex=kcez;
 	kcez=iTemp;
-	iTemp=icolx;
+	int jTemp;
+	jTemp=icolx;
 	icolx=icolz;
-	icolz=iTemp;
+	icolz=jTemp;
 	double dTemp=coeff_factorx;
 	coeff_factorx=coeff_factorz;
 	coeff_factorz=dTemp;
@@ -216,7 +217,7 @@ msg
 	}
 	presolve_expand_row(mrstrt,rowels,hcol,hinrow,rlink,nrows,row) ;
 	// there is now an unused entry in the memory after the column - use it
-	int krez = mrstrt[row]+hinrow[row];
+	CoinBigIndex krez = mrstrt[row]+hinrow[row];
 	hcol[krez] = icolz;
 	rowels[krez] = colels[kcoly] * coeff_factorz;
 	hinrow[row]++;
@@ -561,7 +562,7 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
 	// Update next set of actions
 	{
 	  prob->addCol(icolx);
-	  int i,kcs,kce;
+	  CoinBigIndex i,kcs,kce;
 	  kcs = mcstrt[icoly];
 	  kce = kcs + hincol[icoly];
 	  for (i=kcs;i<kce;i++) {
@@ -680,7 +681,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt		= prob->mcstrt_;
   int *hincol		= prob->hincol_;
-  int *link		= prob->link_;
+  CoinBigIndex *link		= prob->link_;
 
   double *clo	= prob->clo_;
   double *cup	= prob->cup_;
@@ -800,7 +801,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
     double multiplier1 = coeffx/coeffy;
     double multiplier2 = coeffz/coeffy;
     int * indy = reinterpret_cast<int *>(f->colel+f->ncoly);
-    int ystart = NO_LINK;
+    CoinBigIndex ystart = NO_LINK;
     int nX=0,nZ=0;
     int i,iRow;
     for (i=0; i<f->ncoly; ++i) {
@@ -859,7 +860,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
       } else {
 	numberInColumn--;
 	// add to free list
-	int nextk = link[k];
+	CoinBigIndex nextk = link[k];
 	link[k]=free_list;
 	free_list=k;
 	assert (k>=0);
@@ -916,7 +917,7 @@ void tripleton_action::postsolve(CoinPostsolveMatrix *prob) const
       } else {
 	numberInColumn--;
 	// add to free list
-	int nextk = link[k];
+	CoinBigIndex nextk = link[k];
 	assert(free_list>=0);
 	link[k]=free_list;
 	free_list=k;

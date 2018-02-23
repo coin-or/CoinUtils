@@ -143,6 +143,8 @@ public:
    void clear();
    /// Reset the vector (as if were just created an empty vector)
    void empty();
+   /// Clear even if in a bad way
+   void reallyClear();
    /** Assignment operator. */
    CoinIndexedVector & operator=(const CoinIndexedVector &);
 #ifndef CLP_NO_VECTOR
@@ -516,17 +518,17 @@ public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getSize() const 
-  { return size_; }
+  inline CoinBigIndex getSize() const 
+  { return static_cast<CoinBigIndex>(size_); }
   /// Get the size
-  inline int rawSize() const 
-  { return size_; }
+  inline CoinBigIndex rawSize() const 
+  { return static_cast<CoinBigIndex>(size_); }
   /// See if persistence already on
   inline bool switchedOn() const 
   { return size_!=-1; }
   /// Get the capacity (just read it)
-  inline int capacity() const 
-  { return (size_>-2) ? size_ : (-size_)-2; }
+  inline CoinBigIndex capacity() const 
+  { return (size_>-2) ? static_cast<CoinBigIndex>(size_) : static_cast<CoinBigIndex>((-size_)-2); }
   /// Set the capacity to >=0 if <=-2
   inline void setCapacity() 
   { if (size_<=-2) size_ = (-size_)-2; }
@@ -540,6 +542,11 @@ public:
   /// Set the size
   inline void setSize(int value) 
   { size_ = value; }
+#if COIN_BIG_INDEX
+  /// Set the size
+  inline void setSize(long long value) 
+  { size_ = value; }
+#endif
   /// Set the size to -1
   inline void switchOff() 
   { size_ = -1; }
@@ -554,12 +561,16 @@ public:
   void swap(CoinArrayWithLength & other);
   /// Extend a persistent array keeping data (size in bytes)
   void extend(int newSize);
+#if COIN_BIG_INDEX
+  /// Extend a persistent array keeping data (size in bytes)
+  void extend(long long newSize);
+#endif
   //@}
   
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  char * conditionalNew(long sizeWanted); 
+  char * conditionalNew(CoinBigIndex sizeWanted); 
   /// Conditionally deletes
   void conditionalDelete();
   //@}
@@ -571,7 +582,7 @@ public:
     : array_(NULL),size_(-1),offset_(0),alignment_(0)
   { }
   /** Alternate Constructor - length in bytes - size_ -1 */
-  inline CoinArrayWithLength(int size)
+  inline CoinArrayWithLength(CoinBigIndex size)
     : size_(-1),offset_(0),alignment_(0)
   { array_=new char [size];}
   /** Alternate Constructor - length in bytes 
@@ -580,7 +591,7 @@ public:
       if size<=0 just does alignment
       If abs(mode) >2 then align on that as power of 2
   */
-  CoinArrayWithLength(int size, int mode);
+  CoinArrayWithLength(CoinBigIndex size, int mode);
   /** Copy constructor. */
   CoinArrayWithLength(const CoinArrayWithLength & rhs);
   /** Copy constructor.2 */
@@ -594,11 +605,11 @@ public:
   /** Destructor */
   ~CoinArrayWithLength ();
   /// Get array with alignment
-  void getArray(int size);
+  void getArray(CoinBigIndex size);
   /// Really get rid of array with alignment
   void reallyFreeArray();
   /// Get enough space (if more needed then do at least needed)
-  void getCapacity(int numberBytes,int numberIfNeeded=-1);
+  void getCapacity(CoinBigIndex numberBytes,CoinBigIndex numberIfNeeded=-1);
   //@}
   
 protected:
@@ -622,7 +633,7 @@ public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getSize() const 
+  inline CoinBigIndex getSize() const 
   { return size_/CoinSizeofAsInt(double); }
   /// Get Array
   inline double * array() const 
@@ -639,7 +650,7 @@ public:
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  inline double * conditionalNew(int sizeWanted)
+  inline double * conditionalNew(CoinBigIndex sizeWanted)
   { return reinterpret_cast<double *> ( CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> ((sizeWanted)*CoinSizeofAsInt(double)) : -1)); }
   //@}
   
@@ -676,7 +687,7 @@ public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getSize() const 
+  inline CoinBigIndex getSize() const 
   { return size_/CoinSizeofAsInt(CoinFactorizationDouble); }
   /// Get Array
   inline CoinFactorizationDouble * array() const 
@@ -730,7 +741,7 @@ public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getSize() const 
+  inline CoinBigIndex getSize() const 
   { return size_/CoinSizeofAsInt(long double); }
   /// Get Array
   inline long double * array() const 
@@ -784,7 +795,7 @@ public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getSize() const 
+  inline CoinBigIndex getSize() const 
   { return size_/CoinSizeofAsInt(int); }
   /// Get Array
   inline int * array() const 
@@ -838,7 +849,7 @@ public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getSize() const 
+  inline CoinBigIndex getSize() const 
   { return size_/CoinSizeofAsInt(CoinBigIndex); }
   /// Get Array
   inline CoinBigIndex * array() const 
@@ -848,14 +859,14 @@ public:
   /**@name Set methods */
   //@{
   /// Set the size
-  inline void setSize(int value) 
+  inline void setSize(CoinBigIndex value) 
   { size_ = value*CoinSizeofAsInt(CoinBigIndex); }
   //@}
   
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  inline CoinBigIndex * conditionalNew(int sizeWanted)
+  inline CoinBigIndex * conditionalNew(CoinBigIndex sizeWanted)
   { return reinterpret_cast<CoinBigIndex *> (CoinArrayWithLength::conditionalNew(sizeWanted>=0 ? static_cast<long> (( sizeWanted)*CoinSizeofAsInt(CoinBigIndex)) : -1)); }
   //@}
   
@@ -865,13 +876,13 @@ public:
   inline CoinBigIndexArrayWithLength()
   { array_=NULL; size_=-1;}
   /** Alternate Constructor - length in bytes - size_ -1 */
-  inline CoinBigIndexArrayWithLength(int size)
+  inline CoinBigIndexArrayWithLength(CoinBigIndex size)
   { array_=new char [size*CoinSizeofAsInt(CoinBigIndex)]; size_=-1;}
   /** Alternate Constructor - length in bytes 
       mode -  0 size_ set to size
       1 size_ set to size and zeroed
   */
-  inline CoinBigIndexArrayWithLength(int size, int mode)
+  inline CoinBigIndexArrayWithLength(CoinBigIndex size, int mode)
     : CoinArrayWithLength(size*CoinSizeofAsInt(CoinBigIndex),mode) {}
   /** Copy constructor. */
   inline CoinBigIndexArrayWithLength(const CoinBigIndexArrayWithLength & rhs)
@@ -892,7 +903,7 @@ public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getSize() const 
+  inline CoinBigIndex getSize() const 
   { return size_/CoinSizeofAsInt(unsigned int); }
   /// Get Array
   inline unsigned int * array() const 
@@ -946,7 +957,7 @@ public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getSize() const 
+  inline CoinBigIndex getSize() const 
   { return size_/CoinSizeofAsInt(void *); }
   /// Get Array
   inline void ** array() const 
@@ -1000,7 +1011,7 @@ public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getSize() const 
+  inline CoinBigIndex getSize() const 
   { return size_/lengthInBytes_; }
   /// Get Array
   inline void ** array() const 
@@ -1161,4 +1172,13 @@ protected:
   int numberPartitions_;
    //@}
 };
+inline double * roundUpDouble(double * address) {
+  // align on 64 byte boundary
+  CoinInt64 xx = reinterpret_cast<CoinInt64>(address);
+  int iBottom = static_cast<int>(xx & 63);
+  if (iBottom)
+    return address + ((64-iBottom)>>3);
+  else
+    return address;
+}
 #endif

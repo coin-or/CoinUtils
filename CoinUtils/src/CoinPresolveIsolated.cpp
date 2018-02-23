@@ -139,7 +139,7 @@ void isolated_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
   double *colels	= prob->colels_;
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt		= prob->mcstrt_;
-  int *link		= prob->link_;
+  CoinBigIndex *link		= prob->link_;
   int *hincol		= prob->hincol_;
   
   double *rowduals	= prob->rowduals_;

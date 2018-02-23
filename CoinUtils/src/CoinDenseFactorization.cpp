@@ -147,13 +147,13 @@ void CoinDenseFactorization::gutsOfCopy(const CoinDenseFactorization &other)
 void
 CoinDenseFactorization::getAreas ( int numberOfRows,
 			 int numberOfColumns,
-			 CoinBigIndex ,
-			 CoinBigIndex  )
+			 int ,
+			 int  )
 {
 
   numberRows_ = numberOfRows;
   numberColumns_ = numberOfColumns;
-  CoinBigIndex size = numberRows_*(numberRows_+CoinMax(maximumPivots_,(numberRows_+1)>>1));
+  int size = numberRows_*(numberRows_+CoinMax(maximumPivots_,(numberRows_+1)>>1));
   if (size>maximumSpace_) {
     delete [] elements_;
     elements_ = new CoinFactorizationDouble [size];
@@ -173,15 +173,15 @@ void
 CoinDenseFactorization::preProcess ()
 {
   // could do better than this but this only a demo
-  CoinBigIndex put = numberRows_*numberRows_;
+  int put = numberRows_*numberRows_;
   int *indexRow = reinterpret_cast<int *> (elements_+put);
-  CoinBigIndex * starts = reinterpret_cast<CoinBigIndex *> (pivotRow_); 
+  int * starts = reinterpret_cast<int *> (pivotRow_); 
   put = numberRows_*numberColumns_;
   for (int i=numberColumns_-1;i>=0;i--) {
     put -= numberRows_;
     memset(workArea_,0,numberRows_*sizeof(CoinFactorizationDouble));
     assert (starts[i]<=put);
-    for (CoinBigIndex j=starts[i];j<starts[i+1];j++) {
+    for (int j=starts[i];j<starts[i+1];j++) {
       int iRow = indexRow[j];
       workArea_[iRow] = elements_[j];
     }
@@ -1016,9 +1016,9 @@ int *
 CoinOtherFactorization::numberInColumn() const
 { return (reinterpret_cast<int *> (workArea_))+numberRows_;}
 // Returns array to put basis starts in
-CoinBigIndex * 
+int * 
 CoinOtherFactorization::starts() const
-{ return reinterpret_cast<CoinBigIndex *> (pivotRow_);}
+{ return reinterpret_cast<int *> (pivotRow_);}
 // Returns array to put basis elements in
 CoinFactorizationDouble * 
 CoinOtherFactorization::elements() const

@@ -26258,7 +26258,7 @@ $as_echo "$as_me: FINALIZE_FLAGS for CoinUtilsLib: adding \"${COINUTILSLIB_PCFIL
 $as_echo "$as_me: COINUTILSLIB_LIBS is \"${COINUTILSLIB_LIBS}\"" >&6;}
        { $as_echo "$as_me:${as_lineno-$LINENO}: COINUTILSLIB_CFLAGS is \"${COINUTILSLIB_CFLAGS}\"" >&5
 $as_echo "$as_me: COINUTILSLIB_CFLAGS is \"${COINUTILSLIB_CFLAGS}\"" >&6;}
-     fi
+     fi ;
 
 
 ac_ext=c

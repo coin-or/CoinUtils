@@ -15,7 +15,7 @@
 #include <cstdio>
 #include <iostream>
 
-
+#include "CoinTypes.hpp"
 #include "CoinPragma.hpp"
 
 /**
@@ -61,7 +61,7 @@ public:
   inline double element() const
   { return value_;}
   /// Get position
-  inline int position() const
+  inline CoinBigIndex position() const
   { return position_;}
   /// Get onRow
   inline bool onRow() const
@@ -79,7 +79,7 @@ public:
   inline void setElement(double value)
   { value_=value;}
   /// Set position
-  inline void setPosition(int position)
+  inline void setPosition(CoinBigIndex position)
   { position_=position;}
   /// Set onRow
   inline void setOnRow(bool onRow)
@@ -96,7 +96,7 @@ private:
   /// Value as double
   double value_;
   /// Position in data
-  int position_;
+  CoinBigIndex position_;
   /// If on row chain
   bool onRow_;
   //@}
@@ -128,6 +128,9 @@ inline void setRowAndStringInTriple(CoinModelTriple & triple,
 typedef struct {
   int index, next;
 } CoinModelHashLink;
+typedef struct {
+  CoinBigIndex index, next;
+} CoinModelHashLink2;
 
 /* Function type.  */
 typedef double (*func_t) (double);
@@ -272,41 +275,41 @@ public:
   /**@name sizing (just increases) */
   //@{
   /// Resize hash (also re-hashs)
-  void resize(int maxItems, const CoinModelTriple * triples,bool forceReHash=false);
+  void resize(CoinBigIndex maxItems, const CoinModelTriple * triples,bool forceReHash=false);
   /// Number of items
-  inline int numberItems() const
+  inline CoinBigIndex numberItems() const
   { return numberItems_;}
   /// Set number of items
-  void setNumberItems(int number);
+  void setNumberItems(CoinBigIndex number);
   /// Maximum number of items
-  inline int maximumItems() const
+  inline CoinBigIndex maximumItems() const
   { return maximumItems_;}
   //@}
 
   /**@name hashing */
   //@{
   /// Returns index or -1
-  int hash(int row, int column, const CoinModelTriple * triples) const;
+  CoinBigIndex hash(int row, int column, const CoinModelTriple * triples) const;
   /// Adds to hash
-  void addHash(int index, int row, int column, const CoinModelTriple * triples);
+  void addHash(CoinBigIndex index, int row, int column, const CoinModelTriple * triples);
   /// Deletes from hash
-  void deleteHash(int index, int row, int column);
+  void deleteHash(CoinBigIndex index, int row, int column);
 private:
   /// Returns a hash value
-  int hashValue(int row, int column) const;
+  CoinBigIndex hashValue(int row, int column) const;
 public:
   //@}
 private:
   /**@name Data members */
   //@{
   /// hash
-  CoinModelHashLink * hash_;
+  CoinModelHashLink2 * hash_;
   /// Number of items 
-  int numberItems_;
+  CoinBigIndex numberItems_;
   /// Maximum number of items
-  int maximumItems_;
+  CoinBigIndex maximumItems_;
   /// Last slot looked at
-  int lastSlot_;
+  CoinBigIndex lastSlot_;
   //@}
 };
 class CoinModelLinkedList {
@@ -332,14 +335,14 @@ public:
   //@{
   /** Resize list - for row list maxMajor is maximum rows.
   */
-  void resize(int maxMajor,int maxElements);
+  void resize(int maxMajor,CoinBigIndex maxElements);
   /** Create list - for row list maxMajor is maximum rows.
       type 0 row list, 1 column list
   */
-  void create(int maxMajor,int maxElements,
+  void create(int maxMajor,CoinBigIndex maxElements,
               int numberMajor, int numberMinor,
               int type,
-              int numberElements, const CoinModelTriple * triples);
+              CoinBigIndex numberElements, const CoinModelTriple * triples);
   /// Number of major items i.e. rows if just row links
   inline int numberMajor() const
   { return numberMajor_;}
@@ -347,28 +350,28 @@ public:
   inline int maximumMajor() const
   { return maximumMajor_;}
   /// Number of elements
-  inline int numberElements() const
+  inline CoinBigIndex numberElements() const
   { return numberElements_;}
   /// Maximum number of elements
-  inline int maximumElements() const
+  inline CoinBigIndex maximumElements() const
   { return maximumElements_;}
   /// First on free chain
-  inline int firstFree() const
+  inline CoinBigIndex firstFree() const
   { return first_[maximumMajor_];}
   /// Last on free chain
-  inline int lastFree() const
+  inline CoinBigIndex lastFree() const
   { return last_[maximumMajor_];}
   /// First on  chain
-  inline int first(int which) const
+  inline CoinBigIndex first(int which) const
   { return first_[which];}
   /// Last on  chain
-  inline int last(int which) const
+  inline CoinBigIndex last(int which) const
   { return last_[which];}
   /// Next array
-  inline const int * next() const
+  inline const CoinBigIndex * next() const
   { return next_;}
   /// Previous array
-  inline const int * previous() const
+  inline const CoinBigIndex * previous() const
   { return previous_;}
   //@}
 
@@ -377,19 +380,19 @@ public:
   /** Adds to list - easy case i.e. add row to row list
       Returns where chain starts
   */
-  int addEasy(int majorIndex, int numberOfElements, const int * indices,
+  CoinBigIndex addEasy(int majorIndex, CoinBigIndex numberOfElements, const int * indices,
               const double * elements, CoinModelTriple * triples,
               CoinModelHash2 & hash);
   /** Adds to list - hard case i.e. add row to column list
   */
-  void addHard(int minorIndex, int numberOfElements, const int * indices,
+  void addHard(int minorIndex, CoinBigIndex numberOfElements, const int * indices,
                const double * elements, CoinModelTriple * triples,
                CoinModelHash2 & hash);
   /** Adds to list - hard case i.e. add row to column list
       This is when elements have been added to other copy
   */
-  void addHard(int first, const CoinModelTriple * triples,
-               int firstFree, int lastFree,const int * nextOther);
+  void addHard(CoinBigIndex first, const CoinModelTriple * triples,
+               CoinBigIndex firstFree, CoinBigIndex lastFree,const CoinBigIndex * nextOther);
   /** Deletes from list - same case i.e. delete row from row list
   */
   void deleteSame(int which, CoinModelTriple * triples,
@@ -401,12 +404,12 @@ public:
                      CoinModelLinkedList & otherList);
   /** Deletes one element from Row list
   */
-  void deleteRowOne(int position, CoinModelTriple * triples,
+  void deleteRowOne(CoinBigIndex position, CoinModelTriple * triples,
                  CoinModelHash2 & hash);
   /** Update column list for one element when
       one element deleted from row copy
   */
-  void updateDeletedOne(int position, const CoinModelTriple * triples);
+  void updateDeletedOne(CoinBigIndex position, const CoinModelTriple * triples);
   /// Fills first,last with -1
   void fill(int first,int last);
   /** Puts in free list from other list */
@@ -418,21 +421,21 @@ private:
   /**@name Data members */
   //@{
   /// Previous - maximumElements long
-  int * previous_;
+  CoinBigIndex * previous_;
   /// Next - maximumElements long
-  int * next_;
+  CoinBigIndex * next_;
   /// First - maximumMajor+1 long (last free element chain)
-  int * first_;
+  CoinBigIndex * first_;
   /// Last - maximumMajor+1 long (last free element chain)
-  int * last_;
+  CoinBigIndex * last_;
   /// Number of major items i.e. rows if just row links
   int numberMajor_;
   /// Maximum number of major items i.e. rows if just row links
   int maximumMajor_;
   /// Number of elements
-  int numberElements_;
+  CoinBigIndex numberElements_;
   /// Maximum number of elements
-  int maximumElements_;
+  CoinBigIndex maximumElements_;
   /// 0 row list, 1 column list
   int type_;
   //@}

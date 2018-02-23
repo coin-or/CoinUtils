@@ -117,7 +117,7 @@ public:
   /// Number of entries in each column
   virtual int * numberInColumn() const;
   /// Returns array to put basis starts in
-  virtual CoinBigIndex * starts() const;
+  virtual int * starts() const;
   /// Returns permute back
   virtual int * permuteBack() const;
   /** Get solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
@@ -156,8 +156,8 @@ public:
   /// Gets space for a factorization
   virtual void getAreas ( int numberRows,
 		  int numberColumns,
-		  CoinBigIndex maximumL,
-		  CoinBigIndex maximumU ) = 0;
+		  int maximumL,
+		  int maximumU ) = 0;
   
   /// PreProcesses column ordered copy of basis
   virtual void preProcess ( ) = 0;
@@ -240,7 +240,7 @@ protected:
   /// Relax check on accuracy in replaceColumn
   double relaxCheck_;
   /// Number of elements after factorization
-  CoinBigIndex factorElements_;
+  int factorElements_;
   /// Number of Rows in factorization
   int numberRows_;
   /// Number of Columns in factorization
@@ -256,7 +256,7 @@ protected:
   /// Maximum rows ever (i.e. use to copy arrays etc)
   int maximumRows_;
   /// Maximum length of iterating area
-  CoinBigIndex maximumSpace_;
+  int maximumSpace_;
   /// Pivot row 
   int * pivotRow_;
   /** Elements of factorization and updates
@@ -307,8 +307,8 @@ public:
   /// Gets space for a factorization
   virtual void getAreas ( int numberRows,
 		  int numberColumns,
-		  CoinBigIndex maximumL,
-		  CoinBigIndex maximumU );
+		  int maximumL,
+		  int maximumU );
   
   /// PreProcesses column ordered copy of basis
   virtual void preProcess ( );

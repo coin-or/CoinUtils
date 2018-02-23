@@ -21,10 +21,9 @@
 #if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
-static int numberBadElements=0; 
 int check_row (CoinBigIndex *mrstrt, 
 	   double *rowels, int *hcol, int *hinrow, 
-	   double coeff_factor, double kill_ratio,  int irowx, int irowy)
+	   double coeff_factor, double kill_ratio,  int irowx, int irowy , int &numberBadElements )
 {
   const double tolerance = kill_ratio*coeff_factor;
   CoinBigIndex krsy = mrstrt[irowy] ;
@@ -958,9 +957,9 @@ const CoinPresolveAction *implied_free_action::presolve (
 	CoinSort_2(colIndices+tgtrs,colIndices+tgtre,rowCoeffs+tgtrs) ;
 	CoinBigIndex start=colStarts[tgtcol];
 	CoinBigIndex end = start+colLengths[tgtcol];
-	numberBadElements=0;
+	int numberBadElements=0;
 	int numberFill=-rowLengths[tgtrow];
-	for (int colndx = start ; colndx < end ; ++colndx) {
+	for (CoinBigIndex colndx = start ; colndx < end ; ++colndx) {
 	  int i = rowIndices[colndx] ;
 	  if (i == tgtrow) continue ;
 	  
@@ -977,7 +976,7 @@ const CoinPresolveAction *implied_free_action::presolve (
 	  CoinSort_2(colIndices+krs,colIndices+kre,rowCoeffs+krs) ;
 	  
 	  numberFill += check_row(rowStarts,rowCoeffs,colIndices,
-				  rowLengths,coeff_factor,tolerance,i,tgtrow);
+				  rowLengths,coeff_factor,tolerance,i,tgtrow, numberBadElements );
 	}
 	if (numberBadElements||3*numberFill>2*(colLengths[tgtcol]+rowLengths[tgtrow])) {
 	  //printf("Bad subst col %d row %d - %d small elements, fill %d\n",

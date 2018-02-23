@@ -194,8 +194,8 @@ bool presolve_expand_major (CoinBigIndex *majstrts, double *els,
 */
   else
   { int lastcol = majlinks[nmaj].pre ;
-    int newkcsx = majstrts[lastcol]+majlens[lastcol] ;
-    int newkcex = newkcsx+majlens[k] ;
+    CoinBigIndex newkcsx = majstrts[lastcol]+majlens[lastcol] ;
+    CoinBigIndex newkcex = newkcsx+majlens[k] ;
 
     if (newkcex+1 >= bulkCap)
     { compact_rep(els,minndxs,majstrts,majlens,nmaj,majlinks) ;
@@ -422,7 +422,7 @@ void presolve_delete_many_from_major (int majndx, char * marked,
 */
 void presolve_delete_from_major2 (int majndx, int minndx,
 				  CoinBigIndex *majstrts, int *majlens,
-				  int *minndxs, int *majlinks, 
+				  int *minndxs, CoinBigIndex *majlinks, 
 				  CoinBigIndex *free_listp)
 
 {

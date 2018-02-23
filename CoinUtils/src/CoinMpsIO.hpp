@@ -49,7 +49,7 @@ enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
   COIN_INTORG, COIN_INTEND, COIN_SOSEND, COIN_UNSET_BOUND,
   COIN_UP_BOUND, COIN_FX_BOUND, COIN_LO_BOUND, COIN_FR_BOUND,
                    COIN_MI_BOUND, COIN_PL_BOUND, COIN_BV_BOUND, 
-				   COIN_UI_BOUND, COIN_LI_BOUND, COIN_BOTH_BOUNDS_SET,
+		   COIN_UI_BOUND, COIN_LI_BOUND, COIN_BOTH_BOUNDS_SET,
 		   COIN_SC_BOUND, COIN_S1_BOUND, COIN_S2_BOUND,
 		   COIN_BS_BASIS, COIN_XL_BASIS, COIN_XU_BASIS,
 		   COIN_LL_BASIS, COIN_UL_BASIS, COIN_UNKNOWN_MPS_TYPE
@@ -245,6 +245,9 @@ public:
   /// Returns number of entries
   inline int numberEntries (  ) const 
   { return numberEntries_;  }
+  /// Sets number of entries
+  inline void setNumberEntries (int number)
+  { numberEntries_ = number;  }
   /// Returns type of set - 1 =SOS1, 2 =SOS2
   inline int setType (  ) const 
   { return setType_;  }
@@ -253,6 +256,12 @@ public:
   { return which_;  }
   /// Returns weights
   inline const double * weights (  ) const 
+  { return weights_;  }
+  /// Returns modifiable list of variables
+  inline int * modifiableWhich (  ) const 
+  { return which_;  }
+  /// Returns modifiable weights
+  inline double * modifiableWeights (  ) const 
   { return weights_;  }
   //@}
 
@@ -349,7 +358,7 @@ public:
     int getNumRows() const;
 
     /// Get number of nonzero elements
-    int getNumElements() const;
+    CoinBigIndex getNumElements() const;
 
     /// Get pointer to array[getNumCols()] of column lower bounds
     const double * getColLower() const;
@@ -420,6 +429,13 @@ public:
         is a binary or general integer variable.
     */
     bool isInteger(int columnNumber) const;
+  
+    /** Return 1 if a column is an integer variable, 2 if semi-continuous
+
+        Note: This function returns 1 if the the column
+        is a binary or general integer variable.
+    */
+    int isIntegerOrSemiContinuous(int columnNumber) const;
   
     /** Returns array[getNumCols()] specifying if a variable is integer.
 
@@ -722,7 +738,7 @@ public:
       columnStart is numberColumns+1 long, others numberNonZeros
     */
     int readQuadraticMps(const char * filename,
-			 int * &columnStart, int * &column, double * &elements,
+			 CoinBigIndex * &columnStart, int * &column, double * &elements,
 			 int checkSymmetry);
 
     /** Read in a list of cones from the given filename.  

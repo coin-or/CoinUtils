@@ -79,6 +79,7 @@ CoinLpIO::CoinLpIO() :
   names_[1] = NULL;
   handler_ = new CoinMessageHandler();
   messages_ = CoinMessage();
+  fp_ = NULL;
 }
 
 //-------------------------------------------------------------------
@@ -144,6 +145,7 @@ CoinLpIO::CoinLpIO(const CoinLpIO& rhs)
     }
  
     messages_ = CoinMessage();
+    fp_ = NULL;
 }
 
 
@@ -360,7 +362,7 @@ int CoinLpIO::getNumRows() const
 }
 
 /*************************************************************************/
-int CoinLpIO::getNumElements() const
+CoinBigIndex CoinLpIO::getNumElements() const
 {
   return numberElements_;
 }
@@ -1017,7 +1019,8 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
    double lp_inf = getInfinity();
    int numberAcross = getNumberAcross();
 
-   int i, j, cnt_print, loc_row_names = 0, loc_col_names = 0;
+   int i, cnt_print, loc_row_names = 0, loc_col_names = 0;
+   CoinBigIndex j;
    char **prowNames = NULL, **pcolNames = NULL;
 
    const int *indices = matrixByRow_->getIndices();
@@ -1206,11 +1209,12 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
    printf("CoinLpIO::writeLp(): Done with bounds\n");
 #endif
 
+   bool semis=false;
    if(integerType != NULL) {
      int first_int = 1;
      cnt_print = 0;
      for(j=0; j<ncol; j++) {
-       if(integerType[j] == 1) {
+       if(integerType[j] == 1 || integerType[j] == 4) {
 
 	 if(first_int) {
 	   fprintf(fp, "Integers\n");
@@ -1223,10 +1227,35 @@ CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 	   fprintf(fp, "\n");
 	 }
        }
+       if (integerType[j]>1)
+	 semis=true;
      }
 
      if(cnt_print % numberAcross != 0) {
        fprintf(fp, "\n");
+     }
+     if (semis) {
+       int first_int = 1;
+       cnt_print = 0;
+       for(j=0; j<ncol; j++) {
+	 if(integerType[j] > 2) {
+	   
+	   if(first_int) {
+	     fprintf(fp, "Semis\n");
+	     first_int = 0;
+	   }
+	   
+	   fprintf(fp, "%s ", colNames[j]);
+	   cnt_print++;
+	   if(cnt_print % numberAcross == 0) {
+	     fprintf(fp, "\n");
+	   }
+	 }
+       }
+       
+       if(cnt_print % numberAcross != 0) {
+	 fprintf(fp, "\n");
+       }
      }
    }
 
@@ -1420,6 +1449,8 @@ CoinLpIO::is_comment(const char *buff) const {
   return(0);
 } /* is_comment */
 
+#define NEW_SCANF
+
 /*************************************************************************/
 void
 CoinLpIO::skip_comment(char *buff, FILE *fp) const {
@@ -1435,24 +1466,48 @@ CoinLpIO::skip_comment(char *buff, FILE *fp) const {
       sprintf(str,"### ERROR: error while skipping comment\n");
       throw CoinError(str, "skip_comment", "CoinLpIO", __FILE__, __LINE__);
     }
+#ifndef NEW_SCANF
     char * x=fgets(buff, sizeof(buff), fp);    
     if (!x)
       throw("bad fgets");
+#else
+    // keep going until in correct buffer
+    while(bufferLength_<0) {
+      if(fscanfLpIO(buff)==0)
+      throw("bad fgets");
+    }
+    // and throw away
+    bufferPosition_ = bufferLength_;
+    break;
+#endif
   } 
 } /* skip_comment */
-
 /*************************************************************************/
 void
 CoinLpIO::scan_next(char *buff, FILE *fp) const {
 
+#ifndef NEW_SCANF
   int x=fscanf(fp, "%s", buff);
-  if (x<=0)
-    throw("bad fscanf");
+#else
+  int x=fscanfLpIO(buff);
+#endif
+  if (x<=0) {
+    handler_->message(COIN_GENERAL_WARNING,messages_)<<
+    "### CoinLpIO::scan_next(): End inserted"<<CoinMessageEol;
+    strcpy(buff,"End");
+  }
   while(is_comment(buff)) {
     skip_comment(buff, fp);
+#ifndef NEW_SCANF
     x=fscanf(fp, "%s", buff);
-    if (x<=0)
+#else
+    x=fscanfLpIO(buff);
+#endif
+    if (x<=0) {
+      handler_->message(COIN_GENERAL_WARNING,messages_)<<
+	"### CoinLpIO::scan_next(): field expected"<<CoinMessageEol;
       throw("bad fscanf");
+    }
   }
 
 #ifdef LPIO_DEBUG
@@ -1745,12 +1800,12 @@ CoinLpIO::realloc_coeff(double **coeff, char ***colNames,
 
 /*************************************************************************/
 void
-CoinLpIO::realloc_row(char ***rowNames, int **start, double **rhs, 
+CoinLpIO::realloc_row(char ***rowNames, CoinBigIndex **start, double **rhs, 
 		      double **rowlow, double **rowup, int *maxrow) const {
 
   *maxrow *= 5;
   *rowNames = reinterpret_cast<char **> (realloc ((*rowNames), (*maxrow+1) * sizeof(char *)));
-  *start = reinterpret_cast<int *> (realloc ((*start), (*maxrow+1) * sizeof(int)));
+  *start = reinterpret_cast<CoinBigIndex *> (realloc ((*start), (*maxrow+1) * sizeof(CoinBigIndex)));
   *rhs = reinterpret_cast<double *> (realloc ((*rhs), (*maxrow+1) * sizeof(double)));
   *rowlow = reinterpret_cast<double *> (realloc ((*rowlow), (*maxrow+1) * sizeof(double)));
   *rowup = reinterpret_cast<double *> (realloc ((*rowup), (*maxrow+1) * sizeof(double)));
@@ -1911,6 +1966,9 @@ CoinLpIO::readLp(FILE* fp)
   double lp_inf = getInfinity();
 
   char buff[1024];
+  fp_=fp;
+  bufferPosition_ = 0;
+  bufferLength_ = 0;
 
   int objsense, cnt_coeff = 0, cnt_row = 0, cnt_obj = 0;
   int num_objectives = 0;
@@ -1922,8 +1980,8 @@ CoinLpIO::readLp(FILE* fp)
      (malloc ((maxcoeff+1) * sizeof(double)));
   char **rowNames = reinterpret_cast<char **> 
      (malloc ((maxrow+MAX_OBJECTIVES) * sizeof(char *)));
-  int *start = reinterpret_cast<int *> 
-     (malloc ((maxrow+MAX_OBJECTIVES) * sizeof(int)));
+  CoinBigIndex *start = reinterpret_cast<CoinBigIndex *> 
+     (malloc ((maxrow+MAX_OBJECTIVES) * sizeof(CoinBigIndex)));
   double *rhs = reinterpret_cast<double *> 
      (malloc ((maxrow+1) * sizeof(double)));
   double *rowlow = reinterpret_cast<double *> 
@@ -1949,7 +2007,11 @@ CoinLpIO::readLp(FILE* fp)
   cnt_coeff = cnt_obj;
 
   if(read_st == 2) {
+#ifndef NEW_SCANF
     int x=fscanf(fp, "%s", buff);
+#else
+    int x=fscanfLpIO(buff);
+#endif
     if (x<=0)
       throw("bad fscanf");
     size_t lbuff = strlen(buff);
@@ -2192,7 +2254,10 @@ CoinLpIO::readLp(FILE* fp)
 #endif
 	  
 	}
-	is_int[icol] = 1;
+	if (is_int[icol]==3)
+	  is_int[icol] = 4;
+	else
+	  is_int[icol] = 1;
 	has_int = 1;
 	scan_next(buff, fp);
       };
@@ -2239,6 +2304,44 @@ CoinLpIO::readLp(FILE* fp)
 	scan_next(buff, fp);
       }
       break;
+    case 4: /* Semis section */
+
+      scan_next(buff, fp);
+    
+      while(is_keyword(buff) == 0) {
+      
+	icol = findHash(buff, 1);
+
+#ifdef LPIO_DEBUG
+	printf("CoinLpIO::readLp(): Semi: colname: (%s)  icol: %d\n", 
+	       buff, icol);
+#endif
+
+	if(icol < 0) {
+	  char printBuffer[512];
+	  sprintf(printBuffer,"### CoinLpIO::readLp(): Semi-continuous variable %s does not appear in objective function or constraints", buff);
+	  handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
+							   <<CoinMessageEol;
+	  insertHash(buff, 1);
+	  icol = findHash(buff, 1);
+	  if(icol == maxcol) {
+	    realloc_col(&collow, &colup, &is_int, &maxcol);
+	  }
+	  
+#ifdef LPIO_DEBUG
+	  printf("CoinLpIO::readLp(): Semi-continuous: colname: (%s)  icol: %d\n", 
+		 buff, icol);
+#endif
+	  
+	}
+	if (is_int[icol]==1)
+	  is_int[icol] = 4;
+	else
+	  is_int[icol] = 3;
+	has_int = 1;
+	scan_next(buff, fp);
+      };
+      break;
 
     case 5: /* sos section */
       { 
@@ -2250,6 +2353,7 @@ CoinLpIO::readLp(FILE* fp)
 	int * which = new int [maxEntries];
 	char printBuffer[512];
 	int numberBad=0;
+	bool maybeSetName;
 	scan_next(buff, fp);
 	while (true) {
 	  int numberEntries=0;
@@ -2257,6 +2361,7 @@ CoinLpIO::readLp(FILE* fp)
 	  int goodLine=2;
 	  bool endLine=false;
 	  bool gotStart=false;
+	  maybeSetName=false;
 	  while (!endLine) {
 	    if(is_keyword(buff) == 0) {
 	      // see if ::
@@ -2268,7 +2373,17 @@ CoinLpIO::readLp(FILE* fp)
 		    int length=strlen(buff);
 		    if (buff[length-1]==':') {
 		      goodLine=1;
+		      // merge to get rid of space
+		      char temp[200];
+		      strcpy(temp,buff);
 		      scan_next(buff,fp); // try again
+		      strcat(temp,buff);
+		      strcpy(buff,temp);
+		      if (maybeSetName) {
+			// get rid of error
+			numberBad--;
+			maybeSetName=false;
+		      }
 		      continue;
 		    } else {
 		      goodLine=0;
@@ -2352,6 +2467,7 @@ CoinLpIO::readLp(FILE* fp)
 			      "Assuming next set name - consider no set names or use setnn:S1:: (no spaces)");
 		      handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
 								       <<CoinMessageEol;
+		      maybeSetName=true;
 
 		    }
 		    numberBad++;
@@ -2368,6 +2484,9 @@ CoinLpIO::readLp(FILE* fp)
 	      sprintf(printBuffer,"### CoinLpIO::readLp(): bad SOS item %s", buff);
 	      handler_->message(COIN_GENERAL_WARNING,messages_)<<printBuffer
 							       <<CoinMessageEol;
+	      numberBad++;
+	      endLine=true;
+	      break;
 	    }
 	  }
 	  if (setType==1||setType==2) {
@@ -2403,7 +2522,7 @@ CoinLpIO::readLp(FILE* fp)
 	      }
 	    }
 	  }
-	  if(is_keyword(buff)) 
+	  if(is_keyword(buff)||(numberBad&&!maybeSetName)) 
 	    break; // end
 	}
 	delete [] weights;
@@ -2638,10 +2757,12 @@ namespace {
   int n = 0;
   int j;
 
+  const int nEntriesMMult = sizeof(mmult)/sizeof(int);
+
   for ( j = 0; j < length; ++j ) {
     int iname = name[j];
 
-    n += mmult[j] * iname;
+    n += mmult[j%nEntriesMMult] * iname;
   }
   return ( abs ( n ) % maxsiz );	/* integer abs */
 }
@@ -2919,3 +3040,99 @@ CoinLpIO::newLanguage(CoinMessages::Language language)
   messages_ = CoinMessage(language);
 }
 
+// Get next line into inputBuffer_ (returns number in)
+int
+CoinLpIO::newCardLpIO() const
+{
+  while (bufferPosition_==bufferLength_) {
+    // new line
+    bufferPosition_=0;
+    bufferLength_=0;
+    char * ok = fgets(inputBuffer_,1024,fp_);
+    if (!ok)
+      return 0;
+    // go to single blanks and remove all blanks before :: or :
+    char * colons = strstr(inputBuffer_,"::");
+    int nn=0;
+    if (colons) {
+      nn=colons-inputBuffer_;
+      for (int i=0;i<nn;i++) {
+	if (inputBuffer_[i]!=' ')
+	  inputBuffer_[bufferLength_++]=inputBuffer_[i];
+      }
+    }
+    bool gotEol=false;
+    while (nn<1024) {
+      if (inputBuffer_[nn]==':') {
+	// take out blank before
+	if (inputBuffer_[bufferLength_-1]==' ')
+	  bufferLength_--;
+      }
+      if (inputBuffer_[nn]=='\t')
+	inputBuffer_[nn]=' ';
+      if (inputBuffer_[nn]=='\0'||inputBuffer_[nn]=='\n'||inputBuffer_[nn]=='\r') {
+	if (inputBuffer_[nn]=='\n'||inputBuffer_[nn]=='\r') 
+	  gotEol=true;
+	break;
+      }
+      if (inputBuffer_[nn]!=' '||inputBuffer_[nn+1]!=' ')
+	inputBuffer_[bufferLength_++]=inputBuffer_[nn];
+      nn++;
+    }
+    if (gotEol) {
+      //inputBuffer_[bufferLength_]='\n';
+      inputBuffer_[bufferLength_]='\0';
+    }
+    if (inputBuffer_[0]==' ')
+      bufferPosition_++;
+    if (!gotEol)
+      bufferLength_ = -bufferLength_;
+  }
+  return abs(bufferLength_);
+}
+
+// Get next string (returns number in)
+int
+CoinLpIO::fscanfLpIO(char * buff) const
+{
+  assert (fp_);
+  if (bufferPosition_==bufferLength_) {
+    int returnCode = newCardLpIO();
+    if (!returnCode)
+      return 0;
+  }
+  char * space = strchr(inputBuffer_+bufferPosition_,' ');
+  int n;
+  int start=0;
+  if (space) {
+    n=space-(inputBuffer_+bufferPosition_);
+  } else {
+    if (bufferLength_>=0) {
+      n=bufferLength_-bufferPosition_;
+    } else {
+      // partial line - get more
+      start=abs(bufferLength_)-bufferPosition_;
+      memcpy(buff,inputBuffer_+bufferPosition_,start);
+      bufferPosition_=bufferLength_;
+      int returnCode = newCardLpIO();
+      if (!returnCode)
+	return 0;
+      if (inputBuffer_[0]!=' ') {
+	space = strchr(inputBuffer_,' ');
+	assert (space||bufferLength_>0);
+	if (space) 
+	  n=space-(inputBuffer_+bufferPosition_);
+	else 
+	  n=bufferLength_-bufferPosition_;
+      } else {
+	n=0;
+      }
+    }
+  }
+  memcpy(buff+start,inputBuffer_+bufferPosition_,n);
+  bufferPosition_+=n;
+  if (inputBuffer_[bufferPosition_]==' ')
+    bufferPosition_++;
+  buff[start+n]='\0';
+  return n+start;
+}

@@ -232,7 +232,7 @@ CoinSnapshot::loadProblem(const CoinPackedMatrix& matrix,
   gutsOfDestructor(3+8);
   numRows_ = matrix.getNumRows();
   numCols_ = matrix.getNumCols();
-  numElements_ = matrix.getNumElements();
+  numElements_ = static_cast<int>(matrix.getNumElements());
   owned_.matrixByCol = 1;
   matrixByCol_ = new CoinPackedMatrix(matrix);
   if (makeRowCopy) {

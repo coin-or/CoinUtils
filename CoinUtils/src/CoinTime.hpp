@@ -105,6 +105,10 @@ inline double CoinWallclockTime(double callType = 0)
 
 static inline double CoinCpuTime()
 {
+#ifdef COIN_DOING_DIFFS
+  // when trying to see differences between runs it can be helpful
+  return 0.0;
+#endif
   double cpu_temp;
 #if defined(_MSC_VER) || defined(__MSVCRT__)
 #ifdef HAVE_SDK

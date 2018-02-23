@@ -129,7 +129,7 @@ public:
   inline int numberColumnBlocks() const
   { return numberColumnBlocks_;}
    /// Return number of elementBlocks
-  inline CoinBigIndex numberElementBlocks() const
+  inline int numberElementBlocks() const
   { return numberElementBlocks_;}
    /// Return number of elements
   CoinBigIndex numberElements() const;

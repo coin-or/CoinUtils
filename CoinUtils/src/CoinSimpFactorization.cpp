@@ -2,7 +2,7 @@
 // Copyright (C) 2008, International Business Machines
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
-
+#if COIN_BIG_INDEX==0
 #include "CoinUtilsConfig.h"
 
 #include <cassert>
@@ -666,13 +666,13 @@ void CoinSimpFactorization::gutsOfCopy(const CoinSimpFactorization &other)
 void
 CoinSimpFactorization::getAreas ( int numberOfRows,
 			 int numberOfColumns,
-			 CoinBigIndex ,
-			 CoinBigIndex  )
+			 int ,
+			 int  )
 {
 
   numberRows_ = numberOfRows;
   numberColumns_ = numberOfColumns;
-  CoinBigIndex size = numberRows_*(numberRows_+CoinMax(maximumPivots_,(numberRows_+1)>>1));
+  int size = numberRows_*(numberRows_+CoinMax(maximumPivots_,(numberRows_+1)>>1));
   if (size>maximumSpace_) {
     delete [] elements_;
     elements_ = new CoinFactorizationDouble [size];
@@ -692,9 +692,9 @@ CoinSimpFactorization::getAreas ( int numberOfRows,
 void
 CoinSimpFactorization::preProcess ()
 {
-    CoinBigIndex put = numberRows_*numberRows_;
+    int put = numberRows_*numberRows_;
     int *indexRow = reinterpret_cast<int *> (elements_+put);
-    CoinBigIndex * starts = reinterpret_cast<CoinBigIndex *> (pivotRow_); 
+    int * starts = reinterpret_cast<int *> (pivotRow_); 
     initialSomeNumbers();
 
     // compute sizes for Urows_ and Ucolumns_
@@ -703,7 +703,7 @@ CoinSimpFactorization::preProcess ()
     int k=0;
     for ( int column=0; column < numberColumns_; ++column ){
 	UcolStarts_[column]=k;
- 	//for (CoinBigIndex j=starts[column];j<starts[column+1];j++) {
+ 	//for (int j=starts[column];j<starts[column+1];j++) {
 	//  int iRow = indexRow[j];
 	//  ++UrowLengths_[iRow];
 	//	}
@@ -792,13 +792,13 @@ void CoinSimpFactorization::factorize(int numberOfRows,
 				     const int indicesRow[],
 				     const double elements[])
 {
-    CoinBigIndex maximumL=0;
-    CoinBigIndex maximumU=0;
+    int maximumL=0;
+    int maximumU=0;
     getAreas ( numberOfRows, numberOfColumns, maximumL, maximumU );
 
-    CoinBigIndex put = numberRows_*numberRows_;
+    int put = numberRows_*numberRows_;
     int *indexRow = reinterpret_cast<int *> (elements_+put);
-    CoinBigIndex * starts = reinterpret_cast<CoinBigIndex *> (pivotRow_); 
+    int * starts = reinterpret_cast<int *> (pivotRow_); 
     for ( int column=0; column <= numberColumns_; ++column ){
 	starts[column]=colStarts[column];
     }
@@ -2440,7 +2440,7 @@ int CoinSimpFactorization::LUupdate(int newBasicCol)
 	const int row=secRowOfU_[i];
 	const int column=colOfU_[i];
 	if ( denseVector_[column]==0.0 ) continue;
-	register const double multiplier=denseVector_[column]*invOfPivots_[row];
+	const double multiplier=denseVector_[column]*invOfPivots_[row];
 	denseVector_[column]=0.0;
 	const int rowBeg=UrowStarts_[row];
 	const int rowEnd=rowBeg+UrowLengths_[row];
@@ -2664,3 +2664,4 @@ void CoinSimpFactorization::btran(double *b, double *sol) const
     xLeqb(sol);
 }
 
+#endif

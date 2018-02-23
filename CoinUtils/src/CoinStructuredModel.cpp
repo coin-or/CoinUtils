@@ -3,7 +3,6 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-
 #include "CoinUtilsConfig.h"
 #include "CoinHelperFunctions.hpp"
 #include "CoinStructuredModel.hpp"
@@ -869,7 +868,7 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
 	      }
 	    }
 	  }
-	  int n=end-start;
+	  int n=static_cast<int>(end-start);
 	  // If not in block - then start one
 	  if (iBlock<0) {
 	    // unless null row
@@ -1029,9 +1028,9 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
 	numberBlocks=maxBlocks;
 	CoinFillN(columnBlock,numberColumns,-1);
 	for (iColumn=0;iColumn<numberColumns;iColumn++) {
-	  int kstart = columnStart[iColumn];
-	  int kend = columnStart[iColumn]+columnLength[iColumn];
-	  int j;
+	  CoinBigIndex kstart = columnStart[iColumn];
+	  CoinBigIndex kend = columnStart[iColumn]+columnLength[iColumn];
+	  CoinBigIndex j;
 	  int jBlock=-1;
 	  for (j=kstart;j<kend;j++) {
 	    int iRow= row[j];
@@ -1088,11 +1087,11 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
       CoinFillN(columnBlock,numberColumns,-2);
     }
     for (iColumn=0;iColumn<numberColumns;iColumn++) {
-      int kstart = columnStart[iColumn];
-      int kend = columnStart[iColumn]+columnLength[iColumn];
+      CoinBigIndex kstart = columnStart[iColumn];
+      CoinBigIndex kend = columnStart[iColumn]+columnLength[iColumn];
       if (columnBlock[iColumn]==-2) {
 	// column not allocated
-	int j;
+	CoinBigIndex j;
 	int nstack=0;
 	for (j=kstart;j<kend;j++) {
 	  int iRow= row[j];
@@ -1108,15 +1107,15 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
 	  columnBlock[iColumn]=numberBlocks-1;
 	  while (nstack) {
 	    int iRow = stack[--nstack];
-	    int k;
+	    CoinBigIndex k;
 	    for (k=rowStart[iRow];k<rowStart[iRow]+rowLength[iRow];k++) {
 	      int iColumn = column[k];
-	      int kkstart = columnStart[iColumn];
-	      int kkend = kkstart + columnLength[iColumn];
+	      CoinBigIndex kkstart = columnStart[iColumn];
+	      CoinBigIndex kkend = kkstart + columnLength[iColumn];
 	      if (columnBlock[iColumn]==-2) {
 		columnBlock[iColumn]=numberBlocks-1; // mark
 		// column not allocated
-		int jj;
+		CoinBigIndex jj;
 		for (jj=kkstart;jj<kkend;jj++) {
 		  int jRow= row[jj];
 		  if (rowBlock[jRow]==-2) {
@@ -1454,7 +1453,7 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
 	      }
 	    }
 	  }
-	  int n=end-start;
+	  int n=static_cast<int>(end-start);
 	  // If not in block - then start one
 	  if (iBlock<0) {
 	    // unless null column
@@ -1585,9 +1584,9 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
 	numberBlocks=maxBlocks;
 	CoinFillN(rowBlock,numberRows,-1);
 	for (iRow=0;iRow<numberRows;iRow++) {
-	  int kstart = rowStart[iRow];
-	  int kend = rowStart[iRow]+rowLength[iRow];
-	  int j;
+	  CoinBigIndex kstart = rowStart[iRow];
+	  CoinBigIndex kend = rowStart[iRow]+rowLength[iRow];
+	  CoinBigIndex j;
 	  int jBlock=-1;
 	  for (j=kstart;j<kend;j++) {
 	    int iColumn= column[j];
@@ -1625,11 +1624,11 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
       CoinFillN(rowBlock,numberRows,-2);
     }
     for (iRow=0;iRow<numberRows;iRow++) {
-      int kstart = rowStart[iRow];
-      int kend = rowStart[iRow]+rowLength[iRow];
+      CoinBigIndex kstart = rowStart[iRow];
+      CoinBigIndex kend = rowStart[iRow]+rowLength[iRow];
       if (rowBlock[iRow]==-2) {
 	// row not allocated
-	int j;
+	CoinBigIndex j;
 	int nstack=0;
 	for (j=kstart;j<kend;j++) {
 	  int iColumn= column[j];
@@ -1645,15 +1644,15 @@ CoinStructuredModel::decompose(const CoinPackedMatrix & matrix,
 	  rowBlock[iRow]=numberBlocks-1;
 	  while (nstack) {
 	    int iColumn = stack[--nstack];
-	    int k;
+	    CoinBigIndex k;
 	    for (k=columnStart[iColumn];k<columnStart[iColumn]+columnLength[iColumn];k++) {
 	      int iRow = row[k];
-	      int kkstart = rowStart[iRow];
-	      int kkend = kkstart + rowLength[iRow];
+	      CoinBigIndex kkstart = rowStart[iRow];
+	      CoinBigIndex kkend = kkstart + rowLength[iRow];
 	      if (rowBlock[iRow]==-2) {
 		rowBlock[iRow]=numberBlocks-1; // mark
 		// row not allocated
-		int jj;
+		CoinBigIndex jj;
 		for (jj=kkstart;jj<kkend;jj++) {
 		  int jColumn= column[jj];
 		  if (columnBlock[jColumn]==-2) {

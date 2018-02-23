@@ -58,7 +58,8 @@ public:
     isFree = 0x00,		///< Nonbasic free variable
     basic = 0x01,		///< Basic variable
     atUpperBound = 0x02,	///< Nonbasic at upper bound
-    atLowerBound = 0x03		///< Nonbasic at lower bound
+    atLowerBound = 0x03,	///< Nonbasic at lower bound
+    superBasic = 0x04           ///< Not basic and not at bound
   };
 
   /** \brief Transfer vector entry for
@@ -146,7 +147,6 @@ public:
     \endlink
   */
   inline const char * getArtificialStatus() const { return artificialStatus_; }
-
 //@}
 
 /*! \name Basis `diff' methods */
@@ -367,6 +367,14 @@ inline void setStatus(char * array, int i, CoinWarmStartBasis::Status st) {
     \brief Generate a print string for a status code
 */
 const char *statusName(CoinWarmStartBasis::Status status) ;
+  /** In an example Aleksandr Kazachkov sent to me, I noticed he was
+      using code as above but with char - it seemed useful
+      B, F, U, L, S (S - SuperBasic)
+   */
+  /// Convert status to character.
+  char statusToChar(CoinWarmStartBasis::Status status);
+  /// Convert character to status
+  CoinWarmStartBasis::Status charToStatus(char status);
 
 
 /*! \class CoinWarmStartBasisDiff

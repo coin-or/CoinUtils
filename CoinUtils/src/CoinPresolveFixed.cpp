@@ -90,17 +90,22 @@ const remove_fixed_action*
 */
   int estsize=0;
   int ckc;
+  int n=0;
   for (ckc = 0 ; ckc < nfcols ; ckc++) {
     int j = fcols[ckc];
-    estsize += hincol[j];
+    if (!prob->colProhibited2(j)) { 
+      estsize += hincol[j];
+      fcols[n++]=j;
+    }
   }
+  nfcols=n;
 // Allocate arrays to hold coefficients and associated row indices
   double * els_action = new double[estsize];
   int * rows_action = new int[estsize];
   int actsize=0;
   // faster to do all deletes in row copy at once
   int nrows		= prob->nrows_;
-  CoinBigIndex * rstrt = new int[nrows+1];
+  CoinBigIndex * rstrt = new CoinBigIndex[nrows+1];
   CoinZeroN(rstrt,nrows);
 
 /*
@@ -186,10 +191,10 @@ const remove_fixed_action*
 # endif
   // Now get columns by row
   int * column = new int[actsize];
-  int nel=0;
+  CoinBigIndex nel=0;
   int iRow;
   for (iRow=0;iRow<nrows;iRow++) {
-    int n=rstrt[iRow];
+    CoinBigIndex n=rstrt[iRow];
     rstrt[iRow]=nel;
     nel += n;
   }
@@ -217,7 +222,7 @@ const remove_fixed_action*
   nel=0;
 #ifdef TRY2
   for (iRow=0;iRow<nrows;iRow++) {
-    int k;
+    CoinBigIndex k;
     for (k=nel;k<rstrt[iRow];k++) {
       mark[column[k]]=1;
     }
@@ -311,7 +316,7 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
   int *hrow		= prob->hrow_;
   CoinBigIndex *mcstrt	= prob->mcstrt_;
   int *hincol		= prob->hincol_;
-  int *link		= prob->link_;
+  CoinBigIndex *link		= prob->link_;
   CoinBigIndex &free_list = prob->free_list_;
 
   double *clo	= prob->clo_;
@@ -371,7 +376,7 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
     clo[icol] = thesol;
     cup[icol] = thesol;
 
-    int cs = NO_LINK ;
+    CoinBigIndex cs = NO_LINK ;
     int start = f->start;
     double dj = maxmin * dcost[icol];
     
@@ -541,6 +546,8 @@ make_fixed_action::presolve (CoinPresolveMatrix *prob,
 */
   for (int ckc = 0 ; ckc < nfcols ; ckc++)
   { int j = fcols[ckc] ;
+    if (prob->colProhibited2(j))
+      abort();
     double movement = 0 ;
 
     action &f = actions[ckc] ;

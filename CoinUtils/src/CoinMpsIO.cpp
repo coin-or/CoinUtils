@@ -2344,6 +2344,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    }
 	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
 	    } else if ( columnType[icolumn] == COIN_UP_BOUND ||
+			columnType[icolumn] == COIN_SC_BOUND ||
 			columnType[icolumn] == COIN_UI_BOUND ) {
 	      if ( value > colupper_[icolumn] ) {
 		ifError = true;
@@ -2505,6 +2506,7 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    }
 	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
 	    } else if ( columnType[icolumn] == COIN_UP_BOUND ||
+			columnType[icolumn] == COIN_SC_BOUND ||
 			columnType[icolumn] == COIN_UI_BOUND ) {
 	      if ( value > colupper_[icolumn] ) {
 		ifError = true;
@@ -2526,6 +2528,8 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    if ( !integerType_[icolumn] ) {
 	      numberIntegers++;
 	      integerType_[icolumn] = 1;
+	    } else if ( integerType_[icolumn] == 3 ) {
+	      integerType_[icolumn] = 4; // SC and integer
 	    }
 	    break;
 	  case COIN_BV_BOUND:
@@ -2539,6 +2543,49 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 	    if ( !integerType_[icolumn] ) {
 	      numberIntegers++;
 	      integerType_[icolumn] = 1;
+	    }
+	    break;
+	  case COIN_SC_BOUND:
+	    if (value==STRING_VALUE) {
+	      value=1.0e20;
+	      // tiny element - string
+	      const char * s = cardReader_->valueString();
+	      assert (*s=='=');
+	      addString(numberRows_+2,icolumn,s+1);
+	    }
+	    if ( value == -1.0e100 || value == 0.0) {
+	       value = infinity_;
+	       if (columnType[icolumn] != COIN_UNSET_BOUND &&
+		       columnType[icolumn] != COIN_LO_BOUND &&
+		       columnType[icolumn] != COIN_LI_BOUND) {
+		     ifError = true;
+	       }
+	    } else {
+	       if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
+	       } else if ( columnType[icolumn] == COIN_LO_BOUND ||
+			   columnType[icolumn] == COIN_LI_BOUND) {
+		  if ( value < collower_[icolumn] ) {
+		     ifError = true;
+		  } else if ( value < collower_[icolumn] + smallElement_ ) {
+		     value = collower_[icolumn];
+		  }
+	       } else {
+		  ifError = true;
+	       }
+	    }
+            if (value>1.0e25)
+              value=infinity_;
+	    colupper_[icolumn] = value;
+	    if ( columnType[icolumn] == COIN_UNSET_BOUND ) {
+ 	        columnType[icolumn] = COIN_SC_BOUND;
+            } else {
+ 	        columnType[icolumn] = COIN_BOTH_BOUNDS_SET;
+            }
+	    if ( !integerType_[icolumn] ) {
+	      numberIntegers++;
+	      integerType_[icolumn] = 3;
+	    } else if ( integerType_[icolumn] == 1 ) {
+	      integerType_[icolumn] = 4; // SC and integer
 	    }
 	    break;
 	  default:
@@ -2757,6 +2804,28 @@ int CoinMpsIO::readMps(int & numberSets,CoinSet ** &sets)
 					    <<numberColumns_
 					    <<numberElements_
 					    <<CoinMessageEol;
+
+  if (integerType_) {
+    int numberSC=0;
+    int numberSC_int=0;
+    for (int i=0;i<numberColumns_;i++) {
+      if (integerType_[i]>2 && integerType_[i]<5)
+	numberSC++;
+      if (integerType_[i]==4)
+	numberSC_int++;
+    }
+    if (numberSC) {
+      char generalPrint[100];
+      if (!numberSC_int)
+	sprintf(generalPrint,"%d semi-continuous variables - report odd behavior",
+		numberSC);
+      else
+	sprintf(generalPrint,"%d semi-continuous variables (%d integer!) - be wary",
+		numberSC,numberSC_int);
+      handler_->message(COIN_GENERAL_INFO,messages_)<<
+	generalPrint << CoinMessageEol;
+    }
+  }
   return numberErrors;
 }
 #ifdef COIN_HAS_GLPK
@@ -4276,7 +4345,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
        }
        int j;
        int numberEntries = lengths[i];
-       int start = starts[i];
+       CoinBigIndex start = starts[i];
        for (j=0;j<numberEntries;j++) {
 	 tempRow[j] = rows[start+j];
 	 tempValue[j] = elements[start+j];
@@ -4547,11 +4616,22 @@ CoinMpsIO::writeMps(const char *filename, int compression,
 		  value[0] = lowerValue;
 	       } else {
 		  // do LO if needed
-		  if (lowerValue) {
+		  if (lowerValue || isIntegerOrSemiContinuous(i)>2) {
 		     // LO
 		     header[0]=" LO ";
 		     value[0] = lowerValue;
-		     if (isInteger(i)) {
+		     if (isIntegerOrSemiContinuous(i)>2) {
+		       if (lowerValue) {
+			 if (isIntegerOrSemiContinuous(i)==4)
+			   header[0]=" LI ";
+			 numberFields=2;
+		       }
+		       header[numberFields-1]=" SC ";
+		       if (upperValue<largeValue) 
+			 value[numberFields-1] = upperValue;
+		       else
+			 value[numberFields-1] = largeValue;
+		     } else if (isInteger(i)) {
 			// Integer variable so UI
 			header[1]=" UI ";
                         if (upperValue<largeValue) 
@@ -4617,7 +4697,7 @@ CoinMpsIO::writeMps(const char *filename, int compression,
      const double * quadraticElement = quadratic->getElements();
      for (int iColumn=0;iColumn<numberColumns_;iColumn++) {
        int numberFields=0;
-       for (int j=columnQuadraticStart[iColumn];
+       for (CoinBigIndex j=columnQuadraticStart[iColumn];
 	    j<columnQuadraticStart[iColumn]+columnQuadraticLength[iColumn];j++) {
 	 int jColumn = columnQuadratic[j];
 	 double elementValue = quadraticElement[j];
@@ -4718,7 +4798,7 @@ int CoinMpsIO::getNumRows() const
 {
   return numberRows_;
 }
-int CoinMpsIO::getNumElements() const
+CoinBigIndex CoinMpsIO::getNumElements() const
 {
   return numberElements_;
 }
@@ -5143,6 +5223,18 @@ bool CoinMpsIO::isInteger(int columnNumber) const
   if ( intType[columnNumber]!=0 ) return true;
   return false;
 }
+/* Return 1 if column is integer, 2 if optional, 
+   3 if semi-continuous, 4 if semi-continous integer.
+   Note: This function returns 1 if the column
+   is binary or a general integer.
+*/
+int CoinMpsIO::isIntegerOrSemiContinuous(int columnNumber) const
+{
+  const char * intType = integerType_;
+  if ( intType==NULL ) return false;
+  assert (columnNumber>=0 && columnNumber < numberColumns_);
+  return intType[columnNumber];
+}
 // if integer
 const char * CoinMpsIO::integerColumns() const
 {
@@ -5557,7 +5649,7 @@ CoinMpsIO::newLanguage(CoinMessages::Language language)
 */
 int 
 CoinMpsIO::readQuadraticMps(const char * filename,
-			    int * &columnStart, int * &column2, double * &elements,
+			    CoinBigIndex * &columnStart, int * &column2, double * &elements,
 			    int checkSymmetry)
 {
   // Deal with filename - +1 if new, 0 if same as before, -1 if error
@@ -5679,10 +5771,10 @@ CoinMpsIO::readQuadraticMps(const char * filename,
 
   stopHash(1);
   // Do arrays as new [] and make column ordered
-  columnStart = new int [numberColumns_+1];
+  columnStart = new CoinBigIndex [numberColumns_+1];
   // for counts
-  int * count = new int[numberColumns_];
-  memset(count,0,numberColumns_*sizeof(int));
+  CoinBigIndex * count = new CoinBigIndex[numberColumns_];
+  memset(count,0,numberColumns_*sizeof(CoinBigIndex));
   CoinBigIndex i;
   // See about lower triangular
   if (checkSymmetry&&numberErrors) 
@@ -5716,7 +5808,7 @@ CoinMpsIO::readQuadraticMps(const char * filename,
     count[iColumn]++;
   }
   // Do starts
-  int number = 0;
+  CoinBigIndex number = 0;
   columnStart[0]=0;
   for (i=0;i<numberColumns_;i++) {
     number += count[i];
@@ -5730,7 +5822,7 @@ CoinMpsIO::readQuadraticMps(const char * filename,
   for ( i = 0; i < numberElements; i++ ) {
     int iColumn = column[i];
     int iColumn2 = column2Temp[i];
-    int put = count[iColumn];
+    CoinBigIndex put = count[iColumn];
     elements[put]=elementTemp[i];
     column2[put++]=iColumn2;
     count[iColumn]=put;
@@ -5743,17 +5835,17 @@ CoinMpsIO::readQuadraticMps(const char * filename,
   for (i=0;i<numberColumns_;i++) 
     count[i] = -1;
 
-  int start = 0;
+  CoinBigIndex start = 0;
   number=0;
   for (i=0;i<numberColumns_;i++) {
-    int j;
+    CoinBigIndex j;
     for (j=start;j<columnStart[i+1];j++) {
       int iColumn2 = column2[j];
       if (count[iColumn2]<0) {
 	count[iColumn2]=j;
       } else {
 	// duplicate
-	int iOther = count[iColumn2];
+	CoinBigIndex iOther = count[iColumn2];
 	double value = elements[iOther]+elements[j];
 	elements[iOther]=value;
 	elements[j]=0.0;
@@ -5973,6 +6065,7 @@ CoinMpsIO::decodeString(int iString, int & iRow, int & iColumn, const char * & v
 int 
 CoinMpsIO::copyStringElements(const CoinModel * model)
 {
+#if COIN_BIG_INDEX==0
   if (!model->stringsExist())
     return 0; // no strings
   assert (!numberStringElements_);
@@ -6041,6 +6134,10 @@ CoinMpsIO::copyStringElements(const CoinModel * model)
     }
   }
   return numberStringElements_;
+#else
+  abort();
+  return 0;
+#endif
 }
 // Constructor 
 CoinSet::CoinSet ( int numberEntries, const int * which)

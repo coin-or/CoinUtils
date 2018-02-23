@@ -53,7 +53,7 @@ typedef int COINColumnIndex;
 
 Notes: <UL>
  <LI> Keywords are: Min, Max, Minimize, Maximize, s.t., Subject To, 
-      Bounds, Integers, Generals, Binaries, End, Free, Inf. 
+      Bounds, Integers, Generals, Binaries, Semis, End, Free, Inf. 
  <LI> Keywords are not case sensitive and may be in plural or singular form.
       They should not be used as objective, row or column names.
  <LI> Bounds, Integers, Generals, Binaries sections are optional.
@@ -158,7 +158,7 @@ public:
   int getNumRows() const;
 
   /// Get number of nonzero elements
-  int getNumElements() const;
+  CoinBigIndex getNumElements() const;
   
   /// Get pointer to array[getNumCols()] of column lower bounds
   const double * getColLower() const;
@@ -551,7 +551,7 @@ protected:
   int numberColumns_;
   
   /// Number of elements
-  int numberElements_;
+  CoinBigIndex numberElements_;
   
   /// Pointer to column-wise copy of problem matrix coefficients.
   mutable CoinPackedMatrix *matrixByColumn_;  
@@ -592,7 +592,7 @@ protected:
   double objectiveOffset_[MAX_OBJECTIVES];
   
   /// Pointer to dense vector specifying if a variable is continuous
-  /// (0) or integer (1).
+  /// (0) or integer (1).  Added (3) sc (4) sc int.
   char * integerType_;
   
   /// Pointer to sets
@@ -657,6 +657,19 @@ protected:
   /// section = 0 for row names (including objective function name), 
   /// section = 1 for column names. 
   mutable CoinHashLink *hash_[2];
+
+  /// Current buffer (needed so can get rid of blanks with :
+  mutable char inputBuffer_[1025];
+  /// Current buffer length (negative if not got eol)
+  mutable int bufferLength_;
+  /// Current buffer position
+  mutable int bufferPosition_;
+  /// Current fp
+  FILE * fp_;
+  /// Get next string (returns number in)
+  int fscanfLpIO(char * buff) const;
+  /// Get next line into inputBuffer_ (returns number in)
+  int newCardLpIO() const;
 
   /// Build the hash table for the given names. The parameter number is
   /// the cardinality of parameter names. Remove duplicate names. 
@@ -758,7 +771,7 @@ protected:
   void realloc_coeff(double **coeff, char ***colNames, int *maxcoeff) const;
 
   /// Reallocate vectors related to rows.
-  void realloc_row(char ***rowNames, int **start, double **rhs, 
+  void realloc_row(char ***rowNames, CoinBigIndex **start, double **rhs, 
 		   double **rowlow, double **rowup, int *maxrow) const;
     
   /// Reallocate vectors related to columns.

@@ -37,7 +37,12 @@ CoinIndexedVector::clear()
     printf("Vector said it had %d nonzeros - but is already empty\n",
 	   nElements_);
 #endif
+  assert (nElements_<=capacity_);
   if (!packedMode_) {
+#ifndef NDEBUG
+    for (int i=0;i<nElements_;i++)
+      assert (indices_[i]>=0&&indices_[i]<capacity_);
+#endif
     if (3*nElements_<capacity_) {
       int i=0;
       if ((nElements_&1)!=0) {
@@ -60,7 +65,13 @@ CoinIndexedVector::clear()
   packedMode_=false;
   //checkClear();
 }
-
+void
+CoinIndexedVector::reallyClear()
+{
+  CoinZeroN(elements_,capacity_);
+  nElements_ = 0;
+  packedMode_=false;
+}
 //#############################################################################
 
 void
@@ -542,8 +553,16 @@ void
 CoinIndexedVector::reserve(int n) 
 {
   int i;
+    int nPlus;
+    if (sizeof(int)==4*sizeof(char))
+      nPlus=(n+3)>>2;
+    else
+      nPlus=(n+7)>>4;
+#ifdef COIN_AVX2
+    nPlus += 16;
+#endif
   // don't make allocated space smaller but do take off values
-  if ( n < capacity_ ) {
+  if ( n+nPlus < capacity_ ) {
 #ifndef COIN_FAST_CODE
     if (n<0) 
       throw CoinError("negative capacity", "reserve", "CoinIndexedVector");
@@ -566,11 +585,6 @@ CoinIndexedVector::reserve(int n)
     double * delTemp = elements_-offset_;
     
     // allocate new space
-    int nPlus;
-    if (sizeof(int)==4*sizeof(char))
-      nPlus=(n+3)>>2;
-    else
-      nPlus=(n+7)>>4;
     indices_ = new int [n+nPlus];
     CoinZeroN(indices_+n,nPlus);
     // align on 64 byte boundary
@@ -1581,14 +1595,22 @@ int
 CoinIndexedVector::scan(double tolerance)
 {
   nElements_=0;
+#if ABOCA_LITE_FACTORIZATION==0
   return scan(0,capacity_,tolerance);
+#else
+  return scan(0,capacity_&0x7fffffff,tolerance);
+#endif
 }
 // Scan dense region from start to < end and set up indices with tolerance
 int
 CoinIndexedVector::scan(int start, int end, double tolerance)
 {
   assert(!packedMode_);
+#if ABOCA_LITE_FACTORIZATION==0
   end = CoinMin(end,capacity_);
+#else
+  end = CoinMin(end,capacity_&0x7fffffff);
+#endif
   start = CoinMax(start,0);
   int i;
   int number = 0;
@@ -1803,7 +1825,7 @@ CoinArrayWithLength::clear()
 }
 // Get array with alignment
 void 
-CoinArrayWithLength::getArray(int size)
+CoinArrayWithLength::getArray(CoinBigIndex size)
 {
   if (size>0) {
     if(alignment_>2) {
@@ -1856,11 +1878,11 @@ CoinArrayWithLength::reallyFreeArray()
 }
 // Get enough space
 void 
-CoinArrayWithLength::getCapacity(int numberBytes,int numberNeeded)
+CoinArrayWithLength::getCapacity(CoinBigIndex numberBytes,CoinBigIndex numberNeeded)
 {
-  int k=capacity();
+  CoinBigIndex k=capacity();
   if (k<numberBytes) {
-    int saveSize=size_;
+    CoinBigIndex saveSize=size_;
     reallyFreeArray();
     size_=saveSize;
     getArray(CoinMax(numberBytes,numberNeeded));
@@ -1874,13 +1896,13 @@ CoinArrayWithLength::getCapacity(int numberBytes,int numberNeeded)
    if size<=0 just does alignment
    If abs(mode) >2 then align on that as power of 2
 */
-CoinArrayWithLength::CoinArrayWithLength(int size, int mode)
+CoinArrayWithLength::CoinArrayWithLength(CoinBigIndex size, int mode)
 {
   alignment_=abs(mode);
+  size_=size;
   getArray(size);
   if (mode>0&&array_) 
     memset(array_,0,size);
-  size_=size;
 }
 CoinArrayWithLength::~CoinArrayWithLength ()
 { 
@@ -1889,7 +1911,7 @@ CoinArrayWithLength::~CoinArrayWithLength ()
 }
 // Conditionally gets new array
 char * 
-CoinArrayWithLength::conditionalNew(long sizeWanted)
+CoinArrayWithLength::conditionalNew(CoinBigIndex sizeWanted)
 {
   if (size_==-1) {
     getCapacity(static_cast<int>(sizeWanted));
@@ -2005,7 +2027,7 @@ CoinArrayWithLength::swap(CoinArrayWithLength & other)
   char * swapArray = other.array_;
   other.array_=array_;
   array_=swapArray;
-  int swapSize = other.size_;
+  CoinBigIndex swapSize = other.size_;
   other.size_=size_;
   size_=swapSize;
   int swapOffset = other.offset_;
@@ -2217,15 +2239,27 @@ void
 CoinPartitionedVector::checkClean()
 {
   //printf("checkClean %p\n",this);
+  int i;
   if (!nElements_) {
     checkClear();
   } else {
-    assert (packedMode_);
-    int i;
-    for (i=0;i<nElements_;i++) 
-      assert(elements_[i]);
-    for (;i<capacity_;i++) 
-      assert(!elements_[i]);
+    if (packedMode_) {
+      for (i=0;i<nElements_;i++) 
+	assert(elements_[i]);
+      for (;i<capacity_;i++) 
+	assert(!elements_[i]);
+    } else {
+      double * copy = new double[capacity_];
+      CoinMemcpyN(elements_,capacity_,copy);
+      for (i=0;i<nElements_;i++) {
+	int indexValue = indices_[i];
+	assert (copy[indexValue]);
+	copy[indexValue]=0.0;
+      }
+      for (i=0;i<capacity_;i++) 
+	assert(!copy[i]);
+      delete [] copy;
+    }
 #ifndef NDEBUG
     // check mark array zeroed
     char * mark = reinterpret_cast<char *> (indices_+capacity_);

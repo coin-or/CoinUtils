@@ -336,12 +336,12 @@ public:
 	The column starts are not affected.  Returns number of elements
 	eliminated.  Elements eliminated are at end of each vector
     */
-    int compress(double threshold);
+    CoinBigIndex compress(double threshold);
     /** Eliminate all duplicate AND small elements in matrix 
 	The column starts are not affected.  Returns number of elements
 	eliminated.  
     */
-    int eliminateDuplicates(double threshold);
+    CoinBigIndex eliminateDuplicates(double threshold);
     /** Sort all columns so indices are increasing.in each column */
     void orderMatrix();
     /** Really clean up matrix.
@@ -351,7 +351,7 @@ public:
 	d) orders elements
 	returns number of elements eliminated
     */
-    int cleanMatrix(double threshold=1.0e-20);
+    CoinBigIndex cleanMatrix(double threshold=1.0e-20);
   //@}
 
   //---------------------------------------------------------------------------

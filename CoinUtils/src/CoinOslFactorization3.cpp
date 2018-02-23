@@ -5,6 +5,7 @@
 
   This code is licensed under the terms of the Eclipse Public License (EPL).
 */
+#if COIN_BIG_INDEX==0
 #include "CoinOslFactorization.hpp"
 #include "CoinOslC.h"
 #include "CoinFinite.hpp"
@@ -3119,3 +3120,4 @@ int c_ekktria(EKKfactinfo *fact,
   
   return (irtcod);
 } /* c_ekktria */
+#endif
