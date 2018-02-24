@@ -2530,6 +2530,7 @@ CoinLpIO::readLp(FILE* fp)
 	if (numberSets_) {
 	  set_ = new CoinSet * [numberSets_];
 	  memcpy(set_,set,numberSets_*sizeof(CoinSet *));
+	  delete [] set;
 	}
       }
       break;

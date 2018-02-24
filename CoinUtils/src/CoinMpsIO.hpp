@@ -251,6 +251,9 @@ public:
   /// Returns type of set - 1 =SOS1, 2 =SOS2
   inline int setType (  ) const 
   { return setType_;  }
+  /// Sets type of set - 1 =SOS1, 2 =SOS2
+  inline void setSetType ( int type )
+  { setType_ = type;  }
   /// Returns list of variables
   inline const int * which (  ) const 
   { return which_;  }
