@@ -588,7 +588,7 @@ CoinIndexedVector::reserve(int n)
     indices_ = new int [n+nPlus];
     CoinZeroN(indices_+n,nPlus);
     // align on 64 byte boundary
-    double * temp = new double [n+9];
+    double * temp = new double [n+9+nPlus];
     offset_ = 0;
     CoinInt64 xx = reinterpret_cast<CoinInt64>(temp);
     int iBottom = static_cast<int>(xx & 63);
