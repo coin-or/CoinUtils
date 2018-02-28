@@ -40,12 +40,15 @@ CoinBaseModel::CoinBaseModel (const CoinBaseModel & rhs)
     numberColumns_(rhs.numberColumns_),
     optimizationDirection_(rhs.optimizationDirection_),
     objectiveOffset_(rhs.objectiveOffset_),
-    handler_(rhs.handler_),
     logLevel_(rhs.logLevel_)
 {
   problemName_ = rhs.problemName_;
   rowBlockName_ = rhs.rowBlockName_;
   columnBlockName_ = rhs.columnBlockName_;
+  if (rhs.handler_ != nullptr)
+    handler_ = new CoinMessageHandler(*rhs.handler_) ;
+  else
+    handler_ = nullptr ;
 }
 
 //-------------------------------------------------------------------
@@ -70,7 +73,11 @@ CoinBaseModel::operator=(const CoinBaseModel& rhs)
     numberColumns_ = rhs.numberColumns_;
     optimizationDirection_ = rhs.optimizationDirection_;
     objectiveOffset_ = rhs.objectiveOffset_;
-    handler_ = rhs.handler_;
+    delete handler_ ;
+    if (rhs.handler_ != nullptr)
+      handler_ = new CoinMessageHandler(*rhs.handler_) ;
+    else
+      handler_ = nullptr ;
     logLevel_ = rhs.logLevel_;
   }
   return *this;
