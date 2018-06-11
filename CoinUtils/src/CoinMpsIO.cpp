@@ -4162,6 +4162,9 @@ CoinMpsIO::writeMps(const char *filename, int compression,
      break;
    }
 
+   // Set locale so won't get , instead of .
+   char * saveLocale = strdup(setlocale(LC_ALL,NULL));
+   setlocale(LC_ALL,"C");
    const char * const * const rowNames = names_[0];
    const char * const * const columnNames = names_[1];
    int i;
@@ -4757,6 +4760,8 @@ CoinMpsIO::writeMps(const char *filename, int compression,
    free(objrow);
 
    delete output;
+   setlocale(LC_ALL,saveLocale);
+   free(saveLocale);
    return 0;
 }
    
