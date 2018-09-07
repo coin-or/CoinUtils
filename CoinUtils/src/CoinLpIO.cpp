@@ -57,7 +57,7 @@ CoinLpIO::CoinLpIO() :
   infinity_(COIN_DBL_MAX),
   epsilon_(1e-5),
   numberAcross_(10),
-  decimals_(5)
+  decimals_(9)
 {
   for (int j = 0; j < MAX_OBJECTIVES; j++){
      objective_[j] = NULL;
