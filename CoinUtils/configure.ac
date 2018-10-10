@@ -12,6 +12,7 @@
 
 AC_INIT([CoinUtils],[trunk],[coinutils@list.coin-or.org],[coin-or-coinutils],
 	[https://projects.coin-or.org/CoinUtils])
+
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.
 All Rights Reserved.
@@ -23,7 +24,8 @@ under the Eclipse Public License.])
 
 AC_CONFIG_SRCDIR(src/CoinError.cpp)
 
-# Do some initialization work (version numbers, change prefix default, ...)
+# Do some project-level initialization work (version numbers, change prefix
+# default, ...)
 
 AC_COIN_INITIALIZE(CoinUtils)
 
@@ -102,16 +104,23 @@ AC_COINUTILS_MEMPOOL(4096,no)
 #                             COIN-OR components                            #
 #############################################################################
 
-AC_COIN_CHK_PKG_BLAS(CoinUtilsLib)
-AC_COIN_CHK_PKG_LAPACK(CoinUtilsLib)
-AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib],[],[build],[])
-AC_COIN_CHK_PKG(Sample,[],[coindatasample],[],[],dataonly)
-AC_COIN_CHK_PKG(Netlib,[],[coindatanetlib],[],[],dataonly)
+# Initialise variables for CoinUtilsLib
 
-AC_COIN_CHECK_LIBM(CoinUtilsLib)
-AC_COIN_CHECK_ZLIB(CoinUtilsLib)
-AC_COIN_CHECK_BZLIB(CoinUtilsLib)
-AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
+AC_COIN_INIT_LIBVARS([CoinUtilsLib],
+		     [-L\${libdir} -lCoinUtils],[-I\${includedir}])
+
+# Collect information required to use component libraries.
+
+# AC_COIN_CHK_BLAS(CoinUtilsLib)
+AC_COIN_CHK_LAPACK(CoinUtilsLib)
+AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib],[],[build],[])
+AC_COIN_CHK_PKG(Sample,[],[coindatasample],[],dataonly)
+AC_COIN_CHK_PKG(Netlib,[],[coindatanetlib],[],dataonly)
+
+AC_COIN_CHK_LIBM(CoinUtilsLib)
+AC_COIN_CHK_ZLIB(CoinUtilsLib)
+AC_COIN_CHK_BZLIB(CoinUtilsLib)
+AC_COIN_CHK_GNU_READLINE(CoinUtilsLib)
 
 # Finalize libs and cflags for building CoinUtilsLib.
 AC_COIN_FINALIZE_FLAGS(CoinUtilsLib)

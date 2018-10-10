@@ -96,14 +96,20 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
 	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
 
-# This is for libtool
+# This is for libtool.
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
-# Add library dependencies to libCoinUtils
-libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
+# Add library dependencies to libCoinUtils, if DEPENDENCY_LINKING is enabled.
 
-# Here list all include flags, relative to this "srcdir" directory.
-AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
+if DEPENDENCY_LINKING
+libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
+endif
+
+# Here list all include flags, relative to this "srcdir" directory. This
+# "cygpath" stuff is necessary to compile with native compilers on Cygwin.
+
+AM_CPPFLAGS = -DCOINUTILS_BUILD \
+              `$(CYGPATH_W) $(COINUTILSLIB_CFLAGS)`
 
 ########################################################################
 #                Headers that need to be installed                     #

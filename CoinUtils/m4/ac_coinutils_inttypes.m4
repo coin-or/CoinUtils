@@ -20,7 +20,7 @@ AC_DEFUN([AC_COINUTILS_INTTYPE_HDRS],
 AC_DEFUN([AC_COINUTILS_INT64],
 [
 # stdint.h is part of autoconf's default standard includes and is checked very
-# early on, as part of libtool setup. CHECK_HEADERS will stop if if finds
+# early on, as part of libtool setup. CHECK_HEADERS will stop if it finds
 # cstdint, but it's possible (indeed, likely) for both ac_cv_header_cstdint
 # and ac_cv_header_stdint_h to be defined.
 

@@ -151,7 +151,8 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includecoindir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-libCoinUtils_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+@DEPENDENCY_LINKING_TRUE@libCoinUtils_la_DEPENDENCIES =  \
+@DEPENDENCY_LINKING_TRUE@	$(am__DEPENDENCIES_1)
 am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinDenseVector.lo CoinError.lo CoinFactorization1.lo \
 	CoinFactorization2.lo CoinFactorization3.lo \
@@ -278,9 +279,13 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COINUTILSLIB_CFLAGS = @COINUTILSLIB_CFLAGS@
+COINUTILSLIB_CFLAGS_NOPC = @COINUTILSLIB_CFLAGS_NOPC@
 COINUTILSLIB_CFLAGS_PUB = @COINUTILSLIB_CFLAGS_PUB@
+COINUTILSLIB_DATA = @COINUTILSLIB_DATA@
+COINUTILSLIB_LFLAGS = @COINUTILSLIB_LFLAGS@
+COINUTILSLIB_LFLAGS_NOPC = @COINUTILSLIB_LFLAGS_NOPC@
+COINUTILSLIB_LFLAGS_PUB = @COINUTILSLIB_LFLAGS_PUB@
 COINUTILSLIB_LIBS = @COINUTILSLIB_LIBS@
-COINUTILSLIB_LIBS_PUB = @COINUTILSLIB_LIBS_PUB@
 COINUTILSLIB_PCFILES = @COINUTILSLIB_PCFILES@
 COINUTILSLIB_PCFILES_PUB = @COINUTILSLIB_PCFILES_PUB@
 COINUTILS_SVN_REV = @COINUTILS_SVN_REV@
@@ -519,14 +524,17 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
 
 
-# This is for libtool
+# This is for libtool.
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
-# Add library dependencies to libCoinUtils
-libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
+# Add library dependencies to libCoinUtils, if DEPENDENCY_LINKING is enabled.
+@DEPENDENCY_LINKING_TRUE@libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
 
-# Here list all include flags, relative to this "srcdir" directory.
-AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
+# Here list all include flags, relative to this "srcdir" directory. This
+# "cygpath" stuff is necessary to compile with native compilers on Cygwin.
+AM_CPPFLAGS = -DCOINUTILS_BUILD \
+              `$(CYGPATH_W) $(COINUTILSLIB_CFLAGS)`
+
 
 ########################################################################
 #                Headers that need to be installed                     #

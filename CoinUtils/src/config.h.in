@@ -36,25 +36,22 @@
 /* Define to be the name of C-function for NaN check */
 #undef COIN_C_ISNAN
 
-/* Define to 1 if the BLAS package is available */
-#undef COIN_HAS_BLAS
-
 /* Define to 1 if bzlib is available */
 #undef COIN_HAS_BZLIB
 
-/* Define to 1 if the Glpk package is available */
+/* Define to 1 if Glpk is available. */
 #undef COIN_HAS_GLPK
 
 /* Define to 1 if the LAPACK package is available */
 #undef COIN_HAS_LAPACK
 
-/* Define to 1 if the Netlib package is available */
+/* Define to 1 if Netlib is available. */
 #undef COIN_HAS_NETLIB
 
 /* Define to 1 if readline is available */
 #undef COIN_HAS_READLINE
 
-/* Define to 1 if the Sample package is available */
+/* Define to 1 if Sample is available. */
 #undef COIN_HAS_SAMPLE
 
 /* Define to 1 if zlib is available */

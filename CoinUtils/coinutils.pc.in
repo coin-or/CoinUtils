@@ -7,7 +7,8 @@ Name: CoinUtils
 Description: COIN-OR Utilities
 URL: https://projects.coin-or.org/CoinUtils
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lCoinUtils
-Libs.private: @COINUTILSLIB_LIBS@
-Cflags: -I${includedir}
+Libs: @COINUTILSLIB_LFLAGS_PUB@
+Libs.private: @COINUTILSLIB_LFLAGS_NOPC@
+Cflags: @COINUTILSLIB_CFLAGS_PUB@
+Requires: @COINUTILSLIB_PCFILES_PUB@
 Requires.private: @COINUTILSLIB_PCFILES@

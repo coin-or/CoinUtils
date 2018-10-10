@@ -9,6 +9,12 @@
 /* Define to 1 if stdint.h is available for CoinUtils */
 #undef COINUTILS_HAS_CSTDINT
 
+/* Define to be the name of C-function for Inf check */
+#undef COIN_C_FINITE
+
+/* Define to be the name of C-function for NaN check */
+#undef COIN_C_ISNAN
+
 /* Version number of project */
 #undef COINUTILS_VERSION
 

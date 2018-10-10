@@ -34,7 +34,7 @@ unitTest_LDADD = ../src/libCoinUtils.la
 
 # Here list all include flags, relative to this "srcdir" directory.  This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin
-AM_CPPFLAGS = -I`$(CYGPATH_W) $(srcdir)/../src`
+AM_CPPFLAGS = `$(CYGPATH_W) -I$(srcdir)/../src`
 
 unittestflags =
 if COIN_HAS_SAMPLE

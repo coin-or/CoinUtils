@@ -8,7 +8,7 @@
 AC_DEFUN([AC_COINUTILS_THREADS],
 [ 
   AC_ARG_ENABLE([coinutils-threads],
-      [ AS_HELP_STRING([--enable-coinutils-threads],
+      [AS_HELP_STRING([--enable-coinutils-threads],
 	   [enables compilation of thread aware CoinUtils (mempool so far)])],
       [enable_coinutils_threads=$enableval],
       [enable_coinutils_threads=m4_ifvaln([$1],[$1],[no])])
