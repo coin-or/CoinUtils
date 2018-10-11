@@ -680,7 +680,7 @@ PKG_CONFIG
 COINUTILSLIB_PCFILES
 COINUTILSLIB_CFLAGS
 COINUTILSLIB_LIBS
-COINUTILSLIB_DATA
+COINUTILSLIB_DATA_PUB
 COINUTILSLIB_PCFILES_PUB
 COINUTILSLIB_CFLAGS_PUB
 COINUTILSLIB_LFLAGS_PUB
@@ -21710,7 +21710,7 @@ $as_echo "$as_me: CoinUtils mempool will not be used." >&6;}
 
   COINUTILSLIB_PCFILES_PUB=""
 
-  COINUTILSLIB_DATA=""
+  COINUTILSLIB_DATA_PUB=\${datarootdir}/$PACKAGE_TARNAME
 
 
 
@@ -24384,7 +24384,7 @@ fi
 
 fi
 
-# Generate a tag file name and a log file name
+# Generate a tag file name and a log file name.
 
 lc_pkg=`echo ${PACKAGE_NAME} | tr [A-Z] [a-z]`
 coin_doxy_tagname=${lc_pkg}_doxy.tag
@@ -24408,9 +24408,10 @@ else
 fi
 
 
-# Process the list of project names and massage each one into the name of a
-# tag file. Further substitution for @doxydocdir@ will happen during make
-# install.
+# Process the list of project names and massage each one into the name of
+# a tag file. The value of coin_doxy_tagfiles is substituted for TAGFILES
+# in doxygen.conf.in. Further substitution for @baredocdir_nosub@ will happen
+# as an edit during make install. See comments in Makemain.inc.
 
 coin_doxy_tagfiles=
 tmp=""
