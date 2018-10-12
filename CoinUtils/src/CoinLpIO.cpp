@@ -57,7 +57,7 @@ CoinLpIO::CoinLpIO() :
   infinity_(COIN_DBL_MAX),
   epsilon_(1e-5),
   numberAcross_(10),
-  decimals_(5)
+  decimals_(9)
 {
   for (int j = 0; j < MAX_OBJECTIVES; j++){
      objective_[j] = NULL;
@@ -2530,6 +2530,7 @@ CoinLpIO::readLp(FILE* fp)
 	if (numberSets_) {
 	  set_ = new CoinSet * [numberSets_];
 	  memcpy(set_,set,numberSets_*sizeof(CoinSet *));
+	  delete [] set;
 	}
       }
       break;
@@ -3102,16 +3103,16 @@ CoinLpIO::fscanfLpIO(char * buff) const
       return 0;
   }
   char * space = strchr(inputBuffer_+bufferPosition_,' ');
-  int n;
+  int n=0;
   int start=0;
-  if (space) {
+  if (space) 
     n=space-(inputBuffer_+bufferPosition_);
-  } else {
+  if (n==0) {
     if (bufferLength_>=0) {
       n=bufferLength_-bufferPosition_;
     } else {
       // partial line - get more
-      start=abs(bufferLength_)-bufferPosition_;
+      start=CoinMax(abs(bufferLength_)-bufferPosition_,0);
       memcpy(buff,inputBuffer_+bufferPosition_,start);
       bufferPosition_=bufferLength_;
       int returnCode = newCardLpIO();

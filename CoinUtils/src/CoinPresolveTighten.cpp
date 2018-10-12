@@ -139,7 +139,7 @@ const CoinPresolveAction *do_tighten_action::presolve(CoinPresolveMatrix *prob,
 					       <<CoinMessageEol;
       }
     }
-    if (dcost[j]==0.0) {
+    if (dcost[j]==0.0 && !prob->colProhibited2(j)) {
       int iflag=0; /* 1 - up is towards feasibility, -1 down is towards */
       int nonFree=0; // Number of non-free rows
 
