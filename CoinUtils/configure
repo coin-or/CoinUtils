@@ -21910,6 +21910,7 @@ $as_echo_n "checking for package LAPACK... " >&6; }
 
 
 
+
 # Set up command line arguments with DEF_PRIM_ARGS and give FIND_PRIM_PKG
 # a chance, just in case lapack.pc exists. The result (coin_has_lapack)
 # will be one of yes (either the user specified something or pkgconfig
@@ -23045,6 +23046,7 @@ $as_echo "#define COIN_HAS_LAPACK 1" >>confdefs.h
     COINUTILSLIB_PCFILES="$lapack_pcfiles $COINUTILSLIB_PCFILES"
        COINUTILSLIB_LFLAGS="$lapack_lflags $COINUTILSLIB_LFLAGS"
        COINUTILSLIB_CFLAGS="$lapack_cflags $COINUTILSLIB_CFLAGS"
+
   else
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_has_lapack" >&5
 $as_echo "$coin_has_lapack" >&6; }
@@ -23058,6 +23060,7 @@ $as_echo "$coin_has_lapack" >&6; }
 $as_echo_n "checking for package Glpk... " >&6; }
 
 # Make sure the necessary variables exist for each client package.
+
 
 
 
@@ -23301,6 +23304,7 @@ $as_echo "#define COIN_HAS_GLPK 1" >>confdefs.h
     COINUTILSLIB_PCFILES="$glpk_pcfiles $COINUTILSLIB_PCFILES"
        COINUTILSLIB_LFLAGS="$glpk_lflags $COINUTILSLIB_LFLAGS"
        COINUTILSLIB_CFLAGS="$glpk_cflags $COINUTILSLIB_CFLAGS"
+
 
 # Finally, set up PRIM_DATA, unless the user specified nodata.
 
@@ -23838,6 +23842,7 @@ if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
   if test "$ac_cv_search_cos" != 'none required' ; then
        COINUTILSLIB_LFLAGS="$ac_cv_search_cos $COINUTILSLIB_LFLAGS"
+
      fi
 fi
 
@@ -23922,6 +23927,7 @@ fi
     fi
     if test x$coin_has_zlib = xyes ; then
       COINUTILSLIB_LFLAGS="-lz $COINUTILSLIB_LFLAGS"
+
 
 $as_echo "#define COIN_HAS_ZLIB 1" >>confdefs.h
 
@@ -24016,6 +24022,7 @@ fi
     fi
     if test $coin_has_bzlib = yes ; then
       COINUTILSLIB_LFLAGS="-lbz2 $COINUTILSLIB_LFLAGS"
+
 
 $as_echo "#define COIN_HAS_BZLIB 1" >>confdefs.h
 
@@ -24182,6 +24189,7 @@ fi
     if test $coin_has_readline = yes ; then
       COINUTILSLIB_LFLAGS="-lreadline $COINUTILSLIB_LFLAGS"
 
+
 $as_echo "#define COIN_HAS_READLINE 1" >>confdefs.h
 
     fi
@@ -24228,7 +24236,8 @@ $as_echo "$as_me: adding \"${COINUTILSLIB_PCFILES}\"" >&6;}
 $as_echo "$as_me: COINUTILSLIB_LFLAGS: \"${COINUTILSLIB_LFLAGS}\"" >&6;}
         { $as_echo "$as_me:${as_lineno-$LINENO}: COINUTILSLIB_CFLAGS: \"${COINUTILSLIB_CFLAGS}\"" >&5
 $as_echo "$as_me: COINUTILSLIB_CFLAGS: \"${COINUTILSLIB_CFLAGS}\"" >&6;}
-      fi ;
+      fi
+
 
 
 ac_ext=c
