@@ -45,10 +45,10 @@ CoinBaseModel::CoinBaseModel (const CoinBaseModel & rhs)
   problemName_ = rhs.problemName_;
   rowBlockName_ = rhs.rowBlockName_;
   columnBlockName_ = rhs.columnBlockName_;
-  if (rhs.handler_ != nullptr)
+  if (rhs.handler_ != NULL)
     handler_ = new CoinMessageHandler(*rhs.handler_) ;
   else
-    handler_ = nullptr ;
+    handler_ = NULL ;
 }
 
 //-------------------------------------------------------------------
@@ -74,10 +74,10 @@ CoinBaseModel::operator=(const CoinBaseModel& rhs)
     optimizationDirection_ = rhs.optimizationDirection_;
     objectiveOffset_ = rhs.objectiveOffset_;
     delete handler_ ;
-    if (rhs.handler_ != nullptr)
+    if (rhs.handler_ != NULL)
       handler_ = new CoinMessageHandler(*rhs.handler_) ;
     else
-      handler_ = nullptr ;
+      handler_ = NULL ;
     logLevel_ = rhs.logLevel_;
   }
   return *this;
