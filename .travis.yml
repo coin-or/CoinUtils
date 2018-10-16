@@ -7,6 +7,7 @@ matrix:
         apt:
           packages:
           - gfortran
+    - os: linux
     - os: osx
       osx_image: xcode9.2
       env: OSX=10.12
