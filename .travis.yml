@@ -15,10 +15,6 @@ matrix:
       osx_image: xcode8
       env: OSX=10.11
       compiler: clang
-    - os: osx
-      osx_image: xcode6.4
-      env: OSX=10.10
-      compiler: clang
   allow_failures:
     - os: osx
 
