@@ -115,7 +115,7 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_coinutils_inttypes.m4 \
 	$(top_srcdir)/m4/ac_coinutils_mempool.m4 \
 	$(top_srcdir)/m4/ac_coinutils_threads.m4 \
-	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am
@@ -211,9 +211,11 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COINUTILSLIB_CFLAGS = @COINUTILSLIB_CFLAGS@
+COINUTILSLIB_CFLAGS_NOPC = @COINUTILSLIB_CFLAGS_NOPC@
 COINUTILSLIB_CFLAGS_PUB = @COINUTILSLIB_CFLAGS_PUB@
 COINUTILSLIB_DATA_PUB = @COINUTILSLIB_DATA_PUB@
 COINUTILSLIB_LFLAGS = @COINUTILSLIB_LFLAGS@
+COINUTILSLIB_LFLAGS_NOPC = @COINUTILSLIB_LFLAGS_NOPC@
 COINUTILSLIB_LFLAGS_PUB = @COINUTILSLIB_LFLAGS_PUB@
 COINUTILSLIB_LIBS = @COINUTILSLIB_LIBS@
 COINUTILSLIB_PCFILES = @COINUTILSLIB_PCFILES@
@@ -306,7 +308,6 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
-coin_doxy_excludes = @coin_doxy_excludes@
 coin_doxy_logname = @coin_doxy_logname@
 coin_doxy_tagfiles = @coin_doxy_tagfiles@
 coin_doxy_tagname = @coin_doxy_tagname@

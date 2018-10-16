@@ -21,13 +21,13 @@
 /* Version number of project */
 #undef COINUTILS_VERSION
 
-/* Major Version number of project */
+/* Major version number of project. */
 #undef COINUTILS_VERSION_MAJOR
 
-/* Minor Version number of project */
+/* Minor version number of project. */
 #undef COINUTILS_VERSION_MINOR
 
-/* Release Version number of project */
+/* Release version number of project. */
 #undef COINUTILS_VERSION_RELEASE
 
 /* Define to be the name of C-function for Inf check */
