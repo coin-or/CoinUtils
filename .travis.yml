@@ -9,6 +9,10 @@ matrix:
           - gfortran
     - os: linux
     - os: osx
+      osx_image: xcode10
+      env: OSX=10.13
+      compiler: clang
+    - os: osx
       osx_image: xcode9.2
       env: OSX=10.12
       compiler: clang
