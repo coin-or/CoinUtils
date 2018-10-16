@@ -385,9 +385,8 @@ unitTest_SOURCES = \
 # List libraries to link into binary
 unitTest_LDADD = ../src/libCoinUtils.la
 
-# Here list all include flags, relative to this "srcdir" directory.  This
-# "cygpath" stuff is necessary to compile with native compilers on Cygwin
-AM_CPPFLAGS = `$(CYGPATH_W) -I$(srcdir)/../src`
+# Here list all include flags, relative to this "srcdir" directory.
+AM_CPPFLAGS = -I$(srcdir)/../src
 unittestflags = $(am__append_1) $(am__append_2)
 
 ########################################################################
