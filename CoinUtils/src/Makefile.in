@@ -529,11 +529,8 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 # Add library dependencies to libCoinUtils.
 libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
 
-# Here list all include flags, relative to this "srcdir" directory. This
-# "cygpath" stuff is necessary to compile with native compilers on Cygwin.
-AM_CPPFLAGS = -DCOINUTILS_BUILD \
-              `$(CYGPATH_W) $(COINUTILSLIB_CFLAGS)`
-
+# Here list all include flags, relative to this "srcdir" directory.
+AM_CPPFLAGS = -DCOINUTILS_BUILD $(COINUTILSLIB_CFLAGS)
 
 ########################################################################
 #                Headers that need to be installed                     #
