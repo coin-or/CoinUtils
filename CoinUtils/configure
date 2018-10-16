@@ -643,6 +643,7 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+coin_doxy_excludes
 coin_doxy_tagfiles
 COIN_HAS_LATEX_FALSE
 COIN_HAS_LATEX_TRUE
@@ -653,8 +654,6 @@ coin_doxy_tagname
 coin_doxy_usedot
 coin_have_latex
 coin_have_doxygen
-COINUTILSLIB_CFLAGS_NOPC
-COINUTILSLIB_LFLAGS_NOPC
 COIN_HAS_READLINE_FALSE
 COIN_HAS_READLINE_TRUE
 COIN_HAS_BZLIB_FALSE
@@ -684,8 +683,6 @@ COINUTILSLIB_DATA_PUB
 COINUTILSLIB_PCFILES_PUB
 COINUTILSLIB_CFLAGS_PUB
 COINUTILSLIB_LFLAGS_PUB
-DEPENDENCY_LINKING_FALSE
-DEPENDENCY_LINKING_TRUE
 LT_LDFLAGS
 CXXCPP
 CPP
@@ -741,6 +738,10 @@ CC
 MAINT
 MAINTAINER_MODE_FALSE
 MAINTAINER_MODE_TRUE
+AM_BACKSLASH
+AM_DEFAULT_VERBOSITY
+AM_DEFAULT_V
+AM_V
 am__untar
 am__tar
 AMTAR
@@ -764,10 +765,6 @@ am__isrc
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
-AM_BACKSLASH
-AM_DEFAULT_VERBOSITY
-AM_DEFAULT_V
-AM_V
 host_os
 host_vendor
 host_cpu
@@ -833,7 +830,6 @@ with_aix_soname
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
-enable_dependency_linking
 enable_coinutils_threads
 enable_coinutils_mempool_maxpooled
 enable_coinutils_mempool_override_new
@@ -1499,14 +1495,11 @@ Optional Features:
                           do not reject slow dependency extractors
   --disable-dependency-tracking
                           speeds up one-time build
-  --enable-shared[=PKGS]  build shared libraries [default=yes]
-  --enable-static[=PKGS]  build static libraries [default=yes]
+  --enable-shared[=PKGS]  build shared libraries [default=no]
+  --enable-static[=PKGS]  build static libraries [default=no]
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-dependency-linking
-                          Link all library dependencies into shared libraries
-                          at creation (default=yes)
   --enable-coinutils-threads
                           enables compilation of thread aware CoinUtils
                           (mempool so far)
@@ -2996,13 +2989,10 @@ fi
 
 
 
-# We want --enable-msvc setup and checked
+# we want --enable-msvc setup and checked
 
 
-
-# This macro should run before the compiler checks (doesn't seem to be
-# sufficient for CFLAGS)
-
+# this macro should run before the compiler checks (doesn't seem to be sufficient for CFLAGS)
 
 
 
@@ -3011,20 +3001,19 @@ fi
 # change default compiler flags (TODO bring back --enable-debug)
 # - disable debugging (remove -g, set -DNDEBUG)
 # - enable exceptions for (i)cl
-
-  if test "$enable_msvc" = yes ; then
-    : ${FFLAGS:=""}
-    : ${FCFLAGS:=""}
-    : ${CFLAGS:="-DNDEBUG -nologo"}
-    : ${CXXFLAGS:="-DNDEBUG -EHsc -nologo"}
-    : ${AR:="lib"}
-    : ${AR_FLAGS:="-nologo -out:"}
-  else
-    : ${FFLAGS:=""}
-    : ${FCFLAGS:=""}
-    : ${CFLAGS:="-DNDEBUG"}
-    : ${CXXFLAGS:="-DNDEBUG"}
-  fi
+if test "$enable_msvc" = yes ; then
+  : ${FFLAGS:=""}
+  : ${FCFLAGS:=""}
+  : ${CFLAGS:="-DNDEBUG -nologo"}
+  : ${CXXFLAGS:="-DNDEBUG -EHsc -nologo"}
+  : ${AR:="lib"}
+  : ${AR_FLAGS:="-nologo -out:"}
+else
+  : ${FFLAGS:=""}
+  : ${FCFLAGS:=""}
+  : ${CFLAGS:="-DNDEBUG"}
+  : ${CXXFLAGS:="-DNDEBUG"}
+fi
 
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
@@ -3551,23 +3540,56 @@ else
 fi
 rmdir .tst 2>/dev/null
 
+# Check whether --enable-silent-rules was given.
+if test "${enable_silent_rules+set}" = set; then :
+  enableval=$enable_silent_rules;
+fi
 
-# Enforce the required autoconf version
+case $enable_silent_rules in # (((
+  yes) AM_DEFAULT_VERBOSITY=0;;
+   no) AM_DEFAULT_VERBOSITY=1;;
+    *) AM_DEFAULT_VERBOSITY=1;;
+esac
+am_make=${MAKE-make}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $am_make supports nested variables" >&5
+$as_echo_n "checking whether $am_make supports nested variables... " >&6; }
+if ${am_cv_make_support_nested_variables+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if $as_echo 'TRUE=$(BAR$(V))
+BAR0=false
+BAR1=true
+V=1
+am__doit:
+	@$(TRUE)
+.PHONY: am__doit' | $am_make -f - >/dev/null 2>&1; then
+  am_cv_make_support_nested_variables=yes
+else
+  am_cv_make_support_nested_variables=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_make_support_nested_variables" >&5
+$as_echo "$am_cv_make_support_nested_variables" >&6; }
+if test $am_cv_make_support_nested_variables = yes; then
+    AM_V='$(V)'
+  AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
+else
+  AM_V=$AM_DEFAULT_VERBOSITY
+  AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY
+fi
+AM_BACKSLASH='\'
 
+
+# required autoconf version
 
 
 # Set the project's version numbers
-
 
 
 cat >>confdefs.h <<_ACEOF
 #define COINUTILS_VERSION "$PACKAGE_VERSION"
 _ACEOF
 
-
-# Parse package version, assuming major.minor.release. PACKAGE_VERSION is set
-# by AC_INIT. Force components to 9999 if they're empty; this deals with
-# things like `trunk' and other nonstandard forms.
 
   coin_majorver=`echo $PACKAGE_VERSION | sed -n -e 's/^\([0-9]*\).*/\1/gp'`
   coin_minorver=`echo $PACKAGE_VERSION | sed -n -e 's/^[0-9]*\.\([0-9]*\).*/\1/gp'`
@@ -3591,14 +3613,13 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-# Create a variable set to the upper case version of the project name
-
+  # We use the following variable to have a string with the upper case
+  # version of the project name
   COIN_PRJCT=COINUTILS
 
-# Set the project's SVN revision number. The complicated sed expression
-# (made worse by quadrigraphs) ensures that things like 4123:4168MS end up
-# as a single number.
-
+  # Set the project's SVN revision number. The complicated sed expression
+  # (made worse by quadrigraphs) ensures that things like 4123:4168MS end up
+  # as a single number.
   # Extract the first word of "svnversion", so it can be a program name with args.
 set dummy svnversion; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -3652,14 +3673,12 @@ _ACEOF
 
 
 
-# Capture the libtool library version, if given.
-
+# Capture libtool library version, if given.
 
 
 
 # A useful makefile conditional that is always false
-
-   if false; then
+ if false; then
   ALWAYS_FALSE_TRUE=
   ALWAYS_FALSE_FALSE='#'
 else
@@ -3668,80 +3687,30 @@ else
 fi
 
 
-# Where should everything be installed by default?  The COIN default is to
-# install directly into subdirectories of the directory where configure is
-# run. The default would be to install under /usr/local.
+# Where should everything be installed by default?  Here, we want it
+# to be installed directly in 'bin', 'lib', 'include' subdirectories
+# of the directory where configure is run.  The default would be
+# /usr/local.
 
 
-
-# Change the default compiler flags. This needs to run before
-# AC_CANONICAL_BUILD.
-
+# change default compiler flags; this needs to run very early (before AC_CANONICAL_BUILD)
 
 
 # Get the build and host types
 
 
 
-
 # libtool has some magic for host_os=mingw, but doesn't know about msys
-
-  if test $host_os = msys ; then
-    host_os=mingw
-    host=`echo $host | sed -e 's/msys/mingw/'`
-  fi
-
-# Make silent build rules the default (https://www.gnu.org/software/automake/
-# manual/html_node/Automake-Silent-Rules.html). Run before AM_INIT_AUTOMAKE,
-# which will AC_REQUIRE it anyway.
-
-  # Check whether --enable-silent-rules was given.
-if test "${enable_silent_rules+set}" = set; then :
-  enableval=$enable_silent_rules;
+if test $host_os = msys ; then
+  host_os=mingw
+  host=`echo $host | sed -e 's/msys/mingw/'`
 fi
 
-case $enable_silent_rules in # (((
-  yes) AM_DEFAULT_VERBOSITY=0;;
-   no) AM_DEFAULT_VERBOSITY=1;;
-    *) AM_DEFAULT_VERBOSITY=0;;
-esac
-am_make=${MAKE-make}
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $am_make supports nested variables" >&5
-$as_echo_n "checking whether $am_make supports nested variables... " >&6; }
-if ${am_cv_make_support_nested_variables+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if $as_echo 'TRUE=$(BAR$(V))
-BAR0=false
-BAR1=true
-V=1
-am__doit:
-	@$(TRUE)
-.PHONY: am__doit' | $am_make -f - >/dev/null 2>&1; then
-  am_cv_make_support_nested_variables=yes
-else
-  am_cv_make_support_nested_variables=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_make_support_nested_variables" >&5
-$as_echo "$am_cv_make_support_nested_variables" >&6; }
-if test $am_cv_make_support_nested_variables = yes; then
-    AM_V='$(V)'
-  AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
-else
-  AM_V=$AM_DEFAULT_VERBOSITY
-  AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY
-fi
-AM_BACKSLASH='\'
-
-
-# Initialize automake
-# - don't AC_DEFINE PACKAGE or VERSION (but there're still defined as shell
-#   variables in configure, and as make variables).
+# initialize automake
+# - don't define PACKAGE or VERSION
 # - disable dist target
 # - enable all automake warnings
-
-  if test "`cd $srcdir && pwd`" != "`pwd`"; then
+if test "`cd $srcdir && pwd`" != "`pwd`"; then
   # Use -I$(srcdir) only when $(srcdir) != ., so that make's output
   # is not polluted with repeated "-I."
   am__isrc=' -I$(srcdir)'
@@ -3848,8 +3817,48 @@ END
 fi
 
 
-# Disable automatic rebuild of configure/Makefile. Use run_autotools.
+# make silent build rules the default (https://www.gnu.org/software/automake/manual/html_node/Automake-Silent-Rules.html)
+# Check whether --enable-silent-rules was given.
+if test "${enable_silent_rules+set}" = set; then :
+  enableval=$enable_silent_rules;
+fi
 
+case $enable_silent_rules in # (((
+  yes) AM_DEFAULT_VERBOSITY=0;;
+   no) AM_DEFAULT_VERBOSITY=1;;
+    *) AM_DEFAULT_VERBOSITY=0;;
+esac
+am_make=${MAKE-make}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $am_make supports nested variables" >&5
+$as_echo_n "checking whether $am_make supports nested variables... " >&6; }
+if ${am_cv_make_support_nested_variables+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if $as_echo 'TRUE=$(BAR$(V))
+BAR0=false
+BAR1=true
+V=1
+am__doit:
+	@$(TRUE)
+.PHONY: am__doit' | $am_make -f - >/dev/null 2>&1; then
+  am_cv_make_support_nested_variables=yes
+else
+  am_cv_make_support_nested_variables=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_make_support_nested_variables" >&5
+$as_echo "$am_cv_make_support_nested_variables" >&6; }
+if test $am_cv_make_support_nested_variables = yes; then
+    AM_V='$(V)'
+  AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
+else
+  AM_V=$AM_DEFAULT_VERBOSITY
+  AM_DEFAULT_V=$AM_DEFAULT_VERBOSITY
+fi
+AM_BACKSLASH='\'
+
+
+# disable automatic rebuild of configure/Makefile
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
 $as_echo_n "checking whether to enable maintainer-specific portions of Makefiles... " >&6; }
@@ -3946,23 +3955,20 @@ fi
 
 
 
-
-# Setting up libtool with LT_INIT will AC_REQUIRE AC_PROG_CC, but we want
-# to invoke it from this macro first so that we can supply a parameter.
-
+# setting up libtool invokes AC_PROG_CC, but as we may want to change the
+# order of compilers, we want to invoke it from this macro first
 
 
-# If enable-msvc, then test only for MS and Intel (on Windows) C compiler
+
+# if enable-msvc, then test only for MS and Intel (on Windows) C compiler
 # otherwise, test a long list of C compilers that comes into our mind
-
-  if test $enable_msvc = yes ; then
-    comps="icl cl"
-  else
-    # TODO old buildtools was doing some $build specific logic here, do we
-    # still need this?
-    comps="gcc clang cc icc icl cl cc xlc xlc_r pgcc"
-  fi
-  ac_ext=c
+if test $enable_msvc = yes ; then
+  comps="icl cl"
+else
+  # TODO old buildtools was doing some $build specific logic here, we still need this?
+  comps="gcc clang cc icc icl cl cc xlc xlc_r pgcc"
+fi
+ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -4751,17 +4757,15 @@ fi
 
 
 
-# If enable-msvc, then test only for MS and Intel (on Windows) C++ compiler
+# if enable-msvc, then test only for MS and Intel (on Windows) C++ compiler
 # otherwise, test a long list of C++ compilers that comes into our mind
-
-  if test $enable_msvc = yes ; then
-    comps="cl icl"
-  else
-    # TODO old buildtools was doing some $build specific logic here, do we
-    # still need this?
-    comps="g++ clang++ c++ pgCC icpc gpp cxx cc++ cl icl FCC KCC RCC xlC_r aCC CC"
-  fi
-  ac_ext=cpp
+if test $enable_msvc = yes ; then
+  comps="cl icl"
+else
+  # TODO old buildtools was doing some $build specific logic here, we still need this?
+  comps="g++ clang++ c++ pgCC icpc gpp cxx cc++ cl icl FCC KCC RCC xlC_r aCC CC"
+fi
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -5147,10 +5151,9 @@ fi
 
 
 
-# If the compiler does not support -c -o, then wrap the compile script around
-# it.
-
-  ac_ext=cpp
+# if compiler does not support -c -o, then wrap compile script around it
+# for CC, this happens automatically by AC_PROG_CC already, but not for CXX apparently
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -5215,9 +5218,10 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
-  if test $ac_cv_prog_cxx_c_o = no ; then
-    CXX="$am_aux_dir/compile $CXX"
-  fi
+if test $ac_cv_prog_cxx_c_o = no
+then
+  CXX="$am_aux_dir/compile $CXX"
+fi
 
 
 # This is a C++ package, set the language accordingly.
@@ -5238,19 +5242,16 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 # but I haven't quite figured it out yet.
 
 
-  # AC_MSG_NOTICE([In COIN_PROG_F77])
 
 
-# If enable-msvc, then test only for Intel (on Windows) Fortran compiler
-
-  if test $enable_msvc = yes ; then
-    comps="ifort"
-  else
-    # TODO old buildtools was doing some $build specific logic here, do we still
-    # need this?
-    comps="gfortran ifort g95 fort77 f77 f95 f90 g77 pgf90 pgf77 ifc frt af77 xlf_r fl32"
-  fi
-  ac_ext=f
+# if enable-msvc, then test only for Intel (on Windows) Fortran compiler
+if test $enable_msvc = yes ; then
+  comps="ifort"
+else
+  # TODO old buildtools was doing some $build specific logic here, we still need this?
+  comps="gfortran ifort g95 fort77 f77 f95 f90 g77 pgf90 pgf77 ifc frt af77 xlf_r fl32"
+fi
+ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
@@ -5462,14 +5463,7 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
-# Allow for the possibility that there is no Fortran compiler on the system.
-
-  if test "${F77:-unavailable}" = unavailable ; then
-    F77=unavailable
-    { $as_echo "$as_me:${as_lineno-$LINENO}: No Fortran compiler available." >&5
-$as_echo "$as_me: No Fortran compiler available." >&6;}
-  fi
-  # AC_MSG_NOTICE([Leaving COIN_PROG_F77])
+#TODO if AC_PROG_F77_C_O returns no, then wrap compile script around $F77 ?
 
 if test "$F77" != "unavailable" ; then
 
@@ -10111,44 +10105,12 @@ func_stripname_cnf ()
 } # func_stripname_cnf
 
 
-# On Windows, shared C++ libraries do not work with the current libtool (it
-# handles only exports for C functions, not C++). On all other systems, build
-# only shared libraries.
+# setup libtool parameters (https://www.gnu.org/software/libtool/manual/html_node/LT_005fINIT.html)
 
-# (lh, 180302) Sadly, we can't use the obvious libtool macros
-# (AC_{ENABLE,DISABLE}_{SHARED,STATIC}, nor parameters to LT_INIT,
-# precisely because these macros record the default behaviour by defining
-# a macro, _LT_ENABLE_{SHARED,STATIC}_DEFAULT. No shell code involved, hence
-# any shell conditional has no effect. Either we trust libtool or we need
-# something more inventive. The relevant libtool macros are in ltoptions.m4,
-# _LT_ENABLE_SHARED and _LT_ENABLE_STATIC.
-
-# case $host_os in
-#   cygwin* | mingw* | msys* )
-#     AC_DISABLE_SHARED
-#     ;;
-#   *)
-#     AC_DISABLE_STATIC
-#     ;;
-# esac
-
-# Create libtool.
-
-
-
-
-
-# Set options
-
-
-
-        enable_dlopen=no
-
-
-  enable_win32_dll=no
-
-
-            # Check whether --enable-shared was given.
+case $host_os in
+  cygwin* | mingw* | msys* )
+    # on Windows, shared C++ libraries do not work with current libtool (handles only exports for C functions, not C++)
+    # Check whether --enable-shared was given.
 if test "${enable_shared+set}" = set; then :
   enableval=$enable_shared; p=${PACKAGE-default}
     case $enableval in
@@ -10168,7 +10130,7 @@ if test "${enable_shared+set}" = set; then :
       ;;
     esac
 else
-  enable_shared=yes
+  enable_shared=no
 fi
 
 
@@ -10179,7 +10141,9 @@ fi
 
 
 
-  # Check whether --enable-static was given.
+	;;
+  *)
+    # Check whether --enable-static was given.
 if test "${enable_static+set}" = set; then :
   enableval=$enable_static; p=${PACKAGE-default}
     case $enableval in
@@ -10199,13 +10163,33 @@ if test "${enable_static+set}" = set; then :
       ;;
     esac
 else
-  enable_static=yes
+  enable_static=no
 fi
 
 
 
 
 
+
+
+
+
+	;;
+esac
+
+# create libtool
+
+
+
+
+# Set options
+
+
+
+        enable_dlopen=no
+
+
+  enable_win32_dll=no
 
 
 
@@ -10642,6 +10626,10 @@ _lt_linker_boilerplate=`cat conftest.err`
 $RM -r conftest*
 
 
+## CAVEAT EMPTOR:
+## There is no encapsulation within the following macros, do not change
+## the running order or otherwise move them around unless you know exactly
+## what you are doing...
 if test -n "$compiler"; then
 
 lt_prog_compiler_no_builtin_flag=
@@ -13427,9 +13415,6 @@ fi
   # before this can be enabled.
   hardcode_into_libs=yes
 
-  # Add ABI-specific directories to the system library path.
-  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
-
   # Ideally, we could use ldconfig to report *all* directores which are
   # searched for libraries, however this is still not possible.  Aside from not
   # being certain /sbin/ldconfig is available, command
@@ -13438,7 +13423,7 @@ fi
   # appending ld.so.conf contents (and includes) to the search path.
   if test -f /etc/ld.so.conf; then
     lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \$2)); skip = 1; } { if (!skip) print \$0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;s/"//g;/^$/d' | tr '\n' ' '`
-    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
+    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
   fi
 
   # We used to test for /lib/ld.so.1 and disable shared libraries on
@@ -17456,9 +17441,6 @@ fi
   # before this can be enabled.
   hardcode_into_libs=yes
 
-  # Add ABI-specific directories to the system library path.
-  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
-
   # Ideally, we could use ldconfig to report *all* directores which are
   # searched for libraries, however this is still not possible.  Aside from not
   # being certain /sbin/ldconfig is available, command
@@ -17467,7 +17449,7 @@ fi
   # appending ld.so.conf contents (and includes) to the search path.
   if test -f /etc/ld.so.conf; then
     lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \$2)); skip = 1; } { if (!skip) print \$0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;s/"//g;/^$/d' | tr '\n' ' '`
-    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
+    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
   fi
 
   # We used to test for /lib/ld.so.1 and disable shared libraries on
@@ -20409,9 +20391,6 @@ fi
   # before this can be enabled.
   hardcode_into_libs=yes
 
-  # Add ABI-specific directories to the system library path.
-  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
-
   # Ideally, we could use ldconfig to report *all* directores which are
   # searched for libraries, however this is still not possible.  Aside from not
   # being certain /sbin/ldconfig is available, command
@@ -20420,7 +20399,7 @@ fi
   # appending ld.so.conf contents (and includes) to the search path.
   if test -f /etc/ld.so.conf; then
     lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \$2)); skip = 1; } { if (!skip) print \$0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;s/"//g;/^$/d' | tr '\n' ' '`
-    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
+    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
   fi
 
   # We used to test for /lib/ld.so.1 and disable shared libraries on
@@ -20773,57 +20752,16 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 
-# Patch libtool to eliminate a trailing space after AR_FLAGS. This needs to be
-# run after config.status has created libtool. Apparently necessary on
-# Windows when lib.exe is the archive tool.
+# setup patch-up for libtool (need to be run after config.status created libtool)
+case "$AR" in
+  *lib* | *LIB* )
+     ac_config_commands="$ac_config_commands libtoolpatch"
 
-  case "$AR" in
-    *lib* | *LIB* )
-      ac_config_commands="$ac_config_commands libtoolpatch"
+	 ;;
+esac
 
-      ;;
-  esac
-
-# Set up LT_LDFLAGS. Add the library version string to LT_LDFLAGS, if one
-# is supplied.
-
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if the library version is set" >&5
-$as_echo_n "checking if the library version is set... " >&6; }
-  if test x"$coin_libversion" != x ; then
-    LT_LDFLAGS="$LT_LDFLAGS -version-info $coin_libversion"
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $coin_libversion" >&5
-$as_echo "$coin_libversion" >&6; }
-  else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-  fi
-
-# Check if dependency linking is enabled or disabled.
-
-
-  # Check whether --enable-dependency-linking was given.
-if test "${enable_dependency_linking+set}" = set; then :
-  enableval=$enable_dependency_linking; dependency_linking="$enableval"
-else
-  dependency_linking=yes
-fi
-
-
-# AC_SUBST([LT_LDFLAGS])
-# if test "$dependency_linking" = yes ; then
-#   LT_LDFLAGS="$LT_LDFLAGS -no-undefined"
-# fi
-
-   if test "$dependency_linking" = yes; then
-  DEPENDENCY_LINKING_TRUE=
-  DEPENDENCY_LINKING_FALSE='#'
-else
-  DEPENDENCY_LINKING_TRUE='#'
-  DEPENDENCY_LINKING_FALSE=
-fi
-
-
+# -no-undefined is required for DLLs on Windows
+LT_LDFLAGS="-no-undefined"
 
 
 
@@ -21260,245 +21198,431 @@ _ACEOF
 
 
 
-  for ac_header in cmath math.h
+
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+#AC_COIN_CHECK_CXX_CHEADER(math)
+#AC_COIN_CHECK_CXX_CHEADER(float)
+#AC_COIN_CHECK_CXX_CHEADER(ieeefp)
+for ac_header in cmath
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cmath" "ac_cv_header_cmath" "$ac_includes_default"
+if test "x$ac_cv_header_cmath" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_CMATH 1
 _ACEOF
- break
+
 fi
 
 done
 
-  for ac_header in cfloat float.h
+if test "$ac_cv_header_cmath" != "yes"; then
+  for ac_header in math.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "math.h" "ac_cv_header_math_h" "$ac_includes_default"
+if test "x$ac_cv_header_math_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_MATH_H 1
 _ACEOF
- break
+
 fi
 
 done
 
-  for ac_header in cieeefp ieeefp.h
+fi
+for ac_header in cfloat
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cfloat" "ac_cv_header_cfloat" "$ac_includes_default"
+if test "x$ac_cv_header_cfloat" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_CFLOAT 1
 _ACEOF
- break
+
 fi
 
 done
 
-
-
-
-
-  COIN_C_FINITE=
-
-
-
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for std::isfinite" >&5
-$as_echo_n "checking for std::isfinite... " >&6; }
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-  #ifdef HAVE_CMATH
-  # include <cmath>
-  #else
-  # ifdef HAVE_MATH_H
-  #  include <math.h>
-  # endif
-  #endif
-  #ifdef HAVE_CFLOAT
-  # include <cfloat>
-  #else
-  # ifdef HAVE_FLOAT_H
-  #  include <float.h>
-  # endif
-  #endif
-  #ifdef HAVE_CIEEEFP
-  # include <cieeefp>
-  #else
-  # ifdef HAVE_IEEEFP_H
-  #  include <ieeefp.h>
-  # endif
-  #endif
-
-      int main ()
-      { (void) std::isfinite(1.0) ;
-        return 0 ; }
-
+if test "$ac_cv_header_cfloat" != "yes"; then
+  for ac_header in float.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "float.h" "ac_cv_header_float_h" "$ac_includes_default"
+if test "x$ac_cv_header_float_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FLOAT_H 1
 _ACEOF
-if ac_fn_cxx_try_compile "$LINENO"; then :
-  COIN_C_FINITE=std::isfinite
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
 
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+done
 
-  if test -z "$COIN_C_FINITE"; then
-    for fname in isfinite finite _finite ; do
-      as_ac_Symbol=`$as_echo "ac_cv_have_decl_$fname" | $as_tr_sh`
-ac_fn_cxx_check_decl "$LINENO" "$fname" "$as_ac_Symbol" "
-  #ifdef HAVE_CMATH
-  # include <cmath>
-  #else
-  # ifdef HAVE_MATH_H
-  #  include <math.h>
-  # endif
-  #endif
-  #ifdef HAVE_CFLOAT
-  # include <cfloat>
-  #else
-  # ifdef HAVE_FLOAT_H
-  #  include <float.h>
-  # endif
-  #endif
-  #ifdef HAVE_CIEEEFP
-  # include <cieeefp>
-  #else
-  # ifdef HAVE_IEEEFP_H
-  #  include <ieeefp.h>
-  # endif
-  #endif
+fi
+for ac_header in cieeefp
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cieeefp" "ac_cv_header_cieeefp" "$ac_includes_default"
+if test "x$ac_cv_header_cieeefp" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CIEEEFP 1
+_ACEOF
 
+fi
+
+done
+
+if test "$ac_cv_header_cieeefp" != "yes"; then
+  for ac_header in ieeefp.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "ieeefp.h" "ac_cv_header_ieeefp_h" "$ac_includes_default"
+if test "x$ac_cv_header_ieeefp_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IEEEFP_H 1
+_ACEOF
+
+fi
+
+done
+
+fi
+
+COIN_C_FINITE=
+ac_fn_cxx_check_decl "$LINENO" "isfinite" "ac_cv_have_decl_isfinite" "
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif
 "
-if eval test \"x\$"$as_ac_Symbol"\" = x"yes"; then :
-  COIN_C_FINITE=$fname
+if test "x$ac_cv_have_decl_isfinite" = xyes; then :
+  COIN_C_FINITE=isfinite
 fi
 
-      if test -n "$COIN_C_FINITE" ; then
-        break
-      fi
-    done
-  fi
+if test -z "$COIN_C_FINITE"; then
+  ac_fn_cxx_check_decl "$LINENO" "finite" "ac_cv_have_decl_finite" "
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif
+"
+if test "x$ac_cv_have_decl_finite" = xyes; then :
+  COIN_C_FINITE=finite
+fi
 
   if test -z "$COIN_C_FINITE"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find C-function for checking Inf." >&5
+    ac_fn_cxx_check_decl "$LINENO" "_finite" "ac_cv_have_decl__finite" "
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif
+"
+if test "x$ac_cv_have_decl__finite" = xyes; then :
+  COIN_C_FINITE=_finite
+fi
+
+  fi
+fi
+if test -z "$COIN_C_FINITE"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find C-function for checking Inf." >&5
 $as_echo "$as_me: WARNING: Cannot find C-function for checking Inf." >&2;}
-  else
+else
 
 cat >>confdefs.h <<_ACEOF
 #define COIN_C_FINITE $COIN_C_FINITE
 _ACEOF
 
-  fi
-
-
-
-
-  COIN_C_ISNAN=
-
-
-
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for std::isnan" >&5
-$as_echo_n "checking for std::isnan... " >&6; }
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-  #ifdef HAVE_CMATH
-  # include <cmath>
-  #else
-  # ifdef HAVE_MATH_H
-  #  include <math.h>
-  # endif
-  #endif
-  #ifdef HAVE_CFLOAT
-  # include <cfloat>
-  #else
-  # ifdef HAVE_FLOAT_H
-  #  include <float.h>
-  # endif
-  #endif
-  #ifdef HAVE_CIEEEFP
-  # include <cieeefp>
-  #else
-  # ifdef HAVE_IEEEFP_H
-  #  include <ieeefp.h>
-  # endif
-  #endif
-
-      int main ()
-      { (void) std::isnan(1.0) ;
-        return 0 ; }
-
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"; then :
-  COIN_C_ISNAN=std::isnan
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
-  if test -z "$COIN_C_ISNAN"; then
-    for fname in isnan _isnan isnand ; do
-      as_ac_Symbol=`$as_echo "ac_cv_have_decl_$fname" | $as_tr_sh`
-ac_fn_cxx_check_decl "$LINENO" "$fname" "$as_ac_Symbol" "
-  #ifdef HAVE_CMATH
-  # include <cmath>
-  #else
-  # ifdef HAVE_MATH_H
-  #  include <math.h>
-  # endif
-  #endif
-  #ifdef HAVE_CFLOAT
-  # include <cfloat>
-  #else
-  # ifdef HAVE_FLOAT_H
-  #  include <float.h>
-  # endif
-  #endif
-  #ifdef HAVE_CIEEEFP
-  # include <cieeefp>
-  #else
-  # ifdef HAVE_IEEEFP_H
-  #  include <ieeefp.h>
-  # endif
-  #endif
 
+
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+#AC_COIN_CHECK_CXX_CHEADER(math)
+#AC_COIN_CHECK_CXX_CHEADER(float)
+#AC_COIN_CHECK_CXX_CHEADER(ieeefp)
+for ac_header in cmath
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cmath" "ac_cv_header_cmath" "$ac_includes_default"
+if test "x$ac_cv_header_cmath" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CMATH 1
+_ACEOF
+
+fi
+
+done
+
+if test "$ac_cv_header_cmath" != "yes"; then
+  for ac_header in math.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "math.h" "ac_cv_header_math_h" "$ac_includes_default"
+if test "x$ac_cv_header_math_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MATH_H 1
+_ACEOF
+
+fi
+
+done
+
+fi
+for ac_header in cfloat
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cfloat" "ac_cv_header_cfloat" "$ac_includes_default"
+if test "x$ac_cv_header_cfloat" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CFLOAT 1
+_ACEOF
+
+fi
+
+done
+
+if test "$ac_cv_header_cfloat" != "yes"; then
+  for ac_header in float.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "float.h" "ac_cv_header_float_h" "$ac_includes_default"
+if test "x$ac_cv_header_float_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FLOAT_H 1
+_ACEOF
+
+fi
+
+done
+
+fi
+for ac_header in cieeefp
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "cieeefp" "ac_cv_header_cieeefp" "$ac_includes_default"
+if test "x$ac_cv_header_cieeefp" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CIEEEFP 1
+_ACEOF
+
+fi
+
+done
+
+if test "$ac_cv_header_cieeefp" != "yes"; then
+  for ac_header in ieeefp.h
+do :
+  ac_fn_cxx_check_header_mongrel "$LINENO" "ieeefp.h" "ac_cv_header_ieeefp_h" "$ac_includes_default"
+if test "x$ac_cv_header_ieeefp_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IEEEFP_H 1
+_ACEOF
+
+fi
+
+done
+
+fi
+
+COIN_C_ISNAN=
+ac_fn_cxx_check_decl "$LINENO" "isnan" "ac_cv_have_decl_isnan" "
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif
+"
+if test "x$ac_cv_have_decl_isnan" = xyes; then :
+  COIN_C_ISNAN=isnan
+fi
+
+
+# It appears that for some systems (e.g., Mac OSX), cmath will provide only
+# std::isnan, and bare isnan will be unavailable. Typically we need a parameter
+# in the test to allow C++ to do overload resolution.
+# With newer autoconf, this parameter now gets interpreted as a typecast.
+
+if test -z "$COIN_C_ISNAN"; then
+  as_ac_Symbol=`$as_echo "ac_cv_have_decl_std::isnan(double)" | $as_tr_sh`
+ac_fn_cxx_check_decl "$LINENO" "std::isnan(double)" "$as_ac_Symbol" "
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif
 "
 if eval test \"x\$"$as_ac_Symbol"\" = x"yes"; then :
-  COIN_C_ISNAN=$fname
+  COIN_C_ISNAN=std::isnan
 fi
 
-      if test -z "$COIN_C_ISNAN"; then
-	break
-      fi
-    done
-  fi
+fi
 
-  if test -z "$COIN_C_ISNAN"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find C-function for checking NaN." >&5
+if test -z "$COIN_C_ISNAN"; then
+  ac_fn_cxx_check_decl "$LINENO" "_isnan" "ac_cv_have_decl__isnan" "
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif
+"
+if test "x$ac_cv_have_decl__isnan" = xyes; then :
+  COIN_C_ISNAN=_isnan
+fi
+
+fi
+if test -z "$COIN_C_ISNAN"; then
+  ac_fn_cxx_check_decl "$LINENO" "isnand" "ac_cv_have_decl_isnand" "
+#ifdef HAVE_CMATH
+# include <cmath>
+#else
+# ifdef HAVE_MATH_H
+#  include <math.h>
+# endif
+#endif
+#ifdef HAVE_CFLOAT
+# include <cfloat>
+#else
+# ifdef HAVE_FLOAT_H
+#  include <float.h>
+# endif
+#endif
+#ifdef HAVE_CIEEEFP
+# include <cieeefp>
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>
+# endif
+#endif
+"
+if test "x$ac_cv_have_decl_isnand" = xyes; then :
+  COIN_C_ISNAN=isnand
+fi
+
+fi
+if test -z "$COIN_C_ISNAN"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find C-function for checking NaN." >&5
 $as_echo "$as_me: WARNING: Cannot find C-function for checking NaN." >&2;}
-  else
+else
 
 cat >>confdefs.h <<_ACEOF
 #define COIN_C_ISNAN $COIN_C_ISNAN
 _ACEOF
 
-  fi
+fi
+
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
 
 
 #############################################################################
@@ -21719,13 +21843,9 @@ $as_echo "$as_me: CoinUtils mempool will not be used." >&6;}
 # AC_COIN_CHK_BLAS(CoinUtilsLib)
 
 
-
-# pkgconf is the up-and-coming thing, replacing pkg-config, so prefer it.
-# The next stanza is a modified version of PKG_PROG_PKG_CONFIG from pkg.m4.
-
-  if test -z "$PKG_CONFIG" ; then
-   if test -n "$ac_tool_prefix"; then
-  for ac_prog in pkgconf pkg-config
+if test -z "$PKG_CONFIG"; then
+ if test -n "$ac_tool_prefix"; then
+  for ac_prog in pkg-config pkgconf
   do
     # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
 set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -21769,7 +21889,7 @@ fi
 fi
 if test -z "$PKG_CONFIG"; then
   ac_ct_PKG_CONFIG=$PKG_CONFIG
-  for ac_prog in pkgconf pkg-config
+  for ac_prog in pkg-config pkgconf
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -21824,35 +21944,30 @@ esac
   fi
 fi
 
-  fi
-  if test -n "$PKG_CONFIG" ; then
-    pkg_min_version=0.16.0
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking $PKG_CONFIG is at least version $pkg_min_version" >&5
-$as_echo_n "checking $PKG_CONFIG is at least version $pkg_min_version... " >&6; }
-    if $PKG_CONFIG --atleast-pkgconfig-version $pkg_min_version ; then
-      pkg_version=`$PKG_CONFIG --version`
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $pkg_version" >&5
-$as_echo "yes: $pkg_version" >&6; }
-    else
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+fi
+if test -n "$PKG_CONFIG"; then
+ _pkg_min_version=0.16.0
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking $PKG_CONFIG is at least version $_pkg_min_version" >&5
+$as_echo_n "checking $PKG_CONFIG is at least version $_pkg_min_version... " >&6; }
+ if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+ else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-     PKG_CONFIG=""
-   fi
-  fi
+   PKG_CONFIG=""
+ fi
+fi
 
-# Check if PKG_CONFIG supports the short-errors flag. The next stanza is a
-# modified version of _PKG_SHORT_ERRORS_SUPPORTED from pkg.m4.
+# check if pkg-config supports the short-errors flag
+if test -n "$PKG_CONFIG" && \
+ $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+ pkg_short_errors=" --short-errors "
+else
+ pkg_short_errors=""
+fi
 
-  if test -n "$PKG_CONFIG" &&
-     $PKG_CONFIG --atleast-pkgconfig-version 0.20 ; then
-    pkg_short_errors=" --short-errors "
-  else
-    pkg_short_errors=""
-  fi
-
-# Create a makefile variable and conditional.
-
-   if test -n "$PKG_CONFIG"; then
+ if test -n "$PKG_CONFIG"; then
   COIN_HAS_PKGCONFIG_TRUE=
   COIN_HAS_PKGCONFIG_FALSE='#'
 else
@@ -21862,40 +21977,18 @@ fi
 
 
 
-# Assemble a PKG_CONFIG search path that will include the installation
-# directory for .pc files for COIN packages.  Coin .pc files are installed in
-# ${libdir}/pkgconfig. But autoconf sets $libdir to '${exec_prefix}/lib', and
-# $exec_prefix to '${prefix}'.  COIN_INITIALIZE will set ac_default_prefix
-# correctly. Unless the user specifies --prefix, prefix is set to
-# NONE until the end of configuration, at which point it will be set to
-# $ac_default_prefix. Unless the user specifies --exec-prefix, exec-prefix
-# is set to NONE until the end of configuration, at which point it's set to
-# '${prefix}'. Sheesh.  So do the expansion, then back it out. Of course,
-# this whole house of cards balances on the shaky assumption that the user is
-# sane and has installed all packages in the same place and does not change
-# that place when make executes. If not, well, it's their responsibility to
-# augment PKG_CONFIG_PATH in the environment.
-
-  COIN_PKG_CONFIG_PATH="${PKG_CONFIG_PATH}"
+# assemble pkg-config search path
+COIN_PKG_CONFIG_PATH="${PKG_CONFIG_PATH}"
 
 
-  save_prefix=$prefix
-  save_exec_prefix=$exec_prefix
-  if test "x$prefix" = xNONE ; then
-    prefix=$ac_default_prefix
-  fi
-  if test "x$exec_prefix" = xNONE ; then
-    exec_prefix=$prefix
-  fi
-  expanded_libdir=$libdir
-  while expr "$expanded_libdir" : '.*$.*' >/dev/null 2>&1 ; do
-    eval expanded_libdir=$expanded_libdir
-  done
-  prefix=$save_prefix
-  exec_prefix=$save_exec_prefix
-  COIN_PKG_CONFIG_PATH="${expanded_libdir}/pkgconfig:${COIN_PKG_CONFIG_PATH}"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: $PKG_CONFIG path is \"$COIN_PKG_CONFIG_PATH\"" >&5
-$as_echo "$as_me: $PKG_CONFIG path is \"$COIN_PKG_CONFIG_PATH\"" >&6;}
+# let's assume that when installing into $prefix, then the user may have installed some other coin projects there before, so it's worth to have a look into there
+# best would actually to use ${libdir}, since .pc files get installed into ${libdir}/pkgconfig,
+# unfortunately, ${libdir} expands to ${exec_prefix}/lib and ${exec_prefix} to ${prefix}...
+if test "x${prefix}" = xNONE ; then
+  COIN_PKG_CONFIG_PATH="${ac_default_prefix}/lib64/pkgconfig:${ac_default_prefix}/lib/pkgconfig:${ac_default_prefix}/share/pkgconfig:${COIN_PKG_CONFIG_PATH}"
+else
+  COIN_PKG_CONFIG_PATH="${prefix}/lib64/pkgconfig:${prefix}/lib/pkgconfig:${prefix}/share/pkgconfig:${COIN_PKG_CONFIG_PATH}"
+fi
 
 
 
@@ -22115,10 +22208,10 @@ $as_echo "$as_me: lapack_pcfiles is \"$lapack_pcfiles\"" >&6;}
 
   coin_save_LIBS="$LIBS"
   LIBS="$lapack_lflags $LIBS"
-   # AC_MSG_NOTICE([In COIN_TRY_FLINK])
-  case $ac_ext in
-    f)
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+
+case $ac_ext in
+  f)
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #ifdef F77_DUMMY_MAIN
@@ -22144,16 +22237,15 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-    c)
-      coin_need_flibs=no
-      flink_try=no
-       ac_ext=f
+    ;;
+  c)
+    coin_need_flibs=no
+    flink_try=no
+    ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-
-  case $ac_cv_f77_mangling in
+case $ac_cv_f77_mangling in
   upper*) ac_val="DAXPY" ;;
   lower*) ac_val="daxpy" ;;
   *)      ac_val="unknown" ;;
@@ -22162,15 +22254,13 @@ case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 cfuncdaxpy="$ac_val"
 
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-
-      # AC_MSG_NOTICE([COIN_TRY_FLINK: daxpy -> $cfuncdaxpy])
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 void $cfuncdaxpy();
 #ifdef F77_DUMMY_MAIN
@@ -22192,10 +22282,10 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x ; then
-	   flink_save_libs="$LIBS"
-	   LIBS="$LIBS $FLIBS"
-	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  if test x"$FLIBS" != x; then
+         flink_save_libs="$LIBS"
+         LIBS="$LIBS $FLIBS"
+         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 void $cfuncdaxpy();
 #ifdef F77_DUMMY_MAIN
@@ -22216,28 +22306,27 @@ $cfuncdaxpy()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   coin_need_flibs=yes
-	      flink_try=yes
+            flint_try=yes
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	   LIBS="$flink_save_libs"
-	 fi
+         LIBS="$flink_save_libs"
+       fi
 
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-    cc|cpp)
-      coin_need_flibs=no
-      flink_try=no
-       ac_ext=f
+    ;;
+  cc|cpp)
+    coin_need_flibs=no
+    flink_try=no
+    ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-
-  case $ac_cv_f77_mangling in
+case $ac_cv_f77_mangling in
   upper*) ac_val="DAXPY" ;;
   lower*) ac_val="daxpy" ;;
   *)      ac_val="unknown" ;;
@@ -22246,14 +22335,13 @@ case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 cfuncdaxpy="$ac_val"
 
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 extern "C" {void $cfuncdaxpy();}
 #ifdef F77_DUMMY_MAIN
@@ -22275,10 +22363,10 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x ; then
-	   flink_save_libs="$LIBS"
-	   LIBS="$LIBS $FLIBS"
-	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  if test x"$FLIBS" != x; then
+         flink_save_libs="$LIBS"
+         LIBS="$LIBS $FLIBS"
+         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 extern "C" {void $cfuncdaxpy();}
 #ifdef F77_DUMMY_MAIN
@@ -22299,34 +22387,33 @@ $cfuncdaxpy()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   coin_need_flibs=yes
-	      flink_try=yes
+            flink_try=yes
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	   LIBS="$flink_save_libs"
-	 fi
+         LIBS="$flink_save_libs"
+       fi
 
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-  esac
-  if test $flink_try = yes ; then
-    if test $coin_need_flibs = no ; then
+    ;;
+esac
+if test $flink_try = yes; then
+  if test $coin_need_flibs = no ; then
        use_lapack="$lapack_lflags"
      else
        use_lapack="$lapack_lflags $FLIBS"
      fi
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $use_lapack" >&5
 $as_echo "yes: $use_lapack" >&6; }
-  else
-    use_lapack=
+else
+  use_lapack=
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-  fi
-  # AC_MSG_NOTICE([Done COIN_TRY_FLINK])
+fi
 
   LIBS="$coin_save_LIBS"
 
@@ -22351,10 +22438,10 @@ $as_echo_n "checking for LAPACK in -lcomplib.sgimath... " >&6; }
 
   coin_save_LIBS="$LIBS"
   LIBS="-lcomplib.sgimath $LIBS"
-   # AC_MSG_NOTICE([In COIN_TRY_FLINK])
-  case $ac_ext in
-    f)
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+
+case $ac_ext in
+  f)
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #ifdef F77_DUMMY_MAIN
@@ -22380,16 +22467,15 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-    c)
-      coin_need_flibs=no
-      flink_try=no
-       ac_ext=f
+    ;;
+  c)
+    coin_need_flibs=no
+    flink_try=no
+    ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-
-  case $ac_cv_f77_mangling in
+case $ac_cv_f77_mangling in
   upper*) ac_val="DSYEV" ;;
   lower*) ac_val="dsyev" ;;
   *)      ac_val="unknown" ;;
@@ -22398,15 +22484,13 @@ case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 cfuncdsyev="$ac_val"
 
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-
-      # AC_MSG_NOTICE([COIN_TRY_FLINK: dsyev -> $cfuncdsyev])
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 void $cfuncdsyev();
 #ifdef F77_DUMMY_MAIN
@@ -22428,10 +22512,10 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x ; then
-	   flink_save_libs="$LIBS"
-	   LIBS="$LIBS $FLIBS"
-	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  if test x"$FLIBS" != x; then
+         flink_save_libs="$LIBS"
+         LIBS="$LIBS $FLIBS"
+         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 void $cfuncdsyev();
 #ifdef F77_DUMMY_MAIN
@@ -22452,28 +22536,27 @@ $cfuncdsyev()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   coin_need_flibs=yes
-	      flink_try=yes
+            flint_try=yes
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	   LIBS="$flink_save_libs"
-	 fi
+         LIBS="$flink_save_libs"
+       fi
 
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-    cc|cpp)
-      coin_need_flibs=no
-      flink_try=no
-       ac_ext=f
+    ;;
+  cc|cpp)
+    coin_need_flibs=no
+    flink_try=no
+    ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-
-  case $ac_cv_f77_mangling in
+case $ac_cv_f77_mangling in
   upper*) ac_val="DSYEV" ;;
   lower*) ac_val="dsyev" ;;
   *)      ac_val="unknown" ;;
@@ -22482,14 +22565,13 @@ case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 cfuncdsyev="$ac_val"
 
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 extern "C" {void $cfuncdsyev();}
 #ifdef F77_DUMMY_MAIN
@@ -22511,10 +22593,10 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x ; then
-	   flink_save_libs="$LIBS"
-	   LIBS="$LIBS $FLIBS"
-	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  if test x"$FLIBS" != x; then
+         flink_save_libs="$LIBS"
+         LIBS="$LIBS $FLIBS"
+         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 extern "C" {void $cfuncdsyev();}
 #ifdef F77_DUMMY_MAIN
@@ -22535,34 +22617,33 @@ $cfuncdsyev()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   coin_need_flibs=yes
-	      flink_try=yes
+            flink_try=yes
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	   LIBS="$flink_save_libs"
-	 fi
+         LIBS="$flink_save_libs"
+       fi
 
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-  esac
-  if test $flink_try = yes ; then
-    if test $coin_need_flibs = no ; then
+    ;;
+esac
+if test $flink_try = yes; then
+  if test $coin_need_flibs = no ; then
        lapack_lflags="-lcomplib.sgimath"
      else
        lapack_lflags="-lcomplib.sgimath $FLIBS"
      fi
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $lapack_lflags" >&5
 $as_echo "yes: $lapack_lflags" >&6; }
-  else
-    lapack_lflags=
+else
+  lapack_lflags=
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-  fi
-  # AC_MSG_NOTICE([Done COIN_TRY_FLINK])
+fi
 
   LIBS="$coin_save_LIBS"
 
@@ -22575,10 +22656,10 @@ $as_echo_n "checking for LAPACK in -lsunperf... " >&6; }
 
   coin_save_LIBS="$LIBS"
   LIBS="-lsunperf $LIBS"
-   # AC_MSG_NOTICE([In COIN_TRY_FLINK])
-  case $ac_ext in
-    f)
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+
+case $ac_ext in
+  f)
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #ifdef F77_DUMMY_MAIN
@@ -22604,16 +22685,15 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-    c)
-      coin_need_flibs=no
-      flink_try=no
-       ac_ext=f
+    ;;
+  c)
+    coin_need_flibs=no
+    flink_try=no
+    ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-
-  case $ac_cv_f77_mangling in
+case $ac_cv_f77_mangling in
   upper*) ac_val="DSYEV" ;;
   lower*) ac_val="dsyev" ;;
   *)      ac_val="unknown" ;;
@@ -22622,15 +22702,13 @@ case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 cfuncdsyev="$ac_val"
 
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-
-      # AC_MSG_NOTICE([COIN_TRY_FLINK: dsyev -> $cfuncdsyev])
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 void $cfuncdsyev();
 #ifdef F77_DUMMY_MAIN
@@ -22652,10 +22730,10 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x ; then
-	   flink_save_libs="$LIBS"
-	   LIBS="$LIBS $FLIBS"
-	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  if test x"$FLIBS" != x; then
+         flink_save_libs="$LIBS"
+         LIBS="$LIBS $FLIBS"
+         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 void $cfuncdsyev();
 #ifdef F77_DUMMY_MAIN
@@ -22676,28 +22754,27 @@ $cfuncdsyev()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   coin_need_flibs=yes
-	      flink_try=yes
+            flint_try=yes
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	   LIBS="$flink_save_libs"
-	 fi
+         LIBS="$flink_save_libs"
+       fi
 
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-    cc|cpp)
-      coin_need_flibs=no
-      flink_try=no
-       ac_ext=f
+    ;;
+  cc|cpp)
+    coin_need_flibs=no
+    flink_try=no
+    ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-
-  case $ac_cv_f77_mangling in
+case $ac_cv_f77_mangling in
   upper*) ac_val="DSYEV" ;;
   lower*) ac_val="dsyev" ;;
   *)      ac_val="unknown" ;;
@@ -22706,14 +22783,13 @@ case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 cfuncdsyev="$ac_val"
 
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 extern "C" {void $cfuncdsyev();}
 #ifdef F77_DUMMY_MAIN
@@ -22735,10 +22811,10 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x ; then
-	   flink_save_libs="$LIBS"
-	   LIBS="$LIBS $FLIBS"
-	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  if test x"$FLIBS" != x; then
+         flink_save_libs="$LIBS"
+         LIBS="$LIBS $FLIBS"
+         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 extern "C" {void $cfuncdsyev();}
 #ifdef F77_DUMMY_MAIN
@@ -22759,34 +22835,33 @@ $cfuncdsyev()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   coin_need_flibs=yes
-	      flink_try=yes
+            flink_try=yes
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	   LIBS="$flink_save_libs"
-	 fi
+         LIBS="$flink_save_libs"
+       fi
 
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-  esac
-  if test $flink_try = yes ; then
-    if test $coin_need_flibs = no ; then
+    ;;
+esac
+if test $flink_try = yes; then
+  if test $coin_need_flibs = no ; then
        lapack_lflags="-lsunperf"
      else
        lapack_lflags="-lsunperf $FLIBS"
      fi
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $lapack_lflags" >&5
 $as_echo "yes: $lapack_lflags" >&6; }
-  else
-    lapack_lflags=
+else
+  lapack_lflags=
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-  fi
-  # AC_MSG_NOTICE([Done COIN_TRY_FLINK])
+fi
 
   LIBS="$coin_save_LIBS"
 
@@ -22803,10 +22878,10 @@ $as_echo_n "checking for LAPACK in -llapack... " >&6; }
 
   coin_save_LIBS="$LIBS"
   LIBS="-llapack $LIBS"
-   # AC_MSG_NOTICE([In COIN_TRY_FLINK])
-  case $ac_ext in
-    f)
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+
+case $ac_ext in
+  f)
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #ifdef F77_DUMMY_MAIN
@@ -22832,16 +22907,15 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-    c)
-      coin_need_flibs=no
-      flink_try=no
-       ac_ext=f
+    ;;
+  c)
+    coin_need_flibs=no
+    flink_try=no
+    ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-
-  case $ac_cv_f77_mangling in
+case $ac_cv_f77_mangling in
   upper*) ac_val="DSYEV" ;;
   lower*) ac_val="dsyev" ;;
   *)      ac_val="unknown" ;;
@@ -22850,15 +22924,13 @@ case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 cfuncdsyev="$ac_val"
 
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-
-      # AC_MSG_NOTICE([COIN_TRY_FLINK: dsyev -> $cfuncdsyev])
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 void $cfuncdsyev();
 #ifdef F77_DUMMY_MAIN
@@ -22880,10 +22952,10 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x ; then
-	   flink_save_libs="$LIBS"
-	   LIBS="$LIBS $FLIBS"
-	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  if test x"$FLIBS" != x; then
+         flink_save_libs="$LIBS"
+         LIBS="$LIBS $FLIBS"
+         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 void $cfuncdsyev();
 #ifdef F77_DUMMY_MAIN
@@ -22904,28 +22976,27 @@ $cfuncdsyev()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   coin_need_flibs=yes
-	      flink_try=yes
+            flint_try=yes
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	   LIBS="$flink_save_libs"
-	 fi
+         LIBS="$flink_save_libs"
+       fi
 
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-    cc|cpp)
-      coin_need_flibs=no
-      flink_try=no
-       ac_ext=f
+    ;;
+  cc|cpp)
+    coin_need_flibs=no
+    flink_try=no
+    ac_ext=f
 ac_compile='$F77 -c $FFLAGS conftest.$ac_ext >&5'
 ac_link='$F77 -o conftest$ac_exeext $FFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_f77_compiler_gnu
-
-  case $ac_cv_f77_mangling in
+case $ac_cv_f77_mangling in
   upper*) ac_val="DSYEV" ;;
   lower*) ac_val="dsyev" ;;
   *)      ac_val="unknown" ;;
@@ -22934,14 +23005,13 @@ case $ac_cv_f77_mangling in *," underscore"*) ac_val="$ac_val"_ ;; esac
 
 cfuncdsyev="$ac_val"
 
-  ac_ext=cpp
+ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 extern "C" {void $cfuncdsyev();}
 #ifdef F77_DUMMY_MAIN
@@ -22963,10 +23033,10 @@ _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   flink_try=yes
 else
-  if test x"$FLIBS" != x ; then
-	   flink_save_libs="$LIBS"
-	   LIBS="$LIBS $FLIBS"
-	   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  if test x"$FLIBS" != x; then
+         flink_save_libs="$LIBS"
+         LIBS="$LIBS $FLIBS"
+         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 extern "C" {void $cfuncdsyev();}
 #ifdef F77_DUMMY_MAIN
@@ -22987,34 +23057,33 @@ $cfuncdsyev()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   coin_need_flibs=yes
-	      flink_try=yes
+            flink_try=yes
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	   LIBS="$flink_save_libs"
-	 fi
+         LIBS="$flink_save_libs"
+       fi
 
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-      ;;
-  esac
-  if test $flink_try = yes ; then
-    if test $coin_need_flibs = no ; then
+    ;;
+esac
+if test $flink_try = yes; then
+  if test $coin_need_flibs = no ; then
        lapack_lflags="-llapack"
      else
        lapack_lflags="-llapack $FLIBS"
      fi
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $lapack_lflags" >&5
 $as_echo "yes: $lapack_lflags" >&6; }
-  else
-    lapack_lflags=
+else
+  lapack_lflags=
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-  fi
-  # AC_MSG_NOTICE([Done COIN_TRY_FLINK])
+fi
 
   LIBS="$coin_save_LIBS"
 
@@ -24208,35 +24277,27 @@ fi
 
 # Finalize libs and cflags for building CoinUtilsLib.
 
-   if test 1 = 1 ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: FINALIZE_FLAGS for CoinUtilsLib:" >&5
-$as_echo "$as_me: FINALIZE_FLAGS for CoinUtilsLib:" >&6;}
-      fi
-      COINUTILSLIB_LFLAGS_NOPC=$COINUTILSLIB_LFLAGS
 
-      COINUTILSLIB_CFLAGS_NOPC=$COINUTILSLIB_CFLAGS
+# do pkg-config calls to complete LIBS and CFLAGS
 
-      if test -n "${COINUTILSLIB_PCFILES}" ; then
-        temp_CFLAGS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --cflags ${COINUTILSLIB_PCFILES}`
-        temp_LFLAGS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --libs ${COINUTILSLIB_PCFILES}`
-        COINUTILSLIB_CFLAGS="$temp_CFLAGS ${COINUTILSLIB_CFLAGS}"
-        COINUTILSLIB_LFLAGS="$temp_LFLAGS ${COINUTILSLIB_LFLAGS}"
-      fi
+  if test -n "${COINUTILSLIB_PCREQUIRES}" ; then
+    temp_CFLAGS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --cflags ${COINUTILSLIB_PCREQUIRES}`
+    temp_LIBS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --libs ${COINUTILSLIB_PCREQUIRES}`
+    COINUTILSLIB_CFLAGS="$temp_CFLAGS ${COINUTILSLIB_CFLAGS}"
+    COINUTILSLIB_LIBS="$temp_LIBS ${COINUTILSLIB_LIBS}"
+  fi
 
-# Change the test to enable / disable debugging output
+  if test 1 = 0 ; then  #change this test to enable a bit of debugging output
+    if test -n "${COINUTILSLIB_CFLAGS}" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: CoinUtilsLib CFLAGS are ${COINUTILSLIB_CFLAGS}" >&5
+$as_echo "$as_me: CoinUtilsLib CFLAGS are ${COINUTILSLIB_CFLAGS}" >&6;}
+    fi
+    if test -n "${COINUTILSLIB_LIBS}" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: CoinUtilsLib LIBS   are ${COINUTILSLIB_LIBS}" >&5
+$as_echo "$as_me: CoinUtilsLib LIBS   are ${COINUTILSLIB_LIBS}" >&6;}
+    fi
+  fi
 
-      if test 1 = 1 ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: COINUTILSLIB_LFLAGS_NOPC: \"${COINUTILSLIB_LFLAGS_NOPC}\"" >&5
-$as_echo "$as_me: COINUTILSLIB_LFLAGS_NOPC: \"${COINUTILSLIB_LFLAGS_NOPC}\"" >&6;}
-        { $as_echo "$as_me:${as_lineno-$LINENO}: COINUTILSLIB_CFLAGS_NOPC: \"${COINUTILSLIB_CFLAGS_NOPC}\"" >&5
-$as_echo "$as_me: COINUTILSLIB_CFLAGS_NOPC: \"${COINUTILSLIB_CFLAGS_NOPC}\"" >&6;}
-        { $as_echo "$as_me:${as_lineno-$LINENO}: adding \"${COINUTILSLIB_PCFILES}\"" >&5
-$as_echo "$as_me: adding \"${COINUTILSLIB_PCFILES}\"" >&6;}
-        { $as_echo "$as_me:${as_lineno-$LINENO}: COINUTILSLIB_LFLAGS: \"${COINUTILSLIB_LFLAGS}\"" >&5
-$as_echo "$as_me: COINUTILSLIB_LFLAGS: \"${COINUTILSLIB_LFLAGS}\"" >&6;}
-        { $as_echo "$as_me:${as_lineno-$LINENO}: COINUTILSLIB_CFLAGS: \"${COINUTILSLIB_CFLAGS}\"" >&5
-$as_echo "$as_me: COINUTILSLIB_CFLAGS: \"${COINUTILSLIB_CFLAGS}\"" >&6;}
-      fi
 
 
 
@@ -24393,12 +24454,11 @@ fi
 
 fi
 
-# Generate a tag file name and a log file name.
+# Generate a tag file name and a log file name
 
-lc_pkg=`echo ${PACKAGE_NAME} | tr [A-Z] [a-z]`
-coin_doxy_tagname=${lc_pkg}_doxy.tag
+coin_doxy_tagname=doxydoc/${PACKAGE}_doxy.tag
 
-coin_doxy_logname=${lc_pkg}_doxy.log
+coin_doxy_logname=doxydoc/${PACKAGE}_doxy.log
 
  if test $coin_have_doxygen = yes; then
   COIN_HAS_DOXYGEN_TRUE=
@@ -24417,19 +24477,58 @@ else
 fi
 
 
-# Process the list of project names and massage each one into the name of
-# a tag file. The value of coin_doxy_tagfiles is substituted for TAGFILES
-# in doxygen.conf.in. Further substitution for @baredocdir_nosub@ will happen
-# as an edit during make install. See comments in Makemain.inc.
+# Process the list of project names and massage them into possible doxygen
+# doc'n directories. Prefer 1) classic external, source processed using
+# a project-specific doxygen.conf, we use the tag file; 2) classic
+# external, source processed using package doxygen.conf; 3) installed
+# doxydoc. Alternatives 1) and 2) are only possible if the directory will be
+# configured, which we can't know unless this is the package base configure,
+# since coin_subdirs is only set there. Hence it's sufficient to check for
+# membership. If we use a tag file from a classic external, exclude the
+# source from doxygen processing when doxygen runs in the base directory.
 
 coin_doxy_tagfiles=
+coin_doxy_excludes=
 tmp=""
 for proj in $tmp ; do
   lc_proj=`echo $proj | tr [A-Z] [a-z]`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for doxygen doc'n for $proj " >&5
+$as_echo_n "checking for doxygen doc'n for $proj ... " >&6; }
   doxytag=${lc_proj}_doxy.tag
-  doxydir="@baredocdir_nosub@/coin-or-${lc_proj}/doxydoc"
-  coin_doxy_tagfiles="$coin_doxy_tagfiles $doxydir/$doxytag=$doxydir/html"
+  doxyfound=no
+  # proj will be configured, hence doxydoc present in build tree
+  doxysrcdir="${srcdir}/../${proj}"
+  # AC_MSG_NOTICE([Considering $doxysrcdir (base)])
+  if test -d "$doxysrcdir" ; then
+    # with a doxydoc directory?
+    doxydir="$doxysrcdir/doxydoc"
+    # AC_MSG_NOTICE([Considering $doxydir (base)])
+    # AC_MSG_NOTICE([Subdirs: $coin_subdirs)])
+    if test -d "$doxydir" ; then
+      # use tag file; don't process source
+      doxydir="../${proj}/doxydoc"
+      coin_doxy_tagfiles="$coin_doxy_tagfiles $doxydir/$doxytag=../../$doxydir/html"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $doxydir (tag)" >&5
+$as_echo "$doxydir (tag)" >&6; }
+      coin_doxy_excludes="$coin_doxy_excludes */${proj}"
+    else
+      # will process the source -- nothing further to be done here
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $doxysrcdir (src)" >&5
+$as_echo "$doxysrcdir (src)" >&6; }
+    fi
+    doxyfound=yes
+  fi
+  # Not built, fall back to installed tag file
+  if test $doxyfound = no ; then
+    eval doxydir="${datadir}/coin/doc/${proj}/doxydoc"
+    # AC_MSG_NOTICE([Considering $doxydir (install)])
+    # AC_MSG_NOTICE([Subdirs: $coin_subdirs)])
+    coin_doxy_tagfiles="$coin_doxy_tagfiles $doxydir/$doxytag=$doxydir/html"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $doxydir (tag)" >&5
+$as_echo "$doxydir (tag)" >&6; }
+  fi
 done
+
 
 
 
@@ -24455,7 +24554,7 @@ ac_config_links="$ac_config_links test/plan.mod:test/plan.mod"
 
 # Finally, we let configure write all the output...
 
-  cat >confcache <<\_ACEOF
+cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
 # scripts and configure runs, see configure's option --config-cache.
@@ -24598,10 +24697,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCXX\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${DEPENDENCY_LINKING_TRUE}" && test -z "${DEPENDENCY_LINKING_FALSE}"; then
-  as_fn_error $? "conditional \"DEPENDENCY_LINKING\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${COIN_HAS_PKGCONFIG_TRUE}" && test -z "${COIN_HAS_PKGCONFIG_FALSE}"; then
@@ -25241,10 +25336,10 @@ AMDEP_TRUE="$AMDEP_TRUE" ac_aux_dir="$ac_aux_dir"
 sed_quote_subst='$sed_quote_subst'
 double_quote_subst='$double_quote_subst'
 delay_variable_subst='$delay_variable_subst'
-macro_version='`$ECHO "$macro_version" | $SED "$delay_single_quote_subst"`'
-macro_revision='`$ECHO "$macro_revision" | $SED "$delay_single_quote_subst"`'
 enable_shared='`$ECHO "$enable_shared" | $SED "$delay_single_quote_subst"`'
 enable_static='`$ECHO "$enable_static" | $SED "$delay_single_quote_subst"`'
+macro_version='`$ECHO "$macro_version" | $SED "$delay_single_quote_subst"`'
+macro_revision='`$ECHO "$macro_revision" | $SED "$delay_single_quote_subst"`'
 pic_mode='`$ECHO "$pic_mode" | $SED "$delay_single_quote_subst"`'
 enable_fast_install='`$ECHO "$enable_fast_install" | $SED "$delay_single_quote_subst"`'
 shared_archive_member_spec='`$ECHO "$shared_archive_member_spec" | $SED "$delay_single_quote_subst"`'
@@ -26491,15 +26586,15 @@ available_tags='CXX F77 '
 
 # ### BEGIN LIBTOOL CONFIG
 
-# Which release of libtool.m4 was used?
-macro_version=$macro_version
-macro_revision=$macro_revision
-
 # Whether or not to build shared libraries.
 build_libtool_libs=$enable_shared
 
 # Whether or not to build static libraries.
 build_old_libs=$enable_static
+
+# Which release of libtool.m4 was used?
+macro_version=$macro_version
+macro_revision=$macro_revision
 
 # What type of objects to build.
 pic_mode=$pic_mode
@@ -27302,9 +27397,12 @@ compiler_lib_search_path=$lt_compiler_lib_search_path_F77
 _LT_EOF
 
  ;;
-    "libtoolpatch":C) sed -e 's|AR_FLAGS |AR_FLAGS|g' libtool > libtool.tmp
-	 mv libtool.tmp libtool
-	 chmod 755 libtool ;;
+    "libtoolpatch":C)
+       # eliminate space after AR_FLAGS
+       sed -e 's|AR_FLAGS |AR_FLAGS|g' libtool > libtool.tmp
+       mv libtool.tmp libtool
+       chmod 755 libtool
+	  ;;
 
   esac
 done # for ac_tag
@@ -27344,9 +27442,9 @@ $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: In case of trouble, first consult the troubleshooting page at https://projects.coin-or.org/BuildTools/wiki/user-troubleshooting" >&5
+{ $as_echo "$as_me:${as_lineno-$LINENO}: In case of trouble, first consult the troubleshooting page at https://projects.coin-or.org/BuildTools/wiki/user-troubleshooting" >&5
 $as_echo "$as_me: In case of trouble, first consult the troubleshooting page at https://projects.coin-or.org/BuildTools/wiki/user-troubleshooting" >&6;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: Configuration of $PACKAGE_NAME successful" >&5
+{ $as_echo "$as_me:${as_lineno-$LINENO}: Configuration of $PACKAGE_NAME successful" >&5
 $as_echo "$as_me: Configuration of $PACKAGE_NAME successful" >&6;}
 
 

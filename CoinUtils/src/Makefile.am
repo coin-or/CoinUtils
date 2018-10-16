@@ -99,11 +99,8 @@ libCoinUtils_la_SOURCES = \
 # This is for libtool.
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
-# Add library dependencies to libCoinUtils, if DEPENDENCY_LINKING is enabled.
-
-if DEPENDENCY_LINKING
+# Add library dependencies to libCoinUtils.
 libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
-endif
 
 # Here list all include flags, relative to this "srcdir" directory. This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin.

@@ -113,7 +113,7 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_coinutils_inttypes.m4 \
 	$(top_srcdir)/m4/ac_coinutils_mempool.m4 \
 	$(top_srcdir)/m4/ac_coinutils_threads.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(includecoin_HEADERS)
@@ -151,8 +151,7 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includecoindir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-@DEPENDENCY_LINKING_TRUE@libCoinUtils_la_DEPENDENCIES =  \
-@DEPENDENCY_LINKING_TRUE@	$(am__DEPENDENCIES_1)
+libCoinUtils_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinDenseVector.lo CoinError.lo CoinFactorization1.lo \
 	CoinFactorization2.lo CoinFactorization3.lo \
@@ -279,11 +278,9 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 COINUTILSLIB_CFLAGS = @COINUTILSLIB_CFLAGS@
-COINUTILSLIB_CFLAGS_NOPC = @COINUTILSLIB_CFLAGS_NOPC@
 COINUTILSLIB_CFLAGS_PUB = @COINUTILSLIB_CFLAGS_PUB@
 COINUTILSLIB_DATA_PUB = @COINUTILSLIB_DATA_PUB@
 COINUTILSLIB_LFLAGS = @COINUTILSLIB_LFLAGS@
-COINUTILSLIB_LFLAGS_NOPC = @COINUTILSLIB_LFLAGS_NOPC@
 COINUTILSLIB_LFLAGS_PUB = @COINUTILSLIB_LFLAGS_PUB@
 COINUTILSLIB_LIBS = @COINUTILSLIB_LIBS@
 COINUTILSLIB_PCFILES = @COINUTILSLIB_PCFILES@
@@ -376,6 +373,7 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
+coin_doxy_excludes = @coin_doxy_excludes@
 coin_doxy_logname = @coin_doxy_logname@
 coin_doxy_tagfiles = @coin_doxy_tagfiles@
 coin_doxy_tagname = @coin_doxy_tagname@
@@ -527,8 +525,8 @@ libCoinUtils_la_SOURCES = \
 # This is for libtool.
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
-# Add library dependencies to libCoinUtils, if DEPENDENCY_LINKING is enabled.
-@DEPENDENCY_LINKING_TRUE@libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
+# Add library dependencies to libCoinUtils.
+libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
 
 # Here list all include flags, relative to this "srcdir" directory. This
 # "cygpath" stuff is necessary to compile with native compilers on Cygwin.
