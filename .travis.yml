@@ -21,7 +21,6 @@ matrix:
 
 before_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install bash gcc; brew link --overwrite gcc; gfortran --version; fi
-  - git clone https://github.com/coin-or-tools/BuildTools
-  - bash BuildTools/get.dependencies.sh fetch > /dev/null
+  - bash CoinUtils/get.dependencies.sh fetch > /dev/null
 
-script: bash BuildTools/get.dependencies.sh build --verbosity=2 --test 
+script: bash CoinUtils/get.dependencies.sh build --verbosity=2 --test 
