@@ -377,6 +377,9 @@ const CoinPresolveAction
       continue ;
     }
 #endif
+    // check both continuous or both integer
+    if (prob->isInteger(j1)!=prob->isInteger(j2))
+      continue;
 /*
   These really are duplicate columns. Grab values for convenient reference.
   Convert the objective coefficients for minimization.
