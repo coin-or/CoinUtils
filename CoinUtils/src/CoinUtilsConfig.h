@@ -35,8 +35,8 @@
  * we want it to be __declspec(dllexport) when building a DLL on Windows
  */
 #if defined(COINUTILS_BUILD) && defined(_WIN32) && defined(DLL_EXPORT)
-#undef COINUTILS_EXPORT
-#define COINUTILS_EXPORT __declspec(dllexport)
+#undef COINUTILSLIB_EXPORT
+#define COINUTILSLIB_EXPORT __declspec(dllexport)
 #endif
 
 #else  /* HAVE_CONFIG_H */

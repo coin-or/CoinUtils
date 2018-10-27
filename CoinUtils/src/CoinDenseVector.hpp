@@ -64,7 +64,7 @@ Here is a sample usage:
     assert( r.sum() == 10.+40.+1.+50. );
 @endverbatim
 */
-template <typename T> class COINUTILSLIB_EXPORT CoinDenseVector {
+template <typename T> class CoinDenseVector {
 private:
    /**@name Private member data */
    //@{
