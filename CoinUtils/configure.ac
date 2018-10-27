@@ -91,12 +91,10 @@ AC_COINUTILS_MEMPOOL(4096,no)
 
 # Initialise variables for CoinUtilsLib
 
-AC_COIN_INIT_LIBVARS([CoinUtilsLib],
-		     [-L\${libdir} -lCoinUtils],[-I\${includedir}])
+AC_COIN_INIT_LIBVARS([CoinUtilsLib],[-L\${libdir} -lCoinUtils],[-I\${includedir}])
 
 # Collect information required to use component libraries.
 
-# AC_COIN_CHK_BLAS(CoinUtilsLib)
 AC_COIN_CHK_LAPACK(CoinUtilsLib)
 AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib],[],[build],[])
 AC_COIN_CHK_PKG(Sample,[],[coindatasample],[],dataonly)

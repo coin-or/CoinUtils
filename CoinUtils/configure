@@ -17574,7 +17574,6 @@ $as_echo "$as_me: CoinUtils mempool will not be used." >&6;}
 
 # Collect information required to use component libraries.
 
-# AC_COIN_CHK_BLAS(CoinUtilsLib)
 
 
 
