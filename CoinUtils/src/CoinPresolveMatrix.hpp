@@ -201,7 +201,6 @@ class COINUTILSLIB_EXPORT CoinPresolveAction
   CoinPrePostsolveMatrix, CoinPresolveMatrix, and CoinPostsolveMatrix.
 */
 class COINUTILSLIB_EXPORT ClpSimplex;
-class COINUTILSLIB_EXPORT OsiSolverInterface;
 
 /*
   CoinWarmStartBasis is required for methods in CoinPrePostsolveMatrix
@@ -278,15 +277,6 @@ class COINUTILSLIB_EXPORT CoinPrePostsolveMatrix
   */
   CoinPrePostsolveMatrix(int ncols_alloc, int nrows_alloc,
 			 CoinBigIndex nelems_alloc) ;
-
-  /*! \brief Generic OSI constructor
-
-    See OSI code for the definition.
-  */
-  CoinPrePostsolveMatrix(const OsiSolverInterface * si,
-			int ncols_,
-			int nrows_,
-			CoinBigIndex nelems_);
 
   /*! ClpOsi constructor
 
@@ -868,27 +858,6 @@ class COINUTILSLIB_EXPORT CoinPresolveMatrix : public CoinPrePostsolveMatrix
 			    int nrows0,
 			    int ncols0,
 			    CoinBigIndex nelems0);
-  /*! \brief Generic OSI constructor
-
-    See OSI code for the definition.
-  */
-  CoinPresolveMatrix(int ncols0,
-		     double maxmin,
-		     // end prepost members
-		     OsiSolverInterface * si,
-		     // rowrep
-		     int nrows,
-		     CoinBigIndex nelems,
-		     bool doStatus,
-		     double nonLinearVariable,
-                     const char * prohibited,
-		     const char * rowProhibited=NULL);
-
-  /*! \brief Update the model held by a generic OSI */
-  void update_model(OsiSolverInterface * si,
-			    int nrows0,
-			    int ncols0,
-			    CoinBigIndex nelems0);
 
   /// Destructor
   ~CoinPresolveMatrix();
@@ -1438,25 +1407,6 @@ class COINUTILSLIB_EXPORT CoinPostsolveMatrix : public CoinPrePostsolveMatrix
     See Clp code for the definition.
   */
   CoinPostsolveMatrix(ClpSimplex * si,
-
-		   int ncols0,
-		   int nrows0,
-		   CoinBigIndex nelems0,
-		     
-		   double maxmin_,
-		   // end prepost members
-
-		   double *sol,
-		   double *acts,
-
-		   unsigned char *colstat,
-		   unsigned char *rowstat);
-
-  /*! \brief Generic OSI constructor
-
-    See OSI code for the definition.
-  */
-  CoinPostsolveMatrix(OsiSolverInterface * si,
 
 		   int ncols0,
 		   int nrows0,
