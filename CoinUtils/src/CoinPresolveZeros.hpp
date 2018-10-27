@@ -54,6 +54,7 @@ class COINUTILSLIB_EXPORT drop_zero_coefficients_action : public CoinPresolveAct
   virtual ~drop_zero_coefficients_action() { deleteAction(zeros_,dropped_zero*); }
 };
 
+COINUTILSLIB_EXPORT
 const CoinPresolveAction *drop_zero_coefficients(CoinPresolveMatrix *prob,
 					      const CoinPresolveAction *next);
 

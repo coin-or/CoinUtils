@@ -1488,6 +1488,7 @@ class COINUTILSLIB_EXPORT CoinPostsolveMatrix : public CoinPrePostsolveMatrix
     \brief Initialise linked list for major vector order in bulk storage
 */
 
+COINUTILSLIB_EXPORT
 void presolve_make_memlists(/*CoinBigIndex *starts,*/ int *lengths,
 			    presolvehlink *link, int n);
 

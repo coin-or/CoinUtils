@@ -23,7 +23,7 @@
 /** WarmStart information that is only a vector */
 
 template <typename T>
-class COINUTILSLIB_EXPORT CoinWarmStartVector : public virtual CoinWarmStart
+class CoinWarmStartVector : public virtual CoinWarmStart
 {
 protected:
   inline void gutsOfDestructor() {

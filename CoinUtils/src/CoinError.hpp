@@ -16,6 +16,7 @@
 
 /** A function to block the popup windows that windows creates when the code
     crashes */
+COINUTILSLIB_EXPORT
 void WindowsErrorPopupBlocker();
 
 //-------------------------------------------------------------------

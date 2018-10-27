@@ -79,6 +79,7 @@ class COINUTILSLIB_EXPORT remove_fixed_action : public CoinPresolveAction {
   remove_fixed_action::presolve() for processing.
 */
 
+COINUTILSLIB_EXPORT
 const CoinPresolveAction *remove_fixed(CoinPresolveMatrix *prob,
 				    const CoinPresolveAction *next);
 
@@ -163,6 +164,7 @@ class COINUTILSLIB_EXPORT make_fixed_action : public CoinPresolveAction {
   make_fixed_action::presolve() for processing.
 */
 
+COINUTILSLIB_EXPORT
 const CoinPresolveAction *make_fixed(CoinPresolveMatrix *prob,
 				    const CoinPresolveAction *next) ;
 
@@ -177,5 +179,6 @@ const CoinPresolveAction *make_fixed(CoinPresolveMatrix *prob,
   The relation to make_fixed_action is tenuous, but this transform should be
   attempted before the initial round of variable fixing.
 */
+COINUTILSLIB_EXPORT
 void transferCosts(CoinPresolveMatrix * prob);
 #endif
