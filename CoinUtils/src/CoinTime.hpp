@@ -6,6 +6,8 @@
 #ifndef _CoinTime_hpp
 #define _CoinTime_hpp
 
+#include "CoinUtilsConfig.h"
+
 // Uncomment the next three lines for thorough memory initialisation.
 // #ifndef ZEROFAULT
 // # define ZEROFAULT
