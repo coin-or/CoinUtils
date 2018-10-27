@@ -8,7 +8,7 @@ environment:
       HOST_ARCH_ARG: --enable-msvc
       ADD_PATH: /mingw64/bin
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      ARCH: win32-msvc14-static
+      ARCH: win32-msvc14
       HOST_ARCH_ARG: --enable-msvc --disable-shared --enable-static
       ADD_PATH: /mingw64/bin
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
