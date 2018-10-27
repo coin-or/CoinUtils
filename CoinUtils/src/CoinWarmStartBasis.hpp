@@ -37,7 +37,7 @@
 	  better sanity checks.
 */
 
-class CoinWarmStartBasis : public virtual CoinWarmStart {
+class COINUTILSLIB_EXPORT CoinWarmStartBasis : public virtual CoinWarmStart {
 public:
 
   /*! \brief Enum for status of variables
@@ -400,7 +400,7 @@ const char *statusName(CoinWarmStartBasis::Status status) ;
 	CoinWarmStartBasis, so changes are definitely required.
 */
 
-class CoinWarmStartBasisDiff : public virtual CoinWarmStartDiff
+class COINUTILSLIB_EXPORT CoinWarmStartBasisDiff : public virtual CoinWarmStartDiff
 { public:
 
   /*! \brief `Virtual constructor' */

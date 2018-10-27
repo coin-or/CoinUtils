@@ -18,7 +18,7 @@
 
 //#############################################################################
 
-class BitVector128 {
+class COINUTILSLIB_EXPORT BitVector128 {
   friend bool operator<(const BitVector128& b0, const BitVector128& b1);
 private:
   unsigned int bits_[4];
@@ -39,7 +39,7 @@ bool operator<(const BitVector128& b0, const BitVector128& b1);
 /** A class from which the real tree nodes should be derived from. Some of the
     data that undoubtedly exist in the real tree node is replicated here for
     fast access. This class is used in the various comparison functions. */
-class CoinTreeNode {
+class COINUTILSLIB_EXPORT CoinTreeNode {
 protected:
     CoinTreeNode() :
 	depth_(-1),
@@ -107,7 +107,7 @@ public:
 
 //==============================================================================
 
-class CoinTreeSiblings {
+class COINUTILSLIB_EXPORT CoinTreeSiblings {
 private:
     CoinTreeSiblings();
     CoinTreeSiblings& operator=(const CoinTreeSiblings&);
@@ -214,7 +214,7 @@ struct CoinSearchTreeCompareBest {
 
 //#############################################################################
 
-class CoinSearchTreeBase
+class COINUTILSLIB_EXPORT CoinSearchTreeBase
 {
 private:
     CoinSearchTreeBase(const CoinSearchTreeBase&);
@@ -401,7 +401,7 @@ enum CoinNodeAction {
     CoinDiveIntoNode
 };
 
-class CoinSearchTreeManager
+class COINUTILSLIB_EXPORT CoinSearchTreeManager
 {
 private:
     CoinSearchTreeManager(const CoinSearchTreeManager&);

@@ -17,6 +17,8 @@
 #include <string>
 #include <cstdio>
 
+#include "CoinUtilsConfig.h"
+
 /*! \class CoinParam
     \brief A base class for `keyword value' command line parameters.
 
@@ -72,7 +74,7 @@
   \e not case sensitive.
 */
 
-class CoinParam
+class COINUTILSLIB_EXPORT CoinParam
 {
  
 public:

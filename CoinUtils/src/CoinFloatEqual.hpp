@@ -43,7 +43,7 @@
   the test does not consider the relative magnitude of the operands.
 */
 
-class CoinAbsFltEq
+class COINUTILSLIB_EXPORT CoinAbsFltEq
 {
   public:
 
@@ -107,7 +107,7 @@ class CoinAbsFltEq
   epsilon calculated as epsilon_*(1+CoinMax(|f1|,|f2|)).
 */
 
-class CoinRelFltEq
+class COINUTILSLIB_EXPORT CoinRelFltEq
 {
   public:
 

@@ -8,7 +8,7 @@
 #include <string>
 
 /// Base class for FileIO classes.
-class CoinFileIOBase
+class COINUTILSLIB_EXPORT CoinFileIOBase
 {
 public:
   /// Constructor.
@@ -34,7 +34,7 @@ private:
 };
 
 /// Abstract base class for file input classes.
-class CoinFileInput: public CoinFileIOBase
+class COINUTILSLIB_EXPORT CoinFileInput: public CoinFileIOBase
 {
 public:
   /// indicates whether CoinFileInput supports gzip'ed files
@@ -77,7 +77,7 @@ public:
 };
 
 /// Abstract base class for file output classes.
-class CoinFileOutput: public CoinFileIOBase
+class COINUTILSLIB_EXPORT CoinFileOutput: public CoinFileIOBase
 {
 public:
 

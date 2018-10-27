@@ -16,7 +16,7 @@ const CoinPresolveAction *tighten_zero_cost(CoinPresolveMatrix *prob,
 
 #define	DO_TIGHTEN	30
 
-class do_tighten_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT do_tighten_action : public CoinPresolveAction {
   do_tighten_action();
   do_tighten_action(const do_tighten_action& rhs);
   do_tighten_action& operator=(const do_tighten_action& rhs);

@@ -48,7 +48,7 @@ static const std::size_t CoinAllocRoundMask = ~((std::size_t)7);
 
 //#############################################################################
 
-class CoinMempool 
+class COINUTILSLIB_EXPORT CoinMempool 
 {
 private:
 #if (COIN_MEMPOOL_SAVE_BLOCKHEADS == 1)
@@ -109,7 +109,7 @@ public:
     pointer pointing afterwards is returned.
 */
 
-class CoinAlloc
+class COINUTILSLIB_EXPORT CoinAlloc
 {
 private:
   CoinMempool* pool_;

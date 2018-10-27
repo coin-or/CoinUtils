@@ -17,7 +17,7 @@
 #include "CoinTypes.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinDenseFactorization.hpp"
-class CoinPackedMatrix;
+class COINUTILSLIB_EXPORT CoinPackedMatrix;
 /** This deals with Factorization and Updates
     This is ripped off from OSL!!!!!!!!!
 
@@ -103,7 +103,7 @@ typedef struct _EKKfactinfo {
   int maxNNetas;
 } EKKfactinfo;
 
-class CoinOslFactorization : public CoinOtherFactorization {
+class COINUTILSLIB_EXPORT CoinOslFactorization : public CoinOtherFactorization {
    friend void CoinOslFactorizationUnitTest( const std::string & mpsDir );
 
 public:

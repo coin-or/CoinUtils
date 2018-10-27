@@ -31,7 +31,7 @@ const int DROP_COL = 4;
   \todo Confirm correct behaviour with solution in presolve.
 */
 
-class drop_empty_cols_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT drop_empty_cols_action : public CoinPresolveAction {
 private:
   const int nactions_;
 
@@ -83,7 +83,7 @@ private:
 
   \todo Confirm behaviour when a solution is present in presolve.
 */
-class drop_empty_rows_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT drop_empty_rows_action : public CoinPresolveAction {
 private:
   struct action {
     double rlo;

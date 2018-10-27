@@ -11,7 +11,7 @@
 #include "CoinPragma.hpp"
 #include "CoinError.hpp"
 
-class CoinPackedVector;
+class COINUTILSLIB_EXPORT CoinPackedVector;
 
 /** Abstract base class for various sparse vectors.
 

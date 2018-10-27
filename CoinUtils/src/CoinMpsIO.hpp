@@ -18,7 +18,7 @@
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessageHandler.hpp"
 #include "CoinFileIO.hpp"
-class CoinModel;
+class COINUTILSLIB_EXPORT CoinModel;
 
 /// The following lengths are in decreasing order (for 64 bit etc)
 /// Large enough to contain element index
@@ -56,7 +56,7 @@ enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
 };
 class COINUTILSLIB_EXPORT CoinMpsIO;
 /// Very simple code for reading MPS data
-class CoinMpsCardReader {
+class COINUTILSLIB_EXPORT CoinMpsCardReader {
 
 public:
 
@@ -214,11 +214,11 @@ public:
 
 //#############################################################################
 #ifdef USE_SBB
-class SbbObject;
-class SbbModel;
+class COINUTILSLIB_EXPORT SbbObject;
+class COINUTILSLIB_EXPORT SbbModel;
 #endif
 /// Very simple class for containing data on set
-class CoinSet {
+class COINUTILSLIB_EXPORT CoinSet {
 
 public:
 
@@ -295,7 +295,7 @@ protected:
 
 //#############################################################################
 /// Very simple class for containing SOS set
-class CoinSosSet : public CoinSet{
+class COINUTILSLIB_EXPORT CoinSosSet : public CoinSet{
 
 public:
 

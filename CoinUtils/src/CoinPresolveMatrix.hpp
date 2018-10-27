@@ -102,7 +102,7 @@ const double ZTOLDP2 = 1e-10 ;
 #define	PRESOLVEFINITE(n) (-PRESOLVE_INF < (n) && (n) < PRESOLVE_INF)
 
 
-class CoinPostsolveMatrix ;
+class COINUTILSLIB_EXPORT CoinPostsolveMatrix ;
 
 /*! \class CoinPresolveAction
     \brief Abstract base class of all presolve routines.
@@ -153,7 +153,7 @@ class CoinPostsolveMatrix ;
 	expected that all derived subclasses of \c CoinPresolveAction also have
 	this property.
 */
-class CoinPresolveAction
+class COINUTILSLIB_EXPORT CoinPresolveAction
 {
  public:
   /*! \brief Stub routine to throw exceptions.
@@ -200,14 +200,14 @@ class CoinPresolveAction
   These are needed for OSI-aware constructors associated with
   CoinPrePostsolveMatrix, CoinPresolveMatrix, and CoinPostsolveMatrix.
 */
-class ClpSimplex;
-class OsiSolverInterface;
+class COINUTILSLIB_EXPORT ClpSimplex;
+class COINUTILSLIB_EXPORT OsiSolverInterface;
 
 /*
   CoinWarmStartBasis is required for methods in CoinPrePostsolveMatrix
   that accept/return a CoinWarmStartBasis object.
 */
-class CoinWarmStartBasis ;
+class COINUTILSLIB_EXPORT CoinWarmStartBasis ;
 
 /*! \class CoinPrePostsolveMatrix
     \brief Collects all the information about the problem that is needed
@@ -263,7 +263,7 @@ class CoinWarmStartBasis ;
   forseeable future.  -- lh, 111202 --
 */
 
-class CoinPrePostsolveMatrix
+class COINUTILSLIB_EXPORT CoinPrePostsolveMatrix
 {
  public:
 
@@ -736,7 +736,7 @@ const char *statusName (CoinPrePostsolveMatrix::Status status) ;
    row-major matrix, of course.
 */
 
-class presolvehlink
+class COINUTILSLIB_EXPORT presolvehlink
 { public:
   int pre, suc;
 } ;
@@ -833,7 +833,7 @@ inline void PRESOLVE_MOVE_LINK(presolvehlink *link, int i, int j)
   forseeable future.  -- lh, 111202 --
 */
 
-class CoinPresolveMatrix : public CoinPrePostsolveMatrix
+class COINUTILSLIB_EXPORT CoinPresolveMatrix : public CoinPrePostsolveMatrix
 {
  public:
 
@@ -1419,7 +1419,7 @@ class CoinPresolveMatrix : public CoinPrePostsolveMatrix
   not be here, but for historical reasons they will likely remain for the
   forseeable future.  -- lh, 111202 --
 */
-class CoinPostsolveMatrix : public CoinPrePostsolveMatrix
+class COINUTILSLIB_EXPORT CoinPostsolveMatrix : public CoinPrePostsolveMatrix
 {
  public:
 

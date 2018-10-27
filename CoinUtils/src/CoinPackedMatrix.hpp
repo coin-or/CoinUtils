@@ -12,7 +12,7 @@
 #include "CoinPackedVectorBase.hpp"
 #include "CoinShallowPackedVector.hpp"
 #else
-class CoinRelFltEq;
+class COINUTILSLIB_EXPORT CoinRelFltEq;
 #endif
 
 /** Sparse Matrix Base Class

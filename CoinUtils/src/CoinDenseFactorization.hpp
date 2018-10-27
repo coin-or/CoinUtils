@@ -22,9 +22,9 @@
 #if COIN_FACTORIZATION_DENSE_CODE == 2
 #undef COIN_FACTORIZATION_DENSE_CODE
 #endif
-class CoinPackedMatrix;
+class COINUTILSLIB_EXPORT CoinPackedMatrix;
 /// Abstract base class which also has some scalars so can be used from Dense or Simp
-class CoinOtherFactorization {
+class COINUTILSLIB_EXPORT CoinOtherFactorization {
 
 public:
 
@@ -282,7 +282,7 @@ protected:
 
 
 
-class CoinDenseFactorization : public CoinOtherFactorization {
+class COINUTILSLIB_EXPORT CoinDenseFactorization : public CoinOtherFactorization {
    friend void CoinDenseFactorizationUnitTest( const std::string & mpsDir );
 
 public:

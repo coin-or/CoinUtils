@@ -26,7 +26,7 @@
   to the CoinPresolveMatrix and CoinPostsolveMatrix classes that will only be
   used for debugging. That's not too attractive either.
 */
-class CoinPresolveMonitor
+class COINUTILSLIB_EXPORT CoinPresolveMonitor
 {
   public:
 

@@ -151,7 +151,7 @@ struct symrec
      
 typedef struct symrec symrec;
 
-class CoinYacc {
+class COINUTILSLIB_EXPORT CoinYacc {
 private:
   CoinYacc(const CoinYacc& rhs);
   CoinYacc& operator=(const CoinYacc& rhs);
@@ -180,7 +180,7 @@ public:
   double unsetValue;
 };
 
-class CoinModelHash {
+class COINUTILSLIB_EXPORT CoinModelHash {
   
 public:
   /**@name Constructors, destructor */
@@ -253,7 +253,7 @@ private:
   //@}
 };
 /// For int,int hashing
-class CoinModelHash2 {
+class COINUTILSLIB_EXPORT CoinModelHash2 {
   
 public:
   /**@name Constructors, destructor */
@@ -312,7 +312,7 @@ private:
   CoinBigIndex lastSlot_;
   //@}
 };
-class CoinModelLinkedList {
+class COINUTILSLIB_EXPORT CoinModelLinkedList {
   
 public:
   /**@name Constructors, destructor */

@@ -24,7 +24,7 @@
   the value of an involved variable to one of its bounds. A constraint can
   force more than one variable.
 */
-class forcing_constraint_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT forcing_constraint_action : public CoinPresolveAction {
   forcing_constraint_action();
   forcing_constraint_action(const forcing_constraint_action& rhs);
   forcing_constraint_action& operator=(const forcing_constraint_action& rhs);

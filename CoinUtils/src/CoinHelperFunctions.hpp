@@ -952,7 +952,7 @@ CoinStrlenAsInt(const char * string)
 /** Class for thread specific random numbers
 */
 #if defined COIN_OWN_RANDOM_32
-class CoinThreadRandom  {
+class COINUTILSLIB_EXPORT CoinThreadRandom  {
 public:
   /**@name Constructors, destructor */
 
@@ -1022,7 +1022,7 @@ protected:
   //@}
 };
 #else
-class CoinThreadRandom  {
+class COINUTILSLIB_EXPORT CoinThreadRandom  {
 public:
   /**@name Constructors, destructor */
 

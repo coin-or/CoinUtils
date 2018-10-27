@@ -34,7 +34,7 @@
   singletons. #implied_free_action calls subst_constraint_action to process
   variables that must be reduced to column singletons.
 */
-class subst_constraint_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT subst_constraint_action : public CoinPresolveAction {
 private:
   subst_constraint_action();
   subst_constraint_action(const subst_constraint_action& rhs);

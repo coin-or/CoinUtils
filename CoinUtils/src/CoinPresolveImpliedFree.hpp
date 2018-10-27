@@ -26,7 +26,7 @@
   A similar transform for the case where the variable is not a natural column
   singleton is handled by #subst_constraint_action.
 */
-class implied_free_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT implied_free_action : public CoinPresolveAction {
   struct action {
     int row, col;
     double clo, cup;

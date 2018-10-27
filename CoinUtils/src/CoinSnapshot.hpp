@@ -6,7 +6,7 @@
 #ifndef CoinSnapshot_H
 #define CoinSnapshot_H
 
-class CoinPackedMatrix;
+class COINUTILSLIB_EXPORT CoinPackedMatrix;
 #include "CoinTypes.hpp"
 
 //#############################################################################
@@ -22,7 +22,7 @@ class CoinPackedMatrix;
   the methods that return arrays.
 */
 
-class CoinSnapshot  {
+class COINUTILSLIB_EXPORT CoinSnapshot  {
   
 public:
   

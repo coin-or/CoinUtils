@@ -15,11 +15,11 @@
 #include "CoinTypes.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinDenseFactorization.hpp"
-class CoinPackedMatrix;
+class COINUTILSLIB_EXPORT CoinPackedMatrix;
 
 
 /// pointers used during factorization
-class FactorPointers{
+class COINUTILSLIB_EXPORT FactorPointers{
 public:
     double *rowMax;
     int *firstRowKnonzeros;
@@ -35,7 +35,7 @@ public:
     ~ FactorPointers();
 };
 
-class CoinSimpFactorization : public CoinOtherFactorization {
+class COINUTILSLIB_EXPORT CoinSimpFactorization : public CoinOtherFactorization {
    friend void CoinSimpFactorizationUnitTest( const std::string & mpsDir );
 
 public:

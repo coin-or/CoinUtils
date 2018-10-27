@@ -22,7 +22,7 @@
 #include "CoinTypes.hpp"
 #include "CoinIndexedVector.hpp"
 
-class CoinPackedMatrix;
+class COINUTILSLIB_EXPORT CoinPackedMatrix;
 /** This deals with Factorization and Updates
 
     This class started with a parallel simplex code I was writing in the
@@ -48,7 +48,7 @@ class CoinPackedMatrix;
  */
 
 
-class CoinFactorization {
+class COINUTILSLIB_EXPORT CoinFactorization {
    friend void CoinFactorizationUnitTest( const std::string & mpsDir );
 
 public:

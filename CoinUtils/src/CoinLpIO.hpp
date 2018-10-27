@@ -19,7 +19,7 @@
 
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessage.hpp"
-class CoinSet;
+class COINUTILSLIB_EXPORT CoinSet;
 
 const int MAX_OBJECTIVES = 2;
 
