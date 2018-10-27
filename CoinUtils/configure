@@ -18007,15 +18007,15 @@ $ac_name()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
-           ac_result=success
+           ac_success=yes
 else
-  ac_result=failure
+  ac_success=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_result" >&5
-$as_echo "$ac_result" >&6; }
-        if test $ac_result = success ; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
           break 3
         fi
       done
@@ -18023,7 +18023,7 @@ $as_echo "$ac_result" >&6; }
   done
   LIBS=$ac_save_LIBS
 
-  if test $ac_result = success ; then
+  if test $ac_success = yes ; then
     :
     else as_fn_error $? "Could not find dsyev in Lapack" "$LINENO" 5
   fi
@@ -18079,15 +18079,15 @@ $ac_name()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
-           ac_result=success
+           ac_success=yes
 else
-  ac_result=failure
+  ac_success=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_result" >&5
-$as_echo "$ac_result" >&6; }
-        if test $ac_result = success ; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
           break 3
         fi
       done
@@ -18095,7 +18095,7 @@ $as_echo "$ac_result" >&6; }
   done
   LIBS=$ac_save_LIBS
 
-  if test $ac_result = success ; then
+  if test $ac_success = yes ; then
 
           coin_has_lapack=yes
           lapack_lflags=-lcomplib.sgimath
@@ -18148,15 +18148,15 @@ $ac_name()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
-           ac_result=success
+           ac_success=yes
 else
-  ac_result=failure
+  ac_success=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_result" >&5
-$as_echo "$ac_result" >&6; }
-        if test $ac_result = success ; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
           break 3
         fi
       done
@@ -18164,7 +18164,7 @@ $as_echo "$ac_result" >&6; }
   done
   LIBS=$ac_save_LIBS
 
-  if test $ac_result = success ; then
+  if test $ac_success = yes ; then
 
           coin_has_lapack=yes
           lapack_lflags=-lsunperf
@@ -18217,15 +18217,15 @@ $ac_name()
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
   dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
-           ac_result=success
+           ac_success=yes
 else
-  ac_result=failure
+  ac_success=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_result" >&5
-$as_echo "$ac_result" >&6; }
-        if test $ac_result = success ; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
           break 3
         fi
       done
@@ -18233,7 +18233,7 @@ $as_echo "$ac_result" >&6; }
   done
   LIBS=$ac_save_LIBS
 
-  if test $ac_result = success ; then
+  if test $ac_success = yes ; then
 
       coin_has_lapack=yes
       lapack_lflags=-llapack
@@ -19443,6 +19443,20 @@ $as_echo "$as_me: FINALIZE_FLAGS for CoinUtilsLib:" >&6;}
         COINUTILSLIB_CFLAGS="$temp_CFLAGS ${COINUTILSLIB_CFLAGS}"
         COINUTILSLIB_LFLAGS="$temp_LFLAGS ${COINUTILSLIB_LFLAGS}"
       fi
+
+      # setup XYZ_EXPORT symbol for library users
+      libexport_attribute=
+      if test "$enable_shared" = yes ; then
+        # or do we also need this for GCC on Windows?
+        case $CC in cl* | */cl* | icl* | */icl* )
+          libexport_attribute="__declspec(dllimport)"
+        esac
+      fi
+
+cat >>confdefs.h <<_ACEOF
+#define COINUTILSLIB_EXPORT $libexport_attribute
+_ACEOF
+
 
 # Define BUILDTOOLS_DEBUG to enable debugging output
 

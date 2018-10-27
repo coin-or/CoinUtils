@@ -101,7 +101,7 @@ Notes: <UL>
       inserted anywhere.
 </UL>
 */
-class CoinLpIO {
+class COINUTILSLIB_EXPORT CoinLpIO {
       friend void CoinLpIOUnitTest(const std::string & lpDir); 
 public:
 

@@ -54,7 +54,7 @@ enum COINMpsType { COIN_N_ROW, COIN_E_ROW, COIN_L_ROW, COIN_G_ROW,
 		   COIN_BS_BASIS, COIN_XL_BASIS, COIN_XU_BASIS,
 		   COIN_LL_BASIS, COIN_UL_BASIS, COIN_UNKNOWN_MPS_TYPE
 };
-class CoinMpsIO;
+class COINUTILSLIB_EXPORT CoinMpsIO;
 /// Very simple code for reading MPS data
 class CoinMpsCardReader {
 
@@ -338,7 +338,7 @@ protected:
     as the same conventions are used.
 */
 
-class CoinMpsIO {
+class COINUTILSLIB_EXPORT CoinMpsIO {
    friend void CoinMpsIOUnitTest(const std::string & mpsDir);
 
 public:

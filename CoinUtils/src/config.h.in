@@ -1,5 +1,8 @@
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Library Visibility Attribute */
+#undef COINUTILSLIB_EXPORT
+
 /* Define to 1 if cstdint is available for CoinUtils */
 #undef COINUTILS_HAS_CSTDINT
 

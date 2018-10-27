@@ -101,7 +101,7 @@ Here is a sample usage:
     assert( r.sum() == 10.+40.+1.+50. );
 @endverbatim
 */
-class CoinIndexedVector {
+class COINUTILSLIB_EXPORT CoinIndexedVector {
    friend void CoinIndexedVectorUnitTest();
   
 public:

@@ -39,7 +39,7 @@ It contains:
   </ul>
   For asserts class=> optional hint
 */
-class CoinError  {
+class COINUTILSLIB_EXPORT CoinError  {
     friend void CoinErrorUnitTest();
 
 private:

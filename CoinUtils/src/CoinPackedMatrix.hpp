@@ -76,7 +76,7 @@ class CoinRelFltEq;
 
   Compiling this class with COIN_FAST_CODE defined removes index range checks.
 */
-class CoinPackedMatrix  {
+class COINUTILSLIB_EXPORT CoinPackedMatrix  {
    friend void CoinPackedMatrixUnitTest();
 
 public:

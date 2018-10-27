@@ -1,7 +1,10 @@
-/* inc/config_coinutils.h.in.  */
+/* config_coinutils.h.in */
 
 #ifndef __CONFIG_COINUTILS_H__
 #define __CONFIG_COINUTILS_H__
+
+/* Library Visibility Attribute */
+#undef COINUTILSLIB_EXPORT
 
 /* Define to 1 if stdint.h is available for CoinUtils */
 #undef COINUTILS_HAS_STDINT_H

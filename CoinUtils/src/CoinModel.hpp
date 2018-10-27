@@ -10,7 +10,7 @@
 #include "CoinMessageHandler.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinFinite.hpp"
-class CoinBaseModel {
+class COINUTILSLIB_EXPORT CoinBaseModel {
 
 public:
 
@@ -158,7 +158,7 @@ protected:
     B)  This class could be useful for modeling.
 */
 
-class CoinModel : public CoinBaseModel {
+class COINUTILSLIB_EXPORT CoinModel : public CoinBaseModel {
   
 public:
   /**@name Useful methods for building model */

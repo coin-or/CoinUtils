@@ -71,7 +71,7 @@ Here is a sample usage:
    assert( r.sum() == 10.+40.+1.+50. ); 
 @endverbatim
 */
-class CoinShallowPackedVector : public CoinPackedVectorBase {
+class COINUTILSLIB_EXPORT CoinShallowPackedVector : public CoinPackedVectorBase {
    friend void CoinShallowPackedVectorUnitTest();
 
 public:

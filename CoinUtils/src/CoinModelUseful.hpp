@@ -27,7 +27,7 @@
 */
 /// for going through row or column
 
-class CoinModelLink {
+class COINUTILSLIB_EXPORT CoinModelLink {
   
 public:
   /**@name Constructors, destructor */
