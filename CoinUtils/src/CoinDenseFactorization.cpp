@@ -22,14 +22,14 @@
 extern "C" 
 {
   /** LAPACK Fortran subroutine DGETRF. */
-  void F77_FUNC(dgetrf,DGETRF)(ipfint * m, ipfint *n,
-                               double *A, ipfint *ldA,
-                               ipfint * ipiv, ipfint *info);
+  void COIN_LAPACK_FUNC(dgetrf,DGETRF)(ipfint * m, ipfint *n,
+                                       double *A, ipfint *ldA,
+                                       ipfint * ipiv, ipfint *info);
   /** LAPACK Fortran subroutine DGETRS. */
-  void F77_FUNC(dgetrs,DGETRS)(char *trans, cipfint *n,
-                               cipfint *nrhs, const double *A, cipfint *ldA,
-                               cipfint * ipiv, double *B, cipfint *ldB, ipfint *info,
-			       int trans_len);
+  void COIN_LAPACK_FUNC(dgetrs,DGETRS)(char *trans, cipfint *n,
+                                       cipfint *nrhs, const double *A, cipfint *ldA,
+                                       cipfint * ipiv, double *B, cipfint *ldB, ipfint *info,
+                                       int trans_len);
 }
 #endif
 //:class CoinDenseFactorization.  Deals with Factorization and Updates
@@ -199,9 +199,7 @@ CoinDenseFactorization::factor ( )
 #ifdef COIN_FACTORIZATION_DENSE_CODE
   if (numberRows_==numberColumns_&&(solveMode_%10)!=0) {
     int info;
-    F77_FUNC(dgetrf,DGETRF)(&numberRows_,&numberRows_,
-			    elements_,&numberRows_,pivotRow_,
-			    &info);
+    COIN_LAPACK_FUNC(dgetrf,DGETRF)(&numberRows_,&numberRows_,elements_,&numberRows_,pivotRow_,&info);
     // need to check size of pivots
     if(!info) {
       // OK
@@ -518,8 +516,7 @@ CoinDenseFactorization::updateColumn ( CoinIndexedVector * regionSparse,
     char trans = 'N';
     int ione=1;
     int info;
-    F77_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,&numberRows_,
-			      pivotRow_,region,&numberRows_,&info,1);
+    COIN_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,&numberRows_,pivotRow_,region,&numberRows_,&info,1);
   }
 #endif
   // now updates
@@ -680,8 +677,7 @@ CoinDenseFactorization::updateTwoColumnsFT(CoinIndexedVector * regionSparse1,
     char trans = 'N';
     int itwo=2;
     int info;
-    F77_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&itwo,elements_,&numberRows_,
-			    pivotRow_,workArea_,&numberRows_,&info,1);
+    COIN_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&itwo,elements_,&numberRows_,pivotRow_,workArea_,&numberRows_,&info,1);
     // now updates
     elements = elements_+numberRows_*numberRows_;
     for (i=0;i<numberPivots_;i++) {
@@ -858,8 +854,7 @@ CoinDenseFactorization::updateColumnTranspose ( CoinIndexedVector * regionSparse
     char trans = 'T';
     int ione=1;
     int info;
-    F77_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,&numberRows_,
-			      pivotRow_,region,&numberRows_,&info,1);
+    COIN_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,&numberRows_,pivotRow_,region,&numberRows_,&info,1);
   }
 #endif
   // permute back and get nonzeros

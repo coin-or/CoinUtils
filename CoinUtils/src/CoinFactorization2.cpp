@@ -22,9 +22,9 @@
 extern "C" 
 {
   /** LAPACK Fortran subroutine DGETRF. */
-  void F77_FUNC(dgetrf,DGETRF)(ipfint * m, ipfint *n,
-                               double *A, ipfint *ldA,
-                               ipfint * ipiv, ipfint *info);
+  void COIN_LAPACK_FUNC(dgetrf,DGETRF)(ipfint * m, ipfint *n,
+                                       double *A, ipfint *ldA,
+                                       ipfint * ipiv, ipfint *info);
 }
 #elif COIN_FACTORIZATION_DENSE_CODE==2
 // C interface
@@ -610,8 +610,7 @@ int CoinFactorization::factorDense()
     //dgef(denseAreaAddress_,&numberDense_,&numberDense_,densePermute_);
 #if COIN_FACTORIZATION_DENSE_CODE==1
     int info;
-    F77_FUNC(dgetrf,DGETRF)(&numberDense_,&numberDense_,denseAreaAddress_,&numberDense_,densePermute_,
-			    &info);
+    COIN_LAPACK_FUNC(dgetrf,DGETRF)(&numberDense_,&numberDense_,denseAreaAddress_,&numberDense_,densePermute_,&info);
     // need to check size of pivots
     if(info) {
       //printf("Dense singular\n");
