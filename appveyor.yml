@@ -17,11 +17,11 @@ environment:
       ADD_PATH: /mingw64/bin
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       ARCH: x86_64-w64-mingw32
-      HOST_ARCH_ARG: --host=x86_64-w64-mingw32
+      HOST_ARCH_ARG:
       ADD_PATH: /mingw64/bin
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       ARCH: i686-w64-mingw32
-      HOST_ARCH_ARG: --host=i686-w64-mingw32
+      HOST_ARCH_ARG:
       ADD_PATH: /mingw32/bin
 
 install:
