@@ -3507,11 +3507,16 @@ fi
 
 
 
-# libtool has some magic for host_os=mingw, but doesn't know about msys
+# libtool has some magic for host_os and build_os being mingw, but doesn't know about msys
 
   if test $host_os = msys ; then
     host_os=mingw
     host=`echo $host | sed -e 's/msys/mingw/'`
+  fi
+
+  if test $build_os = msys ; then
+    build_os=mingw
+    build=`echo $build | sed -e 's/msys/mingw/'`
   fi
 
 # Make silent build rules the default (https://www.gnu.org/software/automake/
@@ -17911,7 +17916,7 @@ fi
     if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "$pcfile" ; then
       LAPACK_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "$pcfile" 2>/dev/null | tr '\n' ' '`
       coin_has_lapack=yes
-           lapack_data=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --variable=datadir $pcfile 2>/dev/null`
+           lapack_data=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --variable=datadir "$pcfile" 2>/dev/null`
            lapack_pcfiles="$pcfile"
     else
       LAPACK_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "$pcfile"`
@@ -18485,7 +18490,7 @@ fi
     if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "$pcfile" ; then
       GLPK_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "$pcfile" 2>/dev/null | tr '\n' ' '`
       coin_has_glpk=yes
-           glpk_data=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --variable=datadir $pcfile 2>/dev/null`
+           glpk_data=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --variable=datadir "$pcfile" 2>/dev/null`
            glpk_pcfiles="$pcfile"
     else
       GLPK_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "$pcfile"`
@@ -18710,7 +18715,7 @@ fi
   case $coin_has_sample in
     requested | build )
       if test -n "$PKG_CONFIG" ; then
-        pcfile=coindatasample
+        pcfile="coindatasample"
 
 
 
@@ -18718,7 +18723,7 @@ fi
     if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "$pcfile" ; then
       SAMPLE_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "$pcfile" 2>/dev/null | tr '\n' ' '`
       coin_has_sample=yes
-           sample_data=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --variable=datadir $pcfile 2>/dev/null`
+           sample_data=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --variable=datadir "$pcfile" 2>/dev/null`
            sample_pcfiles="$pcfile"
     else
       SAMPLE_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "$pcfile"`
@@ -18941,7 +18946,7 @@ fi
   case $coin_has_netlib in
     requested | build )
       if test -n "$PKG_CONFIG" ; then
-        pcfile=coindatanetlib
+        pcfile="coindatanetlib"
 
 
 
@@ -18949,7 +18954,7 @@ fi
     if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "$pcfile" ; then
       NETLIB_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "$pcfile" 2>/dev/null | tr '\n' ' '`
       coin_has_netlib=yes
-           netlib_data=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --variable=datadir $pcfile 2>/dev/null`
+           netlib_data=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --variable=datadir "$pcfile" 2>/dev/null`
            netlib_pcfiles="$pcfile"
     else
       NETLIB_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "$pcfile"`
