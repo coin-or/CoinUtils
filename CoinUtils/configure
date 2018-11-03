@@ -680,10 +680,6 @@ PKG_CONFIG
 COINUTILSLIB_PCFILES
 COINUTILSLIB_CFLAGS
 COINUTILSLIB_LIBS
-COINUTILSLIB_DATA_PUB
-COINUTILSLIB_PCFILES_PUB
-COINUTILSLIB_CFLAGS_PUB
-COINUTILSLIB_LFLAGS_PUB
 LT_LDFLAGS
 CXXCPP
 CPP
@@ -17569,19 +17565,6 @@ $as_echo "$as_me: CoinUtils mempool will not be used." >&6;}
 #############################################################################
 #                             COIN-OR components                            #
 #############################################################################
-
-# Initialise variables for CoinUtilsLib
-
-
-  COINUTILSLIB_LFLAGS_PUB="-L\${libdir} -lCoinUtils"
-
-  COINUTILSLIB_CFLAGS_PUB="-I\${includedir}"
-
-  COINUTILSLIB_PCFILES_PUB=""
-
-  COINUTILSLIB_DATA_PUB=\${datarootdir}/$PACKAGE_TARNAME
-
-
 
 # Collect information required to use component libraries.
 

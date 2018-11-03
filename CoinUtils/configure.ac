@@ -89,10 +89,6 @@ AC_COINUTILS_MEMPOOL(4096,no)
 #                             COIN-OR components                            #
 #############################################################################
 
-# Initialise variables for CoinUtilsLib
-
-AC_COIN_INIT_LIBVARS([CoinUtilsLib],[-L\${libdir} -lCoinUtils],[-I\${includedir}])
-
 # Collect information required to use component libraries.
 
 AC_COIN_CHK_LAPACK(CoinUtilsLib)
