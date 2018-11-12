@@ -4093,7 +4093,7 @@ makeUniqueNames(char ** names,int number,char first)
             // duplicate
             nDup++;
             free(names[i]);
-            char newName[9];
+            char newName[12];
             sprintf(newName,"%c%7.7d",first,largest);
             names[i] = CoinStrdup(newName);
             largest++;
@@ -5046,34 +5046,55 @@ CoinMpsIO::setMpsDataColAndRowNames(
    char** rowNames = names_[0];
    char** columnNames = names_[1];
    int i;
+   // so we can adjust for long names
+   int lengthMalloc=9;
+   int maxIndex=10000000;
    if (rownames) {
      for (i = 0 ; i < numberRows_; ++i) {
+       if (i==maxIndex) {
+	 lengthMalloc++;
+	 maxIndex *= 10;
+       }
        if (rownames[i]) {
          rowNames[i] = CoinStrdup(rownames[i]);
        } else {
-         rowNames[i] = reinterpret_cast<char *> (malloc (9 * sizeof(char)));
+         rowNames[i] = reinterpret_cast<char *> (malloc (lengthMalloc * sizeof(char)));
          sprintf(rowNames[i],"R%7.7d",i);
        }
      }
    } else {
      for (i = 0; i < numberRows_; ++i) {
-       rowNames[i] = reinterpret_cast<char *> (malloc (9 * sizeof(char)));
+       if (i==maxIndex) {
+	 lengthMalloc++;
+	 maxIndex *= 10;
+       }
+       rowNames[i] = reinterpret_cast<char *> (malloc (lengthMalloc * sizeof(char)));
        sprintf(rowNames[i],"R%7.7d",i);
      }
    }
 #ifndef NONAMES
+   lengthMalloc=9;
+   maxIndex=10000000;
    if (colnames) {
      for (i = 0 ; i < numberColumns_; ++i) {
+       if (i==maxIndex) {
+	 lengthMalloc++;
+	 maxIndex *= 10;
+       }
        if (colnames[i]) {
          columnNames[i] = CoinStrdup(colnames[i]);
        } else {
-         columnNames[i] = reinterpret_cast<char *> (malloc (9 * sizeof(char)));
+         columnNames[i] = reinterpret_cast<char *> (malloc (lengthMalloc * sizeof(char)));
          sprintf(columnNames[i],"C%7.7d",i);
        }
      }
    } else {
      for (i = 0; i < numberColumns_; ++i) {
-       columnNames[i] = reinterpret_cast<char *> (malloc (9 * sizeof(char)));
+       if (i==maxIndex) {
+	 lengthMalloc++;
+	 maxIndex *= 10;
+       }
+       columnNames[i] = reinterpret_cast<char *> (malloc (lengthMalloc * sizeof(char)));
        sprintf(columnNames[i],"C%7.7d",i);
      }
    }
@@ -5107,8 +5128,15 @@ CoinMpsIO::setMpsDataColAndRowNames(
        rowNames[i] = CoinStrdup(rownames[i].c_str());
      }
    } else {
+     // so we can adjust for long names
+     int lengthMalloc=9;
+     int maxIndex=10000000;
      for (i = 0; i < numberRows_; ++i) {
-       rowNames[i] = reinterpret_cast<char *> (malloc (9 * sizeof(char)));
+       if (i==maxIndex) {
+	 lengthMalloc++;
+	 maxIndex *= 10;
+       }
+       rowNames[i] = reinterpret_cast<char *> (malloc (lengthMalloc * sizeof(char)));
        sprintf(rowNames[i],"R%7.7d",i);
      }
    }
@@ -5117,8 +5145,15 @@ CoinMpsIO::setMpsDataColAndRowNames(
        columnNames[i] = CoinStrdup(colnames[i].c_str());
      }
    } else {
+     // so we can adjust for long names
+     int lengthMalloc=9;
+     int maxIndex=10000000;
      for (i = 0; i < numberColumns_; ++i) {
-       columnNames[i] = reinterpret_cast<char *> (malloc (9 * sizeof(char)));
+       if (i==maxIndex) {
+	 lengthMalloc++;
+	 maxIndex *= 10;
+       }
+       columnNames[i] = reinterpret_cast<char *> (malloc (lengthMalloc * sizeof(char)));
        sprintf(columnNames[i],"C%7.7d",i);
      }
    }
@@ -5907,9 +5942,9 @@ CoinMpsIO::readConicMps(const char * filename,
   } else {
     cardReader_->readToNextSection();
 
-  // Skip NAME
-  if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) 
-    cardReader_->readToNextSection();
+    // Skip NAME
+    if ( cardReader_->whichSection (  ) == COIN_NAME_SECTION ) 
+      cardReader_->readToNextSection();
     if ( cardReader_->whichSection (  ) == COIN_CONIC_SECTION ) {
       // looks good
     } else if ( cardReader_->whichSection (  ) == COIN_EOF_SECTION ) {
@@ -5917,11 +5952,11 @@ CoinMpsIO::readConicMps(const char * filename,
 					       <<CoinMessageEol;
       return -3;
     } else {
-    handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
+      handler_->message(COIN_MPS_BADFILE1,messages_)<<cardReader_->card()
 						  <<cardReader_->cardNumber()
 						  <<fileName_
 						  <<CoinMessageEol;
-    return -2;
+      return -2;
     }
   }    
 
