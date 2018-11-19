@@ -491,11 +491,12 @@ CoinWarmStartBasis::fixFullBasis()
   if (numberBasic>numArtificial_) {
     for (i=0;i<numStructural_;i++) {
       Status status = getStructStatus(i);
-      if (status==CoinWarmStartBasis::basic) 
+      if (status==CoinWarmStartBasis::basic) {
 	setStructStatus(i,atLowerBound);
 	numberBasic--;
 	if (numberBasic==numArtificial_)
 	  break;
+      }
     }
   } else if (numberBasic<numArtificial_) {
     for (i=0;i<numArtificial_;i++) {
