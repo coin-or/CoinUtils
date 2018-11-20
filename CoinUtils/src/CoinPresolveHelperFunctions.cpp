@@ -186,7 +186,7 @@ bool presolve_expand_major (CoinBigIndex *majstrts, double *els,
     kcsx = majstrts[k] ;
     kcex = kcsx + majlens[k] ;
     if (kcex+1 >= bulkCap)
-    { return (true) ; } }
+    { abort() ; } }
 /*
   The most complicated case --- we need to move k from its current location
   to empty space at the end of the bulk storage. And we may need to make that!
@@ -231,7 +231,7 @@ bool presolve_expand_major (CoinBigIndex *majstrts, double *els,
       kcex = kcsx + majlens[k] ;
       if (kcex > bulkCap) {
 	// still no room
-	return (true) ;
+	abort() ;
       }
     }
   } 

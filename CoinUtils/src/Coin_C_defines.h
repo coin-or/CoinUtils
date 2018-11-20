@@ -93,6 +93,7 @@ typedef struct {
   CbcModel              * model_;
   Cbc_MessageHandler    * handler_;
   std::vector<std::string> cmdargs_;
+  char relax_;
 } Cbc_Model;
 #else
 typedef void Cbc_Model;
