@@ -602,7 +602,6 @@ PACKAGE_BUGREPORT='coinutils@list.coin-or.org'
 PACKAGE_URL='https://projects.coin-or.org/CoinUtils'
 
 ac_unique_file="src/CoinError.cpp"
-ac_default_prefix=`pwd`
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -3485,12 +3484,6 @@ else
   ALWAYS_FALSE_TRUE='#'
   ALWAYS_FALSE_FALSE=
 fi
-
-
-# Where should everything be installed by default?  The COIN default is to
-# install directly into subdirectories of the directory where configure is
-# run. The default would be to install under /usr/local.
-
 
 
 # Change the default compiler flags. This needs to run before
@@ -17750,13 +17743,7 @@ $as_echo "$as_me: $PKG_CONFIG path is \"$COIN_PKG_CONFIG_PATH\"" >&6;}
 
 
 
-# Set up command line arguments with DEF_PRIM_ARGS and give FIND_PRIM_PKG
-# a chance, just in case lapack.pc exists. The result (coin_has_lapack)
-# will be one of yes (either the user specified something or pkgconfig
-# found something), no (user specified nothing and pkgconfig found nothing)
-# or skipping (user said do not use). We'll also have variables lapack_lflags,
-# lapack_cflags, lapack_data, and lapack_pcfiles.
-
+# Set up command line arguments with DEF_PRIM_ARGS.
 
 
 
@@ -17783,6 +17770,12 @@ fi
 
 
 
+
+# Give FIND_PRIM_PKG a chance to look for user-specified lapack flags,
+# but skip any checks via a .pc file. The result (coin_has_lapack) will
+# be one of yes (the user specified something), no (user specified nothing),
+# or skipping (user said do not use). We'll also have variables
+# lapack_lflags, lapack_cflags, lapack_data, and lapack_pcfiles.
 
 
 
@@ -17886,12 +17879,8 @@ fi
 
   case $coin_has_lapack in
     requested | build )
-      if test -n "$PKG_CONFIG" ; then
-        if test $coin_has_lapack = build ; then
-             pcfile=coinlapack
-           else
-             pcfile=lapack
-           fi
+      if test -n "$PKG_CONFIG" -a "skip" != skip ; then
+        pcfile="skip"
 
 
 
@@ -17910,7 +17899,7 @@ fi
   fi
 
       else
-        coin_has_lapack=yes
+        coin_has_lapack=no
         # AC_MSG_WARN([skipped check via pkgconf as no pkgconf available])
       fi
       ;;
@@ -17961,8 +17950,9 @@ $as_echo "$as_me: lapack_pcfiles is \"$lapack_pcfiles\"" >&6;}
 
   dsyev_namemangling=unknown
 
-  # TODO shouldn't we make use of ac_extra somewhere below?
-  for ac_extra in "no extra underscore" "extra underscore" ; do
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
     for ac_case in "lower case" "upper case" ; do
       for ac_trail in "underscore" "no underscore" ; do
         #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
@@ -18018,12 +18008,79 @@ $as_echo "$ac_success" >&6; }
 
   fi
 
-# If FIND_PRIM_PKG didn't find anything, try a few guesses. First, try some
-# specialised checks based on the host system type. If none of them are
-# applicable, or the applicable one fails, try the generic -llapack.
-# TODO check for Lapack in Blas
+# If FIND_PRIM_PKG didn't find anything, try a few more guesses for
+# optimized blas/lapack libs (based on build system type).
   if test "$coin_has_lapack" = no ; then
     case $build in
+      *-linux*)
+
+  # setup LIBS by adding -Wl,--start-group -lmkl_core -lmkl_intel_lp64 -lmkl_sequential --Wl,--end-group and those from
+  ac_save_LIBS="$LIBS"
+  LIBS="-Wl,--start-group -lmkl_core -lmkl_intel_lp64 -lmkl_sequential --Wl,--end-group $LIBS"
+
+
+  dsyev_namemangling=unknown
+
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
+    for ac_case in "lower case" "upper case" ; do
+      for ac_trail in "underscore" "no underscore" ; do
+        #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
+        case $ac_case in
+          "lower case")
+            ac_name=dsyev
+            ;;
+          "upper case")
+            ac_name=DSYEV
+            ;;
+        esac
+        if test "$ac_trail" = underscore ; then
+          ac_name=${ac_name}_
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for function $ac_name in $LIBS" >&5
+$as_echo_n "checking for function $ac_name in $LIBS... " >&6; }
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __cplusplus
+             extern "C"
+             #endif
+             void $ac_name();
+int
+main ()
+{
+$ac_name()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
+           ac_success=yes
+else
+  ac_success=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
+          break 3
+        fi
+      done
+    done
+  done
+  LIBS=$ac_save_LIBS
+
+  if test $ac_success = yes ; then
+
+           coin_has_lapack=yes
+           lapack_lflags="-Wl,--start-group -lmkl_core -lmkl_intel_lp64 -lmkl_sequential --Wl,--end-group"
+
+  fi
+
+      ;;
+
       *-sgi-*)
 
   # setup LIBS by adding -lcomplib.sgimath and those from
@@ -18033,8 +18090,9 @@ $as_echo "$ac_success" >&6; }
 
   dsyev_namemangling=unknown
 
-  # TODO shouldn't we make use of ac_extra somewhere below?
-  for ac_extra in "no extra underscore" "extra underscore" ; do
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
     for ac_case in "lower case" "upper case" ; do
       for ac_trail in "underscore" "no underscore" ; do
         #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
@@ -18090,10 +18148,16 @@ $as_echo "$ac_success" >&6; }
 
   fi
 
-        ;;
+      ;;
 
       *-*-solaris*)
-        # See comments in COIN_CHK_PKG_BLAS.
+        # Ideally, we'd use -library=sunperf, but it's an imperfect world.
+        # Studio cc doesn't recognise -library, it wants -xlic_lib. Studio 12
+        # CC doesn't recognise -xlic_lib. Libtool doesn't like -xlic_lib
+        # anyway. Sun claims that CC and cc will understand -library in Studio
+        # 13. The main extra function of -xlic_lib and -library is to arrange
+        # for the Fortran run-time libraries to be linked for C++ and C. We
+        # can arrange that explicitly.
 
   # setup LIBS by adding -lsunperf and those from
   ac_save_LIBS="$LIBS"
@@ -18102,8 +18166,9 @@ $as_echo "$ac_success" >&6; }
 
   dsyev_namemangling=unknown
 
-  # TODO shouldn't we make use of ac_extra somewhere below?
-  for ac_extra in "no extra underscore" "extra underscore" ; do
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
     for ac_case in "lower case" "upper case" ; do
       for ac_trail in "underscore" "no underscore" ; do
         #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
@@ -18159,9 +18224,373 @@ $as_echo "$ac_success" >&6; }
 
   fi
 
-        ;;
+      ;;
+
+      *-cygwin* | *-mingw* | *-msys*)
+        case "$CC" in
+          */compile\ cl | cl | */cl | */compile\ icl | icl | */icl )
+            # check first for 64-bit MKL, then for 32-bit MKL
+
+  # setup LIBS by adding mkl_intel_lp64.lib mkl_sequential.lib mkl_core.lib and those from
+  ac_save_LIBS="$LIBS"
+  LIBS="mkl_intel_lp64.lib mkl_sequential.lib mkl_core.lib $LIBS"
+
+
+  dsyev_namemangling=unknown
+
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
+    for ac_case in "lower case" "upper case" ; do
+      for ac_trail in "underscore" "no underscore" ; do
+        #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
+        case $ac_case in
+          "lower case")
+            ac_name=dsyev
+            ;;
+          "upper case")
+            ac_name=DSYEV
+            ;;
+        esac
+        if test "$ac_trail" = underscore ; then
+          ac_name=${ac_name}_
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for function $ac_name in $LIBS" >&5
+$as_echo_n "checking for function $ac_name in $LIBS... " >&6; }
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __cplusplus
+             extern "C"
+             #endif
+             void $ac_name();
+int
+main ()
+{
+$ac_name()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
+           ac_success=yes
+else
+  ac_success=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
+          break 3
+        fi
+      done
+    done
+  done
+  LIBS=$ac_save_LIBS
+
+  if test $ac_success = yes ; then
+
+              coin_has_lapack=yes
+              lapack_lflags="mkl_intel_lp64.lib mkl_sequential.lib mkl_core.lib"
+    else
+  # setup LIBS by adding mkl_intel_c.lib mkl_sequential.lib mkl_core.lib and those from
+  ac_save_LIBS="$LIBS"
+  LIBS="mkl_intel_c.lib mkl_sequential.lib mkl_core.lib $LIBS"
+
+
+  dsyev_namemangling=unknown
+
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
+    for ac_case in "lower case" "upper case" ; do
+      for ac_trail in "underscore" "no underscore" ; do
+        #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
+        case $ac_case in
+          "lower case")
+            ac_name=dsyev
+            ;;
+          "upper case")
+            ac_name=DSYEV
+            ;;
+        esac
+        if test "$ac_trail" = underscore ; then
+          ac_name=${ac_name}_
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for function $ac_name in $LIBS" >&5
+$as_echo_n "checking for function $ac_name in $LIBS... " >&6; }
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __cplusplus
+             extern "C"
+             #endif
+             void $ac_name();
+int
+main ()
+{
+$ac_name()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
+           ac_success=yes
+else
+  ac_success=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
+          break 3
+        fi
+      done
+    done
+  done
+  LIBS=$ac_save_LIBS
+
+  if test $ac_success = yes ; then
+
+                 coin_has_lapack=yes
+                 lapack_lflags="mkl_intel_c.lib mkl_sequential.lib mkl_core.lib"
+
+  fi
+
+  fi
+
+          ;;
+        esac
+      ;;
+
+      *-darwin*)
+
+  # setup LIBS by adding -Wl,--start-group -lmkl_core -lmkl_intel_lp64 -lmkl_sequential -Wl,--end-group and those from
+  ac_save_LIBS="$LIBS"
+  LIBS="-Wl,--start-group -lmkl_core -lmkl_intel_lp64 -lmkl_sequential -Wl,--end-group $LIBS"
+
+
+  dsyev_namemangling=unknown
+
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
+    for ac_case in "lower case" "upper case" ; do
+      for ac_trail in "underscore" "no underscore" ; do
+        #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
+        case $ac_case in
+          "lower case")
+            ac_name=dsyev
+            ;;
+          "upper case")
+            ac_name=DSYEV
+            ;;
+        esac
+        if test "$ac_trail" = underscore ; then
+          ac_name=${ac_name}_
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for function $ac_name in $LIBS" >&5
+$as_echo_n "checking for function $ac_name in $LIBS... " >&6; }
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __cplusplus
+             extern "C"
+             #endif
+             void $ac_name();
+int
+main ()
+{
+$ac_name()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
+           ac_success=yes
+else
+  ac_success=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
+          break 3
+        fi
+      done
+    done
+  done
+  LIBS=$ac_save_LIBS
+
+  if test $ac_success = yes ; then
+
+          coin_has_lapack=yes
+          lapack_lflags="-Wl,--start-group -lmkl_core -lmkl_intel_lp64 -lmkl_sequential -Wl,--end-group"
+
+  fi
+
+        if test "$coin_has_lapack" = no ; then
+
+  # setup LIBS by adding -framework Accelerate and those from
+  ac_save_LIBS="$LIBS"
+  LIBS="-framework Accelerate $LIBS"
+
+
+  dsyev_namemangling=unknown
+
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
+    for ac_case in "lower case" "upper case" ; do
+      for ac_trail in "underscore" "no underscore" ; do
+        #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
+        case $ac_case in
+          "lower case")
+            ac_name=dsyev
+            ;;
+          "upper case")
+            ac_name=DSYEV
+            ;;
+        esac
+        if test "$ac_trail" = underscore ; then
+          ac_name=${ac_name}_
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for function $ac_name in $LIBS" >&5
+$as_echo_n "checking for function $ac_name in $LIBS... " >&6; }
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __cplusplus
+             extern "C"
+             #endif
+             void $ac_name();
+int
+main ()
+{
+$ac_name()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
+           ac_success=yes
+else
+  ac_success=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
+          break 3
+        fi
+      done
+    done
+  done
+  LIBS=$ac_save_LIBS
+
+  if test $ac_success = yes ; then
+
+            coin_has_lapack=yes
+            lapack_lflags="-framework Accelerate"
+
+  fi
+
+        fi
+      ;;
     esac
   fi
+
+# If none of the above worked, check whether lapack.pc exists and links
+  if test "$coin_has_lapack" = no ; then
+
+
+
+  if test -n "$PKG_CONFIG" ; then
+    if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "lapack.pc" ; then
+      LAPACK_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "lapack.pc" 2>/dev/null | tr '\n' ' '`
+
+  # setup LIBS by adding  and those from lapack.pc
+  ac_save_LIBS="$LIBS"
+
+
+     temp_LFLAGS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --libs lapack.pc`
+     LIBS="$temp_LFLAGS $LIBS"
+
+
+  dsyev_namemangling=unknown
+
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
+    for ac_case in "lower case" "upper case" ; do
+      for ac_trail in "underscore" "no underscore" ; do
+        #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
+        case $ac_case in
+          "lower case")
+            ac_name=dsyev
+            ;;
+          "upper case")
+            ac_name=DSYEV
+            ;;
+        esac
+        if test "$ac_trail" = underscore ; then
+          ac_name=${ac_name}_
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for function $ac_name in $LIBS" >&5
+$as_echo_n "checking for function $ac_name in $LIBS... " >&6; }
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __cplusplus
+             extern "C"
+             #endif
+             void $ac_name();
+int
+main ()
+{
+$ac_name()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  dsyev_namemangling="${ac_case}, ${ac_trail}, ${ac_extra}"
+           ac_success=yes
+else
+  ac_success=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_success" >&5
+$as_echo "$ac_success" >&6; }
+        if test $ac_success = yes ; then
+          break 3
+        fi
+      done
+    done
+  done
+  LIBS=$ac_save_LIBS
+
+  if test $ac_success = yes ; then
+    coin_has_lapack=yes
+         lapack_pcfiles=lapack.pc
+    else as_fn_error $? "Could not find dsyev in Lapack from lapack.pc." "$LINENO" 5
+  fi
+
+    else
+      LAPACK_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "lapack.pc"`
+
+    fi
+  else
+    as_fn_error $? "\"Cannot check for existence of module lapack without pkgconf\"" "$LINENO" 5
+  fi
+
+  fi
+
+# If none of the above worked, try the generic -llapack as last resort.
   if test "$coin_has_lapack" = no ; then
 
   # setup LIBS by adding -llapack and those from
@@ -18171,8 +18600,9 @@ $as_echo "$ac_success" >&6; }
 
   dsyev_namemangling=unknown
 
-  # TODO shouldn't we make use of ac_extra somewhere below?
-  for ac_extra in "no extra underscore" "extra underscore" ; do
+  # FIXME we had "extra underscore" as additional option for ac_extra
+  #   but since there is no use for ac_extra below, was there any use for it?
+  for ac_extra in "no extra underscore" ; do
     for ac_case in "lower case" "upper case" ; do
       for ac_trail in "underscore" "no underscore" ; do
         #AC_MSG_NOTICE([Attempting link for ${ac_case}, ${ac_trail}, ${ac_extra}])
@@ -18460,7 +18890,7 @@ fi
 
   case $coin_has_glpk in
     requested | build )
-      if test -n "$PKG_CONFIG" ; then
+      if test -n "$PKG_CONFIG" -a "" != skip ; then
         if test $coin_has_glpk = build ; then
              pcfile=coinglpk
            else
@@ -18484,7 +18914,7 @@ fi
   fi
 
       else
-        coin_has_glpk=yes
+        coin_has_glpk=no
         # AC_MSG_WARN([skipped check via pkgconf as no pkgconf available])
       fi
       ;;
@@ -18697,7 +19127,7 @@ fi
 
   case $coin_has_sample in
     requested | build )
-      if test -n "$PKG_CONFIG" ; then
+      if test -n "$PKG_CONFIG" -a "coindatasample" != skip ; then
         pcfile="coindatasample"
 
 
@@ -18717,7 +19147,7 @@ fi
   fi
 
       else
-        coin_has_sample=yes
+        coin_has_sample=no
         # AC_MSG_WARN([skipped check via pkgconf as no pkgconf available])
       fi
       ;;
@@ -18928,7 +19358,7 @@ fi
 
   case $coin_has_netlib in
     requested | build )
-      if test -n "$PKG_CONFIG" ; then
+      if test -n "$PKG_CONFIG" -a "coindatanetlib" != skip ; then
         pcfile="coindatanetlib"
 
 
@@ -18948,7 +19378,7 @@ fi
   fi
 
       else
-        coin_has_netlib=yes
+        coin_has_netlib=no
         # AC_MSG_WARN([skipped check via pkgconf as no pkgconf available])
       fi
       ;;
