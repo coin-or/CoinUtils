@@ -668,7 +668,6 @@ COIN_HAS_SAMPLE_FALSE
 COIN_HAS_SAMPLE_TRUE
 COIN_HAS_GLPK_FALSE
 COIN_HAS_GLPK_TRUE
-COINUTILSLIB_LFLAGS
 COIN_HAS_LAPACK_FALSE
 COIN_HAS_LAPACK_TRUE
 COIN_PKG_CONFIG_PATH
@@ -677,8 +676,8 @@ COIN_HAS_PKGCONFIG_TRUE
 ac_ct_PKG_CONFIG
 PKG_CONFIG
 COINUTILSLIB_PCFILES
+COINUTILSLIB_LFLAGS
 COINUTILSLIB_CFLAGS
-COINUTILSLIB_LIBS
 LT_LDFLAGS
 CXXCPP
 CPP
@@ -18504,16 +18503,18 @@ $as_echo "$ac_success" >&6; }
     esac
   fi
 
-# If none of the above worked, check whether lapack.pc exists and links
+# If none of the above worked, check whether lapack.pc blas.pc exists and links
+# We check for both to ensure that blas lib also appears on link line in case
+# someone wants to use Blas functions but tests only for Lapack.
   if test "$coin_has_lapack" = no ; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lapack.pc" >&5
-$as_echo_n "checking for lapack.pc... " >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lapack.pc and blas.pc" >&5
+$as_echo_n "checking for lapack.pc and blas.pc... " >&6; }
 
 
 
   if test -n "$PKG_CONFIG" ; then
-    if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "lapack" ; then
-      LAPACK_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "lapack" 2>/dev/null | tr '\n' ' '`
+    if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "lapack blas" ; then
+      LAPACK_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "lapack blas" 2>/dev/null | tr '\n' ' '`
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
@@ -18580,12 +18581,12 @@ $as_echo "$ac_success" >&6; }
 
   if test $ac_success = yes ; then
     coin_has_lapack=yes
-         lapack_pcfiles=lapack
-    else as_fn_error $? "Could not find dsyev in Lapack from lapack.pc." "$LINENO" 5
+         lapack_pcfiles="lapack blas"
+    else as_fn_error $? "Could not find dsyev in Lapack from lapack.pc blas.pc." "$LINENO" 5
   fi
 
     else
-      LAPACK_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "lapack"`
+      LAPACK_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "lapack blas"`
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
     fi
@@ -18595,12 +18596,16 @@ $as_echo "no" >&6; }
 
   fi
 
-# If none of the above worked, try the generic -llapack as last resort.
+# TODO do we need another check with lapack.pc only?
+
+# If none of the above worked, try the generic -llapack -lblas as last resort.
+# We check for both to ensure that blas lib also appears on link line in case
+# someone wants to use Blas functions but tests only for Lapack.
   if test "$coin_has_lapack" = no ; then
 
-  # setup LIBS by adding -llapack and those from
+  # setup LIBS by adding -llapack -lblas and those from
   ac_save_LIBS="$LIBS"
-  LIBS="-llapack $LIBS"
+  LIBS="-llapack -lblas $LIBS"
 
 
   dsyev_namemangling=unknown
@@ -18659,11 +18664,13 @@ $as_echo "$ac_success" >&6; }
   if test $ac_success = yes ; then
 
       coin_has_lapack=yes
-      lapack_lflags=-llapack
+      lapack_lflags="-llapack -lblas"
 
   fi
 
   fi
+
+# TODO do we need another check with -llapack only?
 
 # Time to set some variables. Create an automake conditional COIN_HAS_LAPACK.
    if test $coin_has_lapack = yes; then
@@ -19461,6 +19468,8 @@ $as_echo "#define COIN_HAS_NETLIB 1" >>confdefs.h
 
 
 
+
+
   coin_save_LIBS="$LIBS"
   LIBS=
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cos" >&5
@@ -19523,6 +19532,8 @@ if test "$ac_res" != no; then :
 fi
 
   LIBS="$coin_save_LIBS"
+
+
 
 
 
@@ -19614,6 +19625,8 @@ fi
 
 
 
+
+
   coin_has_bzlib=no
 
   # Check whether --enable-bzlib was given.
@@ -19696,6 +19709,8 @@ else
   COIN_HAS_BZLIB_TRUE='#'
   COIN_HAS_BZLIB_FALSE=
 fi
+
+
 
 
 
