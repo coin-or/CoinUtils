@@ -18506,18 +18506,22 @@ $as_echo "$ac_success" >&6; }
 
 # If none of the above worked, check whether lapack.pc exists and links
   if test "$coin_has_lapack" = no ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lapack.pc" >&5
+$as_echo_n "checking for lapack.pc... " >&6; }
 
 
 
   if test -n "$PKG_CONFIG" ; then
-    if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "lapack.pc" ; then
-      LAPACK_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "lapack.pc" 2>/dev/null | tr '\n' ' '`
+    if PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --exists "lapack" ; then
+      LAPACK_VERSIONS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --modversion "lapack" 2>/dev/null | tr '\n' ' '`
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 
-  # setup LIBS by adding  and those from lapack.pc
+  # setup LIBS by adding  and those from lapack
   ac_save_LIBS="$LIBS"
 
 
-     temp_LFLAGS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --libs lapack.pc`
+     temp_LFLAGS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --libs lapack`
      LIBS="$temp_LFLAGS $LIBS"
 
 
@@ -18576,13 +18580,14 @@ $as_echo "$ac_success" >&6; }
 
   if test $ac_success = yes ; then
     coin_has_lapack=yes
-         lapack_pcfiles=lapack.pc
+         lapack_pcfiles=lapack
     else as_fn_error $? "Could not find dsyev in Lapack from lapack.pc." "$LINENO" 5
   fi
 
     else
-      LAPACK_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "lapack.pc"`
-
+      LAPACK_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "lapack"`
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
     fi
   else
     as_fn_error $? "\"Cannot check for existence of module lapack without pkgconf\"" "$LINENO" 5
@@ -19869,6 +19874,9 @@ $as_echo "$as_me: FINALIZE_FLAGS for CoinUtilsLib:" >&6;}
         # or do we also need this for GCC on Windows?
         case $CC in */compile\ cl | cl | */cl | */compile\ icl | icl | */icl )
           libexport_attribute="__declspec(dllimport)"
+          if test "$enable_static" = yes ; then
+            as_fn_error $? "Cannot do DLL and static LIB builds simultaneously. Do not add --enable-static without --disable-shared." "$LINENO" 5
+          fi
         esac
       fi
 
