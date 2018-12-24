@@ -76,6 +76,23 @@ public:
   virtual char *gets (char *buffer, int size) = 0;
 };
 
+/// This reads plain text files
+class CoinPlainFileInput: public CoinFileInput
+{
+public:
+  CoinPlainFileInput (const std::string &fileName);
+  /// When already opened
+  CoinPlainFileInput (FILE * fp);
+  virtual ~CoinPlainFileInput ();
+
+  virtual int read (void *buffer, int size);
+
+  virtual char *gets (char *buffer, int size);
+
+private:
+  FILE *f_;
+};
+
 /// Abstract base class for file output classes.
 class CoinFileOutput: public CoinFileIOBase
 {

@@ -19,6 +19,7 @@
 
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessage.hpp"
+#include "CoinFileIO.hpp"
 class CoinSet;
 
 const int MAX_OBJECTIVES = 2;
@@ -488,6 +489,8 @@ public:
   /// flipped to get a minimization problem.  
   void readLp(FILE *fp);
 
+  /// Does work of readLp
+  void readLp();
   /// Dump the data. Low level method for debugging.
   void print() const;
   
@@ -664,8 +667,10 @@ protected:
   mutable int bufferLength_;
   /// Current buffer position
   mutable int bufferPosition_;
-  /// Current fp
-  FILE * fp_;
+  /// File handler
+  CoinFileInput * input_;
+  /// If already inserted one End
+  mutable bool eofFound_;
   /// Get next string (returns number in)
   int fscanfLpIO(char * buff) const;
   /// Get next line into inputBuffer_ (returns number in)
@@ -704,7 +709,7 @@ protected:
   /// Locate the objective function. 
   /// Return 1 if found the keyword "Minimize" or one of its variants, 
   /// -1 if found keyword "Maximize" or one of its variants.
-  int find_obj(FILE *fp) const;
+  int find_obj() const;
 
   /// Return an integer indicating if the keyword "subject to" or one
   /// of its variants has been read.
@@ -722,10 +727,7 @@ protected:
   int is_comment(const char *buff) const;
 
   /// Read the file fp until buff contains an end of line
-  void skip_comment(char *buff, FILE *fp) const;
-
-  /// Put in buff the next string that is not part of a comment
-  void scan_next(char *buff, FILE *fp) const;
+  void skip_comment(char *buff) const;
 
   /// Return 1 if buff is the keyword "free" or one of its variants.
   /// Return 0 otherwise.
@@ -757,14 +759,14 @@ protected:
 
   /// Read a monomial of the objective function.
   /// Return 1 if "subject to" or one of its variants has been read.
-  int read_monom_obj(FILE *fp, double *coeff, char **name, int *cnt, 
+  int read_monom_obj(double *coeff, char **name, int *cnt, 
 		     char **obj_name, int *num_objectives, int *obj_starts);
 
   /// Read a monomial of a constraint.
   /// Return a positive number if the sense of the inequality has been 
   /// read (see method is_sense() for the return code).
   /// Return -1 otherwise.
-  int read_monom_row(FILE *fp, char *start_str, double *coeff, char **name, 
+  int read_monom_row(char *start_str, double *coeff, char **name, 
 		     int cnt_coeff) const;
 
   /// Reallocate vectors related to number of coefficients.
@@ -779,7 +781,7 @@ protected:
 		   int *maxcol) const;
 
   /// Read a constraint.
-  void read_row(FILE *fp, char *buff, double **pcoeff, char ***pcolNames, 
+  void read_row(char *buff, double **pcoeff, char ***pcolNames, 
 		int *cnt_coeff, int *maxcoeff,
 		     double *rhs, double *rowlow, double *rowup, 
 		     int *cnt_row, double inf) const;
