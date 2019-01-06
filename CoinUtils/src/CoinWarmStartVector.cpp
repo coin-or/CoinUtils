@@ -8,3 +8,6 @@
   Code crammed into CoinWarmStartVector.hpp at r923, 080110.
   -- lh, 110103 --
 */
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

@@ -29,3 +29,6 @@
 /* Define to be the name of C-function for NaN check */
 #define COIN_C_ISNAN _isnan
 #endif
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

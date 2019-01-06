@@ -6,7 +6,6 @@
 #ifndef CoinModelUseful_H
 #define CoinModelUseful_H
 
-
 #include <cstdlib>
 #include <cmath>
 #include <cassert>
@@ -28,63 +27,87 @@
 /// for going through row or column
 
 class CoinModelLink {
-  
+
 public:
   /**@name Constructors, destructor */
-   //@{
-   /** Default constructor. */
-   CoinModelLink();
-   /** Destructor */
-   ~CoinModelLink();
-   //@}
+  //@{
+  /** Default constructor. */
+  CoinModelLink();
+  /** Destructor */
+  ~CoinModelLink();
+  //@}
 
-   /**@name Copy method */
-   //@{
-   /** The copy constructor. */
-   CoinModelLink(const CoinModelLink&);
+  /**@name Copy method */
+  //@{
+  /** The copy constructor. */
+  CoinModelLink(const CoinModelLink &);
   /// =
-   CoinModelLink& operator=(const CoinModelLink&);
-   //@}
+  CoinModelLink &operator=(const CoinModelLink &);
+  //@}
 
-   /**@name Sets and gets method */
-   //@{
+  /**@name Sets and gets method */
+  //@{
   /// Get row
   inline int row() const
-  { return row_;}
+  {
+    return row_;
+  }
   /// Get column
   inline int column() const
-  { return column_;}
+  {
+    return column_;
+  }
   /// Get value
   inline double value() const
-  { return value_;}
+  {
+    return value_;
+  }
   /// Get value
   inline double element() const
-  { return value_;}
+  {
+    return value_;
+  }
   /// Get position
   inline CoinBigIndex position() const
-  { return position_;}
+  {
+    return position_;
+  }
   /// Get onRow
   inline bool onRow() const
-  { return onRow_;}
+  {
+    return onRow_;
+  }
   /// Set row
   inline void setRow(int row)
-  { row_=row;}
+  {
+    row_ = row;
+  }
   /// Set column
   inline void setColumn(int column)
-  { column_=column;}
+  {
+    column_ = column;
+  }
   /// Set value
   inline void setValue(double value)
-  { value_=value;}
+  {
+    value_ = value;
+  }
   /// Set value
   inline void setElement(double value)
-  { value_=value;}
+  {
+    value_ = value;
+  }
   /// Set position
   inline void setPosition(CoinBigIndex position)
-  { position_=position;}
+  {
+    position_ = position;
+  }
   /// Set onRow
   inline void setOnRow(bool onRow)
-  { onRow_=onRow;}
-   //@}
+  {
+    onRow_ = onRow;
+  }
+  //@}
 
 private:
   /**@name Data members */
@@ -112,17 +135,27 @@ typedef struct {
   int column;
   double value; // If string then index into strings
 } CoinModelTriple;
-inline int rowInTriple(const CoinModelTriple & triple)
-{ return triple.row&0x7fffffff;}
-inline void setRowInTriple(CoinModelTriple & triple,int iRow)
-{ triple.row = iRow|(triple.row&0x80000000);}
-inline bool stringInTriple(const CoinModelTriple & triple)
-{ return (triple.row&0x80000000)!=0;}
-inline void setStringInTriple(CoinModelTriple & triple,bool string)
-{ triple.row = (string ? 0x80000000 : 0)|(triple.row&0x7fffffff);}
-inline void setRowAndStringInTriple(CoinModelTriple & triple,
-				    int iRow,bool string)
-{ triple.row = (string ? 0x80000000 : 0)|iRow;}
+inline int rowInTriple(const CoinModelTriple &triple)
+{
+  return triple.row & 0x7fffffff;
+}
+inline void setRowInTriple(CoinModelTriple &triple, int iRow)
+{
+  triple.row = iRow | (triple.row & 0x80000000);
+}
+inline bool stringInTriple(const CoinModelTriple &triple)
+{
+  return (triple.row & 0x80000000) != 0;
+}
+inline void setStringInTriple(CoinModelTriple &triple, bool string)
+{
+  triple.row = (string ? 0x80000000 : 0) | (triple.row & 0x7fffffff);
+}
+inline void setRowAndStringInTriple(CoinModelTriple &triple,
+  int iRow, bool string)
+{
+  triple.row = (string ? 0x80000000 : 0) | iRow;
+}
 /// for names and hashing
 // for hashing
 typedef struct {
@@ -133,38 +166,42 @@ typedef struct {
 } CoinModelHashLink2;
 
 /* Function type.  */
-typedef double (*func_t) (double);
+typedef double (*func_t)(double);
 
 /// For string evaluation
 /* Data type for links in the chain of symbols.  */
-struct symrec
-{
-  char *name;  /* name of symbol */
-  int type;    /* type of symbol: either VAR or FNCT */
-  union
-  {
-    double var;      /* value of a VAR */
-    func_t fnctptr;  /* value of a FNCT */
+struct symrec {
+  char *name; /* name of symbol */
+  int type; /* type of symbol: either VAR or FNCT */
+  union {
+    double var; /* value of a VAR */
+    func_t fnctptr; /* value of a FNCT */
   } value;
-  struct symrec *next;  /* link field */
+  struct symrec *next; /* link field */
 };
-     
+
 typedef struct symrec symrec;
 
 class CoinYacc {
 private:
-  CoinYacc(const CoinYacc& rhs);
-  CoinYacc& operator=(const CoinYacc& rhs);
+  CoinYacc(const CoinYacc &rhs);
+  CoinYacc &operator=(const CoinYacc &rhs);
 
 public:
-  CoinYacc() : symtable(NULL), symbuf(NULL), length(0), unsetValue(0) {}
+  CoinYacc()
+    : symtable(NULL)
+    , symbuf(NULL)
+    , length(0)
+    , unsetValue(0)
+  {
+  }
   ~CoinYacc()
   {
     if (length) {
       free(symbuf);
       symbuf = NULL;
     }
-    symrec* s = symtable;
+    symrec *s = symtable;
     while (s) {
       free(s->name);
       symtable = s;
@@ -172,16 +209,16 @@ public:
       free(symtable);
     }
   }
-    
+
 public:
-  symrec * symtable;
-  char * symbuf;
+  symrec *symtable;
+  char *symbuf;
   int length;
   double unsetValue;
 };
 
 class CoinModelHash {
-  
+
 public:
   /**@name Constructors, destructor */
   //@{
@@ -190,61 +227,69 @@ public:
   /** Destructor */
   ~CoinModelHash();
   //@}
-  
+
   /**@name Copy method */
   //@{
   /** The copy constructor. */
-  CoinModelHash(const CoinModelHash&);
+  CoinModelHash(const CoinModelHash &);
   /// =
-  CoinModelHash& operator=(const CoinModelHash&);
+  CoinModelHash &operator=(const CoinModelHash &);
   //@}
 
   /**@name sizing (just increases) */
   //@{
   /// Resize hash (also re-hashs)
-  void resize(int maxItems,bool forceReHash=false);
+  void resize(int maxItems, bool forceReHash = false);
   /// Number of items i.e. rows if just row names
   inline int numberItems() const
-  { return numberItems_;}
+  {
+    return numberItems_;
+  }
   /// Set number of items
   void setNumberItems(int number);
   /// Maximum number of items
   inline int maximumItems() const
-  { return maximumItems_;}
+  {
+    return maximumItems_;
+  }
   /// Names
-  inline const char *const * names() const
-  { return names_;}
+  inline const char *const *names() const
+  {
+    return names_;
+  }
   //@}
 
   /**@name hashing */
   //@{
   /// Returns index or -1
-  int hash(const char * name) const;
+  int hash(const char *name) const;
   /// Adds to hash
-  void addHash(int index, const char * name);
+  void addHash(int index, const char *name);
   /// Deletes from hash
   void deleteHash(int index);
   /// Returns name at position (or NULL)
-  const char * name(int which) const;
+  const char *name(int which) const;
   /// Returns non const name at position (or NULL)
-  char * getName(int which) const;
+  char *getName(int which) const;
   /// Sets name at position (does not create)
-  void setName(int which,char * name ) ;
+  void setName(int which, char *name);
   /// Validates
   void validateHash() const;
+
 private:
   /// Returns a hash value
-  int hashValue(const char * name) const;
+  int hashValue(const char *name) const;
+
 public:
   //@}
 private:
   /**@name Data members */
   //@{
   /// Names
-  char ** names_;
+  char **names_;
   /// hash
-  CoinModelHashLink * hash_;
-  /// Number of items 
+  CoinModelHashLink *hash_;
+  /// Number of items
   int numberItems_;
   /// Maximum number of items
   int maximumItems_;
@@ -254,7 +299,7 @@ private:
 };
 /// For int,int hashing
 class CoinModelHash2 {
-  
+
 public:
   /**@name Constructors, destructor */
   //@{
@@ -263,48 +308,54 @@ public:
   /** Destructor */
   ~CoinModelHash2();
   //@}
-  
+
   /**@name Copy method */
   //@{
   /** The copy constructor. */
-  CoinModelHash2(const CoinModelHash2&);
+  CoinModelHash2(const CoinModelHash2 &);
   /// =
-  CoinModelHash2& operator=(const CoinModelHash2&);
+  CoinModelHash2 &operator=(const CoinModelHash2 &);
   //@}
 
   /**@name sizing (just increases) */
   //@{
   /// Resize hash (also re-hashs)
-  void resize(CoinBigIndex maxItems, const CoinModelTriple * triples,bool forceReHash=false);
+  void resize(CoinBigIndex maxItems, const CoinModelTriple *triples, bool forceReHash = false);
   /// Number of items
   inline CoinBigIndex numberItems() const
-  { return numberItems_;}
+  {
+    return numberItems_;
+  }
   /// Set number of items
   void setNumberItems(CoinBigIndex number);
   /// Maximum number of items
   inline CoinBigIndex maximumItems() const
-  { return maximumItems_;}
+  {
+    return maximumItems_;
+  }
   //@}
 
   /**@name hashing */
   //@{
   /// Returns index or -1
-  CoinBigIndex hash(int row, int column, const CoinModelTriple * triples) const;
+  CoinBigIndex hash(int row, int column, const CoinModelTriple *triples) const;
   /// Adds to hash
-  void addHash(CoinBigIndex index, int row, int column, const CoinModelTriple * triples);
+  void addHash(CoinBigIndex index, int row, int column, const CoinModelTriple *triples);
   /// Deletes from hash
   void deleteHash(CoinBigIndex index, int row, int column);
+
 private:
   /// Returns a hash value
   CoinBigIndex hashValue(int row, int column) const;
+
 public:
   //@}
 private:
   /**@name Data members */
   //@{
   /// hash
-  CoinModelHashLink2 * hash_;
-  /// Number of items 
+  CoinModelHashLink2 *hash_;
+  /// Number of items
   CoinBigIndex numberItems_;
   /// Maximum number of items
   CoinBigIndex maximumItems_;
@@ -313,7 +364,7 @@ private:
   //@}
 };
 class CoinModelLinkedList {
-  
+
 public:
   /**@name Constructors, destructor */
   //@{
@@ -322,57 +373,77 @@ public:
   /** Destructor */
   ~CoinModelLinkedList();
   //@}
-  
+
   /**@name Copy method */
   //@{
   /** The copy constructor. */
-  CoinModelLinkedList(const CoinModelLinkedList&);
+  CoinModelLinkedList(const CoinModelLinkedList &);
   /// =
-  CoinModelLinkedList& operator=(const CoinModelLinkedList&);
+  CoinModelLinkedList &operator=(const CoinModelLinkedList &);
   //@}
 
   /**@name sizing (just increases) */
   //@{
   /** Resize list - for row list maxMajor is maximum rows.
   */
-  void resize(int maxMajor,CoinBigIndex maxElements);
+  void resize(int maxMajor, CoinBigIndex maxElements);
   /** Create list - for row list maxMajor is maximum rows.
       type 0 row list, 1 column list
   */
-  void create(int maxMajor,CoinBigIndex maxElements,
-              int numberMajor, int numberMinor,
-              int type,
-              CoinBigIndex numberElements, const CoinModelTriple * triples);
+  void create(int maxMajor, CoinBigIndex maxElements,
+    int numberMajor, int numberMinor,
+    int type,
+    CoinBigIndex numberElements, const CoinModelTriple *triples);
   /// Number of major items i.e. rows if just row links
   inline int numberMajor() const
-  { return numberMajor_;}
+  {
+    return numberMajor_;
+  }
   /// Maximum number of major items i.e. rows if just row links
   inline int maximumMajor() const
-  { return maximumMajor_;}
+  {
+    return maximumMajor_;
+  }
   /// Number of elements
   inline CoinBigIndex numberElements() const
-  { return numberElements_;}
+  {
+    return numberElements_;
+  }
   /// Maximum number of elements
   inline CoinBigIndex maximumElements() const
-  { return maximumElements_;}
+  {
+    return maximumElements_;
+  }
   /// First on free chain
   inline CoinBigIndex firstFree() const
-  { return first_[maximumMajor_];}
+  {
+    return first_[maximumMajor_];
+  }
   /// Last on free chain
   inline CoinBigIndex lastFree() const
-  { return last_[maximumMajor_];}
+  {
+    return last_[maximumMajor_];
+  }
   /// First on  chain
   inline CoinBigIndex first(int which) const
-  { return first_[which];}
+  {
+    return first_[which];
+  }
   /// Last on  chain
   inline CoinBigIndex last(int which) const
-  { return last_[which];}
+  {
+    return last_[which];
+  }
   /// Next array
-  inline const CoinBigIndex * next() const
-  { return next_;}
+  inline const CoinBigIndex *next() const
+  {
+    return next_;
+  }
   /// Previous array
-  inline const CoinBigIndex * previous() const
-  { return previous_;}
+  inline const CoinBigIndex *previous() const
+  {
+    return previous_;
+  }
   //@}
 
   /**@name does work */
@@ -380,54 +451,54 @@ public:
   /** Adds to list - easy case i.e. add row to row list
       Returns where chain starts
   */
-  CoinBigIndex addEasy(int majorIndex, CoinBigIndex numberOfElements, const int * indices,
-              const double * elements, CoinModelTriple * triples,
-              CoinModelHash2 & hash);
+  CoinBigIndex addEasy(int majorIndex, CoinBigIndex numberOfElements, const int *indices,
+    const double *elements, CoinModelTriple *triples,
+    CoinModelHash2 &hash);
   /** Adds to list - hard case i.e. add row to column list
   */
-  void addHard(int minorIndex, CoinBigIndex numberOfElements, const int * indices,
-               const double * elements, CoinModelTriple * triples,
-               CoinModelHash2 & hash);
+  void addHard(int minorIndex, CoinBigIndex numberOfElements, const int *indices,
+    const double *elements, CoinModelTriple *triples,
+    CoinModelHash2 &hash);
   /** Adds to list - hard case i.e. add row to column list
       This is when elements have been added to other copy
   */
-  void addHard(CoinBigIndex first, const CoinModelTriple * triples,
-               CoinBigIndex firstFree, CoinBigIndex lastFree,const CoinBigIndex * nextOther);
+  void addHard(CoinBigIndex first, const CoinModelTriple *triples,
+    CoinBigIndex firstFree, CoinBigIndex lastFree, const CoinBigIndex *nextOther);
   /** Deletes from list - same case i.e. delete row from row list
   */
-  void deleteSame(int which, CoinModelTriple * triples,
-                 CoinModelHash2 & hash, bool zapTriples);
+  void deleteSame(int which, CoinModelTriple *triples,
+    CoinModelHash2 &hash, bool zapTriples);
   /** Deletes from list - other case i.e. delete row from column list
       This is when elements have been deleted from other copy
   */
-  void updateDeleted(int which, CoinModelTriple * triples,
-                     CoinModelLinkedList & otherList);
+  void updateDeleted(int which, CoinModelTriple *triples,
+    CoinModelLinkedList &otherList);
   /** Deletes one element from Row list
   */
-  void deleteRowOne(CoinBigIndex position, CoinModelTriple * triples,
-                 CoinModelHash2 & hash);
+  void deleteRowOne(CoinBigIndex position, CoinModelTriple *triples,
+    CoinModelHash2 &hash);
   /** Update column list for one element when
       one element deleted from row copy
   */
-  void updateDeletedOne(CoinBigIndex position, const CoinModelTriple * triples);
+  void updateDeletedOne(CoinBigIndex position, const CoinModelTriple *triples);
   /// Fills first,last with -1
-  void fill(int first,int last);
+  void fill(int first, int last);
   /** Puts in free list from other list */
-  void synchronize(CoinModelLinkedList & other);
+  void synchronize(CoinModelLinkedList &other);
   /// Checks that links are consistent
-  void validateLinks(const CoinModelTriple * triples) const;
+  void validateLinks(const CoinModelTriple *triples) const;
   //@}
 private:
   /**@name Data members */
   //@{
   /// Previous - maximumElements long
-  CoinBigIndex * previous_;
+  CoinBigIndex *previous_;
   /// Next - maximumElements long
-  CoinBigIndex * next_;
+  CoinBigIndex *next_;
   /// First - maximumMajor+1 long (last free element chain)
-  CoinBigIndex * first_;
+  CoinBigIndex *first_;
   /// Last - maximumMajor+1 long (last free element chain)
-  CoinBigIndex * last_;
+  CoinBigIndex *last_;
   /// Number of major items i.e. rows if just row links
   int numberMajor_;
   /// Maximum number of major items i.e. rows if just row links
@@ -442,3 +513,6 @@ private:
 };
 
 #endif
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

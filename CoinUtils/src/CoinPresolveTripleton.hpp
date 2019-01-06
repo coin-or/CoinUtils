@@ -13,7 +13,7 @@
     As it is adapted from doubleton icoly is one dropped.
  */
 class tripleton_action : public CoinPresolveAction {
- public:
+public:
   struct action {
     int icolx;
     int icolz;
@@ -43,24 +43,27 @@ class tripleton_action : public CoinPresolveAction {
   const int nactions_;
   const action *const actions_;
 
- private:
+private:
   tripleton_action(int nactions,
-		      const action *actions,
-		      const CoinPresolveAction *next) :
-    CoinPresolveAction(next),
-    nactions_(nactions), actions_(actions)
-{}
+    const action *actions,
+    const CoinPresolveAction *next)
+    : CoinPresolveAction(next)
+    , nactions_(nactions)
+    , actions_(actions)
+  {
+  }
 
- public:
+public:
   const char *name() const { return ("tripleton_action"); }
 
   static const CoinPresolveAction *presolve(CoinPresolveMatrix *,
-					 const CoinPresolveAction *next);
-  
+    const CoinPresolveAction *next);
+
   void postsolve(CoinPostsolveMatrix *prob) const;
 
   virtual ~tripleton_action();
 };
 #endif
 
-
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

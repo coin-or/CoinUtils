@@ -12,14 +12,14 @@
 // instead, it decides which columns can be made fixed
 // and calls make_fixed_action::presolve.
 const CoinPresolveAction *tighten_zero_cost(CoinPresolveMatrix *prob,
-					 const CoinPresolveAction *next);
+  const CoinPresolveAction *next);
 
-#define	DO_TIGHTEN	30
+#define DO_TIGHTEN 30
 
 class do_tighten_action : public CoinPresolveAction {
   do_tighten_action();
-  do_tighten_action(const do_tighten_action& rhs);
-  do_tighten_action& operator=(const do_tighten_action& rhs);
+  do_tighten_action(const do_tighten_action &rhs);
+  do_tighten_action &operator=(const do_tighten_action &rhs);
 
   struct action {
     int *rows;
@@ -27,29 +27,32 @@ class do_tighten_action : public CoinPresolveAction {
     double *ubound;
     int col;
     int nrows;
-    int direction;	// just for assertions
+    int direction; // just for assertions
   };
 
   const int nactions_;
   const action *const actions_;
 
   do_tighten_action(int nactions,
-		      const action *actions,
-		      const CoinPresolveAction *next) :
-    CoinPresolveAction(next),
-    nactions_(nactions), actions_(actions) {}
+    const action *actions,
+    const CoinPresolveAction *next)
+    : CoinPresolveAction(next)
+    , nactions_(nactions)
+    , actions_(actions)
+  {
+  }
 
- public:
+public:
   const char *name() const;
 
   static const CoinPresolveAction *presolve(CoinPresolveMatrix *prob,
-					 const CoinPresolveAction *next);
+    const CoinPresolveAction *next);
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
   virtual ~do_tighten_action();
-
 };
 #endif
 
-
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

@@ -20,22 +20,18 @@ class CoinWarmStartDiff;
 
 class CoinWarmStart {
 public:
-
   /// Abstract destructor
   virtual ~CoinWarmStart() {}
 
   /// `Virtual constructor'
-  virtual CoinWarmStart *clone() const = 0 ;
-   
-  virtual CoinWarmStartDiff*
-  generateDiff (const CoinWarmStart *const ) const { return 0; }
-   
-   
+  virtual CoinWarmStart *clone() const = 0;
+
+  virtual CoinWarmStartDiff *
+  generateDiff(const CoinWarmStart *const) const { return 0; }
+
   virtual void
-  applyDiff (const CoinWarmStartDiff *const ) {}
-
+  applyDiff(const CoinWarmStartDiff *const) {}
 };
-
 
 /*! \class CoinWarmStartDiff
     \brief Abstract base class for warm start `diff' objects
@@ -47,12 +43,14 @@ public:
 
 class CoinWarmStartDiff {
 public:
-
   /// Abstract destructor
   virtual ~CoinWarmStartDiff() {}
 
   /// `Virtual constructor'
-  virtual CoinWarmStartDiff *clone() const = 0 ;
+  virtual CoinWarmStartDiff *clone() const = 0;
 };
 
 #endif
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

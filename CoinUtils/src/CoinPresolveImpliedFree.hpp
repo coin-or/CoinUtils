@@ -10,7 +10,7 @@
   \file
 */
 
-#define	IMPLIED_FREE	9
+#define IMPLIED_FREE 9
 
 /*! \class implied_free_action
     \brief Detect and process implied free variables
@@ -40,17 +40,20 @@ class implied_free_action : public CoinPresolveAction {
   const action *const actions_;
 
   implied_free_action(int nactions,
-		      const action *actions,
-		      const CoinPresolveAction *next) :
-    CoinPresolveAction(next),
-    nactions_(nactions), actions_(actions) {}
+    const action *actions,
+    const CoinPresolveAction *next)
+    : CoinPresolveAction(next)
+    , nactions_(nactions)
+    , actions_(actions)
+  {
+  }
 
- public:
+public:
   const char *name() const;
 
-  static const CoinPresolveAction *presolve(CoinPresolveMatrix * prob,
-					 const CoinPresolveAction *next,
-					int & fillLevel);
+  static const CoinPresolveAction *presolve(CoinPresolveMatrix *prob,
+    const CoinPresolveAction *next,
+    int &fillLevel);
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
@@ -58,3 +61,6 @@ class implied_free_action : public CoinPresolveAction {
 };
 
 #endif
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

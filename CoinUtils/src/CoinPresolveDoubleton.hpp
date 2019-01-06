@@ -6,7 +6,7 @@
 #ifndef CoinPresolveDoubleton_H
 #define CoinPresolveDoubleton_H
 
-#define	DOUBLETON	5
+#define DOUBLETON 5
 
 /*! \class doubleton_action
     \brief Solve ax+by=c for y and substitute y out of the problem.
@@ -24,13 +24,13 @@
   \endverbatim
 */
 class doubleton_action : public CoinPresolveAction {
- public:
+public:
   struct action {
 
     double clox;
     double cupx;
     double costx;
-    
+
     double costy;
 
     double rlo;
@@ -50,24 +50,27 @@ class doubleton_action : public CoinPresolveAction {
   const int nactions_;
   const action *const actions_;
 
- private:
+private:
   doubleton_action(int nactions,
-		      const action *actions,
-		      const CoinPresolveAction *next) :
-    CoinPresolveAction(next),
-    nactions_(nactions), actions_(actions)
-{}
+    const action *actions,
+    const CoinPresolveAction *next)
+    : CoinPresolveAction(next)
+    , nactions_(nactions)
+    , actions_(actions)
+  {
+  }
 
- public:
+public:
   const char *name() const { return ("doubleton_action"); }
 
   static const CoinPresolveAction *presolve(CoinPresolveMatrix *,
-					 const CoinPresolveAction *next);
-  
+    const CoinPresolveAction *next);
+
   void postsolve(CoinPostsolveMatrix *prob) const;
 
   virtual ~doubleton_action();
 };
 #endif
 
-
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/
