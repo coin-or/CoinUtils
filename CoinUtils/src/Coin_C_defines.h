@@ -66,6 +66,10 @@ typedef void Clp_Simplex;
 typedef void(COINLINKAGE_CB *clp_callback)(Clp_Simplex *model, int msgno, int ndouble,
   const double *dvec, int nint, const int *ivec,
   int nchar, char **cvec);
+#elif COIN_BIG_INDEX == 1
+typedef void(COINLINKAGE_CB *clp_callback)(Clp_Simplex *model, int msgno, int ndouble,
+  const double *dvec, int nint, const long *ivec,
+  int nchar, char **cvec);
 #else
 typedef void(COINLINKAGE_CB *clp_callback)(Clp_Simplex *model, int msgno, int ndouble,
   const double *dvec, int nint, const long long *ivec,

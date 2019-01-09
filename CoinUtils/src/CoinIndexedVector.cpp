@@ -1900,7 +1900,7 @@ void CoinArrayWithLength::copy(const CoinArrayWithLength &rhs, int numberBytes)
   }
 }
 /* Assignment with length - does not copy */
-void CoinArrayWithLength::allocate(const CoinArrayWithLength &rhs, int numberBytes)
+void CoinArrayWithLength::allocate(const CoinArrayWithLength &rhs, CoinBigIndex numberBytes)
 {
   if (numberBytes == -1 || numberBytes <= rhs.capacity()) {
     assert(rhs.size_ != -1 || !rhs.array_);

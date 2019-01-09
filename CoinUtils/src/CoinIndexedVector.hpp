@@ -649,7 +649,7 @@ public:
   /** Assignment with length (if -1 use internal length) */
   void copy(const CoinArrayWithLength &rhs, int numberBytes = -1);
   /** Assignment with length - does not copy */
-  void allocate(const CoinArrayWithLength &rhs, int numberBytes);
+  void allocate(const CoinArrayWithLength &rhs, CoinBigIndex numberBytes);
   /** Destructor */
   ~CoinArrayWithLength();
   /// Get array with alignment
@@ -706,7 +706,7 @@ public:
   /// Conditionally gets new array
   inline double *conditionalNew(CoinBigIndex sizeWanted)
   {
-    return reinterpret_cast< double * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long >((sizeWanted)*CoinSizeofAsInt(double)) : -1));
+    return reinterpret_cast< double * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long long >((sizeWanted)*CoinSizeofAsInt(double)) : -1));
   }
   //@}
 
@@ -781,9 +781,9 @@ public:
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  inline CoinFactorizationDouble *conditionalNew(int sizeWanted)
+  inline CoinFactorizationDouble *conditionalNew(CoinBigIndex sizeWanted)
   {
-    return reinterpret_cast< CoinFactorizationDouble * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long >((sizeWanted)*CoinSizeofAsInt(CoinFactorizationDouble)) : -1));
+    return reinterpret_cast< CoinFactorizationDouble * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long long >((sizeWanted)*CoinSizeofAsInt(CoinFactorizationDouble)) : -1));
   }
   //@}
 
@@ -858,9 +858,9 @@ public:
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  inline long double *conditionalNew(int sizeWanted)
+  inline long double *conditionalNew(CoinBigIndex sizeWanted)
   {
-    return reinterpret_cast< long double * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long >((sizeWanted)*CoinSizeofAsInt(long double)) : -1));
+    return reinterpret_cast< long double * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long long >((sizeWanted)*CoinSizeofAsInt(long double)) : -1));
   }
   //@}
 
@@ -935,9 +935,9 @@ public:
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  inline int *conditionalNew(int sizeWanted)
+  inline int *conditionalNew(CoinBigIndex sizeWanted)
   {
-    return reinterpret_cast< int * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long >((sizeWanted)*CoinSizeofAsInt(int)) : -1));
+    return reinterpret_cast< int * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long long >((sizeWanted)*CoinSizeofAsInt(int)) : -1));
   }
   //@}
 
@@ -1014,7 +1014,7 @@ public:
   /// Conditionally gets new array
   inline CoinBigIndex *conditionalNew(CoinBigIndex sizeWanted)
   {
-    return reinterpret_cast< CoinBigIndex * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long >((sizeWanted)*CoinSizeofAsInt(CoinBigIndex)) : -1));
+    return reinterpret_cast< CoinBigIndex * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long long >((sizeWanted)*CoinSizeofAsInt(CoinBigIndex)) : -1));
   }
   //@}
 
@@ -1089,9 +1089,9 @@ public:
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  inline unsigned int *conditionalNew(int sizeWanted)
+  inline unsigned int *conditionalNew(CoinBigIndex sizeWanted)
   {
-    return reinterpret_cast< unsigned int * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long >((sizeWanted)*CoinSizeofAsInt(unsigned int)) : -1));
+    return reinterpret_cast< unsigned int * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long long >((sizeWanted)*CoinSizeofAsInt(unsigned int)) : -1));
   }
   //@}
 
@@ -1166,9 +1166,9 @@ public:
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  inline void **conditionalNew(int sizeWanted)
+  inline void **conditionalNew(CoinBigIndex sizeWanted)
   {
-    return reinterpret_cast< void ** >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long >((sizeWanted)*CoinSizeofAsInt(void *)) : -1));
+    return reinterpret_cast< void ** >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long long >((sizeWanted)*CoinSizeofAsInt(void *)) : -1));
   }
   //@}
 
@@ -1243,10 +1243,10 @@ public:
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  inline char *conditionalNew(int length, int sizeWanted)
+  inline char *conditionalNew(CoinBigIndex length, CoinBigIndex sizeWanted)
   {
     lengthInBytes_ = length;
-    return reinterpret_cast< char * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long >((sizeWanted)*lengthInBytes_) : -1));
+    return reinterpret_cast< char * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? static_cast< long long >((sizeWanted)*lengthInBytes_) : -1));
   }
   //@}
 
@@ -1297,7 +1297,7 @@ protected:
   /**@name Private member data */
   //@{
   /// Length in bytes
-  int lengthInBytes_;
+  CoinBigIndex lengthInBytes_;
   //@}
 };
 class CoinPartitionedVector : public CoinIndexedVector {
@@ -1435,6 +1435,3 @@ inline double *roundUpDouble(double *address)
     return address;
 }
 #endif
-
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/
