@@ -98,6 +98,17 @@ typedef struct {
   Cbc_MessageHandler *handler_;
   std::vector< std::string > cmdargs_;
   char relax_;
+
+  // cache for columns
+  int colSpace;
+  int nCols;
+  int cNameSpace;
+  int *cNameStart;
+  char *cInt;
+  char *cNames;
+  double *cLB;
+  double *cUB;
+  double *cObj;
 } Cbc_Model;
 #else
 typedef void Cbc_Model;
