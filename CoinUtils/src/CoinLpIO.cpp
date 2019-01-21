@@ -2954,6 +2954,18 @@ int CoinLpIO::newCardLpIO() const
     char *ok = input_->gets(inputBuffer_, 1024);
     if (!ok)
       return 0;
+    int length = strlen(inputBuffer_);
+    // take off blanks or below
+    length--;
+    while(length>=0) {
+      if (inputBuffer_[length]<=' ')
+	length--;
+      else
+	break;
+    }
+    // but put back something
+    inputBuffer_[length+1]='\n';  
+    inputBuffer_[length+2]='\0';  
     // go to single blanks and remove all blanks before :: or :
     char *colons = strstr(inputBuffer_, "::");
     int nn = 0;
