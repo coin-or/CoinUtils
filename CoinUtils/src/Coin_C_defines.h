@@ -119,9 +119,17 @@ typedef void Cbc_Model;
 typedef void(COINLINKAGE_CB *sbb_callback)(Sbb_Model *model, int msgno, int ndouble,
   const double *dvec, int nint, const int *ivec,
   int nchar, char **cvec);
+
 typedef void(COINLINKAGE_CB *cbc_callback)(Cbc_Model *model, int msgno, int ndouble,
   const double *dvec, int nint, const int *ivec,
   int nchar, char **cvec);
+
+/** typedef for cbc cut callback osiSolver needs to be an OsiSolverInterface object,
+ * osiCuts is an OsiCuts object and appdata is a pointer that will be passed to the cut 
+ * generation, you can use it to point to a data structure with information about the original problem, 
+ * for instance
+ **/
+typedef void(COINLINKAGE_CB *cbc_cut_callback)(void *osiSolver, void *osiCuts, void *appdata);
 #endif
 #if COIN_BIG_INDEX == 0
 typedef int CoinBigIndex;
