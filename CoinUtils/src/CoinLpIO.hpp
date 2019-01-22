@@ -670,7 +670,7 @@ protected:
   mutable CoinHashLink *hash_[2];
 
   /// Current buffer (needed so can get rid of blanks with :
-  mutable char inputBuffer_[1025];
+  mutable char inputBuffer_[1028];
   /// Current buffer length (negative if not got eol)
   mutable int bufferLength_;
   /// Current buffer position
