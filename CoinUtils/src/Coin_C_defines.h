@@ -95,6 +95,7 @@ class Cbc_MessageHandler;
 typedef struct {
   OsiClpSolverInterface *solver_;
   CbcModel *model_;
+  CbcSolverUsefulData *cbcData;
   Cbc_MessageHandler *handler_;
   std::vector< std::string > cmdargs_;
   char relax_;
