@@ -12,7 +12,7 @@
 
 AC_PREREQ(2.59)
 
-AC_INIT([CoinUtils],[2.10.15],[coinutils@lists.coin-or.org])
+AC_INIT([CoinUtils],[2.10],[coinutils@lists.coin-or.org])
 
 AC_COPYRIGHT([
 Copyright 2006, 2009 International Business Machines and others.
