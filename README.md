@@ -1,10 +1,14 @@
 # CoinUtils
 
-CoinUtils (*Coin*-OR *Util*itie*s*) is an open-source collection of classes and functions that are generally useful to more than one COIN-OR project.  These utilities include:
- * Vector classes
- * Matrix classes
- * MPS file reading
- * Comparing floating point numbers with a tolerance
+CoinUtils (*Coin*-OR *Util*itie*s*) is an open-source collection of classes and functions that are generally useful to more than one COIN-OR project.
+These utilities include:
+ * classes for storing and manipulating sparse matrices and vectors,
+ * performing matrix factorization,
+ * parsing input files in standard formats, e.g. MPS,
+ * building representations of mathematical programs,
+ * performing simple presolve operations,
+ * warm starting algorithms for mathematical programs, and
+ * comparing floating point numbers with a tolerance, among others.
 
 CoinUtils is written in C++ and is released as open source code under the [Eclipse Public License (EPL)](http://www.opensource.org/licenses/eclipse-1.0).
 It is available from the [COIN-OR initiative](http://www.coin-or.org/).
