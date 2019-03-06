@@ -64,7 +64,7 @@
     </projectCategories>
   </projectBasics>
   <leftMenuLinks>
-    <!--documentation>http://projects.coin-or.org/CoinUtils/</documentation-->
+    <documentation>https://www.coin-or.org/Doxygen/CoinUtils/</documentation>
     <sourceCodeDownload>http://www.coin-or.org/download/source/CoinUtils</sourceCodeDownload>
     <!--binaryDownload>http://www.coin-or.org/download/binary/CoinUtils</binaryDownload-->
     <mailingList>http://list.coin-or.org/mailman/listinfo/coinutils</mailingList>
