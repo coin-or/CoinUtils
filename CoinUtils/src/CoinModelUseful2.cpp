@@ -630,10 +630,6 @@ YYSTYPE *yyvaluep;
   } else
     YYFPRINTF(yyoutput, "nterm %s (", yytname[yytype]);
 
-  switch (yytype) {
-  default:
-    break;
-  }
   YYFPRINTF(yyoutput, ")");
 }
 
@@ -654,11 +650,6 @@ YYSTYPE *yyvaluep;
   /* Pacify ``unused variable'' warnings.  */
   (void)yyvaluep;
 
-  switch (yytype) {
-
-  default:
-    break;
-  }
 }
 
 static symrec *
@@ -1274,12 +1265,10 @@ yyerrlab:
 `---------------------------------------------------*/
 yyerrorlab:
 
-#ifdef __GNUC__
   /* Pacify GCC when the user code never invokes YYERROR and the label
      yyerrorlab therefore never appears in user code.  */
   if (0)
     goto yyerrorlab;
-#endif
 
   yyvsp -= yylen;
   yyssp -= yylen;
