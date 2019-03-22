@@ -22,9 +22,9 @@ https://coin-or.github.io/coinbrew/
 and run
 
 
-    /path/to/coinbrew fetch --mainProj=CoinUtils
-    /path/to/coinbrew build --mainProj=CoinUtils --test
-    /path/to/coinbrew install --mainProj=CoinUtils
+    /path/to/coinbrew fetch --main-proj=CoinUtils
+    /path/to/coinbrew build --main-proj=CoinUtils --test
+    /path/to/coinbrew install --main-proj=CoinUtils
 
 
 The `coinbrew` script will fetch [these](Dependencies) additional projects.
