@@ -2544,9 +2544,8 @@ void CoinLpIO::readLp()
   }
   // Check for duplicates
   for (int iRow = 0;iRow<numberRows_;iRow++) {
-    CoinBigIndex startRow = start[iRow];
-    CoinBigIndex endRow =
-      (iRow<numberRows_-1) ? start[iRow+1] : numberElements_;
+    CoinBigIndex startRow = start[iRow]+cnt_obj;
+    CoinBigIndex endRow = start[iRow+1]+cnt_obj;
     for (CoinBigIndex j=startRow;j<endRow;j++) {
       int iColumn = ind[j];
       if (!inRow[iColumn])
