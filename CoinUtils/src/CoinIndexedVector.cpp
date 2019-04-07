@@ -1757,7 +1757,7 @@ void CoinArrayWithLength::clear()
   memset(array_, 0, size_);
 }
 // Get array with alignment
-void CoinArrayWithLength::getArray(CoinBigIndex size)
+void CoinArrayWithLength::getArray(CoinByteArray size)
 {
   if (size > 0) {
     if (alignment_ > 2) {
@@ -1808,11 +1808,11 @@ void CoinArrayWithLength::reallyFreeArray()
   size_ = -1;
 }
 // Get enough space
-void CoinArrayWithLength::getCapacity(CoinBigIndex numberBytes, CoinBigIndex numberNeeded)
+void CoinArrayWithLength::getCapacity(CoinByteArray numberBytes, CoinByteArray numberNeeded)
 {
-  CoinBigIndex k = capacity();
+  CoinByteArray k = capacity();
   if (k < numberBytes) {
-    CoinBigIndex saveSize = size_;
+    CoinByteArray saveSize = size_;
     reallyFreeArray();
     size_ = saveSize;
     getArray(CoinMax(numberBytes, numberNeeded));
@@ -1826,7 +1826,7 @@ void CoinArrayWithLength::getCapacity(CoinBigIndex numberBytes, CoinBigIndex num
    if size<=0 just does alignment
    If abs(mode) >2 then align on that as power of 2
 */
-CoinArrayWithLength::CoinArrayWithLength(CoinBigIndex size, int mode)
+CoinArrayWithLength::CoinArrayWithLength(CoinByteArray size, int mode)
 {
   alignment_ = abs(mode);
   size_ = size;
@@ -1841,15 +1841,15 @@ CoinArrayWithLength::~CoinArrayWithLength()
 }
 // Conditionally gets new array
 char *
-CoinArrayWithLength::conditionalNew(CoinBigIndex sizeWanted)
+CoinArrayWithLength::conditionalNew(CoinByteArray sizeWanted)
 {
   if (size_ == -1) {
-    getCapacity(static_cast< int >(sizeWanted));
+    getCapacity(sizeWanted);
   } else {
-    int newSize = static_cast< int >(sizeWanted * 101 / 100) + 64;
+    CoinByteArray newSize = (sizeWanted * 101 / 100) + 64;
     // round to multiple of 16
     newSize -= newSize & 15;
-    getCapacity(static_cast< int >(sizeWanted), newSize);
+    getCapacity(sizeWanted, newSize);
   }
   return array_;
 }
@@ -1888,7 +1888,7 @@ CoinArrayWithLength::operator=(const CoinArrayWithLength &rhs)
   return *this;
 }
 /* Assignment with length (if -1 use internal length) */
-void CoinArrayWithLength::copy(const CoinArrayWithLength &rhs, int numberBytes)
+void CoinArrayWithLength::copy(const CoinArrayWithLength &rhs, CoinByteArray numberBytes)
 {
   if (numberBytes == -1 || numberBytes <= rhs.capacity()) {
     CoinArrayWithLength::operator=(rhs);
@@ -1900,7 +1900,7 @@ void CoinArrayWithLength::copy(const CoinArrayWithLength &rhs, int numberBytes)
   }
 }
 /* Assignment with length - does not copy */
-void CoinArrayWithLength::allocate(const CoinArrayWithLength &rhs, CoinBigIndex numberBytes)
+void CoinArrayWithLength::allocate(const CoinArrayWithLength &rhs, CoinByteArray numberBytes)
 {
   if (numberBytes == -1 || numberBytes <= rhs.capacity()) {
     assert(rhs.size_ != -1 || !rhs.array_);
@@ -1926,7 +1926,7 @@ void CoinArrayWithLength::allocate(const CoinArrayWithLength &rhs, CoinBigIndex 
   }
 }
 // Does what is needed to set persistence
-void CoinArrayWithLength::setPersistence(int flag, int currentLength)
+void CoinArrayWithLength::setPersistence(int flag, CoinByteArray currentLength)
 {
   if (flag) {
     if (size_ == -1) {
@@ -1953,7 +1953,7 @@ void CoinArrayWithLength::swap(CoinArrayWithLength &other)
   char *swapArray = other.array_;
   other.array_ = array_;
   array_ = swapArray;
-  CoinBigIndex swapSize = other.size_;
+  CoinByteArray swapSize = other.size_;
   other.size_ = size_;
   size_ = swapSize;
   int swapOffset = other.offset_;
@@ -1961,7 +1961,7 @@ void CoinArrayWithLength::swap(CoinArrayWithLength &other)
   offset_ = swapOffset;
 }
 // Extend a persistent array keeping data (size in bytes)
-void CoinArrayWithLength::extend(int newSize)
+void CoinArrayWithLength::extend(CoinByteArray newSize)
 {
   //assert (newSize>=capacity()&&capacity()>=0);
   assert(size_ >= 0); // not much point otherwise

@@ -288,7 +288,7 @@ CoinCopyOfArrayOrZero(const T *array, const CoinBigIndex size)
 #ifndef COIN_USE_RESTRICT
 template < class T >
 inline void
-CoinMemcpyN(const T *from, const CoinBigIndex size, T *to)
+CoinMemcpyN(const T *from, const CoinByteArray size, T *to)
 {
 #ifndef _MSC_VER
 #ifdef USE_MEMCPY
@@ -364,7 +364,7 @@ CoinMemcpyN(const T *from, const CoinBigIndex size, T *to)
 #else
 template < class T >
 inline void
-CoinMemcpyN(const T *COIN_RESTRICT from, CoinBigIndex size, T *COIN_RESTRICT to)
+CoinMemcpyN(const T *COIN_RESTRICT from, CoinByteArray size, T *COIN_RESTRICT to)
 {
 #ifdef USE_MEMCPY
   std::memcpy(to, from, size * sizeof(T));
