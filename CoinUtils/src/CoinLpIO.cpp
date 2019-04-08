@@ -58,6 +58,7 @@ CoinLpIO::CoinLpIO()
   , epsilon_(1e-5)
   , numberAcross_(10)
   , decimals_(9)
+  , wasMaximization_(false)
   , input_(NULL)
 {
   for (int j = 0; j < MAX_OBJECTIVES; j++) {
@@ -159,6 +160,7 @@ void CoinLpIO::gutsOfCopy(const CoinLpIO &rhs)
   numberRows_ = rhs.numberRows_;
   numberColumns_ = rhs.numberColumns_;
   decimals_ = rhs.decimals_;
+  wasMaximization_ = rhs.wasMaximization_;
 
   if (rhs.rowlower_) {
     rowlower_ = reinterpret_cast< double * >(malloc(numberRows_ * sizeof(double)));
@@ -2494,6 +2496,11 @@ void CoinLpIO::readLp()
   numberElements_ = cnt_coeff - start[0];
 
   double *obj[MAX_OBJECTIVES];
+  // Check for duplicates - first in objectives
+  int * whichColumn = new int [numberColumns_];
+  char * inRow = new char[numberColumns_];
+  memset(inRow,0,numberColumns_);
+  int numberDuplicates = 0;
 
   for (int j = 0; j < num_objectives; j++) {
     obj[j] = reinterpret_cast< double * >(malloc(numberColumns_ * sizeof(double)));
@@ -2506,8 +2513,20 @@ void CoinLpIO::readLp()
         sprintf(str, "### ERROR: Hash table: %s (obj) not found\n", colNames[i]);
         throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
       }
-      obj[j][icol] = objsense * coeff[i];
+      if (!inRow[icol])
+	inRow[icol]=1;
+      else
+	numberDuplicates++;
+      obj[j][icol] += objsense * coeff[i];
     }
+    memset(inRow,0,numberColumns_);
+  }
+  if (numberDuplicates) {
+    char str[8192];
+    sprintf(str, "### ERROR: %d duplicates in objective\n",
+	    numberDuplicates);
+    handler_->message(COIN_GENERAL_INFO, messages_) << str
+                                                    << CoinMessageEol;
   }
 
   if (objsense == -1) {
@@ -2516,12 +2535,39 @@ void CoinLpIO::readLp()
     for (int j = 0; j < num_objectives_; j++) {
       objectiveOffset_[j] = -objectiveOffset_[j];
     }
+    wasMaximization_ = true;
   }
 
+  
   for (i = 0; i < cnt_row + 1; i++) {
     start[i] -= cnt_obj;
   }
-
+  // Check for duplicates
+  for (int iRow = 0;iRow<numberRows_;iRow++) {
+    CoinBigIndex startRow = start[iRow]+cnt_obj;
+    CoinBigIndex endRow = start[iRow+1]+cnt_obj;
+    for (CoinBigIndex j=startRow;j<endRow;j++) {
+      int iColumn = ind[j];
+      if (!inRow[iColumn])
+	inRow[iColumn]=1;
+      else
+	numberDuplicates ++;
+    }
+    for (CoinBigIndex j=startRow;j<endRow;j++) {
+      int iColumn = ind[j];
+      inRow[iColumn] = 0;
+    }
+  }
+  delete [] inRow;
+  delete [] whichColumn;
+  if (numberDuplicates) {
+    char str[8192];
+    sprintf(str, "### ERROR: %d duplicates in objective and matrix\n",
+	    numberDuplicates);
+    handler_->message(COIN_GENERAL_INFO, messages_) << str
+                                                    << CoinMessageEol;
+    throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
+  }
   CoinPackedMatrix *matrix = new CoinPackedMatrix(false,
     numberColumns_, numberRows_, numberElements_,
     &(coeff[cnt_obj]), &(ind[cnt_obj]), start, NULL);

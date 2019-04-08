@@ -228,11 +228,13 @@ double CoinMpsCardReader::osi_strtod(char *ptr, char **output)
 }
 //#############################################################################
 // sections
+namespace {
 const static char *section[] = {
   "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ", "QSECTION", "CSECTION",
   "QUADOBJ", "SOS", "BASIS",
   " "
 };
+}
 
 // what is allowed in each section - must line up with COINSectionType
 const static COINMpsType startType[] = {
