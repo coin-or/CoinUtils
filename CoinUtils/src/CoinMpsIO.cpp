@@ -234,7 +234,6 @@ const static char *section[] = {
   "QUADOBJ", "SOS", "BASIS",
   " "
 };
-}
 
 // what is allowed in each section - must line up with COINSectionType
 const static COINMpsType startType[] = {
@@ -273,6 +272,7 @@ const static char *mpsTypes[] = {
   "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "LI", "XX", "SC",
   "X1", "X2", "BS", "XL", "XU", "LL", "UL", "  "
 };
+} // namespace {
 
 int CoinMpsCardReader::cleanCard()
 {
