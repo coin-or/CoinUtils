@@ -59,6 +59,10 @@ typedef struct {
 typedef void Clp_Simplex;
 #endif
 
+#ifndef COIN_NO_SBB
+typedef int (COINLINKAGE_CB *cbc_incumbent_callback)(void *cbcModel, double obj, int nz, char **vnames, double *x, void *appData);
+#endif
+
 #ifndef COIN_NO_CLP
 /** typedef for user call back.
  The cvec are constructed so don't need to be const*/
@@ -110,6 +114,9 @@ typedef struct {
   double *cLB;
   double *cUB;
   double *cObj;
+  
+  cbc_incumbent_callback inc_callback;
+  void *icAppData;
 } Cbc_Model;
 #else
 typedef void Cbc_Model;
