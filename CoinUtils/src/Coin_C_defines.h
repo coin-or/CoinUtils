@@ -104,7 +104,7 @@ typedef struct {
   std::vector< std::string > cmdargs_;
   char relax_;
 
-  // cache for columns
+  // buffer for columns
   int colSpace;
   int nCols;
   int cNameSpace;
@@ -114,6 +114,9 @@ typedef struct {
   double *cLB;
   double *cUB;
   double *cObj;
+
+  void *colNameIndex;
+  void *rowNameIndex;
   
   cbc_incumbent_callback inc_callback;
   void *icAppData;
