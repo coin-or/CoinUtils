@@ -115,6 +115,20 @@ typedef struct {
   double *cUB;
   double *cObj;
 
+  // buffer for rows
+  int rowSpace;
+  int nRows;
+  int rNameSpace;
+  int *rNameStart;
+  char *rNames;
+  double *rLB;
+  double *rUB;
+  int rElementsSpace;
+  int *rStart;
+  int *rIdx;
+  double *rCoef;
+
+  // for fast search of columns
   void *colNameIndex;
   void *rowNameIndex;
   
