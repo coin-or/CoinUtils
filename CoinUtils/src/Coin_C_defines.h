@@ -63,6 +63,11 @@ typedef void Clp_Simplex;
 typedef int (COINLINKAGE_CB *cbc_incumbent_callback)(void *cbcModel, double obj, int nz, char **vnames, double *x, void *appData);
 #endif
 
+
+#ifdef CBC_THREAD
+#include <pthread.h>
+#endif
+
 #ifndef COIN_NO_CLP
 /** typedef for user call back.
  The cvec are constructed so don't need to be const*/
@@ -131,9 +136,13 @@ typedef struct {
   // for fast search of columns
   void *colNameIndex;
   void *rowNameIndex;
-  
+
   cbc_incumbent_callback inc_callback;
   void *icAppData;
+
+#ifdef CBC_THREAD
+  pthread_mutex_t cbcMutex;
+#endif
 } Cbc_Model;
 #else
 typedef void Cbc_Model;
@@ -149,9 +158,21 @@ typedef void(COINLINKAGE_CB *cbc_callback)(Cbc_Model *model, int msgno, int ndou
   const double *dvec, int nint, const int *ivec,
   int nchar, char **cvec);
 
+/** typedef for cbc callback to monitor the progress of the search
+ * in terms of improved upper and lower bounds */
+typedef void(COINLINKAGE_CB *cbc_progress_callback)(Cbc_Model *model,
+                                                    int phase,
+                                                    int step,
+                                                    double seconds,
+                                                    double lb,
+                                                    double ub,
+                                                    int nint,
+                                                    int *vecint
+                                                   );
+
 /** typedef for cbc cut callback osiSolver needs to be an OsiSolverInterface object,
- * osiCuts is an OsiCuts object and appdata is a pointer that will be passed to the cut 
- * generation, you can use it to point to a data structure with information about the original problem, 
+ * osiCuts is an OsiCuts object and appdata is a pointer that will be passed to the cut
+ * generation, you can use it to point to a data structure with information about the original problem,
  * for instance
  **/
 typedef void(COINLINKAGE_CB *cbc_cut_callback)(void *osiSolver, void *osiCuts, void *appdata);
