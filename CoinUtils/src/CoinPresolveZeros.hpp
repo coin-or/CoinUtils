@@ -11,7 +11,7 @@
   Drop/reintroduce explicit zeros.
 */
 
-#define	DROP_ZERO	8
+#define DROP_ZERO 8
 
 /*! \brief Tracking information for an explicit zero coefficient
 
@@ -35,27 +35,32 @@ class COINUTILSLIB_EXPORT drop_zero_coefficients_action : public CoinPresolveAct
   const dropped_zero *const zeros_;
 
   drop_zero_coefficients_action(int nzeros,
-				const dropped_zero *zeros,
-				const CoinPresolveAction *next) :
-    CoinPresolveAction(next),
-    nzeros_(nzeros), zeros_(zeros)
-{}
+    const dropped_zero *zeros,
+    const CoinPresolveAction *next)
+    : CoinPresolveAction(next)
+    , nzeros_(nzeros)
+    , zeros_(zeros)
+  {
+  }
 
- public:
+public:
   const char *name() const { return ("drop_zero_coefficients_action"); }
 
   static const CoinPresolveAction *presolve(CoinPresolveMatrix *prob,
-					 int *checkcols,
-					 int ncheckcols,
-					 const CoinPresolveAction *next);
+    int *checkcols,
+    int ncheckcols,
+    const CoinPresolveAction *next);
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
-  virtual ~drop_zero_coefficients_action() { deleteAction(zeros_,dropped_zero*); }
+  virtual ~drop_zero_coefficients_action() { deleteAction(zeros_, dropped_zero *); }
 };
 
 COINUTILSLIB_EXPORT
 const CoinPresolveAction *drop_zero_coefficients(CoinPresolveMatrix *prob,
-					      const CoinPresolveAction *next);
+  const CoinPresolveAction *next);
 
 #endif
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

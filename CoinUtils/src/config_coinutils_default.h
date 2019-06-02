@@ -5,13 +5,13 @@
 /***************************************************************************/
 
 /* Version number of project */
-#define COINUTILS_VERSION  "trunk"
+#define COINUTILS_VERSION "trunk"
 
 /* Major Version number of project */
-#define COINUTILS_VERSION_MAJOR   9999
+#define COINUTILS_VERSION_MAJOR 9999
 
 /* Minor Version number of project */
-#define COINUTILS_VERSION_MINOR   9999
+#define COINUTILS_VERSION_MINOR 9999
 
 /* Release Version number of project */
 #define COINUTILS_VERSION_RELEASE 9999
@@ -27,15 +27,15 @@
   and have been developing in MSVS long enough to know, fix it.  -- lh, 100915 --
 */
 #if _MSC_VER >= 1200
-# include <BaseTsd.h>
-# define COIN_INT64_T INT64
-# define COIN_UINT64_T UINT64
-  /* Define to integer type capturing pointer */
-# define COIN_INTPTR_T ULONG_PTR
+#include <BaseTsd.h>
+#define COIN_INT64_T INT64
+#define COIN_UINT64_T UINT64
+/* Define to integer type capturing pointer */
+#define COIN_INTPTR_T ULONG_PTR
 #else
-# define COIN_INT64_T long long
-# define COIN_UINT64_T unsigned long long
-# define COIN_INTPTR_T int*
+#define COIN_INT64_T long long
+#define COIN_UINT64_T unsigned long long
+#define COIN_INTPTR_T int *
 #endif
 
 #ifndef COINUTILS_EXPORT
@@ -46,3 +46,6 @@
 #define COINUTILS_EXPORT
 #endif
 #endif
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

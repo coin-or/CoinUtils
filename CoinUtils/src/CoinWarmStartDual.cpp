@@ -5,7 +5,7 @@
 
 #if defined(_MSC_VER)
 // Turn off compiler warning about long names
-#  pragma warning(disable:4786)
+#pragma warning(disable : 4786)
 #endif
 
 #include <cassert>
@@ -23,21 +23,21 @@
   larger than the basis pointed to by this.
 */
 
-CoinWarmStartDiff*
-CoinWarmStartDual::generateDiff (const CoinWarmStart *const oldCWS) const
-{ 
-/*
+CoinWarmStartDiff *
+CoinWarmStartDual::generateDiff(const CoinWarmStart *const oldCWS) const
+{
+  /*
   Make sure the parameter is CoinWarmStartDual or derived class.
 */
-  const CoinWarmStartDual *oldDual =
-      dynamic_cast<const CoinWarmStartDual *>(oldCWS) ;
-  if (!oldDual)
-  { throw CoinError("Old warm start not derived from CoinWarmStartDual.",
-		    "generateDiff","CoinWarmStartDual") ; }
+  const CoinWarmStartDual *oldDual = dynamic_cast< const CoinWarmStartDual * >(oldCWS);
+  if (!oldDual) {
+    throw CoinError("Old warm start not derived from CoinWarmStartDual.",
+      "generateDiff", "CoinWarmStartDual");
+  }
 
-  CoinWarmStartDualDiff* diff = new CoinWarmStartDualDiff;
-  CoinWarmStartDiff* vecdiff = dual_.generateDiff(&oldDual->dual_);
-  diff->diff_.swap(*dynamic_cast<CoinWarmStartVectorDiff<double>*>(vecdiff));
+  CoinWarmStartDualDiff *diff = new CoinWarmStartDualDiff;
+  CoinWarmStartDiff *vecdiff = dual_.generateDiff(&oldDual->dual_);
+  diff->diff_.swap(*dynamic_cast< CoinWarmStartVectorDiff< double > * >(vecdiff));
   delete vecdiff;
 
   return diff;
@@ -51,16 +51,19 @@ CoinWarmStartDual::generateDiff (const CoinWarmStart *const oldCWS) const
   allocated capacity of the warm start is sufficiently large.
 */
 
-void CoinWarmStartDual::applyDiff (const CoinWarmStartDiff *const cwsdDiff)
+void CoinWarmStartDual::applyDiff(const CoinWarmStartDiff *const cwsdDiff)
 {
-/*
+  /*
   Make sure we have a CoinWarmStartDualDiff
 */
-  const CoinWarmStartDualDiff *diff =
-    dynamic_cast<const CoinWarmStartDualDiff *>(cwsdDiff) ;
-  if (!diff)
-  { throw CoinError("Diff not derived from CoinWarmStartDualDiff.",
-		    "applyDiff","CoinWarmStartDual") ; }
+  const CoinWarmStartDualDiff *diff = dynamic_cast< const CoinWarmStartDualDiff * >(cwsdDiff);
+  if (!diff) {
+    throw CoinError("Diff not derived from CoinWarmStartDualDiff.",
+      "applyDiff", "CoinWarmStartDual");
+  }
 
   dual_.applyDiff(&diff->diff_);
 }
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

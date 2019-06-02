@@ -20,3 +20,6 @@ void WindowsErrorPopupBlocker()
 COINUTILSLIB_EXPORT
 void WindowsErrorPopupBlocker() {}
 #endif
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/
