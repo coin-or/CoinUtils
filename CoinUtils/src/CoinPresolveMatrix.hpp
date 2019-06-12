@@ -1946,6 +1946,7 @@ double *presolve_dupmajor(const double *elems, const int *indices,
   int length, CoinBigIndex offset, int tgt = -1);
 
 /// Initialize a vector with random numbers
+COINUTILSLIB_EXPORT
 void coin_init_random_vec(double *work, int n);
 
 //@}

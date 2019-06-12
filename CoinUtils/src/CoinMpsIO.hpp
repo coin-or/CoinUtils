@@ -1135,6 +1135,7 @@ void CoinMpsIOUnitTest(const std::string &mpsDir);
    2 - IEEE hex - INTEL
    3 - IEEE hex - not INTEL
 */
+COINUTILSLIB_EXPORT
 void CoinConvertDouble(int section, int formatType, double value, char outputValue[24]);
 
 #endif

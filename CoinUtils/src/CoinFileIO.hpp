@@ -160,6 +160,7 @@ public:
     - unix: string begins with `/'
     - windows: string begins with `\' or with `drv:' (drive specifier)
 */
+COINUTILSLIB_EXPORT
 bool fileAbsPath(const std::string &path);
 
 /*! \relates CoinFileInput
@@ -180,6 +181,7 @@ bool fileAbsPath(const std::string &path);
 
    The value returned in \p name is the file name that actually worked.
 */
+COINUTILSLIB_EXPORT
 bool fileCoinReadable(std::string &name,
   const std::string &dfltPrefix = std::string(""));
 #endif

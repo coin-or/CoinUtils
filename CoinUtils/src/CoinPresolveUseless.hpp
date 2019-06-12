@@ -54,7 +54,8 @@ public:
   constraints. 
 */
 
-const CoinPresolveAction *testRedundant(CoinPresolveMatrix *prob,
+COINUTILSLIB_EXPORT
+const CoinPresolveAction* testRedundant(CoinPresolveMatrix *prob,
   const CoinPresolveAction *next);
 
 #endif
