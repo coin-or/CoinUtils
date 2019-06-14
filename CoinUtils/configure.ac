@@ -262,11 +262,9 @@ AC_COIN_CHECK_PACKAGE(Glpk,   [coinglpk], [CoinUtilsLib])
 AC_COIN_CHECK_PACKAGE(Sample, [coindatasample])
 AC_COIN_CHECK_PACKAGE(Netlib, [coindatanetlib])
 
-AC_LANG_PUSH(C)
 AC_COIN_CHECK_GNU_ZLIB(CoinUtilsLib)
 AC_COIN_CHECK_GNU_BZLIB(CoinUtilsLib)
 AC_COIN_CHECK_GNU_READLINE(CoinUtilsLib)
-AC_LANG_POP(C)
 
 AC_COIN_VPATH_LINK(test/plan.mod)
 
