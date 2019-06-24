@@ -61,6 +61,21 @@ typedef void Clp_Simplex;
 
 #ifndef COIN_NO_SBB
 typedef int (COINLINKAGE_CB *cbc_incumbent_callback)(void *cbcModel, double obj, int nz, char **vnames, double *x, void *appData);
+
+/** typedef for cbc callback to monitor the progress of the search
+ * in terms of improved upper and lower bounds */
+typedef int(COINLINKAGE_CB *cbc_progress_callback)(void *model,
+                                                   int phase,
+                                                   int step,
+                                                   const char *phaseName,
+                                                   double seconds,
+                                                   double lb,
+                                                   double ub,
+                                                   int nint,
+                                                   int *vecint,
+                                                   void *cbData
+                                                   );
+
 #endif
 
 
@@ -138,7 +153,9 @@ typedef struct {
   void *rowNameIndex;
 
   cbc_incumbent_callback inc_callback;
+  cbc_progress_callback progr_callback;
   void *icAppData;
+  void *pgrAppData;
 
 #ifdef CBC_THREAD
   pthread_mutex_t cbcMutex;
@@ -158,17 +175,6 @@ typedef void(COINLINKAGE_CB *cbc_callback)(Cbc_Model *model, int msgno, int ndou
   const double *dvec, int nint, const int *ivec,
   int nchar, char **cvec);
 
-/** typedef for cbc callback to monitor the progress of the search
- * in terms of improved upper and lower bounds */
-typedef void(COINLINKAGE_CB *cbc_progress_callback)(Cbc_Model *model,
-                                                    int phase,
-                                                    int step,
-                                                    double seconds,
-                                                    double lb,
-                                                    double ub,
-                                                    int nint,
-                                                    int *vecint
-                                                   );
 
 /** typedef for cbc cut callback osiSolver needs to be an OsiSolverInterface object,
  * osiCuts is an OsiCuts object and appdata is a pointer that will be passed to the cut
