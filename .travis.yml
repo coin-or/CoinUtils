@@ -7,24 +7,24 @@ matrix:
         apt:
           packages:
           - gfortran
-    - os: linux
     - os: osx
-      osx_image: xcode10
-      env: OSX=10.13
-      compiler: clang
-    - os: osx
-      osx_image: xcode9.2
+      osx_image: xcode8.2
       env: OSX=10.12
       compiler: clang
     - os: osx
       osx_image: xcode8
       env: OSX=10.11
       compiler: clang
+    - os: osx
+      osx_image: xcode6.4
+      env: OSX=10.10
+      compiler: clang
   allow_failures:
     - os: osx
 
 before_script:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install bash gcc; brew link --overwrite gcc; gfortran --version; fi
-  - bash CoinUtils/get.dependencies.sh fetch > /dev/null
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install bash gcc; brew link --overwrite gcc; fi
+  - git clone https://github.com/coin-or-tools/BuildTools
+  - bash BuildTools/get.dependencies.sh fetch > /dev/null
 
-script: bash CoinUtils/get.dependencies.sh build --verbosity=2 --test 
+script: bash BuildTools/get.dependencies.sh build --verbosity=2 --test 
