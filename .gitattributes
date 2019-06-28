@@ -1,4 +1,5 @@
 * text=auto !eol
+.coin-or/projDesc.xml -text
 /.travis.yml -text
 CoinUtils/.coin-or/projDesc.xml -text
 CoinUtils/Dependencies -text
@@ -30,7 +31,6 @@ CoinUtils/configure -text
 CoinUtils/configure.ac -text
 CoinUtils/depcomp -text
 CoinUtils/doxydoc/doxygen.conf.in -text
-CoinUtils/get.dependencies.sh -text
 CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
 CoinUtils/m4/ac_coinutils_inttypes.m4 -text
