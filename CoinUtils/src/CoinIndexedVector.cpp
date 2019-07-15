@@ -2245,6 +2245,8 @@ void CoinPartitionedVector::print() const
     }
     printf("\n");
   }
+  delete[] tempElements;
+  delete[] tempIndices;
 }
 /* Sort the indexed storage vector (increasing indices). */
 void CoinPartitionedVector::sort()
