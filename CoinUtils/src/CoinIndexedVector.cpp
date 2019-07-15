@@ -1462,6 +1462,7 @@ bool CoinIndexedVector::operator==(const CoinIndexedVector &rhs) const
         break;
       }
     }
+    delete[] temp;
   } else {
     const double *celem2 = elements_;
     if (packedMode_) {
