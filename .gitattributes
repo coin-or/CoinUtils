@@ -13,6 +13,8 @@ CoinUtils/MSVisualStudio/v10alt/coinutils.props -text
 CoinUtils/MSVisualStudio/v10alt/genDefForCoinUtils.ps1 -text
 CoinUtils/MSVisualStudio/v10alt/libCoinUtils.vcxproj -text
 CoinUtils/MSVisualStudio/v14/libCoinUtils/libCoinUtils.vcxproj -text
+CoinUtils/MSVisualStudio/v16/libCoinUtils/libCoinUtils.sln -text
+CoinUtils/MSVisualStudio/v16/libCoinUtils/libCoinUtils.vcxproj -text
 CoinUtils/MSVisualStudio/v9/CoinUtils.sln -text
 CoinUtils/MSVisualStudio/v9/libCoinUtils/libCoinUtils.vcproj -text
 CoinUtils/MSVisualStudio/v9/unitTestCoinUtils/unitTestCoinUtils.vcproj -text
