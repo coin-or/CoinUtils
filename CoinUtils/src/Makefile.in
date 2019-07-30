@@ -90,7 +90,10 @@ am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinPresolveUseless.lo CoinPresolveZeros.lo CoinRational.lo \
 	CoinSearchTree.lo CoinShallowPackedVector.lo CoinSnapshot.lo \
 	CoinWarmStartBasis.lo CoinWarmStartVector.lo \
-	CoinWarmStartDual.lo CoinWarmStartPrimalDual.lo
+	CoinWarmStartDual.lo CoinWarmStartPrimalDual.lo \
+	bron_kerbosch.lo cgraph.lo clique.lo clique_extender.lo \
+	clique_separation.lo cut.lo node_heap.lo str_utils.lo \
+	vint_set.lo
 libCoinUtils_la_OBJECTS = $(am_libCoinUtils_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -418,7 +421,16 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartBasis.cpp CoinWarmStartBasis.hpp \
 	CoinWarmStartVector.cpp CoinWarmStartVector.hpp \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
-	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
+	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp \
+	bron_kerbosch.h bron_kerbosch.cpp \
+	cgraph.h cgraph.cpp \
+	clique.h clique.cpp \
+	clique_extender.h clique_extender.cpp \
+	clique_separation.h clique_separation.cpp \
+	cut.h cut.cpp \
+	node_heap.h node_heap.cpp \
+	str_utils.h str_utils.cpp \
+	vint_set.h vint_set.cpp 
 
 
 # List all additionally required libraries
@@ -500,7 +512,16 @@ includecoin_HEADERS = \
 	CoinWarmStartBasis.hpp \
 	CoinWarmStartVector.hpp \
 	CoinWarmStartDual.hpp \
-	CoinWarmStartPrimalDual.hpp
+	CoinWarmStartPrimalDual.hpp \
+	bron_kerbosch.h \
+	cgraph.h \
+	clique.h \
+	clique_extender.h \
+	clique_separation.h \
+	cut.h \
+	node_heap.h \
+	str_utils.h \
+	vint_set.h
 
 all: config.h config_coinutils.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -656,6 +677,15 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartDual.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartPrimalDual.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartVector.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bron_kerbosch.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cgraph.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clique.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clique_extender.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clique_separation.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cut.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_heap.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/str_utils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vint_set.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \

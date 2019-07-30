@@ -92,7 +92,16 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartBasis.cpp CoinWarmStartBasis.hpp \
 	CoinWarmStartVector.cpp CoinWarmStartVector.hpp \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
-	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
+	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp \
+	bron_kerbosch.h bron_kerbosch.cpp \
+	cgraph.h cgraph.cpp \
+	clique.h clique.cpp \
+	clique_extender.h clique_extender.cpp \
+	clique_separation.h clique_separation.cpp \
+	cut.h cut.cpp \
+	node_heap.h node_heap.cpp \
+	str_utils.h str_utils.cpp \
+	vint_set.h vint_set.cpp 
 
 # List all additionally required libraries
 if DEPENDENCY_LINKING
@@ -175,7 +184,16 @@ includecoin_HEADERS = \
 	CoinWarmStartBasis.hpp \
 	CoinWarmStartVector.hpp \
 	CoinWarmStartDual.hpp \
-	CoinWarmStartPrimalDual.hpp
+	CoinWarmStartPrimalDual.hpp \
+	bron_kerbosch.h \
+	cgraph.h \
+	clique.h \
+	clique_extender.h \
+	clique_separation.h \
+	cut.h \
+	node_heap.h \
+	str_utils.h \
+	vint_set.h
 
 #######################################################################
 # Create the Config.h file that has all public defines and install it #
