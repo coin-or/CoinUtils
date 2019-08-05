@@ -75,19 +75,19 @@ CGraph *cgraph_clone(const CGraph *cg) {
         clone->origIdx = new size_t[clone->nodeSize];
         std::copy(cg->origIdx, cg->origIdx + cg->nodeSize, clone->origIdx);
     } else {
-        clone->origIdx = nullptr;
+        clone->origIdx = NULL;
     }
 
     if (cg->w) {
         clone->w = new size_t[cg->nodeSize];
         std::copy(cg->w, cg->w + cg->nodeSize, clone->w);
     } else {
-        clone->w = nullptr;
+        clone->w = NULL;
     }
 
     clone->minClqRow = cg->minClqRow;
     clone->numFixedVars = cg->numFixedVars;
-    clone->fixedVars = nullptr;
+    clone->fixedVars = NULL;
     if (clone->numFixedVars > 0) {
         clone->fixedVars = new std::pair<size_t, double>[clone->numFixedVars];
         std::copy(cg->fixedVars, cg->fixedVars + cg->numFixedVars, clone->fixedVars);
@@ -112,11 +112,11 @@ CGraph *cgraph_create(size_t numColumns) {
 
     result->degree = new size_t[numColumns]();
     result->clqSet = clq_set_create();
-    result->w = nullptr;
-    result->origIdx = nullptr;
+    result->w = NULL;
+    result->origIdx = NULL;
 
     result->numFixedVars = 0;
-    result->fixedVars = nullptr;
+    result->fixedVars = NULL;
     result->minClqRow = CGRAPH_DEF_MIN_CLIQUE_ROW;
 
     return result;
@@ -426,7 +426,7 @@ void cgraph_free(CGraph **cgraph) {
 
     delete (*cgraph);
 
-    (*cgraph) = nullptr;
+    (*cgraph) = NULL;
 }
 
 CGraph *cgraph_create_induced_subgraph( const CGraph *cgraph, const size_t *idxs, const size_t n ) {

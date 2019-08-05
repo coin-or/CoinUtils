@@ -37,8 +37,12 @@ CoinUtils/ltmain.sh -text
 CoinUtils/missing -text
 CoinUtils/src/CoinAlloc.cpp -text
 CoinUtils/src/CoinAlloc.hpp -text
+CoinUtils/src/CoinConflictGraph.cpp -text
+CoinUtils/src/CoinConflictGraph.hpp -text
 CoinUtils/src/CoinDenseFactorization.cpp -text
 CoinUtils/src/CoinDenseFactorization.hpp -text
+CoinUtils/src/CoinDynamicConflictGraph.cpp -text
+CoinUtils/src/CoinDynamicConflictGraph.hpp -text
 CoinUtils/src/CoinFinite.cpp -text
 CoinUtils/src/CoinOslC.h -text
 CoinUtils/src/CoinOslFactorization.cpp -text
@@ -56,6 +60,8 @@ CoinUtils/src/CoinSimpFactorization.hpp -text
 CoinUtils/src/CoinSmartPtr.hpp -text
 CoinUtils/src/CoinSnapshot.cpp -text
 CoinUtils/src/CoinSnapshot.hpp -text
+CoinUtils/src/CoinStaticConflictGraph.cpp -text
+CoinUtils/src/CoinStaticConflictGraph.hpp -text
 CoinUtils/src/CoinStructuredModel.cpp -text
 CoinUtils/src/CoinStructuredModel.hpp -text
 CoinUtils/src/CoinWarmStartPrimalDual.cpp -text

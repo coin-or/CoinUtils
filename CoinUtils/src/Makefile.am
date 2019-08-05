@@ -101,7 +101,13 @@ libCoinUtils_la_SOURCES = \
 	cut.h cut.cpp \
 	node_heap.h node_heap.cpp \
 	str_utils.h str_utils.cpp \
-	vint_set.h vint_set.cpp 
+	vint_set.h vint_set.cpp \
+	CoinConflictGraph.cpp \
+	CoinConflictGraph.hpp \
+	CoinStaticConflictGraph.hpp \
+	CoinStaticConflictGraph.cpp \
+	CoinDynamicConflictGraph.hpp \
+	CoinDynamicConflictGraph.cpp 
 
 # List all additionally required libraries
 if DEPENDENCY_LINKING

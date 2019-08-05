@@ -36,3 +36,5 @@ void nh_free(NodeHeap **nh);
 
 #endif /* ifndef NODE_HEAP_H */
 
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

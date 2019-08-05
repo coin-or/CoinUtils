@@ -93,7 +93,8 @@ am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinWarmStartDual.lo CoinWarmStartPrimalDual.lo \
 	bron_kerbosch.lo cgraph.lo clique.lo clique_extender.lo \
 	clique_separation.lo cut.lo node_heap.lo str_utils.lo \
-	vint_set.lo
+	vint_set.lo CoinConflictGraph.lo CoinStaticConflictGraph.lo \
+	CoinDynamicConflictGraph.lo
 libCoinUtils_la_OBJECTS = $(am_libCoinUtils_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -430,7 +431,13 @@ libCoinUtils_la_SOURCES = \
 	cut.h cut.cpp \
 	node_heap.h node_heap.cpp \
 	str_utils.h str_utils.cpp \
-	vint_set.h vint_set.cpp 
+	vint_set.h vint_set.cpp \
+	CoinConflictGraph.cpp \
+	CoinConflictGraph.hpp \
+	CoinStaticConflictGraph.hpp \
+	CoinStaticConflictGraph.cpp \
+	CoinDynamicConflictGraph.hpp \
+	CoinDynamicConflictGraph.cpp 
 
 
 # List all additionally required libraries
@@ -622,8 +629,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinAlloc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinBuild.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinConflictGraph.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseFactorization.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseVector.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDynamicConflictGraph.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinError.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinFactorization1.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinFactorization2.Plo@am__quote@
@@ -672,6 +681,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinShallowPackedVector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSimpFactorization.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSnapshot.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinStaticConflictGraph.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinStructuredModel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartBasis.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartDual.Plo@am__quote@

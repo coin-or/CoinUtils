@@ -63,7 +63,6 @@ typedef void Clp_Simplex;
 
 #endif
 
-
 #ifdef CBC_THREAD
 #include <pthread.h>
 #endif

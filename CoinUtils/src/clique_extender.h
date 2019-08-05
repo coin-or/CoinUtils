@@ -11,11 +11,11 @@
 typedef struct _CliqueExtender CliqueExtender;
 
 typedef enum {
-    CLQEM_NO_EXTENSION = 0,
-    CLQEM_RANDOM = 1,
-    CLQEM_MAX_DEGREE = 2,
-    CLQEM_PRIORITY_GREEDY = 3,
-    CLQEM_EXACT = 4
+  CLQEM_NO_EXTENSION = 0,
+  CLQEM_RANDOM = 1,
+  CLQEM_MAX_DEGREE = 2,
+  CLQEM_PRIORITY_GREEDY = 3,
+  CLQEM_EXACT = 4
 } CliqueExtendingMethod;
 
 CliqueExtender *clqe_create(const CGraph *cgraph);
@@ -33,7 +33,6 @@ const CliqueSet *clqe_get_cliques(CliqueExtender *clqe);
 void clqe_set_costs(CliqueExtender *clqe, const double *costs, const size_t n);
 
 void clqe_free(CliqueExtender **clqe);
-
 
 /* parameters */
 void clqe_set_max_candidates(CliqueExtender *clqe, const size_t max_size);
@@ -53,3 +52,6 @@ size_t clqe_get_max_it_bk(CliqueExtender *clqe);
 void clqe_set_max_it_bk(CliqueExtender *clqe, size_t maxItBK);
 
 #endif
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/
