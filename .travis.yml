@@ -28,7 +28,7 @@ before_script:
   - wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
   - export PROJECT_URL=`echo https://github.com/${TRAVIS_REPO_SLUG}.git | cut -d "/" -f 2`
   - export PROJECT=`echo $TRAVIS_REPO_SLUG | cut -d "/" -f 2`
-  - bash ./coinbrew fetch $PROJECT_URL --no-prompt --skip-update > /dev/null
+  - bash ./coinbrew fetch $PROJECT_URL --no-prompt --skip-update 
 
 script:
   - bash ./coinbrew build $PROJECT --no-prompt --verbosity=2 --test ADD_CXXFLAGS="-std=c++11"
