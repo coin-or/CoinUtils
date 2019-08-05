@@ -39,6 +39,9 @@ struct _CGraph {
     //fixations found during the construction of cgraph
     std::pair<size_t, double> *fixedVars;
     size_t numFixedVars;
+
+    // just to compute density
+    size_t nConflicts;
 };
 
 typedef struct CGArc {
@@ -90,6 +93,8 @@ CGraph *cgraph_clone(const CGraph *cg) {
         std::copy(cg->fixedVars, cg->fixedVars + cg->numFixedVars, clone->fixedVars);
     }
 
+    clone->nConflicts = cg->nConflicts;
+
     return clone;
 }
 
@@ -99,6 +104,7 @@ CGraph *cgraph_create(size_t numColumns) {
     result->nodeSize = numColumns;
     result->nodeConflicts = new IntSet*[result->nodeSize];
     result->nodeCliques = new std::vector<size_t>[result->nodeSize];
+    result->nConflicts = 0;
 
     for (size_t i = 0; i < result->nodeSize; i++) {
         result->nodeConflicts[i] = vint_set_create();
@@ -133,6 +139,8 @@ void cgraph_add_node_conflicts(CGraph *cgraph, const size_t node, const size_t *
     /* adding conflicts (node, conflicts) and computing a estimated degree */
     vint_set_add(cgraph->nodeConflicts[node], conflicts, size);
     cgraph->degree[node] += size;
+
+    cgraph->nConflicts += size;
 }
 
 void cgraph_add_node_conflict(CGraph *cgraph, const size_t node1, const size_t node2) {
@@ -147,6 +155,8 @@ void cgraph_add_node_conflict(CGraph *cgraph, const size_t node1, const size_t n
     /* adding conflicts (node2, node1) and computing a estimated degree */
     vint_set_add(cgraph->nodeConflicts[node2], node1);
     cgraph->degree[node2]++;
+
+    cgraph->nConflicts += 2;
 }
 
 void cgraph_add_node_conflicts_no_sim(CGraph *cgraph, const size_t node, const size_t *conflicts, const size_t size) {
@@ -161,6 +171,7 @@ void cgraph_add_node_conflicts_no_sim(CGraph *cgraph, const size_t node, const s
     /* adding conflicts (node, conflicts) and computing a estimated degree */
     vint_set_add(cgraph->nodeConflicts[node], conflicts, size);
     cgraph->degree[node] += size;
+    cgraph->nConflicts += size;
 }
 
 void cgraph_add_clique(CGraph *cgraph, const size_t *idxs, const size_t size) {
@@ -184,6 +195,8 @@ void cgraph_add_clique(CGraph *cgraph, const size_t *idxs, const size_t size) {
         /* this clique will be related to all nodes inside it */
         cgraph->nodeCliques[idxs[i]].push_back(idxClique);
     }
+
+    cgraph->nConflicts += size*2;
 }
 
 void cgraph_add_clique_as_normal_conflicts(CGraph *cgraph, const size_t *idxs, const size_t size) {
@@ -207,6 +220,7 @@ void cgraph_add_clique_as_normal_conflicts(CGraph *cgraph, const size_t *idxs, c
     }
 
     delete[] confs;
+    cgraph->nConflicts += size*2;
 }
 
 size_t cgraph_size(const CGraph *cgraph) {
@@ -808,6 +822,10 @@ size_t cgraph_get_n_fixed_vars(const CGraph *cgraph) {
 
 void cgraph_set_min_clq_row(CGraph *cgraph, size_t minClqRow) {
     cgraph->minClqRow = minClqRow;
+}
+
+double cgraph_density(const CGraph *cgraph) {
+    return ((double)cgraph->nConflicts) / ((double)(cgraph_size(cgraph)*cgraph_size(cgraph)));
 }
 
 size_t cgraph_get_min_clq_row(const CGraph *cgraph) {

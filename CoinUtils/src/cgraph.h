@@ -120,6 +120,8 @@ size_t cgraph_get_n_fixed_vars(const CGraph *cgraph);
 void cgraph_set_min_clq_row(CGraph *cgraph, size_t minClqRow);
 size_t cgraph_get_min_clq_row(const CGraph *cgraph);
 
+double cgraph_density(const CGraph *cgraph);
+
 /**
  * DEBUG
  **/
