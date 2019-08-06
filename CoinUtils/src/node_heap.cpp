@@ -66,7 +66,7 @@ void nh_update(NodeHeap *npq, const size_t node, const size_t cost) {
         fprintf( stderr, "\t%s:%d\n", __FILE__, __LINE__ );
 #endif
         fprintf(stderr, "\tmonotone heap only accepts decreasing values.\n");
-        fprintf(stderr, "\tnode %ld old cost: %ld new cost: %ld.\n", node, npq->pq[pos].cost, cost);
+        fprintf(stderr, "\tnode %zu old cost: %zu new cost: %zu.\n", node, npq->pq[pos].cost, cost);
         fprintf(stderr, "\texiting.\n\n");
         exit(EXIT_FAILURE);
     }
