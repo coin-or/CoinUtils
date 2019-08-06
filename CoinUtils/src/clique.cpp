@@ -164,9 +164,9 @@ size_t clq_set_number_of_cliques(const CliqueSet *clqSet) {
 
 void clq_set_print(const CliqueSet *clqSet) {
     for (size_t i = 0; i < clqSet->cliques.size(); i++) {
-        printf("[%ld] ", clqSet->W[i]);
+        printf("[%zu] ", clqSet->W[i]);
         for (const size_t j : clqSet->cliques[i])
-            printf("%ld ", j + 1);
+            printf("%zu ", j + 1);
         printf("\n");
     }
 }

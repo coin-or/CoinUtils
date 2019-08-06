@@ -7,6 +7,7 @@
 #include <cstring>
 #include <cmath>
 
+#include <algorithm>
 #include <vector>
 #include "clique_separation.h"
 #include "bron_kerbosch.h"
