@@ -328,7 +328,7 @@ CoinMemcpyN(const T *from, const CoinByteArray size, T *to)
 	throw CoinError("overlapping arrays", "CoinMemcpyN", "");
 #endif
 
-  for (CoinBigIndex n = size / 8; n > 0; --n, from += 8, to += 8) {
+    for (CoinBigIndex n = static_cast<CoinBigIndex>(size>>3); n > 0; --n, from += 8, to += 8) {
     to[0] = from[0];
     to[1] = from[1];
     to[2] = from[2];
