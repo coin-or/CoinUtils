@@ -7,6 +7,10 @@
 #include <vector>
 #include <utility>
 
+#ifdef DEBUG_CGRAPH
+#include "cgraph.h"
+#endif
+
 class CoinStaticConflictGraph;
 
 class CoinPackedMatrix;
@@ -96,9 +100,6 @@ public:
 
 #ifdef DEBUG_CGRAPH
   virtual std::vector< std::string > differences ( const CGraph* cgraph );
-
-
-  void checkConsistency();
 #endif
 
 private:
