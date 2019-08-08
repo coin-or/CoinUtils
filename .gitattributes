@@ -35,6 +35,7 @@ CoinUtils/doxydoc/doxygen.conf.in -text
 CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
 CoinUtils/missing -text
+CoinUtils/src/.ycm_extra_conf.py -text
 CoinUtils/src/CoinAlloc.cpp -text
 CoinUtils/src/CoinAlloc.hpp -text
 CoinUtils/src/CoinConflictGraph.cpp -text
