@@ -6,6 +6,7 @@
 
 #include <vector>
 
+
 /**
  * Static conflict graph, optimized for memory usage and query speed,
  * not modifiable
@@ -16,12 +17,23 @@ public:
   /**
    * Default constructor
    */
+  CoinStaticConflictGraph ( const CoinDynamicConflictGraph *cgraph );
+
+  /**
+   * Default constructor
+   */
   CoinStaticConflictGraph ( const CoinDynamicConflictGraph &cgraph );
 
   /**
    * Copy constructor
    */
-  CoinStaticConflictGraph ( const CoinStaticConflictGraph &cgraph );
+  CoinStaticConflictGraph ( const CoinStaticConflictGraph *cgraph );
+
+  /**
+   * Constructor that creates a subgraph
+   * induced by a set of nodes
+   */
+  CoinStaticConflictGraph ( const CoinStaticConflictGraph *cgraph, size_t n, const size_t elements[] );
 
   /**
    * Checks if two nodes conflict
@@ -33,13 +45,14 @@ public:
   bool conflicting ( size_t n1, size_t n2 ) const;
 
   /**
-   * Checks all nodes conflicting with a node (neighbors)
+   * Queries all nodes conflicting with a given node
    *
    * @param node node index
-   * @param neighs_ vector to store conflicts
-   * @return number of conflicts
+   * @param temp temporary storage area for storing conflicts, should have space for all elements in the graph (size())
+   * @return pair containing (numberOfConflictingNodes, vectorOfConflictingNodes), the vector may be a pointer
+   * to temp is the temporary storage area was used or a pointer to a vector in the conflict graph itself
    */
-  size_t neighbors( size_t node, size_t *neighs_ ) const;
+  virtual std::pair< size_t, const size_t *> conflictingNodes( size_t node, size_t *temp ) const;
 
   CoinStaticConflictGraph *clone() const;
 
@@ -70,6 +83,8 @@ private:
   bool nodeInClique( size_t idxClique, size_t node ) const;
 
   const size_t *nodeNeighs( size_t node ) const;
+
+  friend class CoinDynamicConflictGraph;
 };
 
 #endif // STATICCONFLICTGRAPH_H
