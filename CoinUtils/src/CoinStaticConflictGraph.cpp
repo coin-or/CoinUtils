@@ -23,13 +23,12 @@ CoinStaticConflictGraph::CoinStaticConflictGraph ( const CoinDynamicConflictGrap
   // copying direct conflicts
   startConfNodes[0] = 0;
   for ( size_t i=0 ; (i<size()) ; ++i ) {
-    const set< size_t > &s = cgraph->nodeConflicts[i];
+    const auto &s = cgraph->nodeConflicts[i];
     startConfNodes[i+1] = startConfNodes[i] + (size_t)s.size();
     nConflictsNode[i] = (size_t) s.size();
 
     size_t iconf = startConfNodes[i];
-    for ( set< size_t >::const_iterator
-      sit = s.begin() ; ( sit != s.end() ) ; ++sit, ++iconf ) {
+    for ( auto sit = s.begin() ; ( sit != s.end() ) ; ++sit, ++iconf ) {
       conflicts[iconf] = *sit;
     } // copying node direct conflicts
   } // all nodes
@@ -38,13 +37,12 @@ CoinStaticConflictGraph::CoinStaticConflictGraph ( const CoinDynamicConflictGrap
   startClique[0] = 0;
   for ( size_t ic=0 ; ( ic<(size_t)cgraph->cliques.size() ) ; ++ic )
   {
-    const set< size_t > &clique = cgraph->cliques[ic];
+    const auto &clique = cgraph->cliques[ic];
     cliqueSize[ic] = (size_t)clique.size();
     startClique[ic+1] = startClique[ic] + cliqueSize[ic];
     size_t pc = startClique[ic];
     // copying clique contents
-    for ( set< size_t >::const_iterator
-      cit = clique.begin() ; ( cit != clique.end() ) ; ++cit, ++pc ) {
+    for ( auto cit = clique.begin() ; ( cit != clique.end() ) ; ++cit, ++pc ) {
       cliques[pc] = *cit;
       ++nNodeCliques[*cit];
     }
@@ -93,6 +91,8 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinStaticConflictGraph 
   : CoinStaticConflictGraph( CoinDynamicConflictGraph(cgraph, n, elements) )
 {
 }
+
+#include <set>
 
 std::pair< size_t, const size_t *> CoinStaticConflictGraph::conflictingNodes( size_t node, size_t *temp ) const
 {

@@ -3,7 +3,6 @@
 
 #include "CoinConflictGraph.hpp"
 #include <map>
-#include <set>
 #include <vector>
 #include <utility>
 
@@ -14,6 +13,10 @@
 class CoinStaticConflictGraph;
 
 class CoinPackedMatrix;
+
+#include <unordered_set>
+typedef std::unordered_set< size_t > ConflictSetType;
+typedef std::vector< size_t > CCCliqueType;
 
 /**
  * This a a conflict graph where conflicts can be added on the fly
@@ -98,31 +101,38 @@ public:
    **/
   const std::vector< std::pair< size_t, std::pair< double, double > > > &updatedBounds();
 
+
+
 #ifdef DEBUG_CGRAPH
   virtual std::vector< std::string > differences ( const CGraph* cgraph );
 #endif
 
 private:
   // conflicts stored directly
-  std::vector< std::set< size_t > > nodeConflicts;
+  std::vector< ConflictSetType > nodeConflicts;
 
   // cliques where a node appears
-  std::map< size_t, std::vector<size_t> > nodeCliques;
+  std::vector< std::vector<size_t> > nodeCliques;
 
   // all cliques
-  std::vector< std::set< size_t > > cliques;
+  std::vector< CCCliqueType > cliques;
 
   size_t nDirectConflicts;
 
   size_t totalCliqueElements;
 
   void cliqueDetection( const std::pair< size_t, double > *columns, size_t nz, const double rhs );
+
   void processClique( const size_t idxs[], const size_t size );
 
   std::vector< std::pair< size_t, std::pair< double, double > > > newBounds_;
+
+  bool elementInClique( size_t idxClique, size_t node ) const;
 
   friend class CoinStaticConflictGraph;
 };
 
 #endif // DYNAMICCONFLICTGRAPH_H
 
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/

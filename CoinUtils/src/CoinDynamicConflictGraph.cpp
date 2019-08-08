@@ -12,7 +12,8 @@ using namespace std;
 
 CoinDynamicConflictGraph::CoinDynamicConflictGraph ( size_t _size ) :
   CoinConflictGraph ( _size ),
-  nodeConflicts( vector< set< size_t > >( _size, set< size_t >() ) ),
+  nodeConflicts( vector< ConflictSetType >( _size, ConflictSetType( 2048 ) ) ),
+  nodeCliques(std::vector< std::vector<size_t> >( _size )),
   nDirectConflicts( _size ),
   totalCliqueElements( 0 )
 {
@@ -24,8 +25,8 @@ CoinDynamicConflictGraph::~CoinDynamicConflictGraph()
 }
 
 void CoinDynamicConflictGraph::addNodeConflict( size_t n1, size_t n2 ) {
-  set< size_t > &confN1 = this->nodeConflicts[n1];
-  set< size_t > &confN2 = this->nodeConflicts[n2];
+  ConflictSetType &confN1 = this->nodeConflicts[n1];
+  ConflictSetType &confN2 = this->nodeConflicts[n2];
 
   size_t n1ConfBefore = (size_t)confN1.size();
   size_t n2ConfBefore = (size_t)confN2.size();
@@ -44,7 +45,19 @@ void CoinDynamicConflictGraph::addClique( size_t size, const size_t elements[] )
   for ( size_t i=0 ; (i<size) ; ++i )
     nodeCliques[elements[i]].push_back(nclq);
 
-  cliques.push_back( set<size_t>(elements, elements+size) );
+  cliques.push_back( CCCliqueType(elements, elements+size) );
+
+  // checking if elements are not sorted
+  auto &clq = *cliques.rbegin();
+  bool sorted = true;
+  for ( size_t i=0 ; i<clq.size()-1 ; ++i ) {
+    if (clq[i] > clq[i+1]) {
+      sorted = false;
+      break;
+    }
+  }
+  if (!sorted)
+    std::sort(clq.begin(), clq.end());
 
   totalCliqueElements += size;
 }
@@ -52,20 +65,21 @@ void CoinDynamicConflictGraph::addClique( size_t size, const size_t elements[] )
 bool CoinDynamicConflictGraph::conflicting ( size_t n1, size_t n2 ) const
 {
   // checking conflicts stored directly
-  set< size_t >::const_iterator cIt = nodeConflicts[n1].find(n2);
+  ConflictSetType::const_iterator cIt = nodeConflicts[n1].find(n2);
   if ( cIt != nodeConflicts[n1].end() )
     return true;
 
-  map< size_t, vector<size_t> >::const_iterator ncIt = nodeCliques.find(n1);
-  if (ncIt == nodeCliques.end())
-    return false;
+  const auto &nodeCliquesN1 = nodeCliques[n1];
+
+  if (nodeCliquesN1.size()==0)
+      return false;
+
 
   // traversing cliques where n1 appears searching for n2
   for ( vector< size_t >::const_iterator
-    vit = ncIt->second.begin() ; vit != ncIt->second.end() ; ++ vit )
+    vit = nodeCliquesN1.begin() ; vit != nodeCliquesN1.end() ; ++ vit )
   {
-    const set<size_t> &s = cliques[*vit];
-    if (s.find(n2) != s.end())
+    if (elementInClique(*vit, n2))
       return true;
   }
 
@@ -74,7 +88,7 @@ bool CoinDynamicConflictGraph::conflicting ( size_t n1, size_t n2 ) const
 
 void CoinDynamicConflictGraph::addNodeConflicts(const size_t node, const size_t conflicts[], const size_t nConflicts)
 {
-  set< size_t > &confN1 = this->nodeConflicts[node];
+  ConflictSetType &confN1 = this->nodeConflicts[node];
   for ( size_t i=0 ; i<nConflicts ; ++i )
   {
     if (conflicts[i] != node)
@@ -572,9 +586,9 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph( const CoinStaticConflictGrap
 
 std::pair< size_t, const size_t* > CoinDynamicConflictGraph::conflictingNodes ( size_t node, size_t* temp ) const
 {
-  const map< size_t, vector<size_t> >::const_iterator ncit = nodeCliques.find(node);
-  const set<size_t> &nconf = nodeConflicts[node];
-  if (ncit == nodeCliques.end()) {
+  const auto &nodeCliquesNode = nodeCliques[node];
+  const auto &nconf = nodeConflicts[node];
+  if (nodeCliquesNode.size()==0) {
     size_t i=0;
     for ( const auto &n : nconf )
       temp[i++] = n;
@@ -584,13 +598,13 @@ std::pair< size_t, const size_t* > CoinDynamicConflictGraph::conflictingNodes ( 
   else
   {
     // direct conflicts
-    set< size_t  > res(nconf.begin(), nconf.end());
+    ConflictSetType res(nconf.begin(), nconf.end());
 
     // traversing cliques from node
     for ( vector< size_t >::const_iterator
-      vit = ncit->second.begin() ; vit != ncit->second.end() ; ++ vit )
+      vit = nodeCliquesNode.begin() ; vit != nodeCliquesNode.end() ; ++ vit )
     {
-      const set<size_t> &s = cliques[*vit];
+      const auto &s = cliques[*vit];
       for ( const auto &n : s)
         if (n != node)
           res.insert(n);
@@ -607,4 +621,12 @@ std::pair< size_t, const size_t* > CoinDynamicConflictGraph::conflictingNodes ( 
   return pair< size_t, const size_t* >(numeric_limits<size_t>::max(), NULL);
 }
 
+bool CoinDynamicConflictGraph::elementInClique( size_t idxClique, size_t node ) const
+{
+  const auto &clique = cliques[idxClique];
 
+  return std::binary_search(clique.begin(), clique.end(), node);
+}
+
+/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
+*/
