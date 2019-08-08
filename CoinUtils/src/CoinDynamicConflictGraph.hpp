@@ -5,8 +5,11 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <utility>
 
 class CoinStaticConflictGraph;
+
+class CoinPackedMatrix;
 
 /**
  * This a a conflict graph where conflicts can be added on the fly
@@ -20,6 +23,33 @@ public:
      */
     CoinDynamicConflictGraph ( size_t _size );
 
+
+    /* Creates a conflict graph from a MIP
+     *
+     * This constructors creates a conflict graph detecting
+     * conflicts from the MIP structure. After scanning the
+     * MIP, new recommended bounds for some variables can be
+     * discovered, these bounds can be checked using the
+     * updates bounds method.
+     *
+     * @param numCols number of variables
+     * @param colType column types
+     * @param colLB column lower bounds
+     * @param colUB column upper bounds
+     * @param matrixByRow row wise constraint matrixByRow
+     * @param sense row sense
+     * @param rowRHS row right hand side
+     * @param rowRange row ranges
+     **/
+    CoinDynamicConflictGraph(
+      const int numCols,
+      const char* colType,
+      const double* colLB,
+      const double* colUB,
+      const CoinPackedMatrix* matrixByRow,
+      const char* sense,
+      const double* rowRHS,
+      const double* rowRange );
 
     /**
      * Constructor to create from an induced subgrapu
@@ -54,8 +84,19 @@ public:
     */
     virtual std::pair< size_t, const size_t* > conflictingNodes ( size_t node, size_t* temp ) const;
 
+  /**
+   * Recommended tighter bounds for some variables
+   *
+   * The construction of the conflict graph may discover new tighter
+   * bounds for some variables.
+   *
+   * @return updated bounds
+   **/
+  const std::vector< std::pair< size_t, std::pair< double, double > > > &updatedBounds();
+
 #ifdef DEBUG_CGRAPH
   virtual std::vector< std::string > differences ( const CGraph* cgraph );
+
 
   void checkConsistency();
 #endif
@@ -73,6 +114,11 @@ private:
   size_t nDirectConflicts;
 
   size_t totalCliqueElements;
+
+  void cliqueDetection( const std::pair< size_t, double > *columns, size_t nz, const double rhs );
+  void processClique( const size_t idxs[], const size_t size );
+
+  std::vector< std::pair< size_t, std::pair< double, double > > > newBounds_;
 
   friend class CoinStaticConflictGraph;
 };
