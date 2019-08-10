@@ -4,7 +4,6 @@
 
 #include "CoinDynamicConflictGraph.hpp"
 
-
 using namespace std;
 
 CoinStaticConflictGraph::CoinStaticConflictGraph ( const CoinDynamicConflictGraph *cgraph ) :
@@ -23,12 +22,12 @@ CoinStaticConflictGraph::CoinStaticConflictGraph ( const CoinDynamicConflictGrap
   // copying direct conflicts
   startConfNodes[0] = 0;
   for ( size_t i=0 ; (i<size()) ; ++i ) {
-    const auto &s = cgraph->nodeConflicts[i];
+    const ConflictSetType& s = cgraph->nodeConflicts[i];
     startConfNodes[i+1] = startConfNodes[i] + (size_t)s.size();
     nConflictsNode[i] = (size_t) s.size();
 
     size_t iconf = startConfNodes[i];
-    for ( auto sit = s.begin() ; ( sit != s.end() ) ; ++sit, ++iconf ) {
+    for ( ConflictSetType::const_iterator sit = s.begin() ; sit != s.end() ; ++sit, ++iconf ) {
       conflicts[iconf] = *sit;
     } // copying node direct conflicts
   } // all nodes
@@ -37,12 +36,12 @@ CoinStaticConflictGraph::CoinStaticConflictGraph ( const CoinDynamicConflictGrap
   startClique[0] = 0;
   for ( size_t ic=0 ; ( ic<(size_t)cgraph->cliques.size() ) ; ++ic )
   {
-    const auto &clique = cgraph->cliques[ic];
+    const CCCliqueType& clique = cgraph->cliques[ic];
     cliqueSize[ic] = (size_t)clique.size();
     startClique[ic+1] = startClique[ic] + cliqueSize[ic];
     size_t pc = startClique[ic];
     // copying clique contents
-    for ( auto cit = clique.begin() ; ( cit != clique.end() ) ; ++cit, ++pc ) {
+    for ( CCCliqueType::const_iterator cit = clique.begin() ; ( cit != clique.end() ) ; ++cit, ++pc ) {
       cliques[pc] = *cit;
       ++nNodeCliques[*cit];
     }
@@ -87,10 +86,10 @@ CoinStaticConflictGraph::CoinStaticConflictGraph ( const CoinStaticConflictGraph
   * Constructor that creates a subgraph
   * induced by a set of nodes
   */
-CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinStaticConflictGraph *cgraph, size_t n, const size_t elements[] )
-  : CoinStaticConflictGraph( CoinDynamicConflictGraph(cgraph, n, elements) )
-{
-}
+//CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinStaticConflictGraph *cgraph, size_t n, const size_t elements[] )
+//  : CoinStaticConflictGraph( CoinDynamicConflictGraph(cgraph, n, elements) )
+//{
+//}
 
 #include <set>
 
@@ -167,11 +166,10 @@ const size_t *CoinStaticConflictGraph::nodeNeighs(size_t node) const
   return &conflicts[ startConfNodes[node] ];
 }
 
-CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinDynamicConflictGraph &cgraph )
-  : CoinStaticConflictGraph( &cgraph )
-{
-
-}
+//CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinDynamicConflictGraph &cgraph )
+//  : CoinStaticConflictGraph( &cgraph )
+//{
+//}
 
 
 

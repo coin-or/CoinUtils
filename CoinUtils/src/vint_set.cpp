@@ -7,6 +7,14 @@
 #include <algorithm>
 #include "vint_set.h"
 
+#ifdef COINUTILS_HAS_CSTDINT
+#include <cstdint>
+#elif defined(COINUTILS_HAS_STDINT_H)
+#include <stdint.h>
+#else
+#include <limits>
+#endif
+
 #define VINT_SET_MIN_CAP 512
 #define VINT_SET_FLUSH 1000000
 
@@ -25,7 +33,7 @@ IntSet* vint_set_create() {
 void vint_set_free(IntSet **_iset) {
     IntSet *iset = *_iset;
     delete iset;
-    _iset = nullptr;
+    _iset = NULL;
 }
 
 IntSet* vint_set_clone(const IntSet *iset) {
@@ -37,7 +45,7 @@ IntSet* vint_set_clone(const IntSet *iset) {
 
 void vint_set_remove_duplicates(IntSet *iset) {
     std::sort(iset->elements.begin(), iset->elements.end());
-    auto it = std::unique(iset->elements.begin(), iset->elements.end());
+    std::vector<size_t>::iterator it = std::unique(iset->elements.begin(), iset->elements.end());
     iset->elements.resize(static_cast<unsigned long>(std::distance(iset->elements.begin(), it)));
     iset->notUpdated = 0;
 }

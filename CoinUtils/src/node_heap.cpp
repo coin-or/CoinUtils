@@ -142,7 +142,7 @@ void nh_free(NodeHeap **nh) {
     delete[] (*nh)->pos;
     delete[] (*nh)->pq;
     delete (*nh);
-    (*nh) = nullptr;
+    (*nh) = NULL;
 }
 
 #ifdef linux
@@ -157,7 +157,7 @@ void nh_print_trace(FILE *out, const char *file, int line) {
 
     fprintf(out, "Call stack from %s:%d:\n", file, line);
 
-    for (size_t i = 1; i < stack_depth; i++) {
+    for (int i = 1; i < stack_depth; i++) {
         fprintf(out, "    %s\n", stack_strings[i]);
     }
     free(stack_strings); // malloc()ed by backtrace_symbols

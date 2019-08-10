@@ -71,7 +71,7 @@ CliqueSet *clq_set_create() {
 bool clq_set_add( CliqueSet *clqSet, const size_t *idxs, const size_t size, const size_t w ) {
     std::vector<size_t> tmpClique(idxs, idxs + size);
     std::sort(tmpClique.begin(), tmpClique.end());
-    auto it = std::unique(tmpClique.begin(), tmpClique.end());
+    std::vector<size_t>::iterator it = std::unique(tmpClique.begin(), tmpClique.end());
     tmpClique.resize(static_cast<unsigned long>(std::distance(tmpClique.begin(), it)));
 
     if (clq_set_clique_already_inserted(clqSet, tmpClique)) {
@@ -96,7 +96,7 @@ bool clq_set_add( CliqueSet *clqSet, const size_t *idxs, const size_t size, cons
 bool clq_set_add( CliqueSet *clqSet, const std::vector<size_t> &idxs, const size_t w ) {
     std::vector<size_t> tmpClique(idxs);
     std::sort(tmpClique.begin(), tmpClique.end());
-    auto it = std::unique(tmpClique.begin(), tmpClique.end());
+    std::vector<size_t>::iterator it = std::unique(tmpClique.begin(), tmpClique.end());
     tmpClique.resize(static_cast<unsigned long>(std::distance(tmpClique.begin(), it)));
 
     if (clq_set_clique_already_inserted(clqSet, tmpClique)) {
@@ -132,7 +132,7 @@ const size_t* clq_set_clique_elements( const CliqueSet *clqSet, const size_t cli
 
 void clq_set_free(CliqueSet **clqSet) {
     delete (*clqSet);
-    (*clqSet) = nullptr;
+    (*clqSet) = NULL;
 }
 
 bool clq_validate(const CGraph *cgraph, const size_t *idxs, const size_t size, size_t *n1, size_t *n2) {
@@ -165,8 +165,8 @@ size_t clq_set_number_of_cliques(const CliqueSet *clqSet) {
 void clq_set_print(const CliqueSet *clqSet) {
     for (size_t i = 0; i < clqSet->cliques.size(); i++) {
         printf("[%ld] ", clqSet->W[i]);
-        for (const size_t j : clqSet->cliques[i])
-            printf("%ld ", j + 1);
+        for (std::vector<size_t>::const_iterator it = clqSet->cliques[i].begin(); it != clqSet->cliques[i].end(); ++it )
+            printf("%ld ", *it + 1);
         printf("\n");
     }
 }
@@ -207,7 +207,8 @@ bool clq_set_clique_already_inserted(const CliqueSet *clqSet, const std::vector<
     assert(hash_code < HASH_SIZE);
 #endif
 
-    for(const size_t &cliqueIndex : clqSet->hash[hash_code]) {
+    for(std::vector<size_t>::const_iterator it = clqSet->hash[hash_code].begin(); it != clqSet->hash[hash_code].end(); ++it) {
+        size_t cliqueIndex = *it;
 #ifdef DEBUG
         assert(cliqueIndex >= 0);
         assert(cliqueIndex < clqSet->cliques.size());

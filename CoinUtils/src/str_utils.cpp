@@ -78,7 +78,7 @@ char *getParamName(char *target, const char *str) {
 
 int digitsInLine(const char *str, int str_s) {
     int result = 0;
-    for (size_t i = 0; i < str_s; ++i) {
+    for (int i = 0; i < str_s; ++i) {
         switch (str[i]) {
             case '\0' :
             case '\n' :
@@ -232,7 +232,7 @@ int firstOccurrence(const char *str, const char c) {
     const char *s = str;
     while (*s != '\0') {
         if (*s == c)
-            return s - str;
+            return (int)(s - str);
 
         ++s;
     }
@@ -245,7 +245,7 @@ int lastOccurrence(const char *str, const char c) {
     const char *s = str;
     while (*s != '\0') {
         if (*s == c)
-            last = s - str;
+            last = (int)(s - str);
 
         ++s;
     }
@@ -275,7 +275,7 @@ int splitString(char **columns, const char *str, const char delimiter,
         goto FIND_DELIMITER;
     }
     FOUND_COLUMN:
-    sizeColumn = ns - s;
+    sizeColumn = (int)(ns - s);
     if ((!multDel) || (sizeColumn > 0)) {
         if (sizeColumn)
             std::copy(s, s + sizeColumn, columns[ncolumn]);

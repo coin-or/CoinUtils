@@ -14,8 +14,13 @@ class CoinStaticConflictGraph;
 
 class CoinPackedMatrix;
 
+#if __cplusplus >= 201103L
 #include <unordered_set>
 typedef std::unordered_set< size_t > ConflictSetType;
+#else
+#include <set>
+typedef std::set< size_t > ConflictSetType;
+#endif
 typedef std::vector< size_t > CCCliqueType;
 
 /**

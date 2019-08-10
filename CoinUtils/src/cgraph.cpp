@@ -9,6 +9,14 @@
 #include "clique.h"
 #include "vint_set.h"
 
+#ifdef COINUTILS_HAS_CSTDINT
+#include <cstdint>
+#elif defined(COINUTILS_HAS_STDINT_H)
+#include <stdint.h>
+#else
+#include <limits>
+#endif
+
 #define LINE_SIZE 2048
 #define MAX_NAME_SIZE 64
 
@@ -248,7 +256,8 @@ bool cgraph_conflicting_nodes(const CGraph *cgraph, const size_t i, const size_t
     }
 
     FIND_IN_CLIQUES:
-    for (const size_t idx : cgraph->nodeCliques[i]) {
+    for (std::vector<size_t>::const_iterator it = cgraph->nodeCliques[i].begin(); it != cgraph->nodeCliques[i].end(); ++it) {
+        size_t idx = *it;
         if (clq_set_clique_has_element(cgraph->clqSet, idx, j)) {
 #ifdef DEBUG
             assert(clq_set_clique_has_element(cgraph->clqSet, idx, i));
@@ -284,7 +293,8 @@ size_t cgraph_get_all_conflicting(const CGraph *cgraph, size_t node, size_t *nei
     }
 
     /* now filling information from cliques, i.e., implicitly stored conflicts */
-    for (const size_t idxClique : cgraph->nodeCliques[node]) {
+    for (std::vector<size_t>::const_iterator it = cgraph->nodeCliques[node].begin(); it != cgraph->nodeCliques[node].end(); ++it) {
+        const size_t idxClique = *it;
         const size_t *clqEl = clq_set_clique_elements(cgraph->clqSet, idxClique);
         for (size_t j = 0; j < clq_set_clique_size(cgraph->clqSet, idxClique); j++) {
             if (!iv[clqEl[j]]) {
@@ -704,7 +714,8 @@ void cgraph_recompute_degree(CGraph *cgraph) {
             }
 
             //conflicts stored as cliques
-            for (const size_t idxClique : cgraph->nodeCliques[i]) {
+            for (std::vector<size_t>::const_iterator it = cgraph->nodeCliques[i].begin(); it != cgraph->nodeCliques[i].end(); ++it) {
+                const size_t idxClique = *it;
                 const size_t *clqEl = clq_set_clique_elements(cgraph->clqSet, idxClique);
                 for (size_t k = 0; k < clq_set_clique_size(cgraph->clqSet, idxClique); k++) {
                     if (!iv[clqEl[k]] && clqEl[k] != i) {
@@ -771,7 +782,8 @@ size_t cgraph_get_best_n_neighbors(const CGraph *cgraph, size_t node, const doub
 
     /* conflicts stored in cliques */
     const CliqueSet *clqSet = cgraph->clqSet;
-    for (const size_t clique : cgraph->nodeCliques[node]) {
+    for (std::vector<size_t>::const_iterator it = cgraph->nodeCliques[node].begin(); it != cgraph->nodeCliques[node].end(); ++it) {
+        const size_t clique = *it;
         const size_t *el = clq_set_clique_elements(clqSet, clique);
         for (size_t j = 0; j < clq_set_clique_size(clqSet, clique); j++) {
 #ifdef DEBUG

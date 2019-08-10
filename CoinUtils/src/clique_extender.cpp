@@ -42,7 +42,7 @@ CliqueExtender *clqe_create(const CGraph *cgraph) {
     clqe->clqSet = clq_set_create();
     clqe->candidates = new size_t[cgSize];
     clqe->newClique = new size_t[cgSize];
-    clqe->costs = nullptr;
+    clqe->costs = NULL;
     clqe->maxCandidates = CLQE_DEF_MAX_CANDIDATES;
     clqe->maxRC = CLQE_DEF_MAX_RC;
     clqe->maxClqGen = CLQE_DEF_MAX_GEN;
@@ -476,7 +476,7 @@ void clqe_free(CliqueExtender **clqe) {
     delete[] (*clqe)->costs;
 
     delete (*clqe);
-    (*clqe) = nullptr;
+    (*clqe) = NULL;
 }
 
 void clqe_set_max_candidates(CliqueExtender *clqe, const size_t max_size) {

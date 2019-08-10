@@ -65,7 +65,7 @@ ArrayOfVertices* array_of_vertices_create(size_t size) {
 void array_of_vertices_free(ArrayOfVertices *av) {
     delete[] av->vertices;
     delete av;
-    av = nullptr;
+    av = NULL;
 }
 
 ListOfVertices* list_of_vertices_create() {
@@ -76,7 +76,7 @@ ListOfVertices* list_of_vertices_create() {
 
 void list_of_vertices_free(ListOfVertices* lv) {
     delete lv;
-    lv = nullptr;
+    lv = NULL;
 }
 
 BronKerbosch* bk_create(const CGraph *cgraph) {
@@ -88,9 +88,9 @@ BronKerbosch* bk_create(const CGraph *cgraph) {
     size_t *neighs = new size_t[cgSize];
 
     bk->vertices.reserve(cgSize);
-    bk->bit = nullptr;
-    bk->mask = nullptr;
-    bk->clqSet = nullptr;
+    bk->bit = NULL;
+    bk->mask = NULL;
+    bk->clqSet = NULL;
 
     for(size_t i = 0; i < cgSize; i++) {
         size_t realDegree = cgraph_degree(cgraph, i);
@@ -174,16 +174,16 @@ void bk_free(BronKerbosch **_bk) {
     }
 
     delete bk;
-    *_bk = nullptr;
+    *_bk = NULL;
 }
 
 std::vector<size_t> exclude_neighbors_u(const BronKerbosch *bk, const ListOfVertices *P, size_t u) {
     std::vector<size_t> P_excluding_N_u;
     P_excluding_N_u.reserve(bk->nVertices);
 
-    for(const size_t &vertex : P->vertices) {
-        if(!cgraph_conflicting_nodes(bk->cgraph, bk->vertices[u].id, bk->vertices[vertex].id)) {
-            P_excluding_N_u.push_back(vertex);
+    for(std::list<size_t>::const_iterator it = P->vertices.begin(); it != P->vertices.end(); ++it ) {
+        if(!cgraph_conflicting_nodes(bk->cgraph, bk->vertices[u].id, bk->vertices[*it].id)) {
+            P_excluding_N_u.push_back(*it);
         }
     }
 
@@ -271,10 +271,10 @@ ListOfVertices* create_new_P(const BronKerbosch *bk, const ListOfVertices *P, co
     ListOfVertices *newP = list_of_vertices_create();
 
     //newP = P intersection N(v)
-    for(const size_t &vertex : P->vertices) {
-        if(cgraph_conflicting_nodes(bk->cgraph, bk->vertices[v].id, bk->vertices[vertex].id)) {
-            newP->vertices.push_back(vertex);
-            newP->totalWeight += bk->vertices[vertex].weight;
+    for(std::list<size_t>::const_iterator it = P->vertices.begin(); it != P->vertices.end(); ++it ) {
+        if(cgraph_conflicting_nodes(bk->cgraph, bk->vertices[v].id, bk->vertices[*it].id)) {
+            newP->vertices.push_back(*it);
+            newP->totalWeight += bk->vertices[*it].weight;
         }
     }
 
@@ -304,7 +304,8 @@ void bron_kerbosch_algorithm(BronKerbosch *bk, const ArrayOfVertices *C, ListOfV
         const size_t u = *(P->vertices.begin());
         const std::vector<size_t> &P_excluding_N_u = exclude_neighbors_u(bk, P, u);
 
-        for(const size_t &v : P_excluding_N_u) {
+        for(std::vector<size_t>::const_iterator it = P_excluding_N_u.begin(); it != P_excluding_N_u.end(); ++it ) {
+            size_t v = *it;
             ArrayOfVertices *newC = create_new_C(bk, C, v);
             ArrayOfVertices *newS = create_new_S(bk, S, v);
             ListOfVertices *newP = create_new_P(bk, P, v);

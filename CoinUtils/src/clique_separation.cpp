@@ -160,7 +160,7 @@ bool clq_sep_separate(CliqueSeparation *sep, const double x[]) {
         }
 
         bk_free(&(sep->bk));
-        sep->bk = nullptr;
+        sep->bk = NULL;
 
         /* extending cliques */
         if (sep->extendCliques != CLQEM_NO_EXTENSION) {
@@ -248,7 +248,7 @@ void clq_sep_free(CliqueSeparation **clqSep) {
 
     delete (*clqSep);
 
-    *clqSep = nullptr;
+    *clqSep = NULL;
 }
 
 void clq_sep_set_max_it_bk(CliqueSeparation *clqSep, size_t maxItBK) {

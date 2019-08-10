@@ -131,7 +131,7 @@ Cut *cut_create_opt(const int *idxs, const double *coefs, int nz, double rhs, co
 
 Cut *cut_clone(const Cut *rhs) {
     if (!rhs) {
-        return nullptr;
+        return NULL;
     }
 
     Cut *cut = new Cut;
@@ -153,7 +153,7 @@ void cut_free(Cut **_cut) {
     delete[] cut->idx;
     delete[] cut->coef;
     delete cut;
-    *_cut = nullptr;
+    *_cut = NULL;
 }
 
 int cut_size(const Cut *cut) { return cut->n; }
@@ -329,13 +329,13 @@ CutPool* cut_pool_create(const int numCols) {
 void cut_pool_free(CutPool **_cutpool) {
     CutPool *cutpool = *_cutpool;
 
-    for (auto &cut : cutpool->cuts) {
-        cut_free(&cut);
+    for (std::vector<Cut*>::iterator it = cutpool->cuts.begin(); it != cutpool->cuts.end(); ++it) {
+        cut_free(&*it);
     }
 
     delete[] cutpool->bestCutByCol;
     delete cutpool;
-    *_cutpool = nullptr;
+    *_cutpool = NULL;
 }
 
 void update_best_cut_by_col(CutPool *cutpool, const int idxCut) {
@@ -375,8 +375,12 @@ void update_best_cut_by_col(CutPool *cutpool, const int idxCut) {
 
 int cut_pool_insert(CutPool *cutpool, const int *idxs, const double *coefs, int nz, double rhs, const double *x) {
     Cut *newCut;
+    int i;
 
-    if (std::is_sorted(idxs, idxs + nz)) {
+    for( i = 1; i < nz; ++i )
+       if( idxs[i] < idxs[i-1] )
+          break;
+    if (i == nz) /*std::is_sorted(idxs, idxs + nz)*/ {
         newCut = cut_create_opt(idxs, coefs, nz, rhs, x);
     } else {
         newCut = cut_create(idxs, coefs, nz, rhs, x);
@@ -423,7 +427,7 @@ void cut_pool_update(CutPool *cutpool) {
             removed[i] = 1;
             nRemoved++;
             cut_free(&cutpool->cuts[i]);
-            cutpool->cuts[i] = nullptr;
+            cutpool->cuts[i] = NULL;
         }
     }
 
@@ -446,13 +450,13 @@ void cut_pool_update(CutPool *cutpool) {
                 removed[i] = 1;
                 nRemoved++;
                 cut_free(&cutpool->cuts[i]);
-                cutpool->cuts[i] = nullptr;
+                cutpool->cuts[i] = NULL;
                 break;
             } else if (chkDm == 1) { //cutA dominates cutB
                 removed[j] = 1;
                 nRemoved++;
                 cut_free(&cutpool->cuts[j]);
-                cutpool->cuts[j] = nullptr;
+                cutpool->cuts[j] = NULL;
                 continue;
             }
         }

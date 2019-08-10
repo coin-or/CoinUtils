@@ -22,7 +22,7 @@ public:
   /**
    * Default constructor
    */
-  CoinStaticConflictGraph ( const CoinDynamicConflictGraph &cgraph );
+  //CoinStaticConflictGraph ( const CoinDynamicConflictGraph &cgraph );
 
   /**
    * Copy constructor
@@ -33,7 +33,7 @@ public:
    * Constructor that creates a subgraph
    * induced by a set of nodes
    */
-  CoinStaticConflictGraph ( const CoinStaticConflictGraph *cgraph, size_t n, const size_t elements[] );
+  //CoinStaticConflictGraph ( const CoinStaticConflictGraph *cgraph, size_t n, const size_t elements[] );
 
   /**
    * Checks if two nodes conflict
