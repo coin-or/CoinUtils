@@ -1,6 +1,7 @@
 #ifndef DYNAMICCONFLICTGRAPH_H
 #define DYNAMICCONFLICTGRAPH_H
 
+#include "CoinUtilsConfig.h"
 #include "CoinConflictGraph.hpp"
 #include <map>
 #include <vector>
@@ -14,13 +15,14 @@ class CoinStaticConflictGraph;
 
 class CoinPackedMatrix;
 
-#if __cplusplus >= 201103L
+#ifdef COINUTILS_CPLUSPLUS11
 #include <unordered_set>
 typedef std::unordered_set< size_t > ConflictSetType;
 #else
 #include <set>
 typedef std::set< size_t > ConflictSetType;
 #endif
+
 typedef std::vector< size_t > CCCliqueType;
 
 /**

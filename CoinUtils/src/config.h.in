@@ -1,5 +1,8 @@
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Define to 1 if CoinUtils uses C++11 */
+#undef COINUTILS_CPLUSPLUS11
+
 /* Define to 1 if cstdint is available for CoinUtils */
 #undef COINUTILS_HAS_CSTDINT
 
