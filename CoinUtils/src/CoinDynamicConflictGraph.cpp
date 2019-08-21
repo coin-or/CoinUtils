@@ -12,7 +12,7 @@ using namespace std;
 
 CoinDynamicConflictGraph::CoinDynamicConflictGraph ( size_t _size ) :
   CoinConflictGraph ( _size ),
-#if __cplusplus >= 201103L
+#ifdef COINUTILS_CPLUSPLUS11
   nodeConflicts( vector< ConflictSetType >( _size, ConflictSetType( 2048 ) ) ),
 #else
   nodeConflicts( vector< ConflictSetType >( _size ) ),
@@ -133,7 +133,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   const double* rowRange )
   :
   CoinConflictGraph ( numCols*2 ),
-#if __cplusplus >= 201103L
+#ifdef COINUTILS_CPLUSPLUS11
   nodeConflicts( vector< ConflictSetType >( numCols*2, ConflictSetType( 2048 ) ) ),
 #else
   nodeConflicts( vector< ConflictSetType >( numCols*2 ) ),
@@ -553,7 +553,7 @@ std::vector<std::string> CoinDynamicConflictGraph::differences(const CGraph* cgr
 
 CoinDynamicConflictGraph::CoinDynamicConflictGraph( const CoinStaticConflictGraph *cgraph, const size_t n, const size_t elements[] )
   : CoinConflictGraph ( n ),
-#if __cplusplus >= 201103L
+#ifdef COINUTILS_CPLUSPLUS11
   nodeConflicts( vector< ConflictSetType >( n, ConflictSetType( 2048 ) ) ),
 #else
   nodeConflicts( vector< ConflictSetType >( n ) ),
