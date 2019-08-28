@@ -92,11 +92,12 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   const char* sense,
   const double* rowRHS,
   const double* rowRange )
-  : CoinConflictGraph ( numCols*2 )
-  , degree_( (size_t*) xmalloc(sizeof(size_t)*(numCols*2)) )
-  , largeClqs( new CoinCliqueList( 4096, 32768 ) )
-  , ivACND( std::vector<bool>(size_, false) )
 {
+  iniCoinConflictGraph( numCols*2 );
+  degree_ = (size_t*) xmalloc(sizeof(size_t)*(numCols*2));
+  largeClqs = new CoinCliqueList( 4096, 32768 );
+  ivACND = std::vector<bool>(size_, false);
+
   this->tElCap = matrixByRow->getNumElements() * 2;
   this->tRowElements = (std::pair< size_t, double > *) xmalloc( sizeof(std::pair< size_t, double >)*tElCap);
   this->tnRowCap = matrixByRow->getNumRows() * 2;
@@ -300,10 +301,11 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
 }
 
 CoinDynamicConflictGraph::CoinDynamicConflictGraph( const CoinConflictGraph *cgraph, const size_t n, const size_t elements[] )
-  : CoinConflictGraph ( n )
-  , degree_( (size_t*) xmalloc(sizeof(size_t)*n) )
-  , ivACND( std::vector<bool>(size_, false) )
 {
+  iniCoinConflictGraph ( n );
+  degree_ = (size_t*) xmalloc(sizeof(size_t)*n);
+  ivACND = std::vector<bool>(size_, false);
+
   const size_t NOT_INCLUDED = numeric_limits<size_t>::max();
 
   conflicts = NULL;

@@ -14,22 +14,24 @@ static void *xmalloc( const size_t size );
 #define NEW_VECTOR(type, size) ((type *) xmalloc((sizeof(type))*(size)))
 
 CoinStaticConflictGraph::CoinStaticConflictGraph ( const CoinConflictGraph *cgraph )
-  : CoinConflictGraph ( cgraph )
-  , nDirectConflicts_ ( cgraph->nTotalDirectConflicts() )
-  , totalCliqueElements_ ( cgraph->nTotalCliqueElements() )
-  , nCliques_ ( cgraph->nCliques() )
-  , memSize_ ( sizeof(size_t)*( 5*size_ + 3 + nDirectConflicts_ + 2*totalCliqueElements_ + 2*nCliques_ ) )
-  , nConflictsNode_ ( (size_t *)xmalloc( memSize_ ) )
-  , degree_ ( nConflictsNode_ + size_ )
-  , startConfNodes_ ( degree_ + size_ )
-  , conflicts_ ( startConfNodes_ + (size_ + 1) )
-  , nNodeCliques_ ( conflicts_ + nDirectConflicts_ )
-  , startNodeCliques_ ( nNodeCliques_ + size_ )
-  , nodeCliques_ ( startNodeCliques_ + size_ + 1 )
-  , cliqueSize_ ( nodeCliques_ + totalCliqueElements_ )
-  , startClique_ ( cliqueSize_ + nCliques_ )
-  , cliques_ ( startClique_ + nCliques_ + 1 )
 {
+  iniCoinConflictGraph(cgraph);
+  nDirectConflicts_  = cgraph->nTotalDirectConflicts();
+  totalCliqueElements_ = cgraph->nTotalCliqueElements();
+  nCliques_  = cgraph->nCliques();
+  memSize_  = sizeof(size_t)*( 5*size_ + 3 + nDirectConflicts_ + 2*totalCliqueElements_ + 2*nCliques_ );
+  nConflictsNode_  = (size_t *)xmalloc( memSize_ );
+  degree_  = nConflictsNode_ + size_;
+  startConfNodes_ =  degree_ + size_ ;
+  conflicts_  = startConfNodes_ + (size_ + 1);
+  nNodeCliques_  = conflicts_ + nDirectConflicts_;
+  startNodeCliques_  = nNodeCliques_ + size_ ;
+  nodeCliques_  = startNodeCliques_ + size_ + 1;
+  cliqueSize_  = nodeCliques_ + totalCliqueElements_;
+  startClique_  = cliqueSize_ + nCliques_;
+  cliques_  = startClique_ + nCliques_ + 1;
+
+
   fill( nConflictsNode_, nConflictsNode_+(2*size_), 0);  // clears nConflictsNode and degree
   fill( nNodeCliques_, nNodeCliques_+size_, 0); // clears the number of cliques each node appears
   fill( cliqueSize_, cliqueSize_+nCliques_, 0);
@@ -160,9 +162,8 @@ size_t CoinStaticConflictGraph::degree(const size_t node) const
 }
 
 CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgraph, const size_t n, const size_t elements[] )
-  : CoinConflictGraph( n )
-  
 {
+  iniCoinConflictGraph(cgraph);
 #define REMOVED numeric_limits< size_t >::max()
   nDirectConflicts_ = totalCliqueElements_ = nCliques_ = memSize_ = 0;
 
@@ -273,7 +274,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
     abort();
   }
 
-  for ( size_t i=0 ; (i<size_) ; ++i ) {
+  for ( size_t i=0 ; (i<n) ; ++i ) {
     size_t idxOrig = elements[i];
     prevDC[i] = 0;
 

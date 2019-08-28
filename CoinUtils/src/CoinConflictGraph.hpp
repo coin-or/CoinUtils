@@ -16,6 +16,8 @@
  */
 class CoinConflictGraph {
 public:
+  CoinConflictGraph() { }
+
   /**
    * Default constructor
    * @param _cols number of columns in the mixed integer linear program the number
@@ -148,6 +150,14 @@ protected:
   size_t maxDegree_;
 
   bool conflictInCliques( size_t idxN1, size_t idxN2) const;
+
+  void iniCoinConflictGraph(size_t _size);
+
+  /**
+   * Default constructor
+   * @param other conflict graph to be copied
+   */
+  void iniCoinConflictGraph(const CoinConflictGraph *other);
 };
 
 #endif // CONFLICTGRAPH_H

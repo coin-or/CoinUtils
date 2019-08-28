@@ -15,23 +15,13 @@ using namespace std;
 size_t CoinConflictGraph::minClqRow = 1024;
 
 CoinConflictGraph::CoinConflictGraph(size_t _size)
-  : size_(_size)
-  , nConflicts_( 0 ) 
-  , maxConflicts_(((double)size_) + ((double)size_) * ((double)size_))
-  , density_( 0.0 )
-  , minDegree_( UINT_MAX )
-  , maxDegree_( 0 )
 {
+  iniCoinConflictGraph(_size);
 }
 
 CoinConflictGraph::CoinConflictGraph(const CoinConflictGraph *other)
-  : size_( other->size_ )
-  , nConflicts_( other->nConflicts_ )
-  , maxConflicts_( other->maxConflicts_ )
-  , density_( other->density_ )
-  , minDegree_( other->minDegree_ )
-  , maxDegree_( other->maxDegree_ )
 {
+  iniCoinConflictGraph(other);
 }
 
 double CoinConflictGraph::density() const
@@ -287,6 +277,28 @@ bool CoinConflictGraph::conflictInCliques( size_t n1, size_t n2 ) const
 
   return false;
 }
+
+void CoinConflictGraph::iniCoinConflictGraph(size_t _size)
+{
+  size_ = _size;
+  nConflicts_ =  0;
+  maxConflicts_ = ((double)size_) + ((double)size_) * ((double)size_);
+  density_ = 0.0;
+  minDegree_ = UINT_MAX;
+  maxDegree_ = 0;
+}
+
+
+void CoinConflictGraph::iniCoinConflictGraph(const CoinConflictGraph* other)
+{
+  size_ =  other->size_;
+  nConflicts_ = other->nConflicts_;
+  maxConflicts_ =  other->maxConflicts_;
+  density_ = other->density_ ;
+  minDegree_ = other->minDegree_;
+  maxDegree_ = other->maxDegree_;
+}
+
 
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
