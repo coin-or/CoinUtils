@@ -1,33 +1,22 @@
 #ifndef DYNAMICCONFLICTGRAPH_H
 #define DYNAMICCONFLICTGRAPH_H
 
-#include "CoinUtilsConfig.h"
-#include "CoinConflictGraph.hpp"
-#include <map>
 #include <vector>
 #include <utility>
 
-#ifdef DEBUG_CGRAPH
-#include "cgraph.h"
-#endif
+#include "CoinUtilsConfig.h"
+#include "CoinConflictGraph.hpp"
+#include "CoinAdjacencyVector.hpp"
 
-class CoinStaticConflictGraph;
+#include "cgraph.h"
 
 class CoinPackedMatrix;
-
-#ifdef COINUTILS_CPLUSPLUS11
-#include <unordered_set>
-typedef std::unordered_set< size_t > ConflictSetType;
-#else
-#include <set>
-typedef std::set< size_t > ConflictSetType;
-#endif
-
-typedef std::vector< size_t > CCCliqueType;
+class CoinAdjacencyVector;
+class CoinCliqueList;
 
 /**
- * This a a conflict graph where conflicts can be added on the fly
- * not optimized for memory usage
+ * This a a conflict graph where conflicts can be added on the fly,
+ * not optimized for memory usage.
  */
 class CoinDynamicConflictGraph : public CoinConflictGraph
 {
@@ -37,14 +26,13 @@ public:
      */
     CoinDynamicConflictGraph ( size_t _size );
 
-
     /* Creates a conflict graph from a MIP
      *
      * This constructors creates a conflict graph detecting
      * conflicts from the MIP structure. After scanning the
      * MIP, new recommended bounds for some variables can be
-     * discovered, these bounds can be checked using the
-     * updates bounds method.
+     * discovered, these suggested bounds can be checked
+     * using the updates bounds method.
      *
      * @param numCols number of variables
      * @param colType column types
@@ -66,37 +54,65 @@ public:
       const double* rowRange );
 
     /**
-     * Constructor to create from an induced subgrapu
+     * Constructor to create from an induced subgraph
+     *
+     * @param cgraph conflict graph
+     * @param n number of elements in the induced subgraph
+     * @param elements indexes of nodes in the induced subgraph
      */
-    CoinDynamicConflictGraph( const CoinStaticConflictGraph *cgraph, const size_t n, const size_t elements[] );
+    CoinDynamicConflictGraph( const CoinConflictGraph *cgraph, const size_t n, const size_t elements[] );
 
     /**
      * Destructor
      */
-    ~CoinDynamicConflictGraph();
+    virtual ~CoinDynamicConflictGraph();
 
-    bool conflicting ( size_t n1, size_t n2 ) const;
-
-
-    void addNodeConflicts( const size_t node, const size_t conflicts[], const size_t nConflicts );
-
-    void addNodeConflict( size_t n1, size_t n2 );
-
-    void addClique( size_t size, const size_t elements[] );
-
-    void addCliqueAsNormalConflicts( const size_t idxs[], const size_t len );
-
-    void recomputeDegree();
+    /** adds conflicts to a node to be stored directly (not as cliques)
+     */
+    void addNodeConflicts( const size_t node, const size_t nodeConflicts[], const size_t nConflicts );
 
     /**
-    * Queries all nodes conflicting with a given node
-    *
-    * @param node node index
-    * @param temp temporary storage area for storing conflicts, should have space for all elements in the graph (size())
-    * @return pair containing (numberOfConflictingNodes, vectorOfConflictingNodes), the vector may be a pointer
-    * to temp is the temporary storage area was used or a pointer to a vector in the conflict graph itself
+     * Adds a clique, this will be stored explicitly or not depending on the size
+     **/
+    void addClique( size_t size, const size_t elements[] );
+
+    /** Number of cliques stored explicitly
+     *
+     **/
+    size_t nCliques() const;
+
+    /** Contents of the i-th clique stored explicitly
+     *
+     **/
+    const size_t* cliqueElements(size_t idxClique) const ;
+
+    /** Size of the i-th clique stored explicitly
+     * 
+     **/
+    size_t cliqueSize( size_t idxClique ) const;
+
+    /* in how many explicit cliques a node appears
+    **/
+    size_t nNodeCliques(size_t idxClique) const;
+
+    /* which cliques a node appears
+    **/
+    const size_t *nodeCliques(size_t idxClique) const;
+
+    /**
+    * degree of a given node
     */
-    virtual std::pair< size_t, const size_t* > conflictingNodes ( size_t node, size_t* temp ) const;
+    size_t degree( const size_t node ) const;
+
+    size_t nTotalCliqueElements() const;
+
+    size_t nDirectConflicts( size_t idxNode ) const;
+
+    const size_t *directConflicts( size_t idxNode ) const;
+
+    virtual size_t nTotalDirectConflicts() const;
+
+    void addCliqueAsNormalConflicts( const size_t idxs[], const size_t len );
 
   /**
    * Recommended tighter bounds for some variables
@@ -107,26 +123,20 @@ public:
    * @return updated bounds
    **/
   const std::vector< std::pair< size_t, std::pair< double, double > > > &updatedBounds();
-
-
-
-#ifdef DEBUG_CGRAPH
-  virtual std::vector< std::string > differences ( const CGraph* cgraph );
-#endif
+  
+  void printInfo() const;
 
 private:
+  void setDegree( size_t idxNode, size_t deg );
+
   // conflicts stored directly
-  std::vector< ConflictSetType > nodeConflicts;
+  CoinAdjacencyVector *conflicts;
 
-  // cliques where a node appears
-  std::vector< std::vector<size_t> > nodeCliques;
+  size_t *degree_;
 
-  // all cliques
-  std::vector< CCCliqueType > cliques;
+  CoinCliqueList *largeClqs;
 
-  size_t nDirectConflicts;
-
-  size_t totalCliqueElements;
+  size_t getClqSize( size_t idxClique ) const;
 
   void cliqueDetection( const std::pair< size_t, double > *columns, size_t nz, const double rhs );
 
@@ -134,9 +144,30 @@ private:
 
   std::vector< std::pair< size_t, std::pair< double, double > > > newBounds_;
 
-  bool elementInClique( size_t idxClique, size_t node ) const;
+  /* storing temporary info of the rows of interest */
+  CoinCliqueList *smallCliques;
+  
+  // temporary space for rows
+  std::pair< size_t, double > *tRowElements;
+  size_t tnEl;
+  size_t tElCap;
 
-  friend class CoinStaticConflictGraph;
+  size_t tnRows;
+  size_t tnRowCap;
+  size_t *tRowStart;
+  double *tRowRHS;
+
+  // incidence vector used in add clique as normal conflict
+  std::vector< bool > ivACND;
+
+  void processSmallCliquesNode(
+    size_t node,
+    const size_t scn[],
+    const size_t nscn,
+    const CoinCliqueList *smallCliques,
+    char *iv );
+  
+  void addTmpRow( size_t nz, const std::pair< size_t, double > *els, double rhs);
 };
 
 #endif // DYNAMICCONFLICTGRAPH_H

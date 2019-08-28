@@ -36,8 +36,12 @@ CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
 CoinUtils/missing -text
 CoinUtils/src/.ycm_extra_conf.py -text
+CoinUtils/src/CoinAdjacencyVector.cpp -text
+CoinUtils/src/CoinAdjacencyVector.hpp -text
 CoinUtils/src/CoinAlloc.cpp -text
 CoinUtils/src/CoinAlloc.hpp -text
+CoinUtils/src/CoinCliqueList.cpp -text
+CoinUtils/src/CoinCliqueList.hpp -text
 CoinUtils/src/CoinConflictGraph.cpp -text
 CoinUtils/src/CoinConflictGraph.hpp -text
 CoinUtils/src/CoinDenseFactorization.cpp -text

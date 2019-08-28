@@ -1,304 +1,27 @@
-#include "CoinDynamicConflictGraph.hpp"
-#include "CoinStaticConflictGraph.hpp"
-#include "CoinPackedMatrix.hpp"
 #include <algorithm>
 #include <climits>
 #include <limits>
 #include <cassert>
 #include <cfloat>
 #include <cmath>
-
-using namespace std;
-
-CoinDynamicConflictGraph::CoinDynamicConflictGraph ( size_t _size ) :
-  CoinConflictGraph ( _size ),
-#ifdef COINUTILS_CPLUSPLUS11
-  nodeConflicts( vector< ConflictSetType >( _size, ConflictSetType( 2048 ) ) ),
-#else
-  nodeConflicts( vector< ConflictSetType >( _size ) ),
-#endif
-  nodeCliques(std::vector< std::vector<size_t> >( _size )),
-  nDirectConflicts( _size ),
-  totalCliqueElements( 0 )
-{
-}
-
-CoinDynamicConflictGraph::~CoinDynamicConflictGraph()
-{
-
-}
-
-void CoinDynamicConflictGraph::addNodeConflict( size_t n1, size_t n2 ) {
-  ConflictSetType &confN1 = this->nodeConflicts[n1];
-  ConflictSetType &confN2 = this->nodeConflicts[n2];
-
-  size_t n1ConfBefore = (size_t)confN1.size();
-  size_t n2ConfBefore = (size_t)confN2.size();
-  confN1.insert(n2);
-  confN2.insert(n1);
-
-  size_t newConflicts = (confN1.size() - n1ConfBefore)  + (confN2.size() - n2ConfBefore);;
-
-  this->nConflicts_ += newConflicts;
-  this->nDirectConflicts += newConflicts;
-}
-
-void CoinDynamicConflictGraph::addClique( size_t size, const size_t elements[] ) {
-  size_t nclq = (size_t) this->cliques.size();
-
-  for ( size_t i=0 ; (i<size) ; ++i )
-    nodeCliques[elements[i]].push_back(nclq);
-
-  cliques.push_back( CCCliqueType(elements, elements+size) );
-
-  // checking if elements are not sorted
-  CCCliqueType &clq = *cliques.rbegin();
-  bool sorted = true;
-  for ( size_t i=0 ; i<clq.size()-1 ; ++i ) {
-    if (clq[i] > clq[i+1]) {
-      sorted = false;
-      break;
-    }
-  }
-  if (!sorted)
-    std::sort(clq.begin(), clq.end());
-
-  totalCliqueElements += size;
-}
-
-bool CoinDynamicConflictGraph::conflicting ( size_t n1, size_t n2 ) const
-{
-  // checking conflicts stored directly
-  ConflictSetType::const_iterator cIt = nodeConflicts[n1].find(n2);
-  if ( cIt != nodeConflicts[n1].end() )
-    return true;
-
-  const std::vector<size_t> &nodeCliquesN1 = nodeCliques[n1];
-
-  if (nodeCliquesN1.size()==0)
-      return false;
-
-
-  // traversing cliques where n1 appears searching for n2
-  for ( vector< size_t >::const_iterator
-    vit = nodeCliquesN1.begin() ; vit != nodeCliquesN1.end() ; ++ vit )
-  {
-    if (elementInClique(*vit, n2))
-      return true;
-  }
-
-  return false;
-}
-
-void CoinDynamicConflictGraph::addNodeConflicts(const size_t node, const size_t conflicts[], const size_t nConflicts)
-{
-  ConflictSetType &confN1 = this->nodeConflicts[node];
-  for ( size_t i=0 ; i<nConflicts ; ++i )
-  {
-    if (conflicts[i] != node)
-    {
-      size_t sizeBefore = confN1.size();
-      confN1.insert(conflicts[i]);
-      size_t increase = confN1.size() - sizeBefore;
-      nConflicts_ += increase;
-      nDirectConflicts += increase;
-    }
-  }
-}
-
-void CoinDynamicConflictGraph::addCliqueAsNormalConflicts(const size_t idxs[], const size_t len)
-{
-    for ( size_t i1=0 ; (i1<len) ; ++i1 )
-      addNodeConflicts( idxs[i1], idxs, len );
-}
+#include "CoinDynamicConflictGraph.hpp"
+#include "CoinStaticConflictGraph.hpp"
+#include "CoinPackedMatrix.hpp"
+#include "CoinCliqueList.hpp"
 
 #define EPS 1e-6
 
+#define CG_INI_SPACE_NODE_CONFLICTS 32
+
+static void *xmalloc( const size_t size );
+static void *xrealloc( void *ptr, const size_t size );
 
 // helper functions to build the conflict graph
 static void update_two_largest(double val, double v[2]);
+static void update_two_smallest(double val, double v[2]);
 static size_t clique_start(const std::pair< size_t, double > *columns, size_t nz, double rhs);
 static size_t binary_search(const std::pair< size_t, double > *columns, size_t pos, double rhs, size_t colStart, size_t colEnd);
-
 static bool sort_columns(const std::pair< size_t, double > &left, const std::pair< size_t, double > &right);
-
-CoinDynamicConflictGraph::CoinDynamicConflictGraph (
-  const int numCols,
-  const char* colType,
-  const double* colLB,
-  const double* colUB,
-  const CoinPackedMatrix* matrixByRow,
-  const char* sense,
-  const double* rowRHS,
-  const double* rowRange )
-  :
-  CoinConflictGraph ( numCols*2 ),
-#ifdef COINUTILS_CPLUSPLUS11
-  nodeConflicts( vector< ConflictSetType >( numCols*2, ConflictSetType( 2048 ) ) ),
-#else
-  nodeConflicts( vector< ConflictSetType >( numCols*2 ) ),
-#endif
-  nodeCliques(std::vector< std::vector<size_t> >( numCols*2 )),
-  nDirectConflicts( numCols*2 ),
-  totalCliqueElements( 0 )
-{
-  newBounds_.clear();
-  const int *idxs = matrixByRow->getIndices();
-  const double *coefs = matrixByRow->getElements();
-  const int *start = matrixByRow->getVectorStarts();
-  const int *length = matrixByRow->getVectorLengths();
-  std::pair< size_t, double > *columns = new std::pair< size_t, double >[numCols];
-
-  for (size_t i = 0; i < (size_t)numCols; i++) {
-    /* inserting trivial conflicts: variable-complement */
-    const bool isBinary = ((colType[i] != 0) && (colLB[i] == 1.0 || colLB[i] == 0.0)
-      && (colUB[i] == 0.0 || colUB[i] == 1.0));
-    if (isBinary) { //consider only binary variables
-      addNodeConflict(i, i + numCols);
-    }
-  }
-
-  for (size_t idxRow = 0; idxRow < (size_t)matrixByRow->getNumRows(); idxRow++) {
-    const char rowSense = sense[idxRow];
-    const double mult = (rowSense == 'G') ? -1.0 : 1.0;
-    double rhs = mult * rowRHS[idxRow];
-    bool onlyBinaryVars = true;
-    double minCoef1 = (std::numeric_limits< double >::max() / 10.0);
-    double minCoef2 = (std::numeric_limits< double >::max() / 10.0);
-    double maxCoef = -(std::numeric_limits< double >::max() / 10.0);
-
-    if (length[idxRow] < 2) {
-      continue;
-    }
-
-    if (rowSense == 'N') {
-      continue;
-    }
-
-    //printf("row %s ", this->getColNames()[idxRow].c_str(), );
-    size_t nz = 0;
-    double twoLargest[2];
-    twoLargest[0] = twoLargest[1] = -DBL_MAX;
-    for (size_t j = start[idxRow]; j < (size_t)start[idxRow] + length[idxRow]; j++) {
-      const size_t idxCol = idxs[j];
-      const double coefCol = coefs[j] * mult;
-      const bool isBinary = ((colType[idxCol] != 0) && (colLB[idxCol] == 1.0 || colLB[idxCol] == 0.0)
-        && (colUB[idxCol] == 0.0 || colUB[idxCol] == 1.0));
-
-      if (!isBinary) {
-        onlyBinaryVars = false;
-        break;
-      }
-
-      if (coefCol >= 0.0) {
-        columns[nz].first = idxCol;
-        columns[nz].second = coefCol;
-      } else {
-        columns[nz].first = idxCol + numCols;
-        columns[nz].second = -coefCol;
-        rhs += columns[nz].second;
-      }
-
-      if (columns[nz].second + EPS <= minCoef1) {
-        minCoef2 = minCoef1;
-        minCoef1 = columns[nz].second;
-      } else if (columns[nz].second + EPS <= minCoef2) {
-        minCoef2 = columns[nz].second;
-      }
-
-      maxCoef = std::max(maxCoef, columns[nz].second);
-      update_two_largest(columns[nz].second, twoLargest);
-
-#ifdef DEBUG
-      assert(columns[nz].second >= 0.0);
-#endif
-
-      nz++;
-    }
-
-    if (!onlyBinaryVars) {
-      continue;
-    }
-
-
-    // last test is important because if false the RHS may change
-    if ( twoLargest[0] + twoLargest[1] <= rhs && maxCoef <= rhs && (rowSense!='E' && rowSense!='R') )
-      continue;
-
-#ifdef DEBUG
-    assert(nz == length[idxRow]);
-    assert(rhs >= 0.0);
-#endif
-    //explicit clique
-    if ((maxCoef <= rhs) && ((minCoef1 + minCoef2) >= (rhs + EPS)) && (nz > 2)) {
-      size_t *clqIdxs = new size_t[nz];
-
-      for (size_t i = 0; i < nz; i++) {
-        clqIdxs[i] = columns[i].first;
-      }
-
-      processClique(clqIdxs, nz);
-      delete[] clqIdxs;
-    } else {
-      if (maxCoef!=minCoef1)
-        std::sort(columns, columns + nz, sort_columns);
-
-      //checking variables where aj > b
-      for (size_t j = nz; j-- > 0;) {
-        if (columns[j].second <= rhs) {
-          break;
-        }
-
-        if (columns[j].first < (size_t) numCols) {
-          newBounds_.push_back( make_pair( columns[j].first, make_pair( 0.0, 0.0) ) );
-        } else {
-          newBounds_.push_back( make_pair( columns[j].first - numCols, make_pair( 1.0, 1.0) ) );
-          rhs = rhs - columns[j].second;
-        }
-
-        nz--;
-      }
-
-      if (nz < 2) {
-        continue;
-      }
-
-#ifdef DEBUG
-      assert(rhs >= 0.0);
-#endif
-
-      cliqueDetection(columns, nz, rhs);
-
-      if (rowSense == 'E' || rowSense == 'R') {
-        if (rowSense == 'E') {
-          rhs = -rowRHS[idxRow];
-        } else {
-          rhs = -(rowRHS[idxRow] - rowRange[idxRow]);
-        }
-
-        for (size_t j = 0; j < nz; j++) {
-          if (columns[j].first < (size_t)numCols) {
-            columns[j].first = columns[j].first + numCols;
-            rhs += columns[j].second;
-          } else {
-            columns[j].first = columns[j].first - numCols;
-          }
-        }
-
-#ifdef DEBUG
-        assert(rhs >= 0.0);
-#endif
-
-        cliqueDetection(columns, nz, rhs);
-      }
-    }
-  }
-
-  recomputeDegree();
-
-  delete[] columns;
-}
-
 static void update_two_largest(double val, double v[2])
 {
     if (val>v[0])
@@ -315,12 +38,395 @@ static void update_two_largest(double val, double v[2])
     }
 }
 
+static void update_two_smallest(double val, double v[2])
+{
+    if (val<v[0])
+    {
+        v[1] = v[0];
+        v[0] = val;
+    }
+    else
+    {
+        if (val<v[1])
+        {
+            v[1] = val;
+        }
+    }
+}
+
 bool sort_columns(const std::pair< size_t, double > &left, const std::pair< size_t, double > &right)
 {
   if (fabs(left.second - right.second) >= EPS) {
     return (left.second + EPS <= right.second);
   }
   return left.first < right.first;
+}
+
+
+
+using namespace std;
+
+CoinDynamicConflictGraph::CoinDynamicConflictGraph ( size_t _size )
+  : CoinConflictGraph ( _size )
+  , conflicts( new CoinAdjacencyVector(_size, CG_INI_SPACE_NODE_CONFLICTS)  )
+  , degree_( (size_t*) xmalloc(sizeof(size_t)*_size) )
+  , largeClqs( new CoinCliqueList( 4096, 32768 ) )
+  , ivACND( std::vector<bool>(size_, false) )
+{
+}
+
+/* first pass: process all 
+ *   cliques that will be stored directly
+ *
+ * second pass: process constraints where only a part
+ *   of the constraint may be a clique 
+ **/
+CoinDynamicConflictGraph::CoinDynamicConflictGraph (
+  const int numCols,
+  const char* colType,
+  const double* colLB,
+  const double* colUB,
+  const CoinPackedMatrix* matrixByRow,
+  const char* sense,
+  const double* rowRHS,
+  const double* rowRange )
+  : CoinConflictGraph ( numCols*2 )
+  , degree_( (size_t*) xmalloc(sizeof(size_t)*(numCols*2)) )
+  , largeClqs( new CoinCliqueList( 4096, 32768 ) )
+  , ivACND( std::vector<bool>(size_, false) )
+{
+  this->tElCap = matrixByRow->getNumElements() * 2;
+  this->tRowElements = (std::pair< size_t, double > *) xmalloc( sizeof(std::pair< size_t, double >)*tElCap);
+  this->tnRowCap = matrixByRow->getNumRows() * 2;
+  this->tRowStart = (size_t *) xmalloc(sizeof(size_t) * (tnRowCap+1) );
+  this->tRowStart[0] = 0;
+  this->tRowRHS = (double *) xmalloc(sizeof(double) * tnRowCap );
+  this->tnRows = 0;
+  this->tnEl = 0;
+
+  // temporary area  
+  size_t *clqIdxs = new size_t[numCols*2];
+
+  // maximum number of nonzeros in constraints that
+  // will be handled pairwise
+  size_t maxNzOC = 0;
+
+  newBounds_.clear();
+  const int *idxs = matrixByRow->getIndices();
+  const double *coefs = matrixByRow->getElements();
+  const int *start = matrixByRow->getVectorStarts();
+  const int *length = matrixByRow->getVectorLengths();
+  std::pair< size_t, double > *columns = new std::pair< size_t, double >[numCols];
+
+  smallCliques = new CoinCliqueList( 4096, 3276 );
+  size_t *tmpClq = (size_t *) xmalloc( sizeof(size_t)*size_ );
+
+  for (size_t idxRow = 0; idxRow < (size_t)matrixByRow->getNumRows(); idxRow++) {
+    const char rowSense = sense[idxRow];
+
+    if (length[idxRow] < 2 || rowSense == 'N') 
+      continue;
+
+    const double mult = (rowSense == 'G') ? -1.0 : 1.0;
+    double rhs = mult * rowRHS[idxRow];
+    bool onlyBinaryVars = true;
+
+    size_t nz = 0;
+    double twoLargest[2] = { -(std::numeric_limits< double >::max() / 10.0), -(std::numeric_limits< double >::max() / 10.0) };
+    double twoSmallest[2] = { std::numeric_limits< double >::max() / 10.0, std::numeric_limits< double >::max() / 10.0};
+    for (size_t j = start[idxRow]; j < (size_t)start[idxRow] + length[idxRow]; j++) {
+      const size_t idxCol = idxs[j];
+      const double coefCol = coefs[j] * mult;
+      const bool isBinary = ((colType[idxCol] != 0) && (colLB[idxCol] == 1.0 || colLB[idxCol] == 0.0)
+        && (colUB[idxCol] == 0.0 || colUB[idxCol] == 1.0));
+
+      if (!isBinary) {
+        onlyBinaryVars = false;
+        break;
+      }
+
+      if (coefCol >= 0.0) {
+        columns[nz].first = idxCol;
+        columns[nz].second = coefCol;
+      } else {
+        // complementing
+        columns[nz].first = idxCol + numCols;
+        columns[nz].second = -coefCol;
+        rhs += columns[nz].second;
+      }
+
+      update_two_largest(columns[nz].second, twoLargest);
+      update_two_smallest(columns[nz].second, twoSmallest);
+
+#ifdef DEBUG
+      assert(columns[nz].second >= 0.0);
+#endif
+
+      nz++;
+    }
+
+    if (!onlyBinaryVars) 
+      continue;
+
+    // last test is important because if false the RHS may change
+    if ( twoLargest[0] + twoLargest[1] <= rhs && (rowSense!='E' && rowSense!='R') )
+      continue;
+
+#ifdef DEBUG
+    assert(nz == length[idxRow]);
+    assert(rhs >= 0.0);
+#endif
+    
+    //explicit clique
+    if ((twoLargest[0] <= rhs) && ((twoSmallest[0] + twoSmallest[1]) >= (rhs + EPS)) && (nz > 2)) {
+      if (nz >= minClqRow) {
+        for ( size_t ie=0 ; ie<nz ; ++ie )
+          clqIdxs[ie] = columns[ie].first;
+        processClique(clqIdxs, nz);
+      } else {
+        for ( size_t ie=0 ; ie<nz ; ++ie )
+          tmpClq[ie] = columns[ie].first;
+
+        smallCliques->addClique( nz, tmpClq );
+      }
+    } else {
+      if (twoLargest[0]!=twoSmallest[0])
+        std::sort(columns, columns + nz, sort_columns);
+
+      // checking variables where aj > b
+      // and updating their bounds
+      for (size_t j = nz; j-- > 0;) {
+        if (columns[j].second <= rhs) {
+          break;
+        }
+
+        if (columns[j].first < (size_t) numCols) {
+          newBounds_.push_back( make_pair( columns[j].first, make_pair( 0.0, 0.0) ) );
+        } else {
+          newBounds_.push_back( make_pair( columns[j].first - numCols, make_pair( 1.0, 1.0) ) );
+          rhs = rhs - columns[j].second;
+        }
+        nz--;
+      }
+
+      if (nz < 2)
+        continue;
+
+#ifdef DEBUG
+      assert(rhs >= 0.0);
+#endif
+      
+      maxNzOC = max(maxNzOC, nz);
+      
+      this->addTmpRow( nz, &columns[0], rhs );
+
+      if (rowSense == 'E' || rowSense == 'R') {
+        if (rowSense == 'E') {
+          rhs = -rowRHS[idxRow];
+        } else {
+          rhs = -(rowRHS[idxRow] - rowRange[idxRow]);
+        }
+        for (size_t j = 0; j < nz; j++) {
+          if (columns[j].first < (size_t)numCols) {
+            columns[j].first = columns[j].first + numCols;
+            rhs += columns[j].second;
+          } else {
+            columns[j].first = columns[j].first - numCols;
+          }
+        }
+
+#ifdef DEBUG
+        assert(rhs >= 0.0);
+#endif
+
+        this->addTmpRow( nz, &columns[0], rhs );
+        
+      } // equality constraints
+    } // not explicit clique
+  } // all rows
+
+  // at this point large cliques will already be include
+  this->largeClqs->computeNodeOccurrences( size_ );
+
+  size_t iniRowSize = 32;
+  conflicts = new CoinAdjacencyVector(numCols*2, iniRowSize);
+
+  for (size_t i = 0; i < (size_t)numCols; i++) {
+    /* inserting trivial conflicts: variable-complement */
+    const bool isBinary = ((colType[i] != 0) && (colLB[i] == 1.0 || colLB[i] == 0.0)
+      && (colUB[i] == 0.0 || colUB[i] == 1.0));
+    if (isBinary) { //consider only binary variables
+      conflicts->addNeighbor( i, i+numCols );
+      conflicts->addNeighbor( numCols+i, i );
+    }
+  }
+
+  // processing small cliques 
+  if (smallCliques->nCliques())
+  {
+    smallCliques->computeNodeOccurrences( size_ );
+
+    char *iv = (char *) calloc( size_, sizeof(char) );
+    if (!iv) {
+      fprintf( stderr, "out of memory.\n" );
+      abort();
+    }
+
+    for ( size_t k=0 ; ( k<smallCliques->nDifferentNodes() ) ; ++k ) {
+      size_t idxNode = smallCliques->differentNodes()[k];
+      const size_t nNodeCliques = smallCliques->nNodeOccurrences(idxNode);
+      const size_t *nodeCliques = smallCliques->nodeOccurrences(idxNode);
+      processSmallCliquesNode(idxNode, nodeCliques, nNodeCliques, smallCliques, iv);
+    }
+
+    free( iv );
+  } // small cliques
+  delete smallCliques;
+  smallCliques = NULL;
+  
+  for ( size_t idxTR =0 ; (idxTR<tnRows ) ; ++idxTR )
+    cliqueDetection( &tRowElements[tRowStart[idxTR]], tRowStart[idxTR+1]-tRowStart[idxTR], tRowRHS[idxTR] );
+
+  recomputeDegree();
+
+  delete[] columns;
+  delete[] clqIdxs;
+  free(tRowElements);
+  free(tRowStart);
+  free(tRowRHS);
+  free(tmpClq);
+}
+
+CoinDynamicConflictGraph::CoinDynamicConflictGraph( const CoinConflictGraph *cgraph, const size_t n, const size_t elements[] )
+  : CoinConflictGraph ( n )
+  , degree_( (size_t*) xmalloc(sizeof(size_t)*n) )
+  , ivACND( std::vector<bool>(size_, false) )
+{
+  const size_t NOT_INCLUDED = numeric_limits<size_t>::max();
+
+  conflicts = NULL;
+  {
+    // estimating a good initial space
+    // for node neighbors
+    double perc = min(((double)n) / ((double)size_) + 0.1, 1.0);
+    size_t maxNeigh = 0;
+    for ( size_t i=0 ; i<size_; ++i ) {
+      const size_t nNeigh = (size_t)ceil(((double)cgraph->nDirectConflicts(i))*perc);
+      maxNeigh = max(maxNeigh, nNeigh);
+    }
+
+    conflicts = new CoinAdjacencyVector( n, std::min((size_t)512, maxNeigh) );
+  }
+
+  vector< size_t > newIdx( cgraph->size(), NOT_INCLUDED );
+
+  for ( size_t i=0 ; (i<n) ; ++i )
+    newIdx[elements[i]] = i;
+
+  vector< size_t > realNeighs;
+  realNeighs.reserve( cgraph->size() );
+
+  // direct neighbors in static cgraph
+  for ( size_t i=0 ; (i<n) ; ++i ) {
+    const size_t nidx = elements[i];
+    const size_t *neighs = cgraph->directConflicts( nidx );
+    const size_t nNeighs = cgraph->nDirectConflicts( nidx );
+
+    realNeighs.clear();
+    for ( size_t j=0 ; (j<nNeighs) ; ++j )
+      if (newIdx[neighs[j]] != NOT_INCLUDED)
+        realNeighs.push_back( newIdx[neighs[j]] );
+
+    if ( realNeighs.size()==0 )
+      continue;
+
+    addNodeConflicts(i, &realNeighs[0], realNeighs.size() );
+  }
+
+  for ( size_t iclq=0 ; (iclq<cgraph->nCliques() ) ; ++iclq ) {
+    realNeighs.clear();
+    size_t clqSize = cgraph->cliqueSize(iclq);
+    const size_t *clqEl = cgraph->cliqueElements(iclq);
+    for ( size_t j=0 ; (j<clqSize) ; ++j )
+      if (newIdx[clqEl[j]] != NOT_INCLUDED)
+        realNeighs.push_back(newIdx[clqEl[j]]);
+
+    if ( realNeighs.size() >= CoinConflictGraph::minClqRow ) {
+      this->addClique(realNeighs.size(), &realNeighs[0]);
+    } else {
+      for ( size_t j=0 ; (j<realNeighs.size()) ; ++j )
+        this->addNodeConflicts(realNeighs[j], &realNeighs[0], realNeighs.size() );
+    } // add as normal conflicts
+  } // all cliques
+
+  this->recomputeDegree();
+}
+
+void CoinDynamicConflictGraph::addClique( size_t size, const size_t elements[] ) {
+  this->largeClqs->addClique( size, elements );
+}
+
+void CoinDynamicConflictGraph::addNodeConflicts(const size_t node, const size_t nodeConflicts[], const size_t nConflicts)
+{
+  for ( size_t i=0 ; i<nConflicts ; ++i )
+  {
+    if (nodeConflicts[i] != node && (!conflictInCliques(node, nodeConflicts[i])))
+        conflicts->addNeighbor(node, nodeConflicts[i], true);  // also checks for repeated entries
+  }
+}
+
+void CoinDynamicConflictGraph::addCliqueAsNormalConflicts(const size_t idxs[], const size_t len)
+{
+  assert(ivACND.size() >= size_);
+
+  if (len<64) {
+    for ( size_t i1=0 ; (i1<len) ; ++i1 )
+      addNodeConflicts( idxs[i1], idxs, len );
+    return;
+  }
+
+  for ( size_t i=0 ; (i<len) ; ++i ) {
+    size_t node = idxs[i];
+    size_t newConf = 0;
+    size_t prevConf = conflicts->rowSize(node);
+    const size_t *oldConfs = conflicts->getRow(node);
+    for ( size_t j=0 ; (j<prevConf) ; ++j ) 
+      ivACND[oldConfs[j]] = true;
+    ivACND[node] = true;
+
+    // going trough node cliques
+    for ( size_t j=0 ; (j<nNodeCliques(node)) ; ++j ) {
+      size_t idxClq = nodeCliques(node)[j];
+      for ( size_t k=0 ; (k<cliqueSize(idxClq)) ; ++k ) {
+        ivACND[cliqueElements(idxClq)[k]] = true;
+      }
+    }
+
+    for ( size_t j=0 ; j<len ;  ++j ) {
+      size_t neigh = idxs[j];
+      if (ivACND[neigh] == false) {
+        ivACND[neigh] = true;
+        conflicts->fastAddNeighbor(node, neigh);
+        newConf++;
+      }
+    }
+    // clearing iv
+    for ( size_t j=0 ; (j<conflicts->rowSize(node)) ; ++j ) 
+      ivACND[conflicts->getRow(node)[j]] = false;
+    ivACND[node] = false;
+    // going trough node cliques
+    for ( size_t j=0 ; (j<nNodeCliques(node)) ; ++j ) {
+      size_t idxClq = nodeCliques(node)[j];
+      for ( size_t k=0 ; (k<cliqueSize(idxClq)) ; ++k ) {
+        ivACND[cliqueElements(idxClq)[k]] = false;
+      }
+    }
+
+
+
+    if (newConf >= 1)
+      conflicts->sort(node);
+  }
 }
 
 void CoinDynamicConflictGraph::processClique(const size_t idxs[], const size_t size)
@@ -454,200 +560,184 @@ const std::vector< std::pair< size_t, std::pair< double, double > > > & CoinDyna
   return newBounds_;
 }
 
-void CoinDynamicConflictGraph::recomputeDegree()
-{
-    minDegree_ = numeric_limits<size_t>::max();
-    maxDegree_ = 0;
-
-    // incidence vector
-    vector< char > iv( size_, 0 );
-    vector< int > modified;
-    modified.reserve( size_ );
-    nConflicts_ = 0;
-
-    for ( size_t i=0 ; (i<size_) ; ++i ) {
-        const ConflictSetType &nodeDirConf = nodeConflicts[i];
-
-        modified.clear();
-
-        // setting iv for initial ements
-        modified.insert(modified.end(), nodeDirConf.begin(), nodeDirConf.end());
-        modified.push_back( i );
-        for ( vector< int >::const_iterator it = modified.begin(); it != modified.end(); ++it )
-          iv[*it] = 1;
-
-        for ( std::vector<size_t>::const_iterator it1 = nodeCliques[i].begin(); it1 != nodeCliques[i].end(); ++it1 ) {
-          for ( CCCliqueType::const_iterator it2 = cliques[*it1].begin(); it2 != cliques[*it1].end(); ++it2 ) {
-                size_t el = *it2;
-                if ( iv[el] == 0 ) {
-                    iv[el] = 1;
-                    modified.push_back(el);
-                }
-            }
-        }
-
-        degree_[i] = modified.size() - 1;
-
-        for ( vector< int >::const_iterator it = modified.begin(); it != modified.end(); ++it )
-            iv[*it] = 0;
-
-        minDegree_ = min(minDegree_, degree_[i]);
-        maxDegree_ = max(maxDegree_, degree_[i]);
-
-        nConflicts_ += degree_[i];
-    }
-
-    if (maxConflicts_ != 0.0)
-        density_ = nConflicts_ / maxConflicts_;
-    else
-        density_ = 0.0;
+const size_t *CoinDynamicConflictGraph::cliqueElements( size_t idxClique ) const {
+  return largeClqs->cliqueElements(idxClique);
 }
 
-#ifdef DEBUG_CGRAPH
-std::vector<std::string> CoinDynamicConflictGraph::differences(const CGraph* cgraph)
-{
-  vector< string > result;
-  vector< size_t > vneighs1(size_);
-  vector< size_t > vneighs2(size_);
-  size_t *tndyn = &vneighs1[0];
-  size_t *tncg = &vneighs2[0];
+size_t CoinDynamicConflictGraph::getClqSize( size_t idxClique ) const {
+  return largeClqs->cliqueSize(idxClique);
+}
 
-  for ( size_t n1=0 ; (n1<size()) ; ++n1 ) {
-    for ( size_t n2=0 ; (n2<size()) ; ++n2 )
+CoinDynamicConflictGraph::~CoinDynamicConflictGraph()
+{
+  delete conflicts;
+  delete largeClqs;
+  free( degree_ );
+  if (smallCliques)
+    delete smallCliques;
+}
+
+void CoinDynamicConflictGraph::printInfo() const
+{
+
+  size_t minClq = INT_MAX;
+  size_t maxClq = 0;
+  
+  for ( size_t i=0 ; (i<this->nCliques()) ; ++i ) {
+    minClq = min( minClq, cliqueSize(i) );
+    maxClq = max( maxClq, cliqueSize(i) );
+  }
+  
+  double totalDegree = 0.0;
+  size_t minD = INT_MAX;
+  size_t maxD = 0;
+  for ( size_t i=0 ; (i<size()) ; ++i )
+  {
+    totalDegree += conflicts->rowSize(i);
+    minD = min( minD, conflicts->rowSize(i) );
+    maxD = max( maxD, conflicts->rowSize(i) );
+  }
+  double avd = totalDegree /  ((double)size_);
+  
+  printf("Conflict graph info:\n");
+  printf("\tnodes: %zu\n", this->size());
+  printf("\tdensity: %.4f\n", this->density() );
+  printf("\tdegree min/max/av: %zu, %zu, %g\n", minD, maxD, avd );
+  printf("\tncliques: %zu (min: %zu, max: %zu)\n", nCliques(), minClq, maxClq );
+}
+
+void CoinDynamicConflictGraph::addTmpRow( size_t nz, const std::pair< size_t, double > *els, double rhs )
+{
+  memcpy( tRowElements + tnEl, els, sizeof(pair< size_t, double>)*nz );
+
+  tnEl += nz;
+  
+  tRowRHS[tnRows] = rhs;
+  tnRows++;
+  tRowStart[tnRows] = tRowStart[tnRows-1] + nz;
+}
+
+static void *xrealloc( void *ptr, const size_t size )
+{
+    void * res = realloc( ptr, size );
+    if (!res)
     {
-      if (n1!=n2)
-      {
-        bool conflictHere = conflicting( n1, n2);
-        bool conflictThere = cgraph_conflicting_nodes( cgraph, n1, n2 );
-        if (conflictHere != conflictThere)
-        {
-          char msg[256];
-          if (conflictThere)
-            sprintf(msg, "conflict %zu, %zu only appears on cgraph", n1, n2);
-          else
-            sprintf(msg, "conflict %zu, %zu only appears on CoinGraph", n1, n2);
-          result.push_back(msg);
-          if (result.size()>10)
-            return result;
-        }
+       fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
+       abort();
+    }
+    
+    return res;
+}
+
+static void *xmalloc( const size_t size )
+{
+   void *result = malloc( size );
+   if (!result)
+   {
+      fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
+      abort();
+   }
+
+   return result;
+}
+
+size_t CoinDynamicConflictGraph::nDirectConflicts( size_t idxNode ) const
+{
+  return this->conflicts->rowSize(idxNode);
+}
+
+const size_t * CoinDynamicConflictGraph::directConflicts( size_t idxNode ) const
+{
+  return this->conflicts->getRow(idxNode);
+}
+
+size_t CoinDynamicConflictGraph::nCliques() const
+{
+  return this->largeClqs->nCliques();
+}
+
+size_t CoinDynamicConflictGraph::cliqueSize ( size_t idxClique ) const
+{
+  return this->largeClqs->cliqueSize(idxClique);
+}
+
+const size_t * CoinDynamicConflictGraph::nodeCliques(size_t idxNode) const
+{
+  return this->largeClqs->nodeOccurrences( idxNode );
+}
+
+size_t CoinDynamicConflictGraph::nNodeCliques(size_t idxNode) const
+{
+  return this->largeClqs->nNodeOccurrences( idxNode );
+}
+
+void CoinDynamicConflictGraph::setDegree(size_t idxNode, size_t deg)
+{
+  this->degree_[idxNode] = deg;
+}
+
+void CoinDynamicConflictGraph::processSmallCliquesNode(
+  size_t node,
+  const size_t scn[],
+  const size_t nscn,
+  const CoinCliqueList *smallCliques,
+  char *iv )
+{
+  size_t newConf = 0;
+  size_t prevConf = conflicts->rowSize(node);
+  const size_t *oldConfs = conflicts->getRow(node);
+  for ( size_t j=0 ; (j<prevConf) ; ++j ) 
+    iv[oldConfs[j]] = true;
+  iv[node] = true;
+
+  // marking conflicts in largue cliques
+  for ( size_t j=0 ; (j<nNodeCliques(node)) ; ++j ) {
+    size_t idxClq = nodeCliques(node)[j];
+    for ( size_t k=0 ; (k<cliqueSize(idxClq)) ; ++k ) {
+      iv[cliqueElements(idxClq)[k]] = true;
+    }
+  }
+
+  for ( size_t k=0 ; (k<nscn) ; ++k ) {
+    size_t idxClq = scn[k];
+    for ( size_t j=0 ; (j<smallCliques->cliqueSize(idxClq)) ; ++j ) {
+      size_t clqEl = smallCliques->cliqueElements(idxClq)[j];
+      if (!iv[clqEl]) {
+        ++newConf;
+        iv[clqEl] = true;
+        conflicts->fastAddNeighbor(node, clqEl);
       }
     }
-    if ( this->degree_[n1] != cgraph_degree(cgraph, n1) ) {
-          char msg[256];
+  }
 
-          pair< size_t, const size_t *> resDegreeDyn = conflictingNodes(n1, tndyn );
-          size_t nncg = cgraph_get_all_conflicting(cgraph, n1, tncg, size_);
+  // clearing iv
+  iv[node] = false;
+  for ( size_t i=0 ; (i<nDirectConflicts(node)) ; ++i )
+    iv[directConflicts(node)[i]] = false;
 
-          sprintf(msg, "degree of node %zu is %zu in coindynamic graph and %zu in cgraph using conflicting_nodes: %zu, %zu", n1, degree_[n1], cgraph_degree(cgraph, n1), resDegreeDyn.first, nncg);
-
-          result.push_back(msg);
-          if (result.size()>10)
-            return result;
+  for ( size_t j=0 ; (j<nNodeCliques(node)) ; ++j ) {
+    size_t idxClq = nodeCliques(node)[j];
+    for ( size_t k=0 ; (k<cliqueSize(idxClq)) ; ++k ) {
+      iv[cliqueElements(idxClq)[k]] = false;
     }
   }
 
-  return result;
+  if (newConf >= 1)
+    conflicts->sort(node);
 }
 
-#endif
-
-CoinDynamicConflictGraph::CoinDynamicConflictGraph( const CoinStaticConflictGraph *cgraph, const size_t n, const size_t elements[] )
-  : CoinConflictGraph ( n ),
-#ifdef COINUTILS_CPLUSPLUS11
-  nodeConflicts( vector< ConflictSetType >( n, ConflictSetType( 2048 ) ) ),
-#else
-  nodeConflicts( vector< ConflictSetType >( n ) ),
-#endif
-  nodeCliques(std::vector< std::vector<size_t> >( n )),
-  nDirectConflicts( n ),
-  totalCliqueElements( 0 )
+size_t CoinDynamicConflictGraph::degree(const size_t node) const
 {
-  const size_t NOT_INCLUDED = numeric_limits<size_t>::max();
-
-  vector< size_t > newIdx( cgraph->size(), NOT_INCLUDED );
-
-  for ( size_t i=0 ; (i<n) ; ++i )
-    newIdx[elements[i]] = i;
-
-  vector< size_t > realNeighs;
-  realNeighs.reserve( cgraph->size() );
-
-  // direct neighbors in static cgraph
-  for ( size_t i=0 ; (i<n) ; ++i ) {
-    const size_t nidx = elements[i];
-    const size_t *neighs = cgraph->nodeNeighs( nidx );
-    const size_t nNeighs = cgraph->nConflictsNode[ nidx ];
-
-    realNeighs.clear();
-    for ( size_t j=0 ; (j<nNeighs) ; ++j )
-      if (newIdx[neighs[j]] != NOT_INCLUDED)
-        realNeighs.push_back( newIdx[neighs[j]] );
-
-    if ( realNeighs.size()==0 )
-      continue;
-
-    addNodeConflicts(i, &realNeighs[0], realNeighs.size() );
-  }
-
-  for ( size_t iclq=0 ; (iclq<cgraph->cliqueSize.size()) ; ++iclq ) {
-    realNeighs.clear();
-    size_t clqSize = cgraph->cliqueSize[iclq];
-    const size_t *clqEl = cgraph->cliqueEls(iclq);
-    for ( size_t j=0 ; (j<clqSize) ; ++j )
-      if (newIdx[clqEl[j]] != NOT_INCLUDED)
-        realNeighs.push_back(newIdx[clqEl[j]]);
-
-    if ( realNeighs.size() >= CoinConflictGraph::minClqRow )
-      this->addClique(realNeighs.size(), &realNeighs[0]);
-    else {
-      for ( size_t j=0 ; (j<realNeighs.size()) ; ++j )
-        this->addNodeConflicts(realNeighs[j], &realNeighs[0], realNeighs.size() );
-    } // add as normal conflicts
-  } // all cliques
+  return degree_[node];
 }
 
-std::pair< size_t, const size_t* > CoinDynamicConflictGraph::conflictingNodes ( size_t node, size_t* temp ) const
+size_t CoinDynamicConflictGraph::nTotalCliqueElements() const
 {
-  const std::vector<size_t> &nodeCliquesNode = nodeCliques[node];
-  const ConflictSetType &nconf = nodeConflicts[node];
-  if (nodeCliquesNode.size()==0) {
-    size_t i=0;
-    for ( ConflictSetType::const_iterator it = nconf.begin(); it != nconf.begin(); ++it )
-      temp[i++] = *it;
-
-    return pair< size_t, const size_t* >(nconf.size(), temp);
-  }
-  else
-  {
-    // direct conflicts
-    ConflictSetType res(nconf.begin(), nconf.end());
-
-    // traversing cliques from node
-    for ( vector< size_t >::const_iterator
-      vit = nodeCliquesNode.begin() ; vit != nodeCliquesNode.end() ; ++ vit )
-    {
-      const CCCliqueType &s = cliques[*vit];
-      for ( CCCliqueType::const_iterator it = s.begin(); it != s.end(); ++it )
-        if (*it != node)
-          res.insert(*it);
-    }
-
-    // copying final result
-    size_t i=0;
-    for ( ConflictSetType::const_iterator it = res.begin(); it != res.end(); ++it )
-      temp[i++] = *it;
-
-    return pair< size_t, const size_t* >(res.size(), temp);
-  }
-
-  return pair< size_t, const size_t* >(numeric_limits<size_t>::max(), NULL);
+  return this->largeClqs->totalElements();
 }
 
-bool CoinDynamicConflictGraph::elementInClique( size_t idxClique, size_t node ) const
-{
-  const CCCliqueType &clique = cliques[idxClique];
-
-  return std::binary_search(clique.begin(), clique.end(), node);
+size_t CoinDynamicConflictGraph::nTotalDirectConflicts() const {
+  return this->conflicts->totalElements();
 }
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2

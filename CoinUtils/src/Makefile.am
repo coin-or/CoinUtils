@@ -107,7 +107,9 @@ libCoinUtils_la_SOURCES = \
 	CoinStaticConflictGraph.hpp \
 	CoinStaticConflictGraph.cpp \
 	CoinDynamicConflictGraph.hpp \
-	CoinDynamicConflictGraph.cpp 
+	CoinDynamicConflictGraph.cpp \
+	CoinAdjacencyVector.cpp \
+	CoinCliqueList.cpp
 
 # List all additionally required libraries
 if DEPENDENCY_LINKING
@@ -199,7 +201,10 @@ includecoin_HEADERS = \
 	cut.h \
 	node_heap.h \
 	str_utils.h \
-	vint_set.h
+	vint_set.h \
+	CoinConflictGraph.hpp CoinDynamicConflictGraph.hpp CoinStaticConflictGraph.hpp \
+	CoinAdjacencyVector.hpp \
+	CoinCliqueList.hpp
 
 #######################################################################
 # Create the Config.h file that has all public defines and install it #

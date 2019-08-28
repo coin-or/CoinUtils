@@ -6,10 +6,7 @@
 #include <string>
 #include <utility>
 
-#ifdef DEBUG_CGRAPH
 #include "cgraph.h"
-#endif // DEBUG_CGRAPH
-
 
 /**
  * Base class for Conflict Graph: a conflict graph
@@ -39,21 +36,13 @@ public:
   virtual ~CoinConflictGraph();
 
   /**
-   * Checks if two conflict graphs are equal
-   *
-   * @param other conflict graph
-   * @return if conflict graphs are equal
-   */
-  virtual bool operator==(const CoinConflictGraph &other) const;
-
-  /**
    * Checks for conflicts between two nodes
    *
    * @param n1 node index
    * @param n2 node index
    * @return true if there is an edge between n1 and n2 in the conflict graph, 0 otherwise
    */
-  virtual bool conflicting(size_t n1, size_t n2) const = 0;
+  bool conflicting(size_t n1, size_t n2) const;
 
   /**
    * Queries all nodes conflicting with a given node
@@ -63,8 +52,13 @@ public:
    * @return pair containing (numberOfConflictingNodes, vectorOfConflictingNodes), the vector may be a pointer
    * to temp is the temporary storage area was used or a pointer to a vector in the conflict graph itself
    */
-  virtual std::pair< size_t, const size_t *> conflictingNodes( size_t node, size_t *temp ) const = 0;
+  std::pair< size_t, const size_t* > conflictingNodes ( size_t node, size_t* temp, std::vector< bool > &iv ) const;
 
+
+
+  /**
+   * Density of the conflict graph: nConflicts / maxConflicts
+   **/
   double density() const;
 
   /**
@@ -73,9 +67,9 @@ public:
   size_t size() const;
 
   /**
-   * size of the conflict graph
+   * degree of a given node
    */
-  size_t degree( const size_t node ) const;
+  virtual size_t degree( const size_t node ) const = 0;
 
   /**
    * minimum node degree 
@@ -87,25 +81,73 @@ public:
    */
   size_t maxDegree( ) const;
 
-#ifdef DEBUG_CGRAPH
-  std::vector< std::string > differences( const CGraph* cgraph ) const;
-#endif
+  /** Number of cliques stored explicitly
+   *
+   **/
+  virtual size_t nCliques() const = 0;
 
-  // parameter: minimum size of a clique to be stored as a clique (not paiwise)
+  /** Size of the i-th clique stored explicitly
+    *
+    **/
+  virtual size_t cliqueSize( size_t idxClique ) const = 0;
+
+
+  /** Contents of the i-th clique stored explicitly
+   *
+   **/
+  virtual const size_t *cliqueElements( size_t idxClique ) const = 0;
+
+  /* in how many explicit cliques a node appears
+   **/
+  virtual size_t nNodeCliques(size_t idxClique) const = 0;
+
+  /* which cliques a node appears
+   **/
+  virtual const size_t *nodeCliques(size_t idxClique) const = 0;
+
+  /** Number of pairwise conflicts stored for a node
+   *
+   **/
+  virtual size_t nDirectConflicts( size_t idxNode ) const = 0;
+
+  /** List of pairwise conflicts (not stored as cliques) for a node
+   *
+   **/
+  virtual const size_t *directConflicts( size_t idxNode ) const = 0;
+
+  void recomputeDegree();
+
+  std::vector< std::string > differences( const CGraph* cgraph ) const;
+  
+  /** total number of conflict stored directly
+   * 
+   **/
+  virtual size_t nTotalDirectConflicts() const = 0;
+  
+  /** total number of clique elements stored
+   * 
+   **/
+  virtual size_t nTotalCliqueElements() const = 0;
+
+  /** parameter: minimum size of a clique to be stored as a clique (not paiwise)
+   **/
   static size_t minClqRow;
+
 protected:
   // number of nodes
   size_t size_;
 
+  size_t nConflicts_;
   // these numbers could be large, storing as double
-  double nConflicts_;
   double maxConflicts_;
   double density_;
 
-  std::vector< size_t > degree_;
+  virtual void setDegree( size_t idxNode, size_t deg ) = 0;
+
   size_t minDegree_;
   size_t maxDegree_;
 
+  bool conflictInCliques( size_t idxN1, size_t idxN2) const;
 };
 
 #endif // CONFLICTGRAPH_H

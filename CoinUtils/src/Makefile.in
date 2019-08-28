@@ -94,7 +94,8 @@ am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	bron_kerbosch.lo cgraph.lo clique.lo clique_extender.lo \
 	clique_separation.lo cut.lo node_heap.lo str_utils.lo \
 	vint_set.lo CoinConflictGraph.lo CoinStaticConflictGraph.lo \
-	CoinDynamicConflictGraph.lo
+	CoinDynamicConflictGraph.lo CoinAdjacencyVector.lo \
+	CoinCliqueList.lo
 libCoinUtils_la_OBJECTS = $(am_libCoinUtils_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -437,7 +438,9 @@ libCoinUtils_la_SOURCES = \
 	CoinStaticConflictGraph.hpp \
 	CoinStaticConflictGraph.cpp \
 	CoinDynamicConflictGraph.hpp \
-	CoinDynamicConflictGraph.cpp 
+	CoinDynamicConflictGraph.cpp \
+	CoinAdjacencyVector.cpp \
+	CoinCliqueList.cpp
 
 
 # List all additionally required libraries
@@ -528,7 +531,10 @@ includecoin_HEADERS = \
 	cut.h \
 	node_heap.h \
 	str_utils.h \
-	vint_set.h
+	vint_set.h \
+	CoinConflictGraph.hpp CoinDynamicConflictGraph.hpp CoinStaticConflictGraph.hpp \
+	CoinAdjacencyVector.hpp \
+	CoinCliqueList.hpp
 
 all: config.h config_coinutils.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -627,8 +633,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinAdjacencyVector.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinAlloc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinBuild.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinCliqueList.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinConflictGraph.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseFactorization.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseVector.Plo@am__quote@
