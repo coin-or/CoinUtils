@@ -4,6 +4,8 @@
 #include <cassert>
 #include <cfloat>
 #include <cmath>
+#include <cstdlib>
+#include <cstdio>
 #include "CoinDynamicConflictGraph.hpp"
 #include "CoinStaticConflictGraph.hpp"
 #include "CoinPackedMatrix.hpp"
