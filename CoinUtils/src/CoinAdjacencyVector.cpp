@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cassert>
 #include <algorithm>
+#include <limits>
 #include "CoinAdjacencyVector.hpp"
 
 static void *xmalloc( const size_t size );
