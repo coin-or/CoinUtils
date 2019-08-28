@@ -1195,7 +1195,7 @@ int hash(const char *name, int maxsiz, int length)
   for (j = 0; j < length; ++j) {
     int iname = name[j];
 
-    n += mmult[j] * iname;
+    n += mmult[j % (sizeof(mmult)/sizeof(int)) ] * iname;
   }
   return (abs(n) % maxsiz); /* integer abs */
 }
