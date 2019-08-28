@@ -174,7 +174,7 @@ char CoinAdjacencyVector::tryAddElementSortedVector(size_t* el, size_t n, size_t
   int l = 0;
   int r = n - 1;
   int m;
-  int ip = std::numeric_limits<int>::max();  /* insertion pos */
+  int ip = numeric_limits<int>::max();  /* insertion pos */
 
   while (l <= r) {
       m = (l + r) / 2;
@@ -194,7 +194,7 @@ char CoinAdjacencyVector::tryAddElementSortedVector(size_t* el, size_t n, size_t
       }
   }
 
-  if (ip == std::numeric_limits<int>::max()) {
+  if (ip == numeric_limits<int>::max()) {
       ip = l;
   }
 
