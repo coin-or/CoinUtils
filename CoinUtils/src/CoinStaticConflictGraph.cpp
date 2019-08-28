@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstring>
+#include <limits>
 
 #include "CoinStaticConflictGraph.hpp"
 #include "CoinCliqueList.hpp"
