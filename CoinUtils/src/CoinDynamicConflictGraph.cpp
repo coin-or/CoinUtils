@@ -290,6 +290,8 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   for ( size_t idxTR =0 ; (idxTR<tnRows ) ; ++idxTR )
     cliqueDetection( &tRowElements[tRowStart[idxTR]], tRowStart[idxTR+1]-tRowStart[idxTR], tRowRHS[idxTR] );
 
+  conflicts->flush();
+
   recomputeDegree();
 
   delete[] columns;
@@ -298,72 +300,6 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   free(tRowStart);
   free(tRowRHS);
   free(tmpClq);
-}
-
-CoinDynamicConflictGraph::CoinDynamicConflictGraph( const CoinConflictGraph *cgraph, const size_t n, const size_t elements[] )
-{
-  iniCoinConflictGraph ( n );
-  degree_ = (size_t*) xmalloc(sizeof(size_t)*n);
-  ivACND = std::vector<bool>(size_, false);
-
-  const size_t NOT_INCLUDED = numeric_limits<size_t>::max();
-
-  conflicts = NULL;
-  {
-    // estimating a good initial space
-    // for node neighbors
-    double perc = min(((double)n) / ((double)size_) + 0.1, 1.0);
-    size_t maxNeigh = 0;
-    for ( size_t i=0 ; i<size_; ++i ) {
-      const size_t nNeigh = (size_t)ceil(((double)cgraph->nDirectConflicts(i))*perc);
-      maxNeigh = max(maxNeigh, nNeigh);
-    }
-
-    conflicts = new CoinAdjacencyVector( n, std::min((size_t)512, maxNeigh) );
-  }
-
-  vector< size_t > newIdx( cgraph->size(), NOT_INCLUDED );
-
-  for ( size_t i=0 ; (i<n) ; ++i )
-    newIdx[elements[i]] = i;
-
-  vector< size_t > realNeighs;
-  realNeighs.reserve( cgraph->size() );
-
-  // direct neighbors in static cgraph
-  for ( size_t i=0 ; (i<n) ; ++i ) {
-    const size_t nidx = elements[i];
-    const size_t *neighs = cgraph->directConflicts( nidx );
-    const size_t nNeighs = cgraph->nDirectConflicts( nidx );
-
-    realNeighs.clear();
-    for ( size_t j=0 ; (j<nNeighs) ; ++j )
-      if (newIdx[neighs[j]] != NOT_INCLUDED)
-        realNeighs.push_back( newIdx[neighs[j]] );
-
-    if ( realNeighs.size()==0 )
-      continue;
-
-    addNodeConflicts(i, &realNeighs[0], realNeighs.size() );
-  }
-
-  for ( size_t iclq=0 ; (iclq<cgraph->nCliques() ) ; ++iclq ) {
-    realNeighs.clear();
-    size_t clqSize = cgraph->cliqueSize(iclq);
-    const size_t *clqEl = cgraph->cliqueElements(iclq);
-    for ( size_t j=0 ; (j<clqSize) ; ++j )
-      if (newIdx[clqEl[j]] != NOT_INCLUDED)
-        realNeighs.push_back(newIdx[clqEl[j]]);
-
-    if ( realNeighs.size() >= CoinConflictGraph::minClqRow ) {
-      this->addClique(realNeighs.size(), &realNeighs[0]);
-    } else {
-      for ( size_t j=0 ; (j<realNeighs.size()) ; ++j )
-        this->addNodeConflicts(realNeighs[j], &realNeighs[0], realNeighs.size() );
-    } // add as normal conflicts
-  } // all cliques
-
-  this->recomputeDegree();
 }
 
 void CoinDynamicConflictGraph::addClique( size_t size, const size_t elements[] ) {
@@ -381,56 +317,8 @@ void CoinDynamicConflictGraph::addNodeConflicts(const size_t node, const size_t 
 
 void CoinDynamicConflictGraph::addCliqueAsNormalConflicts(const size_t idxs[], const size_t len)
 {
-  assert(ivACND.size() >= size_);
-
-  if (len<64) {
-    for ( size_t i1=0 ; (i1<len) ; ++i1 )
-      addNodeConflicts( idxs[i1], idxs, len );
-    return;
-  }
-
-  for ( size_t i=0 ; (i<len) ; ++i ) {
-    size_t node = idxs[i];
-    size_t newConf = 0;
-    size_t prevConf = conflicts->rowSize(node);
-    const size_t *oldConfs = conflicts->getRow(node);
-    for ( size_t j=0 ; (j<prevConf) ; ++j ) 
-      ivACND[oldConfs[j]] = true;
-    ivACND[node] = true;
-
-    // going trough node cliques
-    for ( size_t j=0 ; (j<nNodeCliques(node)) ; ++j ) {
-      size_t idxClq = nodeCliques(node)[j];
-      for ( size_t k=0 ; (k<cliqueSize(idxClq)) ; ++k ) {
-        ivACND[cliqueElements(idxClq)[k]] = true;
-      }
-    }
-
-    for ( size_t j=0 ; j<len ;  ++j ) {
-      size_t neigh = idxs[j];
-      if (ivACND[neigh] == false) {
-        ivACND[neigh] = true;
-        conflicts->fastAddNeighbor(node, neigh);
-        newConf++;
-      }
-    }
-    // clearing iv
-    for ( size_t j=0 ; (j<conflicts->rowSize(node)) ; ++j ) 
-      ivACND[conflicts->getRow(node)[j]] = false;
-    ivACND[node] = false;
-    // going trough node cliques
-    for ( size_t j=0 ; (j<nNodeCliques(node)) ; ++j ) {
-      size_t idxClq = nodeCliques(node)[j];
-      for ( size_t k=0 ; (k<cliqueSize(idxClq)) ; ++k ) {
-        ivACND[cliqueElements(idxClq)[k]] = false;
-      }
-    }
-
-
-
-    if (newConf >= 1)
-      conflicts->sort(node);
-  }
+  for ( size_t i=0 ; (i<len) ; ++i )
+    this->conflicts->addNeighborsBuffer(idxs[i], len, idxs);
 }
 
 void CoinDynamicConflictGraph::processClique(const size_t idxs[], const size_t size)

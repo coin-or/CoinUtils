@@ -52,10 +52,22 @@ public:
    **/
    void fastAddNeighbor( size_t idxNode, size_t idxNeigh );
 
+
+   /**
+    * Adds elements without checking for repeated entries or sorting
+    * later a method should be called to rearrange things
+    */
+   void addNeighborsBuffer( size_t idxNode, size_t n, const size_t elements[] );
+
    /**
     * Sort all neighbors of all elements
     **/
    void sort();
+
+
+   /** removes duplicates, sorts
+    **/
+   void flush();
 
    void sort(size_t idxRow);
 
@@ -88,8 +100,11 @@ private:
   size_t *rowSize_;
   size_t *rowCap_;
 
+  // elements added that need to be sorted later
+  size_t *notUpdated_;
+
   // checks if node can receive a new neighbor
-  void checkCapNode( size_t idxNode );
+  void checkCapNode( size_t idxNode, size_t newEl = 1 );
 };
 
 #endif // COINADJACENCYVECTOR_H

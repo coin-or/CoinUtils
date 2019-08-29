@@ -53,16 +53,7 @@ public:
       const double* rowRHS,
       const double* rowRange );
 
-    /**
-     * Constructor to create from an induced subgraph
-     *
-     * @param cgraph conflict graph
-     * @param n number of elements in the induced subgraph
-     * @param elements indexes of nodes in the induced subgraph
-     */
-    CoinDynamicConflictGraph( const CoinConflictGraph *cgraph, const size_t n, const size_t elements[] );
-
-    /**
+     /**
      * Destructor
      */
     virtual ~CoinDynamicConflictGraph();
