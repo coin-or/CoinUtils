@@ -26,8 +26,8 @@ void CoinCliqueList::addClique(size_t size, const size_t els[])
 {
   if (nCliques_+1 > cliquesCap_) {
     cliquesCap_ *= 2;
-    clqStart_ = (size_t *) xrealloc( clqStart_, sizeof(int)*(cliquesCap_+1) );
-    clqSize_= (size_t *) xrealloc( clqSize_, sizeof(int)*(cliquesCap_) );
+    clqStart_ = (size_t *) xrealloc( clqStart_, sizeof(size_t)*(cliquesCap_+1) );
+    clqSize_= (size_t *) xrealloc( clqSize_, sizeof(size_t)*(cliquesCap_) );
   }
   clqStart_[nCliques_+1] = clqStart_[nCliques_] + size;
   clqSize_[nCliques_] = size;

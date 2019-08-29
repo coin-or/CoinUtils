@@ -163,7 +163,8 @@ size_t CoinStaticConflictGraph::degree(const size_t node) const
 
 CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgraph, const size_t n, const size_t elements[] )
 {
-  iniCoinConflictGraph(cgraph);
+  iniCoinConflictGraph( n );
+
 #define REMOVED numeric_limits< size_t >::max()
   nDirectConflicts_ = totalCliqueElements_ = nCliques_ = memSize_ = 0;
 
@@ -212,6 +213,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
   smallClqs.computeNodeOccurrences( this->size() );
   largeClqs.computeNodeOccurrences( this->size() );
 
+  // computing new direct conflicts
   for ( size_t i=0 ; (i<smallClqs.nDifferentNodes()) ; ++i ) {
     size_t idxNode = smallClqs.differentNodes()[i];
 
@@ -318,7 +320,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
   // adding new conflicts when they exist
   startConfNodes_[0] = 0;
   size_t *pconf = conflicts_;
-  for ( size_t i=0 ; (i<size_) ; ++i ) {
+  for ( size_t i=0 ; (i<n) ; ++i ) {
     size_t idxOrig = elements[i];
     size_t sizeConf = 0;
 
