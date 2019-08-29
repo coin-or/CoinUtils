@@ -16,11 +16,6 @@ public:
    */
   CoinStaticConflictGraph ( const CoinConflictGraph *cgraph );
 
-  /**
-   * Default constructor
-   */
-  CoinStaticConflictGraph ( const CoinConflictGraph &cgraph );
-
   CoinStaticConflictGraph *clone() const;
 
   /**

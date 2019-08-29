@@ -370,14 +370,6 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
 #undef REMOVED
 }
 
-/**
- * Default constructor
- */
-CoinStaticConflictGraph::CoinStaticConflictGraph ( const CoinConflictGraph &cgraph )
-    : CoinStaticConflictGraph( &cgraph )
-{
-}
-
 size_t CoinStaticConflictGraph::nTotalDirectConflicts() const {
   return this->nDirectConflicts_;
 }
