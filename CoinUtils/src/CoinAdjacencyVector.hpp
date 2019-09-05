@@ -104,7 +104,7 @@ private:
   size_t *notUpdated_;
 
   // checks if node can receive a new neighbor
-  void checkCapNode( size_t idxNode, size_t newEl = 1 );
+  void checkCapNode( const size_t idxNode, const size_t newEl = 1 );
 };
 
 #endif // COINADJACENCYVECTOR_H

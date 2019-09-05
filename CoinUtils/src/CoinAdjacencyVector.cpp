@@ -18,9 +18,9 @@ using namespace std;
 
 CoinAdjacencyVector::CoinAdjacencyVector( size_t _nRows, size_t _iniRowSize )
   : nRows_( _nRows )
-  , rows_( NEW_VECTOR( size_t *, nRows_*2  ) )
+  , rows_( NEW_VECTOR( size_t *, (nRows_*2)  ) )
   , expandedRows_( rows_ + nRows_ )
-  , iniRowSpace_( NEW_VECTOR( size_t, (nRows_ * _iniRowSize) + (3 * nRows_) ) )
+  , iniRowSpace_( NEW_VECTOR( size_t, ((nRows_ * _iniRowSize) + (3 * nRows_)) ) )
   , rowSize_( iniRowSpace_ + (nRows_ * _iniRowSize)  )
   , rowCap_( rowSize_+nRows_ )
   , notUpdated_( rowCap_+nRows_ )
@@ -29,9 +29,9 @@ CoinAdjacencyVector::CoinAdjacencyVector( size_t _nRows, size_t _iniRowSize )
   for ( size_t i=1 ; (i<nRows_) ; ++i )
     rows_[i] = rows_[i-1] + _iniRowSize;
 
-  fill(rowCap_, rowCap_+nRows_, _iniRowSize);
+  fill( rowCap_, rowCap_+nRows_, _iniRowSize );
   memset( rowSize_, 0, sizeof(size_t)*nRows_ );
-  memset( expandedRows_, 0, sizeof(size_t *)*nRows_ ); 
+  fill( expandedRows_, expandedRows_+nRows_, (size_t *)NULL);
 }
 
 CoinAdjacencyVector::~CoinAdjacencyVector()
@@ -117,48 +117,80 @@ static void *xrealloc( void *ptr, const size_t size )
 }
 
 
-void CoinAdjacencyVector::checkCapNode( size_t idxNode, size_t newEl )
+void CoinAdjacencyVector::checkCapNode( const size_t idxNode, const size_t newEl )
 {
-    assert( idxNode < this->nRows_ );
+    assert( idxNode < nRows_ );
     
     size_t currCap = rowCap_[idxNode];
     size_t currSize = rowSize_[idxNode];
 
-    if ( currSize+newEl > currCap ) {
-        // still allocated in the initial vector
-        if (expandedRows_[idxNode]==NULL  ) {
-            // next node also allocated in the initial vector
-            // and can be moved forward
-            if (idxNode+1 < nRows_ && expandedRows_[idxNode+1]==NULL) {
-                rowCap_[idxNode] += rowCap_[idxNode+1];
-                expandedRows_[idxNode+1] = (size_t *)xmalloc( sizeof(size_t)*rowCap_[idxNode+1] );
-                if (rowSize_[idxNode+1])
-                    memcpy(expandedRows_[idxNode+1], rows_[idxNode+1], sizeof(size_t)*rowSize_[idxNode+1] );
-                rows_[idxNode+1] = expandedRows_[idxNode+1];
-            } else {
-                // next node neighbors cannot be moved
-                // but previous node can use the freed space
-                size_t newCap  = max( currCap*2, currSize+newEl );
-                rowCap_[idxNode] = newCap;
-                size_t *newPtr = NEW_VECTOR(size_t, newCap);
-                memcpy(newPtr, rows_[idxNode], currSize*sizeof(size_t) );
-                rows_[idxNode] = expandedRows_[idxNode] = newPtr;
-                // previous node may use the space freed in the initial vector
-                if ( idxNode && rows_[idxNode-1]==NULL )
-                    rowCap_[idxNode-1] += currCap;
-            }
-        } else {
-            // not in the initial vector anymore, resizing,
-            // copying contents and freeing previous vector
-            rowCap_[idxNode] = max(rowCap_[idxNode]*2, currSize+newEl);
-            rows_[idxNode] = expandedRows_[idxNode] = (size_t *)xrealloc(expandedRows_[idxNode], sizeof(size_t)*rowCap_[idxNode] );
-        }
+    // no need to resize
+    if ( currSize + newEl <= currCap )
+      return;
+
+    // for resizing
+    const size_t newIdxNodeCap = max( rowCap_[idxNode]*2, currSize+newEl );
+
+    if ( expandedRows_[idxNode] ) {
+      // already outside initial vector
+      rowCap_[idxNode] = newIdxNodeCap;
+      rows_[idxNode] = expandedRows_[idxNode] = (size_t *)xrealloc(expandedRows_[idxNode], sizeof(size_t)*rowCap_[idxNode] );
     }
- 
+/*
+    // node still in the otiginal vector
+    {
+      // check extension down, if the capacity
+      // of the node in the border of the current
+      // node tight to the border of idxNode (iNode) is available and capacity is enough to 
+      // accomodate required increase in the capacity of idxNode
+
+      size_t iNode = idxNode;
+      size_t accCap = 0;
+
+      while (accCap < rowCap_[idxNode]) {
+        accCap += rowCap_[iNode];
+        ++iNode;
+        if ( iNode == nRows_ )
+          break;
+      }
+
+      assert( accCap == rowCap_[idxNode] );
+
+      if ( iNode < nRows_ && expandedRows_[iNode]==NULL && currCap + rowCap_[iNode] >= currSize + newEl ) {
+        expandedRows_[iNode] = (size_t *) xmalloc( sizeof(size_t)*rowCap_[iNode] );
+        memcpy( expandedRows_[iNode], rows_[iNode], sizeof(size_t)*rowSize_[iNode] );
+        rows_[iNode] = expandedRows_[iNode];
+        rowCap_[idxNode] += rowCap_[iNode];
+        return;
+      }
+    }
+  */
+
+    // will be moved outside the vector, checking if space can be used 
+    // by some node before
+    {
+      size_t iNode = idxNode;
+      while (iNode >= 1) {
+        --iNode;
+        if (expandedRows_[iNode] == NULL)
+          break;
+      }
+
+      if ( iNode != idxNode && (expandedRows_[iNode] == NULL) )
+        rowCap_[iNode] += rowCap_[idxNode];
+
+      // allocating outside and moving
+      rowCap_[idxNode] = newIdxNodeCap;
+      expandedRows_[idxNode] = (size_t *) xmalloc( sizeof(size_t)*rowCap_[idxNode] );
+      memcpy(expandedRows_[idxNode], rows_[idxNode], sizeof(size_t)*currSize );
+      rows_[idxNode] = expandedRows_[idxNode];
+    }
 }
 
 void CoinAdjacencyVector::fastAddNeighbor( size_t idxNode, size_t idxNeigh )
 {
+  //printf("adding to %zu %zu currCap: %zu currSize: %zu at %p\n", idxNode, idxNeigh, rowCap_[idxNode], rowSize_[idxNode], expandedRows_[idxNode] ); fflush(stdout);
+
   checkCapNode(idxNode);
 
   rows_[idxNode][rowSize_[idxNode]++] = idxNeigh;

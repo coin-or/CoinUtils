@@ -9,6 +9,7 @@
 #include <limits>
 #include "CoinConflictGraph.hpp"
 #include "CoinAdjacencyVector.hpp"
+#include <CoinTime.hpp>
 
 using namespace std;
 
@@ -163,7 +164,7 @@ static void *xmalloc( const size_t size )
 
 void CoinConflictGraph::recomputeDegree()
 {
-  double start = clock();
+  double start = CoinCpuTime();
   this->nConflicts_ = 0;
   minDegree_ = numeric_limits< size_t >::max();
   maxDegree_ = numeric_limits< size_t >::min();
@@ -209,7 +210,7 @@ void CoinConflictGraph::recomputeDegree()
   }
 
   density_ = (double)nConflicts_ / maxConflicts_;
-  double secs = ((double)clock()-start) / (double)CLOCKS_PER_SEC;
+  double secs = CoinCpuTime() - start;
   printf("recompute degree took %.3f seconds.\n", secs);
 }
 
