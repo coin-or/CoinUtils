@@ -247,6 +247,8 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
       }
     }
 
+    newNeigh.flush();
+
     // marking know direct conflicts
     for ( size_t j=0 ; (j<cgraph->nDirectConflicts(idxOrigNode)) ; ++j )
       if ( newIdx[cgraph->directConflicts(idxOrigNode)[j]] != REMOVED )
