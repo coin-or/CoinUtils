@@ -194,6 +194,7 @@ void CoinAdjacencyVector::fastAddNeighbor( size_t idxNode, size_t idxNeigh )
   checkCapNode(idxNode);
 
   rows_[idxNode][rowSize_[idxNode]++] = idxNeigh;
+  notUpdated_[idxNode]++;
 }
 
 void CoinAdjacencyVector::sort() 
