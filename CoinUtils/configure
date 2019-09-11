@@ -6824,18 +6824,16 @@ echo "${ECHO_T}$ac_cv_svn_understands_https" >&6
   BUILDTOOLSDIR=
   if test -r $srcdir/BuildTools/coin.m4; then
     BUILDTOOLSDIR=$srcdir/BuildTools
+  elif test -r $srcdir/../BuildTools/coin.m4; then
+    BUILDTOOLSDIR=$srcdir/../BuildTools
+  elif test -r $srcdir/../../BuildTools/coin.m4; then
+    BUILDTOOLSDIR=$srcdir/../../BuildTools
+  elif test -r $srcdir/../../../BuildTools/coin.m4; then
+    BUILDTOOLSDIR=$srcdir/../../../BuildTools
   else
-    if test -r $srcdir/../BuildTools/coin.m4; then
-      BUILDTOOLSDIR=$srcdir/../BuildTools
-    else
-      if test -r $srcdir/../../BuildTools/coin.m4; then
-        BUILDTOOLSDIR=$srcdir/../../BuildTools
-      else
-        { { echo "$as_me:$LINENO: error: Cannot find the BuildTools directory" >&5
+    { { echo "$as_me:$LINENO: error: Cannot find the BuildTools directory" >&5
 echo "$as_me: error: Cannot find the BuildTools directory" >&2;}
    { (exit better disable maintainer mode.); exit better disable maintainer mode.; }; }
-      fi
-    fi
   fi
 
 
@@ -7435,7 +7433,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7438 "configure"' > conftest.$ac_ext
+  echo '#line 7436 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9415,11 +9413,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9418: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9416: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9422: \$? = $ac_status" >&5
+   echo "$as_me:9420: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9683,11 +9681,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9686: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9684: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:9690: \$? = $ac_status" >&5
+   echo "$as_me:9688: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -9787,11 +9785,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:9790: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:9788: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:9794: \$? = $ac_status" >&5
+   echo "$as_me:9792: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12204,7 +12202,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 12207 "configure"
+#line 12205 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12304,7 +12302,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 12307 "configure"
+#line 12305 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14664,11 +14662,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14667: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14665: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14671: \$? = $ac_status" >&5
+   echo "$as_me:14669: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14768,11 +14766,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14771: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14769: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14775: \$? = $ac_status" >&5
+   echo "$as_me:14773: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16338,11 +16336,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16341: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16339: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16345: \$? = $ac_status" >&5
+   echo "$as_me:16343: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16442,11 +16440,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16445: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16443: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16449: \$? = $ac_status" >&5
+   echo "$as_me:16447: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -18649,11 +18647,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18652: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18650: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18656: \$? = $ac_status" >&5
+   echo "$as_me:18654: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -18917,11 +18915,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18920: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18918: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18924: \$? = $ac_status" >&5
+   echo "$as_me:18922: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -19021,11 +19019,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:19024: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:19022: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:19028: \$? = $ac_status" >&5
+   echo "$as_me:19026: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -29743,6 +29741,17 @@ if test x$coin_projectdir = xyes ; then
       fi
       if test -d ../../$i/pkgconfig ; then
         COIN_PKG_CONFIG_PATH_UNINSTALLED="`cd ../../$i/pkgconfig; pwd`:${COIN_PKG_CONFIG_PATH_UNINSTALLED}"
+      fi
+    done
+  fi
+
+  if test -f ../../../coin_subdirs.txt ; then
+    for i in `cat ../../../coin_subdirs.txt` ; do
+      if test -d ../../../$i ; then
+        COIN_PKG_CONFIG_PATH_UNINSTALLED="`cd ../../../$i; pwd`:${COIN_PKG_CONFIG_PATH_UNINSTALLED}"
+      fi
+      if test -d ../../../$i/pkgconfig ; then
+        COIN_PKG_CONFIG_PATH_UNINSTALLED="`cd ../../../$i/pkgconfig; pwd`:${COIN_PKG_CONFIG_PATH_UNINSTALLED}"
       fi
     done
   fi
