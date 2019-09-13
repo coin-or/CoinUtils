@@ -17,23 +17,24 @@ matrix:
             - liblapack-dev
     - os: osx
       osx_image: xcode11
-      env: OSX=10.14 CC=gcc CXX=g++ VISHIDDEN=true
+      env: OSX=10.14 CC=gcc CXX=g++ 
       compiler: clang
     - os: osx
       osx_image: xcode11
-      env: OSX=10.14 VISHIDDEN=true NOF77=true
+      env: OSX=10.14 
       compiler: clang
     - os: osx
       osx_image: xcode10
-      env: OSX=10.13 CC=gcc CXX=g++
+      env: OSX=10.13 
       compiler: clang
     - os: osx
       osx_image: xcode9.2
-      env: OSX=10.12 CC=gcc CXX=g++
+      env: OSX=10.12 
       compiler: clang
 
 before_script:
-  - if [[ "$TRAVIS_OS_NAME $CC" == "osx gcc" ]]; then brew update; brew install bash gcc; export CC=gcc-9 ; export CXX=g++-9 ; $CC --version; $CXX --version; gfortran --version; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; brew install bash gcc; clang --version; gfortran --version; fi
+  - if [[ "$CC" == "gcc" ]]; then export CC=gcc-9 ; export CXX=g++-9 ; $CC --version; $CXX --version; fi
   - cd ..
   - wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
   - export PROJECT_URL=https://github.com/$TRAVIS_REPO_SLUG
