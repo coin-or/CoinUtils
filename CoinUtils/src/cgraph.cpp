@@ -281,7 +281,7 @@ size_t cgraph_get_all_conflicting(const CGraph *cgraph, size_t node, size_t *nei
     if (nConfs > maxSize) {
         fprintf(stderr, "ERROR: cgraph_get_all_conflicting:: Not enough space specified in maxSize.\n");
         fprintf(stderr,
-                "Working with node %ld, which appears in %lu cliques.\n", node, cgraph->nodeCliques[node].size());
+                "Working with node %zu, which appears in %zu cliques.\n", node, cgraph->nodeCliques[node].size());
         fprintf(stderr, "at: %s:%d\n", __FILE__, __LINE__);
         exit(EXIT_FAILURE);
     }
@@ -304,7 +304,7 @@ size_t cgraph_get_all_conflicting(const CGraph *cgraph, size_t node, size_t *nei
                 if (nConfs > maxSize) {
                     fprintf(stderr, "ERROR: cgraph_get_all_conflicting:: Not enough space specified in maxSize.\n");
                     fprintf(stderr,
-                            "Working with node %ld, which appears in %lu cliques. When adding clique %ld size %ld. Result %ld. MaxSize %ld.\n",
+                            "Working with node %zu, which appears in %zu cliques. When adding clique %zu size %zu. Result %zu. MaxSize %zu.\n",
                             node, cgraph->nodeCliques[node].size(), idxClique, clqSize, nConfs, maxSize);
                     fprintf(stderr, "at: %s:%d\n", __FILE__, __LINE__);
                     exit(EXIT_FAILURE);
@@ -342,7 +342,7 @@ void cgraph_save(const CGraph *cgraph, const char *fileName) {
         }
     }
 
-    fprintf(f, "p edges %ld %ld\n", cgraph_size(cgraph), nEdges);
+    fprintf(f, "p edges %zu %zu\n", cgraph_size(cgraph), nEdges);
 
     for (size_t i = 0; i < cgraph_size(cgraph); i++) {
         IntSet *is = cgraph->nodeConflicts[i];
@@ -350,28 +350,28 @@ void cgraph_save(const CGraph *cgraph, const char *fileName) {
         const size_t nEl = el.size();
         for (size_t j = 0; j < nEl; j++) {
             if (el[j] > i) {
-                fprintf(f, "e %ld %ld\n", i + 1, el[j] + 1);
+                fprintf(f, "e %zu %zu\n", i + 1, el[j] + 1);
             }
         }
     }
 
     if (w) {
         for (size_t i = 0; (i < nodes); ++i) {
-            fprintf(f, "w %ld %ld\n", i + 1, w[i]);
+            fprintf(f, "w %zu %zu\n", i + 1, w[i]);
         }
     }
 
     for (size_t i = 0; i < clq_set_number_of_cliques(cgraph->clqSet); i++) {
-        fprintf(f, "c %ld\n", clq_set_clique_size(cgraph->clqSet, i));
+        fprintf(f, "c %zu\n", clq_set_clique_size(cgraph->clqSet, i));
         const size_t *element = clq_set_clique_elements(cgraph->clqSet, i);
         for (size_t j = 0; j < clq_set_clique_size(cgraph->clqSet, i); j++) {
-            fprintf(f, "%ld\n", element[j] + 1);
+            fprintf(f, "%zu\n", element[j] + 1);
         }
     }
 
     if (cgraph->origIdx) {
         for (size_t i = 0; i < cgraph_size(cgraph); i++) {
-            fprintf(f, "o %ld %ld\n", i + 1, cgraph->origIdx[i] + 1);
+            fprintf(f, "o %zu %zu\n", i + 1, cgraph->origIdx[i] + 1);
         }
     }
 
@@ -382,17 +382,17 @@ void cgraph_print(const CGraph *cgraph, const size_t *w) {
     size_t *neighs = new size_t[cgraph_size(cgraph)];
 
     for (size_t i = 0; i < cgraph_size(cgraph); i++) {
-        printf("[%ld] ", i + 1);
+        printf("[%zu] ", i + 1);
         size_t n = cgraph_get_all_conflicting(cgraph, i, neighs, cgraph_size(cgraph));
         for (size_t j = 0; j < n; j++) {
-            printf("%ld ", neighs[j] + 1);
+            printf("%zu ", neighs[j] + 1);
         }
         printf("\n");
     }
 
     if (w) {
         for (size_t i = 0; i < cgraph_size(cgraph); i++) {
-            printf("w[%ld] %ld\n", i + 1, w[i]);
+            printf("w[%zu] %zu\n", i + 1, w[i]);
         }
     }
 
@@ -562,7 +562,7 @@ void cgraph_check_node_cliques(const CGraph *cgraph) {
     for (size_t i = 0; i < cgraph_size(cgraph); i++) {
         for (const size_t idx : cgraph->nodeCliques[i]) {
             if (!(clq_set_clique_has_element(cgraph->clqSet, idx, i))) {
-                printf("\nnode %ld should appear on clique %ld but does not\n", i, idx);
+                printf("\nnode %zu should appear on clique %zu but does not\n", i, idx);
                 fflush(stdout);
             }
             assert(clq_set_clique_has_element(cgraph->clqSet, idx, i));
@@ -588,7 +588,7 @@ void cgraph_check_node_cliques(const CGraph *cgraph) {
 
             if (l == nn) {
                 fprintf(stderr,
-                        "ERROR: in clique %ld node %ld appears but this clique does not appears in its node list.\n", i,
+                        "ERROR: in clique %zu node %zu appears but this clique does not appears in its node list.\n", i,
                         currNode);
                 fflush(stdout);
                 fflush(stderr);
@@ -686,7 +686,7 @@ void cgraph_print_summary(const CGraph *cgraph) {
     mixedConfs = (mixedConfs / ((double)numEdges));
     trivialConflicts = (trivialConflicts / ((double)numEdges));
 
-    printf("%ld;%ld;%lf;%ld;%ld;%lf;%lf;%lf;%lf;%lf\n", numVertices, numEdges, density, minDegree, maxDegree, avgDegree,
+    printf("%zu;%zu;%lf;%zu;%zu;%lf;%lf;%lf;%lf;%lf\n", numVertices, numEdges, density, minDegree, maxDegree, avgDegree,
             confsActiveVars, confsCompVars, mixedConfs, trivialConflicts);
 
     delete[] neighs;

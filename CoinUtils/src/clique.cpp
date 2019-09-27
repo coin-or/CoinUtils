@@ -1,4 +1,4 @@
-#include <cstdio>
+s#include <cstdio>
 #include <cstdlib>
 #include <cctype>
 #include <cassert>
@@ -164,9 +164,9 @@ size_t clq_set_number_of_cliques(const CliqueSet *clqSet) {
 
 void clq_set_print(const CliqueSet *clqSet) {
     for (size_t i = 0; i < clqSet->cliques.size(); i++) {
-        printf("[%ld] ", clqSet->W[i]);
+        printf("[%zu] ", clqSet->W[i]);
         for (std::vector<size_t>::const_iterator it = clqSet->cliques[i].begin(); it != clqSet->cliques[i].end(); ++it )
-            printf("%ld ", *it + 1);
+            printf("%zu ", *it + 1);
         printf("\n");
     }
 }
@@ -261,3 +261,4 @@ void clq_set_add_using_original_indexes(CliqueSet *target, const CliqueSet *sour
 bool clq_set_clique_has_element( const CliqueSet *clqSet, const size_t clique, const size_t element ) {
     return std::binary_search(clqSet->cliques[clique].begin(), clqSet->cliques[clique].end(), element);
 }
+
