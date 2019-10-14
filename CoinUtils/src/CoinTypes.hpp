@@ -26,8 +26,12 @@
 
 #if COIN_BIG_INDEX == 0
 typedef int CoinBigIndex;
-// Long enough for any size of array in bytes
+// CoinByteArray should be an integer that is long enough for any size of array in bytes
+#if defined(COINUTILS_HAS_CSTDINT) && defined(COINUTILS_CPLUSPLUS11)
+typedef intptr_t CoinByteArray;
+#else
 typedef long CoinByteArray;
+#endif
 #elif COIN_BIG_INDEX == 1
 typedef long CoinBigIndex;
 typedef long CoinByteArray;
