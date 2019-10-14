@@ -425,18 +425,25 @@ CoinFillN(T *to, const CoinBigIndex size, const T value)
   switch (size % 8) {
   case 7:
     to[6] = value;
+    // fall through
   case 6:
     to[5] = value;
+    // fall through
   case 5:
     to[4] = value;
+    // fall through
   case 4:
     to[3] = value;
+    // fall through
   case 3:
     to[2] = value;
+    // fall through
   case 2:
     to[1] = value;
+    // fall through
   case 1:
     to[0] = value;
+    // fall through
   case 0:
     break;
   }
