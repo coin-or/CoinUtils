@@ -171,14 +171,6 @@ private:
 
 //#########################################################################
 
-//#define IP_DEBUG_SMARTPTR
-#if COIN_IPOPT_CHECKLEVEL > 2
-#define IP_DEBUG_SMARTPTR
-#endif
-#ifdef IP_DEBUG_SMARTPTR
-#include "IpDebug.hpp"
-#endif
-
 /** Template class for Smart Pointers.
      * A SmartPtr behaves much like a raw pointer, but manages the lifetime 
      * of an object, deleting the object automatically. This class implements
@@ -419,7 +411,7 @@ public:
 	 * methods using the contained pointer. */
   T *operator->() const
   {
-#if COIN_COINUTILS_CHECKLEVEL > 0
+#if defined(COIN_COINUTILS_CHECKLEVEL) && COIN_COINUTILS_CHECKLEVEL > 0
     assert(ptr_);
 #endif
     return ptr_;
@@ -429,7 +421,7 @@ public:
 	 * to dereference the contained pointer. */
   T &operator*() const
   {
-#if COIN_IPOPT_CHECKLEVEL > 0
+#if defined(COIN_COINUTILS_CHECKLEVEL) && COIN_COINUTILS_CHECKLEVEL > 0
     assert(ptr_);
 #endif
     return *ptr_;
