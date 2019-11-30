@@ -157,16 +157,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\cut.cpp" />
-    <ClCompile Include="..\..\..\src\node_heap.cpp" />
-    <ClCompile Include="..\..\..\src\str_utils.cpp" />
-    <ClCompile Include="..\..\..\src\vint_set.cpp" />
     <ClCompile Include="..\..\..\src\bron_kerbosch.cpp" />
     <ClCompile Include="..\..\..\src\cgraph.cpp" />
     <ClCompile Include="..\..\..\src\clique.cpp" />
     <ClCompile Include="..\..\..\src\clique_extender.cpp" />
     <ClCompile Include="..\..\..\src\clique_separation.cpp" />
-    <ClCompile Include="..\..\..\src\CoinAdjacencyVector.cpp" />
     <ClCompile Include="..\..\..\src\CoinAlloc.cpp" />
     <ClCompile Include="..\..\..\src\CoinBuild.cpp" />
     <ClCompile Include="..\..\..\src\CoinDenseFactorization.cpp" />
@@ -223,6 +218,10 @@
     <ClCompile Include="..\..\..\src\CoinWarmStartDual.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartPrimalDual.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartVector.cpp" />
+    <ClCompile Include="..\..\..\src\cut.cpp" />
+    <ClCompile Include="..\..\..\src\node_heap.cpp" />
+    <ClCompile Include="..\..\..\src\str_utils.cpp" />
+    <ClCompile Include="..\..\..\src\vint_set.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
