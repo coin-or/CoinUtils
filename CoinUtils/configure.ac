@@ -106,6 +106,21 @@ AC_COIN_FINALIZE_FLAGS(CoinUtilsLib)
 
 AC_LANG_POP(C++)
 
+AC_LANG_PUSH(C++)
+AC_MSG_CHECKING([whether C++11 is available])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(, [
+#if __cplusplus < 201103L
+#error "No C++11"
+#endif
+  ])],
+  [AC_MSG_RESULT(yes)
+   AC_DEFINE([COINUTILS_CPLUSPLUS11], [1], [Define to 1 if CoinUtils uses C++11])],
+  [AC_MSG_RESULT(no)]
+)
+AC_LANG_POP(C++)
+
+
 #############################################################################
 #                  Check for doxygen                                        #
 #############################################################################

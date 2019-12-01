@@ -3,6 +3,9 @@
 /* Library Visibility Attribute */
 #undef COINUTILSLIB_EXPORT
 
+/* Define to 1 if CoinUtils uses C++11 */
+#undef COINUTILS_CPLUSPLUS11
+
 /* Define to 1 if cstdint is available for CoinUtils */
 #undef COINUTILS_HAS_CSTDINT
 
@@ -17,9 +20,6 @@
 
 /* Define to 1 if the thread aware version of CoinUtils should be compiled */
 #undef COINUTILS_PTHREADS
-
-/* SVN revision number of project */
-#undef COINUTILS_SVN_REV
 
 /* Version number of project */
 #undef COINUTILS_VERSION

@@ -35,7 +35,7 @@ bool CoinFinite(double val)
 #ifdef COIN_C_FINITE
   return COIN_C_FINITE(val) != 0;
 #else
-  return val != DBL_MAX && val != -DBL_MAX;
+  return val != COIN_DBL_MAX && val != -COIN_DBL_MAX;
 #endif
 }
 

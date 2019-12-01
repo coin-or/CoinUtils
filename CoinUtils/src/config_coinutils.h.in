@@ -6,6 +6,9 @@
 /* Library Visibility Attribute */
 #undef COINUTILSLIB_EXPORT
 
+/* Define to 1 if CoinUtils uses C++11 */
+#undef COINUTILS_CPLUSPLUS11
+
 /* Define to 1 if stdint.h is available for CoinUtils */
 #undef COINUTILS_HAS_STDINT_H
 

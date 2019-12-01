@@ -60,24 +60,8 @@ typedef void Clp_Simplex;
 #endif
 
 #ifndef COIN_NO_SBB
-typedef int (COINLINKAGE_CB *cbc_incumbent_callback)(void *cbcModel, double obj, int nz, char **vnames, double *x, void *appData);
-
-/** typedef for cbc callback to monitor the progress of the search
- * in terms of improved upper and lower bounds */
-typedef int(COINLINKAGE_CB *cbc_progress_callback)(void *model,
-                                                   int phase,
-                                                   int step,
-                                                   const char *phaseName,
-                                                   double seconds,
-                                                   double lb,
-                                                   double ub,
-                                                   int nint,
-                                                   int *vecint,
-                                                   void *cbData
-                                                   );
 
 #endif
-
 
 #ifdef CBC_THREAD
 #include <pthread.h>
@@ -116,53 +100,8 @@ typedef void Sbb_Model;
 #if defined(CBC_EXTERN_C)
 /* Real typedef for structure */
 class Cbc_MessageHandler;
-typedef struct {
-  OsiClpSolverInterface *solver_;
-  CbcModel *model_;
-  CbcSolverUsefulData *cbcData;
-  Cbc_MessageHandler *handler_;
-  std::vector< std::string > cmdargs_;
-  char relax_;
 
-  // buffer for columns
-  int colSpace;
-  int nCols;
-  int cNameSpace;
-  int *cNameStart;
-  char *cInt;
-  char *cNames;
-  double *cLB;
-  double *cUB;
-  double *cObj;
-
-  // buffer for rows
-  int rowSpace;
-  int nRows;
-  int rNameSpace;
-  int *rNameStart;
-  char *rNames;
-  double *rLB;
-  double *rUB;
-  int rElementsSpace;
-  int *rStart;
-  int *rIdx;
-  double *rCoef;
-
-  // for fast search of columns
-  void *colNameIndex;
-  void *rowNameIndex;
-
-  cbc_incumbent_callback inc_callback;
-  cbc_progress_callback progr_callback;
-  void *icAppData;
-  void *pgrAppData;
-
-#ifdef CBC_THREAD
-  pthread_mutex_t cbcMutex;
-#endif
-} Cbc_Model;
 #else
-typedef void Cbc_Model;
 #endif
 #ifndef COIN_NO_SBB
 /** typedef for user call back.
@@ -171,17 +110,6 @@ typedef void(COINLINKAGE_CB *sbb_callback)(Sbb_Model *model, int msgno, int ndou
   const double *dvec, int nint, const int *ivec,
   int nchar, char **cvec);
 
-typedef void(COINLINKAGE_CB *cbc_callback)(Cbc_Model *model, int msgno, int ndouble,
-  const double *dvec, int nint, const int *ivec,
-  int nchar, char **cvec);
-
-
-/** typedef for cbc cut callback osiSolver needs to be an OsiSolverInterface object,
- * osiCuts is an OsiCuts object and appdata is a pointer that will be passed to the cut
- * generation, you can use it to point to a data structure with information about the original problem,
- * for instance
- **/
-typedef void(COINLINKAGE_CB *cbc_cut_callback)(void *osiSolver, void *osiCuts, void *appdata);
 #endif
 #if COIN_BIG_INDEX == 0
 typedef int CoinBigIndex;

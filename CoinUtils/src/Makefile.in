@@ -175,7 +175,12 @@ am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinPresolveUseless.lo CoinPresolveZeros.lo CoinRational.lo \
 	CoinSearchTree.lo CoinShallowPackedVector.lo CoinSnapshot.lo \
 	CoinWarmStartBasis.lo CoinWarmStartVector.lo \
-	CoinWarmStartDual.lo CoinWarmStartPrimalDual.lo
+	CoinWarmStartDual.lo CoinWarmStartPrimalDual.lo \
+	bron_kerbosch.lo cgraph.lo clique.lo clique_extender.lo \
+	clique_separation.lo cut.lo node_heap.lo str_utils.lo \
+	vint_set.lo CoinConflictGraph.lo CoinStaticConflictGraph.lo \
+	CoinDynamicConflictGraph.lo CoinAdjacencyVector.lo \
+	CoinCliqueList.lo
 libCoinUtils_la_OBJECTS = $(am_libCoinUtils_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -200,11 +205,14 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/CoinAlloc.Plo \
-	./$(DEPDIR)/CoinBuild.Plo \
+am__depfiles_remade = ./$(DEPDIR)/CoinAdjacencyVector.Plo \
+	./$(DEPDIR)/CoinAlloc.Plo ./$(DEPDIR)/CoinBuild.Plo \
+	./$(DEPDIR)/CoinCliqueList.Plo \
+	./$(DEPDIR)/CoinConflictGraph.Plo \
 	./$(DEPDIR)/CoinDenseFactorization.Plo \
-	./$(DEPDIR)/CoinDenseVector.Plo ./$(DEPDIR)/CoinError.Plo \
-	./$(DEPDIR)/CoinFactorization1.Plo \
+	./$(DEPDIR)/CoinDenseVector.Plo \
+	./$(DEPDIR)/CoinDynamicConflictGraph.Plo \
+	./$(DEPDIR)/CoinError.Plo ./$(DEPDIR)/CoinFactorization1.Plo \
 	./$(DEPDIR)/CoinFactorization2.Plo \
 	./$(DEPDIR)/CoinFactorization3.Plo \
 	./$(DEPDIR)/CoinFactorization4.Plo ./$(DEPDIR)/CoinFileIO.Plo \
@@ -244,11 +252,17 @@ am__depfiles_remade = ./$(DEPDIR)/CoinAlloc.Plo \
 	./$(DEPDIR)/CoinShallowPackedVector.Plo \
 	./$(DEPDIR)/CoinSimpFactorization.Plo \
 	./$(DEPDIR)/CoinSnapshot.Plo \
+	./$(DEPDIR)/CoinStaticConflictGraph.Plo \
 	./$(DEPDIR)/CoinStructuredModel.Plo \
 	./$(DEPDIR)/CoinWarmStartBasis.Plo \
 	./$(DEPDIR)/CoinWarmStartDual.Plo \
 	./$(DEPDIR)/CoinWarmStartPrimalDual.Plo \
-	./$(DEPDIR)/CoinWarmStartVector.Plo
+	./$(DEPDIR)/CoinWarmStartVector.Plo \
+	./$(DEPDIR)/bron_kerbosch.Plo ./$(DEPDIR)/cgraph.Plo \
+	./$(DEPDIR)/clique.Plo ./$(DEPDIR)/clique_extender.Plo \
+	./$(DEPDIR)/clique_separation.Plo ./$(DEPDIR)/cut.Plo \
+	./$(DEPDIR)/node_heap.Plo ./$(DEPDIR)/str_utils.Plo \
+	./$(DEPDIR)/vint_set.Plo
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -332,7 +346,6 @@ COINUTILSLIB_CFLAGS_NOPC = @COINUTILSLIB_CFLAGS_NOPC@
 COINUTILSLIB_LFLAGS = @COINUTILSLIB_LFLAGS@
 COINUTILSLIB_LFLAGS_NOPC = @COINUTILSLIB_LFLAGS_NOPC@
 COINUTILSLIB_PCFILES = @COINUTILSLIB_PCFILES@
-COINUTILS_SVN_REV = @COINUTILS_SVN_REV@
 COIN_PKG_CONFIG_PATH = @COIN_PKG_CONFIG_PATH@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -427,7 +440,6 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
-have_svnversion = @have_svnversion@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -561,7 +573,24 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartBasis.cpp CoinWarmStartBasis.hpp \
 	CoinWarmStartVector.cpp CoinWarmStartVector.hpp \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
-	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp
+	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp \
+	bron_kerbosch.h bron_kerbosch.cpp \
+	cgraph.h cgraph.cpp \
+	clique.h clique.cpp \
+	clique_extender.h clique_extender.cpp \
+	clique_separation.h clique_separation.cpp \
+	cut.h cut.cpp \
+	node_heap.h node_heap.cpp \
+	str_utils.h str_utils.cpp \
+	vint_set.h vint_set.cpp \
+	CoinConflictGraph.cpp \
+	CoinConflictGraph.hpp \
+	CoinStaticConflictGraph.hpp \
+	CoinStaticConflictGraph.cpp \
+	CoinDynamicConflictGraph.hpp \
+	CoinDynamicConflictGraph.cpp \
+	CoinAdjacencyVector.cpp \
+	CoinCliqueList.cpp
 
 
 # This is for libtool.
@@ -639,7 +668,19 @@ includecoin_HEADERS = \
 	CoinWarmStartBasis.hpp \
 	CoinWarmStartVector.hpp \
 	CoinWarmStartDual.hpp \
-	CoinWarmStartPrimalDual.hpp
+	CoinWarmStartPrimalDual.hpp \
+	bron_kerbosch.h \
+	cgraph.h \
+	clique.h \
+	clique_extender.h \
+	clique_separation.h \
+	cut.h \
+	node_heap.h \
+	str_utils.h \
+	vint_set.h \
+	CoinConflictGraph.hpp CoinDynamicConflictGraph.hpp CoinStaticConflictGraph.hpp \
+	CoinAdjacencyVector.hpp \
+	CoinCliqueList.hpp
 
 all: config.h config_coinutils.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -744,10 +785,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinAdjacencyVector.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinAlloc.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinBuild.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinCliqueList.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinConflictGraph.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseFactorization.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDenseVector.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinDynamicConflictGraph.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinError.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinFactorization1.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinFactorization2.Plo@am__quote@ # am--include-marker
@@ -796,11 +841,21 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinShallowPackedVector.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSimpFactorization.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinSnapshot.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinStaticConflictGraph.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinStructuredModel.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartBasis.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartDual.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartPrimalDual.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinWarmStartVector.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bron_kerbosch.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cgraph.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clique.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clique_extender.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clique_separation.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cut.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node_heap.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/str_utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vint_set.Plo@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -950,10 +1005,14 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/CoinAlloc.Plo
+		-rm -f ./$(DEPDIR)/CoinAdjacencyVector.Plo
+	-rm -f ./$(DEPDIR)/CoinAlloc.Plo
 	-rm -f ./$(DEPDIR)/CoinBuild.Plo
+	-rm -f ./$(DEPDIR)/CoinCliqueList.Plo
+	-rm -f ./$(DEPDIR)/CoinConflictGraph.Plo
 	-rm -f ./$(DEPDIR)/CoinDenseFactorization.Plo
 	-rm -f ./$(DEPDIR)/CoinDenseVector.Plo
+	-rm -f ./$(DEPDIR)/CoinDynamicConflictGraph.Plo
 	-rm -f ./$(DEPDIR)/CoinError.Plo
 	-rm -f ./$(DEPDIR)/CoinFactorization1.Plo
 	-rm -f ./$(DEPDIR)/CoinFactorization2.Plo
@@ -1002,11 +1061,21 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/CoinShallowPackedVector.Plo
 	-rm -f ./$(DEPDIR)/CoinSimpFactorization.Plo
 	-rm -f ./$(DEPDIR)/CoinSnapshot.Plo
+	-rm -f ./$(DEPDIR)/CoinStaticConflictGraph.Plo
 	-rm -f ./$(DEPDIR)/CoinStructuredModel.Plo
 	-rm -f ./$(DEPDIR)/CoinWarmStartBasis.Plo
 	-rm -f ./$(DEPDIR)/CoinWarmStartDual.Plo
 	-rm -f ./$(DEPDIR)/CoinWarmStartPrimalDual.Plo
 	-rm -f ./$(DEPDIR)/CoinWarmStartVector.Plo
+	-rm -f ./$(DEPDIR)/bron_kerbosch.Plo
+	-rm -f ./$(DEPDIR)/cgraph.Plo
+	-rm -f ./$(DEPDIR)/clique.Plo
+	-rm -f ./$(DEPDIR)/clique_extender.Plo
+	-rm -f ./$(DEPDIR)/clique_separation.Plo
+	-rm -f ./$(DEPDIR)/cut.Plo
+	-rm -f ./$(DEPDIR)/node_heap.Plo
+	-rm -f ./$(DEPDIR)/str_utils.Plo
+	-rm -f ./$(DEPDIR)/vint_set.Plo
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -1052,10 +1121,14 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/CoinAlloc.Plo
+		-rm -f ./$(DEPDIR)/CoinAdjacencyVector.Plo
+	-rm -f ./$(DEPDIR)/CoinAlloc.Plo
 	-rm -f ./$(DEPDIR)/CoinBuild.Plo
+	-rm -f ./$(DEPDIR)/CoinCliqueList.Plo
+	-rm -f ./$(DEPDIR)/CoinConflictGraph.Plo
 	-rm -f ./$(DEPDIR)/CoinDenseFactorization.Plo
 	-rm -f ./$(DEPDIR)/CoinDenseVector.Plo
+	-rm -f ./$(DEPDIR)/CoinDynamicConflictGraph.Plo
 	-rm -f ./$(DEPDIR)/CoinError.Plo
 	-rm -f ./$(DEPDIR)/CoinFactorization1.Plo
 	-rm -f ./$(DEPDIR)/CoinFactorization2.Plo
@@ -1104,11 +1177,21 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/CoinShallowPackedVector.Plo
 	-rm -f ./$(DEPDIR)/CoinSimpFactorization.Plo
 	-rm -f ./$(DEPDIR)/CoinSnapshot.Plo
+	-rm -f ./$(DEPDIR)/CoinStaticConflictGraph.Plo
 	-rm -f ./$(DEPDIR)/CoinStructuredModel.Plo
 	-rm -f ./$(DEPDIR)/CoinWarmStartBasis.Plo
 	-rm -f ./$(DEPDIR)/CoinWarmStartDual.Plo
 	-rm -f ./$(DEPDIR)/CoinWarmStartPrimalDual.Plo
 	-rm -f ./$(DEPDIR)/CoinWarmStartVector.Plo
+	-rm -f ./$(DEPDIR)/bron_kerbosch.Plo
+	-rm -f ./$(DEPDIR)/cgraph.Plo
+	-rm -f ./$(DEPDIR)/clique.Plo
+	-rm -f ./$(DEPDIR)/clique_extender.Plo
+	-rm -f ./$(DEPDIR)/clique_separation.Plo
+	-rm -f ./$(DEPDIR)/cut.Plo
+	-rm -f ./$(DEPDIR)/node_heap.Plo
+	-rm -f ./$(DEPDIR)/str_utils.Plo
+	-rm -f ./$(DEPDIR)/vint_set.Plo
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -1211,13 +1294,12 @@ uninstall-doxygen-docs:
 	fi
 	rmdir $(DESTDIR)$(pkgdocdir) || true
 
-install-doc: $(DocFiles)
+install-doc:
 	$(mkdir_p) "$(DESTDIR)$(pkgdocdir)"
 	for file in $(DocFiles); do \
 	  if test -f "$$file"; then dir=; else dir="$(srcdir)/"; fi; \
 	  if test -f "$$dir$$file"; then \
-	    $(INSTALL_DATA) "$$dir$$file" \
-	        "$(DESTDIR)$(pkgdocdir)/$$file"; \
+	    $(INSTALL_DATA) "$$dir$$file" "$(DESTDIR)$(pkgdocdir)/$$file"; \
 	  fi; \
 	done
 
