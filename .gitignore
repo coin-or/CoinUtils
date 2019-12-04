@@ -1,0 +1,6 @@
+﻿*.user
+*.bak
+*.vs/
+*Debug/
+*Release/
+
