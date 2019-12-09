@@ -422,7 +422,7 @@ int CoinFactorization::factorSparseSmall()
         double ratio;
         if (leftRows>2000)
           ratio=4.0;
-        else 
+        else
           ratio=3.0;
         if (ratio*leftElements>full) 
           denseThreshold=1;
@@ -520,9 +520,9 @@ int CoinFactorization::factorDense()
   totalElements_ = full;
 #ifdef COIN_ALIGN_DENSE
   int newSize = full + 8 * numberDense_;
-  newSize += (numberDense_ + 1) / (sizeof(CoinFactorizationDouble) / sizeof(int));
-  newSize += 2 * ((numberDense_ + 3) / (sizeof(CoinFactorizationDouble) / sizeof(short)));
-  newSize += ((numberRows_ + 3) / (sizeof(CoinFactorizationDouble) / sizeof(short)));
+  newSize += (numberDense_ + 1) / static_cast<int>(sizeof(CoinFactorizationDouble) / sizeof(int));
+  newSize += 2 * ((numberDense_ + 3) / static_cast<int>(sizeof(CoinFactorizationDouble) / sizeof(short)));
+  newSize += ((numberRows_ + 3) / static_cast<int>(sizeof(CoinFactorizationDouble) / sizeof(short)));
   // so we can align on 256 byte
   newSize += 32;
   denseArea_ = new double[newSize];
