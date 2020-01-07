@@ -5,6 +5,7 @@
 
   This code is licensed under the terms of the Eclipse Public License (EPL).
 */
+#include <climits>
 #if COIN_BIG_INDEX == 0
 #include "CoinOslFactorization.hpp"
 #include "CoinOslC.h"
@@ -1876,10 +1877,7 @@ static void c_ekk_sort2(int *key, double *array2, int number)
   double it;
   int j;
   /*check already sorted  */
-#ifndef LONG_MAX
-#define LONG_MAX 0x7fffffff;
-#endif
-  int last = -LONG_MAX;
+  int last = INT_MIN;
   for (j = 0; j < number; j++) {
     if (key[j] >= last) {
       last = key[j];

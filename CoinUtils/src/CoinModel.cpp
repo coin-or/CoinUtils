@@ -3772,7 +3772,7 @@ void convertBoundToSense(const double lower, const double upper,
   char &sense, double &right,
   double &range)
 {
-  double inf = 1.0e-30;
+  double inf = 1.0e30;
   range = 0.0;
   if (lower > -inf) {
     if (upper < inf) {

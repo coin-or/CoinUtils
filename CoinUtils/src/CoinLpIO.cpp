@@ -1869,6 +1869,9 @@ void CoinLpIO::readLp(const char *filename)
     readable = fileCoinReadable(fname);
     if (readable)
       input_ = CoinFileInput::create(fname);
+  } else if (!strcmp(filename,"-")) {
+    input_ = new CoinPlainFileInput(stdin);
+    readable = true;
   }
   if (!readable) {
     char str[8192];
