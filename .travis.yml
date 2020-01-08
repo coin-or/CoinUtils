@@ -17,7 +17,7 @@ matrix:
     - os: osx
       osx_image: xcode11.3
       env: 
-        - MATRIX_EVAL="brew update && brew install bash gcc && brew link --overwrite gcc"
+        - MATRIX_EVAL="brew update && brew install bash && brew link --overwrite gcc"
     - os: osx
       osx_image: xcode10
       env:
