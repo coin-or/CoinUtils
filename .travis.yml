@@ -29,15 +29,15 @@ before_script:
   - $CC --version
   - $CXX --version
 script:
-  - git clone --depth 1 https://github.com/coin-or-tools/ThirdParty-ASL
-  - git clone --depth 1 --branch autotools-update https://github.com/coin-or-tools/Data-Sample
-  - pushd Data-Sample && ./configure --prefix=$HOME/install && make install && popd
-  - mkdir build
-  - pushd build
   - export CFGFLAGS="--prefix=$HOME/install"
   - if $ENABLEDEBUG ; then CFGFLAGS="$CFGFLAGS --enable-debug" ; fi
   - if $ENABLESTATIC ; then CFGFLAGS="$CFGFLAGS --enable-static --disable-shared" ; fi
+  - git clone --depth 1 https://github.com/coin-or-tools/ThirdParty-ASL
+  - git clone --depth 1 --branch autotools-update https://github.com/coin-or-tools/Data-Sample
+  - pushd Data-Sample && ./configure --prefix=$HOME/install && make install && popd
   - pushd ThirdParty-ASL && ./get.ASL && ./configure $CFGFLAGS && make install && popd
+  - mkdir build
+  - pushd build
   - ../CoinUtils/configure $CFGFLAGS
   - make
   - make test
