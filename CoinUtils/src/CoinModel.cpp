@@ -4508,10 +4508,10 @@ int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel)
     columnUpper = (double *)malloc(n_var * sizeof(double));
     for (i = 0; i < n_var; i++) {
       columnLower[i] = LUv[2 * i];
-      if (columnLower[i] <= negInfinity)
+      if (columnLower[i] <= -COIN_DBL_MAX /* negInfinity */)
         columnLower[i] = -COIN_DBL_MAX;
       columnUpper[i] = LUv[2 * i + 1];
-      if (columnUpper[i] >= Infinity)
+      if (columnUpper[i] >= COIN_DBL_MAX /* Infinity */)
         columnUpper[i] = COIN_DBL_MAX;
     }
     /* Row bounds*/
@@ -4519,10 +4519,10 @@ int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel)
     rowUpper = (double *)malloc(n_con * sizeof(double));
     for (i = 0; i < n_con; i++) {
       rowLower[i] = LUrhs[2 * i];
-      if (rowLower[i] <= negInfinity)
+      if (rowLower[i] <= -COIN_DBL_MAX /* negInfinity */)
         rowLower[i] = -COIN_DBL_MAX;
       rowUpper[i] = LUrhs[2 * i + 1];
-      if (rowUpper[i] >= Infinity)
+      if (rowUpper[i] >= COIN_DBL_MAX /* Infinity */)
         rowUpper[i] = COIN_DBL_MAX;
     }
     info->numberRows = n_con;
@@ -4981,10 +4981,10 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
     columnUpper = (double *)malloc(n_var * sizeof(double));
     for (i = 0; i < n_var; i++) {
       columnLower[i] = LUv[2 * i];
-      if (columnLower[i] <= negInfinity)
+      if (columnLower[i] <= -COIN_DBL_MAX /* negInfinity */)
         columnLower[i] = -COIN_DBL_MAX;
       columnUpper[i] = LUv[2 * i + 1];
-      if (columnUpper[i] >= Infinity)
+      if (columnUpper[i] >= COIN_DBL_MAX /* Infinity */)
         columnUpper[i] = COIN_DBL_MAX;
     }
     /* Row bounds*/
@@ -4992,10 +4992,10 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
     rowUpper = (double *)malloc(n_con * sizeof(double));
     for (i = 0; i < n_con; i++) {
       rowLower[i] = LUrhs[2 * i];
-      if (rowLower[i] <= negInfinity)
+      if (rowLower[i] <= -COIN_DBL_MAX /* negInfinity */)
         rowLower[i] = -COIN_DBL_MAX;
       rowUpper[i] = LUrhs[2 * i + 1];
-      if (rowUpper[i] >= Infinity)
+      if (rowUpper[i] >= COIN_DBL_MAX /* Infinity */)
         rowUpper[i] = COIN_DBL_MAX;
     }
     numberRows = n_con;
@@ -5074,10 +5074,10 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
     columnUpper = (double *)malloc(n_var * sizeof(double));
     for (i = 0; i < n_var; i++) {
       columnLower[i] = LUv[2 * i];
-      if (columnLower[i] <= negInfinity)
+      if (columnLower[i] <= -COIN_DBL_MAX /* negInfinity */)
         columnLower[i] = -COIN_DBL_MAX;
       columnUpper[i] = LUv[2 * i + 1];
-      if (columnUpper[i] >= Infinity)
+      if (columnUpper[i] >= COIN_DBL_MAX /* Infinity */)
         columnUpper[i] = COIN_DBL_MAX;
     }
     // Build by row from scratch
@@ -5094,10 +5094,10 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
     numberElements = 0;
     for (i = 0; i < n_con; i++) {
       rowLower[i] = LUrhs[2 * i];
-      if (rowLower[i] <= negInfinity)
+      if (rowLower[i] <= -COIN_DBL_MAX /* negInfinity */)
         rowLower[i] = -COIN_DBL_MAX;
       rowUpper[i] = LUrhs[2 * i + 1];
-      if (rowUpper[i] >= Infinity)
+      if (rowUpper[i] >= COIN_DBL_MAX /* Infinity */)
         rowUpper[i] = COIN_DBL_MAX;
       for (cgrad *cg = Cgrad[i]; cg; cg = cg->next) {
         column[numberElements] = cg->varno;
@@ -5262,10 +5262,10 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
     columnUpper = (double *)malloc(n_var * sizeof(double));
     for (i = 0; i < n_var; i++) {
       columnLower[i] = LUv[2 * i];
-      if (columnLower[i] <= negInfinity)
+      if (columnLower[i] <= -COIN_DBL_MAX /* negInfinity */)
         columnLower[i] = -COIN_DBL_MAX;
       columnUpper[i] = LUv[2 * i + 1];
-      if (columnUpper[i] >= Infinity)
+      if (columnUpper[i] >= COIN_DBL_MAX /* Infinity */)
         columnUpper[i] = COIN_DBL_MAX;
     }
     // Build by row from scratch
@@ -5282,10 +5282,10 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
     rowUpper = (double *)malloc(n_con * sizeof(double));
     for (i = 0; i < n_con; i++) {
       rowLower[i] = LUrhs[2 * i];
-      if (rowLower[i] <= negInfinity)
+      if (rowLower[i] <= -COIN_DBL_MAX /* negInfinity */)
         rowLower[i] = -COIN_DBL_MAX;
       rowUpper[i] = LUrhs[2 * i + 1];
-      if (rowUpper[i] >= Infinity)
+      if (rowUpper[i] >= COIN_DBL_MAX /* Infinity */)
         rowUpper[i] = COIN_DBL_MAX;
       for (cgrad *cg = Cgrad[i]; cg; cg = cg->next) {
         column[numberElements] = cg->varno;
