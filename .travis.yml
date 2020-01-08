@@ -6,32 +6,35 @@ matrix:
       addons:
         apt:
           packages:
-            - gfortran
             - liblapack-dev
-      env: ENABLEDEBUG=true
+      env: ENABLEDEBUG=true ENABLESTATIC=true
     - os: linux
       dist: bionic
       addons:
         apt:
           packages:
-            - gfortran
             - liblapack-dev
     - os: osx
       osx_image: xcode11.3
-      env: OSX=10.14 COMP=osxgcc
+      env: 
+        - MATRIX_EVAL="brew update && brew install bash gcc && brew link --overwrite gcc"
     - os: osx
       osx_image: xcode10
-      env: OSX=10.13
-      compiler: clang
+      env:
+        - MATRIX_EVAL="brew update && brew install bash"
 before_script:
   - export ENABLEDEBUG=${ENABLEDEBUG:-false}
-  - if [[ "$COMP" == "osxgcc" ]]; then brew update; brew install bash gcc; brew link --overwrite gcc; gcc --version; g++ --version; fi
+  - export ENABLESTATIC=${ENABLESTATIC:-false}
+  - eval "${MATRIX_EVAL}"
+  - $CC --version
+  - $CXX --version
 script:
   - mkdir build
   - pushd build
   - export CFGFLAGS=""
   - if $ENABLEDEBUG ; then CFGFLAGS="$CFGFLAGS --enable-debug" ; fi
-  - ../configure --prefix=$HOME/install $CFGFLAGS
+  - if $ENABLESTATIC ; then CFGFLAGS="$CFGFLAGS --enable-static --disable-shared" ; fi
+  - ../CoinUtils/configure --prefix=$HOME/install $CFGFLAGS
   - make
   - make test
   - make install
