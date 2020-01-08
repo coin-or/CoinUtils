@@ -4265,7 +4265,7 @@ mip_stuff(void)
       saveInfo->branchDirection[i] = value;
     }
     if (baddir)
-      fprintf(Stderr,
+      fprintf(stderr,
         "Treating %d .direction values outside [-1, 1] as 0.\n",
         baddir);
   }
@@ -4281,7 +4281,7 @@ mip_stuff(void)
       saveInfo->priorities[i] = value;
     }
     if (badpri)
-      fprintf(Stderr,
+      fprintf(stderr,
         "Treating %d negative .priority values as 0\n",
         badpri);
   }
@@ -4297,7 +4297,7 @@ mip_stuff(void)
       saveInfo->special[i] = value;
     }
     if (badspecial)
-      fprintf(Stderr,
+      fprintf(stderr,
         "Treating %d negative special values as 0\n",
         badspecial);
   }
@@ -4314,14 +4314,14 @@ mip_stuff(void)
       saveInfo->cut[i] = value;
     }
     if (badcut)
-      fprintf(Stderr,
+      fprintf(stderr,
         "Treating %d negative cut values as 0\n",
         badcut);
   }
   if (pseudoDown || pseudoUp) {
     int badpseudo = 0;
     if (!pseudoDown || !pseudoUp)
-      fprintf(Stderr,
+      fprintf(stderr,
         "Only one set of pseudocosts - assumed same\n");
     saveInfo->pseudoDown = (double *)malloc(numberColumns * sizeof(double));
     saveInfo->pseudoUp = (double *)malloc(numberColumns * sizeof(double));
@@ -4349,7 +4349,7 @@ mip_stuff(void)
       saveInfo->pseudoUp[i] = valueU;
     }
     if (badpseudo)
-      fprintf(Stderr,
+      fprintf(stderr,
         "Treating %d negative pseudoCosts as 0.0\n", badpseudo);
   }
 }
@@ -4367,14 +4367,14 @@ stat_map(int *stat, int n, int *map, int mx, const char *what)
       i1 = i;
       j1 = j;
       if (!bad++)
-        fprintf(Stderr, badfmt, what, i, j);
+        fprintf(stderr, badfmt, what, i, j);
     }
   }
   if (bad > 1) {
     if (bad == 2)
-      fprintf(Stderr, badfmt, what, i1, j1);
+      fprintf(stderr, badfmt, what, i1, j1);
     else
-      fprintf(Stderr,
+      fprintf(stderr,
         "Coin driver: %d messages about bad %s values suppressed.\n",
         bad - 1, what);
   }
