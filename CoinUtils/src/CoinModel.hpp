@@ -984,8 +984,7 @@ public:
   /** Read a problem in MPS or GAMS format from the given filename.
    */
   CoinModel(const char *fileName, int allowStrings = 0);
-  /** Read a problem from AMPL nl file
-       NOTE - as I can't work out configure etc the source code is in Cbc_ampl.cpp!
+  /** Read a problem from AMPL nl file, if linked against ASL
    */
   CoinModel(int nonLinear, const char *fileName, const void *info);
   /// From arrays
@@ -1208,6 +1207,81 @@ private:
 double getFunctionValueFromString(const char *string, const char *x, double xValue);
 /// faster version
 double getDoubleFromString(CoinYacc &info, const char *string, const char *x, double xValue);
+#endif
+
+
+/* code below was Clp_ampl.hpp in Clp before, but as it implements a
+ * CoinModel method, it should be in CoinUtils
+ */
+
+typedef struct {
+  int numberRows;
+  int numberColumns;
+  int numberBinary;
+  int numberIntegers; /* non binary */
+  int numberSos;
+  int numberElements;
+  int numberArguments;
+  int problemStatus;
+  double direction;
+  double offset;
+  double objValue;
+  double *objective;
+  double *rowLower;
+  double *rowUpper;
+  double *columnLower;
+  double *columnUpper;
+#if COIN_BIG_INDEX == 0
+  int *starts;
+#else
+  long unsigned int *starts;
+#endif
+  int *rows;
+  double *elements;
+  double *primalSolution;
+  double *dualSolution;
+  int *columnStatus;
+  int *rowStatus;
+  int *priorities;
+  int *branchDirection;
+  double *pseudoDown;
+  double *pseudoUp;
+  char *sosType;
+  int *sosPriority;
+  int *sosStart;
+  int *sosIndices;
+  double *sosReference;
+  int *cut;
+  int *special;
+  char **arguments;
+  char buffer[300];
+  int logLevel;
+  int nonLinear;
+} ampl_info;
+#ifdef __cplusplus
+extern "C" {
+#endif
+/* return nonzero if bad */
+COINUTILSLIB_EXPORT
+int readAmpl(ampl_info *info, int argc, char **argv,
+  void **coinModel);
+/* frees some input arrays */
+COINUTILSLIB_EXPORT
+void freeArrays1(ampl_info *info);
+/* frees rest */
+COINUTILSLIB_EXPORT
+void freeArrays2(ampl_info *info);
+/* frees fake arguments */
+COINUTILSLIB_EXPORT
+void freeArgs(ampl_info *info);
+/* writes ampl stuff */
+COINUTILSLIB_EXPORT
+void writeAmpl(ampl_info *info);
+/* objective precision */
+COINUTILSLIB_EXPORT
+int ampl_obj_prec();
+#ifdef __cplusplus
+}
 #endif
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
