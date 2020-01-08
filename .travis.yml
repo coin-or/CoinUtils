@@ -30,7 +30,7 @@ script:
   - mkdir build
   - pushd build
   - export CFGFLAGS=""
-  - if $ENABLEDEBUG ; then CFGFLAGS="$CFGFLAGS --enable-debug ; fi
+  - if $ENABLEDEBUG ; then CFGFLAGS="$CFGFLAGS --enable-debug" ; fi
   - ../configure --prefix=$HOME/install $CFGFLAGS
   - make
   - make test
