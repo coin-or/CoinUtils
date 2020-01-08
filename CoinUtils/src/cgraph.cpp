@@ -13,9 +13,8 @@
 #include <cstdint>
 #elif defined(COINUTILS_HAS_STDINT_H)
 #include <stdint.h>
-#else
-#include <limits>
 #endif
+#include <limits>
 
 #define LINE_SIZE 2048
 #define MAX_NAME_SIZE 64
