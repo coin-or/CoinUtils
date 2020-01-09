@@ -28,12 +28,17 @@
 #ifdef COINUTILS_BUILD
 #include "config.h"
 
-/* overwrite COINUTILS_EXPORT from config.h
+/* overwrite COINUTILS_EXPORT from config.h when building CoinUtils
  * we want it to be __declspec(dllexport) when building a DLL on Windows
+ * we want it to be __attribute__((__visibility__("default"))) when building with GCC,
+ *   so user can compile with -fvisibility=hidden
  */
 #ifdef DLL_EXPORT
 #undef COINUTILSLIB_EXPORT
 #define COINUTILSLIB_EXPORT __declspec(dllexport)
+#elif defined(__GNUC__) && __GNUC__ >= 4
+#undef COINUTILSLIB_EXPORT
+#define COINUTILSLIB_EXPORT __attribute__((__visibility__("default")))
 #endif
 
 #else
