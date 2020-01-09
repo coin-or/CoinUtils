@@ -18,7 +18,7 @@
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessageHandler.hpp"
 #include "CoinFileIO.hpp"
-class COINUTILSLIB_EXPORT CoinModel;
+class CoinModel;
 
 /// The following lengths are in decreasing order (for 64 bit etc)
 /// Large enough to contain element index

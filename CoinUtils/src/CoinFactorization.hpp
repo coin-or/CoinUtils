@@ -22,7 +22,7 @@
 #include "CoinTypes.hpp"
 #include "CoinIndexedVector.hpp"
 
-class COINUTILSLIB_EXPORT CoinPackedMatrix;
+class CoinPackedMatrix;
 /** This deals with Factorization and Updates
 
     This class started with a parallel simplex code I was writing in the

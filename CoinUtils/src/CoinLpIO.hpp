@@ -21,7 +21,7 @@
 #include "CoinMessage.hpp"
 #include "CoinFileIO.hpp"
 
-class COINUTILSLIB_EXPORT CoinSet;
+class CoinSet;
 
 const int MAX_OBJECTIVES = 2;
 

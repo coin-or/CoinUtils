@@ -15,7 +15,7 @@
 #include "CoinTypes.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinDenseFactorization.hpp"
-class COINUTILSLIB_EXPORT CoinPackedMatrix;
+class CoinPackedMatrix;
 
 /// pointers used during factorization
 class COINUTILSLIB_EXPORT FactorPointers{

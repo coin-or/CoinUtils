@@ -21,7 +21,7 @@
 #if COIN_FACTORIZATION_DENSE_CODE == 2
 #undef COIN_FACTORIZATION_DENSE_CODE
 #endif
-class COINUTILSLIB_EXPORT CoinPackedMatrix;
+class CoinPackedMatrix;
 /// Abstract base class which also has some scalars so can be used from Dense or Simp
 class COINUTILSLIB_EXPORT CoinOtherFactorization {
 

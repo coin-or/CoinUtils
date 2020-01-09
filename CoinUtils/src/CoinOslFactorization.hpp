@@ -17,7 +17,7 @@
 #include "CoinTypes.hpp"
 #include "CoinIndexedVector.hpp"
 #include "CoinDenseFactorization.hpp"
-class COINUTILSLIB_EXPORT CoinPackedMatrix;
+class CoinPackedMatrix;
 /** This deals with Factorization and Updates
     This is ripped off from OSL!!!!!!!!!
 

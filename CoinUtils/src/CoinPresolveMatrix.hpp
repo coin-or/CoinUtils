@@ -216,13 +216,13 @@ class COINUTILSLIB_EXPORT CoinPresolveAction
   These are needed for OSI-aware constructors associated with
   CoinPrePostsolveMatrix, CoinPresolveMatrix, and CoinPostsolveMatrix.
 */
-class COINUTILSLIB_EXPORT ClpSimplex;
+class ClpSimplex;
 
 /*
   CoinWarmStartBasis is required for methods in CoinPrePostsolveMatrix
   that accept/return a CoinWarmStartBasis object.
 */
-class COINUTILSLIB_EXPORT CoinWarmStartBasis ;
+class CoinWarmStartBasis ;
 
 /*! \class CoinPrePostsolveMatrix
     \brief Collects all the information about the problem that is needed
