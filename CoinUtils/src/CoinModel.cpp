@@ -4038,8 +4038,8 @@ void CoinModel::setOriginalIndices(const int *row, const int *column)
 }
 
 
-/* code below was Clp_ampl.cpp in Clp before, but as it implements a
- * CoinModel method, it should be in CoinUtils
+/* code below was Clp_ampl.cpp in Clp and Cbc_ampl.cpp in Cbc before,
+ * but as it implements a CoinModel method, it should be in CoinUtils
  */
 
 /****************************************************************
@@ -4171,9 +4171,9 @@ static keyword keywds[] = { /* must be sorted */
     const_cast< char * >("write .sol file (without -AMPL)") }
 };
 static Option_Info Oinfo = {
-  const_cast< char * >("clp"),
-  const_cast< char * >("CLP "),
-  const_cast< char * >("clp_options"),
+  NULL,
+  NULL,
+  NULL,
   keywds,
   nkeywds,
   0,
@@ -4380,7 +4380,7 @@ stat_map(int *stat, int n, int *map, int mx, const char *what)
   }
 }
 
-int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel)
+int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel, const char* solvername)
 {
   char *stub;
   ograd *og;
@@ -4389,8 +4389,9 @@ int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel)
   SufDesc *rsd;
   /*bool *basis, *lower;*/
   /*double *LU, *c, lb, objadj, *rshift, *shift, t, ub, *x, *x0, *x1;*/
-  char *environment = getenv("clp_options");
-  char tempBuffer[20];
+  char tempBuffer[200];
+  sprintf(tempBuffer, "%s_options", solvername);
+  char *environment = getenv(tempBuffer);
   double *obj;
   double *columnLower;
   double *columnUpper;
@@ -4421,11 +4422,14 @@ int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel)
   info->numberArguments = 0;
   info->arguments = (char **)malloc(2 * sizeof(char *));
   info->arguments[info->numberArguments++] = strdup("ampl");
-  info->arguments[info->numberArguments++] = strdup("clp");
+  info->arguments[info->numberArguments++] = strdup(solvername);
   asl = ASL_alloc(ASL_read_f);
   stub = getstub(&argv, &Oinfo);
   if (!stub)
     usage_ASL(&Oinfo, 1);
+  Oinfo.sname = strdup(solvername); /* invocation name of solver */
+  Oinfo.bsname = strdup(solvername); /* solver name in startup "banner" */
+  Oinfo.opname = strdup(tempBuffer); /* name of solver_options environment var */
   nl = jac0dim(stub, 0);
   suf_declare(suftab, sizeof(suftab) / sizeof(SufDecl));
 
@@ -4722,6 +4726,13 @@ void freeArrays2(ampl_info *info)
   free(info->cut);
   info->cut = NULL;
   ASL_free(&asl);
+  
+  free(Oinfo.sname);
+  Oinfo.sname = NULL;
+  free(Oinfo.bsname);
+  Oinfo.bsname = NULL;
+  free(Oinfo.opname);
+  Oinfo.opname = NULL;
 }
 void freeArgs(ampl_info *info)
 {

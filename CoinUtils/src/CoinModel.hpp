@@ -1264,7 +1264,7 @@ extern "C" {
 /* return nonzero if bad */
 COINUTILSLIB_EXPORT
 int readAmpl(ampl_info *info, int argc, char **argv,
-  void **coinModel);
+  void **coinModel, const char* solvername);
 /* frees some input arrays */
 COINUTILSLIB_EXPORT
 void freeArrays1(ampl_info *info);
