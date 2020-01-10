@@ -4625,7 +4625,7 @@ int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel)
       const char *argument = info->arguments[i];
       for (j = 0; j < sizeof(something) / sizeof(char *); j++) {
         const char *check = something[j];
-        if (!strncmp(argument, check, sizeof(check))) {
+        if (!strncmp(argument, check, strlen(check))) {
           found = (int)(j + 1);
         } else if (!strncmp(argument, "log", 3)) {
           foundLog = 1;
@@ -5357,6 +5357,8 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
   free(rowLower);
   free(rowUpper);
   free(objective);
+  // space for building a row
+  char *temp = new char[30 * numberColumns_];
   // do names
   int iRow;
   for (iRow = 0; iRow < numberRows_; iRow++) {
@@ -5414,7 +5416,6 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
                 constant = getElement(iRow, j);
                 linear = true;
               }
-              char temp[1000];
               char temp2[30];
               if (value == 1.0)
                 sprintf(temp2, "c%7.7d", kColumn);
@@ -5433,7 +5434,7 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
                 else
                   sprintf(temp, "%s%s", expr, temp2);
               }
-              assert(strlen(temp) < 1000);
+              assert(static_cast< int >(strlen(temp)) < 30 * numberColumns_);
               setElement(iRow, j, temp);
               if (amplInfo->logLevel > 1)
                 printf("el for row %d column c%7.7d is %s\n", iRow, j, temp);
@@ -5459,7 +5460,6 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
                 constant = getColumnObjective(j);
                 linear = true;
               }
-              char temp[1000];
               char temp2[30];
               if (value == 1.0)
                 sprintf(temp2, "c%7.7d", kColumn);
@@ -5478,7 +5478,7 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
                 else
                   sprintf(temp, "%s%s", expr, temp2);
               }
-              assert(strlen(temp) < 1000);
+              assert(static_cast< int >(strlen(temp)) < 30 * numberColumns_);
               setObjective(j, temp);
               if (amplInfo->logLevel > 1)
                 printf("el for objective column c%7.7d is %s\n", j, temp);
@@ -5492,6 +5492,7 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
       exit(77);
     }
   }
+  delete[] temp;
   free(colqp);
   free(z);
   // see if any sos
