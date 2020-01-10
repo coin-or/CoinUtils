@@ -1257,9 +1257,8 @@ typedef struct {
   int logLevel;
   int nonLinear;
 } ampl_info;
-#ifdef __cplusplus
+
 extern "C" {
-#endif
 /* return nonzero if bad */
 COINUTILSLIB_EXPORT
 int readAmpl(ampl_info *info, int argc, char **argv,
@@ -1279,9 +1278,7 @@ void writeAmpl(ampl_info *info);
 /* objective precision */
 COINUTILSLIB_EXPORT
 int ampl_obj_prec();
-#ifdef __cplusplus
 }
-#endif
 
 #endif
 

@@ -5540,7 +5540,7 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
   }
 }
 #else
-int readAmpl(ampl_info *, int, char **, void **)
+int readAmpl(ampl_info *, int, char **, void **, const char* solvername)
 {
   return 0;
 }
