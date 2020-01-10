@@ -1207,7 +1207,6 @@ private:
 double getFunctionValueFromString(const char *string, const char *x, double xValue);
 /// faster version
 double getDoubleFromString(CoinYacc &info, const char *string, const char *x, double xValue);
-#endif
 
 
 /* code below was Clp_ampl.hpp in Clp before, but as it implements a
@@ -1282,6 +1281,8 @@ COINUTILSLIB_EXPORT
 int ampl_obj_prec();
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
