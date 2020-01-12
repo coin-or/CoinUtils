@@ -179,6 +179,9 @@ protected:
 */
 
 class COINUTILSLIB_EXPORT CoinModel : public CoinBaseModel {
+  // (private) function in CbcSolver
+  friend int expandKnapsack(CoinModel& cm, int knapsackRow, int &numberOutput, double *buildObj, CoinBigIndex *buildStart,
+    int *buildRow, double *buildElement, int reConstruct);
 
 public:
   /**@name Useful methods for building model */
