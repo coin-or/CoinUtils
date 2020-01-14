@@ -823,6 +823,8 @@ with_aix_soname
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+with_coinutils_verbosity
+with_coinutils_checklevel
 enable_coinutils_threads
 enable_coinutils_mempool_maxpooled
 enable_coinutils_mempool_override_new
@@ -1523,6 +1525,11 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
+  --with-coinutils-verbosity
+                          specify the debug verbosity level for project
+                          COINUTILS
+  --with-coinutils-checklevel
+                          specify the sanity check level for project COINUTILS
   --with-lapack           Use lapack. If an argument is given, 'yes' is
                           equivalent to --with-lapack, 'no' is
                           equivalent to --without-lapack. Any other argument
@@ -16854,6 +16861,39 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
   # shared libraries should have no undefined symbols
   # for Windows DLLs, it is mandatory to add this
   LT_LDFLAGS="$LT_LDFLAGS -no-undefined"
+
+
+# get COIN_COINUTILS_CHECKLEVEL define, used in CoinSmartPtr and CoinPackedMatrix
+
+
+# Check whether --with-coinutils-verbosity was given.
+if test "${with_coinutils_verbosity+set}" = set; then :
+  withval=$with_coinutils_verbosity; if test "$withval" = yes; then withval=1 ; fi
+     coin_coinutils_verbosity=$withval
+else
+  coin_coinutils_verbosity=0
+fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define COIN_COINUTILS_VERBOSITY $coin_coinutils_verbosity
+_ACEOF
+
+
+
+# Check whether --with-coinutils-checklevel was given.
+if test "${with_coinutils_checklevel+set}" = set; then :
+  withval=$with_coinutils_checklevel; if test "$withval" = yes; then withval=1 ; fi
+     coin_coinutils_checklevel=$withval
+else
+  coin_coinutils_checklevel=0
+fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define COIN_COINUTILS_CHECKLEVEL $coin_coinutils_checklevel
+_ACEOF
+
 
 
 #############################################################################

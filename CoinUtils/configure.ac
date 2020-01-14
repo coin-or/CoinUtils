@@ -45,6 +45,9 @@ AC_LANG_PUSH(C++)
 
 AC_COIN_PROG_LIBTOOL
 
+# get COIN_COINUTILS_CHECKLEVEL define, used in CoinSmartPtr and CoinPackedMatrix
+AC_COIN_DEBUGLEVEL(COINUTILS)
+
 #############################################################################
 #                           Header files                                    #
 #############################################################################

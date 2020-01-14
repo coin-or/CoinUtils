@@ -33,6 +33,12 @@
 /* Release version number of project. */
 #undef COINUTILS_VERSION_RELEASE
 
+/* Define to the debug sanity check level (0 is no test) */
+#undef COIN_COINUTILS_CHECKLEVEL
+
+/* Define to the debug verbosity level (0 is no output) */
+#undef COIN_COINUTILS_VERBOSITY
+
 /* Define to be the name of C-function for Inf check */
 #undef COIN_C_FINITE
 
