@@ -74,7 +74,7 @@ CoinBaseModel::operator=(const CoinBaseModel &rhs)
     numberColumns_ = rhs.numberColumns_;
     optimizationDirection_ = rhs.optimizationDirection_;
     objectiveOffset_ = rhs.objectiveOffset_;
-    delete handler_ ;
+    delete handler_;
     if (rhs.handler_ != NULL)
       handler_ = new CoinMessageHandler(*rhs.handler_) ;
     else
