@@ -5,20 +5,20 @@
 
 #include "CoinError.hpp"
 
-bool CoinError::printErrors_ = false;
+bool COINUTILSLIB_EXPORT CoinError::printErrors_ = false;
 
 /** A function to block the popup windows that windows creates when the code
     crashes */
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
+COINUTILSLIB_EXPORT
 void WindowsErrorPopupBlocker()
 {
   SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 }
 #else
-void WindowsErrorPopupBlocker()
-{
-}
+COINUTILSLIB_EXPORT
+void WindowsErrorPopupBlocker() {}
 #endif
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2

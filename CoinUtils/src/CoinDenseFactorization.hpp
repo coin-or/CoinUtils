@@ -23,7 +23,7 @@
 #endif
 class CoinPackedMatrix;
 /// Abstract base class which also has some scalars so can be used from Dense or Simp
-class CoinOtherFactorization {
+class COINUTILSLIB_EXPORT CoinOtherFactorization {
 
 public:
   /**@name Constructors and destructor and copy */
@@ -304,7 +304,7 @@ protected:
     may be redefined to get 64 bits.
  */
 
-class CoinDenseFactorization : public CoinOtherFactorization {
+class COINUTILSLIB_EXPORT CoinDenseFactorization : public CoinOtherFactorization {
   friend void CoinDenseFactorizationUnitTest(const std::string &mpsDir);
 
 public:

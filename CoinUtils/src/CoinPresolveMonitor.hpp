@@ -26,8 +26,10 @@
   to the CoinPresolveMatrix and CoinPostsolveMatrix classes that will only be
   used for debugging. That's not too attractive either.
 */
-class CoinPresolveMonitor {
-public:
+class COINUTILSLIB_EXPORT CoinPresolveMonitor
+{
+  public:
+
   /*! \brief Default constructor
 
     Creates an empty monitor.

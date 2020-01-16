@@ -8,6 +8,7 @@
 #ifndef CoinFinite_H
 #define CoinFinite_H
 
+#include <CoinUtilsConfig.h>
 #include <limits>
 
 //=============================================================================
@@ -26,10 +27,10 @@ const double COIN_INT_MAX_AS_DOUBLE = (std::numeric_limits< int >::max)();
 #endif
 
 /** checks if a double value is finite (not infinity and not NaN) */
-extern bool CoinFinite(double val);
+extern COINUTILSLIB_EXPORT bool CoinFinite(double val);
 
 /** checks if a double value is not a number */
-extern bool CoinIsnan(double val);
+extern COINUTILSLIB_EXPORT bool CoinIsnan(double val);
 
 #endif
 

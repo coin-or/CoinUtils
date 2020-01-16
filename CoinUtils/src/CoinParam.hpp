@@ -17,6 +17,8 @@
 #include <string>
 #include <cstdio>
 
+#include "CoinUtilsConfig.h"
+
 /*! \class CoinParam
     \brief A base class for `keyword value' command line parameters.
 
@@ -72,8 +74,9 @@
   \e not case sensitive.
 */
 
-class CoinParam {
-
+class COINUTILSLIB_EXPORT CoinParam
+{
+ 
 public:
   /*! \name Subtypes */
   //@{
@@ -430,6 +433,7 @@ typedef std::vector< CoinParam * > CoinParamVec;
 /*! \relatesalso CoinParam
     \brief A stream output function for a CoinParam object.
 */
+COINUTILSLIB_EXPORT
 std::ostream &operator<<(std::ostream &s, const CoinParam &param);
 
 /*
@@ -449,16 +453,19 @@ namespace CoinParamUtils {
 
       Use stdin for \p src to specify interactive prompting for commands.
   */
+COINUTILSLIB_EXPORT
 void setInputSrc(FILE *src);
 
 /*! \relatesalso CoinParam
       \brief Returns true if command line parameters are being processed.
   */
+COINUTILSLIB_EXPORT
 bool isCommandLine();
 
 /*! \relatesalso CoinParam
       \brief Returns true if parameters are being obtained from stdin.
   */
+COINUTILSLIB_EXPORT
 bool isInteractive();
 
 /*! \relatesalso CoinParam
@@ -468,6 +475,7 @@ bool isInteractive();
       If \p valid is supplied, it will be set to 0 if a string is parsed
       without error, 2 if no field is present.
   */
+COINUTILSLIB_EXPORT
 std::string getStringField(int argc, const char *argv[], int *valid);
 
 /*! \relatesalso CoinParam
@@ -477,6 +485,7 @@ std::string getStringField(int argc, const char *argv[], int *valid);
       If \p valid is supplied, it will be set to 0 if an integer is parsed
       without error, 1 if there's a parse error, and 2 if no field is present.
   */
+COINUTILSLIB_EXPORT
 int getIntField(int argc, const char *argv[], int *valid);
 
 /*! \relatesalso CoinParam
@@ -486,6 +495,7 @@ int getIntField(int argc, const char *argv[], int *valid);
       If \p valid is supplied, it will be set to 0 if a real number is parsed
       without error, 1 if there's a parse error, and 2 if no field is present.
   */
+COINUTILSLIB_EXPORT
 double getDoubleField(int argc, const char *argv[], int *valid);
 
 /*! \relatesalso CoinParam
@@ -500,6 +510,7 @@ double getDoubleField(int argc, const char *argv[], int *valid);
        value is the number of matches satisfying the minimal match requirement
        (should be 0 or 1 in a properly configured vector).
   */
+COINUTILSLIB_EXPORT
 int matchParam(const CoinParamVec &paramVec, std::string name,
   int &matchNdx, int &shortCnt);
 
@@ -533,6 +544,7 @@ int matchParam(const CoinParamVec &paramVec, std::string name,
     interactive mode.
   */
 
+COINUTILSLIB_EXPORT
 std::string getCommand(int argc, const char *argv[],
   const std::string prompt, std::string *pfx = 0);
 
@@ -573,6 +585,7 @@ std::string getCommand(int argc, const char *argv[],
 	       (configuration error)
     </ul>
   */
+COINUTILSLIB_EXPORT
 int lookupParam(std::string name, CoinParamVec &paramVec,
   int *matchCnt = 0, int *shortCnt = 0, int *queryCnt = 0);
 
@@ -583,6 +596,7 @@ int lookupParam(std::string name, CoinParamVec &paramVec,
       standard 80 character line length. Explicit newlines in \p msg will
       be obeyed.
   */
+COINUTILSLIB_EXPORT
 void printIt(const char *msg);
 
 /*! \relatesalso CoinParam
@@ -601,6 +615,7 @@ void printIt(const char *msg);
       is printed.
 
   */
+COINUTILSLIB_EXPORT
 void shortOrHelpOne(CoinParamVec &paramVec, int matchNdx, std::string name, int numQuery);
 
 /*! \relatesalso CoinParam
@@ -611,6 +626,7 @@ void shortOrHelpOne(CoinParamVec &paramVec, int matchNdx, std::string name, int 
       the name asks for long help (contains two or more '?' characters),
       short help is printed for each matching name.
   */
+COINUTILSLIB_EXPORT
 void shortOrHelpMany(CoinParamVec &paramVec,
   std::string name, int numQuery);
 
@@ -619,6 +635,7 @@ void shortOrHelpMany(CoinParamVec &paramVec,
 
     The message is hard coded to match the behaviour of the parsing utilities.
   */
+COINUTILSLIB_EXPORT
 void printGenericHelp();
 
 /*! \relatesalso CoinParam
@@ -633,6 +650,7 @@ void printGenericHelp();
     keywords are printed. \p prefix is printed before each line; it's an
     imperfect attempt at indentation.
   */
+COINUTILSLIB_EXPORT
 void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
   std::string prefix,
   bool shortHelp, bool longHelp, bool hidden);

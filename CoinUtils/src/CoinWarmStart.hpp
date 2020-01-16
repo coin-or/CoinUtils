@@ -8,7 +8,7 @@
 
 //#############################################################################
 
-class CoinWarmStartDiff;
+class COINUTILSLIB_EXPORT CoinWarmStartDiff;
 
 /** Abstract base class for warm start information.
 
@@ -18,7 +18,7 @@ class CoinWarmStartDiff;
     so that derived classes can provide these functions.
 */
 
-class CoinWarmStart {
+class COINUTILSLIB_EXPORT CoinWarmStart {
 public:
   /// Abstract destructor
   virtual ~CoinWarmStart() {}
@@ -41,7 +41,7 @@ public:
   reason for existence is to make it possible to write solver-independent code.
 */
 
-class CoinWarmStartDiff {
+class COINUTILSLIB_EXPORT CoinWarmStartDiff {
 public:
   /// Abstract destructor
   virtual ~CoinWarmStartDiff() {}

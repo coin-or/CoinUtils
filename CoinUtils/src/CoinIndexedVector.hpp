@@ -101,7 +101,7 @@ Here is a sample usage:
     assert( r.sum() == 10.+40.+1.+50. );
 @endverbatim
 */
-class CoinIndexedVector {
+class COINUTILSLIB_EXPORT CoinIndexedVector {
   friend void CoinIndexedVectorUnitTest();
 
 public:
@@ -530,7 +530,7 @@ void CoinIndexedVectorUnitTest();
     CoinConditionalDelete sets number of bytes = -size-2 and then array 
     returns NULL
 */
-class CoinArrayWithLength {
+class COINUTILSLIB_EXPORT CoinArrayWithLength {
 
 public:
   /**@name Get methods. */
@@ -675,7 +675,7 @@ protected:
 };
 /// double * version
 
-class CoinDoubleArrayWithLength : public CoinArrayWithLength {
+class COINUTILSLIB_EXPORT CoinDoubleArrayWithLength : public CoinArrayWithLength {
 
 public:
   /**@name Get methods. */
@@ -752,7 +752,7 @@ public:
 };
 /// CoinFactorizationDouble * version
 
-class CoinFactorizationDoubleArrayWithLength : public CoinArrayWithLength {
+class COINUTILSLIB_EXPORT CoinFactorizationDoubleArrayWithLength : public CoinArrayWithLength {
 
 public:
   /**@name Get methods. */
@@ -829,7 +829,7 @@ public:
 };
 /// CoinFactorizationLongDouble * version
 
-class CoinFactorizationLongDoubleArrayWithLength : public CoinArrayWithLength {
+class COINUTILSLIB_EXPORT CoinFactorizationLongDoubleArrayWithLength : public CoinArrayWithLength {
 
 public:
   /**@name Get methods. */
@@ -906,7 +906,7 @@ public:
 };
 /// int * version
 
-class CoinIntArrayWithLength : public CoinArrayWithLength {
+class COINUTILSLIB_EXPORT CoinIntArrayWithLength : public CoinArrayWithLength {
 
 public:
   /**@name Get methods. */
@@ -983,7 +983,7 @@ public:
 };
 /// CoinBigIndex * version
 
-class CoinBigIndexArrayWithLength : public CoinArrayWithLength {
+class COINUTILSLIB_EXPORT CoinBigIndexArrayWithLength : public CoinArrayWithLength {
 
 public:
   /**@name Get methods. */
@@ -1060,7 +1060,7 @@ public:
 };
 /// unsigned int * version
 
-class CoinUnsignedIntArrayWithLength : public CoinArrayWithLength {
+class COINUTILSLIB_EXPORT CoinUnsignedIntArrayWithLength : public CoinArrayWithLength {
 
 public:
   /**@name Get methods. */
@@ -1137,7 +1137,7 @@ public:
 };
 /// void * version
 
-class CoinVoidStarArrayWithLength : public CoinArrayWithLength {
+class COINUTILSLIB_EXPORT CoinVoidStarArrayWithLength : public CoinArrayWithLength {
 
 public:
   /**@name Get methods. */
@@ -1214,7 +1214,7 @@ public:
 };
 /// arbitrary version
 
-class CoinArbitraryArrayWithLength : public CoinArrayWithLength {
+class COINUTILSLIB_EXPORT CoinArbitraryArrayWithLength : public CoinArrayWithLength {
 
 public:
   /**@name Get methods. */
@@ -1300,7 +1300,7 @@ protected:
   CoinBigIndex lengthInBytes_;
   //@}
 };
-class CoinPartitionedVector : public CoinIndexedVector {
+class COINUTILSLIB_EXPORT CoinPartitionedVector : public CoinIndexedVector {
 
 public:
 #ifndef COIN_PARTITIONS

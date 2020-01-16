@@ -2764,8 +2764,8 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
 }
 #ifdef COIN_HAS_GLPK
 #include "glpk.h"
-glp_tran *cbc_glp_tran = NULL;
-glp_prob *cbc_glp_prob = NULL;
+COINUTILSLIB_EXPORT glp_tran *cbc_glp_tran = NULL;
+COINUTILSLIB_EXPORT glp_prob *cbc_glp_prob = NULL;
 #endif
 /* Read a problem in GMPL (subset of AMPL)  format from the given filenames.
    Thanks to Ted Ralphs - I just looked at his coding rather than look at the GMPL documentation.

@@ -29,7 +29,7 @@ struct dropped_zero {
   The presolve action for this class removes explicit zeros from the constraint
   matrix. The postsolve action puts them back.
 */
-class drop_zero_coefficients_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT drop_zero_coefficients_action : public CoinPresolveAction {
 
   const int nzeros_;
   const dropped_zero *const zeros_;
@@ -56,6 +56,7 @@ public:
   virtual ~drop_zero_coefficients_action() { deleteAction(zeros_, dropped_zero *); }
 };
 
+COINUTILSLIB_EXPORT
 const CoinPresolveAction *drop_zero_coefficients(CoinPresolveMatrix *prob,
   const CoinPresolveAction *next);
 

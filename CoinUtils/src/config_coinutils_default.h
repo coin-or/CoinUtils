@@ -38,5 +38,14 @@
 #define COIN_INTPTR_T int *
 #endif
 
+#ifndef COINUTILS_EXPORT
+#ifdef _WIN32
+/* assuming we link against a CoinUtils DLL */
+#define COINUTILS_EXPORT __declspec(dllimport)
+#else
+#define COINUTILS_EXPORT
+#endif
+#endif
+
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
 */

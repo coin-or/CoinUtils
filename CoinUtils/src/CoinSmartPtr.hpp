@@ -154,16 +154,13 @@ namespace Coin {
      * technique where the reference count is stored in the object being
      * referenced. 
      */
-class ReferencedObject {
+class COINUTILSLIB_EXPORT ReferencedObject {
 public:
-  ReferencedObject()
-    : reference_count_(0)
-  {
-  }
-  virtual ~ReferencedObject() { assert(reference_count_ == 0); }
-  inline int ReferenceCount() const { return reference_count_; }
-  inline void AddRef() const { ++reference_count_; }
-  inline void ReleaseRef() const { --reference_count_; }
+	ReferencedObject() : reference_count_(0) {}
+	virtual ~ReferencedObject()       { assert(reference_count_ == 0); }
+	inline int ReferenceCount() const { return reference_count_; }
+	inline void AddRef() const        { ++reference_count_; }
+	inline void ReleaseRef() const    { --reference_count_; }
 
 private:
   mutable int reference_count_;

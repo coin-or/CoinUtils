@@ -452,8 +452,9 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
   within bounds. If you want to protect against this possibility, you want to
   use make_fixed.
 */
-const CoinPresolveAction *remove_fixed(CoinPresolveMatrix *prob,
-  const CoinPresolveAction *next)
+COINUTILSLIB_EXPORT
+const CoinPresolveAction *remove_fixed (CoinPresolveMatrix *prob,
+                                        const CoinPresolveAction *next)
 {
   int ncols = prob->ncols_;
   int *fcols = new int[ncols];
@@ -691,8 +692,9 @@ void make_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
   remove_fixed_action to remove the variable from the problem. If you're
   confident of feasibility, consider remove_fixed.
 */
-const CoinPresolveAction *make_fixed(CoinPresolveMatrix *prob,
-  const CoinPresolveAction *next)
+COINUTILSLIB_EXPORT
+const CoinPresolveAction *make_fixed (CoinPresolveMatrix *prob,
+                                      const CoinPresolveAction *next)
 {
 #if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #if PRESOLVE_DEBUG > 0
@@ -752,7 +754,8 @@ const CoinPresolveAction *make_fixed(CoinPresolveMatrix *prob,
     (c<t> - c<s>(a<it>/a<is>))delta<t>
   This is transform (A) below.
 */
-void transferCosts(CoinPresolveMatrix *prob)
+COINUTILSLIB_EXPORT
+void transferCosts (CoinPresolveMatrix *prob)
 {
   double *colels = prob->colels_;
   int *hrow = prob->hrow_;

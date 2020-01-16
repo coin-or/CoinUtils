@@ -47,7 +47,7 @@ class CoinPackedMatrix;
     may be redefined to get 64 bits.
  */
 
-class CoinFactorization {
+class COINUTILSLIB_EXPORT CoinFactorization {
   friend void CoinFactorizationUnitTest(const std::string &mpsDir);
 
 public:

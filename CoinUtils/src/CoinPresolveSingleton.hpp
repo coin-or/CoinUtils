@@ -21,7 +21,7 @@
   transfers the bound to the appropriate column bound array.
   The constraint is removed from the constraint system.
 */
-class slack_doubleton_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT slack_doubleton_action : public CoinPresolveAction {
   struct action {
     double clo;
     double cup;
@@ -72,7 +72,7 @@ public:
     If there is a row objective region then we may be able to do
     this even with a cost.
 */
-class slack_singleton_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT slack_singleton_action : public CoinPresolveAction {
   struct action {
     double clo;
     double cup;

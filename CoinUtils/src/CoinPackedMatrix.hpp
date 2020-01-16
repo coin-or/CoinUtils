@@ -12,7 +12,7 @@
 #include "CoinPackedVectorBase.hpp"
 #include "CoinShallowPackedVector.hpp"
 #else
-class CoinRelFltEq;
+class COINUTILSLIB_EXPORT CoinRelFltEq;
 #endif
 
 /** Sparse Matrix Base Class
@@ -76,8 +76,8 @@ class CoinRelFltEq;
 
   Compiling this class with COIN_FAST_CODE defined removes index range checks.
 */
-class CoinPackedMatrix {
-  friend void CoinPackedMatrixUnitTest();
+class COINUTILSLIB_EXPORT CoinPackedMatrix {
+   friend void CoinPackedMatrixUnitTest();
 
 public:
   //---------------------------------------------------------------------------

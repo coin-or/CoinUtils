@@ -7,8 +7,11 @@
 
 #include <cmath>
 
+#include "CoinUtilsConfig.h"
+
 //Small class for rational numbers
-class CoinRational {
+class COINUTILSLIB_EXPORT CoinRational
+{
 
 public:
   long getDenominator() { return denominator_; }

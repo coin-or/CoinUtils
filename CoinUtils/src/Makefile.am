@@ -8,6 +8,8 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+include $(top_srcdir)/BuildTools/Makemain.inc
+
 ########################################################################
 #                             libCoinUtils                             #
 ########################################################################
@@ -111,28 +113,22 @@ libCoinUtils_la_SOURCES = \
 	CoinAdjacencyVector.cpp \
 	CoinCliqueList.cpp
 
-# List all additionally required libraries
-if DEPENDENCY_LINKING
-libCoinUtils_la_LIBADD = $(COINUTILSLIB_LIBS)
-endif
-
-# This is for libtool
+# This is for libtool.
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
-# Here list all include flags, relative to this "srcdir" directory.  This
-# "cygpath" stuff is necessary to compile with native compilers on Windows
-AM_CPPFLAGS = $(GLPK_CFLAGS)
+# Add library dependencies to libCoinUtils.
+libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
 
-# This line is necessary to allow VPATH compilation
-DEFAULT_INCLUDES = -I. -I`$(CYGPATH_W) $(srcdir)`
+# Here list all include flags, relative to this "srcdir" directory.
+AM_CPPFLAGS = -DCOINUTILS_BUILD $(COINUTILSLIB_CFLAGS)
 
 ########################################################################
 #                Headers that need to be installed                     #
 ########################################################################
 
 # Here list all the header files that are required by a user of the library,
-# and that therefore should be installed in 'install/coin'
-includecoindir = $(includedir)/coin
+# and that therefore should be installed in pkgincludedir.
+includecoindir = $(pkgincludedir)
 includecoin_HEADERS = \
 	Coin_C_defines.h \
 	CoinAlloc.hpp \

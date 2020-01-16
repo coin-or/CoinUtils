@@ -22,7 +22,7 @@
 
 */
 
-class CoinBuild {
+class COINUTILSLIB_EXPORT CoinBuild {
 
 public:
   /**@name Useful methods */

@@ -10,7 +10,7 @@
 #include "CoinMessageHandler.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinFinite.hpp"
-class CoinBaseModel {
+class COINUTILSLIB_EXPORT CoinBaseModel {
 
 public:
   /**@name Constructors, destructor */
@@ -178,7 +178,10 @@ protected:
     B)  This class could be useful for modeling.
 */
 
-class CoinModel : public CoinBaseModel {
+class COINUTILSLIB_EXPORT CoinModel : public CoinBaseModel {
+  // (private) function in CbcSolver
+  friend int expandKnapsack(CoinModel& cm, int knapsackRow, int &numberOutput, double *buildObj, CoinBigIndex *buildStart,
+    int *buildRow, double *buildElement, int reConstruct);
 
 public:
   /**@name Useful methods for building model */
@@ -984,8 +987,7 @@ public:
   /** Read a problem in MPS or GAMS format from the given filename.
    */
   CoinModel(const char *fileName, int allowStrings = 0);
-  /** Read a problem from AMPL nl file
-       NOTE - as I can't work out configure etc the source code is in Cbc_ampl.cpp!
+  /** Read a problem from AMPL nl file, if linked against ASL
    */
   CoinModel(int nonLinear, const char *fileName, const void *info);
   /// From arrays
@@ -1054,18 +1056,6 @@ public:
       Returns NULL if not possible
   */
   CoinModel *reorder(const char *mark) const;
-  /** Expands out all possible combinations for a knapsack
-      If buildObj NULL then just computes space needed - returns number elements
-      On entry numberOutput is maximum allowed, on exit it is number needed or
-      -1 (as will be number elements) if maximum exceeded.  numberOutput will have at
-      least space to return values which reconstruct input.
-      Rows returned will be original rows but no entries will be returned for
-      any rows all of whose entries are in knapsack.  So up to user to allow for this.
-      If reConstruct >=0 then returns number of entrie which make up item "reConstruct"
-      in expanded knapsack.  Values in buildRow and buildElement;
-  */
-  int expandKnapsack(int knapsackRow, int &numberOutput, double *buildObj, CoinBigIndex *buildStart,
-    int *buildRow, double *buildElement, int reConstruct = -1) const;
   /// Sets cut marker array
   void setCutMarker(int size, const int *marker);
   /// Sets priority array
@@ -1208,6 +1198,79 @@ private:
 double getFunctionValueFromString(const char *string, const char *x, double xValue);
 /// faster version
 double getDoubleFromString(CoinYacc &info, const char *string, const char *x, double xValue);
+
+
+/* code below was Clp_ampl.hpp in Clp before, but as it implements a
+ * CoinModel method, it should be in CoinUtils
+ */
+
+typedef struct {
+  int numberRows;
+  int numberColumns;
+  int numberBinary;
+  int numberIntegers; /* non binary */
+  int numberSos;
+  int numberElements;
+  int numberArguments;
+  int problemStatus;
+  double direction;
+  double offset;
+  double objValue;
+  double *objective;
+  double *rowLower;
+  double *rowUpper;
+  double *columnLower;
+  double *columnUpper;
+#if COIN_BIG_INDEX == 0
+  int *starts;
+#else
+  long unsigned int *starts;
+#endif
+  int *rows;
+  double *elements;
+  double *primalSolution;
+  double *dualSolution;
+  int *columnStatus;
+  int *rowStatus;
+  int *priorities;
+  int *branchDirection;
+  double *pseudoDown;
+  double *pseudoUp;
+  char *sosType;
+  int *sosPriority;
+  int *sosStart;
+  int *sosIndices;
+  double *sosReference;
+  int *cut;
+  int *special;
+  char **arguments;
+  char buffer[300];
+  int logLevel;
+  int nonLinear;
+} ampl_info;
+
+extern "C" {
+/* return nonzero if bad */
+COINUTILSLIB_EXPORT
+int readAmpl(ampl_info *info, int argc, char **argv,
+  void **coinModel, const char* solvername);
+/* frees some input arrays */
+COINUTILSLIB_EXPORT
+void freeArrays1(ampl_info *info);
+/* frees rest */
+COINUTILSLIB_EXPORT
+void freeArrays2(ampl_info *info);
+/* frees fake arguments */
+COINUTILSLIB_EXPORT
+void freeArgs(ampl_info *info);
+/* writes ampl stuff */
+COINUTILSLIB_EXPORT
+void writeAmpl(ampl_info *info);
+/* objective precision */
+COINUTILSLIB_EXPORT
+int ampl_obj_prec();
+}
+
 #endif
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2

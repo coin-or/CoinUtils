@@ -3,7 +3,8 @@
 .ci/appveyor.pre -text
 .coin-or/projDesc.xml -text
 /.travis.yml -text
-/AUTHORS -text
+CoinUtils/.coin-or/projDesc.xml -text
+CoinUtils/Dependencies -text
 CoinUtils/INSTALL -text
 CoinUtils/LICENSE -text
 CoinUtils/MSVisualStudio/v10/CoinUtils.sln -text
@@ -26,8 +27,8 @@ CoinUtils/MSVisualStudio/v9alt/coinutils.vsprops -text
 CoinUtils/MSVisualStudio/v9alt/genDefForCoinUtils.ps1 -text
 CoinUtils/MSVisualStudio/v9alt/libCoinUtils.vcproj -text
 CoinUtils/README -text
-CoinUtils/coinutils-uninstalled.pc.in -text
 CoinUtils/coinutils.pc.in -text
+CoinUtils/compile -text
 CoinUtils/config.guess -text
 CoinUtils/config.sub -text
 CoinUtils/configure -text
@@ -36,6 +37,9 @@ CoinUtils/depcomp -text
 CoinUtils/doxydoc/doxygen.conf.in -text
 CoinUtils/install-sh -text
 CoinUtils/ltmain.sh -text
+CoinUtils/m4/ac_coinutils_inttypes.m4 -text
+CoinUtils/m4/ac_coinutils_mempool.m4 -text
+CoinUtils/m4/ac_coinutils_threads.m4 -text
 CoinUtils/missing -text
 CoinUtils/src/.ycm_extra_conf.py -text
 CoinUtils/src/CoinAdjacencyVector.cpp -text
@@ -101,16 +105,4 @@ CoinUtils/src/vint_set.h -text
 CoinUtils/test/CoinLpIOTest.cpp -text
 CoinUtils/test/CoinMessageHandlerTest.cpp -text
 CoinUtils/test/plan.mod -text
-/Dependencies -text
-/INSTALL -text
-/LICENSE -text
-/README -text
 /appveyor.yml -text
-/config.guess -text
-/config.sub -text
-/configure -text
-/configure.ac -text
-/depcomp -text
-doxydoc/doxygen.conf.in -text
-/install-sh -text
-/missing -text

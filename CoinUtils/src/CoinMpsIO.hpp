@@ -85,9 +85,9 @@ enum COINMpsType { COIN_N_ROW,
   COIN_UL_BASIS,
   COIN_UNKNOWN_MPS_TYPE
 };
-class CoinMpsIO;
+class COINUTILSLIB_EXPORT CoinMpsIO;
 /// Very simple code for reading MPS data
-class CoinMpsCardReader {
+class COINUTILSLIB_EXPORT CoinMpsCardReader {
 
 public:
   /**@name Constructor and destructor */
@@ -262,11 +262,11 @@ public:
 
 //#############################################################################
 #ifdef USE_SBB
-class SbbObject;
-class SbbModel;
+class COINUTILSLIB_EXPORT SbbObject;
+class COINUTILSLIB_EXPORT SbbModel;
 #endif
 /// Very simple class for containing data on set
-class CoinSet {
+class COINUTILSLIB_EXPORT CoinSet {
 
 public:
   /**@name Constructor and destructor */
@@ -358,7 +358,8 @@ protected:
 
 //#############################################################################
 /// Very simple class for containing SOS set
-class CoinSosSet : public CoinSet {
+
+class COINUTILSLIB_EXPORT CoinSosSet : public CoinSet {
 
 public:
   /**@name Constructor and destructor */
@@ -398,7 +399,7 @@ protected:
     as the same conventions are used.
 */
 
-class CoinMpsIO {
+class COINUTILSLIB_EXPORT CoinMpsIO {
   friend void CoinMpsIOUnitTest(const std::string &mpsDir);
 
 public:
@@ -1134,6 +1135,7 @@ void CoinMpsIOUnitTest(const std::string &mpsDir);
    2 - IEEE hex - INTEL
    3 - IEEE hex - not INTEL
 */
+COINUTILSLIB_EXPORT
 void CoinConvertDouble(int section, int formatType, double value, char outputValue[24]);
 
 #endif

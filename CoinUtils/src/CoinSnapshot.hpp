@@ -6,24 +6,25 @@
 #ifndef CoinSnapshot_H
 #define CoinSnapshot_H
 
-class CoinPackedMatrix;
+class COINUTILSLIB_EXPORT CoinPackedMatrix;
 #include "CoinTypes.hpp"
 
 //#############################################################################
 
-/** NON Abstract Base Class for interfacing with cut generators or branching code or ..
-    It is designed to be snapshot of a problem at a node in tree
+/**
+  NON Abstract Base Class for interfacing with cut generators or branching
+  code or ...
+  It is designed to be snapshot of a problem at a node in tree
     
   The class may or may not own the arrays - see owned_
-
 
   Querying a problem that has no data associated with it will result in
   zeros for the number of rows and columns, and NULL pointers from
   the methods that return arrays.
 */
 
-class CoinSnapshot {
-
+class COINUTILSLIB_EXPORT CoinSnapshot  {
+  
 public:
   //---------------------------------------------------------------------------
   /**@name Problem query methods

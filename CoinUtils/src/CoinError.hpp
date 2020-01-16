@@ -16,6 +16,7 @@
 
 /** A function to block the popup windows that windows creates when the code
     crashes */
+COINUTILSLIB_EXPORT
 void WindowsErrorPopupBlocker();
 
 //-------------------------------------------------------------------
@@ -39,7 +40,7 @@ It contains:
   </ul>
   For asserts class=> optional hint
 */
-class CoinError {
+class COINUTILSLIB_EXPORT CoinError  {
   friend void CoinErrorUnitTest();
 
 private:

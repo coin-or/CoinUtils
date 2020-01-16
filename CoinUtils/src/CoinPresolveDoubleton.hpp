@@ -23,7 +23,7 @@
 	   b/-a < 0 ==> (b u2 - c) / -a <= x <= (b l2 - c) / -a
   \endverbatim
 */
-class doubleton_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT doubleton_action : public CoinPresolveAction {
 public:
   struct action {
 

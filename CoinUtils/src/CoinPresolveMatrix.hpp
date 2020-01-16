@@ -111,6 +111,8 @@ const double ZTOLDP2 = 1e-10;
 
 class CoinPostsolveMatrix;
 
+class COINUTILSLIB_EXPORT CoinPostsolveMatrix ;
+
 /*! \class CoinPresolveAction
     \brief Abstract base class of all presolve routines.
 
@@ -160,8 +162,9 @@ class CoinPostsolveMatrix;
 	expected that all derived subclasses of \c CoinPresolveAction also have
 	this property.
 */
-class CoinPresolveAction {
-public:
+class COINUTILSLIB_EXPORT CoinPresolveAction
+{
+ public:
   /*! \brief Stub routine to throw exceptions.
   
    Exceptions are inefficient, particularly with g++.  Even with xlC, the
@@ -210,17 +213,10 @@ public:
 };
 
 /*
-  These are needed for OSI-aware constructors associated with
-  CoinPrePostsolveMatrix, CoinPresolveMatrix, and CoinPostsolveMatrix.
-*/
-class ClpSimplex;
-class OsiSolverInterface;
-
-/*
   CoinWarmStartBasis is required for methods in CoinPrePostsolveMatrix
   that accept/return a CoinWarmStartBasis object.
 */
-class CoinWarmStartBasis;
+class CoinWarmStartBasis ;
 
 /*! \class CoinPrePostsolveMatrix
     \brief Collects all the information about the problem that is needed
@@ -270,14 +266,12 @@ class CoinWarmStartBasis;
   CoinPostsolveMatrix would break a lot of code.  It's not clear that it's
   worth it, and it would preclude upgrades to the presolve side that might
   make use of any of these.  -- lh, 080501 --
-
-  The constructors that take an OSI or ClpSimplex as a parameter really should
-  not be here, but for historical reasons they will likely remain for the
-  forseeable future.  -- lh, 111202 --
 */
 
-class CoinPrePostsolveMatrix {
-public:
+class COINUTILSLIB_EXPORT CoinPrePostsolveMatrix
+{
+ public:
+
   /*! \name Constructors & Destructors */
 
   //@{
@@ -288,26 +282,7 @@ public:
     OsiSolverInterface.
   */
   CoinPrePostsolveMatrix(int ncols_alloc, int nrows_alloc,
-    CoinBigIndex nelems_alloc);
-
-  /*! \brief Generic OSI constructor
-
-    See OSI code for the definition.
-  */
-  CoinPrePostsolveMatrix(const OsiSolverInterface *si,
-    int ncols_,
-    int nrows_,
-    CoinBigIndex nelems_);
-
-  /*! ClpOsi constructor
-
-    See Clp code for the definition.
-  */
-  CoinPrePostsolveMatrix(const ClpSimplex *si,
-    int ncols_,
-    int nrows_,
-    CoinBigIndex nelems_,
-    double bulkRatio);
+                         CoinBigIndex nelems_alloc);
 
   /// Destructor
   ~CoinPrePostsolveMatrix();
@@ -806,8 +781,8 @@ const char *statusName(CoinPrePostsolveMatrix::Status status);
    row-major matrix, of course.
 */
 
-class presolvehlink {
-public:
+class COINUTILSLIB_EXPORT presolvehlink
+{ public:
   int pre, suc;
 };
 
@@ -896,14 +871,11 @@ inline void PRESOLVE_MOVE_LINK(presolvehlink *link, int i, int j)
   This is a good thing: better to convert objective coefficients and duals
   once, before starting presolve, rather than doing it over and over in
   each transform that considers dual variables.
-
-  The constructors that take an OSI or ClpSimplex as a parameter really should
-  not be here, but for historical reasons they will likely remain for the
-  forseeable future.  -- lh, 111202 --
 */
+class COINUTILSLIB_EXPORT CoinPresolveMatrix : public CoinPrePostsolveMatrix
+{
+ public:
 
-class CoinPresolveMatrix : public CoinPrePostsolveMatrix {
-public:
   /*! \brief `Native' constructor
 
     This constructor creates an empty object which must then be loaded.
@@ -912,50 +884,6 @@ public:
   */
   CoinPresolveMatrix(int ncols_alloc, int nrows_alloc,
     CoinBigIndex nelems_alloc);
-
-  /*! \brief Clp OSI constructor
-
-    See Clp code for the definition.
-  */
-  CoinPresolveMatrix(int ncols0,
-    double maxmin,
-    // end prepost members
-
-    ClpSimplex *si,
-
-    // rowrep
-    int nrows,
-    CoinBigIndex nelems,
-    bool doStatus,
-    double nonLinearVariable,
-    double bulkRatio);
-
-  /*! \brief Update the model held by a Clp OSI */
-  void update_model(ClpSimplex *si,
-    int nrows0,
-    int ncols0,
-    CoinBigIndex nelems0);
-  /*! \brief Generic OSI constructor
-
-    See OSI code for the definition.
-  */
-  CoinPresolveMatrix(int ncols0,
-    double maxmin,
-    // end prepost members
-    OsiSolverInterface *si,
-    // rowrep
-    int nrows,
-    CoinBigIndex nelems,
-    bool doStatus,
-    double nonLinearVariable,
-    const char *prohibited,
-    const char *rowProhibited = NULL);
-
-  /*! \brief Update the model held by a generic OSI */
-  void update_model(OsiSolverInterface *si,
-    int nrows0,
-    int ncols0,
-    CoinBigIndex nelems0);
 
   /// Destructor
   ~CoinPresolveMatrix();
@@ -1544,13 +1472,11 @@ public:
   There is no provision to convert the threaded representation to a packed
   representation. In the context of postsolve, it's not required. (You did
   keep a copy of the original matrix, eh?)
-
-  The constructors that take an OSI or ClpSimplex as a parameter really should
-  not be here, but for historical reasons they will likely remain for the
-  forseeable future.  -- lh, 111202 --
 */
-class CoinPostsolveMatrix : public CoinPrePostsolveMatrix {
-public:
+class COINUTILSLIB_EXPORT CoinPostsolveMatrix : public CoinPrePostsolveMatrix
+{
+ public:
+
   /*! \brief `Native' constructor
 
     This constructor creates an empty object which must then be loaded.
@@ -1559,44 +1485,6 @@ public:
   */
   CoinPostsolveMatrix(int ncols_alloc, int nrows_alloc,
     CoinBigIndex nelems_alloc);
-
-  /*! \brief Clp OSI constructor
-
-    See Clp code for the definition.
-  */
-  CoinPostsolveMatrix(ClpSimplex *si,
-
-    int ncols0,
-    int nrows0,
-    CoinBigIndex nelems0,
-
-    double maxmin_,
-    // end prepost members
-
-    double *sol,
-    double *acts,
-
-    unsigned char *colstat,
-    unsigned char *rowstat);
-
-  /*! \brief Generic OSI constructor
-
-    See OSI code for the definition.
-  */
-  CoinPostsolveMatrix(OsiSolverInterface *si,
-
-    int ncols0,
-    int nrows0,
-    CoinBigIndex nelems0,
-
-    double maxmin_,
-    // end prepost members
-
-    double *sol,
-    double *acts,
-
-    unsigned char *colstat,
-    unsigned char *rowstat);
 
   /*! \brief Load an empty CoinPostsolveMatrix from a CoinPresolveMatrix
 
@@ -1663,6 +1551,7 @@ public:
     \brief Initialise linked list for major vector order in bulk storage
 */
 
+COINUTILSLIB_EXPORT
 void presolve_make_memlists(/*CoinBigIndex *starts,*/ int *lengths,
   presolvehlink *link, int n);
 
@@ -1986,6 +1875,7 @@ double *presolve_dupmajor(const double *elems, const int *indices,
   int length, CoinBigIndex offset, int tgt = -1);
 
 /// Initialize a vector with random numbers
+COINUTILSLIB_EXPORT
 void coin_init_random_vec(double *work, int n);
 
 //@}

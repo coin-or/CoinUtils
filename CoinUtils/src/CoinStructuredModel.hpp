@@ -34,7 +34,7 @@ typedef struct CoinModelInfo2 {
   }
 } CoinModelBlockInfo;
 
-class CoinStructuredModel : public CoinBaseModel {
+class COINUTILSLIB_EXPORT CoinStructuredModel : public CoinBaseModel {
 
 public:
   /**@name Useful methods for building model */

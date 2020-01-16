@@ -75,7 +75,7 @@ enum COIN_Message {
     preloads the standard Coin messages.
 */
 
-class CoinMessage : public CoinMessages {
+class COINUTILSLIB_EXPORT CoinMessage : public CoinMessages {
 
 public:
   /**@name Constructors etc */

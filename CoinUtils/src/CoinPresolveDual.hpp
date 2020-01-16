@@ -32,7 +32,7 @@
   the problem is unbounded.
 */
 
-class remove_dual_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT remove_dual_action : public CoinPresolveAction {
 
 public:
   /// Destructor

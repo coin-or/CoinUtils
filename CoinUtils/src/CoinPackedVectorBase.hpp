@@ -11,7 +11,7 @@
 #include "CoinPragma.hpp"
 #include "CoinError.hpp"
 
-class CoinPackedVector;
+class COINUTILSLIB_EXPORT CoinPackedVector;
 
 /** Abstract base class for various sparse vectors.
 
@@ -20,8 +20,8 @@ class CoinPackedVector;
     packed vector. All members of this class are const methods, they can't
     change the object. */
 
-class CoinPackedVectorBase {
-
+class COINUTILSLIB_EXPORT CoinPackedVectorBase {
+  
 public:
   /**@name Virtual methods that the derived classes must provide */
   //@{

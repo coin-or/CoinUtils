@@ -29,7 +29,7 @@
    to remove the duplicate, it must be possible to fix the variable at a bound.
 */
 
-class dupcol_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT dupcol_action : public CoinPresolveAction {
   dupcol_action();
   dupcol_action(const dupcol_action &rhs);
   dupcol_action &operator=(const dupcol_action &rhs);
@@ -84,7 +84,7 @@ public:
     This doesn't matter as it uses useless_constraint.
 */
 
-class duprow_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT duprow_action : public CoinPresolveAction {
   struct action {
     int row;
     double lbound;
@@ -120,7 +120,7 @@ public:
   //~duprow_action() { delete[]actions_; }
 };
 
-class duprow3_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT duprow3_action : public CoinPresolveAction {
   struct action {
     int row;
     double lbound;
@@ -166,7 +166,7 @@ public:
     unimplemented.
 */
 
-class gubrow_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT gubrow_action : public CoinPresolveAction {
   struct action {
     double rhs;
     // last is row itself
@@ -211,7 +211,7 @@ public:
     This is a work in progress - I need more examples
 */
 
-class twoxtwo_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT twoxtwo_action : public CoinPresolveAction {
   struct action {
     double lbound_row;
     double ubound_row;

@@ -8,7 +8,8 @@
 #include <string>
 
 /// Base class for FileIO classes.
-class CoinFileIOBase {
+class COINUTILSLIB_EXPORT CoinFileIOBase
+{
 public:
   /// Constructor.
   /// @param fileName The name of the file used by this object.
@@ -37,7 +38,8 @@ private:
 };
 
 /// Abstract base class for file input classes.
-class CoinFileInput : public CoinFileIOBase {
+class COINUTILSLIB_EXPORT CoinFileInput: public CoinFileIOBase
+{
 public:
   /// indicates whether CoinFileInput supports gzip'ed files
   static bool haveGzipSupport();
@@ -95,7 +97,8 @@ private:
 };
 
 /// Abstract base class for file output classes.
-class CoinFileOutput : public CoinFileIOBase {
+class COINUTILSLIB_EXPORT CoinFileOutput: public CoinFileIOBase
+{
 public:
   /// The compression method.
   enum Compression {
@@ -157,6 +160,7 @@ public:
     - unix: string begins with `/'
     - windows: string begins with `\' or with `drv:' (drive specifier)
 */
+COINUTILSLIB_EXPORT
 bool fileAbsPath(const std::string &path);
 
 /*! \relates CoinFileInput
@@ -177,6 +181,7 @@ bool fileAbsPath(const std::string &path);
 
    The value returned in \p name is the file name that actually worked.
 */
+COINUTILSLIB_EXPORT
 bool fileCoinReadable(std::string &name,
   const std::string &dfltPrefix = std::string(""));
 #endif

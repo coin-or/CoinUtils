@@ -55,7 +55,7 @@
   interpretation is set by CoinMessageHandler, which see.
  */
 
-class CoinOneMessage {
+class COINUTILSLIB_EXPORT CoinOneMessage {
 
 public:
   /**@name Constructors etc */
@@ -137,7 +137,7 @@ public:
   message.
 */
 
-class CoinMessages {
+class COINUTILSLIB_EXPORT CoinMessages {
 
 public:
   /** \brief Supported languages
@@ -342,7 +342,7 @@ enum CoinMessageMarker {
     CoinMessageHandlerTest.cpp.
 */
 
-class CoinMessageHandler {
+class COINUTILSLIB_EXPORT CoinMessageHandler  {
 
   friend bool CoinMessageHandlerUnitTest();
 

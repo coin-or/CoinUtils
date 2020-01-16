@@ -20,6 +20,7 @@
 #include "CoinPackedMatrix.hpp"
 #include "CoinMessage.hpp"
 #include "CoinFileIO.hpp"
+
 class CoinSet;
 
 const int MAX_OBJECTIVES = 2;
@@ -102,7 +103,7 @@ Notes: <UL>
       inserted anywhere.
 </UL>
 */
-class CoinLpIO {
+class COINUTILSLIB_EXPORT CoinLpIO {
   friend void CoinLpIOUnitTest(const std::string &lpDir);
 
 public:

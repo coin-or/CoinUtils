@@ -290,6 +290,7 @@ const CoinPresolveAction
   should be scanned. Typically used from the presolve driver as part of final
   cleanup.
 */
+COINUTILSLIB_EXPORT
 const CoinPresolveAction
   *
   drop_zero_coefficients(CoinPresolveMatrix *prob,

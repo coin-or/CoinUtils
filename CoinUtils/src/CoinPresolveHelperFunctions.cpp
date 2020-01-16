@@ -113,8 +113,9 @@ void compact_rep(double *elems, int *indices,
   starts[j] > starts[i] for j < i.)
 */
 
+COINUTILSLIB_EXPORT
 void presolve_make_memlists(/*CoinBigIndex *starts,*/ int *lengths,
-  presolvehlink *link, int n)
+                            presolvehlink *link, int n)
 {
   int i;
   int pre = NO_LINK;

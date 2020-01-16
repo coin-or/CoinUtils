@@ -43,8 +43,10 @@
   the test does not consider the relative magnitude of the operands.
 */
 
-class CoinAbsFltEq {
-public:
+class COINUTILSLIB_EXPORT CoinAbsFltEq
+{
+  public:
+
   //! Compare function
 
   inline bool operator()(const double f1, const double f2) const
@@ -117,8 +119,10 @@ private:
   epsilon calculated as epsilon_*(1+CoinMax(|f1|,|f2|)).
 */
 
-class CoinRelFltEq {
-public:
+class COINUTILSLIB_EXPORT CoinRelFltEq
+{
+  public:
+
   //! Compare function
 
   inline bool operator()(const double f1, const double f2) const

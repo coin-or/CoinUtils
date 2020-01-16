@@ -105,7 +105,7 @@ typedef struct _EKKfactinfo {
   int maxNNetas;
 } EKKfactinfo;
 
-class CoinOslFactorization : public CoinOtherFactorization {
+class COINUTILSLIB_EXPORT CoinOslFactorization : public CoinOtherFactorization {
   friend void CoinOslFactorizationUnitTest(const std::string &mpsDir);
 
 public:

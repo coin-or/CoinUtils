@@ -7,7 +7,7 @@
 #define CoinPresolveUseless_H
 #define USELESS 20
 
-class useless_constraint_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT useless_constraint_action : public CoinPresolveAction {
   struct action {
     double rlo;
     double rup;
@@ -54,7 +54,8 @@ public:
   constraints. 
 */
 
-const CoinPresolveAction *testRedundant(CoinPresolveMatrix *prob,
+COINUTILSLIB_EXPORT
+const CoinPresolveAction* testRedundant(CoinPresolveMatrix *prob,
   const CoinPresolveAction *next);
 
 #endif

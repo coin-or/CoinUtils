@@ -8,7 +8,7 @@
 
 #include "CoinPresolveMatrix.hpp"
 
-class isolated_constraint_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT isolated_constraint_action : public CoinPresolveAction {
   isolated_constraint_action();
   isolated_constraint_action(const isolated_constraint_action &rhs);
   isolated_constraint_action &operator=(const isolated_constraint_action &rhs);

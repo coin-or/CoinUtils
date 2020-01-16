@@ -6,6 +6,8 @@
 #ifndef _CoinTime_hpp
 #define _CoinTime_hpp
 
+#include "CoinUtilsConfig.h"
+
 // Uncomment the next three lines for thorough memory initialisation.
 // #ifndef ZEROFAULT
 // # define ZEROFAULT
@@ -196,7 +198,8 @@ static inline double CoinCpuTimeJustChildren()
  all, rather the supposed result is read out from the stream. This makes it
  possible to exactly retrace time sensitive program execution.
 */
-class CoinTimer {
+class COINUTILSLIB_EXPORT CoinTimer
+{
 private:
   /// When the timer was initialized/reset/restarted
   double start;

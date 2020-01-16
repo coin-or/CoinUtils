@@ -14,7 +14,7 @@
 
 /** WarmStart information that is only a dual vector */
 
-class CoinWarmStartPrimalDual : public virtual CoinWarmStart {
+class COINUTILSLIB_EXPORT CoinWarmStartPrimalDual : public virtual CoinWarmStart {
 public:
   /// return the size of the dual vector
   inline int dualSize() const { return dual_.size(); }
@@ -153,8 +153,10 @@ private:
     
 */
 
-class CoinWarmStartPrimalDualDiff : public virtual CoinWarmStartDiff {
-  friend CoinWarmStartDiff *
+class COINUTILSLIB_EXPORT
+CoinWarmStartPrimalDualDiff : public virtual CoinWarmStartDiff
+{
+  friend CoinWarmStartDiff*
   CoinWarmStartPrimalDual::generateDiff(const CoinWarmStart *const oldCWS) const;
   friend void
   CoinWarmStartPrimalDual::applyDiff(const CoinWarmStartDiff *const diff);

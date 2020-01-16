@@ -1,7 +1,10 @@
-/* inc/config_coinutils.h.in.  */
+/* config_coinutils.h.in */
 
 #ifndef __CONFIG_COINUTILS_H__
 #define __CONFIG_COINUTILS_H__
+
+/* Library Visibility Attribute */
+#undef COINUTILSLIB_EXPORT
 
 /* Define to 1 if CoinUtils uses C++11 */
 #undef COINUTILS_CPLUSPLUS11
@@ -11,6 +14,12 @@
 
 /* Define to 1 if stdint.h is available for CoinUtils */
 #undef COINUTILS_HAS_CSTDINT
+
+/* Define to be the name of C-function for Inf check */
+#undef COIN_C_FINITE
+
+/* Define to be the name of C-function for NaN check */
+#undef COIN_C_ISNAN
 
 /* Version number of project */
 #undef COINUTILS_VERSION

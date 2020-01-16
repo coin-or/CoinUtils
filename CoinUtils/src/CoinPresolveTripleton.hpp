@@ -12,7 +12,7 @@
 
     As it is adapted from doubleton icoly is one dropped.
  */
-class tripleton_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT tripleton_action : public CoinPresolveAction {
 public:
   struct action {
     int icolx;

@@ -14,7 +14,7 @@
 
 /** WarmStart information that is only a dual vector */
 
-class CoinWarmStartDual : public virtual CoinWarmStart {
+class COINUTILSLIB_EXPORT CoinWarmStartDual : public virtual CoinWarmStart {
 public:
   /// return the size of the dual vector
   inline int size() const { return dual_.size(); }
@@ -107,8 +107,10 @@ private:
     
 */
 
-class CoinWarmStartDualDiff : public virtual CoinWarmStartDiff {
-public:
+class COINUTILSLIB_EXPORT
+CoinWarmStartDualDiff : public virtual CoinWarmStartDiff
+{ public:
+
   /*! \brief `Virtual constructor' */
   virtual CoinWarmStartDiff *clone() const
   {

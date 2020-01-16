@@ -22,7 +22,7 @@
   Actual removal of the empty column from the matrix is handled by
   drop_empty_cols_action. Correction of the objective function is done there.
 */
-class remove_fixed_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT remove_fixed_action : public CoinPresolveAction {
 public:
   /*! \brief Structure to hold information necessary to reintroduce a
 	     column into the problem representation.
@@ -78,6 +78,7 @@ public:
   remove_fixed_action::presolve() for processing.
 */
 
+COINUTILSLIB_EXPORT
 const CoinPresolveAction *remove_fixed(CoinPresolveMatrix *prob,
   const CoinPresolveAction *next);
 
@@ -90,7 +91,7 @@ const CoinPresolveAction *remove_fixed(CoinPresolveMatrix *prob,
   If the bounds are already equal, and the value of the variable is already
   correct, consider remove_fixed_action.
 */
-class make_fixed_action : public CoinPresolveAction {
+class COINUTILSLIB_EXPORT make_fixed_action : public CoinPresolveAction {
 
   /// Structure to preserve the bound overwritten when fixing a variable
   struct action {
@@ -164,6 +165,7 @@ public:
   make_fixed_action::presolve() for processing.
 */
 
+COINUTILSLIB_EXPORT
 const CoinPresolveAction *make_fixed(CoinPresolveMatrix *prob,
   const CoinPresolveAction *next);
 
@@ -178,6 +180,7 @@ const CoinPresolveAction *make_fixed(CoinPresolveMatrix *prob,
   The relation to make_fixed_action is tenuous, but this transform should be
   attempted before the initial round of variable fixing.
 */
+COINUTILSLIB_EXPORT
 void transferCosts(CoinPresolveMatrix *prob);
 #endif
 
