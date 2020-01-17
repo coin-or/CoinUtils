@@ -14,6 +14,8 @@
 #include <cstddef>
 #include <cstring>
 
+#include "CoinUtilsConfig.h"
+
 namespace Coin {
 
 //#########################################################################
