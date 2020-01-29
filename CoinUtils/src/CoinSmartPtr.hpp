@@ -156,7 +156,7 @@ namespace Coin {
      * technique where the reference count is stored in the object being
      * referenced. 
      */
-class COINUTILSLIB_EXPORT ReferencedObject {
+class ReferencedObject {
 public:
 	ReferencedObject() : reference_count_(0) {}
 	virtual ~ReferencedObject()       { assert(reference_count_ == 0); }
