@@ -20,11 +20,7 @@
     <projectHomePage>https://www.github.com/coin-or/CoinUtils</projectHomePage>
     <projectLicense>Eclipse Public License 1.0</projectLicense>
     <projectLicenseURL>http://www.opensource.org/licenses/eclipse-1.0</projectLicenseURL>
-    <coinLinkedProjects>
-      <coinProject>
-        <repoName>BuildTools</repoName>
-      </coinProject>
-    </coinLinkedProjects>
+    <coinLinkedProjects/>
     <otherLinkedPackages/>
     <projectLanguage>C++</projectLanguage>
     <developmentStatus>
