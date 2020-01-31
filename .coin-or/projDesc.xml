@@ -33,28 +33,28 @@
     </developmentStatus>
     <testedPlatforms>
       <platform>
-        <operatingSystem>Microsoft Windows</operatingSystem>
-        <compiler>MSVC++/cl</compiler>
-      </platform>
-      <platform>
-        <operatingSystem>Microsoft Windows</operatingSystem>
-        <compiler>CYGWIN/cl</compiler>
-      </platform>
-      <platform>
-        <operatingSystem>Microsoft Windows</operatingSystem>
-        <compiler>CYGWIN/gcc</compiler>
-      </platform>
-      <platform>
-        <operatingSystem>Microsoft Windows</operatingSystem>
-        <compiler>MSys/gcc</compiler>
-      </platform>
-      <platform>
         <operatingSystem>Linux</operatingSystem>
         <compiler>gcc</compiler>
       </platform>
       <platform>
         <operatingSystem>Mac OS X</operatingSystem>
         <compiler>gcc</compiler>
+      </platform>
+      <platform>
+        <operatingSystem>Microsoft Windows</operatingSystem>
+        <compiler>MSys2/cl</compiler>
+      </platform>
+      <platform>
+        <operatingSystem>Microsoft Windows</operatingSystem>
+        <compiler>MSys2/icl</compiler>
+      </platform>
+      <platform>
+        <operatingSystem>Microsoft Windows</operatingSystem>
+        <compiler>MSys2/gcc</compiler>
+      </platform>
+      <platform>
+        <operatingSystem>Microsoft Windows</operatingSystem>
+        <compiler>MSVC++/cl</compiler>
       </platform>
     </testedPlatforms>
     <projectCategories>
@@ -65,7 +65,7 @@
   </projectBasics>
   <leftMenuLinks>
     <documentation>https://www.coin-or.org/Doxygen/CoinUtils/</documentation>
-    <sourceCodeDownload>http://www.coin-or.org/download/source/CoinUtils</sourceCodeDownload>
+    <sourceCodeDownload>https://github.com/coin-or/CoinUtils/</sourceCodeDownload>
     <binaryDownload></binaryDownload>
     <mailingList>http://list.coin-or.org/mailman/listinfo/coinutils</mailingList>
   </leftMenuLinks>
