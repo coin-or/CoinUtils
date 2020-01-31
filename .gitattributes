@@ -4,7 +4,6 @@
 .coin-or/projDesc.xml -text
 /.travis.yml -text
 /Dependencies -text
-/INSTALL -text
 /LICENSE -text
 MSVisualStudio/v10/CoinUtils.sln -text
 MSVisualStudio/v10/libCoinUtils/libCoinUtils.vcxproj -text
@@ -25,7 +24,6 @@ MSVisualStudio/v9alt/CoinUtilsUnitTest.vcproj -text
 MSVisualStudio/v9alt/coinutils.vsprops -text
 MSVisualStudio/v9alt/genDefForCoinUtils.ps1 -text
 MSVisualStudio/v9alt/libCoinUtils.vcproj -text
-/README -text
 /appveyor.yml -text
 /coinutils.pc.in -text
 /compile -text
