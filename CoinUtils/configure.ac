@@ -10,8 +10,7 @@
 #                       Names and other basic things                        #
 #############################################################################
 
-AC_INIT([CoinUtils],[trunk],[coinutils@list.coin-or.org],[coin-or-coinutils],
-	[https://projects.coin-or.org/CoinUtils])
+AC_INIT([CoinUtils],[trunk],[https://github.com/coin-or/CoinUtils/issues/new],[coin-or-coinutils],[https://github.com/coin-or/CoinUtils])
 
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.
