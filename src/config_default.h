@@ -3,12 +3,12 @@
 #include "configall_system.h"
 
 /* this needs to come before the include of config_coinutils_default.h */
-#ifndef COINUTILS_EXPORT
+#ifndef COINUTILSLIB_EXPORT
 #ifdef _WIN32
 /* assuming we build a CoinUtils DLL */
-#define COINUTILS_EXPORT __declspec(dllexport)
+#define COINUTILSLIB_EXPORT __declspec(dllexport)
 #else
-#define COINUTILS_EXPORT
+#define COINUTILSLIB_EXPORT
 #endif
 #endif
 

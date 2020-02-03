@@ -38,12 +38,12 @@
 #define COIN_INTPTR_T int *
 #endif
 
-#ifndef COINUTILS_EXPORT
+#ifndef COINUTILSLIB_EXPORT
 #ifdef _WIN32
 /* assuming we link against a CoinUtils DLL */
-#define COINUTILS_EXPORT __declspec(dllimport)
+#define COINUTILSLIB_EXPORT __declspec(dllimport)
 #else
-#define COINUTILS_EXPORT
+#define COINUTILSLIB_EXPORT
 #endif
 #endif
 
