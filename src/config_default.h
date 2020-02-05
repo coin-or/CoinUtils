@@ -25,15 +25,6 @@
 /* Define to the debug verbosity level (0 is no output) */
 #define COIN_COINUTILS_VERBOSITY 0
 
-/* Define to 1 if CoinUtils uses C++11 */
-#define COINUTILS_CPLUSPLUS11 1
-
-/* Define to 1 if cstdint is available for CoinUtils */
-#define COINUTILS_HAS_CSTDINT 1
-
-/* Define to 1 if stdint.h is available for CoinUtils */
-#define COINUTILS_HAS_STDINT_H 1
-
 #ifdef _MSC_VER
 /* Define to be the name of C-function for Inf check */
 #define COIN_C_FINITE _finite

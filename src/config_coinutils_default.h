@@ -38,6 +38,15 @@
 #define COIN_INTPTR_T int *
 #endif
 
+/* Define to 1 if CoinUtils uses C++11 */
+#define COINUTILS_CPLUSPLUS11 1
+
+/* Define to 1 if cstdint is available for CoinUtils */
+#define COINUTILS_HAS_CSTDINT 1
+
+/* Define to 1 if stdint.h is available for CoinUtils */
+#define COINUTILS_HAS_STDINT_H 1
+
 #ifndef COINUTILSLIB_EXPORT
 #if defined(_WIN32) && defined(DLL_EXPORT)
 #define COINUTILSLIB_EXPORT __declspec(dllimport)
