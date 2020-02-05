@@ -13,19 +13,19 @@ configure_file(config.h.cmake.in config.h)
 configure_file(config_coinutils.h.cmake.in config_coinutils.h)
 
 set(_SRCS
+  CoinAdjacencyVector.cpp
   CoinAlloc.cpp
   CoinBuild.cpp
+  CoinCliqueList.cpp
+  CoinConflictGraph.cpp
+  CoinDenseFactorization.cpp
   CoinDenseVector.cpp
+  CoinDynamicConflictGraph.cpp
   CoinError.cpp
   CoinFactorization1.cpp
   CoinFactorization2.cpp
   CoinFactorization3.cpp
   CoinFactorization4.cpp
-  CoinSimpFactorization.cpp
-  CoinDenseFactorization.cpp
-  CoinOslFactorization.cpp
-  CoinOslFactorization2.cpp
-  CoinOslFactorization3.cpp
   CoinFileIO.cpp
   CoinFinite.cpp
   CoinIndexedVector.cpp
@@ -33,10 +33,13 @@ set(_SRCS
   CoinMessage.cpp
   CoinMessageHandler.cpp
   CoinModel.cpp
-  CoinStructuredModel.cpp
   CoinModelUseful.cpp
   CoinModelUseful2.cpp
   CoinMpsIO.cpp
+  CoinOslC.h
+  CoinOslFactorization.cpp
+  CoinOslFactorization2.cpp
+  CoinOslFactorization3.cpp
   CoinPackedMatrix.cpp
   CoinPackedVector.cpp
   CoinPackedVectorBase.cpp
@@ -54,35 +57,47 @@ set(_SRCS
   CoinPresolveImpliedFree.cpp
   CoinPresolveIsolated.cpp
   CoinPresolveMatrix.cpp
-  CoinPresolvePsdebug.cpp
   CoinPresolveMonitor.cpp
+  CoinPresolvePsdebug.cpp
   CoinPresolveSingleton.cpp
   CoinPresolveSubst.cpp
   CoinPresolveTighten.cpp
   CoinPresolveTripleton.cpp
   CoinPresolveUseless.cpp
   CoinPresolveZeros.cpp
+  CoinRational.cpp
   CoinSearchTree.cpp
   CoinShallowPackedVector.cpp
+  CoinSimpFactorization.cpp
   CoinSnapshot.cpp
+  CoinStructuredModel.cpp
   CoinWarmStartBasis.cpp
-  CoinWarmStartVector.cpp
   CoinWarmStartDual.cpp
   CoinWarmStartPrimalDual.cpp
-  CoinRational.cpp)
+  CoinWarmStartVector.cpp
+  bron_kerbosch.cpp
+  cgraph.cpp
+  clique.cpp
+  clique_extender.cpp
+  clique_separation.cpp
+  cut.cpp
+  node_heap.cpp
+  str_utils.cpp
+  vint_set.cpp
+  )
 
 set(_HDRS
-  Coin_C_defines.h
-  CoinUtilsConfig.h
+  CoinAdjacencyVector.hpp
   CoinAlloc.hpp
   CoinBuild.hpp
+  CoinCliqueList.hpp
+  CoinConflictGraph.hpp
+  CoinDenseFactorization.hpp
   CoinDenseVector.hpp
   CoinDistance.hpp
+  CoinDynamicConflictGraph.hpp
   CoinError.hpp
   CoinFactorization.hpp
-  CoinSimpFactorization.hpp
-  CoinDenseFactorization.hpp
-  CoinOslFactorization.hpp
   CoinFileIO.hpp
   CoinFinite.hpp
   CoinFloatEqual.hpp
@@ -92,9 +107,9 @@ set(_HDRS
   CoinMessage.hpp
   CoinMessageHandler.hpp
   CoinModel.hpp
-  CoinStructuredModel.hpp
   CoinModelUseful.hpp
   CoinMpsIO.hpp
+  CoinOslFactorization.hpp
   CoinPackedMatrix.hpp
   CoinPackedVector.hpp
   CoinPackedVectorBase.hpp
@@ -117,21 +132,36 @@ set(_HDRS
   CoinPresolveTripleton.hpp
   CoinPresolveUseless.hpp
   CoinPresolveZeros.hpp
+  CoinRational.hpp
   CoinSearchTree.hpp
   CoinShallowPackedVector.hpp
   CoinSignal.hpp
+  CoinSimpFactorization.hpp
   CoinSmartPtr.hpp
   CoinSnapshot.hpp
   CoinSort.hpp
+  CoinStaticConflictGraph.hpp
+  CoinStructuredModel.hpp
   CoinTime.hpp
   CoinTypes.hpp
   CoinUtility.hpp
+  CoinUtilsConfig.h
   CoinWarmStart.hpp
   CoinWarmStartBasis.hpp
-  CoinWarmStartVector.hpp
   CoinWarmStartDual.hpp
   CoinWarmStartPrimalDual.hpp
-  CoinRational.hpp)
+  CoinWarmStartVector.hpp
+  Coin_C_defines.h
+  bron_kerbosch.h
+  cgraph.h
+  clique.h
+  clique_extender.h
+  clique_separation.h
+  cut.h
+  node_heap.h
+  str_utils.h
+  vint_set.h
+  )
 
 add_library(CoinUtils ${_SRCS} ${_HDRS})
 target_include_directories(CoinUtils PUBLIC
