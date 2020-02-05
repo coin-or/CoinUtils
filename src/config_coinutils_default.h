@@ -39,8 +39,7 @@
 #endif
 
 #ifndef COINUTILSLIB_EXPORT
-#ifdef _WIN32
-/* assuming we link against a CoinUtils DLL */
+#if defined(_WIN32) && defined(DLL_EXPORT)
 #define COINUTILSLIB_EXPORT __declspec(dllimport)
 #else
 #define COINUTILSLIB_EXPORT
