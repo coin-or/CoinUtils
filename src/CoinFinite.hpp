@@ -8,7 +8,7 @@
 #ifndef CoinFinite_H
 #define CoinFinite_H
 
-#include <CoinUtilsConfig.h>
+#include "CoinUtilsConfig.h"
 #include <limits>
 
 //=============================================================================
