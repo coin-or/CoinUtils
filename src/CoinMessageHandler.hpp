@@ -427,80 +427,59 @@ public:
     As the parameter for a double field is processed, the value is saved
     and can be retrieved using this function.
   */
-  inline double doubleValue(int position) const
-  {
-    return doubleValue_[position];
-  }
+  double doubleValue(int position) const;
+
   /*! \brief Number of double fields already processed.
 
     Incremented each time a field of type double is processed.
   */
-  inline int numberDoubleFields() const
-  {
-    return static_cast< int >(doubleValue_.size());
-  }
+  int numberDoubleFields() const;
+
   /*! \brief Values of integer fields already processed.
 
     As the parameter for a integer field is processed, the value is saved
     and can be retrieved using this function.
   */
-  inline CoinBigIndex intValue(int position) const
-  {
-    return longValue_[position];
-  }
+  CoinBigIndex intValue(int position) const;
+
   /*! \brief Number of integer fields already processed.
 
     Incremented each time a field of type integer is processed.
   */
-  inline int numberIntFields() const
-  {
-    return static_cast< int >(longValue_.size());
-  }
+  int numberIntFields() const;
+
   /*! \brief Values of char fields already processed.
 
     As the parameter for a char field is processed, the value is saved
     and can be retrieved using this function.
   */
-  inline char charValue(int position) const
-  {
-    return charValue_[position];
-  }
+  char charValue(int position) const;
+
   /*! \brief Number of char fields already processed.
 
     Incremented each time a field of type char is processed.
   */
-  inline int numberCharFields() const
-  {
-    return static_cast< int >(charValue_.size());
-  }
+  int numberCharFields() const;
+
   /*! \brief Values of string fields already processed.
 
     As the parameter for a string field is processed, the value is saved
     and can be retrieved using this function.
   */
-  inline std::string stringValue(int position) const
-  {
-    return stringValue_[position];
-  }
+  std::string stringValue(int position) const;
+
   /*! \brief Number of string fields already processed.
 
     Incremented each time a field of type string is processed.
   */
-  inline int numberStringFields() const
-  {
-    return static_cast< int >(stringValue_.size());
-  }
+  int numberStringFields() const;
 
   /// Current message
-  inline CoinOneMessage currentMessage() const
-  {
-    return currentMessage_;
-  }
+  CoinOneMessage currentMessage() const;
+
   /// Source of current message
-  inline std::string currentSource() const
-  {
-    return source_;
-  }
+  std::string currentSource() const;
+  
   /// Output buffer
   inline const char *messageBuffer() const
   {

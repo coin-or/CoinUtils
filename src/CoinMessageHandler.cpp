@@ -994,5 +994,67 @@ CoinMessageHandler::operator<<(CoinMessageMarker marker)
   return (*this);
 }
 
+CoinOneMessage CoinMessageHandler::currentMessage() const
+{
+  return currentMessage_;
+}
+
+int CoinMessageHandler::numberStringFields() const
+{
+    return static_cast<int>(stringValue_.size());
+}
+
+
+
+std::string CoinMessageHandler::currentSource() const
+{
+    return source_;
+}
+
+std::string CoinMessageHandler::stringValue(int position) const
+{
+    return stringValue_[position];
+}
+
+int CoinMessageHandler::numberIntFields() const
+{
+    return static_cast<int>(longValue_.size());
+}
+/*! \brief Values of char fields already processed.
+
+  As the parameter for a char field is processed, the value is saved
+  and can be retrieved using this function.
+*/
+char CoinMessageHandler::charValue(int position) const
+{
+    return charValue_[position];
+}
+/*! \brief Number of char fields already processed.
+
+  Incremented each time a field of type char is processed.
+*/
+int CoinMessageHandler::numberCharFields() const
+{
+    return static_cast<int>(charValue_.size());
+}
+
+CoinBigIndex CoinMessageHandler::intValue(int position) const
+{
+    return longValue_[position];
+}
+
+int CoinMessageHandler::numberDoubleFields() const
+{
+return static_cast< int >(doubleValue_.size());
+}
+
+double CoinMessageHandler::doubleValue(int position) const
+{
+    return doubleValue_[position];
+}
+
+
+
+
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
 */
