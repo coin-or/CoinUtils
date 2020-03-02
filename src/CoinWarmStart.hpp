@@ -6,6 +6,8 @@
 #ifndef CoinWarmStart_H
 #define CoinWarmStart_H
 
+#include "CoinUtilsConfig.h"
+
 //#############################################################################
 
 class COINUTILSLIB_EXPORT CoinWarmStartDiff;
