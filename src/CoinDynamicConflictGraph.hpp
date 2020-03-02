@@ -8,8 +8,6 @@
 #include "CoinConflictGraph.hpp"
 #include "CoinAdjacencyVector.hpp"
 
-#include "cgraph.h"
-
 class CoinPackedMatrix;
 class CoinAdjacencyVector;
 class CoinCliqueList;
@@ -95,6 +93,11 @@ public:
     */
     size_t degree( const size_t node ) const;
 
+    /**
+    * modified degree of a given node
+    */
+    size_t modifiedDegree( const size_t node ) const;
+
     size_t nTotalCliqueElements() const;
 
     size_t nDirectConflicts( size_t idxNode ) const;
@@ -119,11 +122,13 @@ public:
 
 private:
   void setDegree( size_t idxNode, size_t deg );
+  void setModifiedDegree(size_t idxNode, size_t mdegree);
 
   // conflicts stored directly
   CoinAdjacencyVector *conflicts;
 
   size_t *degree_;
+  size_t *modifiedDegree_;
 
   CoinCliqueList *largeClqs;
 

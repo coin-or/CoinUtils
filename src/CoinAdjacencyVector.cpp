@@ -135,6 +135,7 @@ void CoinAdjacencyVector::checkCapNode( const size_t idxNode, const size_t newEl
       // already outside initial vector
       rowCap_[idxNode] = newIdxNodeCap;
       rows_[idxNode] = expandedRows_[idxNode] = (size_t *)xrealloc(expandedRows_[idxNode], sizeof(size_t)*rowCap_[idxNode] );
+      return;
     }
 /*
     // node still in the otiginal vector

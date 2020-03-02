@@ -16,6 +16,16 @@ public:
    */
   CoinStaticConflictGraph ( const CoinConflictGraph *cgraph );
 
+  CoinStaticConflictGraph(
+          const int numCols,
+          const char* colType,
+          const double* colLB,
+          const double* colUB,
+          const CoinPackedMatrix* matrixByRow,
+          const char* sense,
+          const double* rowRHS,
+          const double* rowRange );
+
   CoinStaticConflictGraph *clone() const;
 
   /**
@@ -55,6 +65,11 @@ public:
    * degree of a given node
    */
   virtual size_t degree( const size_t node ) const;
+
+  /**
+   * modified degree of a given node
+   */
+  virtual size_t modifiedDegree( const size_t node ) const;
   
   
   /** total number of conflict stored directly
@@ -72,6 +87,16 @@ public:
    */
   virtual ~CoinStaticConflictGraph();
 
+    /**
+     * Recommended tighter bounds for some variables
+     *
+     * The construction of the conflict graph may discover new tighter
+     * bounds for some variables.
+     *
+     * @return updated bounds
+     **/
+    const std::vector< std::pair< size_t, std::pair< double, double > > > &updatedBounds() const;
+
 private:                      // size
   size_t nDirectConflicts_;
   size_t totalCliqueElements_;
@@ -81,6 +106,7 @@ private:                      // size
   // direct conflicts per node
   size_t *nConflictsNode_;     // size_
   size_t *degree_;             // size_
+  size_t *modifiedDegree_;     // size_
   size_t *startConfNodes_;     // size_+1
   size_t *conflicts_;          // cgraph->nDirectConflicts
 
@@ -94,11 +120,17 @@ private:                      // size
   size_t *startClique_;        // nCliques+1
   size_t *cliques_;            // totalCliqueElements
 
+  std::vector< std::pair< size_t, std::pair< double, double > > > newBounds_;
+
   const size_t *cliqueEls( size_t ic ) const;
 
   bool nodeInClique( size_t idxClique, size_t node ) const;
 
   virtual void setDegree(size_t idxNode, size_t deg);
+
+  virtual void setModifiedDegree(size_t idxNode, size_t mdegree);
+
+  void iniCoinStaticConflictGraph(const CoinConflictGraph *cgraph);
 };
 
 #endif // STATICCONFLICTGRAPH_H

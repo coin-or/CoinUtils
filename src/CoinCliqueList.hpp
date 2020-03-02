@@ -3,6 +3,10 @@
 
 #include <cstddef>
 
+#ifdef DEBUGCG
+    class CoinConflictGraph;
+#endif
+
 /**
  * CoinCliqueList : a sequential list of cliques
  *
@@ -37,6 +41,10 @@ public:
   size_t nDifferentNodes() const;
 
   const size_t *differentNodes() const;
+
+#ifdef DEBUGCG
+    static void validateClique(const CoinConflictGraph *cgraph, const size_t *idxs, const size_t size);
+#endif
 
   /**
     * Destructor

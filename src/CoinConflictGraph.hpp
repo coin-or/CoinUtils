@@ -6,8 +6,6 @@
 #include <string>
 #include <utility>
 
-#include "cgraph.h"
-
 /**
  * Base class for Conflict Graph: a conflict graph
  * is a structure that stores conflicts between binary
@@ -54,7 +52,7 @@ public:
    * @return pair containing (numberOfConflictingNodes, vectorOfConflictingNodes), the vector may be a pointer
    * to temp is the temporary storage area was used or a pointer to a vector in the conflict graph itself
    */
-  std::pair< size_t, const size_t* > conflictingNodes ( size_t node, size_t* temp, std::vector< bool > &iv ) const;
+  std::pair< size_t, const size_t* > conflictingNodes ( size_t node, size_t* temp, bool *iv ) const;
 
 
 
@@ -72,6 +70,11 @@ public:
    * degree of a given node
    */
   virtual size_t degree( const size_t node ) const = 0;
+
+  /**
+   * modified degree of a given node
+   */
+   virtual size_t modifiedDegree( const size_t node ) const = 0;
 
   /**
    * minimum node degree 
@@ -118,8 +121,7 @@ public:
   virtual const size_t *directConflicts( size_t idxNode ) const = 0;
 
   void recomputeDegree();
-
-  std::vector< std::string > differences( const CGraph* cgraph ) const;
+  void computeModifiedDegree();
   
   /** total number of conflict stored directly
    * 
@@ -135,6 +137,8 @@ public:
    **/
   static size_t minClqRow;
 
+  void printSummary() const;
+
 protected:
   // number of nodes
   size_t size_;
@@ -145,6 +149,9 @@ protected:
   double density_;
 
   virtual void setDegree( size_t idxNode, size_t deg ) = 0;
+
+  bool updateMDegree;
+  virtual void setModifiedDegree( size_t idxNode, size_t mdegree ) = 0;
 
   size_t minDegree_;
   size_t maxDegree_;
