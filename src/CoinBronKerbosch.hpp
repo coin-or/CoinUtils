@@ -23,9 +23,9 @@ public:
     double getCliqueWeight(const size_t i) const;
 
     void setMinWeight(double minWeight);
-    void setMaxIt(size_t maxIt);
+    void setMaxCalls(size_t maxCalls);
     bool completedSearch() const;
-    size_t numIterations() const;
+    size_t numCalls() const;
 
 private:
     void computeFitness(const double *weights);
@@ -52,7 +52,7 @@ private:
 
     //bk parameters
     double minWeight_;
-    size_t maxIt_;
+    size_t maxCalls_;
     /* pivoting strategy:
      * 0 - off
      * 1 - random
@@ -65,7 +65,7 @@ private:
     size_t pivotingStrategy_;
 
     //bk statistics
-    size_t it_;
+    size_t calls_;
     bool completeSearch_;
 
     //cliques found

@@ -21,16 +21,10 @@ public:
 
     void setMaxCandidates(const size_t maxCandidates);
 
-    void setmaxClqGen(const size_t maxClqGen);
-    void setMaxItBK(const size_t maxItBK);
-
-    void setMaxIdx(const size_t maxIdx);
-
 private:
     void fillCandidates(const size_t *clqIdxs, const size_t clqSize);
     size_t randomExtension(const size_t *clqIdxs, const size_t clqSize);
     size_t greedySelection(const size_t *clqIdxs, const size_t clqSize, const double *costs);
-    size_t bkExtension(const size_t *clqIdxs, const size_t clqSize);
 
     const CoinConflictGraph *cgraph_; //complete conflict graph
     CoinCliqueList *extendedCliques_; //stores the extended cliques
@@ -40,9 +34,8 @@ private:
      * 1 - random
      * 2 - max degree
      * 3 - max modified degree
-     * 4 - priority greedy (reduced cost)
+     * 4 - reduced cost
      * 5 - reduced cost + modified degree
-     * 6 - bk extension
     */
     size_t extMethod_;
 
@@ -55,13 +48,6 @@ private:
     double *costs_;
     bool *iv_, *iv2_;
 
-    //used in bk extension
-    size_t maxClqGen_;
-    size_t maxItBK_;
-    double *candidateWeight_;
-    std::pair<size_t, double> *cliqueWeight_;
-    size_t cliqueWeightCap_;
-
     //used in random extension
     unsigned seed_;
     std::default_random_engine reng_;
@@ -69,9 +55,6 @@ private:
     //reduced cost parameters
     const double *rc_;
     double maxRC_;
-
-    //max index to consider in the extension procedure
-    size_t maxIdx_;
 };
 
 

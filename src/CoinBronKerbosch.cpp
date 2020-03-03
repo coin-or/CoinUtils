@@ -21,7 +21,7 @@ bool compareNodes(BKVertex &u, const BKVertex &v) {
 }
 
 CoinBronKerbosch::CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights, size_t pivotingStrategy) :
-nVertices_(0), minWeight_(0.0), it_(0), maxIt_(std::numeric_limits<size_t >::max()), completeSearch_(false),
+nVertices_(0), minWeight_(0.0), calls_(0), maxCalls_(std::numeric_limits<size_t >::max()), completeSearch_(false),
 pivotingStrategy_(pivotingStrategy)
 {
     const size_t cgSize = cgraph->size();
@@ -185,7 +185,7 @@ void CoinBronKerbosch::bronKerbosch(size_t depth) {
         return;
     }
 
-    if(it_ > maxIt_) {
+    if(calls_ > maxCalls_) {
         completeSearch_ = false;
         return;
     }
@@ -236,7 +236,7 @@ void CoinBronKerbosch::bronKerbosch(size_t depth) {
                 weightC_ += vertices_[v].weight;
 
                 //recursive call
-                it_++;
+                calls_++;
                 bronKerbosch(depth + 1);
 
                 //restoring C
@@ -275,7 +275,7 @@ void CoinBronKerbosch::findCliques() {
         P_[0][i / INT_SIZE] |= mask_[i % INT_SIZE];
     }
 
-    nC_ = it_ = 0;
+    nC_ = calls_ = 0;
     weightC_ = 0.0;
     completeSearch_ = true;
     bronKerbosch(0);
@@ -313,16 +313,16 @@ void CoinBronKerbosch::setMinWeight(double minWeight) {
     minWeight_ = minWeight;
 }
 
-void CoinBronKerbosch::setMaxIt(size_t maxIt) {
-    maxIt_ = maxIt;
+void CoinBronKerbosch::setMaxCalls(size_t maxCalls) {
+    maxCalls_ = maxCalls;
 }
 
 bool CoinBronKerbosch::completedSearch() const {
     return completeSearch_;
 }
 
-size_t CoinBronKerbosch::numIterations() const {
-    return it_;
+size_t CoinBronKerbosch::numCalls() const {
+    return calls_;
 }
 
 void CoinBronKerbosch::computeFitness(const double *weights) {
