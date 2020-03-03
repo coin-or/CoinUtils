@@ -207,9 +207,9 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
         }
 
         if (columns[j].first < (size_t) numCols) {
-          newBounds_.emplace_back( columns[j].first, make_pair( 0.0, 0.0) );
+          newBounds_.push_back(make_pair(columns[j].first, make_pair( 0.0, 0.0)));
         } else {
-          newBounds_.emplace_back( columns[j].first - numCols, make_pair( 1.0, 1.0) );
+          newBounds_.push_back(make_pair(columns[j].first - numCols, make_pair( 1.0, 1.0)));
         }
       }
 
