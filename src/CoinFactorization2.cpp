@@ -440,7 +440,6 @@ int CoinFactorization::factorSparseSmall()
         //if (leftRows==100)
         //printf("at 100 %d elements\n",totalElements_);
         double ratio;
-#define COIN_DENSE_MULTIPLIER 1.0
 #ifndef COIN_DENSE_MULTIPLIER
 #define COIN_DENSE_MULTIPLIER 1.0
 #endif

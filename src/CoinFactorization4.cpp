@@ -2354,7 +2354,7 @@ void CoinFactorization::updateColumnTransposeL(CoinIndexedVector *regionSparse) 
                      region+lastSparse,numberDense_);
 #elif COIN_FACTORIZATION_DENSE_CODE==3
       LAPACKE_dgetrs(LAPACK_COL_MAJOR,'T',numberDense_,1,
-                     denseAreaAress_,numberDense_,densePermute_,
+                     denseAreaAddress_,numberDense_,densePermute_,
                      region+lastSparse,numberDense_);
 #endif
       //and scan again
