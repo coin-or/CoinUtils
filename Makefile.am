@@ -6,8 +6,6 @@
 
 # Author:  Andreas Waechter           IBM    2006-04-13
 
-AUTOMAKE_OPTIONS = foreign
-
 include BuildTools/Makemain.inc
 
 ########################################################################
@@ -23,14 +21,6 @@ SUBDIRS = src
 if ALWAYS_FALSE
   SUBDIRS += test
 endif
-
-########################################################################
-#             Additional files to be included in tarball               #
-########################################################################
-
-# Here we need include all files that are not mentioned in other Makefiles
-
-EXTRA_DIST =
 
 ########################################################################
 #                           Extra Targets                              #
@@ -59,14 +49,3 @@ uninstall-local: uninstall-doc uninstall-doxygen-docs
 
 pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
-
-########################################################################
-#                         Maintainer Stuff                             #
-########################################################################
-
-CLEANFILES =
-
-# Files that are generated and should be cleaned with make distclean
-
-DISTCLEANFILES =
-

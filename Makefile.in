@@ -356,7 +356,6 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AUTOMAKE_OPTIONS = foreign
 pkgdocdir = $(docdir)
 
 # doxydocdir is the top-level directory for doxygen documentation. It holds
@@ -383,25 +382,10 @@ DOXYTAG_EDIT = sed -e 's|@baredocdir_nosub@|$(datarootdir)/doc|g'
 SUBDIRS = src $(am__append_1)
 
 ########################################################################
-#             Additional files to be included in tarball               #
-########################################################################
-
-# Here we need include all files that are not mentioned in other Makefiles
-EXTRA_DIST = 
-
-########################################################################
 #                  Installation of the .pc file                        #
 ########################################################################
 pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
-
-########################################################################
-#                         Maintainer Stuff                             #
-########################################################################
-CLEANFILES = 
-
-# Files that are generated and should be cleaned with make distclean
-DISTCLEANFILES = 
 all: all-recursive
 
 .SUFFIXES:
@@ -609,12 +593,10 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
-	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
-	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

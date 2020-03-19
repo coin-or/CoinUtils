@@ -25,6 +25,7 @@ MSVisualStudio/v9alt/coinutils.vsprops -text
 MSVisualStudio/v9alt/genDefForCoinUtils.ps1 -text
 MSVisualStudio/v9alt/libCoinUtils.vcproj -text
 /appveyor.yml -text
+/ar-lib -text
 /coinutils.pc.in -text
 /compile -text
 /config.guess -text
