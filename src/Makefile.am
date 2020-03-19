@@ -93,23 +93,18 @@ libCoinUtils_la_SOURCES = \
 	CoinWarmStartVector.cpp CoinWarmStartVector.hpp \
 	CoinWarmStartDual.cpp CoinWarmStartDual.hpp \
 	CoinWarmStartPrimalDual.cpp CoinWarmStartPrimalDual.hpp \
-	bron_kerbosch.h bron_kerbosch.cpp \
-	cgraph.h cgraph.cpp \
-	clique.h clique.cpp \
-	clique_extender.h clique_extender.cpp \
-	clique_separation.h clique_separation.cpp \
-	cut.h cut.cpp \
-	node_heap.h node_heap.cpp \
-	str_utils.h str_utils.cpp \
-	vint_set.h vint_set.cpp \
-	CoinConflictGraph.cpp \
-	CoinConflictGraph.hpp \
-	CoinStaticConflictGraph.hpp \
-	CoinStaticConflictGraph.cpp \
-	CoinDynamicConflictGraph.hpp \
-	CoinDynamicConflictGraph.cpp \
-	CoinAdjacencyVector.cpp \
-	CoinCliqueList.cpp
+	CoinAdjacencyVector.cpp CoinAdjacencyVector.hpp \
+	CoinBronKerbosch.cpp CoinBronKerbosch.hpp \
+	CoinCliqueExtender.cpp CoinCliqueExtender.hpp \
+	CoinCliqueList.cpp CoinCliqueList.hpp \
+	CoinCliqueSet.cpp CoinCliqueSet.hpp \
+	CoinConflictGraph.cpp CoinConflictGraph.hpp \
+	CoinCutPool.cpp CoinCutPool.hpp \
+	CoinDynamicConflictGraph.cpp CoinDynamicConflictGraph.hpp \
+	CoinNodeHeap.cpp CoinNodeHeap.hpp \
+	CoinOddWheelSeparator.cpp CoinOddWheelSeparator.hpp \
+	CoinShortestPath.cpp CoinShortestPath.hpp \
+	CoinStaticConflictGraph.cpp CoinStaticConflictGraph.hpp
 
 # This is for libtool.
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
@@ -187,18 +182,18 @@ includecoin_HEADERS = \
 	CoinWarmStartVector.hpp \
 	CoinWarmStartDual.hpp \
 	CoinWarmStartPrimalDual.hpp \
-	bron_kerbosch.h \
-	cgraph.h \
-	clique.h \
-	clique_extender.h \
-	clique_separation.h \
-	cut.h \
-	node_heap.h \
-	str_utils.h \
-	vint_set.h \
-	CoinConflictGraph.hpp CoinDynamicConflictGraph.hpp CoinStaticConflictGraph.hpp \
 	CoinAdjacencyVector.hpp \
-	CoinCliqueList.hpp
+	CoinBronKerbosch.hpp \
+	CoinCliqueExtender.hpp \
+	CoinCliqueList.hpp \
+	CoinCliqueSet.hpp \
+	CoinConflictGraph.hpp \
+	CoinCutPool.hpp \
+	CoinDynamicConflictGraph.hpp \
+	CoinNodeHeap.hpp \
+	CoinOddWheelSeparator.hpp \
+	CoinShortestPath.hpp \
+	CoinStaticConflictGraph.hpp
 
 #######################################################################
 # Create the Config.h file that has all public defines and install it #

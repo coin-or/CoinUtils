@@ -5,6 +5,10 @@
 #include <cassert>
 #include "CoinCliqueList.hpp"
 
+#ifdef DEBUGCG
+    #include "CoinConflictGraph.hpp"
+#endif
+
 static void *xrealloc( void *ptr, const size_t size );
 static void *xmalloc( const size_t size );
 
@@ -18,12 +22,13 @@ CoinCliqueList::CoinCliqueList( size_t _iniClqCap, size_t _iniClqElCap )
   , clqEls_( (size_t *) xmalloc( sizeof(size_t)*(nCliqueElCap_) ) )
   , nodeOccur_( NULL )
   , startNodeOccur_( NULL )
+  , diffNodes_( NULL )
+  , nDifferent_ ( 0 )
 {
   clqStart_[0] = 0;
 }
 
-void CoinCliqueList::addClique(size_t size, const size_t els[])
-{
+void CoinCliqueList::addClique(size_t size, const size_t els[]) {
   if (nCliques_+1 > cliquesCap_) {
     cliquesCap_ *= 2;
     clqStart_ = (size_t *) xrealloc( clqStart_, sizeof(size_t)*(cliquesCap_+1) );
@@ -163,8 +168,30 @@ size_t CoinCliqueList::totalElements() const {
   return this->nCliqueElements_;
 }
 
-
 size_t CoinCliqueList::nNodeOccurrences(size_t idxNode) const
 {
   return this->startNodeOccur_[idxNode+1] - this->startNodeOccur_[idxNode];
 }
+
+#ifdef DEBUGCG
+void CoinCliqueList::validateClique(const CoinConflictGraph *cgraph, const size_t *idxs, const size_t size) {
+    if (size == 0) {
+        fprintf(stderr, "Empty clique!\n");
+        abort();
+    }
+
+    for (size_t j = 0; j < size; j++) {
+        const size_t vidx = idxs[j];
+        assert(vidx < cgraph->size());
+    }
+
+    for (size_t i = 0; i < size - 1; i++) {
+        for (size_t j = i + 1; j < size; j++) {
+            if ((!cgraph->conflicting(idxs[i], idxs[j])) || (idxs[i] == idxs[j])) {
+                fprintf(stderr, "ERROR: Nodes %ld and %ld are not in conflict.\n", idxs[i], idxs[j]);
+                abort();
+            }
+        }
+    }
+}
+#endif

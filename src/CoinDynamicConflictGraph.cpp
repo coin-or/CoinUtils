@@ -17,6 +17,7 @@
 
 static void *xmalloc( const size_t size );
 static void *xrealloc( void *ptr, const size_t size );
+static void *xcalloc( const size_t elements, const size_t size );
 
 // helper functions to build the conflict graph
 static void update_two_largest(double val, double v[2]);
@@ -72,6 +73,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph ( size_t _size )
   : CoinConflictGraph ( _size )
   , conflicts( new CoinAdjacencyVector(_size, CG_INI_SPACE_NODE_CONFLICTS)  )
   , degree_( (size_t*) xmalloc(sizeof(size_t)*_size) )
+  , modifiedDegree_( (size_t*) xcalloc(_size, sizeof(size_t)) )
   , largeClqs( new CoinCliqueList( 4096, 32768 ) )
   , ivACND( std::vector<bool>(size_, false) )
 {
@@ -95,6 +97,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
 {
   iniCoinConflictGraph( numCols*2 );
   degree_ = (size_t*) xmalloc(sizeof(size_t)*(numCols*2));
+  modifiedDegree_ = (size_t*) xcalloc(numCols*2, sizeof(size_t));
   largeClqs = new CoinCliqueList( 4096, 32768 );
   ivACND = std::vector<bool>(size_, false);
 
@@ -161,21 +164,21 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
       update_two_largest(columns[nz].second, twoLargest);
       update_two_smallest(columns[nz].second, twoSmallest);
 
-#ifdef DEBUG
+#ifdef DEBUGCG
       assert(columns[nz].second >= 0.0);
 #endif
 
       nz++;
     }
 
-    if (!onlyBinaryVars) 
+    if (!onlyBinaryVars)
       continue;
 
     // last test is important because if false the RHS may change
     if ( twoLargest[0] + twoLargest[1] <= rhs && (rowSense!='E' && rowSense!='R') )
       continue;
 
-#ifdef DEBUG
+#ifdef DEBUGCG
     assert(nz == length[idxRow]);
     assert(rhs >= 0.0);
 #endif
@@ -204,21 +207,16 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
         }
 
         if (columns[j].first < (size_t) numCols) {
-          newBounds_.push_back( make_pair( columns[j].first, make_pair( 0.0, 0.0) ) );
+          newBounds_.push_back(make_pair(columns[j].first, make_pair( 0.0, 0.0)));
         } else {
-          newBounds_.push_back( make_pair( columns[j].first - numCols, make_pair( 1.0, 1.0) ) );
-          rhs = rhs - columns[j].second;
+          newBounds_.push_back(make_pair(columns[j].first - numCols, make_pair( 1.0, 1.0)));
         }
-        nz--;
       }
 
-      if (nz < 2)
-        continue;
-
-#ifdef DEBUG
+#ifdef DEBUGCG
       assert(rhs >= 0.0);
 #endif
-      
+
       maxNzOC = max(maxNzOC, nz);
       
       this->addTmpRow( nz, &columns[0], rhs );
@@ -238,7 +236,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
           }
         }
 
-#ifdef DEBUG
+#ifdef DEBUGCG
         assert(rhs >= 0.0);
 #endif
 
@@ -337,7 +335,7 @@ size_t binary_search(const std::pair< size_t, double > *columns, size_t pos, dou
   size_t left = colStart, right = colEnd;
   const double prevLHS = columns[pos].second;
 
-#ifdef DEBUG
+#ifdef DEBUGCG
   assert(pos >= 0);
 #endif
 
@@ -345,7 +343,7 @@ size_t binary_search(const std::pair< size_t, double > *columns, size_t pos, dou
     const size_t mid = (left + right) / 2;
     const double lhs = prevLHS + columns[mid].second;
 
-#ifdef DEBUG
+#ifdef DEBUGCG
     assert(mid >= 0);
     assert(mid <= colEnd);
     assert(pos <= colEnd);
@@ -367,7 +365,7 @@ size_t binary_search(const std::pair< size_t, double > *columns, size_t pos, dou
 
 size_t clique_start(const std::pair< size_t, double > *columns, size_t nz, double rhs)
 {
-#ifdef DEBUG
+#ifdef DEBUGCG
   assert(nz > 1);
 #endif
 
@@ -395,7 +393,7 @@ size_t clique_start(const std::pair< size_t, double > *columns, size_t nz, doubl
 
 void CoinDynamicConflictGraph::cliqueDetection(const std::pair< size_t, double > *columns, size_t nz, const double rhs)
 {
-#ifdef DEBUG
+#ifdef DEBUGCG
   assert(nz > 1);
 #endif
 
@@ -407,7 +405,7 @@ void CoinDynamicConflictGraph::cliqueDetection(const std::pair< size_t, double >
   size_t *idxs = new size_t[nz];
   const size_t cliqueStart = clique_start(columns, nz, rhs);
 
-#ifdef DEBUG
+#ifdef DEBUGCG
   assert(cliqueStart >= 0);
   assert(cliqueStart <= nz - 2);
 #endif
@@ -429,7 +427,7 @@ void CoinDynamicConflictGraph::cliqueDetection(const std::pair< size_t, double >
 
     size_t position = binary_search(columns, j, rhs, cliqueStart, nz - 1);
 
-#ifdef DEBUG
+#ifdef DEBUGCG
     assert(position >= cliqueStart && position <= nz - 1);
 #endif
 
@@ -465,6 +463,7 @@ CoinDynamicConflictGraph::~CoinDynamicConflictGraph()
   delete conflicts;
   delete largeClqs;
   free( degree_ );
+  free(modifiedDegree_);
   if (smallCliques)
     delete smallCliques;
 }
@@ -533,6 +532,16 @@ static void *xmalloc( const size_t size )
    return result;
 }
 
+static void *xcalloc( const size_t elements, const size_t size ) {
+    void *result = calloc( elements, size );
+    if (!result) {
+        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
+        abort();
+    }
+
+    return result;
+}
+
 size_t CoinDynamicConflictGraph::nDirectConflicts( size_t idxNode ) const
 {
   return this->conflicts->rowSize(idxNode);
@@ -568,6 +577,11 @@ void CoinDynamicConflictGraph::setDegree(size_t idxNode, size_t deg)
   this->degree_[idxNode] = deg;
 }
 
+void CoinDynamicConflictGraph::setModifiedDegree(size_t idxNode, size_t mdegree)
+{
+    this->modifiedDegree_[idxNode] = mdegree;
+}
+
 void CoinDynamicConflictGraph::processSmallCliquesNode(
   size_t node,
   const size_t scn[],
@@ -582,7 +596,7 @@ void CoinDynamicConflictGraph::processSmallCliquesNode(
     iv[oldConfs[j]] = true;
   iv[node] = true;
 
-  // marking conflicts in largue cliques
+  // marking conflicts in large cliques
   for ( size_t j=0 ; (j<nNodeCliques(node)) ; ++j ) {
     size_t idxClq = nodeCliques(node)[j];
     for ( size_t k=0 ; (k<cliqueSize(idxClq)) ; ++k ) {
@@ -621,6 +635,10 @@ void CoinDynamicConflictGraph::processSmallCliquesNode(
 size_t CoinDynamicConflictGraph::degree(const size_t node) const
 {
   return degree_[node];
+}
+
+size_t CoinDynamicConflictGraph::modifiedDegree( const size_t node ) const {
+    return modifiedDegree_[node];
 }
 
 size_t CoinDynamicConflictGraph::nTotalCliqueElements() const

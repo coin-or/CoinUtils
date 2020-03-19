@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include "CoinStaticConflictGraph.hpp"
+#include "CoinDynamicConflictGraph.hpp"
 #include "CoinCliqueList.hpp"
 
 using namespace std;
@@ -15,83 +16,26 @@ static void *xmalloc( const size_t size );
 
 CoinStaticConflictGraph::CoinStaticConflictGraph ( const CoinConflictGraph *cgraph )
 {
-  iniCoinConflictGraph(cgraph);
-  nDirectConflicts_  = cgraph->nTotalDirectConflicts();
-  totalCliqueElements_ = cgraph->nTotalCliqueElements();
-  nCliques_  = cgraph->nCliques();
-  memSize_  = sizeof(size_t)*( 5*size_ + 3 + nDirectConflicts_ + 2*totalCliqueElements_ + 2*nCliques_ );
-  nConflictsNode_  = (size_t *)xmalloc( memSize_ );
-  degree_  = nConflictsNode_ + size_;
-  startConfNodes_ =  degree_ + size_ ;
-  conflicts_  = startConfNodes_ + (size_ + 1);
-  nNodeCliques_  = conflicts_ + nDirectConflicts_;
-  startNodeCliques_  = nNodeCliques_ + size_ ;
-  nodeCliques_  = startNodeCliques_ + size_ + 1;
-  cliqueSize_  = nodeCliques_ + totalCliqueElements_;
-  startClique_  = cliqueSize_ + nCliques_;
-  cliques_  = startClique_ + nCliques_ + 1;
-
-
-  fill( nConflictsNode_, nConflictsNode_+(2*size_), 0);  // clears nConflictsNode and degree
-  fill( nNodeCliques_, nNodeCliques_+size_, 0); // clears the number of cliques each node appears
-  fill( cliqueSize_, cliqueSize_+nCliques_, 0);
-  startNodeCliques_[0] = 0;
-  startClique_[0] = 0;
-
-  // copying direct conflicts
-  startConfNodes_[0] = 0;
-  size_t *pconf = conflicts_;
-  for ( size_t i=0 ; (i<size()) ; ++i ) {
-    const size_t sizeConf = cgraph->nDirectConflicts(i);
-    const size_t *conf = cgraph->directConflicts(i);
-    startConfNodes_[i+1] = startConfNodes_[i] + sizeConf;
-    nConflictsNode_[i] = sizeConf;
-
-    memcpy( pconf, conf, sizeof(size_t)*sizeConf );
-    pconf += sizeConf;
-  } // all nodes
-
-  // copying cliques
-  startClique_[0] = 0;
-  for ( size_t ic=0 ; ( ic<(size_t)cgraph->nCliques() ) ; ++ic )
-  {
-    const size_t *clique = cgraph->cliqueElements(ic);
-    cliqueSize_[ic] = cgraph->cliqueSize(ic);
-    const size_t *cliqueEnd = clique + cliqueSize_[ic];
-    startClique_[ic+1] = startClique_[ic] + cliqueSize_[ic];
-    size_t pc = startClique_[ic];
-    // copying clique contents
-    memcpy( &cliques_[pc], clique, sizeof(size_t)*cliqueSize_[ic] );
-    for ( const size_t *cl = clique ; cl<cliqueEnd ; ++cl )
-      ++nNodeCliques_[*cl];
-  }
-
-  // filling node cliques
-  startNodeCliques_[0] = 0;
-  for ( size_t in=1 ; (in<=size()) ; ++in )
-    startNodeCliques_[in] = startNodeCliques_[in-1] + nNodeCliques_[in-1];
-
-  size_t *posNodeCliques = (size_t *) NEW_VECTOR(size_t, size_);
-  memcpy(posNodeCliques, startNodeCliques_, sizeof(size_t)*size_ );
-
-  // filling node cliques
-  for ( size_t ic=0 ; ( ic < nCliques_ ) ; ++ic )
-  {
-    const size_t *clq = cliqueElements(ic);
-    const size_t clqSize = cliqueSize_[ic];
-    for ( size_t iclqe=0 ; (iclqe<clqSize) ; ++iclqe )
-    {
-      size_t el = clq[iclqe];
-      nodeCliques_[posNodeCliques[el]++] = ic;
-    }
-  }
-
-  for ( size_t i=0 ; (i<size_) ; ++i )
-      this->setDegree( i, cgraph->degree(i) );
-
-  free(posNodeCliques);
+  iniCoinStaticConflictGraph(cgraph);
 }
 
+CoinStaticConflictGraph::CoinStaticConflictGraph (
+  const int numCols,
+  const char *colType,
+  const double *colLB,
+  const double *colUB,
+  const CoinPackedMatrix *matrixByRow,
+  const char *sense,
+  const double *rowRHS,
+  const double *rowRange )
+{
+    CoinDynamicConflictGraph *cgraph = new CoinDynamicConflictGraph(numCols, colType, colLB, colUB, matrixByRow, sense, rowRHS, rowRange);
+
+    iniCoinStaticConflictGraph(cgraph);
+    newBounds_ = cgraph->updatedBounds();
+
+    delete cgraph;
+}
 
 bool CoinStaticConflictGraph::nodeInClique( size_t idxClique, size_t node ) const
 {
@@ -156,9 +100,19 @@ void CoinStaticConflictGraph::setDegree(size_t idxNode, size_t deg)
   this->degree_[idxNode] = deg;
 }
 
+void CoinStaticConflictGraph::setModifiedDegree(size_t idxNode, size_t mdegree)
+{
+    this->modifiedDegree_[idxNode] = mdegree;
+}
+
 size_t CoinStaticConflictGraph::degree(const size_t node) const
 {
   return degree_[node];
+}
+
+size_t CoinStaticConflictGraph::modifiedDegree(const size_t node) const
+{
+    return modifiedDegree_[node];
 }
 
 CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgraph, const size_t n, const size_t elements[] )
@@ -204,8 +158,8 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
     }
   }
 
-  printf("In induced subgraph there are still %zu large cliques and %zu cliques will now be stored as pairwise conflicts.\n",
-    largeClqs.nCliques(), smallClqs.nCliques() ); fflush( stdout );
+//  printf("In induced subgraph there are still %zu large cliques and %zu cliques will now be stored as pairwise conflicts.\n",
+//    largeClqs.nCliques(), smallClqs.nCliques() ); fflush( stdout );
 
   // checking in small cliques new direct neighbors of each node
   CoinAdjacencyVector newNeigh( size_, 16 );
@@ -295,10 +249,11 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
   nDirectConflicts_ = prevTotalDC + newNeigh.totalElements();
   totalCliqueElements_ = largeClqs.totalElements();
   nCliques_ = largeClqs.nCliques();
-  memSize_  = sizeof(size_t)*( 5*size_ + 3 + nDirectConflicts_ + 2*totalCliqueElements_ + 2*nCliques_ );
+  memSize_  = sizeof(size_t)*( 6*size_ + 3 + nDirectConflicts_ + 2*totalCliqueElements_ + 2*nCliques_ );
   nConflictsNode_  =  (size_t *)xmalloc( memSize_ );
   degree_  =  nConflictsNode_ + size_;
-  startConfNodes_  =  degree_ + size_;
+  modifiedDegree_ = degree_ + size_;
+  startConfNodes_  =  modifiedDegree_ + size_;
   conflicts_  = startConfNodes_ + (size_ + 1);
   nNodeCliques_  = conflicts_ + nDirectConflicts_ ;
   startNodeCliques_  = nNodeCliques_ + size_ ;
@@ -385,4 +340,89 @@ size_t CoinStaticConflictGraph::nTotalCliqueElements() const {
 CoinStaticConflictGraph::~CoinStaticConflictGraph()
 {
     free( nConflictsNode_ );
+}
+
+const std::vector< std::pair< size_t, std::pair< double, double > > > & CoinStaticConflictGraph::updatedBounds() const
+{
+    return newBounds_;
+}
+
+void CoinStaticConflictGraph::iniCoinStaticConflictGraph(const CoinConflictGraph *cgraph) {
+    iniCoinConflictGraph(cgraph);
+    nDirectConflicts_  = cgraph->nTotalDirectConflicts();
+    totalCliqueElements_ = cgraph->nTotalCliqueElements();
+    nCliques_  = cgraph->nCliques();
+    memSize_  = sizeof(size_t)*( 6*size_ + 3 + nDirectConflicts_ + 2*totalCliqueElements_ + 2*nCliques_ );
+    nConflictsNode_  = (size_t *)xmalloc( memSize_ );
+    degree_  = nConflictsNode_ + size_;
+    modifiedDegree_ = degree_ + size_;
+    startConfNodes_ =  modifiedDegree_ + size_ ;
+    conflicts_  = startConfNodes_ + (size_ + 1);
+    nNodeCliques_  = conflicts_ + nDirectConflicts_;
+    startNodeCliques_  = nNodeCliques_ + size_ ;
+    nodeCliques_  = startNodeCliques_ + size_ + 1;
+    cliqueSize_  = nodeCliques_ + totalCliqueElements_;
+    startClique_  = cliqueSize_ + nCliques_;
+    cliques_  = startClique_ + nCliques_ + 1;
+
+    fill( nConflictsNode_, nConflictsNode_+(3*size_), 0);  // clears nConflictsNode, degree and modified degree
+    fill( nNodeCliques_, nNodeCliques_+size_, 0); // clears the number of cliques each node appears
+    fill( cliqueSize_, cliqueSize_+nCliques_, 0);
+    startNodeCliques_[0] = 0;
+    startClique_[0] = 0;
+
+    // copying direct conflicts
+    startConfNodes_[0] = 0;
+    size_t *pconf = conflicts_;
+    for ( size_t i=0 ; (i<size()) ; ++i ) {
+        const size_t sizeConf = cgraph->nDirectConflicts(i);
+        const size_t *conf = cgraph->directConflicts(i);
+        startConfNodes_[i+1] = startConfNodes_[i] + sizeConf;
+        nConflictsNode_[i] = sizeConf;
+
+        memcpy( pconf, conf, sizeof(size_t)*sizeConf );
+        pconf += sizeConf;
+    } // all nodes
+
+    // copying cliques
+    startClique_[0] = 0;
+    for ( size_t ic=0 ; ( ic<(size_t)cgraph->nCliques() ) ; ++ic )
+    {
+        const size_t *clique = cgraph->cliqueElements(ic);
+        cliqueSize_[ic] = cgraph->cliqueSize(ic);
+        const size_t *cliqueEnd = clique + cliqueSize_[ic];
+        startClique_[ic+1] = startClique_[ic] + cliqueSize_[ic];
+        size_t pc = startClique_[ic];
+        // copying clique contents
+        memcpy( &cliques_[pc], clique, sizeof(size_t)*cliqueSize_[ic] );
+        for ( const size_t *cl = clique ; cl<cliqueEnd ; ++cl )
+            ++nNodeCliques_[*cl];
+    }
+
+    // filling node cliques
+    startNodeCliques_[0] = 0;
+    for ( size_t in=1 ; (in<=size()) ; ++in )
+        startNodeCliques_[in] = startNodeCliques_[in-1] + nNodeCliques_[in-1];
+
+    size_t *posNodeCliques = (size_t *) NEW_VECTOR(size_t, size_);
+    memcpy(posNodeCliques, startNodeCliques_, sizeof(size_t)*size_ );
+
+    // filling node cliques
+    for ( size_t ic=0 ; ( ic < nCliques_ ) ; ++ic )
+    {
+        const size_t *clq = cliqueElements(ic);
+        const size_t clqSize = cliqueSize_[ic];
+        for ( size_t iclqe=0 ; (iclqe<clqSize) ; ++iclqe )
+        {
+            size_t el = clq[iclqe];
+            nodeCliques_[posNodeCliques[el]++] = ic;
+        }
+    }
+
+    for ( size_t i=0 ; (i<size_) ; ++i ) {
+        this->setDegree(i, cgraph->degree(i));
+        this->setModifiedDegree(i, cgraph->modifiedDegree(i));
+    }
+
+    free(posNodeCliques);
 }
