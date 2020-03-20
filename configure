@@ -19337,7 +19337,7 @@ $as_echo "#define COIN_HAS_GLPK 1" >>confdefs.h
 if test "$coin_has_glpk" = yes ; then
 
 $as_echo "#define COINUTILS_HAS_GLPK 1" >>confdefs.h
-],
+
 fi
 
 

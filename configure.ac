@@ -96,7 +96,7 @@ AC_COINUTILS_MEMPOOL(4096,no)
 AC_COIN_CHK_LAPACK(CoinUtilsLib)
 AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib],[],[build],[])
 if test "$coin_has_glpk" = yes ; then
-  AC_DEFINE([COINUTILS_HAS_GLPK], [1], [Define to 1 if CoinUtils was build with Glpk support enabled])],
+  AC_DEFINE([COINUTILS_HAS_GLPK], [1], [Define to 1 if CoinUtils was build with Glpk support enabled])
 fi
 AC_COIN_CHK_PKG(ASL,[CoinUtilsLib],[coinasl])
 AC_COIN_CHK_PKG(Sample,[],[coindatasample],[],dataonly)
