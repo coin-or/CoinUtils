@@ -20491,6 +20491,9 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+      # add -DXYZ_BUILD to CFLAGS
+      COINUTILSLIB_CFLAGS="${COINUTILSLIB_CFLAGS} -DCOINUTILSLIB_BUILD"
+
 # Define BUILDTOOLS_DEBUG to enable debugging output
 
       if test "$BUILDTOOLS_DEBUG" = 1 ; then

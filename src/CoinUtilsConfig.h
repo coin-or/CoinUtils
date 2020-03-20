@@ -25,7 +25,7 @@
 
 #ifdef HAVE_CONFIG_H
 
-#ifdef COINUTILS_BUILD
+#ifdef COINUTILSLIB_BUILD
 #include "config.h"
 
 /* overwrite COINUTILSLIB_EXPORT from config.h when building CoinUtils
@@ -47,7 +47,7 @@
 
 #else  /* HAVE_CONFIG_H */
 
-#ifdef COINUTILS_BUILD
+#ifdef COINUTILSLIB_BUILD
 #include "config_default.h"
 #else
 #include "config_coinutils_default.h"

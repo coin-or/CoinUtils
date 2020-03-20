@@ -113,7 +113,7 @@ libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
 
 # Here list all include flags, relative to this "srcdir" directory.
-AM_CPPFLAGS = -DCOINUTILS_BUILD $(COINUTILSLIB_CFLAGS)
+AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
 
 ########################################################################
 #                Headers that need to be installed                     #
