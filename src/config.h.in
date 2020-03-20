@@ -9,6 +9,9 @@
 /* Define to 1 if cstdint is available for CoinUtils */
 #undef COINUTILS_HAS_CSTDINT
 
+/* Define to 1 if CoinUtils was build with Glpk support enabled */
+#undef COINUTILS_HAS_GLPK
+
 /* Define to 1 if stdint.h is available for CoinUtils */
 #undef COINUTILS_HAS_STDINT_H
 
