@@ -30,6 +30,7 @@ CoinAdjacencyVector::CoinAdjacencyVector( size_t _nRows, size_t _iniRowSize )
     rows_[i] = rows_[i-1] + _iniRowSize;
 
   fill( rowCap_, rowCap_+nRows_, _iniRowSize );
+  fill( notUpdated_, notUpdated_+nRows_, 0);
   memset( rowSize_, 0, sizeof(size_t)*nRows_ );
   fill( expandedRows_, expandedRows_+nRows_, (size_t *)NULL);
 }
