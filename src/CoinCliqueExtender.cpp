@@ -1,5 +1,6 @@
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <cassert>
 #include <cmath>
 #include <limits>
@@ -11,6 +12,7 @@
 
 #define CLQEXT_EPS 1e-6
 
+static void shuffle_array(size_t *arr, size_t n);
 static void *xmalloc( size_t size );
 static void *xcalloc( const size_t elements, const size_t size );
 
@@ -56,8 +58,7 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
             //nothing to do
             break;
         case 1: { //random extension
-            seed_ = std::chrono::system_clock::now().time_since_epoch().count();
-            reng_ = std::default_random_engine(seed_);
+            //nothing to do
             break;
         }
         case 2: { //max degree extension
@@ -143,7 +144,7 @@ size_t CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t c
         return 0;
     }
 
-    std::shuffle(candidates_, candidates_ + nCandidates_, reng_);
+    shuffle_array(candidates_, nCandidates_);
     nCandidates_ = std::min(nCandidates_, maxCandidates_);
 
     for (size_t i = 0; i < nCandidates_; i++) {
@@ -360,4 +361,21 @@ static void *xcalloc( const size_t elements, const size_t size ) {
     }
 
     return result;
+}
+
+static void shuffle_array (size_t *arr, size_t n) {
+    if (n <= 1) {
+        return;
+    }
+
+    size_t tmp;
+
+    srand (time(NULL));
+    
+    for (size_t i = n - 1; i > 0; i--) {
+        size_t j = rand() % (i + 1);
+        tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+    }
 }

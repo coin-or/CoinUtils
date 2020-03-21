@@ -1,9 +1,6 @@
 #ifndef COINCLIQUEEXTENDER_HPP
 #define COINCLIQUEEXTENDER_HPP
 
-#include <chrono>
-#include <random>
-
 class CoinCliqueList;
 class CoinConflictGraph;
 
@@ -47,10 +44,6 @@ private:
     size_t *newClique_, nNewClique_; //used to temporarily store a new extended clique.
     double *costs_;
     bool *iv_, *iv2_;
-
-    //used in random extension
-    unsigned seed_;
-    std::default_random_engine reng_;
 
     //reduced cost parameters
     const double *rc_;

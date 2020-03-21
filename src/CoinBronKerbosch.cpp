@@ -3,8 +3,8 @@
 #include <cmath>
 #include <cassert>
 #include <cstdio>
-#include <random>
-#include <chrono>
+#include <cstdlib>
+#include <ctime>
 #include "CoinBronKerbosch.hpp"
 #include "CoinConflictGraph.hpp"
 #include "CoinCliqueList.hpp"
@@ -12,6 +12,7 @@
 #define INT_SIZE ((size_t)(8 * sizeof(int)))
 #define BK_EPS 1e-6
 
+static void shuffle_vertices (BKVertex *vertices, size_t n);
 static void *xmalloc( const size_t size );
 static void *xcalloc( const size_t elements, const size_t size );
 static void *xrealloc( void *ptr, const size_t size );
@@ -331,8 +332,7 @@ void CoinBronKerbosch::computeFitness(const double *weights) {
             //do nothing
             break;
         case 1: { //random
-            std::default_random_engine reng(std::chrono::system_clock::now().time_since_epoch().count());
-            std::shuffle(vertices_, vertices_ + nVertices_, reng);
+            shuffle_vertices(vertices_, nVertices_);
             break;
         }
         case 2: { //degree
@@ -427,4 +427,21 @@ static void *xrealloc( void *ptr, const size_t size ) {
     }
 
     return res;
+}
+
+static void shuffle_vertices (BKVertex *vertices, size_t n) {
+    if (n <= 1) {
+        return;
+    }
+
+    BKVertex tmp;
+
+    srand (time(NULL));
+    
+    for (size_t i = n - 1; i > 0; i--) {
+        size_t j = rand() % (i + 1);
+        tmp = vertices[i];
+        vertices[i] = vertices[j];
+        vertices[j] = tmp;
+    }
 }
