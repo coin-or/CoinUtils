@@ -4,7 +4,10 @@
 class CoinCliqueList;
 class CoinConflictGraph;
 
-class CoinCliqueExtender {
+#include <CoinUtilsConfig.h>
+#include <cstddef>
+
+class COINUTILSLIB_EXPORT CoinCliqueExtender {
 public:
     explicit CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t extMethod = 4, const double *rc = NULL,
             const double maxRC = 100.0);

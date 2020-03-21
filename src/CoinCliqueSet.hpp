@@ -2,8 +2,9 @@
 #define BENCHCGRAPH_COINCLIQUESET_HPP
 
 #include "CoinCliqueList.hpp"
+#include "CoinUtilsConfig.h"
 
-class CoinCliqueSet : public CoinCliqueList {
+class COINUTILSLIB_EXPORT CoinCliqueSet : public CoinCliqueList {
 public:
     /**
     * Default constructor

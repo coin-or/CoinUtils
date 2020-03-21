@@ -1,6 +1,7 @@
 #ifndef COINCLIQUELIST_H
 #define COINCLIQUELIST_H
 
+#include <CoinUtilsConfig.h>
 #include <cstddef>
 
 #ifdef DEBUGCG
@@ -12,7 +13,7 @@
  *
  *    optionally computes occurrence of nodes in cliques
  */
-class CoinCliqueList
+class COINUTILSLIB_EXPORT CoinCliqueList
 {
 public:
   /**

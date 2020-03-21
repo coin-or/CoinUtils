@@ -8,7 +8,7 @@
  * Static conflict graph, optimized for memory usage and query speed,
  * not modifiable
  */
-class CoinStaticConflictGraph : public CoinConflictGraph
+class COINUTILSLIB_EXPORT CoinStaticConflictGraph : public CoinConflictGraph
 {
 public:
   /**

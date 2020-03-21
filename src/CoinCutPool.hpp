@@ -1,9 +1,10 @@
 #ifndef COINCUTPOOL_HPP
 #define COINCUTPOOL_HPP
 
+#include <CoinUtilsConfig.h>
 #include <cstddef>
 
-class CoinCut {
+class COINUTILSLIB_EXPORT CoinCut {
 public:
     CoinCut(const int *idxs, const double *coefs, int nz, double rhs);
     ~CoinCut();
@@ -22,7 +23,7 @@ private:
     double rhs_;
 };
 
-class CoinCutPool {
+class COINUTILSLIB_EXPORT CoinCutPool {
 public:
     CoinCutPool(const double *x, int numCols);
     ~CoinCutPool();

@@ -1,6 +1,7 @@
 #ifndef CONFLICTGRAPH_HPP
 #define CONFLICTGRAPH_HPP
 
+#include <CoinUtilsConfig.h>
 #include <cstddef>
 #include <vector>
 #include <string>
@@ -12,7 +13,7 @@
  * variables. These conflicts can involve the original
  * problem variables or complementary variables.
  */
-class CoinConflictGraph {
+class COINUTILSLIB_EXPORT CoinConflictGraph {
 public:
   CoinConflictGraph() { }
 

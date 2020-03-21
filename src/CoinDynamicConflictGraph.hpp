@@ -16,7 +16,7 @@ class CoinCliqueList;
  * This a a conflict graph where conflicts can be added on the fly,
  * not optimized for memory usage.
  */
-class CoinDynamicConflictGraph : public CoinConflictGraph
+class COINUTILSLIB_EXPORT CoinDynamicConflictGraph : public CoinConflictGraph
 {
 public:
     /**
