@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 const size_t CoinCliqueSet::sequence_[] = {37, 31, 29, 17, 13, 11, 7, 1};

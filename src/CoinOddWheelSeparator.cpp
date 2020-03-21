@@ -1,7 +1,10 @@
 #include <cassert>
+#include <cstdlib>
+#include <cstdio>
 #include <cmath>
 #include <cstring>
 #include <algorithm>
+#include <limits>
 #include "CoinOddWheelSeparator.hpp"
 #include "CoinConflictGraph.hpp"
 #include "CoinShortestPath.hpp"
