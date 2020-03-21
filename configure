@@ -18914,7 +18914,8 @@ $as_echo "$ac_success" >&6; }
   if test $ac_success = yes ; then
     coin_has_lapack=yes
          lapack_pcfiles="lapack blas"
-    else as_fn_error $? "Could not find dsyev in Lapack from lapack.pc blas.pc." "$LINENO" 5
+    else { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: lapack.pc and blas.pc present, but could not find dsyev when trying to link with it." >&5
+$as_echo "$as_me: WARNING: lapack.pc and blas.pc present, but could not find dsyev when trying to link with it." >&2;}
   fi
 
     else
@@ -20491,7 +20492,7 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-      # add -DXYZ_BUILD to CFLAGS
+      # add -DXYZ_BUILD to XYZ_CFLAGS
       COINUTILSLIB_CFLAGS="${COINUTILSLIB_CFLAGS} -DCOINUTILSLIB_BUILD"
 
 # Define BUILDTOOLS_DEBUG to enable debugging output

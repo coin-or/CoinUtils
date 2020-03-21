@@ -33,6 +33,8 @@ unitTest_LDADD = ../src/libCoinUtils.la
 # Here list all include flags, relative to this "srcdir" directory.
 AM_CPPFLAGS = -I$(srcdir)/../src
 
+AM_LDFLAGS = $(LT_LDFLAGS)
+
 unittestflags =
 if COIN_HAS_SAMPLE
   unittestflags += -mpsDir=`$(CYGPATH_W) $(SAMPLE_DATA)`
