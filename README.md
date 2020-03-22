@@ -7,8 +7,10 @@ These utilities include:
  * parsing input files in standard formats, e.g. MPS,
  * building representations of mathematical programs,
  * performing simple presolve operations,
- * warm starting algorithms for mathematical programs, and
- * comparing floating point numbers with a tolerance, among others.
+ * warm starting algorithms for mathematical programs,
+ * comparing floating point numbers with a tolerance
+ * classes for storing and manipulating conflict graphs, and
+ * classes for searching and storing cliques and odd cycles in conflict graphs, among others.
 
 CoinUtils is written in C++ and is released as open source code under the [Eclipse Public License (EPL)](http://www.opensource.org/licenses/eclipse-1.0).
 It is available from the [COIN-OR initiative](http://www.coin-or.org/).
