@@ -62,6 +62,7 @@ static Coin_message us_english[] = {
   { COIN_GENERAL_INFO, 9, 1, "%s" },
   { COIN_GENERAL_INFO2, 10, 2, "%s" },
   { COIN_GENERAL_WARNING, 3007, 1, "%s" },
+  { COIN_CGRAPH_INFO, 3009,  1, "Conflict graph built in %.3f seconds, density: %.3f%%"},
   { COIN_DUMMY_END, 999999, 0, "" }
 };
 // **** aiutami!

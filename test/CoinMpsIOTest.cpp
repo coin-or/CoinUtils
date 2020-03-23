@@ -397,6 +397,10 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
 			assert (weights[1] == 40);
 		}
 
+    for (int i = 0; i < nOfSOS; i++)
+      delete SOS[i];
+    delete[] SOS;
+
 		int * columnStart = NULL;
 		int * columnIdx = NULL;
 		double * elements = NULL;
@@ -420,14 +424,17 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
 		assert (columnStart[13] == 3);
 		assert (columnStart[14] == 3);
 		assert (columnStart[15] == 3);
+    delete[] columnStart;
 
 		assert (columnIdx[0] == 6);
 		assert (columnIdx[1] == 7);
 		assert (columnIdx[2] == 7);
+    delete[] columnIdx;
 
 		assert (elements[0] == 1.0);
 		assert (elements[1] == 2.0);
 		assert (elements[2] == 7.0);
+    delete[] elements;
 
 		int nOfCones;
 		int * coneStart = NULL;
@@ -441,6 +448,7 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
 
 		assert (coneType[0] == 1);
 		assert (coneType[1] == 2);
+    delete[] coneType;
 
 		assert (coneStart[0] == 0);
 		assert (coneStart[1] == 3);
@@ -449,6 +457,7 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
 		assert (coneStart[0] == 0);
 		assert (coneStart[1] == 3);
 		assert (coneStart[2] == 7);
+    delete[] coneStart;
 
 		assert (coneIdx[0] ==  8);
 		assert (coneIdx[1] ==  9);
@@ -457,6 +466,7 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
 		assert (coneIdx[4] == 12);
 		assert (coneIdx[5] == 13);
 		assert (coneIdx[6] == 14);
+    delete[] coneIdx;
 	}
 
 #ifdef COIN_HAS_GLPK
