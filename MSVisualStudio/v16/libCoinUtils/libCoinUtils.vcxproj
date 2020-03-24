@@ -219,6 +219,7 @@
     <ClCompile Include="..\..\..\src\CoinRational.cpp" />
     <ClCompile Include="..\..\..\src\CoinSearchTree.cpp" />
     <ClCompile Include="..\..\..\src\CoinShallowPackedVector.cpp" />
+    <ClCompile Include="..\..\..\src\CoinShortestPath.cpp" />
     <ClCompile Include="..\..\..\src\CoinSimpFactorization.cpp" />
     <ClCompile Include="..\..\..\src\CoinSnapshot.cpp" />
     <ClCompile Include="..\..\..\src\CoinStaticConflictGraph.cpp" />
@@ -239,6 +240,7 @@
     <ClInclude Include="..\..\..\src\CoinDynamicConflictGraph.hpp" />
     <ClInclude Include="..\..\..\src\CoinNodeHeap.hpp" />
     <ClInclude Include="..\..\..\src\CoinOddWheelSeparator.hpp" />
+    <ClInclude Include="..\..\..\src\CoinShortestPath.hpp" />
     <ClInclude Include="..\..\..\src\CoinStaticConflictGraph.hpp" />
     <ClInclude Include="..\..\..\src\CoinUtilsConfig.h" />
   </ItemGroup>
