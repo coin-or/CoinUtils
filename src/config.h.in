@@ -3,17 +3,60 @@
 /* Library Visibility Attribute */
 #undef COINUTILSLIB_EXPORT
 
+/* Define to the debug sanity check level (0 is no test) */
+#undef COINUTILS_CHECKLEVEL
+
 /* Define to 1 if CoinUtils uses C++11 */
 #undef COINUTILS_CPLUSPLUS11
+
+/* Define to be the name of C-function for Inf check */
+#undef COINUTILS_C_FINITE
+
+/* Define to be the name of C-function for NaN check */
+#undef COINUTILS_C_ISNAN
+
+/* Define to 1 if ASL is available. */
+#undef COINUTILS_HAS_ASL
+
+/* Define to 1 if bzlib is available */
+#undef COINUTILS_HAS_BZLIB
 
 /* Define to 1 if cstdint is available for CoinUtils */
 #undef COINUTILS_HAS_CSTDINT
 
-/* Define to 1 if CoinUtils was build with Glpk support enabled */
+/* Define to 1 if Glpk is available. */
 #undef COINUTILS_HAS_GLPK
+
+/* Define to 1 if the LAPACK package is available */
+#undef COINUTILS_HAS_LAPACK
+
+/* Define to 1 if Netlib is available. */
+#undef COINUTILS_HAS_NETLIB
+
+/* Define to 1 if readline is available */
+#undef COINUTILS_HAS_READLINE
+
+/* Define to 1 if Sample is available. */
+#undef COINUTILS_HAS_SAMPLE
 
 /* Define to 1 if stdint.h is available for CoinUtils */
 #undef COINUTILS_HAS_STDINT_H
+
+/* Define to 1 if zlib is available */
+#undef COINUTILS_HAS_ZLIB
+
+/* Define to 64-bit integer type */
+#undef COINUTILS_INT64_T
+
+/* Define to integer type capturing pointer */
+#undef COINUTILS_INTPTR_T
+
+/* Define to a macro mangling the given C identifier (in lower and upper
+   case). */
+#undef COINUTILS_LAPACK_FUNC
+
+/* As COINUTILS_LAPACK_FUNC, but for C identifiers containing underscores. */
+#undef COINUTILS_LAPACK_FUNC_
 
 /* Default maximum size allocated from pool. */
 #undef COINUTILS_MEMPOOL_MAXPOOLED
@@ -23,6 +66,12 @@
 
 /* Define to 1 if the thread aware version of CoinUtils should be compiled */
 #undef COINUTILS_PTHREADS
+
+/* Define to 64-bit unsigned integer type */
+#undef COINUTILS_UINT64_T
+
+/* Define to the debug verbosity level (0 is no output) */
+#undef COINUTILS_VERBOSITY
 
 /* Version number of project */
 #undef COINUTILS_VERSION
@@ -35,58 +84,6 @@
 
 /* Release version number of project. */
 #undef COINUTILS_VERSION_RELEASE
-
-/* Define to the debug sanity check level (0 is no test) */
-#undef COIN_COINUTILS_CHECKLEVEL
-
-/* Define to the debug verbosity level (0 is no output) */
-#undef COIN_COINUTILS_VERBOSITY
-
-/* Define to be the name of C-function for Inf check */
-#undef COIN_C_FINITE
-
-/* Define to be the name of C-function for NaN check */
-#undef COIN_C_ISNAN
-
-/* Define to 1 if ASL is available. */
-#undef COIN_HAS_ASL
-
-/* Define to 1 if bzlib is available */
-#undef COIN_HAS_BZLIB
-
-/* Define to 1 if Glpk is available. */
-#undef COIN_HAS_GLPK
-
-/* Define to 1 if the LAPACK package is available */
-#undef COIN_HAS_LAPACK
-
-/* Define to 1 if Netlib is available. */
-#undef COIN_HAS_NETLIB
-
-/* Define to 1 if readline is available */
-#undef COIN_HAS_READLINE
-
-/* Define to 1 if Sample is available. */
-#undef COIN_HAS_SAMPLE
-
-/* Define to 1 if zlib is available */
-#undef COIN_HAS_ZLIB
-
-/* Define to 64-bit integer type */
-#undef COIN_INT64_T
-
-/* Define to integer type capturing pointer */
-#undef COIN_INTPTR_T
-
-/* Define to a macro mangling the given C identifier (in lower and upper
-   case). */
-#undef COIN_LAPACK_FUNC
-
-/* As COIN_LAPACK_FUNC, but for C identifiers containing underscores. */
-#undef COIN_LAPACK_FUNC_
-
-/* Define to 64-bit unsigned integer type */
-#undef COIN_UINT64_T
 
 /* Define to 1 if your C++ compiler doesn't accept -c and -o together. */
 #undef CXX_NO_MINUS_C_MINUS_O

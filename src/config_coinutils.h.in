@@ -19,10 +19,10 @@
 #undef COINUTILS_HAS_GLPK
 
 /* Define to be the name of C-function for Inf check */
-#undef COIN_C_FINITE
+#undef COINUTILS_C_FINITE
 
 /* Define to be the name of C-function for NaN check */
-#undef COIN_C_ISNAN
+#undef COINUTILS_C_ISNAN
 
 /* Version number of project */
 #undef COINUTILS_VERSION
@@ -37,12 +37,12 @@
 #undef COINUTILS_VERSION_RELEASE
 
 /* Define to 64bit integer type */
-#undef COIN_INT64_T
+#undef COINUTILS_INT64_T
 
 /* Define to integer type capturing pointer */
-#undef COIN_INTPTR_T
+#undef COINUTILS_INTPTR_T
 
 /* Define to 64bit unsigned integer type */
-#undef COIN_UINT64_T
+#undef COINUTILS_UINT64_T
 
 #endif

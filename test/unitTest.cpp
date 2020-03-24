@@ -133,7 +133,7 @@ int main (int argc, const char *argv[])
   double checkVal ;
 
   testingMessage( "Testing CoinFinite ... " ) ;
-# ifdef COIN_C_FINITE
+# ifdef COINUTILS_C_FINITE
   checkVal = finiteVal/zero ;
 # else
   checkVal = COIN_DBL_MAX ;
@@ -151,7 +151,7 @@ int main (int argc, const char *argv[])
   { allOK = false ;
     testingMessage( "ERROR.\n" ) ; }
 
-# ifdef COIN_C_ISNAN
+# ifdef COINUTILS_C_ISNAN
   testingMessage( "Testing CoinIsnan ... " ) ;
   testingMessage( " finite value: " ) ;
   if (!CoinIsnan(finiteVal))

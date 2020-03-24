@@ -13,7 +13,7 @@
 #include <cstring>
 #include <cstdio>
 
-#ifdef COIN_HAS_READLINE
+#ifdef COINUTILS_HAS_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
 #endif
@@ -56,7 +56,7 @@ std::string nextField(const char *prompt)
   using the readline library, add non-empty lines to the history list.
 */
   if (!where) {
-#ifdef COIN_HAS_READLINE
+#ifdef COINUTILS_HAS_READLINE
     if (readSrc == stdin) {
       where = readline(prompt);
       if (where) {

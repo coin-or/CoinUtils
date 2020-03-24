@@ -1535,10 +1535,9 @@ Optional Packages:
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
   --with-coinutils-verbosity
-                          specify the debug verbosity level for project
-                          COINUTILS
+                          specify the debug verbosity level
   --with-coinutils-checklevel
-                          specify the sanity check level for project COINUTILS
+                          specify the sanity check level
   --with-lapack           Use lapack. If an argument is given, 'yes' is
                           equivalent to --with-lapack, 'no' is
                           equivalent to --without-lapack. Any other argument
@@ -3504,8 +3503,6 @@ _ACEOF
 cat >>confdefs.h <<_ACEOF
 #define COINUTILS_VERSION_RELEASE 9999
 _ACEOF
-
-
 
 
 
@@ -17066,20 +17063,20 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
   LT_LDFLAGS="$LT_LDFLAGS -no-undefined"
 
 
-# get COIN_COINUTILS_CHECKLEVEL define, used in CoinSmartPtr and CoinPackedMatrix
+# get COINUTILS_CHECKLEVEL define, used in CoinSmartPtr and CoinPackedMatrix
 
 
 # Check whether --with-coinutils-verbosity was given.
 if test "${with_coinutils_verbosity+set}" = set; then :
   withval=$with_coinutils_verbosity; if test "$withval" = yes; then withval=1 ; fi
-     coin_coinutils_verbosity=$withval
+     coin_verbosity=$withval
 else
-  coin_coinutils_verbosity=0
+  coin_verbosity=0
 fi
 
 
 cat >>confdefs.h <<_ACEOF
-#define COIN_COINUTILS_VERBOSITY $coin_coinutils_verbosity
+#define COINUTILS_VERBOSITY $coin_verbosity
 _ACEOF
 
 
@@ -17087,14 +17084,14 @@ _ACEOF
 # Check whether --with-coinutils-checklevel was given.
 if test "${with_coinutils_checklevel+set}" = set; then :
   withval=$with_coinutils_checklevel; if test "$withval" = yes; then withval=1 ; fi
-     coin_coinutils_checklevel=$withval
+     coin_checklevel=$withval
 else
-  coin_coinutils_checklevel=0
+  coin_checklevel=0
 fi
 
 
 cat >>confdefs.h <<_ACEOF
-#define COIN_COINUTILS_CHECKLEVEL $coin_coinutils_checklevel
+#define COINUTILS_CHECKLEVEL $coin_checklevel
 _ACEOF
 
 
@@ -17233,8 +17230,8 @@ _ACEOF
 
     case $ac_cv_sizeof_long_long in
       8 | 8?) CoinInt64="long long"
-	      CoinUInt64="unsigned long long"
-	      ;;
+              CoinUInt64="unsigned long long"
+              ;;
       esac
 
     if test -z "$CoinInt64" ; then
@@ -17272,9 +17269,9 @@ _ACEOF
 
 
       case $ac_cv_sizeof_long in
-	8 | 8?) CoinInt64="long"
-		CoinUInt64="unsigned long"
-		;;
+        8 | 8?) CoinInt64="long"
+                CoinUInt64="unsigned long"
+                ;;
       esac
     fi
 
@@ -17313,9 +17310,9 @@ _ACEOF
 
 
       case $ac_cv_sizeof_int in
-	8 | 8?) CoinInt64="int"
-		CoinUInt64="unsigned int"
-		;;
+        8 | 8?) CoinInt64="int"
+                CoinUInt64="unsigned int"
+                ;;
       esac
     fi
     ac_ext=cpp
@@ -17331,12 +17328,12 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
   fi
 
 cat >>confdefs.h <<_ACEOF
-#define COIN_INT64_T $CoinInt64
+#define COINUTILS_INT64_T $CoinInt64
 _ACEOF
 
 
 cat >>confdefs.h <<_ACEOF
-#define COIN_UINT64_T $CoinUInt64
+#define COINUTILS_UINT64_T $CoinUInt64
 _ACEOF
 
 
@@ -17472,7 +17469,7 @@ _ACEOF
 
 
       if test "$ac_cv_sizeof_long" = "$ac_cv_sizeof_int_p" ; then
-	CoinIntPtr="long"
+        CoinIntPtr="long"
       fi
     fi
 
@@ -17511,7 +17508,7 @@ _ACEOF
 
 
       if test "$ac_cv_sizeof_int" = "$ac_cv_sizeof_int_p" ; then
-	CoinIntPtr="int"
+        CoinIntPtr="int"
       fi
     fi
     ac_ext=cpp
@@ -17527,7 +17524,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
   fi
 
 cat >>confdefs.h <<_ACEOF
-#define COIN_INTPTR_T $CoinIntPtr
+#define COINUTILS_INTPTR_T $CoinIntPtr
 _ACEOF
 
 
@@ -17667,7 +17664,7 @@ $as_echo "$as_me: WARNING: Cannot find C-function for checking Inf." >&2;}
   else
 
 cat >>confdefs.h <<_ACEOF
-#define COIN_C_FINITE $COIN_C_FINITE
+#define COINUTILS_C_FINITE $COIN_C_FINITE
 _ACEOF
 
   fi
@@ -17756,7 +17753,7 @@ if eval test \"x\$"$as_ac_Symbol"\" = x"yes"; then :
 fi
 
       if test -z "$COIN_C_ISNAN"; then
-	break
+        break
       fi
     done
   fi
@@ -17767,7 +17764,7 @@ $as_echo "$as_me: WARNING: Cannot find C-function for checking NaN." >&2;}
   else
 
 cat >>confdefs.h <<_ACEOF
-#define COIN_C_ISNAN $COIN_C_ISNAN
+#define COINUTILS_C_ISNAN $COIN_C_ISNAN
 _ACEOF
 
   fi
@@ -19019,51 +19016,51 @@ fi
 # and COIN_LAPACK_FUNC[_] and augment the necessary variables for the client packages.
   if test $coin_has_lapack = yes ; then
 
-$as_echo "#define COIN_HAS_LAPACK 1" >>confdefs.h
+$as_echo "#define COINUTILS_HAS_LAPACK 1" >>confdefs.h
 
 
 
 
   case "${dsyev_namemangling}" in
    "lower case, no underscore, no extra underscore")
-      $as_echo "#define COIN_LAPACK_FUNC(name,NAME) name" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC(name,NAME) name" >>confdefs.h
 
-      $as_echo "#define COIN_LAPACK_FUNC_(name,NAME) name" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC_(name,NAME) name" >>confdefs.h
  ;;
    "lower case, no underscore, extra underscore")
-      $as_echo "#define COIN_LAPACK_FUNC(name,NAME) name" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC(name,NAME) name" >>confdefs.h
 
-      $as_echo "#define COIN_LAPACK_FUNC_(name,NAME) name ## _" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC_(name,NAME) name ## _" >>confdefs.h
  ;;
    "lower case, underscore, no extra underscore")
-      $as_echo "#define COIN_LAPACK_FUNC(name,NAME) name ## _" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC(name,NAME) name ## _" >>confdefs.h
 
-      $as_echo "#define COIN_LAPACK_FUNC_(name,NAME) name ## _" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC_(name,NAME) name ## _" >>confdefs.h
  ;;
    "lower case, underscore, extra underscore")
-      $as_echo "#define COIN_LAPACK_FUNC(name,NAME) name ## _" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC(name,NAME) name ## _" >>confdefs.h
 
-      $as_echo "#define COIN_LAPACK_FUNC_(name,NAME) name ## __" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC_(name,NAME) name ## __" >>confdefs.h
  ;;
    "upper case, no underscore, no extra underscore")
-      $as_echo "#define COIN_LAPACK_FUNC(name,NAME) NAME" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC(name,NAME) NAME" >>confdefs.h
 
-      $as_echo "#define COIN_LAPACK_FUNC_(name,NAME) NAME" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC_(name,NAME) NAME" >>confdefs.h
  ;;
    "upper case, no underscore, extra underscore")
-      $as_echo "#define COIN_LAPACK_FUNC(name,NAME) NAME" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC(name,NAME) NAME" >>confdefs.h
 
-      $as_echo "#define COIN_LAPACK_FUNC_(name,NAME) NAME ## _" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC_(name,NAME) NAME ## _" >>confdefs.h
  ;;
    "upper case, underscore, no extra underscore")
-      $as_echo "#define COIN_LAPACK_FUNC(name,NAME) NAME ## _" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC(name,NAME) NAME ## _" >>confdefs.h
 
-      $as_echo "#define COIN_LAPACK_FUNC_(name,NAME) NAME ## _" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC_(name,NAME) NAME ## _" >>confdefs.h
  ;;
    "upper case, underscore, extra underscore")
-      $as_echo "#define COIN_LAPACK_FUNC(name,NAME) NAME ## _" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC(name,NAME) NAME ## _" >>confdefs.h
 
-      $as_echo "#define COIN_LAPACK_FUNC_(name,NAME) NAME ## __" >>confdefs.h
+      $as_echo "#define COINUTILS_LAPACK_FUNC_(name,NAME) NAME ## __" >>confdefs.h
  ;;
    *)
       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Unsupported or unknown name-mangling scheme: ${dsyev_namemangling}" >&5
@@ -19323,7 +19320,7 @@ fi
 
   if test $coin_has_glpk = yes ; then
 
-$as_echo "#define COIN_HAS_GLPK 1" >>confdefs.h
+$as_echo "#define COINUTILS_HAS_GLPK 1" >>confdefs.h
 
     if test -n "$glpk_pcfiles" ; then COINUTILSLIB_PCFILES="$glpk_pcfiles $COINUTILSLIB_PCFILES" ; fi
        COINUTILSLIB_LFLAGS="$glpk_lflags $COINUTILSLIB_LFLAGS"
@@ -19335,11 +19332,6 @@ $as_echo "#define COIN_HAS_GLPK 1" >>confdefs.h
 
   fi
 
-if test "$coin_has_glpk" = yes ; then
-
-$as_echo "#define COINUTILS_HAS_GLPK 1" >>confdefs.h
-
-fi
 
 
 
@@ -19582,7 +19574,7 @@ fi
 
   if test $coin_has_asl = yes ; then
 
-$as_echo "#define COIN_HAS_ASL 1" >>confdefs.h
+$as_echo "#define COINUTILS_HAS_ASL 1" >>confdefs.h
 
     if test -n "$asl_pcfiles" ; then COINUTILSLIB_PCFILES="$asl_pcfiles $COINUTILSLIB_PCFILES" ; fi
        COINUTILSLIB_LFLAGS="$asl_lflags $COINUTILSLIB_LFLAGS"
@@ -19815,7 +19807,7 @@ fi
 
   if test $coin_has_sample = yes ; then
 
-$as_echo "#define COIN_HAS_SAMPLE 1" >>confdefs.h
+$as_echo "#define COINUTILS_HAS_SAMPLE 1" >>confdefs.h
 
 
 
@@ -20046,7 +20038,7 @@ fi
 
   if test $coin_has_netlib = yes ; then
 
-$as_echo "#define COIN_HAS_NETLIB 1" >>confdefs.h
+$as_echo "#define COINUTILS_HAS_NETLIB 1" >>confdefs.h
 
 
 
@@ -20200,7 +20192,7 @@ fi
       COINUTILSLIB_LFLAGS="-lz $COINUTILSLIB_LFLAGS"
 
 
-$as_echo "#define COIN_HAS_ZLIB 1" >>confdefs.h
+$as_echo "#define COINUTILS_HAS_ZLIB 1" >>confdefs.h
 
     fi
   fi
@@ -20289,7 +20281,7 @@ fi
       COINUTILSLIB_LFLAGS="-lbz2 $COINUTILSLIB_LFLAGS"
 
 
-$as_echo "#define COIN_HAS_BZLIB 1" >>confdefs.h
+$as_echo "#define COINUTILS_HAS_BZLIB 1" >>confdefs.h
 
     fi
   fi
@@ -20438,10 +20430,10 @@ fi
 
     fi
     if test $coin_has_readline = yes ; then
-      COINUTILSLIB_LFLAGS="-lreadline $COINUTILSLIB_LFLAGS"
+      COINUTILSLIB_LFLAGS="$LIBS $COINUTILSLIB_LFLAGS"
 
 
-$as_echo "#define COIN_HAS_READLINE 1" >>confdefs.h
+$as_echo "#define COINUTILS_HAS_READLINE 1" >>confdefs.h
 
     fi
     LIBS="$coin_save_LIBS"

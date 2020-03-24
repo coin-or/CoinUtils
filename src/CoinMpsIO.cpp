@@ -2762,7 +2762,7 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
   }
   return numberErrors;
 }
-#ifdef COIN_HAS_GLPK
+#ifdef COINUTILS_HAS_GLPK
 #include "glpk.h"
 COINUTILSLIB_EXPORT glp_tran *cbc_glp_tran = NULL;
 COINUTILSLIB_EXPORT glp_prob *cbc_glp_prob = NULL;
@@ -2773,7 +2773,7 @@ COINUTILSLIB_EXPORT glp_prob *cbc_glp_prob = NULL;
 int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
   bool keepNames)
 {
-#ifdef COIN_HAS_GLPK
+#ifdef COINUTILS_HAS_GLPK
   int returnCode;
   gutsOfDestructor();
   // initialize
@@ -4058,10 +4058,10 @@ int CoinMpsIO::writeMps(const char *filename, int compression,
   formatType = CoinMax(0, formatType);
   formatType = CoinMin(2, formatType);
   int possibleCompression = 0;
-#ifdef COIN_HAS_ZLIB
+#ifdef COINUTILS_HAS_ZLIB
   possibleCompression = 1;
 #endif
-#ifdef COIN_HAS_BZLIB
+#ifdef COINUTILS_HAS_BZLIB
   possibleCompression += 2;
 #endif
   if ((compression & possibleCompression) == 0) {

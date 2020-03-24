@@ -24,7 +24,7 @@
 extern "C" 
 {
   /** LAPACK Fortran subroutine DGETRS. */
-  void COIN_LAPACK_FUNC(dgetrs,DGETRS)(char *trans, cipfint *n,
+  void COINUTILS_LAPACK_FUNC(dgetrs,DGETRS)(char *trans, cipfint *n,
                         cipfint *nrhs, const double *A, cipfint *ldA,
                         cipfint *ipiv, double *B, cipfint *ldB, ipfint *info,
                         int trans_len);
@@ -295,7 +295,7 @@ void CoinFactorization::updateColumnL(CoinIndexedVector *regionSparse,
       char trans = 'N';
       int ione = 1;
       int info;
-      COIN_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberDense_,&ione,
+      COINUTILS_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberDense_,&ione,
                        denseAreaAddress_,&numberDense_,densePermute_,
                        region+lastSparse,&numberDense_,&info,1);
 #elif COIN_FACTORIZATION_DENSE_CODE==2

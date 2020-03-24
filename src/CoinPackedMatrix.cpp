@@ -21,8 +21,8 @@
 #include "CoinFloatEqual.hpp"
 #include "CoinPackedMatrix.hpp"
 
-#if !defined(COIN_COINUTILS_CHECKLEVEL)
-#define COIN_COINUTILS_CHECKLEVEL 0
+#if !defined(COINUTILS_CHECKLEVEL)
+#define COINUTILS_CHECKLEVEL 0
 #endif
 
 //#############################################################################
@@ -1270,7 +1270,7 @@ void CoinPackedMatrix::appendMinorVector(const int vecsize,
   }
 
   int i;
-#if COIN_COINUTILS_CHECKLEVEL > 3
+#if COINUTILS_CHECKLEVEL > 3
   // Test if any of the indices are out of range
   for (i = 0; i < vecsize; ++i) {
     if (vecind[i] < 0 || vecind[i] >= majorDim_)

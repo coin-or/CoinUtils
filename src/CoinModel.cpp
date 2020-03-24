@@ -4070,7 +4070,7 @@ THIS SOFTWARE.
 /* Interface routines for AMPL.
 */
 
-#ifdef COIN_HAS_ASL
+#ifdef COINUTILS_HAS_ASL
 
 #ifdef HAVE_UNISTD_H
 #include "unistd.h"

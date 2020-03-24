@@ -685,7 +685,7 @@ CoinPackedVectorUnitTest()
     int inx2[ne2] =   { 7,  4,  2,  1  };
     double el2[ne2] = { 7., 4., 2., 1. };
 
-#   ifdef COIN_C_FINITE
+#   ifdef COINUTILS_C_FINITE
     double one = 1.0 ;
     double zero = 0.0 ;
     double infty = one/zero ;

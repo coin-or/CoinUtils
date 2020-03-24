@@ -80,9 +80,9 @@ AC_DEFUN([AC_COINUTILS_INT64],
   if test -z "$CoinInt64" ; then
     AC_MSG_ERROR([Cannot find 64-bit integer type.])
   fi
-  AC_DEFINE_UNQUOTED([COIN_INT64_T], [$CoinInt64],
+  AC_DEFINE_UNQUOTED([COINUTILS_INT64_T], [$CoinInt64],
                      [Define to 64-bit integer type])
-  AC_DEFINE_UNQUOTED([COIN_UINT64_T],[$CoinUInt64],
+  AC_DEFINE_UNQUOTED([COINUTILS_UINT64_T],[$CoinUInt64],
                      [Define to 64-bit unsigned integer type])
 ])
 
@@ -126,5 +126,5 @@ AC_DEFUN([AC_COINUTILS_INTPTR],
   if test -z "$CoinIntPtr" ; then
     AC_MSG_ERROR([Cannot find integer type capturing pointer])
   fi
-  AC_DEFINE_UNQUOTED([COIN_INTPTR_T],[$CoinIntPtr],[Define to integer type capturing pointer])
+  AC_DEFINE_UNQUOTED([COINUTILS_INTPTR_T],[$CoinIntPtr],[Define to integer type capturing pointer])
 ])

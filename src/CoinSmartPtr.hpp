@@ -410,7 +410,7 @@ public:
 	 * methods using the contained pointer. */
   T *operator->() const
   {
-#if defined(COIN_COINUTILS_CHECKLEVEL) && COIN_COINUTILS_CHECKLEVEL > 0
+#if defined(COINUTILS_CHECKLEVEL) && COINUTILS_CHECKLEVEL > 0
     assert(ptr_);
 #endif
     return ptr_;
@@ -420,7 +420,7 @@ public:
 	 * to dereference the contained pointer. */
   T &operator*() const
   {
-#if defined(COIN_COINUTILS_CHECKLEVEL) && COIN_COINUTILS_CHECKLEVEL > 0
+#if defined(COINUTILS_CHECKLEVEL) && COINUTILS_CHECKLEVEL > 0
     assert(ptr_);
 #endif
     return *ptr_;

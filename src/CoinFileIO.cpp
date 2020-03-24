@@ -195,7 +195,7 @@ private:
 
 // -------- input for gzip compressed files -------
 
-#ifdef COIN_HAS_ZLIB
+#ifdef COINUTILS_HAS_ZLIB
 
 #include <zlib.h>
 
@@ -233,11 +233,11 @@ private:
   gzFile gzf_;
 };
 
-#endif // COIN_HAS_ZLIB
+#endif // COINUTILS_HAS_ZLIB
 
 // ------- input for bzip2 compressed files ------
 
-#ifdef COIN_HAS_BZLIB
+#ifdef COINUTILS_HAS_BZLIB
 
 #include <bzlib.h>
 
@@ -292,14 +292,14 @@ private:
   BZFILE *bzf_;
 };
 
-#endif // COIN_HAS_BZLIB
+#endif // COINUTILS_HAS_BZLIB
 
 // ----- implementation of CoinFileInput's methods
 
 /// indicates whether CoinFileInput supports gzip'ed files
 bool CoinFileInput::haveGzipSupport()
 {
-#ifdef COIN_HAS_ZLIB
+#ifdef COINUTILS_HAS_ZLIB
   return true;
 #else
   return false;
@@ -309,7 +309,7 @@ bool CoinFileInput::haveGzipSupport()
 /// indicates whether CoinFileInput supports bzip2'ed files
 bool CoinFileInput::haveBzip2Support()
 {
-#ifdef COIN_HAS_BZLIB
+#ifdef COINUTILS_HAS_BZLIB
   return true;
 #else
   return false;
@@ -336,7 +336,7 @@ CoinFileInput *CoinFileInput::create(const std::string &fileName)
   }
   // gzip files start with the magic numbers 0x1f 0x8b
   if (count >= 2 && header[0] == 0x1f && header[1] == 0x8b) {
-#ifdef COIN_HAS_ZLIB
+#ifdef COINUTILS_HAS_ZLIB
     return new CoinGzipFileInput(fileName);
 #else
     throw CoinError("Cannot read gzip'ed file because zlib was "
@@ -348,7 +348,7 @@ CoinFileInput *CoinFileInput::create(const std::string &fileName)
 
   // bzip2 files start with the string "BZh"
   if (count >= 3 && header[0] == 'B' && header[1] == 'Z' && header[2] == 'h') {
-#ifdef COIN_HAS_BZLIB
+#ifdef COINUTILS_HAS_BZLIB
     return new CoinBzip2FileInput(fileName);
 #else
     throw CoinError("Cannot read bzip2'ed file because bzlib was "
@@ -419,7 +419,7 @@ private:
 
 // ------- CoinGzipFileOutput ---------
 
-#ifdef COIN_HAS_ZLIB
+#ifdef COINUTILS_HAS_ZLIB
 
 // no need to include the header, as this was done for the input class
 
@@ -455,11 +455,11 @@ private:
   gzFile gzf_;
 };
 
-#endif // COIN_HAS_ZLIB
+#endif // COINUTILS_HAS_ZLIB
 
 // ------- CoinBzip2FileOutput -------
 
-#ifdef COIN_HAS_BZLIB
+#ifdef COINUTILS_HAS_BZLIB
 
 // no need to include the header, as this was done for the input class
 
@@ -512,7 +512,7 @@ private:
   BZFILE *bzf_;
 };
 
-#endif // COIN_HAS_BZLIB
+#endif // COINUTILS_HAS_BZLIB
 
 // ------- implementation of CoinFileOutput's methods
 
@@ -523,14 +523,14 @@ bool CoinFileOutput::compressionSupported(Compression compression)
     return true;
 
   case COMPRESS_GZIP:
-#ifdef COIN_HAS_ZLIB
+#ifdef COINUTILS_HAS_ZLIB
     return true;
 #else
     return false;
 #endif
 
   case COMPRESS_BZIP2:
-#ifdef COIN_HAS_BZLIB
+#ifdef COINUTILS_HAS_BZLIB
     return true;
 #else
     return false;
@@ -549,13 +549,13 @@ CoinFileOutput *CoinFileOutput::create(const std::string &fileName,
     return new CoinPlainFileOutput(fileName);
 
   case COMPRESS_GZIP:
-#ifdef COIN_HAS_ZLIB
+#ifdef COINUTILS_HAS_ZLIB
     return new CoinGzipFileOutput(fileName);
 #endif
     break;
 
   case COMPRESS_BZIP2:
-#ifdef COIN_HAS_BZLIB
+#ifdef COINUTILS_HAS_BZLIB
     return new CoinBzip2FileOutput(fileName);
 #endif
     break;
@@ -657,7 +657,7 @@ bool fileCoinReadable(std::string &fileName, const std::string &dfltPrefix)
   } else {
     fp = stdin;
   }
-#ifdef COIN_HAS_ZLIB
+#ifdef COINUTILS_HAS_ZLIB
   if (!fp) {
     std::string fname = fileName;
     fname += ".gz";
@@ -666,7 +666,7 @@ bool fileCoinReadable(std::string &fileName, const std::string &dfltPrefix)
       fileName = fname;
   }
 #endif
-#ifdef COIN_HAS_BZLIB
+#ifdef COINUTILS_HAS_BZLIB
   if (!fp) {
     std::string fname = fileName;
     fname += ".bz2";

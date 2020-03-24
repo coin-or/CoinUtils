@@ -23,7 +23,7 @@
 extern "C" 
 {
   /** LAPACK Fortran subroutine DGETRF. */
-  void COIN_LAPACK_FUNC(dgetrf,DGETRF)(ipfint *m, ipfint *n,
+  void COINUTILS_LAPACK_FUNC(dgetrf,DGETRF)(ipfint *m, ipfint *n,
                                        double *A, ipfint *ldA,
                                        ipfint *ipiv, ipfint *info);
 }
@@ -606,7 +606,7 @@ int CoinFactorization::factorDense()
     //dgef(denseAreaAddress_,&numberDense_,&numberDense_,densePermute_);
 #if COIN_FACTORIZATION_DENSE_CODE == 1
     int info;
-    COIN_LAPACK_FUNC(dgetrf,DGETRF)(&numberDense_,&numberDense_,
+    COINUTILS_LAPACK_FUNC(dgetrf,DGETRF)(&numberDense_,&numberDense_,
                      denseAreaAddress_,&numberDense_,densePermute_,&info);
     // need to check size of pivots
     if (info) {

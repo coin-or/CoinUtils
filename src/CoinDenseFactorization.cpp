@@ -21,10 +21,10 @@
 // using simple lapack interface
 extern "C" {
   /** LAPACK Fortran subroutine DGETRF. */
-  void COIN_LAPACK_FUNC(dgetrf,DGETRF)(ipfint *m, ipfint *n,
+  void COINUTILS_LAPACK_FUNC(dgetrf,DGETRF)(ipfint *m, ipfint *n,
                         double *A, ipfint *ldA, ipfint *ipiv, ipfint *info);
   /** LAPACK Fortran subroutine DGETRS. */
-  void COIN_LAPACK_FUNC(dgetrs,DGETRS)(char *trans, cipfint *n,
+  void COINUTILS_LAPACK_FUNC(dgetrs,DGETRS)(char *trans, cipfint *n,
                         cipfint *nrhs, const double *A, cipfint *ldA,
                         cipfint *ipiv, double *B, cipfint *ldB, ipfint *info,
                         int trans_len);
@@ -195,7 +195,7 @@ int CoinDenseFactorization::factor()
 #ifdef COIN_FACTORIZATION_DENSE_CODE
   if (numberRows_ == numberColumns_ && (solveMode_ % 10) != 0) {
     int info;
-    COIN_LAPACK_FUNC(dgetrf,DGETRF)(&numberRows_,&numberRows_,
+    COINUTILS_LAPACK_FUNC(dgetrf,DGETRF)(&numberRows_,&numberRows_,
                                     elements_,&numberRows_,pivotRow_,&info);
     // need to check size of pivots
     if (!info) {
@@ -513,7 +513,7 @@ int CoinDenseFactorization::updateColumn(CoinIndexedVector *regionSparse,
     char trans = 'N';
     int ione = 1;
     int info;
-    COIN_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,
+    COINUTILS_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,
                      elements_,&numberRows_,pivotRow_,region,&numberRows_,
                      &info,1);
   }
@@ -674,7 +674,7 @@ int CoinDenseFactorization::updateTwoColumnsFT(CoinIndexedVector *regionSparse1,
     char trans = 'N';
     int itwo = 2;
     int info;
-    COIN_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&itwo,elements_,
+    COINUTILS_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&itwo,elements_,
                      &numberRows_,pivotRow_,workArea_,&numberRows_,&info,1);
     // now updates
     elements = elements_ + numberRows_ * numberRows_;
@@ -851,7 +851,7 @@ int CoinDenseFactorization::updateColumnTranspose(CoinIndexedVector *regionSpars
     char trans = 'T';
     int ione = 1;
     int info;
-    COIN_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,
+    COINUTILS_LAPACK_FUNC(dgetrs,DGETRS)(&trans,&numberRows_,&ione,elements_,
                      &numberRows_,pivotRow_,region,&numberRows_,&info,1);
   }
 #endif

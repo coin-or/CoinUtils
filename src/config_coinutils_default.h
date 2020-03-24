@@ -28,14 +28,14 @@
 */
 #if _MSC_VER >= 1200
 #include <BaseTsd.h>
-#define COIN_INT64_T INT64
-#define COIN_UINT64_T UINT64
+#define COINUTILS_INT64_T INT64
+#define COINUTILS_UINT64_T UINT64
 /* Define to integer type capturing pointer */
-#define COIN_INTPTR_T ULONG_PTR
+#define COINUTILS_INTPTR_T ULONG_PTR
 #else
-#define COIN_INT64_T long long
-#define COIN_UINT64_T unsigned long long
-#define COIN_INTPTR_T int *
+#define COINUTILS_INT64_T long long
+#define COINUTILS_UINT64_T unsigned long long
+#define COINUTILS_INTPTR_T int *
 #endif
 
 /* Define to 1 if CoinUtils uses C++11 */

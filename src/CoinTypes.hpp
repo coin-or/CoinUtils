@@ -15,9 +15,9 @@
 #include <cstdint>
 #endif
 
-#define CoinInt64 COIN_INT64_T
-#define CoinUInt64 COIN_UINT64_T
-#define CoinIntPtr COIN_INTPTR_T
+#define CoinInt64 COINUTILS_INT64_T
+#define CoinUInt64 COINUTILS_UINT64_T
+#define CoinIntPtr COINUTILS_INTPTR_T
 
 //=============================================================================
 #ifndef COIN_BIG_INDEX

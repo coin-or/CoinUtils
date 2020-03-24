@@ -469,7 +469,7 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
     delete[] coneIdx;
 	}
 
-#ifdef COIN_HAS_GLPK
+#ifdef COINUTILS_HAS_GLPK
     // test GMPL reader
     {
       printf("Testing readGMPL (glpk) ...\n") ;

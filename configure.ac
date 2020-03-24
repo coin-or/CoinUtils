@@ -26,7 +26,7 @@ AC_CONFIG_SRCDIR(src/CoinError.cpp)
 # Do some project-level initialization work (version numbers, change prefix
 # default, ...)
 
-AC_COIN_INITIALIZE(CoinUtils)
+AC_COIN_INITIALIZE
 
 #############################################################################
 #                         Standard build tool stuff                         #
@@ -44,8 +44,8 @@ AC_LANG_PUSH(C++)
 
 AC_COIN_PROG_LIBTOOL
 
-# get COIN_COINUTILS_CHECKLEVEL define, used in CoinSmartPtr and CoinPackedMatrix
-AC_COIN_DEBUGLEVEL(COINUTILS)
+# get COINUTILS_CHECKLEVEL define, used in CoinSmartPtr and CoinPackedMatrix
+AC_COIN_DEBUGLEVEL
 
 #############################################################################
 #                           Header files                                    #
@@ -95,9 +95,6 @@ AC_COINUTILS_MEMPOOL(4096,no)
 
 AC_COIN_CHK_LAPACK(CoinUtilsLib)
 AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib],[],[build],[])
-if test "$coin_has_glpk" = yes ; then
-  AC_DEFINE([COINUTILS_HAS_GLPK], [1], [Define to 1 if CoinUtils was build with Glpk support enabled])
-fi
 AC_COIN_CHK_PKG(ASL,[CoinUtilsLib],[coinasl])
 AC_COIN_CHK_PKG(Sample,[],[coindatasample],[],dataonly)
 AC_COIN_CHK_PKG(Netlib,[],[coindatanetlib],[],dataonly)
