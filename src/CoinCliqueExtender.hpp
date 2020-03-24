@@ -4,7 +4,7 @@
 class CoinCliqueList;
 class CoinConflictGraph;
 
-#include <CoinUtilsConfig.h>
+#include "CoinUtilsConfig.h"
 #include <cstddef>
 
 class COINUTILSLIB_EXPORT CoinCliqueExtender {

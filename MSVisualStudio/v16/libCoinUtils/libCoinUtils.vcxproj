@@ -108,6 +108,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\..\..\..\BuildTools\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/wd4146 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -149,6 +150,7 @@
       <AdditionalIncludeDirectories>..\..\..\..\BuildTools\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/wd4146 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -225,11 +227,6 @@
     <ClCompile Include="..\..\..\src\CoinWarmStartDual.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartPrimalDual.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartVector.cpp" />
-    <ClCompile Include="..\..\..\src\cut.cpp" />
-    <ClCompile Include="..\..\..\src\node_heap.cpp" />
-    <ClCompile Include="..\..\..\src\Origem.cpp" />
-    <ClCompile Include="..\..\..\src\str_utils.cpp" />
-    <ClCompile Include="..\..\..\src\vint_set.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\CoinAdjacencyVector.hpp" />

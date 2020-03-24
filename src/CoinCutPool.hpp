@@ -1,7 +1,7 @@
 #ifndef COINCUTPOOL_HPP
 #define COINCUTPOOL_HPP
 
-#include <CoinUtilsConfig.h>
+#include "CoinUtilsConfig.h"
 #include <cstddef>
 
 class COINUTILSLIB_EXPORT CoinCut {

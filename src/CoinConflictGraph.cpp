@@ -10,7 +10,7 @@
 #include <limits>
 #include "CoinConflictGraph.hpp"
 #include "CoinAdjacencyVector.hpp"
-#include <CoinTime.hpp>
+#include "CoinTime.hpp"
 
 using namespace std;
 
