@@ -1,7 +1,7 @@
 #ifndef CONFLICTGRAPH_HPP
 #define CONFLICTGRAPH_HPP
 
-#include <CoinUtilsConfig.h>
+#include "CoinUtilsConfig.h"
 #include <cstddef>
 #include <vector>
 #include <string>

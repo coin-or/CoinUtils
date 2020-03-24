@@ -158,16 +158,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\bron_kerbosch.cpp" />
-    <ClCompile Include="..\..\..\src\cgraph.cpp" />
-    <ClCompile Include="..\..\..\src\clique.cpp" />
-    <ClCompile Include="..\..\..\src\clique_extender.cpp" />
-    <ClCompile Include="..\..\..\src\clique_separation.cpp" />
     <ClCompile Include="..\..\..\src\CoinAdjacencyVector.cpp" />
     <ClCompile Include="..\..\..\src\CoinAlloc.cpp" />
+    <ClCompile Include="..\..\..\src\CoinBronKerbosch.cpp" />
     <ClCompile Include="..\..\..\src\CoinBuild.cpp" />
+    <ClCompile Include="..\..\..\src\CoinCliqueExtender.cpp" />
+    <ClCompile Include="..\..\..\src\CoinCliqueList.cpp" />
+    <ClCompile Include="..\..\..\src\CoinCliqueSet.cpp" />
+    <ClCompile Include="..\..\..\src\CoinConflictGraph.cpp" />
+    <ClCompile Include="..\..\..\src\CoinCutPool.cpp" />
     <ClCompile Include="..\..\..\src\CoinDenseFactorization.cpp" />
     <ClCompile Include="..\..\..\src\CoinDenseVector.cpp" />
+    <ClCompile Include="..\..\..\src\CoinDynamicConflictGraph.cpp" />
     <ClCompile Include="..\..\..\src\CoinError.cpp" />
     <ClCompile Include="..\..\..\src\CoinFactorization1.cpp" />
     <ClCompile Include="..\..\..\src\CoinFactorization2.cpp" />
@@ -183,6 +185,8 @@
     <ClCompile Include="..\..\..\src\CoinModelUseful.cpp" />
     <ClCompile Include="..\..\..\src\CoinModelUseful2.cpp" />
     <ClCompile Include="..\..\..\src\CoinMpsIO.cpp" />
+    <ClCompile Include="..\..\..\src\CoinNodeHeap.cpp" />
+    <ClCompile Include="..\..\..\src\CoinOddWheelSeparator.cpp" />
     <ClCompile Include="..\..\..\src\CoinOslFactorization.cpp" />
     <ClCompile Include="..\..\..\src\CoinOslFactorization2.cpp" />
     <ClCompile Include="..\..\..\src\CoinOslFactorization3.cpp" />
@@ -215,6 +219,7 @@
     <ClCompile Include="..\..\..\src\CoinShallowPackedVector.cpp" />
     <ClCompile Include="..\..\..\src\CoinSimpFactorization.cpp" />
     <ClCompile Include="..\..\..\src\CoinSnapshot.cpp" />
+    <ClCompile Include="..\..\..\src\CoinStaticConflictGraph.cpp" />
     <ClCompile Include="..\..\..\src\CoinStructuredModel.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartBasis.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartDual.cpp" />
@@ -222,8 +227,23 @@
     <ClCompile Include="..\..\..\src\CoinWarmStartVector.cpp" />
     <ClCompile Include="..\..\..\src\cut.cpp" />
     <ClCompile Include="..\..\..\src\node_heap.cpp" />
+    <ClCompile Include="..\..\..\src\Origem.cpp" />
     <ClCompile Include="..\..\..\src\str_utils.cpp" />
     <ClCompile Include="..\..\..\src\vint_set.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\CoinAdjacencyVector.hpp" />
+    <ClInclude Include="..\..\..\src\CoinBronKerbosch.hpp" />
+    <ClInclude Include="..\..\..\src\CoinCliqueExtender.hpp" />
+    <ClInclude Include="..\..\..\src\CoinCliqueList.hpp" />
+    <ClInclude Include="..\..\..\src\CoinCliqueSet.hpp" />
+    <ClInclude Include="..\..\..\src\CoinConflictGraph.hpp" />
+    <ClInclude Include="..\..\..\src\CoinCutPool.hpp" />
+    <ClInclude Include="..\..\..\src\CoinDynamicConflictGraph.hpp" />
+    <ClInclude Include="..\..\..\src\CoinNodeHeap.hpp" />
+    <ClInclude Include="..\..\..\src\CoinOddWheelSeparator.hpp" />
+    <ClInclude Include="..\..\..\src\CoinStaticConflictGraph.hpp" />
+    <ClInclude Include="..\..\..\src\CoinUtilsConfig.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

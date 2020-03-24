@@ -1,7 +1,7 @@
 #ifndef COINCLIQUELIST_H
 #define COINCLIQUELIST_H
 
-#include <CoinUtilsConfig.h>
+#include "CoinUtilsConfig.h"
 #include <cstddef>
 
 #ifdef DEBUGCG

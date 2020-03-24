@@ -2,7 +2,7 @@
 #define COINBRONKERBOSCH_HPP
 
 #include <cstddef>
-#include <CoinUtilsConfig.h>
+#include "CoinUtilsConfig.h"
 class CoinConflictGraph;
 class CoinCliqueList;
 
