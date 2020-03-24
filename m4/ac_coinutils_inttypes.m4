@@ -1,5 +1,3 @@
-
-
 AC_DEFUN([AC_COINUTILS_INTTYPE_HDRS],
 [
   #ifdef HAVE_CSTDINT
@@ -55,25 +53,25 @@ AC_DEFUN([AC_COINUTILS_INT64],
     AC_CHECK_SIZEOF([long long])
     case $ac_cv_sizeof_long_long in
       8 | 8?) CoinInt64="long long"
-	      CoinUInt64="unsigned long long"
-	      ;;
+              CoinUInt64="unsigned long long"
+              ;;
       esac
 
     if test -z "$CoinInt64" ; then
       AC_CHECK_SIZEOF([long])
       case $ac_cv_sizeof_long in
-	8 | 8?) CoinInt64="long"
-		CoinUInt64="unsigned long"
-		;;
+        8 | 8?) CoinInt64="long"
+                CoinUInt64="unsigned long"
+                ;;
       esac
     fi
 
     if test -z "$CoinInt64" ; then
       AC_CHECK_SIZEOF([int])
       case $ac_cv_sizeof_int in
-	8 | 8?) CoinInt64="int"
-		CoinUInt64="unsigned int"
-		;;
+        8 | 8?) CoinInt64="int"
+                CoinUInt64="unsigned int"
+                ;;
       esac
     fi
     AC_LANG_POP(C)
@@ -83,9 +81,9 @@ AC_DEFUN([AC_COINUTILS_INT64],
     AC_MSG_ERROR([Cannot find 64-bit integer type.])
   fi
   AC_DEFINE_UNQUOTED([COIN_INT64_T], [$CoinInt64],
-		     [Define to 64-bit integer type])
+                     [Define to 64-bit integer type])
   AC_DEFINE_UNQUOTED([COIN_UINT64_T],[$CoinUInt64],
-		     [Define to 64-bit unsigned integer type])
+                     [Define to 64-bit unsigned integer type])
 ])
 
 
@@ -112,14 +110,14 @@ AC_DEFUN([AC_COINUTILS_INTPTR],
     if test x"$CoinIntPtr" = x ; then
       AC_CHECK_SIZEOF([long])
       if test "$ac_cv_sizeof_long" = "$ac_cv_sizeof_int_p" ; then
-	CoinIntPtr="long"
+        CoinIntPtr="long"
       fi
     fi
 
     if test x"$CoinIntPtr" = x ; then
       AC_CHECK_SIZEOF([int])
       if test "$ac_cv_sizeof_int" = "$ac_cv_sizeof_int_p" ; then
-	CoinIntPtr="int"
+        CoinIntPtr="int"
       fi
     fi
     AC_LANG_POP(C)
@@ -128,6 +126,5 @@ AC_DEFUN([AC_COINUTILS_INTPTR],
   if test -z "$CoinIntPtr" ; then
     AC_MSG_ERROR([Cannot find integer type capturing pointer])
   fi
-  AC_DEFINE_UNQUOTED([COIN_INTPTR_T],[$CoinIntPtr],
-		     [Define to integer type capturing pointer])
+  AC_DEFINE_UNQUOTED([COIN_INTPTR_T],[$CoinIntPtr],[Define to integer type capturing pointer])
 ])
