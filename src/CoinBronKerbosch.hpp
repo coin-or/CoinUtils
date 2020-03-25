@@ -13,7 +13,7 @@ struct BKVertex {
     double fitness;
 };
 
-class CoinBronKerbosch {
+class COINUTILSLIB_EXPORT CoinBronKerbosch {
 public:
     CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights, size_t pivotingStrategy = 3);
     ~CoinBronKerbosch();
