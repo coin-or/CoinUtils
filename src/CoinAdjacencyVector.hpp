@@ -2,12 +2,13 @@
 #define COINADJACENCYVECTOR_H
 
 #include <cstddef>
+#include "CoinUtilsConfig.h"
 
 /**
  * A class to store a (growable) list of neighbors for each node
  * in a conflict graph.
  */
-class CoinAdjacencyVector
+class COINUTILSLIB_EXPORT CoinAdjacencyVector
 {
 public:
   /**

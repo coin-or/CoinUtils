@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include "CoinUtilsConfig.h"
+
 class CoinConflictGraph;
 class CoinCliqueList;
 

@@ -1,6 +1,7 @@
 #ifndef STATICCONFLICTGRAPH_HPP
 #define STATICCONFLICTGRAPH_HPP
 
+#include "CoinUtilsConfig.h"
 #include "CoinConflictGraph.hpp"
 #include "CoinDynamicConflictGraph.hpp"
 

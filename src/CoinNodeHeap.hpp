@@ -1,10 +1,11 @@
 #ifndef COINNODEHEAP_HPP
 #define COINNODEHEAP_HPP
 
+#include "CoinUtilsConfig.h"
 #include <cstddef>
 #include <utility>
 
-class CoinNodeHeap {
+class COINUTILSLIB_EXPORT CoinNodeHeap {
 public:
     /* creates the heap with space for nodes {0,...,nodes-1} */
     explicit CoinNodeHeap(size_t numNodes);

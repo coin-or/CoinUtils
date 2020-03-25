@@ -1,10 +1,12 @@
 #ifndef COINODDWHEELSEPARATOR_HPP
 #define COINODDWHEELSEPARATOR_HPP
 
+#include "CoinUtilsConfig.h"
+
 class CoinConflictGraph;
 class CoinShortestPath;
 
-class CoinOddWheelSeparator {
+class COINUTILSLIB_EXPORT CoinOddWheelSeparator {
 public:
     CoinOddWheelSeparator(const CoinConflictGraph *cgraph, const double *x, const double *rc, size_t extMethod);
     ~CoinOddWheelSeparator();

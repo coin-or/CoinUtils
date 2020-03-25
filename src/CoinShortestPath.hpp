@@ -1,12 +1,13 @@
 #ifndef COINSHORTESTPATH_HPP
 #define COINSHORTESTPATH_HPP
 
+#include "CoinUtilsConfig.h"
 #include <cstddef>
 #include <utility>
 
 class CoinNodeHeap;
 
-class CoinShortestPath {
+class COINUTILSLIB_EXPORT CoinShortestPath {
 public:
     CoinShortestPath(size_t nodes, size_t arcs, const size_t *arcStart, const size_t *toNode, const double *dist);
     ~CoinShortestPath();
