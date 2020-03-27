@@ -1,3 +1,21 @@
+/**
+ *
+ * This file is part of the COIN-OR CBC MIP Solver
+ *
+ * Abstract class for a Conflict Graph, see CoinStaticConflictGraph and 
+ * CoinDynamicConflictGraph for concrete implementations.
+ *
+ * @file CoinConflictGraph.cpp
+ * @brief Abstract class for conflict graph
+ * @author Samuel Souza Brito and Haroldo Gambini Santos
+ * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * @date 03/27/2020
+ *
+ * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
+ * \license{This This code is licensed under the terms of the Eclipse Public License (EPL).}
+ *
+ **/
+
 #include <cassert>
 #include <cstring>
 #include <algorithm>

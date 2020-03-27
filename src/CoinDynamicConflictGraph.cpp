@@ -1,3 +1,22 @@
+/**
+ *
+ * This file is part of the COIN-OR CBC MIP Solver
+ *
+ * CoinConflictGraph implementation which supports modifications. 
+ * For a static conflict graph implemenation with faster queries
+ * check CoinStaticConflictGraph.
+ *
+ * @file CoinDynamicConflictGraph.hpp
+ * @brief CoinConflictGraph implementation which supports modifications. 
+ * @author Samuel Souza Brito and Haroldo Gambini Santos
+ * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * @date 03/27/2020
+ *
+ * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
+ * \license{This This code is licensed under the terms of the Eclipse Public License (EPL).}
+ *
+ **/
+
 #include <algorithm>
 #include <climits>
 #include <limits>
