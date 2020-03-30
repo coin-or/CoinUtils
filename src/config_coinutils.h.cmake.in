@@ -1,0 +1,38 @@
+#ifndef __CONFIG_${NAME}_H__
+#define __CONFIG_${NAME}_H__
+
+/* Library Visibility Attribute */
+#define ${NAME}LIB_EXPORT
+
+/* Define to 1 if CoinUtils uses C++11 */
+#define ${NAME}_CPLUSPLUS11 1
+
+/* Define to 1 if stdint.h is available for CoinUtils */
+#define ${NAME}_HAS_STDINT_H 1
+
+/* Define to 1 if cstdint is available for CoinUtils */
+#define ${NAME}_HAS_CSTDINT 1
+
+/* COIN_C_FINITE */
+#cmakedefine COIN_C_FINITE ${COIN_C_FINITE}
+
+/* COIN_C_ISNAN */
+#cmakedefine COIN_C_ISNAN ${COIN_C_ISNAN}
+
+/* ${NAME}_VERSION */
+#define ${NAME}_VERSION "${VERSION}"
+/* ${NAME}_VERSION_MAJOR */
+#define ${NAME}_VERSION_MAJOR ${MAJOR}
+/* ${NAME}_VERSION_MINOR */
+#define ${NAME}_VERSION_MINOR ${MINOR}
+/* ${NAME}_VERSION_RELEASE */
+#define ${NAME}_VERSION_RELEASE ${PATCH}
+
+/* COIN_INT64_T */
+#cmakedefine COIN_INT64_T ${COIN_INT64_T}
+/* COIN_UINT64_T */
+#cmakedefine COIN_UINT64_T ${COIN_UINT64_T}
+/* COIN_INTPTR_T */
+#cmakedefine COIN_INTPTR_T ${COIN_INTPTR_T}
+
+#endif
