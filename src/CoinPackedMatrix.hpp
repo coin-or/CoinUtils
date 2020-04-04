@@ -7,7 +7,7 @@
 #define CoinPackedMatrix_H
 
 #include "CoinError.hpp"
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 #ifndef CLP_NO_VECTOR
 #include "CoinPackedVectorBase.hpp"
 #include "CoinShallowPackedVector.hpp"

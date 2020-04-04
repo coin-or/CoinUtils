@@ -6,8 +6,8 @@
 #ifndef CoinSnapshot_H
 #define CoinSnapshot_H
 
-class COINUTILSLIB_EXPORT CoinPackedMatrix;
-#include "CoinTypes.hpp"
+class CoinPackedMatrix;
+#include "CoinTypes.h"
 
 //#############################################################################
 

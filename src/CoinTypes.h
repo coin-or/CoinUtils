@@ -1,32 +1,32 @@
-/* $Id$ */
-// Copyright (C) 2004, International Business Machines
-// Corporation and others.  All Rights Reserved.
-// This code is licensed under the terms of the Eclipse Public License (EPL).
+/* Copyright (C) 2004, International Business Machines
+ * Corporation and others.  All Rights Reserved.
+ * This code is licensed under the terms of the Eclipse Public License (EPL).
+ */
 
-#ifndef _CoinTypes_hpp
-#define _CoinTypes_hpp
+#ifndef _CoinTypes_h
+#define _CoinTypes_h
 
 #include "CoinUtilsConfig.h"
-/* On some systems, we require stdint.h to have the 64bit integer type defined. */
-#ifdef COINUTILS_HAS_STDINT_H
-#include <stdint.h>
-#endif
-#ifdef COINUTILS_HAS_CSTDINT
+
+/* On some systems, we require cstdint/stdint.h to have the 64bit integer type defined. */
+#if defined(COINUTILS_HAS_CSTDINT) && defined(__cplusplus)
 #include <cstdint>
+#elif defined(COINUTILS_HAS_STDINT_H)
+#include <stdint.h>
 #endif
 
 #define CoinInt64 COINUTILS_INT64_T
 #define CoinUInt64 COINUTILS_UINT64_T
 #define CoinIntPtr COINUTILS_INTPTR_T
 
-//=============================================================================
+/* ============================================================================= */
 #ifndef COIN_BIG_INDEX
 #define COIN_BIG_INDEX 0
 #endif
 
 #if COIN_BIG_INDEX == 0
 typedef int CoinBigIndex;
-// CoinByteArray should be an integer that is long enough for any size of array in bytes
+/* CoinByteArray should be an integer that is long enough for any size of array in bytes */
 typedef CoinIntPtr CoinByteArray;
 #elif COIN_BIG_INDEX == 1
 typedef long CoinBigIndex;
@@ -36,12 +36,12 @@ typedef long long CoinBigIndex;
 typedef long long CoinByteArray;
 #endif
 
-//=============================================================================
+/* ============================================================================= */
 #ifndef COIN_BIG_DOUBLE
 #define COIN_BIG_DOUBLE 0
 #endif
 
-// See if we want the ability to have long double work arrays
+/* See if we want the ability to have long double work arrays */
 #if COIN_BIG_DOUBLE == 2
 #undef COIN_BIG_DOUBLE
 #define COIN_BIG_DOUBLE 0
@@ -66,6 +66,3 @@ typedef double CoinFactorizationDouble;
 #endif
 
 #endif
-
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/

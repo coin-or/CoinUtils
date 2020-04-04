@@ -12,7 +12,7 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 #include "CoinIndexedVector.hpp"
 #include "CoinDenseFactorization.hpp"
 class CoinPackedMatrix;

@@ -7,7 +7,7 @@
 #define CoinBuild_H
 
 #include "CoinPragma.hpp"
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 #include "CoinFinite.hpp"
 
 /** 

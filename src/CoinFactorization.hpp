@@ -19,7 +19,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cmath>
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 #include "CoinIndexedVector.hpp"
 
 class CoinPackedMatrix;

@@ -13,7 +13,6 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinPackedMatrix.hpp"
-#include "CoinTypes.hpp"
 #include "CoinFinite.hpp"
 #include <stdio.h>
 static void c_ekksmem(EKKfactinfo *fact, int numberRows, int maximumPivots);

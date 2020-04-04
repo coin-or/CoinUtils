@@ -86,7 +86,7 @@ libCoinUtils_la_SOURCES = \
 	CoinSnapshot.cpp CoinSnapshot.hpp \
 	CoinSort.hpp \
 	CoinTime.hpp \
-	CoinTypes.hpp \
+	CoinTypes.h \
 	CoinUtility.hpp \
 	CoinWarmStart.hpp \
 	CoinWarmStartBasis.cpp CoinWarmStartBasis.hpp \
@@ -175,7 +175,7 @@ includecoin_HEADERS = \
 	CoinSnapshot.hpp \
 	CoinSort.hpp \
 	CoinTime.hpp \
-	CoinTypes.hpp \
+	CoinTypes.h \
 	CoinUtility.hpp \
 	CoinWarmStart.hpp \
 	CoinWarmStartBasis.hpp \

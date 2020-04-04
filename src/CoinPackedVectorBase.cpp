@@ -6,7 +6,7 @@
 #include <numeric>
 
 #include "CoinPackedVectorBase.hpp"
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 #include "CoinHelperFunctions.hpp"
 #include "CoinFloatEqual.hpp"
 

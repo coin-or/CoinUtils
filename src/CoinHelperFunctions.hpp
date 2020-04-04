@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 #include "CoinError.hpp"
 
 // Compilers can produce better code if they know about __restrict

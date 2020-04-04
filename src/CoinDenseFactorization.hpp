@@ -15,7 +15,7 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 #include "CoinIndexedVector.hpp"
 #include "CoinFactorization.hpp"
 #if COIN_FACTORIZATION_DENSE_CODE == 2

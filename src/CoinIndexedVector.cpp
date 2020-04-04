@@ -11,11 +11,11 @@
 #include <cassert>
 #include <cstdio>
 
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 #include "CoinFloatEqual.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinIndexedVector.hpp"
-#include "CoinTypes.hpp"
+
 //#############################################################################
 #define WARN_USELESS 0
 void CoinIndexedVector::clear()

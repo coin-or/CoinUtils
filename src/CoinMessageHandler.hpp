@@ -8,7 +8,7 @@
 
 #include "CoinUtilsConfig.h"
 #include "CoinPragma.hpp"
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 
 #include <iostream>
 #include <cstdio>

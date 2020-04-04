@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <iostream>
 
-#include "CoinTypes.hpp"
+#include "CoinTypes.h"
 #include "CoinPragma.hpp"
 
 /**
