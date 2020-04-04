@@ -104,7 +104,6 @@ AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
 # and that therefore should be installed in pkgincludedir.
 includecoindir = $(pkgincludedir)
 includecoin_HEADERS = \
-	Coin_C_defines.h \
 	CoinAlloc.hpp \
 	CoinBuild.hpp \
 	CoinDenseVector.hpp \
