@@ -108,6 +108,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@BUILD_OSLFACTORIZATION_TRUE@am__append_1 = CoinOslFactorization.cpp CoinOslFactorization2.cpp CoinOslFactorization3.cpp CoinSimpFactorization.cpp
+@BUILD_OSLFACTORIZATION_TRUE@am__append_2 = CoinOslFactorization.hpp CoinSimpFactorization.hpp
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_coinutils_inttypes.m4 \
@@ -116,7 +118,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ac_coinutils_inttypes.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(includecoin_HEADERS)
+DIST_COMMON = $(srcdir)/Makefile.am $(am__includecoin_HEADERS_DIST)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h config_coinutils.h
 CONFIG_CLEAN_FILES =
@@ -152,16 +154,18 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includecoindir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libCoinUtils_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+@BUILD_OSLFACTORIZATION_TRUE@am__objects_1 = CoinOslFactorization.lo \
+@BUILD_OSLFACTORIZATION_TRUE@	CoinOslFactorization2.lo \
+@BUILD_OSLFACTORIZATION_TRUE@	CoinOslFactorization3.lo \
+@BUILD_OSLFACTORIZATION_TRUE@	CoinSimpFactorization.lo
 am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinDenseVector.lo CoinError.lo CoinFactorization1.lo \
 	CoinFactorization2.lo CoinFactorization3.lo \
-	CoinFactorization4.lo CoinSimpFactorization.lo \
-	CoinDenseFactorization.lo CoinOslFactorization.lo \
-	CoinOslFactorization2.lo CoinOslFactorization3.lo \
-	CoinFileIO.lo CoinFinite.lo CoinIndexedVector.lo CoinLpIO.lo \
-	CoinMessage.lo CoinMessageHandler.lo CoinModel.lo \
-	CoinStructuredModel.lo CoinModelUseful.lo CoinModelUseful2.lo \
-	CoinMpsIO.lo CoinPackedMatrix.lo CoinPackedVector.lo \
+	CoinFactorization4.lo CoinDenseFactorization.lo CoinFileIO.lo \
+	CoinFinite.lo CoinIndexedVector.lo CoinLpIO.lo CoinMessage.lo \
+	CoinMessageHandler.lo CoinModel.lo CoinStructuredModel.lo \
+	CoinModelUseful.lo CoinModelUseful2.lo CoinMpsIO.lo \
+	CoinPackedMatrix.lo CoinPackedVector.lo \
 	CoinPackedVectorBase.lo CoinParam.lo CoinParamUtils.lo \
 	CoinPostsolveMatrix.lo CoinPrePostsolveMatrix.lo \
 	CoinPresolveDoubleton.lo CoinPresolveDual.lo \
@@ -181,7 +185,7 @@ am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinConflictGraph.lo CoinCutPool.lo \
 	CoinDynamicConflictGraph.lo CoinNodeHeap.lo \
 	CoinOddWheelSeparator.lo CoinShortestPath.lo \
-	CoinStaticConflictGraph.lo
+	CoinStaticConflictGraph.lo $(am__objects_1)
 libCoinUtils_la_OBJECTS = $(am_libCoinUtils_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -288,6 +292,35 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+am__includecoin_HEADERS_DIST = CoinAlloc.hpp CoinBuild.hpp \
+	CoinDenseVector.hpp CoinDistance.hpp CoinError.hpp \
+	CoinFactorization.hpp CoinDenseFactorization.hpp \
+	CoinFileIO.hpp CoinFinite.hpp CoinFloatEqual.hpp \
+	CoinHelperFunctions.hpp CoinIndexedVector.hpp CoinLpIO.hpp \
+	CoinMessage.hpp CoinMessageHandler.hpp CoinModel.hpp \
+	CoinStructuredModel.hpp CoinModelUseful.hpp CoinMpsIO.hpp \
+	CoinPackedMatrix.hpp CoinPackedVector.hpp \
+	CoinPackedVectorBase.hpp CoinParam.hpp CoinPragma.hpp \
+	CoinPresolveDoubleton.hpp CoinPresolveDual.hpp \
+	CoinPresolveDupcol.hpp CoinPresolveEmpty.hpp \
+	CoinPresolveFixed.hpp CoinPresolveForcing.hpp \
+	CoinPresolveImpliedFree.hpp CoinPresolveIsolated.hpp \
+	CoinPresolveMatrix.hpp CoinPresolveMonitor.hpp \
+	CoinPresolvePsdebug.hpp CoinPresolveSingleton.hpp \
+	CoinPresolveSubst.hpp CoinPresolveTighten.hpp \
+	CoinPresolveTripleton.hpp CoinPresolveUseless.hpp \
+	CoinPresolveZeros.hpp CoinRational.hpp CoinSearchTree.hpp \
+	CoinShallowPackedVector.hpp CoinSignal.hpp CoinSmartPtr.hpp \
+	CoinSnapshot.hpp CoinSort.hpp CoinTime.hpp CoinTypes.h \
+	CoinUtility.hpp CoinWarmStart.hpp CoinWarmStartBasis.hpp \
+	CoinWarmStartVector.hpp CoinWarmStartDual.hpp \
+	CoinWarmStartPrimalDual.hpp CoinAdjacencyVector.hpp \
+	CoinBronKerbosch.hpp CoinCliqueExtender.hpp CoinCliqueList.hpp \
+	CoinCliqueSet.hpp CoinConflictGraph.hpp CoinCutPool.hpp \
+	CoinDynamicConflictGraph.hpp CoinNodeHeap.hpp \
+	CoinOddWheelSeparator.hpp CoinShortestPath.hpp \
+	CoinStaticConflictGraph.hpp CoinOslFactorization.hpp \
+	CoinSimpFactorization.hpp
 HEADERS = $(includecoin_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
 	$(LISP)config.h.in config_coinutils.h.in
@@ -481,76 +514,35 @@ DOXYTAG_EDIT = sed -e 's|@baredocdir_nosub@|$(datarootdir)/doc|g'
 lib_LTLIBRARIES = libCoinUtils.la
 
 # List all source files for this library
-libCoinUtils_la_SOURCES = \
-	CoinAlloc.cpp \
-	CoinBuild.cpp \
-	CoinDenseVector.cpp \
-	CoinError.cpp \
-	CoinFactorization1.cpp \
-	CoinFactorization2.cpp \
-	CoinFactorization3.cpp \
-	CoinFactorization4.cpp \
-	CoinSimpFactorization.cpp \
-	CoinDenseFactorization.cpp \
-	CoinOslFactorization.cpp \
-	CoinOslFactorization2.cpp \
-	CoinOslFactorization3.cpp \
-	CoinFileIO.cpp \
-	CoinFinite.cpp \
-	CoinIndexedVector.cpp \
-	CoinLpIO.cpp \
-	CoinMessage.cpp \
-	CoinMessageHandler.cpp \
-	CoinModel.cpp \
-	CoinStructuredModel.cpp \
-	CoinModelUseful.cpp \
-	CoinModelUseful2.cpp \
-	CoinMpsIO.cpp \
-	CoinPackedMatrix.cpp \
-	CoinPackedVector.cpp \
-	CoinPackedVectorBase.cpp \
-	CoinParam.cpp CoinParamUtils.cpp \
-	CoinPostsolveMatrix.cpp \
-	CoinPrePostsolveMatrix.cpp \
-	CoinPresolveDoubleton.cpp \
-	CoinPresolveDual.cpp \
-	CoinPresolveDupcol.cpp \
-	CoinPresolveEmpty.cpp \
-	CoinPresolveFixed.cpp \
-	CoinPresolveForcing.cpp \
-	CoinPresolveHelperFunctions.cpp \
-	CoinPresolveImpliedFree.cpp \
-	CoinPresolveIsolated.cpp \
-	CoinPresolveMatrix.cpp \
-	CoinPresolvePsdebug.cpp \
-	CoinPresolveMonitor.cpp \
-	CoinPresolveSingleton.cpp \
-	CoinPresolveSubst.cpp \
-	CoinPresolveTighten.cpp \
-	CoinPresolveTripleton.cpp \
-	CoinPresolveUseless.cpp \
-	CoinPresolveZeros.cpp \
-	CoinRational.cpp \
-	CoinSearchTree.cpp \
-	CoinShallowPackedVector.cpp \
-	CoinSnapshot.cpp \
-	CoinWarmStartBasis.cpp \
-	CoinWarmStartVector.cpp \
-	CoinWarmStartDual.cpp \
-	CoinWarmStartPrimalDual.cpp \
-	CoinAdjacencyVector.cpp \
-	CoinBronKerbosch.cpp \
-	CoinCliqueExtender.cpp \
-	CoinCliqueList.cpp \
-	CoinCliqueSet.cpp \
-	CoinConflictGraph.cpp \
-	CoinCutPool.cpp \
-	CoinDynamicConflictGraph.cpp \
-	CoinNodeHeap.cpp \
-	CoinOddWheelSeparator.cpp \
-	CoinShortestPath.cpp \
-	CoinStaticConflictGraph.cpp
-
+libCoinUtils_la_SOURCES = CoinAlloc.cpp CoinBuild.cpp \
+	CoinDenseVector.cpp CoinError.cpp CoinFactorization1.cpp \
+	CoinFactorization2.cpp CoinFactorization3.cpp \
+	CoinFactorization4.cpp CoinDenseFactorization.cpp \
+	CoinFileIO.cpp CoinFinite.cpp CoinIndexedVector.cpp \
+	CoinLpIO.cpp CoinMessage.cpp CoinMessageHandler.cpp \
+	CoinModel.cpp CoinStructuredModel.cpp CoinModelUseful.cpp \
+	CoinModelUseful2.cpp CoinMpsIO.cpp CoinPackedMatrix.cpp \
+	CoinPackedVector.cpp CoinPackedVectorBase.cpp CoinParam.cpp \
+	CoinParamUtils.cpp CoinPostsolveMatrix.cpp \
+	CoinPrePostsolveMatrix.cpp CoinPresolveDoubleton.cpp \
+	CoinPresolveDual.cpp CoinPresolveDupcol.cpp \
+	CoinPresolveEmpty.cpp CoinPresolveFixed.cpp \
+	CoinPresolveForcing.cpp CoinPresolveHelperFunctions.cpp \
+	CoinPresolveImpliedFree.cpp CoinPresolveIsolated.cpp \
+	CoinPresolveMatrix.cpp CoinPresolvePsdebug.cpp \
+	CoinPresolveMonitor.cpp CoinPresolveSingleton.cpp \
+	CoinPresolveSubst.cpp CoinPresolveTighten.cpp \
+	CoinPresolveTripleton.cpp CoinPresolveUseless.cpp \
+	CoinPresolveZeros.cpp CoinRational.cpp CoinSearchTree.cpp \
+	CoinShallowPackedVector.cpp CoinSnapshot.cpp \
+	CoinWarmStartBasis.cpp CoinWarmStartVector.cpp \
+	CoinWarmStartDual.cpp CoinWarmStartPrimalDual.cpp \
+	CoinAdjacencyVector.cpp CoinBronKerbosch.cpp \
+	CoinCliqueExtender.cpp CoinCliqueList.cpp CoinCliqueSet.cpp \
+	CoinConflictGraph.cpp CoinCutPool.cpp \
+	CoinDynamicConflictGraph.cpp CoinNodeHeap.cpp \
+	CoinOddWheelSeparator.cpp CoinShortestPath.cpp \
+	CoinStaticConflictGraph.cpp $(am__append_1)
 
 # This is for libtool.
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
@@ -568,78 +560,33 @@ AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
 # Here list all the header files that are required by a user of the library,
 # and that therefore should be installed in pkgincludedir.
 includecoindir = $(pkgincludedir)
-includecoin_HEADERS = \
-	CoinAlloc.hpp \
-	CoinBuild.hpp \
-	CoinDenseVector.hpp \
-	CoinDistance.hpp \
-	CoinError.hpp \
-	CoinFactorization.hpp \
-	CoinSimpFactorization.hpp \
-	CoinDenseFactorization.hpp \
-	CoinOslFactorization.hpp \
-	CoinFileIO.hpp \
-	CoinFinite.hpp \
-	CoinFloatEqual.hpp \
-	CoinHelperFunctions.hpp \
-	CoinIndexedVector.hpp \
-	CoinLpIO.hpp \
-	CoinMessage.hpp \
-	CoinMessageHandler.hpp \
-	CoinModel.hpp \
-	CoinStructuredModel.hpp \
-	CoinModelUseful.hpp \
-	CoinMpsIO.hpp \
-	CoinPackedMatrix.hpp \
-	CoinPackedVector.hpp \
-	CoinPackedVectorBase.hpp \
-	CoinParam.hpp \
-	CoinPragma.hpp \
-	CoinPresolveDoubleton.hpp \
-	CoinPresolveDual.hpp \
-	CoinPresolveDupcol.hpp \
-	CoinPresolveEmpty.hpp \
-	CoinPresolveFixed.hpp \
-	CoinPresolveForcing.hpp \
-	CoinPresolveImpliedFree.hpp \
-	CoinPresolveIsolated.hpp \
-	CoinPresolveMatrix.hpp \
-	CoinPresolveMonitor.hpp \
-	CoinPresolvePsdebug.hpp \
-	CoinPresolveSingleton.hpp \
-	CoinPresolveSubst.hpp \
-	CoinPresolveTighten.hpp \
-	CoinPresolveTripleton.hpp \
-	CoinPresolveUseless.hpp \
-	CoinPresolveZeros.hpp \
-	CoinRational.hpp \
-	CoinSearchTree.hpp \
-	CoinShallowPackedVector.hpp \
-	CoinSignal.hpp \
-	CoinSmartPtr.hpp \
-	CoinSnapshot.hpp \
-	CoinSort.hpp \
-	CoinTime.hpp \
-	CoinTypes.h \
-	CoinUtility.hpp \
-	CoinWarmStart.hpp \
-	CoinWarmStartBasis.hpp \
-	CoinWarmStartVector.hpp \
-	CoinWarmStartDual.hpp \
-	CoinWarmStartPrimalDual.hpp \
-	CoinAdjacencyVector.hpp \
-	CoinBronKerbosch.hpp \
-	CoinCliqueExtender.hpp \
-	CoinCliqueList.hpp \
-	CoinCliqueSet.hpp \
-	CoinConflictGraph.hpp \
-	CoinCutPool.hpp \
-	CoinDynamicConflictGraph.hpp \
-	CoinNodeHeap.hpp \
-	CoinOddWheelSeparator.hpp \
-	CoinShortestPath.hpp \
-	CoinStaticConflictGraph.hpp
-
+includecoin_HEADERS = CoinAlloc.hpp CoinBuild.hpp CoinDenseVector.hpp \
+	CoinDistance.hpp CoinError.hpp CoinFactorization.hpp \
+	CoinDenseFactorization.hpp CoinFileIO.hpp CoinFinite.hpp \
+	CoinFloatEqual.hpp CoinHelperFunctions.hpp \
+	CoinIndexedVector.hpp CoinLpIO.hpp CoinMessage.hpp \
+	CoinMessageHandler.hpp CoinModel.hpp CoinStructuredModel.hpp \
+	CoinModelUseful.hpp CoinMpsIO.hpp CoinPackedMatrix.hpp \
+	CoinPackedVector.hpp CoinPackedVectorBase.hpp CoinParam.hpp \
+	CoinPragma.hpp CoinPresolveDoubleton.hpp CoinPresolveDual.hpp \
+	CoinPresolveDupcol.hpp CoinPresolveEmpty.hpp \
+	CoinPresolveFixed.hpp CoinPresolveForcing.hpp \
+	CoinPresolveImpliedFree.hpp CoinPresolveIsolated.hpp \
+	CoinPresolveMatrix.hpp CoinPresolveMonitor.hpp \
+	CoinPresolvePsdebug.hpp CoinPresolveSingleton.hpp \
+	CoinPresolveSubst.hpp CoinPresolveTighten.hpp \
+	CoinPresolveTripleton.hpp CoinPresolveUseless.hpp \
+	CoinPresolveZeros.hpp CoinRational.hpp CoinSearchTree.hpp \
+	CoinShallowPackedVector.hpp CoinSignal.hpp CoinSmartPtr.hpp \
+	CoinSnapshot.hpp CoinSort.hpp CoinTime.hpp CoinTypes.h \
+	CoinUtility.hpp CoinWarmStart.hpp CoinWarmStartBasis.hpp \
+	CoinWarmStartVector.hpp CoinWarmStartDual.hpp \
+	CoinWarmStartPrimalDual.hpp CoinAdjacencyVector.hpp \
+	CoinBronKerbosch.hpp CoinCliqueExtender.hpp CoinCliqueList.hpp \
+	CoinCliqueSet.hpp CoinConflictGraph.hpp CoinCutPool.hpp \
+	CoinDynamicConflictGraph.hpp CoinNodeHeap.hpp \
+	CoinOddWheelSeparator.hpp CoinShortestPath.hpp \
+	CoinStaticConflictGraph.hpp $(am__append_2)
 all: config.h config_coinutils.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

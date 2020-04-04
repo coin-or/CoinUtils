@@ -3,11 +3,7 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#pragma warning(disable : 4786)
-#endif
-
+#include "CoinPragma.hpp"
 #include "CoinUtilsConfig.h"
 
 #include <cassert>
@@ -803,8 +799,9 @@ void CoinFactorization::separateLinks(int count, bool rowsFirst)
       lastCount[firstRow] = lastColumn;
   }
 }
-#if COIN_BIG_INDEX == 0
+
 // Debug - save on file
+// FIXME does this work for CoinBigIndex larger than int?
 int CoinFactorization::saveFactorization(const char *file) const
 {
   FILE *fp = fopen(file, "wb");
@@ -813,7 +810,7 @@ int CoinFactorization::saveFactorization(const char *file) const
     const char *first = reinterpret_cast< const char * >(&pivotTolerance_);
     const char *last = reinterpret_cast< const char * >(&biasLU_);
     // increment
-    last += sizeof(int);
+    last += sizeof(CoinBigIndex);
     if (fwrite(first, last - first, 1, fp) != 1)
       return 1;
     // Now arrays
@@ -888,6 +885,7 @@ int CoinFactorization::saveFactorization(const char *file) const
   return 0;
 }
 // Debug - restore from file
+// FIXME does this work for CoinBigIndex larger than int?
 int CoinFactorization::restoreFactorization(const char *file, bool factorIt)
 {
   FILE *fp = fopen(file, "rb");
@@ -899,7 +897,7 @@ int CoinFactorization::restoreFactorization(const char *file, bool factorIt)
     char *first = reinterpret_cast< char * >(&pivotTolerance_);
     char *last = reinterpret_cast< char * >(&biasLU_);
     // increment
-    last += sizeof(int);
+    last += sizeof(CoinBigIndex);
     if (fread(first, last - first, 1, fp) != 1)
       return 1;
     int space = lengthAreaL_ - lengthL_;
@@ -1048,7 +1046,7 @@ int CoinFactorization::restoreFactorization(const char *file, bool factorIt)
   }
   return 0;
 }
-#endif
+
 //  factorSparse.  Does sparse phase of factorization
 //return code is <0 error, 0= finished
 int CoinFactorization::factorSparseLarge()

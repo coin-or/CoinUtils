@@ -2,7 +2,6 @@
 // Copyright (C) 2008, International Business Machines
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
-#if COIN_BIG_INDEX == 0
 #include "CoinUtilsConfig.h"
 
 #include <cassert>
@@ -2670,8 +2669,6 @@ void CoinSimpFactorization::btran(double *b, double *sol) const
   xHeqb(sol);
   xLeqb(sol);
 }
-
-#endif
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
 */

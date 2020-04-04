@@ -4452,11 +4452,10 @@ int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel, const cha
   rsd = suf_iput("sstatus", ASL_Sufkind_con, info->rowStatus);
   if (!(nlvc + nlvo) && nonLinearType < 10) {
     /* read linear model*/
-#if COIN_BIG_INDEX == 2
-    f_read(nl, ASL_allow_Z | ASL_use_Z);
-#else
-    f_read(nl, 0);
-#endif
+    if( sizeof(CoinBigIndex) == sizeof(int) )
+      f_read(nl, 0);
+    else
+      f_read(nl, ASL_allow_Z | ASL_use_Z);
     // see if any sos
     if (true) {
       char *sostype;
@@ -4539,11 +4538,10 @@ int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel, const cha
     info->rowUpper = rowUpper;
     info->columnLower = columnLower;
     info->columnUpper = columnUpper;
-#if COIN_BIG_INDEX == 0
-    info->starts = A_colstarts;
-#else
-    info->starts = A_colstartsZ;
-#endif
+    if( sizeof(CoinBigIndex) == sizeof(int) )
+      info->starts = reinterpret_cast<unsigned COINUTILS_BIGINDEX_T*>(A_colstarts);
+    else
+      info->starts = reinterpret_cast<unsigned COINUTILS_BIGINDEX_T*>(A_colstartsZ);  // FIXME doesn't this assume COINUTILS_BIGINDEX_T = long?
     /*A_colstarts=NULL;*/
     info->rows = A_rownos;
     /*A_rownos=NULL;*/
@@ -4929,11 +4927,10 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
     csd = suf_iput("sstatus", ASL_Sufkind_var, columnStatus);
     rsd = suf_iput("sstatus", ASL_Sufkind_con, rowStatus);
     /* read linear model*/
-#if COIN_BIG_INDEX == 2
-    f_read(nl, ASL_allow_Z | ASL_use_Z);
-#else
-    f_read(nl, 0);
-#endif
+    if( sizeof(CoinBigIndex) == sizeof(int) )
+      f_read(nl, 0);
+    else
+      f_read(nl, ASL_allow_Z | ASL_use_Z);
     // see if any sos
     if (true) {
       char *sostype;
@@ -5038,14 +5035,10 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
       columnStatus = NULL;
 #endif
     }
-#if COIN_BIG_INDEX == 0
-    CoinPackedMatrix columnCopy(true, numberRows, numberColumns, numberElements,
-      A_vals, A_rownos, A_colstarts, NULL);
-#else
     CoinPackedMatrix columnCopy(true, numberRows, numberColumns, numberElements,
       A_vals, A_rownos,
-      reinterpret_cast< const CoinBigIndex * >(A_colstartsZ), NULL);
-#endif
+      sizeof(CoinBigIndex) == sizeof(int) ? A_colstarts : reinterpret_cast< const CoinBigIndex * >(A_colstartsZ),  // FIXME doesn't the "else" assume COINUTILS_BIGINDEX_T = long?
+      NULL);
     matrixByRow.reverseOrderedCopyOf(columnCopy);
   } else if (nonLinear == 1) {
     // quadratic

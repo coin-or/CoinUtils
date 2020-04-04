@@ -45,4 +45,10 @@
 /* Define to 64bit unsigned integer type */
 #undef COINUTILS_UINT64_T
 
+/* Define to type of CoinBigIndex */
+#undef COINUTILS_BIGINDEX_T
+
+/* Deprecated define to recognize CoinBigIndex type */
+#undef COIN_BIG_INDEX
+
 #endif

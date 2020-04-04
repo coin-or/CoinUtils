@@ -846,7 +846,7 @@ CoinMessageHandler::operator<<(double doublevalue)
   }
   return *this;
 }
-#if COIN_BIG_INDEX == 1
+
 CoinMessageHandler &
 CoinMessageHandler::operator<<(long longvalue)
 {
@@ -871,8 +871,7 @@ CoinMessageHandler::operator<<(long longvalue)
   }
   return *this;
 }
-#endif
-#if COIN_BIG_INDEX == 2
+
 CoinMessageHandler &
 CoinMessageHandler::operator<<(long long longvalue)
 {
@@ -897,7 +896,7 @@ CoinMessageHandler::operator<<(long long longvalue)
   }
   return *this;
 }
-#endif
+
 CoinMessageHandler &
 CoinMessageHandler::operator<<(const std::string &stringvalue)
 {

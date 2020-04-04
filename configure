@@ -680,6 +680,8 @@ PKG_CONFIG
 COINUTILSLIB_PCFILES
 COINUTILSLIB_LFLAGS
 COINUTILSLIB_CFLAGS
+BUILD_OSLFACTORIZATION_FALSE
+BUILD_OSLFACTORIZATION_TRUE
 LT_LDFLAGS
 CXXCPP
 CPP
@@ -830,6 +832,7 @@ with_sysroot
 enable_libtool_lock
 with_coinutils_verbosity
 with_coinutils_checklevel
+enable_bigint
 enable_coinutils_threads
 enable_coinutils_mempool_maxpooled
 enable_coinutils_mempool_override_new
@@ -1507,6 +1510,7 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-bigindex       use a long type for CoinBigIndex
   --enable-coinutils-threads
                           enables compilation of thread aware CoinUtils
                           (mempool so far)
@@ -17529,6 +17533,49 @@ _ACEOF
 
 
 
+  # Check whether --enable-bigint was given.
+if test "${enable_bigint+set}" = set; then :
+  enableval=$enable_bigint; if test "$enableval" = yes ; then
+       bigindextype="long long"
+     else
+       bigindextype="$enableval"
+     fi
+else
+  bigindextype=int
+fi
+
+
+  if test "$enable_bigint" != no ; then
+
+cat >>confdefs.h <<_ACEOF
+#define COINUTILS_BIGINDEX_T $bigindextype
+_ACEOF
+
+  fi
+
+  # Osl- and SimpFactorization can only build with BigIndexType int
+   if test "$bigindextype" = int; then
+  BUILD_OSLFACTORIZATION_TRUE=
+  BUILD_OSLFACTORIZATION_FALSE='#'
+else
+  BUILD_OSLFACTORIZATION_TRUE='#'
+  BUILD_OSLFACTORIZATION_FALSE=
+fi
+
+
+  case "$bigindextype" in
+    "long long" )
+$as_echo "#define COIN_BIG_INDEX 2" >>confdefs.h
+ ;;
+    long )
+$as_echo "#define COIN_BIG_INDEX 1" >>confdefs.h
+ ;;
+    int )
+$as_echo "#define COIN_BIG_INDEX 0" >>confdefs.h
+ ;;
+  esac
+
+
   for ac_header in cmath math.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -20909,6 +20956,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCXX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BUILD_OSLFACTORIZATION_TRUE}" && test -z "${BUILD_OSLFACTORIZATION_FALSE}"; then
+  as_fn_error $? "conditional \"BUILD_OSLFACTORIZATION\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${COIN_HAS_PKGCONFIG_TRUE}" && test -z "${COIN_HAS_PKGCONFIG_FALSE}"; then

@@ -6,12 +6,8 @@
 #ifndef CoinIndexedVector_H
 #define CoinIndexedVector_H
 
-#if defined(_MSC_VER)
-// Turn off compiler warning about long names
-#pragma warning(disable : 4786)
-#endif
-
 #include <map>
+#include "CoinPragma.hpp"
 #include "CoinFinite.hpp"
 #ifndef CLP_NO_VECTOR
 #include "CoinPackedVectorBase.hpp"
@@ -575,13 +571,6 @@ public:
   {
     size_ = value;
   }
-#if COIN_BIG_INDEX
-  /// Set the size
-  inline void setSize(CoinByteArray value)
-  {
-    size_ = value;
-  }
-#endif
   /// Set the size to -1
   inline void switchOff()
   {
@@ -601,10 +590,6 @@ public:
   void swap(CoinArrayWithLength &other);
   /// Extend a persistent array keeping data (size in bytes)
   void extend(CoinByteArray newSize);
-#if COIN_BIG_INDEX
-  /// Extend a persistent array keeping data (size in bytes)
-  void extend(CoinByteArray newSize);
-#endif
   //@}
 
   /**@name Condition methods */

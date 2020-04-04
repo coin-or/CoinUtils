@@ -20,21 +20,10 @@
 #define CoinIntPtr COINUTILS_INTPTR_T
 
 /* ============================================================================= */
-#ifndef COIN_BIG_INDEX
-#define COIN_BIG_INDEX 0
-#endif
 
-#if COIN_BIG_INDEX == 0
-typedef int CoinBigIndex;
+typedef COINUTILS_BIGINDEX_T CoinBigIndex;
 /* CoinByteArray should be an integer that is long enough for any size of array in bytes */
 typedef CoinIntPtr CoinByteArray;
-#elif COIN_BIG_INDEX == 1
-typedef long CoinBigIndex;
-typedef long CoinByteArray;
-#else
-typedef long long CoinBigIndex;
-typedef long long CoinByteArray;
-#endif
 
 /* ============================================================================= */
 #ifndef COIN_BIG_DOUBLE

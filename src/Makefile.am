@@ -26,11 +26,7 @@ libCoinUtils_la_SOURCES = \
 	CoinFactorization2.cpp \
 	CoinFactorization3.cpp \
 	CoinFactorization4.cpp \
-	CoinSimpFactorization.cpp \
 	CoinDenseFactorization.cpp \
-	CoinOslFactorization.cpp \
-	CoinOslFactorization2.cpp \
-	CoinOslFactorization3.cpp \
 	CoinFileIO.cpp \
 	CoinFinite.cpp \
 	CoinIndexedVector.cpp \
@@ -87,6 +83,10 @@ libCoinUtils_la_SOURCES = \
 	CoinShortestPath.cpp \
 	CoinStaticConflictGraph.cpp
 
+if BUILD_OSLFACTORIZATION
+  libCoinUtils_la_SOURCES += CoinOslFactorization.cpp CoinOslFactorization2.cpp CoinOslFactorization3.cpp CoinSimpFactorization.cpp
+endif
+
 # This is for libtool.
 libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
 
@@ -110,9 +110,7 @@ includecoin_HEADERS = \
 	CoinDistance.hpp \
 	CoinError.hpp \
 	CoinFactorization.hpp \
-	CoinSimpFactorization.hpp \
 	CoinDenseFactorization.hpp \
-	CoinOslFactorization.hpp \
 	CoinFileIO.hpp \
 	CoinFinite.hpp \
 	CoinFloatEqual.hpp \
@@ -174,6 +172,10 @@ includecoin_HEADERS = \
 	CoinOddWheelSeparator.hpp \
 	CoinShortestPath.hpp \
 	CoinStaticConflictGraph.hpp
+
+if BUILD_OSLFACTORIZATION
+  includecoin_HEADERS += CoinOslFactorization.hpp CoinSimpFactorization.hpp
+endif
 
 #######################################################################
 # Create the Config.h file that has all public defines and install it #

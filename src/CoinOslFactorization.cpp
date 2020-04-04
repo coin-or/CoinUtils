@@ -2,7 +2,6 @@
 // Copyright (C) 1987, 2009, International Business Machines
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
-#if COIN_BIG_INDEX == 0
 
 #include "CoinUtilsConfig.h"
 
@@ -1487,7 +1486,6 @@ CoinOslFactorization::conditionNumber() const
   condition = CoinMax(fabs(condition), 1.0e-50);
   return 1.0 / condition;
 }
-#endif
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
 */

@@ -128,3 +128,28 @@ AC_DEFUN([AC_COINUTILS_INTPTR],
   fi
   AC_DEFINE_UNQUOTED([COINUTILS_INTPTR_T],[$CoinIntPtr],[Define to integer type capturing pointer])
 ])
+
+AC_DEFUN([AC_COINUTILS_BIGTYPES],
+[
+  AC_ARG_ENABLE([bigint],
+    [AC_HELP_STRING([--enable-bigindex],[use a long type for CoinBigIndex])],
+    [if test "$enableval" = yes ; then
+       bigindextype="long long"
+     else
+       bigindextype="$enableval"
+     fi],
+    [bigindextype=int])
+
+  if test "$enable_bigint" != no ; then
+    AC_DEFINE_UNQUOTED([COINUTILS_BIGINDEX_T],[$bigindextype],[Define to type of CoinBigIndex])
+  fi
+  
+  # Osl- and SimpFactorization can only build with BigIndexType int
+  AM_CONDITIONAL([BUILD_OSLFACTORIZATION], test "$bigindextype" = int)
+  
+  case "$bigindextype" in 
+    "long long" ) AC_DEFINE(COIN_BIG_INDEX, 2, [Deprecated define to recognize CoinBigIndex type]) ;;
+    long ) AC_DEFINE(COIN_BIG_INDEX, 1, [Deprecated define to recognize CoinBigIndex type]) ;;
+    int ) AC_DEFINE(COIN_BIG_INDEX, 0, [Deprecated define to recognize CoinBigIndex type]) ;;
+  esac
+])

@@ -6015,7 +6015,12 @@ void CoinMpsIO::decodeString(int iString, int &iRow, int &iColumn, const char *&
 // copies in strings from a CoinModel - returns number
 int CoinMpsIO::copyStringElements(const CoinModel *model)
 {
-#if COIN_BIG_INDEX == 0
+  if( sizeof(CoinBigIndex) != sizeof(int) ) {
+    //FIXME?
+    abort();
+    return 0;
+  }
+
   if (!model->stringsExist())
     return 0; // no strings
   assert(!numberStringElements_);
@@ -6084,10 +6089,6 @@ int CoinMpsIO::copyStringElements(const CoinModel *model)
     }
   }
   return numberStringElements_;
-#else
-  abort();
-  return 0;
-#endif
 }
 // Constructor
 CoinSet::CoinSet(int numberEntries, const int *which)
