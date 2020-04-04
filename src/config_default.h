@@ -20,17 +20,17 @@
 /***************************************************************************/
 
 /* Define to the debug sanity check level (0 is no test) */
-#define COIN_COINUTILS_CHECKLEVEL 0
+#define COINUTILS_CHECKLEVEL 0
 
 /* Define to the debug verbosity level (0 is no output) */
-#define COIN_COINUTILS_VERBOSITY 0
+#define COINUTILS_VERBOSITY 0
 
 #ifdef _MSC_VER
 /* Define to be the name of C-function for Inf check */
-#define COIN_C_FINITE _finite
+#define COINUTILS_C_FINITE _finite
 
 /* Define to be the name of C-function for NaN check */
-#define COIN_C_ISNAN _isnan
+#define COINUTILS_C_ISNAN _isnan
 #endif
 
 /* Define to 1 if bzlib is available */
