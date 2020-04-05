@@ -3,6 +3,9 @@
 /* Library Visibility Attribute */
 #undef COINUTILSLIB_EXPORT
 
+/* Define to 1 if CoinBigIndex is int */
+#undef COINUTILS_BIGINDEX_IS_INT
+
 /* Define to type of CoinBigIndex */
 #undef COINUTILS_BIGINDEX_T
 
@@ -87,9 +90,6 @@
 
 /* Release version number of project. */
 #undef COINUTILS_VERSION_RELEASE
-
-/* Deprecated define to recognize CoinBigIndex type */
-#undef COIN_BIG_INDEX
 
 /* Define to 1 if your C++ compiler doesn't accept -c and -o together. */
 #undef CXX_NO_MINUS_C_MINUS_O

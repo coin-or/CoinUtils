@@ -17563,17 +17563,11 @@ else
 fi
 
 
-  case "$bigindextype" in
-    "long long" )
-$as_echo "#define COIN_BIG_INDEX 2" >>confdefs.h
- ;;
-    long )
-$as_echo "#define COIN_BIG_INDEX 1" >>confdefs.h
- ;;
-    int )
-$as_echo "#define COIN_BIG_INDEX 0" >>confdefs.h
- ;;
-  esac
+  if test "$bigindextype" = int ; then
+
+$as_echo "#define COINUTILS_BIGINDEX_IS_INT 1" >>confdefs.h
+
+  fi
 
 
   for ac_header in cmath math.h

@@ -39,7 +39,7 @@
 #endif
 
 #define COINUTILS_BIGINDEX_T int
-#define COIN_BIG_INDEX 0  /* deprecated */
+#define COINUTILS_BIGINDEX_IS_INT 1
 
 /* Define to 1 if CoinUtils uses C++11 */
 #define COINUTILS_CPLUSPLUS11 1

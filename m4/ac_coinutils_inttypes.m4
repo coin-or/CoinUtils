@@ -147,9 +147,7 @@ AC_DEFUN([AC_COINUTILS_BIGTYPES],
   # Osl- and SimpFactorization can only build with BigIndexType int
   AM_CONDITIONAL([BUILD_OSLFACTORIZATION], test "$bigindextype" = int)
   
-  case "$bigindextype" in 
-    "long long" ) AC_DEFINE(COIN_BIG_INDEX, 2, [Deprecated define to recognize CoinBigIndex type]) ;;
-    long ) AC_DEFINE(COIN_BIG_INDEX, 1, [Deprecated define to recognize CoinBigIndex type]) ;;
-    int ) AC_DEFINE(COIN_BIG_INDEX, 0, [Deprecated define to recognize CoinBigIndex type]) ;;
-  esac
+  if test "$bigindextype" = int ; then
+    AC_DEFINE([COINUTILS_BIGINDEX_IS_INT],[1],[Define to 1 if CoinBigIndex is int])
+  fi
 ])
