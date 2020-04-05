@@ -17534,6 +17534,8 @@ _ACEOF
 
 
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking type to use for CoinBigIndex" >&5
+$as_echo_n "checking type to use for CoinBigIndex... " >&6; }
   # Check whether --enable-coinutils-bigindex was given.
 if test "${enable_coinutils_bigindex+set}" = set; then :
   enableval=$enable_coinutils_bigindex; if test "$enableval" = yes ; then
@@ -17545,14 +17547,32 @@ else
   bigindextype=int
 fi
 
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $bigindextype" >&5
+$as_echo "$bigindextype" >&6; }
 
-  if test "$enable_bigint" != no ; then
+  as_ac_Type=`$as_echo "ac_cv_type_$bigindextype" | $as_tr_sh`
+ac_fn_cxx_check_type "$LINENO" "$bigindextype" "$as_ac_Type" "
+  #ifdef HAVE_CSTDINT
+  # include <cstdint>
+  #else
+  # ifdef HAVE_STDINT_H
+  #  include <stdint.h>
+  # endif
+  #endif
+
+"
+if eval test \"x\$"$as_ac_Type"\" = x"yes"; then :
+
+else
+  as_fn_error $? "Type $bigindextype not available" "$LINENO" 5
+fi
+
+
 
 cat >>confdefs.h <<_ACEOF
 #define COINUTILS_BIGINDEX_T $bigindextype
 _ACEOF
 
-  fi
 
   # Osl- and SimpFactorization can only build with BigIndexType int
    if test "$bigindextype" = int; then

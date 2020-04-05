@@ -131,6 +131,7 @@ AC_DEFUN([AC_COINUTILS_INTPTR],
 
 AC_DEFUN([AC_COINUTILS_BIGTYPES],
 [
+  AC_MSG_CHECKING([type to use for CoinBigIndex])
   AC_ARG_ENABLE([coinutils-bigindex],
     [AC_HELP_STRING([--enable-coinutils-bigindex],[use a long integer type for CoinBigIndex])],
     [if test "$enableval" = yes ; then
@@ -139,10 +140,11 @@ AC_DEFUN([AC_COINUTILS_BIGTYPES],
        bigindextype="$enableval"
      fi],
     [bigindextype=int])
+  AC_MSG_RESULT([$bigindextype])
 
-  if test "$enable_bigint" != no ; then
-    AC_DEFINE_UNQUOTED([COINUTILS_BIGINDEX_T],[$bigindextype],[Define to type of CoinBigIndex])
-  fi
+  AC_CHECK_TYPE([$bigindextype],[],[AC_MSG_ERROR([Type $bigindextype not available])],AC_COINUTILS_INTTYPE_HDRS)
+
+  AC_DEFINE_UNQUOTED([COINUTILS_BIGINDEX_T],[$bigindextype],[Define to type of CoinBigIndex])
   
   # Osl- and SimpFactorization can only build with BigIndexType int
   AM_CONDITIONAL([BUILD_OSLFACTORIZATION], test "$bigindextype" = int)
