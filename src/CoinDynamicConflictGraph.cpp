@@ -139,7 +139,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   newBounds_.clear();
   const int *idxs = matrixByRow->getIndices();
   const double *coefs = matrixByRow->getElements();
-  const int *start = matrixByRow->getVectorStarts();
+  const CoinBigIndex *start = matrixByRow->getVectorStarts();
   const int *length = matrixByRow->getVectorLengths();
   std::pair< size_t, double > *columns = new std::pair< size_t, double >[numCols];
 

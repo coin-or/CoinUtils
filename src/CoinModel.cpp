@@ -5037,7 +5037,11 @@ void CoinModel::gdb(int nonLinear, const char *fileName, const void *info)
     }
     CoinPackedMatrix columnCopy(true, numberRows, numberColumns, numberElements,
       A_vals, A_rownos,
-      sizeof(CoinBigIndex) == sizeof(int) ? A_colstarts : reinterpret_cast< const CoinBigIndex * >(A_colstartsZ),  // FIXME doesn't the "else" assume COINUTILS_BIGINDEX_T = long?
+#if COINUTILS_BIGINDEX_IS_INT
+      A_colstarts,
+#else
+      reinterpret_cast<const CoinBigIndex*>(A_colstartsZ),   // FIXME doesn't that assume CoinBigIndex=long?
+#endif
       NULL);
     matrixByRow.reverseOrderedCopyOf(columnCopy);
   } else if (nonLinear == 1) {

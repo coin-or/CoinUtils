@@ -401,7 +401,7 @@ CoinMpsIOUnitTest(const std::string & mpsDir)
       delete SOS[i];
     delete[] SOS;
 
-		int * columnStart = NULL;
+		CoinBigIndex * columnStart = NULL;
 		int * columnIdx = NULL;
 		double * elements = NULL;
 		status = m_MpsData.readQuadraticMps(NULL, columnStart, columnIdx, elements, 0);

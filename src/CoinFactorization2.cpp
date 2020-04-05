@@ -801,7 +801,7 @@ void CoinFactorization::separateLinks(int count, bool rowsFirst)
 }
 
 // Debug - save on file
-// FIXME does this work for CoinBigIndex larger than int?
+#if COINUTILS_BIGINDEX_IS_INT
 int CoinFactorization::saveFactorization(const char *file) const
 {
   FILE *fp = fopen(file, "wb");
@@ -885,7 +885,6 @@ int CoinFactorization::saveFactorization(const char *file) const
   return 0;
 }
 // Debug - restore from file
-// FIXME does this work for CoinBigIndex larger than int?
 int CoinFactorization::restoreFactorization(const char *file, bool factorIt)
 {
   FILE *fp = fopen(file, "rb");
@@ -1046,7 +1045,7 @@ int CoinFactorization::restoreFactorization(const char *file, bool factorIt)
   }
   return 0;
 }
-
+#endif
 //  factorSparse.  Does sparse phase of factorization
 //return code is <0 error, 0= finished
 int CoinFactorization::factorSparseLarge()
