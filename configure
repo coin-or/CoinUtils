@@ -832,7 +832,7 @@ with_sysroot
 enable_libtool_lock
 with_coinutils_verbosity
 with_coinutils_checklevel
-enable_bigint
+enable_coinutils_bigindex
 enable_coinutils_threads
 enable_coinutils_mempool_maxpooled
 enable_coinutils_mempool_override_new
@@ -1510,7 +1510,8 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-bigindex       use a long type for CoinBigIndex
+  --enable-coinutils-bigindex
+                          use a long integer type for CoinBigIndex
   --enable-coinutils-threads
                           enables compilation of thread aware CoinUtils
                           (mempool so far)
@@ -17533,9 +17534,9 @@ _ACEOF
 
 
 
-  # Check whether --enable-bigint was given.
-if test "${enable_bigint+set}" = set; then :
-  enableval=$enable_bigint; if test "$enableval" = yes ; then
+  # Check whether --enable-coinutils-bigindex was given.
+if test "${enable_coinutils_bigindex+set}" = set; then :
+  enableval=$enable_coinutils_bigindex; if test "$enableval" = yes ; then
        bigindextype="long long"
      else
        bigindextype="$enableval"
