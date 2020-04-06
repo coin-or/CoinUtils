@@ -265,14 +265,11 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
     } // not explicit clique
   } // all rows
 
-  // at this point large cliques will already be include
-  this->largeClqs->computeNodeOccurrences( size_ );
-
   size_t iniRowSize = 32;
   conflicts = new CoinAdjacencyVector(numCols*2, iniRowSize);
 
+  /* inserting trivial conflicts: variable-complement */
   for (size_t i = 0; i < (size_t)numCols; i++) {
-    /* inserting trivial conflicts: variable-complement */
     const bool isBinary = ((colType[i] != 0) && (colLB[i] == 1.0 || colLB[i] == 0.0)
       && (colUB[i] == 0.0 || colUB[i] == 1.0));
     if (isBinary) { //consider only binary variables
@@ -280,6 +277,14 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
       conflicts->addNeighbor( numCols+i, i );
     }
   }
+
+  //detecting cliques in less-structured constraints
+  for ( size_t idxTR =0 ; (idxTR<tnRows ) ; ++idxTR ) {
+    cliqueDetection( &tRowElements[tRowStart[idxTR]], tRowStart[idxTR+1]-tRowStart[idxTR], tRowRHS[idxTR] );
+  }
+
+  // at this point large cliques will already be include
+  this->largeClqs->computeNodeOccurrences( size_ );
 
   // processing small cliques 
   if (smallCliques->nCliques())
@@ -303,12 +308,8 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   } // small cliques
   delete smallCliques;
   smallCliques = NULL;
-  
-  for ( size_t idxTR =0 ; (idxTR<tnRows ) ; ++idxTR )
-    cliqueDetection( &tRowElements[tRowStart[idxTR]], tRowStart[idxTR+1]-tRowStart[idxTR], tRowRHS[idxTR] );
 
   conflicts->flush();
-
   recomputeDegree();
 
   delete[] columns;
