@@ -146,6 +146,10 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   smallCliques = new CoinCliqueList( 4096, 3276 );
   size_t *tmpClq = (size_t *) xmalloc( sizeof(size_t)*size_ );
 
+  size_t nSmallCliquesAtLeast830 = 0;
+  size_t nSmallCliquesAtLeast560 = 0;
+  size_t nSmallCliquesAtLeast290 = 0;
+
   for (size_t idxRow = 0; idxRow < (size_t)matrixByRow->getNumRows(); idxRow++) {
     const char rowSense = sense[idxRow];
 
@@ -201,6 +205,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
     assert(nz == length[idxRow]);
     assert(rhs >= 0.0);
 #endif
+
     
     //explicit clique
     if ((twoLargest[0] <= rhs) && ((twoSmallest[0] + twoSmallest[1]) >= (rhs + EPS)) && (nz > 2)) {
@@ -213,6 +218,23 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
           tmpClq[ie] = columns[ie].first;
 
         smallCliques->addClique( nz, tmpClq );
+
+        if (nz >= 290) {
+          nSmallCliquesAtLeast290++;
+          if (nz >= 560) {
+            nSmallCliquesAtLeast560++;
+            if (nz >= 830) {
+              nSmallCliquesAtLeast830++;
+            }
+          }
+
+          if (nSmallCliquesAtLeast830*1000 +
+              nSmallCliquesAtLeast560*500 +
+              nSmallCliquesAtLeast290*166 >= 10000) {
+              nSmallCliquesAtLeast830 = nSmallCliquesAtLeast560 = nSmallCliquesAtLeast290 = 0;
+              minClqRow = std::max( CoinConflictGraph::updtMinClqRow, minClqRow / 2);
+          }
+        } // small but not that small
       }
     } else {
       if (twoLargest[0]!=twoSmallest[0])
@@ -231,6 +253,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
           newBounds_.push_back(make_pair(columns[j].first - numCols, make_pair( 1.0, 1.0)));
         }
       }
+
 
 #ifdef DEBUGCG
       assert(rhs >= 0.0);

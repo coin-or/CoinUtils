@@ -32,7 +32,8 @@
 
 using namespace std;
 
-size_t CoinConflictGraph::minClqRow = 1024;
+size_t CoinConflictGraph::minClqRow = 1100;
+size_t CoinConflictGraph::updtMinClqRow = 290;
 
 static void *xmalloc(const size_t size);
 

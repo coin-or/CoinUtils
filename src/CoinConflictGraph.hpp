@@ -156,6 +156,9 @@ public:
    **/
   static size_t minClqRow;
 
+  /** updated minClqRow when many small cliques are found (updtMinClqRow < minClqRow) */
+  static size_t updtMinClqRow;
+
   void printSummary() const;
 
 protected:
