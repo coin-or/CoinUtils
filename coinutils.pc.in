@@ -8,8 +8,8 @@ Name: CoinUtils
 Description: COIN-OR Utilities
 URL: https://github.com/coin-or/CoinUtils
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lCoinUtils
-Libs.private: @COINUTILSLIB_LFLAGS_NOPC@
 Cflags: -I${includedir}
-Requires:
-Requires.private: @COINUTILSLIB_PCFILES@
+@COIN_STATIC_BUILD_FALSE@Libs: -L${libdir} -lCoinUtils
+@COIN_STATIC_BUILD_FALSE@Requires.private: @COINUTILSLIB_PCFILES@
+@COIN_STATIC_BUILD_TRUE@Libs: -L${libdir} -lCoinUtils @COINUTILSLIB_LFLAGS_NOPC@
+@COIN_STATIC_BUILD_TRUE@Requires: @COINUTILSLIB_PCFILES@
