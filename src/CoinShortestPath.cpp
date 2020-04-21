@@ -44,6 +44,8 @@ CoinShortestPath::~CoinShortestPath() {
 }
 
 void CoinShortestPath::find(const size_t origin) {
+    assert(origin < this->nodes_);
+
     nh_->reset();
 
     for (size_t i = 0; i < nodes_; i++) {
@@ -67,6 +69,9 @@ void CoinShortestPath::find(const size_t origin) {
             const double dist = n->second;
             const double newDist = topCost + dist;
 
+            assert( dist >= 0 );
+            assert( newDist >= 0 );
+
             if (dist_[toNode] >= newDist + SPATH_EPS) {
                 previous_[toNode] = topNode;
                 dist_[toNode] = newDist;
@@ -77,6 +82,8 @@ void CoinShortestPath::find(const size_t origin) {
 }
 
 void CoinShortestPath::find(const size_t origin, const size_t destination) {
+    assert(origin < this->nodes_);
+    assert(destination < this->nodes_);
     nh_->reset();
 
     for (size_t i = 0; i < nodes_; i++) {
@@ -113,6 +120,8 @@ void CoinShortestPath::find(const size_t origin, const size_t destination) {
 }
 
 size_t CoinShortestPath::path(size_t toNode, size_t *indexes) {
+    assert(toNode < this->nodes_);
+
     size_t n = 0, currNode = toNode;
 
     path_[n++] = currNode;
