@@ -659,6 +659,8 @@ const CoinPresolveAction *implied_free_action::presolve(
 #if PRESOLVE_SUMMARY > 0 || PRESOLVE_DEBUG > 0
     std::cout << "  IMPLIED_FREE: infeasible." << std::endl;
 #endif
+    if (actions) 
+      delete[] actions;
     return (next);
   }
 
