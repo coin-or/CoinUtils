@@ -206,6 +206,10 @@ func_cl_wrapper ()
 	  eat=1
 	  linker_opts="$linker_opts $2"
 	  ;;
+	-std=*)
+	  set x "$@" -std:"${1#-std=}"
+	  shift
+	  ;;
 	-*)
 	  set x "$@" "$1"
 	  shift
