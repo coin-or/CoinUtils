@@ -1446,13 +1446,15 @@ static int c_ekkbtrn_mpt(COIN_REGISTER3 const EKKfactinfo *COIN_RESTRICT2 fact,
   /*const int *mrstrt	= fact->xrsadr;*/
 
 #ifdef DEBUG
-  int i;
-  memset(spare, 'A', 3 * nrow * sizeof(int));
   {
+    int i;
+    memset(spare, 'A', 3 * nrow * sizeof(int));
+    {
 
-    for (i = 1; i <= nrow; i++) {
-      if (dpermu[i]) {
-        abort();
+      for (i = 1; i <= nrow; i++) {
+        if (dpermu[i]) {
+          abort();
+        }
       }
     }
   }
