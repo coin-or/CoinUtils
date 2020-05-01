@@ -35,7 +35,7 @@
 #else
 #define COINUTILS_INT64_T long long
 #define COINUTILS_UINT64_T unsigned long long
-#define COINUTILS_INTPTR_T int *
+#define COINUTILS_INTPTR_T intptr_t
 #endif
 
 #define COINUTILS_BIGINDEX_T int
