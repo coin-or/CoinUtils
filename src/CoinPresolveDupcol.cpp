@@ -233,24 +233,45 @@ const CoinPresolveAction
     rowmul = prob->randomNumber_;
   }
   compute_sums(ncols, hincol, mcstrt, hrow, colels, rowmul, sort, colsum, nlook);
-#define USE_LBS 0
-#define SWAP_SIGNS 0
-#if SWAP_SIGNS
-  int nPiece = 0;
-  // array to chain piecewise linear
-  int *piece = new int[ncols];
-  for (int i = 0; i < ncols; i++)
-    piece[i] = -1;
-  if (!allPositive) {
+  //#define CBC_PREPROCESS_EXPERIMENT 1
+#if CBC_PREPROCESS_EXPERIMENT
+#define USE_LBS 1
+  int nOddActions=0;
+  char * swapUsed = NULL;
+  if ((prob->presolveOptions_&0x80000)!=0 && !allPositive) {
     // swap signs
+    swapUsed = new char[ncols];
+    memset(swapUsed,0,ncols);
     memcpy(sort + nlook, sort, nlook * sizeof(int));
     for (int i = 0; i < nrows; i++)
       rowmul[i] = -rowmul[i];
     compute_sums(ncols, hincol, mcstrt, hrow, colels, rowmul, sort + nlook, colsum + nlook, nlook);
+    for (int i = nlook; i < nlook+nlook; i++)
+      sort[i] = sort[i] | 0x80000000;
     nlook += nlook;
   }
+#else
+#define swapUsed NULL
 #endif
   CoinSort_2(colsum, colsum + nlook, sort);
+#if CBC_PREPROCESS_EXPERIMENT
+  // make sure normal first
+  if (swapUsed) {
+    unsigned int *sort2 = reinterpret_cast<unsigned int *>(sort);
+    double dval = colsum[0] ;
+    int first = 0 ;
+    for (int jj = 1; jj < nlook; jj++) {
+      while (colsum[jj]==dval) 
+	jj++ ;
+      
+      if (first + 1 < jj) {
+	std::sort(sort2+first,sort2+jj);
+      }
+      first = jj;
+      dval = colsum[jj];
+    }
+  }
+#endif
   /*
   General prep --- unpack the various vectors we'll need, and allocate arrays
   to record the results.
@@ -321,9 +342,19 @@ const CoinPresolveAction
       tgt = jj; // Must update before continuing
       continue;
     }
-
+#if CBC_PREPROCESS_EXPERIMENT
+    int j2 = sort[jj]&0x7fffffff;
+    int j1 = sort[tgt]&0x7fffffff;
+    if (swapUsed) {
+      if (swapUsed[j2]||swapUsed[j1] || (j2!=sort[jj]&&j1!=sort[tgt])) {
+	tgt = jj;
+	continue;
+      }
+    }
+#else
     int j2 = sort[jj];
     int j1 = sort[tgt];
+#endif
     int len2 = hincol[j2];
     int len1 = hincol[j1];
 
@@ -355,31 +386,22 @@ const CoinPresolveAction
         break;
       }
     }
-#if SWAP_SIGNS
+#if CBC_PREPROCESS_EXPERIMENT
     if (k != kce) {
-      if (allPositive) {
-        tgt = jj;
-        continue;
+      if (!swapUsed) {
+	tgt = jj;
+	continue;
       } else {
-        // try negative
-        for (k = kcs; k < kce; k++) {
-          if (hrow[k] != hrow[k + ishift] || colels[k] != -colels[k + ishift]) {
-            break;
-          }
-        }
-        if (k == kce) {
-          nPiece++;
-          if (piece[j1] < 0 && piece[j2] < 0) {
-            piece[j1] = j2;
-            piece[j2] = j1;
-          } else if (piece[j1] < 0) {
-            int j3 = piece[j2];
-            piece[j2] = j1;
-            piece[j1] = j3;
-          }
-        }
-        tgt = jj;
-        continue;
+	// try negative
+	for (k = kcs; k < kce; k++) {
+	  if (hrow[k] != hrow[k + ishift] || colels[k] != -colels[k + ishift]) {
+	    break;
+	  }
+	}
+	if (k != kce) {
+	  tgt = jj;
+	  continue;
+	}
       }
     }
 #else
@@ -401,6 +423,24 @@ const CoinPresolveAction
     double cup2 = cup[j2];
     double c1 = dcost[j1] * maxmin;
     double c2 = dcost[j2] * maxmin;
+#if CBC_PREPROCESS_EXPERIMENT
+    if (swapUsed) {
+      swapUsed[j2] = 1;
+      swapUsed[j1] = 1;
+      if (sort[jj]&0x80000000) {
+	c2 = - c2;
+	clo2 = -cup2;
+	cup2 = - clo[j2];
+	nOddActions++;
+      }
+      if (sort[tgt]&0x80000000) {
+	c1 = - c1;
+	clo1 = -cup1;
+	cup1 = - clo[j1];
+	//printf("odd\n");//abort();
+      }
+    }
+#endif
     PRESOLVEASSERT(!(clo1 == cup1 || clo2 == cup2));
     // Get reasonable bounds on sum of two variables
     double lowerBound = -COIN_DBL_MAX;
@@ -410,9 +450,9 @@ const CoinPresolveAction
     bool takeColumn = (!clo1 && !clo2);
 #else
     bool takeColumn = true;
-    if (clo1 || clo2)
-      printf("DUPCOL %d and %d have nonzero lbs %g %g\n",
-        j1, j2, clo1, clo2);
+    //if (clo1 || clo2)
+    //printf("DUPCOL %d and %d have nonzero lbs %g %g\n",
+    //  j1, j2, clo1, clo2);
 #endif
     if (takeColumn) {
       // Only need bounds if c1 != c2
@@ -433,8 +473,10 @@ const CoinPresolveAction
 	    double value1=0.0;
 	    for (kk=mrstrt[iRow]; kk<kre; kk++) {
 	      int col = hcol[kk];
-	      if (col == j1||col==j2) {
+	      if (col==j2) {
 		value1=rowels[kk];
+		continue;
+	      } else if (col==j1) {
 		continue;
 	      }
 	      double coeff = rowels[kk];
@@ -619,7 +661,7 @@ const CoinPresolveAction
   (The relevant case is when the combined column is basic --- we need to be
   able to retain column j1 in the basis and make column j2 nonbasic.)
 */
-      if (!(clo2 + cup1 <= clo1 + cup2)) {
+      if (!(clo2 + cup1 <= clo1 + cup2) || swapUsed) {
         CoinSwap(j1, j2);
         CoinSwap(clo1, clo2);
         CoinSwap(cup1, cup2);
@@ -844,102 +886,28 @@ const CoinPresolveAction
 */
     PRESOLVE_STMT(printf("DUPCOL: (%d,%d) UNEXPECTED!\n", j1, j2));
   }
+#if CBC_PREPROCESS_EXPERIMENT
+  delete [] swapUsed;
+#endif
   /*
   What's left? Deallocate vectors, and call make_fixed_action to handle any
   variables that were fixed to bound.
 */
   if (rowmul != prob->randomNumber_)
     delete[] rowmul;
-#if SWAP_SIGNS
-  if (nPiece) {
-    nPiece = 0;
-    int nTotal = 0;
-    for (int i = 0; i < ncols; i++) {
-      if ((piece[i] & 0x80000000) == 0) {
-        int j2 = i;
-        int number = 1;
-        while (piece[j2] != i) {
-          int jNext = piece[j2];
-          assert(jNext != -1);
-          if (jNext < i) {
-            // already done
-            number = 0;
-            break;
-          }
-          if ((jNext & 0x80000000) != 0 || clo[jNext] == cup[jNext]) {
-            // no good
-            piece[j2] |= 0x80000000;
-            jNext &= 0x7fffffff;
-            while (jNext != j2) {
-              piece[jNext] |= 0x80000000;
-              jNext = piece[jNext] & 0x7fffffff;
-            }
-            piece[j2] |= 0x80000000;
-            number = -1;
-            break;
-          } else {
-            j2 = jNext;
-            number++;
-          }
-        }
-        if (number > 0) {
-          nPiece++;
-          nTotal += number;
-        }
-      }
-    }
-    printf("%d odd duplicates in %d groups\n", nTotal, nPiece);
-    // now build real structures
-    // to test fix and adjust
-    nPiece = 0;
-    nTotal = 0;
-    for (int i = 0; i < ncols; i++) {
-      if ((piece[i] & 0x80000000) == 0) {
-        int number = 1;
-        double lo = CoinMax(clo[i], -1.0e100);
-        double up = CoinMin(cup[i], 1.0e100);
-        // get first
-        double value = colels[mcstrt[i]];
-        int iNext = piece[i];
-        piece[i] |= 0x80000000;
-        while (iNext != i) {
-          number++;
-          if (value == colels[mcstrt[iNext]]) {
-            lo += CoinMax(clo[iNext], -1.0e100);
-            up += CoinMin(cup[iNext], 1.0e100);
-          } else {
-            lo -= CoinMin(cup[iNext], 1.0e100);
-            up -= CoinMax(clo[iNext], -1.0e100);
-          }
-          clo[iNext] = 0.0;
-          cup[iNext] = 0.0;
-          fixed_down[nfixed_down++] = iNext;
-          piece[iNext] |= 0x80000000;
-          iNext = piece[iNext] & 0x7fffffff;
-        }
-        if (lo < -1.0e50)
-          lo = -COIN_DBL_MAX;
-        if (up > 1.0e50)
-          up = COIN_DBL_MAX;
-        if (lo == -COIN_DBL_MAX && up == COIN_DBL_MAX) {
-          printf("Help - free variable %d\n", i);
-        }
-        nPiece++;
-        nTotal += number;
-      }
-    }
-    printf("Pass two %d odd duplicates in %d groups\n", nTotal, nPiece);
-  }
-  delete[] piece;
-#endif
   //delete[] colsum ;
   //delete[] sort ;
   //delete [] rhs;
 
 #if PRESOLVE_SUMMARY || PRESOLVE_DEBUG
   if (nactions + nfixed_down + nfixed_up > 0) {
+#if CBC_PREPROCESS_EXPERIMENT
+    printf("DUPLICATE COLS: %d combined, %d lb, %d ub %d signed\n",
+	   nactions, nfixed_down, nfixed_up,nOddActions);
+#else
     printf("DUPLICATE COLS: %d combined, %d lb, %d ub\n",
       nactions, nfixed_down, nfixed_up);
+#endif
   }
 #endif
   if (nactions) {
@@ -1200,6 +1168,7 @@ const CoinPresolveAction
           int rows[2];
           rows[0] = ithis;
           rows[1] = ilast;
+#if PRESOLVE_DEBUG > 0
           for (int k = 0; k < 2; k++) {
             int kRow = rows[k];
             CoinBigIndex krs = mrstrt[kRow];
@@ -1209,6 +1178,7 @@ const CoinPresolveAction
               printf(" (%d,%g)", hcol[k1], rowels[k1]);
             printf(" <= %g\n", rup[kRow]);
           }
+#endif
         }
         if (k == kre) {
           /* now check rhs to see what is what */
@@ -1971,7 +1941,11 @@ const CoinPresolveAction
   double bound[2];
   double alpha[2] = { 0.0, 0.0 };
   double offset = 0.0;
-
+#define PRINT_VALUES 0
+#if PRINT_VALUES > 0
+  int nDone=0;
+  int oddActions[4]={0};
+#endif
   for (int icol = 0; icol < ncols; icol++) {
     if (hincol[icol] == 2) {
       CoinBigIndex start = mcstrt[icol];
@@ -1983,6 +1957,10 @@ const CoinPresolveAction
         continue;
       double element0 = colels[start];
       double rowUpper0 = rup[row0];
+#if 1
+      {
+      }
+#endif
       bool swapSigns0 = false;
       if (rlo[row0] > -1.0e30) {
         if (rup[row0] > 1.0e30) {
@@ -1991,6 +1969,8 @@ const CoinPresolveAction
           element0 = -element0;
         } else {
           // range or equality
+	  //if (rlo[row0]!=rup[row0])
+	  //printf("Skipping as 0row bounds %g %g\n",rlo[row0],rup[row0]);
           continue;
         }
       } else if (rup[row0] > 1.0e30) {
@@ -2002,11 +1982,13 @@ const CoinPresolveAction
       // skip if no cost (should be able to get rid of)
       if (!cost[icol]) {
 	PRESOLVE_DETAIL_PRINT(printf("should be able to get rid of %d with no cost\n",icol));
+	printf("should be able to get rid of %d with no cost\n",icol);
 	continue;
       }
       // skip if negative cost for now
       if (cost[icol]<0.0) {
 	PRESOLVE_DETAIL_PRINT(printf("code for negative cost\n"));
+	printf("code for negative cost\n");
 	continue;
       }
 #endif
@@ -2020,6 +2002,8 @@ const CoinPresolveAction
           element1 = -element1;
         } else {
           // range or equality
+	  //if (rlo[row1]!=rup[row1])
+	  //printf("Skipping as 1row bounds %g %g\n",rlo[row1],rup[row1]);
           continue;
         }
       } else if (rup[row1] > 1.0e30) {
@@ -2049,19 +2033,239 @@ const CoinPresolveAction
           }
         }
       }
+      double lb[2],ub[2],obj[2],els[2][2]={0.0},rhs[2];
+      double adjBound[2]={0.0};
+      int which[2],isint[2],row[2],swapRow[2]={0},swapCol[2]={0};
+      double adjustCost=0.0;
       if (possible) {
+	{
+	  which[0]=icol;
+	  which[1]=otherCol;
+	  row[0]=row0;
+	  row[1]=row1;
+	  for (int i=0;i<2;i++) {
+	    int j=which[i];
+	    lb[i]=clo[j];
+	    ub[i]=cup[j];
+	    obj[i]=cost[j];
+	    isint[i]=prob->isInteger(j) ? 1 : 0;
+	  }
+	  for (int i=0;i<2;i++) {
+	    int j=row[i];
+#if PRESOLVE_DEBUG > 0
+	    if (rlo[j]>-1.0e20 && rup[j]<1.0e20) 
+	      printf("**** other rhs %g and %g\n",rlo[j],rup[j]);
+#endif
+	    if (rup[j]>1.0e20) {
+	      rhs[i]=-rlo[j];
+	      swapRow[i]=1;
+	    } else {
+	      rhs[i]=rup[j];
+	    }
+	    CoinBigIndex kel = mrstrt[j];
+	    for (int k=kel;k<kel+2;k++) {
+	      int jcol = hcol[k];
+	      double value = rowels[k];
+	      if (swapRow[i])
+		value = -value;
+	      if (jcol==which[0])
+		els[i][0] = value;
+	      else
+		els[i][1] = value;
+	    }
+	  }
+	  // variables lower closer to zero
+	  for (int i=0;i<2;i++) {
+	    if (fabs(lb[i])>fabs(ub[i])) {
+	      swapCol[i]=1;
+	      double temp = lb[i];
+	      lb[i]=-ub[i];
+	      ub[i]=-temp;
+	      els[0][i] *= -1.0;
+	      els[1][i] *= -1.0;
+	      obj[i] *= -1.0;
+	    }
+	  }
+	  // make lower bounds zero
+	  for (int i=0;i<2;i++) {
+	    if (lb[i]) {
+	      double lower = lb[i];
+	      adjBound[i] = lower;
+	      adjustCost += lower*obj[i];
+	      ub[i] -= lower;
+	      rhs[0] -= lower*els[0][i];
+	      rhs[1] -= lower*els[1][i];
+	    }
+	  }
+	}
+        bound[0] = clo[otherCol];
+        bound[1] = cup[otherCol];
         // skip if no cost (should be able to get rid of)
         if (!cost[icol]) {
           PRESOLVE_DETAIL_PRINT(printf("should be able to get rid of %d with no cost\n", icol));
           continue;
         }
-        // skip if negative cost for now
-        if (cost[icol] < 0.0) {
-          PRESOLVE_DETAIL_PRINT(printf("code for negative cost\n"));
-          continue;
-        }
-        bound[0] = clo[otherCol];
-        bound[1] = cup[otherCol];
+	if (isint[1]&&bound[1]-bound[0]==1.0&&true) {
+	  double fixValue[2];
+	  bool skipThis = false;
+#if PRESOLVE_DEBUG > 0
+	  printf("icol(x0) %d cost %g bounds %g %g - translated cost %g ub %g\n",
+		 icol,cost[icol],clo[icol],cup[icol],obj[0],ub[0]);
+	  printf("otherCol(x1) %d cost %g bounds %g %g - translated cost %g ub %g\n",
+		 otherCol,cost[otherCol],clo[otherCol],cup[otherCol],obj[1],ub[1]);
+#endif
+	  double els0x[2]={0};
+	  double els1x[2]={0};
+	  els0x[0]=colels[mcstrt[icol]];
+	  els1x[0]=colels[mcstrt[icol]+1];
+	  for (CoinBigIndex j=mcstrt[otherCol];j<mcstrt[otherCol]+hincol[otherCol];j++) {
+	    if (hrow[j]==row0)
+	      els0x[1]=colels[j];
+	    else if (hrow[j]==row1)
+	      els1x[1]=colels[j];
+	  }
+#if PRESOLVE_DEBUG > 0
+	  printf("row0 %g <= %g x0 + %g x1 <= %g - translated %g x0 + %g x1 <= %g\n",
+		 rlo[row0],els0x[0],els0x[1],rup[row0],els[0][0],els[0][1],rhs[0]);
+	  printf("row1 %g <= %g x0 + %g x1 <= %g - translated %g x0 + %g x1 <= %g\n",
+		 rlo[row1],els1x[0],els1x[1],rup[row1],els[1][0],els[1][1],rhs[1]);
+#endif
+	  double value0=COIN_DBL_MAX;
+	  double value1=COIN_DBL_MAX;
+	  if (obj[0]>0.0) {
+	    // at zero
+	    if (rhs[0]>=0.0) {
+	      value0 = 0.0;
+	    } else if (els[0][0]>0.0) {
+#if PRESOLVE_DEBUG > 0
+	      printf("infeasible\n");
+#endif
+	      skipThis = true;
+	    } else {
+	      value0 = rhs[0]/els[0][0];
+	      if (isint[0])
+		value0 = ceil(value0);
+	    }
+	    if (rhs[1]>=0.0) {
+	      // leave
+	    } else if (els[1][0]>0.0) {
+#if PRESOLVE_DEBUG > 0
+	      printf("infeasible\n");
+#endif
+	      skipThis = true;
+	    } else {
+	      value0 = CoinMax(rhs[1]/els[1][0],value0);
+	      if (isint[0])
+		value0 = ceil(value0);
+	    }
+	    // at one
+	    if (rhs[0]-els[0][1]>=0.0) {
+	      value1 = 0.0;
+	    } else if (els[0][0]>0.0) {
+#if PRESOLVE_DEBUG > 0
+	      printf("infeasible\n");
+#endif
+	      skipThis = true;
+	    } else {
+	      value1 = (rhs[0]-els[0][1])/els[0][0];
+	      if (isint[0])
+		value1 = ceil(value1);
+	    }
+	    if (rhs[1]-els[1][1]>=0.0) {
+	      // leave
+	    } else if (els[1][0]>0.0) {
+#if PRESOLVE_DEBUG > 0
+	      printf("infeasible\n");
+#endif
+	      skipThis = true;
+	    } else {
+	      value1 = CoinMax((rhs[1]-els[1][1])/els[1][0],value1);
+	      if (isint[0])
+		value1 = ceil(value1);
+	    }
+	  } else {
+	    // at zero
+	    if (rhs[0]>=0.0) {
+	      if (els[0][0]>0.0) {
+		value0 = rhs[0]/els[0][0];
+		if (isint[0])
+		  value0 = floor(value0);
+	      } else {
+		value0 = ub[0];
+	      }
+	    } else if (els[0][0]>0.0||els[0][0]*ub[0]>rhs[0]) {
+#if PRESOLVE_DEBUG > 0
+	      printf("infeasible\n");
+#endif
+	      skipThis = true;
+	    } else {
+	      value0 = ub[0];
+	    }
+	    if (rhs[1]>=0.0) {
+	      if (els[1][0]>0.0) {
+		value0 = CoinMin(rhs[1]/els[1][0],value0);
+		if (isint[0])
+		  value0 = floor(value0);
+	      }
+	    } else if (els[1][0]>0.0||els[1][0]*ub[0]>rhs[1]) {
+#if PRESOLVE_DEBUG > 0
+	      printf("infeasible\n");
+#endif
+	      skipThis = true;
+	    }
+	    // at one
+	    if (rhs[0]-els[0][1]>=0.0) {
+	      if (els[0][0]>0.0) {
+		value1 = (rhs[0]-els[0][1])/els[0][0];
+		if (isint[0])
+		  value1 = floor(value1);
+	      } else {
+		value1 = ub[0];
+	      }
+	    } else if (els[0][0]>0.0||els[0][0]*ub[0]>(rhs[0]-els[0][1])) {
+#if PRESOLVE_DEBUG > 0
+	      printf("infeasible\n");
+#endif
+	      skipThis = true;
+	    } else {
+	      value1 = ub[0];
+	    }
+	    if (rhs[1]-els[1][1]>=0.0) {
+	      if (els[1][0]>0.0) {
+		value1 = CoinMin((rhs[1]-els[1][1])/els[1][0],value0);
+		if (isint[0])
+		  value1 = floor(value1);
+	      }
+	    } else if (els[1][0]>0.0||els[1][0]*ub[0]>(rhs[1]-els[1][1])) {
+#if PRESOLVE_DEBUG > 0
+	      printf("infeasible\n");
+#endif
+	      skipThis = true;
+	    }
+	  }
+#if PRESOLVE_DEBUG > 0
+	  printf("other at 0 icol -> %g, at 1 icol -> %g\n",
+		 value0,value1);
+#endif
+	  if (swapCol[0]||swapCol[1]||skipThis)
+	    continue; // later
+#if PRESOLVE_DEBUG > 0
+	  printf("other at lo icol -> %g, at lo+1 icol -> %g\n",
+		 value0+clo[icol],value1+clo[icol]);
+#endif
+	  // make row0 free
+	  rlo[row0]=-COIN_DBL_MAX;
+	  rup[row0]=COIN_DBL_MAX;
+	  double rhs = value0+clo[icol]-clo[otherCol]*(value1-value0);
+	  rlo[row1]=rhs;
+	  rup[row1]=rhs;
+	  for (CoinBigIndex j=mcstrt[otherCol];j<mcstrt[otherCol]+hincol[otherCol];j++) {
+	    if (hrow[j]==row1)
+	      prob->colels_[j]=-(value1-value0);
+	  }
+	  prob->colels_[mcstrt[icol]+1]=1.0;
+	  continue;
+	}
         double lowestLowest = COIN_DBL_MAX;
         double highestLowest = -COIN_DBL_MAX;
         double lowestHighest = COIN_DBL_MAX;
@@ -2139,10 +2343,147 @@ const CoinPresolveAction
           highestLowest = CoinMax(highestLowest, thisLowest0);
         }
         // see if any good
-        //#define PRINT_VALUES
+	if (binding0 && binding1) {
+	  if (binding0+binding1 != 3) {
+#ifdef PRINT_VALUES
+	    printf("lolo %g hihi %g lohi %g hilo %g\n",
+		   lowestLowest,highestHighest,
+		   lowestHighest,highestLowest);
+	    printf("icol %d lo %g up %g cost %g integer %c binding %d\n",
+		   icol,clo[icol],cup[icol],cost[icol],prob->isInteger(icol) ? 'Y' : 'N',binding0);
+	    printf("otherCol %d lo %g up %g cost %g integer %c binding %d\n",
+		   otherCol,clo[otherCol],cup[otherCol],cost[otherCol],prob->isInteger(otherCol) ? 'Y' : 'N',binding1);
+	    CoinBigIndex startRow = mrstrt[row0];
+	    if (!swapSigns0)
+	      printf("row %d lo %g up %g ",row0,rlo[row0],rup[row0]);
+	    else
+	      printf("row %d lo %g up %g ",row0,-rup[row0],-rlo[row0]);
+	    for (CoinBigIndex j = startRow; j < startRow + 2; j++) 
+	      printf("(%g * x%d) ",!swapSigns0 ? rowels[j] : -rowels[j],hcol[j]);
+	    if (!swapSigns0)
+	      printf("\n");
+	    else
+	      printf(" swapped\n");
+	    startRow = mrstrt[row1];
+	    if (!swapSigns1)
+	      printf("row %d lo %g up %g ",row1,rlo[row1],rup[row1]);
+	    else
+	      printf("row %d lo %g up %g ",row1,-rup[row1],-rlo[row1]);
+	    for (CoinBigIndex j = startRow; j < startRow + 2; j++) 
+	      printf("(%g * x%d) ",!swapSigns1 ? rowels[j] : -rowels[j],hcol[j]);
+	    if (!swapSigns1)
+	      printf("\n");
+	    else
+	      printf(" swapped\n");
+	    printf("cols %d%c cost %g ub %g and %d%c cost %g ub %g -adjustment %g\n",
+		   which[0],isint[0]?'I':'C',obj[0],ub[0], 
+		   which[1],isint[1]?'I':'C',obj[1],ub[1],adjustCost);
+	    for (int i=0;i<2;i++)
+	      printf("row %d %g * x%d + %g * x%d <= %g\n",
+		     row[i],els[i][0],which[0],els[i][1],which[1],rhs[i]);
+#endif
+	    // see what we can do - four cases
+#if PRINT_VALUES > 0
+	    oddActions[isint[0]+2*isint[1]]++;
+#endif
+	    if (!isint[0]&&isint[1]&&ub[1]<100) {
+	      double costPair[100];
+	      double solAt[100];
+	      // look at integer bounds
+	      int nBound = static_cast<int>(ub[1]);
+	      int upInt = -1;
+	      int loInt = nBound+1;
+	      for (int iBound = 0;iBound<=nBound;iBound++) {
+		double lo0=-COIN_DBL_MAX,hi0=COIN_DBL_MAX;
+		for (int i=0;i<2;i++) {
+		  double thisRhs = rhs[i]-iBound*els[i][1];
+		  if (els[i][0]>0.0) 
+		    hi0 = CoinMin(hi0,thisRhs/els[i][0]);
+		  else
+		    lo0 = CoinMax(lo0,thisRhs/els[i][0]);
+		}
+		if (lo0>hi0) {
+		  // infeasible
+		  costPair[iBound]=COIN_DBL_MAX;
+		} else {
+		  costPair[iBound]=iBound*obj[1]+lo0*obj[0];
+		  solAt[iBound] = lo0;
+ 		  upInt = CoinMax(upInt,iBound);
+ 		  loInt = CoinMin(loInt,iBound);
+		}
+	      }
+	      if (loInt>upInt) {
+		// infeasible
+		costPair[0]=COIN_DBL_MAX;
+#if PRINT_VALUES > 0
+		printf("INFEAS\n");
+		abort();
+#endif
+	      }
+	      if (!swapCol[1]) {
+		clo[otherCol] = adjBound[1]+loInt;
+		cup[otherCol] = adjBound[1]+upInt;
+	      } else {
+		clo[otherCol] = -(adjBound[1]+upInt);
+		cup[otherCol] = -(adjBound[1]+loInt);
+	      }
+	      // see if linear
+	      bool linear = true;
+	      double gap=0.0;
+	      if (loInt<upInt) {
+		gap = costPair[loInt+1]-costPair[loInt];
+		for (int i=loInt+1;i<upInt-1;i++) {
+		  if (fabs(gap-(costPair[i+1]-costPair[i]))>1.0e-10) {
+		    linear=false;
+		    break;
+		  }
+		}
+	      }
+	      if (linear) {
+		// can fix icol
+		double fixVal = solAt[loInt]+adjBound[0];
+		if (swapCol[0])
+		  fixVal = - fixVal;
+		clo[icol] = fixVal;
+		cup[icol] = fixVal;
+	      }
+	      if (linear && loInt < upInt) {
+		// free rows
+		rlo[row0] = -COIN_DBL_MAX;
+		rup[row0] = COIN_DBL_MAX;
+		rlo[row1] = -COIN_DBL_MAX;
+		rup[row1] = COIN_DBL_MAX;
+		// move cost
+		// cost at loInt
+		// old 
+		double oldCost = clo[icol]*cost[icol];
+		oldCost += (loInt+adjBound[1])*cost[otherCol];
+		double newCost = swapCol[1] ? -gap : gap;
+		cost[otherCol] = newCost;
+		double newCost2 = clo[icol]*cost[icol];
+		newCost2 += (loInt+adjBound[1])*cost[otherCol];
+#if PRINT_VALUES > 0
+		printf("icol fixed %g otherCol %g %g newCost %g - change %g\n",
+		       clo[icol],clo[otherCol],cup[otherCol],newCost,
+		       newCost2-oldCost);
+#endif
+		offset -= newCost2-oldCost;
+	      }
+	    }
+	    binding0=binding1=0;
+	  }
+	}
+        // skip if negative cost for now
+        if (cost[icol] < 0.0) {
+          PRESOLVE_DETAIL_PRINT(printf("code for negative cost\n"));
+          continue;
+        }
         if (!binding0 || !binding1) {
           PRESOLVE_DETAIL_PRINT(printf("Row redundant for column %d\n", icol));
         } else {
+#if PRINT_VALUES > 0
+	  nDone++;
+#endif
           PRESOLVE_DETAIL_PRINT(printf("Column %d bounds %g,%g lowest %g,%g highest %g,%g\n",
             icol, lowerX, upperX, lowestLowest, lowestHighest,
             highestLowest, highestHighest));
@@ -2184,9 +2525,73 @@ const CoinPresolveAction
           double newUpper = -COIN_DBL_MAX;
           double costEqual;
           double slope[2];
-          assert(binding0 + binding1 == 3);
+          assert((binding0 | binding1) == 3);
+	  if (binding0 == 3 && binding1 == 3) {
+#ifdef PRINT_VALUES
+	    printf("can get rid of icol (%d %c) or otherCol (%d %c) (? integer)\n",
+		   icol,prob->isInteger(icol) ? 'I' : 'C',
+		   otherCol,prob->isInteger(otherCol) ? 'I' : 'C');
+#endif
+	    binding0 = 1;
+	    binding1 = 2;
+	    continue;
+	  } else if (binding0 == 1 && binding1 == 3) {
+#ifdef PRINT_VALUES
+	    printf("icol (%d %c bind %d) or otherCol (%d %c bind %d) (? integer)\n",
+		   icol,prob->isInteger(icol) ? 'I' : 'C',binding0,
+		   otherCol,prob->isInteger(otherCol) ? 'I' : 'C',binding1);
+#endif
+	    binding0 = 1;
+	    binding1 = 2;
+	  } else if (binding0 == 3 && binding1 == 1) {
+#ifdef PRINT_VALUES
+	    printf("icol (%d %c bind %d) or otherCol (%d %c bind %d) (? integer)\n",
+		   icol,prob->isInteger(icol) ? 'I' : 'C',binding0,
+		   otherCol,prob->isInteger(otherCol) ? 'I' : 'C',binding1);
+#endif
+	    binding0 = 2;
+	    binding1 = 1;
+	  }
+	    
           // get where equal
-          xValue = (rowUpper0 * element1 - rowUpper1 * element0) / (alpha[0] * element1 - alpha[1] * element0);
+	  double divisor = alpha[0] * element1 - alpha[1] * element0;
+	  if (fabs(divisor)>1.0e-6) {
+	    xValue = (rowUpper0 * element1 - rowUpper1 * element0) / divisor;
+	  } else {
+	    if (fabs(lowerX)<fabs(upperX))
+	      xValue = lowerX;
+	    else
+	      xValue = upperX;
+#ifdef PRINT_VALUES
+	    printf("icol %d lo %g up %g cost %g integer %c binding %d\n",
+		   icol,clo[icol],cup[icol],cost[icol],prob->isInteger(icol) ? 'Y' : 'N',binding0);
+	    printf("otherCol %d lo %g up %g cost %g integer %c binding %d\n",
+		   otherCol,clo[otherCol],cup[otherCol],cost[otherCol],prob->isInteger(otherCol) ? 'Y' : 'N',binding1);
+	    CoinBigIndex startRow = mrstrt[row0];
+	    if (!swapSigns0)
+	      printf("row %d lo %g up %g ",row0,rlo[row0],rup[row0]);
+	    else
+	      printf("row %d lo %g up %g ",row0,-rup[row0],-rlo[row0]);
+	    for (CoinBigIndex j = startRow; j < startRow + 2; j++) 
+	      printf("(%g * x%d) ",!swapSigns0 ? rowels[j] : -rowels[j],hcol[j]);
+	    if (!swapSigns0)
+	      printf("\n");
+	    else
+	      printf(" swapped\n");
+	    startRow = mrstrt[row1];
+	    if (!swapSigns1)
+	      printf("row %d lo %g up %g ",row1,rlo[row1],rup[row1]);
+	    else
+	      printf("row %d lo %g up %g ",row1,-rup[row1],-rlo[row1]);
+	    for (CoinBigIndex j = startRow; j < startRow + 2; j++) 
+	      printf("(%g * x%d) ",!swapSigns1 ? rowels[j] : -rowels[j],hcol[j]);
+	    if (!swapSigns1)
+	      printf("\n");
+	    else
+	      printf(" swapped\n");
+#endif
+	    continue; // skip for now
+	  }
           yValue0 = (rowUpper0 - xValue * alpha[0]) / element0;
           yValue1 = (rowUpper1 - xValue * alpha[1]) / element1;
           newLower = CoinMin(newLower, CoinMax(yValue0, yValue1));
@@ -2256,11 +2661,21 @@ const CoinPresolveAction
           xValue = xValueEqual - 1.0;
           yValue0 = CoinMax((rowUpper0 - xValue * alpha[0]) / element0, lowerX);
           PRESOLVE_DETAIL_PRINT(printf("new cost at -1 %g\n", costOther * xValue + costThis * yValue0 + thisOffset));
-          assert(fabs((costOther * xValue + costThis * yValue0 + thisOffset) - (costEqual - slope[0])) < 1.0e-5);
+          if(fabs((costOther * xValue + costThis * yValue0 + thisOffset) - (costEqual - slope[0])) > 1.0e-5) {
+#if PRESOLVE_DEBUG > 0
+	    printf("fix twoxtwo at line %d\n",__LINE__);
+#endif
+	    continue;
+	  }  
           xValue = xValueEqual + 1.0;
           yValue0 = CoinMax((rowUpper0 - xValue * alpha[0]) / element0, lowerX);
           PRESOLVE_DETAIL_PRINT(printf("new cost at +1 %g\n", costOther * xValue + costThis * yValue0 + thisOffset));
-          assert(fabs((costOther * xValue + costThis * yValue0 + thisOffset) - (costEqual + slope[1])) < 1.0e-5);
+          if(fabs((costOther * xValue + costThis * yValue0 + thisOffset) - (costEqual + slope[1])) > 1.0e-5) {
+#if PRESOLVE_DEBUG > 0
+	    printf("fix twoxtwo at line %d\n",__LINE__);
+#endif
+	    continue;
+	  }
           action &boundRecord = boundRecords[nactions++];
           boundRecord.row = row1;
           boundRecord.col = icol;
@@ -2282,6 +2697,9 @@ const CoinPresolveAction
       }
     }
   }
+  // adjust offset
+  if (offset)
+    prob->change_bias(offset);
   if (nactions) {
 #if PRESOLVE_SUMMARY
     printf("Cost offset %g - from %d blocks\n", offset, nactions);
@@ -2296,9 +2714,17 @@ const CoinPresolveAction
     next = useless_constraint_action::presolve(prob,
       sort, nactions,
       next);
-    // adjust offset
-    prob->change_bias(offset);
   }
+#if PRINT_VALUES > 0
+  if (nDone)
+    printf("twoxtwo %d\n",nDone);
+  if (oddActions[2])
+    printf("twoxtwo odd binding CI possible %d\n",oddActions[2]);
+  if (oddActions[0]||oddActions[1]||oddActions[3])
+    printf("twoxtwo odd bindings CC %d IC %d II %d\n",
+	   oddActions[0],oddActions[1],oddActions[3]);
+#endif
+    
   delete[] boundRecords;
   if (prob->tuning_) {
     double thisTime = CoinCpuTime();

@@ -204,8 +204,11 @@ void check_doubletons1(const CoinPresolveAction *paction,
     double mult = 1.0;
     int j = i;
     if (doubleton_id[j] != j) {
+#if PRESOLVE_DEBUG > 1
       printf("MULTS (%d):  ", j);
+#endif
       while (doubleton_id[j] != j) {
+#if PRESOLVE_DEBUG > 1
         printf("%d %g, ", doubleton_id[j], doubleton_mult[j]);
         mult *= doubleton_mult[j];
         j = doubleton_id[j];
@@ -221,6 +224,7 @@ void check_doubletons1(const CoinPresolveAction *paction,
     printf("MIN MULT:  %d %g\n", minid, minmult);
 }
 #endif // PRESOLVE_DEBUG
+#endif
 
 } /* end unnamed local namespace */
 
@@ -329,9 +333,139 @@ const CoinPresolveAction
   Failure of the assert indicates that the row- and column-major
   representations are out of sync.
 */
-    if ((rowLengths[tgtrow] != 2) || (fabs(rup[tgtrow] - rlo[tgtrow]) > ZTOLDP))
+    if (rowLengths[tgtrow] == 2) {
+      if (fabs(rup[tgtrow] - rlo[tgtrow]) > ZTOLDP) {
+	if ((prob->presolveOptions()&0x100000)==0)
+	  continue;
+	// may be able to do more ?
+	if (rup[tgtrow]!= 0.0 && rlo[tgtrow] != 0.0)
+	  continue;
+	if (rup[tgtrow] < 1.0e30 && rlo[tgtrow] > -1.0e30)
+	  continue;
+	// For Integer - check if we can do something
+	CoinBigIndex krs = rowStarts[tgtrow];
+	int lookCols[2];
+	lookCols[0] = colIndices[krs];
+	lookCols[1] = colIndices[krs + 1];
+	int way[2];
+	for (int iLook =0;iLook < 2 ;iLook++) {
+	  int icol = lookCols[iLook];
+	  double thisCost = cost[icol];
+	  // 1 means can go down, 2 can go up
+	  int intWay = 3;
+	  for (CoinBigIndex j=colStarts[icol];
+	       j<colStarts[icol]+colLengths[icol];j++) {
+	    int iRow = rowIndices[j];
+	    if (iRow==tgtrow)
+	      continue;
+	    double value = colCoeffs[j];
+	    // for now keep simple?
+	    if (rlo[iRow]<-1.0e30) {
+	      if (value<0.0)
+		intWay &= 2;
+	      else 
+		intWay &= 1;
+	    } else if (rup[iRow]>1.0e30) {
+	      if (value>0.0)
+		intWay &= 2;
+	      else 
+		intWay &= 1;
+	    } else {
+	      intWay = 0;
+	      break;
+	    }
+	  }
+	  if (intWay) {
+	    // check cost
+	    double thisCost = cost[icol];
+	    if (thisCost>0.0)
+	      intWay &= 1;
+	    else if (thisCost<0.0)
+	      intWay &= 2;
+	  }
+	  way[iLook]=intWay;
+	  if ((intWay&1)!=0) {
+	    // can go down
+#if PRESOLVE_DEBUG > 1
+	    printf("%d (%g <= %g) can go down - other %d (%g <= %g) row %g <= %g*x0 + %g*x1 <= %g\n",
+		   lookCols[iLook], clo[lookCols[iLook]],cup[lookCols[iLook]],
+		   lookCols[1-iLook], clo[lookCols[1-iLook]],cup[lookCols[1-iLook]],
+		   rlo[tgtrow],rowCoeffs[krs+iLook],rowCoeffs[krs+1-iLook],
+		   rup[tgtrow]);
+#endif
+	  } else if ((intWay&2)!=0) {
+	    // can go up
+#if PRESOLVE_DEBUG > 1
+	    printf("%d (%g <= %g) can go up - other %d (%g <= %g) row %g <= %g*x0 + %g*x1 <= %g\n",
+		   lookCols[iLook], clo[lookCols[iLook]],cup[lookCols[iLook]],
+		   lookCols[1-iLook], clo[lookCols[1-iLook]],cup[lookCols[1-iLook]],
+		   rlo[tgtrow],rowCoeffs[krs+iLook],rowCoeffs[krs+1-iLook],
+		   rup[tgtrow]);
+#endif
+	  }
+	}
+	if (!way[0]&&!way[1])
+	  continue;
+#if 0	
+	if ((way[0] && way[1]) || way[0]==3 || way[1]==3) {
+	  printf("BOTH? way %d and %d\n",way[0],way[1]);
+	  continue;
+	} else {
+	  int whichMove = way[0] ? lookCols[0] : lookCols[1];
+	  if (integerType[whichMove]) {
+	    if (integerType[lookCols[0]]==0||integerType[lookCols[1]]==0)
+	      continue; // ????
+	    if (fabs(rowCoeffs[krs])!=1.0||fabs(rowCoeffs[krs+1])!=1.0)
+	      continue; // ? maybe just same
+	  }
+	  // just for now - only for zero rhs
+	  if (!rup[tgtrow]) {
+	    printf("setting rlo[%d] to zero\n",tgtrow);
+	    rlo[tgtrow] = 0.0;
+	  } else if (!rlo[tgtrow]) {
+	    printf("setting rup[%d] to zero\n",tgtrow);
+	    rup[tgtrow] = 0.0;
+	  } else {
+	    continue; // temp
+	  }
+	}
+#else
+	if ((way[0] && way[1]) || way[0]==3 || way[1]==3) {
+#if PRESOLVE_DEBUG > 1
+	  printf("BOTH? way %d and %d\n",way[0],way[1]);
+#endif
+	  continue;
+	} else {
+	  int whichMove = way[0] ? lookCols[0] : lookCols[1];
+	  if (integerType[whichMove]) {
+	    if (integerType[lookCols[0]]==0||integerType[lookCols[1]]==0)
+	      continue; // ????
+	    if (rlo[tgtrow] && rup[tgtrow]) {
+	      if (fabs(rowCoeffs[krs])!=1.0||fabs(rowCoeffs[krs+1])!=1.0)
+		continue; // ? maybe just same
+	    } else {
+	      if (fabs(rowCoeffs[krs])!=fabs(rowCoeffs[krs+1]))
+		continue; 
+	    }
+	  }
+	  // allow non zero
+	  if (rlo[tgtrow] < -1.0e30) {
+#if PRESOLVE_DEBUG > 1
+	    printf("setting rlo[%d] to %g\n",tgtrow,rup[tgtrow]);
+#endif
+	    rlo[tgtrow] = rup[tgtrow];
+	  } else {
+#if PRESOLVE_DEBUG > 1
+	    printf("setting rup[%d] to %g\n",tgtrow,rlo[tgtrow]);
+#endif
+	    rup[tgtrow] = rlo[tgtrow];
+	  }
+	}
+#endif
+      }
+    } else {
       continue;
-
+    }
     const CoinBigIndex krs = rowStarts[tgtrow];
     int tgtcolx = colIndices[krs];
     int tgtcoly = colIndices[krs + 1];
@@ -1425,8 +1559,10 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
         dj -= rowduals[row] * coeff;
       }
       if (!(fabs(rcosts[jcolx] - dj) < 100 * ZTOLDP))
+#if PRESOLVE_DEBUG > 1
         printf("BAD DOUBLE X DJ:  %d %d %g %g\n",
           irow, jcolx, rcosts[jcolx], dj);
+#endif
       rcosts[jcolx] = dj;
     }
     {
@@ -1441,8 +1577,10 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
         dj -= rowduals[row] * coeff;
       }
       if (!(fabs(rcosts[jcoly] - dj) < 100 * ZTOLDP))
+#if PRESOLVE_DEBUG > 1
         printf("BAD DOUBLE Y DJ:  %d %d %g %g\n",
           irow, jcoly, rcosts[jcoly], dj);
+#endif
       rcosts[jcoly] = dj;
     }
 #endif
