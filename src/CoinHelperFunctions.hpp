@@ -921,7 +921,7 @@ inline double CoinDrand48(bool isSeed = false, unsigned int seed = 1)
 }
 
 /// Set the seed for the random number generator
-inline void CoinSeedRandom(int iseed)
+inline void CoinSeedRandom(unsigned int iseed)
 {
   CoinDrand48(true, iseed);
 }
@@ -933,14 +933,14 @@ inline void CoinSeedRandom(int iseed)
 /// Return a random number between 0 and 1
 inline double CoinDrand48() { return rand() / (double)RAND_MAX; }
 /// Set the seed for the random number generator
-inline void CoinSeedRandom(int iseed) { srand(iseed + 69822); }
+inline void CoinSeedRandom(unsigned int iseed) { srand(iseed + 69822); }
 
 #else
 
 /// Return a random number between 0 and 1
 inline double CoinDrand48() { return drand48(); }
 /// Set the seed for the random number generator
-inline void CoinSeedRandom(int iseed) { srand48(iseed + 69822); }
+inline void CoinSeedRandom(unsigned int iseed) { srand48(iseed + 69822); }
 
 #endif
 
@@ -1097,7 +1097,7 @@ public:
     seed_ = 12345678;
   }
   /** Constructor wih seed. */
-  CoinThreadRandom(int seed)
+  CoinThreadRandom(unsigned int seed)
   {
     seed_ = seed;
   }
@@ -1123,7 +1123,7 @@ public:
 
   //@{
   /** Set seed. */
-  inline void setSeed(int seed)
+  inline void setSeed(unsigned int seed)
   {
     seed_ = seed;
   }
