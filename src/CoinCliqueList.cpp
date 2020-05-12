@@ -1,3 +1,21 @@
+/**
+ *
+ * This file is part of the COIN-OR CBC MIP Solver
+ *
+ * A class to store a sequential list of cliques.
+ * Optionally computes occurrence of nodes in cliques.
+ *
+ * @file CoinCliqueList.cpp
+ * @brief List of cliques
+ * @author Samuel Souza Brito and Haroldo Gambini Santos
+ * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * @date 03/27/2020
+ *
+ * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
+ * \license{This This code is licensed under the terms of the Eclipse Public License (EPL).}
+ *
+ **/
+
 #include <cstdlib>
 #include <algorithm>
 #include <cstdio>

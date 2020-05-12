@@ -2,10 +2,10 @@
  *
  * This file is part of the COIN-OR CBC MIP Solver
  *
- * Class to store a (growable) list of of neighbors for each node
+ * Class to store a (growable) list of neighbors for each node
  * Initially implemented to be used in the Conflict Graph
  *
- * @file CoinAdjacencyVector.hpp
+ * @file CoinAdjacencyVector.cpp
  * @brief Vector of growable vectors
  * @author Samuel Souza Brito and Haroldo Gambini Santos
  * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br

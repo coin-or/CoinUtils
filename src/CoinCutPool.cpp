@@ -1,3 +1,30 @@
+/**
+ *
+ * This file is part of the COIN-OR CBC MIP Solver
+ *
+ * Class for storing a pool of cuts, removing
+ * the repeated and dominated ones. It also filters the cuts
+ * according to their scores. Given a solution x* of the LP
+ * relaxation of a MILP, the score of a cut C is calculated as
+ * S(C) = viol(C) / actv(C), where viol(C) is the violation
+ * of the cut with respect to x* and actv(C) is the
+ * number of variables in C whose values x* are greater than
+ * zero. An auxiliary array is used to identify, for each variable,
+ * the cut in the pool with the best score that contains this variable.
+ * A cut is only inserted into the cut pool if it has the best score for
+ * at least one variable.
+ *
+ * @file CoinCutPool.cpp
+ * @brief Class for storing a pool of cuts
+ * @author Samuel Souza Brito and Haroldo Gambini Santos
+ * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * @date 03/27/2020
+ *
+ * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
+ * \license{This This code is licensed under the terms of the Eclipse Public License (EPL).}
+ *
+ **/
+
 #include "CoinCutPool.hpp"
 #include <cstdlib>
 #include <cstdio>

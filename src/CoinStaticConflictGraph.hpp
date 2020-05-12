@@ -25,16 +25,29 @@
 
 /**
  * Static conflict graph, optimized for memory usage and query speed,
- * not modifiable
- */
+ * not modifiable.
+ **/
 class COINUTILSLIB_EXPORT CoinStaticConflictGraph : public CoinConflictGraph
 {
 public:
   /**
    * Default constructor
-   */
+   **/
   CoinStaticConflictGraph ( const CoinConflictGraph *cgraph );
 
+  /**
+   * Default constructor.
+   * It constructs a conflict graph from the MILP structure.
+   *
+   * @param numCols number of variables
+   * @param colType column types
+   * @param colLB column lower bounds
+   * @param colUB column upper bounds
+   * @param matrixByRow row-wise constraint matrix
+   * @param sense row sense
+   * @param rowRHS row right hand side
+   * @param rowRange row ranges
+   **/
   CoinStaticConflictGraph(
           const int numCols,
           const char* colType,
@@ -45,39 +58,55 @@ public:
           const double* rowRHS,
           const double* rowRange );
 
+  /**
+   * Clone a conflict graph.
+   **/
   CoinStaticConflictGraph *clone() const;
 
   /**
-   * Constructor to create from an induced subgraph
+   * Constructor to create an induced subgraph
    *
    * @param cgraph conflict graph
    * @param n number of elements in the induced subgraph
    * @param elements indexes of nodes in the induced subgraph
-   */
+   **/
   CoinStaticConflictGraph( const CoinConflictGraph *cgraph, const size_t n, const size_t elements[] );
 
-  // conflicts not stored as cliques
+  /**
+   * Return the number of pairwise conflicts
+   * stored for a node.
+   **/
   virtual size_t nDirectConflicts( size_t idxNode ) const;
 
+  /**
+   * List of pairwise conflicts (not stored as
+   * cliques) for a node.
+   **/
   virtual const size_t *directConflicts( size_t idxNode ) const;
 
-  /** Number of cliques stored explicitly
-  *
-  **/
+  /**
+   * Return the number of cliques stored explicitly.
+   **/
   virtual size_t nCliques() const;
 
-  /** Contents of the i-th clique stored explicitly
-    *
-    **/
+  /**
+   * Return the contents of the i-th clique stored explicitly.
+   **/
   virtual const size_t *cliqueElements( size_t idxClique ) const;
 
-  /** Size of the i-th clique stored explicitly
-   *
+  /**
+   * Return the size of the i-th clique stored explicitly.
    **/
   virtual size_t cliqueSize( size_t idxClique ) const;
 
+  /**
+   * Return how many explicit cliques a node appears.
+   **/
   size_t nNodeCliques( size_t idxNode ) const;
 
+  /**
+   * Return which cliques a node appears.
+   **/
   const size_t *nodeCliques( size_t idxNode ) const;
 
   /**
@@ -86,70 +115,146 @@ public:
   virtual size_t degree( const size_t node ) const;
 
   /**
-   * modified degree of a given node
-   */
+   * Return the modified degree of a given node.
+   **/
   virtual size_t modifiedDegree( const size_t node ) const;
   
-  
-  /** total number of conflict stored directly
-   * 
+  /**
+   * Total number of conflicts stored directly.
    **/
   virtual size_t nTotalDirectConflicts() const;
   
-  /** total number of clique elements stored
-   * 
+  /**
+   * Total number of clique elements stored.
    **/
   virtual size_t nTotalCliqueElements() const;  
 
   /**
    * Destructor
-   */
+   **/
   virtual ~CoinStaticConflictGraph();
 
-    /**
-     * Recommended tighter bounds for some variables
-     *
-     * The construction of the conflict graph may discover new tighter
-     * bounds for some variables.
-     *
-     * @return updated bounds
-     **/
-    const std::vector< std::pair< size_t, std::pair< double, double > > > &updatedBounds() const;
+  /**
+   * Recommended tighter bounds for some variables
+   *
+   * The construction of the conflict graph may discover new tighter
+   * bounds for some variables.
+   *
+   * @return a vector of updated bounds with the format (idx, (lb, ub))
+   **/
+  const std::vector< std::pair< size_t, std::pair< double, double > > > &updatedBounds() const;
 
-private:                      // size
-  size_t nDirectConflicts_;
-  size_t totalCliqueElements_;
-  size_t nCliques_;
-  size_t memSize_; // required memory for all vectors
-
-  // direct conflicts per node
-  size_t *nConflictsNode_;     // size_
-  size_t *degree_;             // size_
-  size_t *modifiedDegree_;     // size_
-  size_t *startConfNodes_;     // size_+1
-  size_t *conflicts_;          // cgraph->nDirectConflicts
-
-  // node cliques
-  size_t *nNodeCliques_;       // size_
-  size_t *startNodeCliques_;   // size_+1
-  size_t *nodeCliques_;        // totalCliqueElements_
-
-  // cliques
-  size_t *cliqueSize_;         // nCliques
-  size_t *startClique_;        // nCliques+1
-  size_t *cliques_;            // totalCliqueElements
-
+private:
+  /**
+   * Recommended tighter bounds for some variables.
+   **/
   std::vector< std::pair< size_t, std::pair< double, double > > > newBounds_;
 
-  const size_t *cliqueEls( size_t ic ) const;
-
+  /**
+   * Check if a clique contains a node.
+   **/
   bool nodeInClique( size_t idxClique, size_t node ) const;
 
+  /**
+   * Sets the degree of a node.
+   *
+   * @param idxNode index of the node
+   * @param deg degree of the node
+   **/
   virtual void setDegree(size_t idxNode, size_t deg);
 
+  /**
+   * Sets the modified degree of a node.
+   *
+   * @param idxNode index of the node
+   * @param deg degree of the node
+   **/
   virtual void setModifiedDegree(size_t idxNode, size_t mdegree);
 
+  /**
+   * Initializes the structures of the conflict graph.
+   **/
   void iniCoinStaticConflictGraph(const CoinConflictGraph *cgraph);
+
+  /**
+   * Number of pairwise conflicts stored.
+   **/
+  size_t nDirectConflicts_;
+  
+  /**
+   * Number of elements considering all cliques
+   * stored explicitly.
+   **/
+  size_t totalCliqueElements_;
+
+  /**
+   * Number of cliques stored explicitly.
+   **/
+  size_t nCliques_;
+
+  /**
+   * Required memory for all vectors.
+   **/
+  size_t memSize_;
+
+  /**
+   * Number of direct conflicts per node.
+   **/
+  size_t *nConflictsNode_;
+
+  /**
+   * Degree of each node.
+   **/
+  size_t *degree_;
+
+  /**
+   * Modified degree of each node.
+   **/
+  size_t *modifiedDegree_;
+
+  /**
+   * Start position for the direct conflicts
+   * of each node.
+   **/
+  size_t *startConfNodes_;
+
+  /**
+   * Direct conflicts
+   **/
+  size_t *conflicts_;
+
+  /**
+   * Number of cliques that a node appears.
+   **/
+  size_t *nNodeCliques_;
+
+  /**
+   * Indicates the first position of nodeCliques_
+   * that has the indexes of cliques containing
+   * a node. 
+   **/
+  size_t *startNodeCliques_;
+
+  /**
+   * Array containing, for each node,
+   * the cliques that contain this node.
+   **/
+  size_t *nodeCliques_;
+
+  /**
+   * Size of the cliques stored explicitly.
+   **/
+  size_t *cliqueSize_;
+
+  /**
+   * First position where each clique starts.
+   **/
+  size_t *startClique_;
+
+  /**
+   * Elements of the cliques stored explicitly.
+   **/
+  size_t *cliques_;
 };
 
 #endif // STATICCONFLICTGRAPH_H

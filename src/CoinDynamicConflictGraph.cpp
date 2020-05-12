@@ -6,7 +6,7 @@
  * For a static conflict graph implemenation with faster queries
  * check CoinStaticConflictGraph.
  *
- * @file CoinDynamicConflictGraph.hpp
+ * @file CoinDynamicConflictGraph.cpp
  * @brief CoinConflictGraph implementation which supports modifications. 
  * @author Samuel Souza Brito and Haroldo Gambini Santos
  * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
@@ -94,7 +94,6 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph ( size_t _size )
   , degree_( (size_t*) xmalloc(sizeof(size_t)*_size) )
   , modifiedDegree_( (size_t*) xcalloc(_size, sizeof(size_t)) )
   , largeClqs( new CoinCliqueList( 4096, 32768 ) )
-  , ivACND( std::vector<bool>(size_, false) )
 {
 }
 
@@ -118,7 +117,6 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   degree_ = (size_t*) xmalloc(sizeof(size_t)*(numCols*2));
   modifiedDegree_ = (size_t*) xcalloc(numCols*2, sizeof(size_t));
   largeClqs = new CoinCliqueList( 4096, 32768 );
-  ivACND = std::vector<bool>(size_, false);
 
   this->tElCap = matrixByRow->getNumElements() * 2;
   this->tRowElements = (std::pair< size_t, double > *) xmalloc( sizeof(std::pair< size_t, double >)*tElCap);

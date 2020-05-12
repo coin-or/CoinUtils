@@ -1,3 +1,20 @@
+/**
+ *
+ * This file is part of the COIN-OR CBC MIP Solver
+ *
+ * Class responsible for extending cliques
+ *
+ * @file CoinCliqueExtender.cpp
+ * @brief Clique extender
+ * @author Samuel Souza Brito and Haroldo Gambini Santos
+ * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * @date 03/27/2020
+ *
+ * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
+ * \license{This This code is licensed under the terms of the Eclipse Public License (EPL).}
+ *
+ **/
+
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -133,7 +150,7 @@ CoinCliqueExtender::~CoinCliqueExtender() {
     }
 }
 
-size_t CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t clqSize) {
+bool CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t clqSize) {
 #ifdef DEBUGCG
     assert(clqSize > 0);
 #endif
@@ -141,7 +158,7 @@ size_t CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t c
     fillCandidates(clqIdxs, clqSize);
 
     if (nCandidates_ == 0) {
-        return 0;
+        return false;
     }
 
     shuffle_array(candidates_, nCandidates_);
@@ -163,7 +180,7 @@ size_t CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t c
     }
 
     if (nNewClique_ == clqSize) {
-        return 0;
+        return false;
     }
 
 #ifdef DEBUGCG
@@ -172,10 +189,10 @@ size_t CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t c
 
     extendedCliques_->addClique(nNewClique_, newClique_);
 
-    return 1;
+    return true;
 }
 
-size_t CoinCliqueExtender::greedySelection(const size_t *clqIdxs, const size_t clqSize, const double *costs) {
+bool CoinCliqueExtender::greedySelection(const size_t *clqIdxs, const size_t clqSize, const double *costs) {
 #ifdef DEBUGCG
     assert(clqSize > 0);
 #endif
@@ -183,7 +200,7 @@ size_t CoinCliqueExtender::greedySelection(const size_t *clqIdxs, const size_t c
     fillCandidates(clqIdxs, clqSize);
 
     if (nCandidates_ == 0) {
-        return 0;
+        return false;
     }
 
     const size_t n = nCandidates_;
@@ -206,7 +223,7 @@ size_t CoinCliqueExtender::greedySelection(const size_t *clqIdxs, const size_t c
     }
 
     if (nNewClique_ == clqSize) {
-        return 0;
+        return false;
     }
 
 #ifdef DEBUGCG
@@ -215,7 +232,7 @@ size_t CoinCliqueExtender::greedySelection(const size_t *clqIdxs, const size_t c
 
     extendedCliques_->addClique(nNewClique_, newClique_);
 
-    return 1;
+    return true;
 }
 
 bool compareCliqueWeight(const std::pair<size_t, double> &e1, const std::pair<size_t, double> &e2) {
@@ -226,9 +243,9 @@ bool compareCliqueWeight(const std::pair<size_t, double> &e1, const std::pair<si
     return e1.first < e2.first;
 }
 
-size_t CoinCliqueExtender::extendClique(const size_t *clqIdxs, const size_t clqSize) {
+bool CoinCliqueExtender::extendClique(const size_t *clqIdxs, const size_t clqSize) {
     if (extMethod_ == 0) {
-        return 0;
+        return false;
     }
 
 #ifdef DEBUGCG
@@ -237,7 +254,7 @@ size_t CoinCliqueExtender::extendClique(const size_t *clqIdxs, const size_t clqS
     }
 #endif
 
-    size_t result = 0;
+    bool result = false;
 
     switch (extMethod_) {
         case 1: //random

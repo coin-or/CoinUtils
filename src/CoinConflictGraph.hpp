@@ -30,160 +30,233 @@
  * is a structure that stores conflicts between binary
  * variables. These conflicts can involve the original
  * problem variables or complementary variables.
- */
+ **/
 class COINUTILSLIB_EXPORT CoinConflictGraph {
 public:
   CoinConflictGraph() { }
 
   /**
    * Default constructor
-   * @param _cols number of columns in the mixed integer linear program the number
-   *        of elements in the conflict graph will be _cols*2
-   *        (complementary variables)
-   */
+   *
+   * @param _cols number of columns in the mixed-integer
+   * linear program. The number of elements in the conflict
+   * graph will be _cols*2 (it consider complementary variables)
+   **/
   CoinConflictGraph(size_t _size);
 
   /**
    * Default constructor
    * @param other conflict graph to be copied
-   */
+   **/
   CoinConflictGraph(const CoinConflictGraph *other);
 
   /**
    * Destructor
-   */
+   **/
   virtual ~CoinConflictGraph();
 
   /**
-   * Checks for conflicts between two nodes
+   * Checks for conflicts between two nodes.
    *
    * @param n1 node index
    * @param n2 node index
-   * @return true if there is an edge between n1 and n2 in the conflict graph, 0 otherwise
-   */
+   * @return true if there is an edge between
+   * n1 and n2 in the conflict graph, 0 otherwise.
+   **/
   bool conflicting(size_t n1, size_t n2) const;
 
   /**
-   * Queries all nodes conflicting with a given node
+   * Queries all nodes conflicting with a given node.
    *
    * @param node node index
-   * @param temp temporary storage area for storing conflicts, should have space for all elements in the graph (size())
-   * @return pair containing (numberOfConflictingNodes, vectorOfConflictingNodes), the vector may be a pointer
-   * to temp is the temporary storage area was used or a pointer to a vector in the conflict graph itself
-   */
+   * @param temp temporary storage area for storing conflicts,
+   * should have space for all elements in the graph (size())
+   * @param iv auxiliary incidence array used to eliminate
+   * duplicates. It should have the size of the graph (size())
+   * and all elements shoud be initialized as false.
+   *
+   * @return pair containing
+   * (number of conflicting nodes, array of conflicting nodes),
+   * the array may be a pointer to temp if the temporary storage
+   * area was used or a pointer to an array in the conflict graph itself.
+   **/
   std::pair< size_t, const size_t* > conflictingNodes ( size_t node, size_t* temp, bool *iv ) const;
 
-
-
   /**
-   * Density of the conflict graph: nConflicts / maxConflicts
+   * Density of the conflict graph:
+   * (nConflicts / maxConflicts)
    **/
   double density() const;
 
   /**
-   * number of nodes in the conflict graph
-   */
+   * Number of nodes in the conflict graph.
+   **/
   size_t size() const;
 
   /**
-   * degree of a given node
-   */
+   * Degree of a given node.
+   **/
   virtual size_t degree( const size_t node ) const = 0;
 
   /**
-   * modified degree of a given node
-   */
+   * Modified degree of a given node. The modified
+   * degree of a node is the sum of its degree
+   * with the degrees of its neighbors.
+   **/
    virtual size_t modifiedDegree( const size_t node ) const = 0;
 
   /**
-   * minimum node degree 
-   */
+   * Minimum node degree.
+   **/
   size_t minDegree( ) const;
 
   /**
-   * maximum node degree 
-   */
+   * Maximum node degree.
+   **/
   size_t maxDegree( ) const;
 
-  /** Number of cliques stored explicitly
-   *
+  /**
+   * Number of cliques stored explicitly.
    **/
   virtual size_t nCliques() const = 0;
 
-  /** Size of the i-th clique stored explicitly
-    *
-    **/
+  /**
+   * Size of the i-th clique stored explicitly.
+   **/
   virtual size_t cliqueSize( size_t idxClique ) const = 0;
 
-
-  /** Contents of the i-th clique stored explicitly
-   *
+  /**
+   * Contents of the i-th clique stored explicitly.
    **/
   virtual const size_t *cliqueElements( size_t idxClique ) const = 0;
 
-  /* in how many explicit cliques a node appears
+  /**
+   * Return how many explicit cliques a node appears.
    **/
   virtual size_t nNodeCliques(size_t idxClique) const = 0;
 
-  /* which cliques a node appears
+  /**
+   * Return which cliques a node appears.
    **/
   virtual const size_t *nodeCliques(size_t idxClique) const = 0;
 
-  /** Number of pairwise conflicts stored for a node
-   *
+  /**
+   * Return the number of pairwise conflicts
+   * stored for a node.
    **/
   virtual size_t nDirectConflicts( size_t idxNode ) const = 0;
 
-  /** List of pairwise conflicts (not stored as cliques) for a node
-   *
+  /**
+   * List of pairwise conflicts (not stored as
+   * cliques) for a node.
    **/
   virtual const size_t *directConflicts( size_t idxNode ) const = 0;
 
+  /**
+   * Recompute the degree of each node of the graph.
+   **/
   void recomputeDegree();
+
+  /**
+   * Recompute the modified degree of each node
+   * of the graph.
+   **/
   void computeModifiedDegree();
   
-  /** total number of conflict stored directly
-   * 
+  /**
+   * Total number of conflicts stored directly.
    **/
   virtual size_t nTotalDirectConflicts() const = 0;
   
-  /** total number of clique elements stored
-   * 
+  /**
+   * Total number of clique elements stored.
    **/
   virtual size_t nTotalCliqueElements() const = 0;
 
-  /** parameter: minimum size of a clique to be stored as a clique (not paiwise)
+  /**
+   * Parameter that controls the minimum size of
+   * a clique to be explicitly stored as a clique
+   * (not pairwise).
    **/
   static size_t minClqRow;
 
+  /**
+   * Print summarized information about
+   * the conflict graph.
+   **/
   void printSummary() const;
 
 protected:
-  // number of nodes
-  size_t size_;
-
-  size_t nConflicts_;
-  // these numbers could be large, storing as double
-  double maxConflicts_;
-  double density_;
-
+  /**
+   * Sets the degree of a node
+   *
+   * @param idxNode index of the node
+   * @param deg degree of the node
+   **/
   virtual void setDegree( size_t idxNode, size_t deg ) = 0;
 
-  bool updateMDegree;
+  /**
+   * Sets the modified degree of a node
+   *
+   * @param idxNode index of the node
+   * @param mdegree modified degree of the node
+   **/
   virtual void setModifiedDegree( size_t idxNode, size_t mdegree ) = 0;
 
-  size_t minDegree_;
-  size_t maxDegree_;
-
+  /**
+   * Checks if two nodes are conflicting, considering
+   * only the conflicts explicitly stored as cliques.
+   **/
   bool conflictInCliques( size_t idxN1, size_t idxN2) const;
 
+  /**
+   * Initializes the structures of the conflict graph.
+   **/
   void iniCoinConflictGraph(size_t _size);
 
   /**
    * Default constructor
    * @param other conflict graph to be copied
-   */
+   **/
   void iniCoinConflictGraph(const CoinConflictGraph *other);
+
+  /**
+   * Number of nodes of the graph.
+   **/
+  size_t size_;
+
+  /**
+   * Number of conflicts (edges)
+   * of the graph.
+   **/
+  size_t nConflicts_;
+
+  /**
+   * Maximum number of conflicts that
+   * the graph can have.
+   **/
+  double maxConflicts_; //this number could be large, storing as double
+
+  /**
+   * Density of the graph
+   **/
+  double density_;
+
+  /**
+   * Indicates if the modified degree of the nodes
+   * must be recomputed.
+   **/
+  bool updateMDegree;
+
+  /**
+   * Minimum degree of the nodes.
+   **/
+  size_t minDegree_;
+
+  /**
+   * Maximum degree of the nodes.
+   **/
+  size_t maxDegree_;
 };
 
 #endif // CONFLICTGRAPH_H

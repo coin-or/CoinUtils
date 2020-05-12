@@ -1,3 +1,21 @@
+/**
+ *
+ * This file is part of the COIN-OR CBC MIP Solver
+ *
+ * Monotone heap
+ * Updates MUST always decrease costs
+ *
+ * @file CoinNodeHeap.hpp
+ * @brief Monotone heap
+ * @author Samuel Souza Brito and Haroldo Gambini Santos
+ * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * @date 03/27/2020
+ *
+ * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
+ * \license{This This code is licensed under the terms of the Eclipse Public License (EPL).}
+ *
+ **/
+
 #ifndef COINNODEHEAP_HPP
 #define COINNODEHEAP_HPP
 
@@ -5,27 +23,62 @@
 #include <cstddef>
 #include <utility>
 
+/**
+ * Monotone heap.
+ * Updates MUST always decrease costs.
+ **/
 class COINUTILSLIB_EXPORT CoinNodeHeap {
 public:
-    /* creates the heap with space for nodes {0,...,nodes-1} */
-    explicit CoinNodeHeap(size_t numNodes);
+  /**
+   * Default Constructor.
+   * Create the heap with space for nodes {0,...,numNodes-1}.
+   * The cost of the nodes are set to infinity.
+   **/
+  explicit CoinNodeHeap(size_t numNodes);
 
-    ~CoinNodeHeap();
+  /**
+   * Destructor
+   **/
+  ~CoinNodeHeap();
 
-    void reset();
+  /**
+   * Reset the values in the heap.
+   * All costs are set to infinity.
+   **/
+  void reset();
 
-    /* updates, always in decreasing order, the cost of a node */
-    void update(size_t node, double cost);
+  /**
+   * Update, always in decreasing order, the cost of a node.
+   **/
+  void update(size_t node, double cost);
 
-    /* removes the next element, returns the cost and fills node */
-    double removeFirst(size_t *node);
+  /**
+   * Remove the next element, returning its cost.
+   *
+   * @param node used to store the element that was removed
+   **/
+  double removeFirst(size_t *node);
 
-    bool isEmpty() const;
+  /**
+   * Check if the cost of the nodes are set to infinity.
+   **/
+  bool isEmpty() const;
 
 private:
-    std::pair<size_t, double> *pq_; // priority queue itself
-    size_t *pos_; // indicating each node where it is in pq
-    size_t numNodes_; // number of nodes
+  /**
+   * Priority queue itself
+   **/
+  std::pair<size_t, double> *pq_;
+
+  /**
+   * Indicates the position of each node in pq
+   **/
+  size_t *pos_;
+
+  /**
+   * Number of nodes of the heap.
+   **/
+  size_t numNodes_;
 };
 
 

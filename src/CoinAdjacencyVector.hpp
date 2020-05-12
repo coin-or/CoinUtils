@@ -2,10 +2,10 @@
  *
  * This file is part of the COIN-OR CBC MIP Solver
  *
- * Class to store a (growable) list of of neighbors for each node
+ * Class to store a (growable) list of neighbors for each node
  * Initially implemented to be used in the Conflict Graph
  *
- * @file CoinAdjacencyVector.cpp
+ * @file CoinAdjacencyVector.hpp
  * @brief Vector of growable vectors
  * @author Samuel Souza Brito and Haroldo Gambini Santos
  * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
@@ -25,30 +25,31 @@
 /**
  * A class to store a (growable) list of neighbors for each node
  * in a conflict graph.
- */
+ **/
 class COINUTILSLIB_EXPORT CoinAdjacencyVector
 {
 public:
   /**
-   * Default constructor
-   */
+   * Default constructor.
+   **/
   CoinAdjacencyVector( size_t _nRows, size_t _iniRowSize );
 
   /**
-   * Returns the contents of a given row
+   * Return the contents of a given row.
    *
    * @param idxRow row index
    **/
   const size_t *getRow( size_t idxRow ) const;
 
   /**
+   * Return the size of a given row.
    *
    * @param idxRow row index
    **/
   size_t rowSize( size_t idxRow ) const;
 
   /**
-   * Checks if node is included as neighbor
+   * Check if a node is included as neighbor of another node.
    *
    * @param idxNode graph node
    * @param idxNeigh neighbor that will be searched
@@ -56,7 +57,7 @@ public:
   bool isNeighbor(size_t idxNode, size_t idxNeigh) const;
  
   /**
-   * Adds a new neighbor to a node
+   * Add a new neighbor to a node.
    *
    * @param idxNode graph node
    * @param idxNeigh neighbor that will be added to idxNode
@@ -64,7 +65,8 @@ public:
    void addNeighbor( size_t idxNode, size_t idxNeigh, bool addReverse = false );
 
   /**
-   * Adds a new neighbor to a node, not keeps sorted
+   * Add a new neighbor to a node without
+   * checking for repeated entries or sorting.
    *
    * @param idxNode graph node
    * @param idxNeigh neighbor that will be added to idxNode
@@ -73,9 +75,13 @@ public:
 
 
    /**
-    * Adds elements without checking for repeated entries or sorting
-    * later a method should be called to rearrange things
-    */
+    * Add elements without checking for repeated entries or sorting
+    * later. A method should be called to rearrange things.
+    *
+    * @param idxNode graph node
+    * @param n number of neighbors that will be added to idxNode
+    * @param elements neighbors that will be added to idxNode
+    **/
    void addNeighborsBuffer( size_t idxNode, size_t n, const size_t elements[] );
 
    /**
@@ -84,45 +90,76 @@ public:
    void sort();
 
 
-   /** removes duplicates, sorts
+   /**
+    * Sort all neighbors of all elements and remove duplicates
     **/
    void flush();
 
+   /**
+    * Sort all neighbors of idxRow
+    **/
    void sort(size_t idxRow);
 
   /**
    * Destructor
-   */
+   **/
   ~CoinAdjacencyVector();
 
-  // tries to add an element to a sorted vector, keeping it sorted
-  // returns 1 if element was added, 0 if it was already there and
-  // the number of elements in the vector did not increased
+  /**
+   * Try to add an element to a sorted vector, keeping it sorted.
+   * Return 1 if element was added and 0 if it was already there.
+   *
+   * @param el sorted vector
+   * @param n size of the sorted vector
+   * @param newEl element to be added to the sorted vector
+   **/
   static char tryAddElementSortedVector( size_t *el, size_t n, size_t newEl );
-
+  
+  /**
+   * Return the total number of elements.
+   **/
   size_t totalElements() const;
+
 private:
+  /**
+   * Number of nodes
+   **/
   size_t nRows_;
 
-  /* pointer to the current 
-   * neighbors vector for each node */
+  /**
+   * Pointers to the current neighbor vector of each node
+   **/
   size_t **rows_;
 
-  /* pointers to additional memory allocated 
-   * to neigbors that don't fit in the initial space */
+  /**
+   * Pointers to additional memory allocated
+   * to neigbors that don't fit in the initial space.
+   **/
   size_t **expandedRows_;
 
-  /* initial memory allocated to 
-   * lines of rows_ */
+  /**
+   * Initial memory allocated to lines of rows_
+   **/
   size_t *iniRowSpace_;
 
+  /**
+   * Size of each neighbor vector
+   **/
   size_t *rowSize_;
+
+  /**
+   * Current capacity of each neighbor vector
+   **/
   size_t *rowCap_;
 
-  // elements added that need to be sorted later
+  /**
+   * Elements added that need to be sorted later
+   **/
   size_t *notUpdated_;
 
-  // checks if node can receive a new neighbor
+  /**
+   * Check if a node can receive a new neighbor
+   **/
   void checkCapNode( const size_t idxNode, const size_t newEl = 1 );
 };
 

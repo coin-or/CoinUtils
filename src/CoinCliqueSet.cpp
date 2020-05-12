@@ -1,3 +1,21 @@
+/**
+ *
+ * This file is part of the COIN-OR CBC MIP Solver
+ *
+ * A class to store a set of cliques. It is an
+ * extension of class CoinCliqueList.
+ *
+ * @file CoinCliqueSet.cpp
+ * @brief Set of cliques
+ * @author Samuel Souza Brito and Haroldo Gambini Santos
+ * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * @date 03/27/2020
+ *
+ * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
+ * \license{This This code is licensed under the terms of the Eclipse Public License (EPL).}
+ *
+ **/
+
 #include "CoinCliqueSet.hpp"
 #include <algorithm>
 #include <cassert>
