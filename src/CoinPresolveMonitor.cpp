@@ -1,4 +1,3 @@
-/* $Id$ */
 // Copyright (C) 2011 Lou Hafer
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 

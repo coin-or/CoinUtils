@@ -1,4 +1,3 @@
-/* $Id$ */
 // Last edit: 11/5/08
 //
 // Name:     CoinLpIO.cpp; Support for Lp files

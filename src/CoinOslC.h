@@ -1,4 +1,3 @@
-/* $Id$ */
 #ifndef COIN_OSL_C_INCLUDE
 /*
   Copyright (C) 1987, 2009, International Business Machines Corporation
