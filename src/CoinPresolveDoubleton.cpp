@@ -226,7 +226,7 @@ void check_doubletons1(const CoinPresolveAction *paction,
 #endif
 
 } /* end unnamed local namespace */
-
+static int tryRedundant = 3;
 /*
   It is always the case that one of the variables of a doubleton is, or
   can be made, implied free, but neither will necessarily be a singleton.
@@ -315,6 +315,61 @@ const CoinPresolveAction
   unsigned char *rowstat = prob->rowstat_;
   double *acts = prob->acts_;
   double *sol = prob->sol_;
+  double * maxdown = NULL;
+  double * maxup = NULL;
+  int * flagged = NULL;
+  if ((prob->presolveOptions()&0x100000)!=0) {
+    // look more carefully
+    maxdown = prob->usefulRowDouble_;
+    maxup = maxdown + m;
+    flagged = prob->usefulRowInt_;
+    for (int i = 0; i < m; ++i) {
+      flagged[i] = 0;
+      maxdown[i] = -1.0e50;
+      maxup[i] = 1.0e50;
+      if (rlo[i]>-1.0e50||rup[i]<1.0e50) {
+	int iflagu = 0;
+	int iflagl = 0;
+	double dmaxup = 0.0;
+	double dmaxdown = 0.0;
+	CoinBigIndex krs = rowStarts[i];
+	CoinBigIndex kre = rowStarts[i]+rowLengths[i];
+	
+	/* ------------------------------------------------------------*/
+	/* Compute L(i) and U(i) */
+	/* ------------------------------------------------------------*/
+	for (CoinBigIndex k = krs; k < kre; ++k) {
+	  double value=rowCoeffs[k];
+	  int j = colIndices[k];
+	  if (value < 0.0) {
+	    if (cup[j] < 1.0e30) 
+	      dmaxdown += cup[j] * value;
+	    else
+	      ++iflagl;
+	    if (clo[j] > -1.0e30) 
+	      dmaxup += clo[j] * value;
+	    else
+	      ++iflagu;
+	  } else {
+	    if (cup[j] < 1.0e30) 
+	      dmaxup += cup[j] * value;
+	    else
+	      ++iflagu;
+	    if (clo[j] > -1.0e30) 
+	      dmaxdown += clo[j] * value;
+	    else
+	      ++iflagl;
+	  }
+	}
+	if (iflagu)
+	  dmaxup=1.0e50;
+	if (iflagl)
+	  dmaxdown=-1.0e50;
+	maxdown[i] = dmaxdown;
+	maxup[i] = dmaxup;
+      }
+    }
+  }
   /*
   More like `ignore infeasibility'.
 */
@@ -334,73 +389,182 @@ const CoinPresolveAction
 */
     if (rowLengths[tgtrow] == 2) {
       if (fabs(rup[tgtrow] - rlo[tgtrow]) > ZTOLDP) {
-	if ((prob->presolveOptions()&0x100000)==0)
+	if (!maxdown)
 	  continue;
 	// may be able to do more ?
-	if (rup[tgtrow]!= 0.0 && rlo[tgtrow] != 0.0)
-	  continue;
-	if (rup[tgtrow] < 1.0e30 && rlo[tgtrow] > -1.0e30)
-	  continue;
 	// For Integer - check if we can do something
+	if (flagged[tgtrow])
+	  continue;
 	CoinBigIndex krs = rowStarts[tgtrow];
 	int lookCols[2];
 	lookCols[0] = colIndices[krs];
 	lookCols[1] = colIndices[krs + 1];
-	int way[2];
-	for (int iLook =0;iLook < 2 ;iLook++) {
-	  int icol = lookCols[iLook];
-	  double thisCost = cost[icol];
-	  // 1 means can go down, 2 can go up
-	  int intWay = 3;
-	  for (CoinBigIndex j=colStarts[icol];
-	       j<colStarts[icol]+colLengths[icol];j++) {
-	    int iRow = rowIndices[j];
-	    if (iRow==tgtrow)
-	      continue;
-	    double value = colCoeffs[j];
-	    // for now keep simple?
-	    if (rlo[iRow]<-1.0e30) {
-	      if (value<0.0)
-		intWay &= 2;
-	      else 
-		intWay &= 1;
-	    } else if (rup[iRow]>1.0e30) {
-	      if (value>0.0)
-		intWay &= 2;
-	      else 
-		intWay &= 1;
+	// 1 means can go down, 2 can go up
+	int way[2]= {3,3};
+	int redundant = 3;
+	if (integerType[lookCols[0]]||integerType[lookCols[1]]) {
+	  if (!integerType[lookCols[0]]) {
+	    // other one has to stay
+	    way[1] = 0;
+	  } else if (!integerType[lookCols[1]]) {
+	    // other one has to stay
+	    way[0] = 0;
+	  } else {
+	    // for now one with larger coefficient stays
+	    double coeff0 = fabs(rowCoeffs[krs]);
+	    double coeff1 = fabs(rowCoeffs[krs+1]);
+	    double ratio;
+	    int iKeep = 3;
+	    if (coeff0 < coeff1) {
+	      ratio = coeff1/coeff0;
+	      iKeep = 1;
+	      if (fabs(floor(ratio+0.5)-ratio)>1.0e-12)
+		continue;
+	      coeff1 = coeff0; // larger
+	    } else if (coeff0 > coeff1) {
+	      ratio = coeff0/coeff1;
+	      iKeep = 2;
+	      if (fabs(floor(ratio+0.5)-ratio)>1.0e-12)
+		continue;
 	    } else {
-	      intWay = 0;
-	      break;
+	      ratio = 1.0;
+	    }
+	    if (rlo[tgtrow]>-1.0e30) {
+	      ratio = rlo[tgtrow]/coeff1;
+	      if (fabs(floor(ratio+0.5)-ratio)>1.0e-12)
+		continue;
+	    }
+	    if (rup[tgtrow]<1.0e30) {
+	      ratio = rup[tgtrow]/coeff1;
+	      if (fabs(floor(ratio+0.5)-ratio)>1.0e-12)
+		continue;
+	    }
+	    if ((iKeep&1)==0)
+	      way[0] = 0;
+	    if ((iKeep&2)==0)
+	      way[1] = 0;
+	  }
+	}
+	// skip if both 0
+	if (way[0]!=0 || way[1]!=0) {
+	  for (int iLook =0;iLook < 2 ;iLook++) {
+	    int icol = lookCols[iLook];
+	    double thisCost = cost[icol];
+	    int intWay = way[iLook];
+	    if (thisCost > 0.0 /*&& clo[icol] < -1.0e30*/) 
+	      intWay &= 1;
+	    else if (thisCost < 0.0 /*&& cup[icol] > 1.0e30*/)
+	      intWay &= 2;
+	    if (intWay) {
+	      for (CoinBigIndex j=colStarts[icol];
+		   j<colStarts[icol]+colLengths[icol];j++) {
+		int iRow = rowIndices[j];
+		double value = colCoeffs[j];
+		if (flagged[iRow]) {
+		  way[0]=way[1]=intWay=0;
+		  break;
+		}
+		if (iRow!=tgtrow) {
+		  if (value > 0.0) {
+		    if ((intWay&1) != 0) {
+		      if (rlo[iRow]>-1.0e30) {
+			if (maxdown[iRow] < rlo[iRow])
+			  intWay &= 2;
+		      }
+		    }
+		    if ((intWay&2) != 0) {
+		      if (rup[iRow]<1.0e30) {
+			if (maxup[iRow] > rup[iRow])
+			  intWay &= 1;
+		      }
+		    }
+		  } else {
+		    if ((intWay&2) != 0) {
+		      if (rlo[iRow]>-1.0e30) {
+			if (maxdown[iRow] < rlo[iRow])
+			  intWay &= 1;
+		      }
+		    }
+		    if ((intWay&1) != 0) {
+		      if (rup[iRow]<1.0e30) {
+			if (maxup[iRow] > rup[iRow])
+			  intWay &= 2;
+		      }
+		    }
+		  }
+		}
+		if ((tryRedundant==1 && iRow==tgtrow) ||
+		    (tryRedundant==2 && iRow!=tgtrow) ||
+		    tryRedundant==3) {
+		  // check tgtrow
+		  if (value > 0.0) {
+		    if ((intWay&1) != 0 || true) {
+		      if (rlo[iRow]>-1.0e30) {
+			if (maxdown[iRow] < rlo[iRow])
+			  redundant &= 2;
+		      }
+		    }
+		    if ((intWay&2) != 0 || true) {
+		      if (rup[iRow]<1.0e30) {
+			if (maxup[iRow] > rup[iRow])
+			  redundant &= 1;
+		      }
+		    }
+		  } else {
+		    if ((intWay&2) != 0 || true) {
+		      if (rlo[iRow]>-1.0e30) {
+			if (maxdown[iRow] < rlo[iRow])
+			  redundant &= 2;
+		      }
+		    }
+		    if ((intWay&1) != 0 || true) {
+		      if (rup[iRow]<1.0e30) {
+			if (maxup[iRow] > rup[iRow])
+			  redundant &= 1;
+		      }
+		    }
+		  }
+		}
+	      }
+	    }
+	    way[iLook]=intWay;
+	    if ((intWay&1)!=0) {
+	      // can go down
+#if PRESOLVE_DEBUG > 1
+	      printf("%d (%g <= %g) can go down - other %d (%g <= %g) row %g <= %g*x0 + %g*x1 <= %g\n",
+		     lookCols[iLook], clo[lookCols[iLook]],cup[lookCols[iLook]],
+		     lookCols[1-iLook], clo[lookCols[1-iLook]],cup[lookCols[1-iLook]],
+		     rlo[tgtrow],rowCoeffs[krs+iLook],rowCoeffs[krs+1-iLook],
+		     rup[tgtrow]);
+#endif
+	    } else if ((intWay&2)!=0) {
+	      // can go up
+#if PRESOLVE_DEBUG > 1
+	      printf("%d (%g <= %g) can go up - other %d (%g <= %g) row %g <= %g*x0 + %g*x1 <= %g\n",
+		     lookCols[iLook], clo[lookCols[iLook]],cup[lookCols[iLook]],
+		     lookCols[1-iLook], clo[lookCols[1-iLook]],cup[lookCols[1-iLook]],
+		     rlo[tgtrow],rowCoeffs[krs+iLook],rowCoeffs[krs+1-iLook],
+		     rup[tgtrow]);
+#endif
 	    }
 	  }
-	  if (intWay) {
-	    // check cost
-	    double thisCost = cost[icol];
-	    if (thisCost>0.0)
-	      intWay &= 1;
-	    else if (thisCost<0.0)
-	      intWay &= 2;
-	  }
-	  way[iLook]=intWay;
-	  if ((intWay&1)!=0) {
-	    // can go down
-#if PRESOLVE_DEBUG > 1
-	    printf("%d (%g <= %g) can go down - other %d (%g <= %g) row %g <= %g*x0 + %g*x1 <= %g\n",
-		   lookCols[iLook], clo[lookCols[iLook]],cup[lookCols[iLook]],
-		   lookCols[1-iLook], clo[lookCols[1-iLook]],cup[lookCols[1-iLook]],
-		   rlo[tgtrow],rowCoeffs[krs+iLook],rowCoeffs[krs+1-iLook],
-		   rup[tgtrow]);
-#endif
-	  } else if ((intWay&2)!=0) {
-	    // can go up
-#if PRESOLVE_DEBUG > 1
-	    printf("%d (%g <= %g) can go up - other %d (%g <= %g) row %g <= %g*x0 + %g*x1 <= %g\n",
-		   lookCols[iLook], clo[lookCols[iLook]],cup[lookCols[iLook]],
-		   lookCols[1-iLook], clo[lookCols[1-iLook]],cup[lookCols[1-iLook]],
-		   rlo[tgtrow],rowCoeffs[krs+iLook],rowCoeffs[krs+1-iLook],
-		   rup[tgtrow]);
-#endif
+	}
+	// check redundant
+	if (way[0] || way[1]) {
+	  if (!redundant) {
+	    way[0]=way[1]=0;
+	  } else if (redundant==3) {
+	    // redundant row
+	    printf("row %d redundant - doubleton\n",tgtrow);
+	    rlo[tgtrow]=-COIN_DBL_MAX;
+	    rup[tgtrow]=COIN_DBL_MAX;
+	    way[0]=way[1]=0;
+	  } else if (redundant==1 && rup[tgtrow]) {
+	    printf("nonzero stuff for row %d\n",tgtrow);
+	    way[0]=way[1]=0;
+	  } else if (redundant==2 && rlo[tgtrow]) {
+	    printf("nonzero stuff for row %d\n",tgtrow);
+	    way[0]=way[1]=0;
 	  }
 	}
 	if (!way[0]&&!way[1])
@@ -419,10 +583,10 @@ const CoinPresolveAction
 	  }
 	  // just for now - only for zero rhs
 	  if (!rup[tgtrow]) {
-	    printf("setting rlo[%d] to zero\n",tgtrow);
+	    //printf("setting rlo[%d] to zero\n",tgtrow);
 	    rlo[tgtrow] = 0.0;
 	  } else if (!rlo[tgtrow]) {
-	    printf("setting rup[%d] to zero\n",tgtrow);
+	    //printf("setting rup[%d] to zero\n",tgtrow);
 	    rup[tgtrow] = 0.0;
 	  } else {
 	    continue; // temp
@@ -435,20 +599,27 @@ const CoinPresolveAction
 #endif
 	  continue;
 	} else {
-	  int whichMove = way[0] ? lookCols[0] : lookCols[1];
-	  if (integerType[whichMove]) {
-	    if (integerType[lookCols[0]]==0||integerType[lookCols[1]]==0)
-	      continue; // ????
-	    if (rlo[tgtrow] && rup[tgtrow]) {
-	      if (fabs(rowCoeffs[krs])!=1.0||fabs(rowCoeffs[krs+1])!=1.0)
-		continue; // ? maybe just same
-	    } else {
-	      if (fabs(rowCoeffs[krs])!=fabs(rowCoeffs[krs+1]))
-		continue; 
+	  // flag rows
+#ifndef NDEBUG
+	  for (int iLook =0;iLook < 2 ;iLook++) {
+	    int icol = lookCols[iLook];
+	    for (CoinBigIndex j=colStarts[icol];
+		 j<colStarts[icol]+colLengths[icol];j++) {
+	      int iRow = rowIndices[j];
+	      assert (!flagged[iRow]);
+	    }
+	  }
+#endif
+	  for (int iLook =0;iLook < 2 ;iLook++) {
+	    int icol = lookCols[iLook];
+	    for (CoinBigIndex j=colStarts[icol];
+		 j<colStarts[icol]+colLengths[icol];j++) {
+	      int iRow = rowIndices[j];
+	      flagged[iRow]=1;
 	    }
 	  }
 	  // allow non zero
-	  if (rlo[tgtrow] < -1.0e30) {
+	  if (redundant==1) {
 #if PRESOLVE_DEBUG > 1
 	    printf("setting rlo[%d] to %g\n",tgtrow,rup[tgtrow]);
 #endif
@@ -1607,6 +1778,3 @@ doubleton_action::~doubleton_action()
   }
   deleteAction(actions_, action *);
 }
-
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/
