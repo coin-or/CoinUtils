@@ -31,7 +31,7 @@
 #define COINUTILS_INT64_T INT64
 #define COINUTILS_UINT64_T UINT64
 /* Define to integer type capturing pointer */
-#define COINUTILS_INTPTR_T ULONG_PTR
+#define COINUTILS_INTPTR_T LONG_PTR
 #else
 #define COINUTILS_INT64_T long long
 #define COINUTILS_UINT64_T unsigned long long
