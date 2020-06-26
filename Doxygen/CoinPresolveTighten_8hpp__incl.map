@@ -1,0 +1,14 @@
+<map id="src/CoinPresolveTighten.hpp" name="src/CoinPresolveTighten.hpp">
+<area shape="rect" id="node2" href="$CoinPresolveMatrix_8hpp.html" title="Declarations for CoinPresolveMatrix and CoinPostsolveMatrix and their common base class CoinPrePostso..." alt="" coords="597,80,755,107"/>
+<area shape="rect" id="node3" href="$CoinPragma_8hpp.html" title="CoinPragma.hpp" alt="" coords="172,453,289,480"/>
+<area shape="rect" id="node4" href="$CoinPackedMatrix_8hpp.html" title="CoinPackedMatrix.hpp" alt="" coords="370,155,521,181"/>
+<area shape="rect" id="node18" href="$CoinMessage_8hpp.html" title="This file contains the enum for the standard set of Coin messages and a class definition whose sole p..." alt="" coords="545,155,671,181"/>
+<area shape="rect" id="node22" href="$CoinTime_8hpp.html" title="CoinTime.hpp" alt="" coords="695,155,796,181"/>
+<area shape="rect" id="node5" href="$CoinError_8hpp.html" title="CoinError.hpp" alt="" coords="331,379,429,405"/>
+<area shape="rect" id="node12" href="$CoinTypes_8h.html" title="CoinTypes.h" alt="" coords="771,379,864,405"/>
+<area shape="rect" id="node14" href="$CoinPackedVectorBase_8hpp.html" title="CoinPackedVectorBase.hpp" alt="" coords="123,304,307,331"/>
+<area shape="rect" id="node17" href="$CoinShallowPackedVector_8hpp.html" title="CoinShallowPackedVector.hpp" alt="" coords="219,229,419,256"/>
+<area shape="rect" id="node10" href="$CoinUtilsConfig_8h.html" title="CoinUtilsConfig.h" alt="" coords="673,453,794,480"/>
+<area shape="rect" id="node11" href="$config__coinutils__default_8h.html" title="config_coinutils_default.h" alt="" coords="650,528,817,555"/>
+<area shape="rect" id="node19" href="$CoinMessageHandler_8hpp.html" title="This is a first attempt at a message handler. " alt="" coords="493,304,664,331"/>
+</map>

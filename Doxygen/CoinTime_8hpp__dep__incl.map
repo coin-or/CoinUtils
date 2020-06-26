@@ -1,0 +1,8 @@
+<map id="src/CoinTime.hpp" name="src/CoinTime.hpp">
+<area shape="rect" id="node2" href="$CoinPresolveMatrix_8hpp.html" title="Declarations for CoinPresolveMatrix and CoinPostsolveMatrix and their common base class CoinPrePostso..." alt="" coords="432,80,612,107"/>
+<area shape="rect" id="node3" href="$CoinPresolveDupcol_8hpp.html" title="src/CoinPresolveDupcol.hpp" alt="" coords="5,155,191,181"/>
+<area shape="rect" id="node4" href="$CoinPresolveForcing_8hpp.html" title="src/CoinPresolveForcing.hpp" alt="" coords="215,155,403,181"/>
+<area shape="rect" id="node5" href="$CoinPresolveIsolated_8hpp.html" title="src/CoinPresolveIsolated.hpp" alt="" coords="427,155,617,181"/>
+<area shape="rect" id="node6" href="$CoinPresolveSubst_8hpp.html" title="src/CoinPresolveSubst.hpp" alt="" coords="642,155,821,181"/>
+<area shape="rect" id="node7" href="$CoinPresolveTighten_8hpp.html" title="src/CoinPresolveTighten.hpp" alt="" coords="845,155,1033,181"/>
+</map>

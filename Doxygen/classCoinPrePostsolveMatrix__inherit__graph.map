@@ -1,0 +1,4 @@
+<map id="CoinPrePostsolveMatrix" name="CoinPrePostsolveMatrix">
+<area shape="rect" id="node2" href="$classCoinPostsolveMatrix.html" title="Augments CoinPrePostsolveMatrix with information about the problem that is only needed during postsol..." alt="" coords="5,80,147,107"/>
+<area shape="rect" id="node3" href="$classCoinPresolveMatrix.html" title="Augments CoinPrePostsolveMatrix with information about the problem that is only needed during presolv..." alt="" coords="171,80,306,107"/>
+</map>

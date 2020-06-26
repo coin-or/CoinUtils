@@ -1,0 +1,34 @@
+<map id="src/CoinPragma.hpp" name="src/CoinPragma.hpp">
+<area shape="rect" id="node2" href="$CoinBuild_8hpp.html" title="src/CoinBuild.hpp" alt="" coords="5,80,128,107"/>
+<area shape="rect" id="node3" href="$CoinIndexedVector_8hpp.html" title="src/CoinIndexedVector.hpp" alt="" coords="411,229,589,256"/>
+<area shape="rect" id="node8" href="$CoinPackedVectorBase_8hpp.html" title="src/CoinPackedVectorBase.hpp" alt="" coords="482,155,689,181"/>
+<area shape="rect" id="node14" href="$CoinPresolveMatrix_8hpp.html" title="Declarations for CoinPresolveMatrix and CoinPostsolveMatrix and their common base class CoinPrePostso..." alt="" coords="1091,379,1271,405"/>
+<area shape="rect" id="node21" href="$CoinPackedVector_8hpp.html" title="src/CoinPackedVector.hpp" alt="" coords="211,229,387,256"/>
+<area shape="rect" id="node22" href="$CoinError_8hpp.html" title="src/CoinError.hpp" alt="" coords="714,80,835,107"/>
+<area shape="rect" id="node31" href="$CoinMessageHandler_8hpp.html" title="This is a first attempt at a message handler. " alt="" coords="2008,229,2200,256"/>
+<area shape="rect" id="node33" href="$CoinModelUseful_8hpp.html" title="src/CoinModelUseful.hpp" alt="" coords="1998,155,2165,181"/>
+<area shape="rect" id="node4" href="$CoinDenseFactorization_8hpp.html" title="src/CoinDenseFactorization.hpp" alt="" coords="372,379,577,405"/>
+<area shape="rect" id="node5" href="$CoinOslFactorization_8hpp.html" title="src/CoinOslFactorization.hpp" alt="" coords="234,453,422,480"/>
+<area shape="rect" id="node6" href="$CoinSimpFactorization_8hpp.html" title="src/CoinSimpFactorization.hpp" alt="" coords="446,453,645,480"/>
+<area shape="rect" id="node7" href="$CoinFactorization_8hpp.html" title="src/CoinFactorization.hpp" alt="" coords="416,304,584,331"/>
+<area shape="rect" id="node9" href="$CoinPackedMatrix_8hpp.html" title="src/CoinPackedMatrix.hpp" alt="" coords="1088,304,1261,331"/>
+<area shape="rect" id="node20" href="$CoinShallowPackedVector_8hpp.html" title="src/CoinShallowPackedVector.hpp" alt="" coords="663,229,886,256"/>
+<area shape="rect" id="node10" href="$CoinLpIO_8hpp.html" title="src/CoinLpIO.hpp" alt="" coords="1623,379,1745,405"/>
+<area shape="rect" id="node11" href="$CoinModel_8hpp.html" title="src/CoinModel.hpp" alt="" coords="2039,379,2169,405"/>
+<area shape="rect" id="node13" href="$CoinMpsIO_8hpp.html" title="src/CoinMpsIO.hpp" alt="" coords="1377,379,1511,405"/>
+<area shape="rect" id="node12" href="$CoinStructuredModel_8hpp.html" title="src/CoinStructuredModel.hpp" alt="" coords="2009,453,2199,480"/>
+<area shape="rect" id="node15" href="$CoinPresolveDupcol_8hpp.html" title="src/CoinPresolveDupcol.hpp" alt="" coords="669,453,854,480"/>
+<area shape="rect" id="node16" href="$CoinPresolveForcing_8hpp.html" title="src/CoinPresolveForcing.hpp" alt="" coords="878,453,1066,480"/>
+<area shape="rect" id="node17" href="$CoinPresolveIsolated_8hpp.html" title="src/CoinPresolveIsolated.hpp" alt="" coords="1090,453,1281,480"/>
+<area shape="rect" id="node18" href="$CoinPresolveSubst_8hpp.html" title="src/CoinPresolveSubst.hpp" alt="" coords="1305,453,1484,480"/>
+<area shape="rect" id="node19" href="$CoinPresolveTighten_8hpp.html" title="src/CoinPresolveTighten.hpp" alt="" coords="1509,453,1697,480"/>
+<area shape="rect" id="node23" href="$CoinHelperFunctions_8hpp.html" title="src/CoinHelperFunctions.hpp" alt="" coords="1279,155,1468,181"/>
+<area shape="rect" id="node24" href="$CoinDenseVector_8hpp.html" title="src/CoinDenseVector.hpp" alt="" coords="1681,229,1850,256"/>
+<area shape="rect" id="node25" href="$CoinOslC_8h.html" title="src/CoinOslC.h" alt="" coords="1875,229,1984,256"/>
+<area shape="rect" id="node26" href="$CoinSearchTree_8hpp.html" title="src/CoinSearchTree.hpp" alt="" coords="961,229,1122,256"/>
+<area shape="rect" id="node27" href="$CoinWarmStartBasis_8hpp.html" title="src/CoinWarmStartBasis.hpp" alt="" coords="1147,229,1336,256"/>
+<area shape="rect" id="node28" href="$CoinWarmStartDual_8hpp.html" title="src/CoinWarmStartDual.hpp" alt="" coords="1286,304,1469,331"/>
+<area shape="rect" id="node29" href="$CoinWarmStartVector_8hpp.html" title="src/CoinWarmStartVector.hpp" alt="" coords="1411,229,1605,256"/>
+<area shape="rect" id="node30" href="$CoinWarmStartPrimalDual_8hpp.html" title="src/CoinWarmStartPrimalDual.hpp" alt="" coords="1493,304,1712,331"/>
+<area shape="rect" id="node32" href="$CoinMessage_8hpp.html" title="This file contains the enum for the standard set of Coin messages and a class definition whose sole p..." alt="" coords="1787,304,1933,331"/>
+</map>

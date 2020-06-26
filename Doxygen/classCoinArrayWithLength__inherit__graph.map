@@ -1,0 +1,10 @@
+<map id="CoinArrayWithLength" name="CoinArrayWithLength">
+<area shape="rect" id="node2" href="$classCoinArbitraryArrayWithLength.html" title="arbitrary version " alt="" coords="199,5,391,32"/>
+<area shape="rect" id="node3" href="$classCoinBigIndexArrayWithLength.html" title="CoinBigIndex * version. " alt="" coords="197,56,392,83"/>
+<area shape="rect" id="node4" href="$classCoinDoubleArrayWithLength.html" title="double * version " alt="" coords="203,107,387,133"/>
+<area shape="rect" id="node5" href="$classCoinFactorizationDoubleArrayWithLength.html" title="CoinFactorizationDouble * version. " alt="" coords="199,158,391,199"/>
+<area shape="rect" id="node6" href="$classCoinFactorizationLongDoubleArrayWithLength.html" title="CoinFactorizationLongDouble * version. " alt="" coords="199,223,390,265"/>
+<area shape="rect" id="node7" href="$classCoinIntArrayWithLength.html" title="int * version " alt="" coords="215,289,374,316"/>
+<area shape="rect" id="node8" href="$classCoinUnsignedIntArrayWithLength.html" title="unsigned int * version " alt="" coords="207,341,382,382"/>
+<area shape="rect" id="node9" href="$classCoinVoidStarArrayWithLength.html" title="void * version " alt="" coords="197,407,392,433"/>
+</map>

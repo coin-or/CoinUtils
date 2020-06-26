@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classCoinConflictGraph.html" title="Base class for Conflict Graph: a conflict graph is a structure that stores conflicts between binary v..." alt="" coords="5,31,132,57"/>
+<area shape="rect" id="node2" href="$classCoinDynamicConflictGraph.html" title="This a a conflict graph where conflicts can be added on the fly, not optimized for memory usage..." alt="" coords="180,5,356,32"/>
+<area shape="rect" id="node3" href="$classCoinStaticConflictGraph.html" title="Static conflict graph, optimized for memory usage and query speed, not modifiable. " alt="" coords="188,56,348,83"/>
+</map>
