@@ -1,6 +1,7 @@
 # CoinUtils
 
-[![A COIN-OR project](https://coin-or.github.io/coin-or-badge.png)](https://www.coin-or.org)
+[![A COIN-OR Project](https://coin-or.github.io/coin-or-badge.png)](https://www.coin-or.org)
+[![Latest Release](https://img.shields.io/github/v/release/coin-or/CoinUtils?sort=semver)](https://github.com/coin-or/CoinUtils/releases)
 
 CoinUtils (*Coin*-OR *Util*itie*s*) is an open-source collection of classes and functions that are generally useful to more than one COIN-OR project.
 These utilities include:
@@ -97,4 +98,4 @@ documentation [here](http://www.coin-or.org/Doxygen/CoinUtils).
  * [COIN-OR Initiative](http://www.coin-or.org/)
  * [Mailing list](http://list.coin-or.org/mailman/listinfo/coinutils)
  * [Report a bug](https://github.com/coin-or/CoinUtils/issues/new)
- * [Doxygen-generated html documentation](http://www.coin-or.org/Doxygen/CoinUtils) 
+ * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen) 
