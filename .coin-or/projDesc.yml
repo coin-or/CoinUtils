@@ -18,6 +18,10 @@ Description:
   Homepage: https://github.com/coin-or/CoinUtils
   License: Eclipse Public License 1.0
   LicenseURL: http://www.opensource.org/licenses/eclipse-1.0
+  Zenodo: 173466792
+  Appveyor: 
+    Status: a41muofrtpdw18c5
+    Slug: coinutils-6jtnc
   Language:
   - C++
   Categories: 
