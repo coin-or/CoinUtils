@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['implied_5fbound',['IMPLIED_BOUND',['../CoinPresolveForcing_8hpp.html#a6e40d755eeaa232e66be55b4d9de0cb3',1,'CoinPresolveForcing.hpp']]],
-  ['implied_5ffree',['IMPLIED_FREE',['../CoinPresolveImpliedFree_8hpp.html#a23a60e8d1cabf993f972af74eb44fe70',1,'CoinPresolveImpliedFree.hpp']]]
+  ['max_5fcard_5flength',['MAX_CARD_LENGTH',['../CoinMpsIO_8hpp.html#a9fb205761a5907615bf59e207df4e674',1,'CoinMpsIO.hpp']]]
 ];

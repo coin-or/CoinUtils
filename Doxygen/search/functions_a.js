@@ -15,7 +15,7 @@ var searchData=
   ['loadsos',['loadSOS',['../classCoinLpIO.html#a6fda1f919d8f579cc4bcbef6631ea0f0',1,'CoinLpIO::loadSOS(int numberSets, const CoinSet *sets)'],['../classCoinLpIO.html#ac4b9bead07e73de65ef906cffec73693',1,'CoinLpIO::loadSOS(int numberSets, const CoinSet **sets)']]],
   ['loglevel',['logLevel',['../classCoinMessageHandler.html#aa4695ab1264d9da76d18d9bb517bf352',1,'CoinMessageHandler::logLevel() const'],['../classCoinMessageHandler.html#a122c4068d1b43970b76a8f235082bbc0',1,'CoinMessageHandler::logLevel(int which) const'],['../classCoinBaseModel.html#a2585eefcd15dd3df0fb180a2b0331653',1,'CoinBaseModel::logLevel()']]],
   ['longhelp',['longHelp',['../classCoinParam.html#a31ae0d0debf7b7ee9fb1ff8481b3ffce',1,'CoinParam']]],
-  ['lookupparam',['lookupParam',['../classCoinParam.html#aab49c2cfe37105d8adf15c15a3393a57',1,'CoinParam::lookupParam()'],['../namespaceCoinParamUtils.html#aa74f95a6ed7c9808a1bb7e43dbd33307',1,'CoinParamUtils::lookupParam()']]],
+  ['lookupparam',['lookupParam',['../classCoinParam.html#adea5d3f966a67b28be6b1e8f85c57f42',1,'CoinParam::lookupParam()'],['../namespaceCoinParamUtils.html#ac67d48449be5c2455c4ba4f463c3ebae',1,'CoinParamUtils::lookupParam()']]],
   ['luupdate',['LUupdate',['../classCoinSimpFactorization.html#a31cd1bd8a77559ad5a1a6094ed9f81f1',1,'CoinSimpFactorization']]],
   ['lxeqb',['Lxeqb',['../classCoinSimpFactorization.html#aeda59555148ca00ffd8c01afdcc0fc99',1,'CoinSimpFactorization']]],
   ['lxeqb2',['Lxeqb2',['../classCoinSimpFactorization.html#ad8cb7ff77d023b5af195cd1b442f7d68',1,'CoinSimpFactorization']]]

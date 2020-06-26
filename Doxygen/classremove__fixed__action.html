@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">CoinUtils
-   &#160;<span id="projectnumber">devel</span>
+   &#160;<span id="projectnumber">2.11.4</span>
    </div>
   </td>
  </tr>
@@ -158,9 +158,9 @@ Public Attributes</h2></td></tr>
 Related Functions</h2></td></tr>
 <tr><td class="ititle" colspan="2"><p>(Note that these are not member functions.) </p>
 </td></tr>
-<tr class="memitem:afe4ff4496bc3bebfad389f080771acf1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config__default_8h.html#abbcf00149683fc10c67c6eff8bee3fae">COINUTILSLIB_EXPORT</a> const <a class="el" href="classCoinPresolveAction.html">CoinPresolveAction</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classremove__fixed__action.html#afe4ff4496bc3bebfad389f080771acf1">remove_fixed</a> (<a class="el" href="classCoinPresolveMatrix.html">CoinPresolveMatrix</a> *prob, const <a class="el" href="classCoinPresolveAction.html">CoinPresolveAction</a> *<a class="el" href="classCoinPresolveAction.html#ad3d9739db2130d42da2a9901221d61ec">next</a>)</td></tr>
-<tr class="memdesc:afe4ff4496bc3bebfad389f080771acf1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scan the problem for fixed columns and remove them.  <a href="#afe4ff4496bc3bebfad389f080771acf1">More...</a><br /></td></tr>
-<tr class="separator:afe4ff4496bc3bebfad389f080771acf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90d4335644aafd2d5f4bb56f10d65f29"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classCoinPresolveAction.html">CoinPresolveAction</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classremove__fixed__action.html#a90d4335644aafd2d5f4bb56f10d65f29">remove_fixed</a> (<a class="el" href="classCoinPresolveMatrix.html">CoinPresolveMatrix</a> *prob, const <a class="el" href="classCoinPresolveAction.html">CoinPresolveAction</a> *<a class="el" href="classCoinPresolveAction.html#ad3d9739db2130d42da2a9901221d61ec">next</a>)</td></tr>
+<tr class="memdesc:a90d4335644aafd2d5f4bb56f10d65f29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Scan the problem for fixed columns and remove them.  <a href="#a90d4335644aafd2d5f4bb56f10d65f29">More...</a><br /></td></tr>
+<tr class="separator:a90d4335644aafd2d5f4bb56f10d65f29"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Excise fixed variables from the model. </p>
@@ -168,7 +168,7 @@ Related Functions</h2></td></tr>
 <p>There is an implicit assumption that the variable already has the correct value. If this isn't true, corrections to row activity may be incorrect. If you want to guard against this possibility, consider <a class="el" href="classmake__fixed__action.html" title="Fix a variable at a specified bound. ">make_fixed_action</a>.</p>
 <p>Actual removal of the empty column from the matrix is handled by <a class="el" href="classdrop__empty__cols__action.html" title="Physically removes empty columns in presolve, and reinserts empty columns in postsolve. ">drop_empty_cols_action</a>. Correction of the objective function is done there. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00024">24</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00025">25</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aceb3b2ba1bf6319364691d7e135f54c4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aceb3b2ba1bf6319364691d7e135f54c4">&#9670;&nbsp;</a></span>~remove_fixed_action()</h2>
@@ -309,8 +309,8 @@ Related Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Friends And Related Function Documentation</h2>
-<a id="afe4ff4496bc3bebfad389f080771acf1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe4ff4496bc3bebfad389f080771acf1">&#9670;&nbsp;</a></span>remove_fixed()</h2>
+<a id="a90d4335644aafd2d5f4bb56f10d65f29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90d4335644aafd2d5f4bb56f10d65f29">&#9670;&nbsp;</a></span>remove_fixed()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -319,7 +319,7 @@ Related Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="config__default_8h.html#abbcf00149683fc10c67c6eff8bee3fae">COINUTILSLIB_EXPORT</a> const <a class="el" href="classCoinPresolveAction.html">CoinPresolveAction</a> * remove_fixed </td>
+          <td class="memname">const <a class="el" href="classCoinPresolveAction.html">CoinPresolveAction</a> * remove_fixed </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classCoinPresolveMatrix.html">CoinPresolveMatrix</a> *&#160;</td>
           <td class="paramname"><em>prob</em>, </td>
@@ -363,7 +363,7 @@ Related Functions</h2></td></tr>
 
 <p>Array of row indices for coefficients of excised columns. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00035">35</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00036">36</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
 
 </div>
 </div>
@@ -381,7 +381,7 @@ Related Functions</h2></td></tr>
 
 <p>Array of coefficients of excised columns. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00037">37</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00038">38</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
 
 </div>
 </div>
@@ -399,7 +399,7 @@ Related Functions</h2></td></tr>
 
 <p>Number of entries in <a class="el" href="classremove__fixed__action.html#ab419ceccd70ebbbaa31b674d1c5842bc" title="Vector specifying variable(s) affected by this object. ">actions_</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00039">39</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00040">40</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
 
 </div>
 </div>
@@ -417,7 +417,7 @@ Related Functions</h2></td></tr>
 
 <p>Vector specifying variable(s) affected by this object. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00041">41</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveFixed_8hpp_source.html#l00042">42</a> of file <a class="el" href="CoinPresolveFixed_8hpp_source.html">CoinPresolveFixed.hpp</a>.</p>
 
 </div>
 </div>

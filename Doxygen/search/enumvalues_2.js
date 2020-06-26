@@ -6,7 +6,6 @@ var searchData=
   ['coin_5fbounds_5fsection',['COIN_BOUNDS_SECTION',['../CoinMpsIO_8hpp.html#acb7cb0cd3bf902db737c836f081a7dd6a8374a528156b7faae8058d9ef0b14b2a',1,'CoinMpsIO.hpp']]],
   ['coin_5fbs_5fbasis',['COIN_BS_BASIS',['../CoinMpsIO_8hpp.html#aa838c3eee91abf218d29b3718b0f83d0a3af2a35e6475183881b2f0c92235cb1d',1,'CoinMpsIO.hpp']]],
   ['coin_5fbv_5fbound',['COIN_BV_BOUND',['../CoinMpsIO_8hpp.html#aa838c3eee91abf218d29b3718b0f83d0a7e2905e1626fc6e847b9fd50662fe159',1,'CoinMpsIO.hpp']]],
-  ['coin_5fcgraph_5finfo',['COIN_CGRAPH_INFO',['../CoinMessage_8hpp.html#a7e009ad64670117f6809a207f3352d5dadb1b7bc88ec67112400d4ef50284f9a5',1,'CoinMessage.hpp']]],
   ['coin_5fcolumn_5fsection',['COIN_COLUMN_SECTION',['../CoinMpsIO_8hpp.html#acb7cb0cd3bf902db737c836f081a7dd6ab9aee633f65c5f123c55c5d875182846',1,'CoinMpsIO.hpp']]],
   ['coin_5fconic_5fsection',['COIN_CONIC_SECTION',['../CoinMpsIO_8hpp.html#acb7cb0cd3bf902db737c836f081a7dd6af5326ecf40a9cdffd5ec7d3d77097f46',1,'CoinMpsIO.hpp']]],
   ['coin_5fdummy_5fend',['COIN_DUMMY_END',['../CoinMessage_8hpp.html#a7e009ad64670117f6809a207f3352d5daca8fa4dcd1b8428264cfb44d3ac2727c',1,'CoinMessage.hpp']]],

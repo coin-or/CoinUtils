@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">CoinUtils
-   &#160;<span id="projectnumber">devel</span>
+   &#160;<span id="projectnumber">2.11.4</span>
    </div>
   </td>
  </tr>
@@ -78,10 +78,10 @@ $(function() {
 <div id="dynsection-0-content" class="dyncontent" style="display:none;">
 <div class="center"><img src="classCoinFactorization__coll__graph.png" border="0" usemap="#CoinFactorization_coll__map" alt="Collaboration graph"/></div>
 <map name="CoinFactorization_coll__map" id="CoinFactorization_coll__map">
-<area shape="rect" id="node3" href="classCoinUnsignedIntArrayWithLength.html" title="unsigned int * version " alt="" coords="515,449,690,490"/>
-<area shape="rect" id="node4" href="classCoinArrayWithLength.html" title="Pointer with length in bytes. " alt="" coords="200,467,344,493"/>
-<area shape="rect" id="node8" href="classCoinIntArrayWithLength.html" title="int * version " alt="" coords="523,589,682,616"/>
-<area shape="rect" id="node10" href="classCoinFactorizationDoubleArrayWithLength.html" title="CoinFactorizationDouble * version. " alt="" coords="507,383,699,425"/>
+<area shape="rect" id="node3" href="classCoinUnsignedIntArrayWithLength.html" title="unsigned int * version " alt="" coords="479,362,654,403"/>
+<area shape="rect" id="node4" href="classCoinArrayWithLength.html" title="Pointer with length in bytes. " alt="" coords="164,468,308,495"/>
+<area shape="rect" id="node7" href="classCoinIntArrayWithLength.html" title="int * version " alt="" coords="487,513,646,540"/>
+<area shape="rect" id="node9" href="classCoinFactorizationDoubleArrayWithLength.html" title="CoinFactorizationDouble * version. " alt="" coords="471,579,663,621"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -122,7 +122,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab735431c0a03786de5cdd013ba754985"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#ab735431c0a03786de5cdd013ba754985">factorize</a> (int <a class="el" href="classCoinFactorization.html#a108b4fdf095a323583c91ff95ba2fc77">numberRows</a>, int <a class="el" href="classCoinFactorization.html#aaf4ea19a346a884f21bd31c138f5c53e">numberColumns</a>, int <a class="el" href="classCoinFactorization.html#a29cbb9a94ab0f7a50fea5b852562c10f">numberElements</a>, int maximumL, int maximumU, const int indicesRow[], const int indicesColumn[], const double elements[], int permutation[], double <a class="el" href="classCoinFactorization.html#af29402180fc1dc89998c02728dd92e9e">areaFactor</a>=0.0)</td></tr>
 <tr class="memdesc:ab735431c0a03786de5cdd013ba754985"><td class="mdescLeft">&#160;</td><td class="mdescRight">When given as triplets.  <a href="#ab735431c0a03786de5cdd013ba754985">More...</a><br /></td></tr>
 <tr class="separator:ab735431c0a03786de5cdd013ba754985"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a1488405297da44bd9eb2fca2c9088a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a7a1488405297da44bd9eb2fca2c9088a">factorizePart1</a> (int <a class="el" href="classCoinFactorization.html#a108b4fdf095a323583c91ff95ba2fc77">numberRows</a>, int <a class="el" href="classCoinFactorization.html#aaf4ea19a346a884f21bd31c138f5c53e">numberColumns</a>, int estimateNumberElements, int *indicesRow[], int *indicesColumn[], <a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *elements[], double <a class="el" href="classCoinFactorization.html#af29402180fc1dc89998c02728dd92e9e">areaFactor</a>=0.0)</td></tr>
+<tr class="memitem:a7a1488405297da44bd9eb2fca2c9088a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a7a1488405297da44bd9eb2fca2c9088a">factorizePart1</a> (int <a class="el" href="classCoinFactorization.html#a108b4fdf095a323583c91ff95ba2fc77">numberRows</a>, int <a class="el" href="classCoinFactorization.html#aaf4ea19a346a884f21bd31c138f5c53e">numberColumns</a>, int estimateNumberElements, int *indicesRow[], int *indicesColumn[], <a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *elements[], double <a class="el" href="classCoinFactorization.html#af29402180fc1dc89998c02728dd92e9e">areaFactor</a>=0.0)</td></tr>
 <tr class="memdesc:a7a1488405297da44bd9eb2fca2c9088a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Two part version for maximum flexibility This part creates arrays for user to fill.  <a href="#a7a1488405297da44bd9eb2fca2c9088a">More...</a><br /></td></tr>
 <tr class="separator:a7a1488405297da44bd9eb2fca2c9088a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af2e4f64a29bb4163cfd58e6927ec5a30"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#af2e4f64a29bb4163cfd58e6927ec5a30">factorizePart2</a> (int permutation[], int exactNumberElements)</td></tr>
@@ -150,7 +150,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5cb466e824e8953ea3f8adabe7b84faf"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a5cb466e824e8953ea3f8adabe7b84faf">pivotColumn</a> () const</td></tr>
 <tr class="memdesc:a5cb466e824e8953ea3f8adabe7b84faf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns address of pivotColumn region (also used for permuting)  <a href="#a5cb466e824e8953ea3f8adabe7b84faf">More...</a><br /></td></tr>
 <tr class="separator:a5cb466e824e8953ea3f8adabe7b84faf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6d0ffe3e5ca060e22bc670c7b0be5d25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a6d0ffe3e5ca060e22bc670c7b0be5d25">pivotRegion</a> () const</td></tr>
+<tr class="memitem:a6d0ffe3e5ca060e22bc670c7b0be5d25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a6d0ffe3e5ca060e22bc670c7b0be5d25">pivotRegion</a> () const</td></tr>
 <tr class="memdesc:a6d0ffe3e5ca060e22bc670c7b0be5d25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns address of pivot region.  <a href="#a6d0ffe3e5ca060e22bc670c7b0be5d25">More...</a><br /></td></tr>
 <tr class="separator:a6d0ffe3e5ca060e22bc670c7b0be5d25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd2a71a075db071b8619c2a737988908"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#acd2a71a075db071b8619c2a737988908">permuteBack</a> () const</td></tr>
@@ -174,7 +174,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0dc32cbb9fd38233d1ff6f87a8f305b2"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a0dc32cbb9fd38233d1ff6f87a8f305b2">indexRowL</a> () const</td></tr>
 <tr class="memdesc:a0dc32cbb9fd38233d1ff6f87a8f305b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Row indices of L.  <a href="#a0dc32cbb9fd38233d1ff6f87a8f305b2">More...</a><br /></td></tr>
 <tr class="separator:a0dc32cbb9fd38233d1ff6f87a8f305b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a191ad5a9251a63acc195a2366bfaa16d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a191ad5a9251a63acc195a2366bfaa16d">elementByRowL</a> () const</td></tr>
+<tr class="memitem:a191ad5a9251a63acc195a2366bfaa16d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a191ad5a9251a63acc195a2366bfaa16d">elementByRowL</a> () const</td></tr>
 <tr class="memdesc:a191ad5a9251a63acc195a2366bfaa16d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Elements in L (row copy)  <a href="#a191ad5a9251a63acc195a2366bfaa16d">More...</a><br /></td></tr>
 <tr class="separator:a191ad5a9251a63acc195a2366bfaa16d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc0aaf54e6c1f7e015bff218cd539e62"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#abc0aaf54e6c1f7e015bff218cd539e62">numberRowsExtra</a> () const</td></tr>
@@ -293,7 +293,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afec0026ac00577019ba1226fcd634476"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#afec0026ac00577019ba1226fcd634476">numberInColumn</a> () const</td></tr>
 <tr class="memdesc:afec0026ac00577019ba1226fcd634476"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of entries in each column.  <a href="#afec0026ac00577019ba1226fcd634476">More...</a><br /></td></tr>
 <tr class="separator:afec0026ac00577019ba1226fcd634476"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c80e6a95c640f311faaff175fcd34ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a6c80e6a95c640f311faaff175fcd34ac">elementU</a> () const</td></tr>
+<tr class="memitem:a6c80e6a95c640f311faaff175fcd34ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a6c80e6a95c640f311faaff175fcd34ac">elementU</a> () const</td></tr>
 <tr class="memdesc:a6c80e6a95c640f311faaff175fcd34ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Elements of U.  <a href="#a6c80e6a95c640f311faaff175fcd34ac">More...</a><br /></td></tr>
 <tr class="separator:a6c80e6a95c640f311faaff175fcd34ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6dea6bfc90e1a03b8f804589feb302ff"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a6dea6bfc90e1a03b8f804589feb302ff">indexRowU</a> () const</td></tr>
@@ -558,7 +558,7 @@ used by factorization</h2></td></tr>
 <tr class="memdesc:a4587cb129082ab51731fe837aca40562"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns accuracy status of replaceColumn returns 0=OK, 1=Probably OK, 2=singular.  <a href="#a4587cb129082ab51731fe837aca40562">More...</a><br /></td></tr>
 <tr class="separator:a4587cb129082ab51731fe837aca40562"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad855d98a5709d5c7feb65f1b5716e33f"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
-<tr class="memitem:ad855d98a5709d5c7feb65f1b5716e33f"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#ad855d98a5709d5c7feb65f1b5716e33f">pivot</a> (int pivotRow, int <a class="el" href="classCoinFactorization.html#a5cb466e824e8953ea3f8adabe7b84faf">pivotColumn</a>, int pivotRowPosition, int pivotColumnPosition, <a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> work[], unsigned int workArea2[], int increment2, T markRow[], int largeInteger)</td></tr>
+<tr class="memitem:ad855d98a5709d5c7feb65f1b5716e33f"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#ad855d98a5709d5c7feb65f1b5716e33f">pivot</a> (int pivotRow, int <a class="el" href="classCoinFactorization.html#a5cb466e824e8953ea3f8adabe7b84faf">pivotColumn</a>, int pivotRowPosition, int pivotColumnPosition, <a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> work[], unsigned int workArea2[], int increment2, T markRow[], int largeInteger)</td></tr>
 <tr class="separator:ad855d98a5709d5c7feb65f1b5716e33f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
@@ -746,7 +746,7 @@ data</h2></td></tr>
 <tr class="memitem:a65d9c7ce3e85521ff2527dc7b257800a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a65d9c7ce3e85521ff2527dc7b257800a">lengthAreaR_</a></td></tr>
 <tr class="memdesc:a65d9c7ce3e85521ff2527dc7b257800a"><td class="mdescLeft">&#160;</td><td class="mdescRight">length of area reserved for R  <a href="#a65d9c7ce3e85521ff2527dc7b257800a">More...</a><br /></td></tr>
 <tr class="separator:a65d9c7ce3e85521ff2527dc7b257800a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e91593ff2118668895b313c855647fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a3e91593ff2118668895b313c855647fa">elementR_</a></td></tr>
+<tr class="memitem:a3e91593ff2118668895b313c855647fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#a3e91593ff2118668895b313c855647fa">elementR_</a></td></tr>
 <tr class="memdesc:a3e91593ff2118668895b313c855647fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Elements of R.  <a href="#a3e91593ff2118668895b313c855647fa">More...</a><br /></td></tr>
 <tr class="separator:a3e91593ff2118668895b313c855647fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4096a6c07309ee0ccb7e3bd788b8a62"><td class="memItemLeft" align="right" valign="top">int *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCoinFactorization.html#af4096a6c07309ee0ccb7e3bd788b8a62">indexRowR_</a></td></tr>
@@ -847,7 +847,7 @@ data</h2></td></tr>
 <p>I blame some of the coding peculiarities on the history of the code but mostly it is just because I can't do elegant code (or useful comments).</p>
 <p>I am assuming that 32 bits is enough for number of rows or columns, but CoinBigIndex may be redefined to get 64 bits. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00049">49</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00050">50</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a0ed7e20aac9fe1b5ba13b95263d6bc85"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0ed7e20aac9fe1b5ba13b95263d6bc85">&#9670;&nbsp;</a></span>CoinFactorization() <span class="overload">[1/2]</span></h2>
@@ -1197,7 +1197,7 @@ data</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a> *&#160;</td>
           <td class="paramname"><em>elements</em>[], </td>
         </tr>
         <tr>
@@ -1293,7 +1293,7 @@ data</h2></td></tr>
 
 <p>Returns status. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00137">137</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00136">136</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1323,7 +1323,7 @@ data</h2></td></tr>
 
 <p>Sets status. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00142">142</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00141">141</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1352,7 +1352,7 @@ data</h2></td></tr>
 
 <p>Returns number of pivots since factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00147">147</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00146">146</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1382,7 +1382,7 @@ data</h2></td></tr>
 
 <p>Sets number of pivots since factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00152">152</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00151">151</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1411,7 +1411,7 @@ data</h2></td></tr>
 
 <p>Returns address of permute region. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00157">157</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00156">156</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1440,7 +1440,7 @@ data</h2></td></tr>
 
 <p>Returns address of pivotColumn region (also used for permuting) </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00162">162</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00161">161</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1454,7 +1454,7 @@ data</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>* CoinFactorization::pivotRegion </td>
+          <td class="memname"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>* CoinFactorization::pivotRegion </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -1469,7 +1469,7 @@ data</h2></td></tr>
 
 <p>Returns address of pivot region. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00167">167</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00166">166</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1498,7 +1498,7 @@ data</h2></td></tr>
 
 <p>Returns address of permuteBack region. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00172">172</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00171">171</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1527,7 +1527,7 @@ data</h2></td></tr>
 
 <p>Returns address of lastRow region. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00177">177</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00176">176</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1556,7 +1556,7 @@ data</h2></td></tr>
 
 <p>Returns address of pivotColumnBack region (also used for permuting) Now uses firstCount to save memory allocation. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00183">183</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00182">182</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1585,7 +1585,7 @@ data</h2></td></tr>
 
 <p>Start of each row in L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00189">189</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00188">188</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1614,7 +1614,7 @@ data</h2></td></tr>
 
 <p>Start of each column in L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00195">195</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00194">194</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1643,7 +1643,7 @@ data</h2></td></tr>
 
 <p>Index of column in row for L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00201">201</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00200">200</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1672,7 +1672,7 @@ data</h2></td></tr>
 
 <p>Row indices of L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00207">207</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00206">206</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1686,7 +1686,7 @@ data</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>* CoinFactorization::elementByRowL </td>
+          <td class="memname"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>* CoinFactorization::elementByRowL </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -1701,7 +1701,7 @@ data</h2></td></tr>
 
 <p>Elements in L (row copy) </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00213">213</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00212">212</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1730,7 +1730,7 @@ data</h2></td></tr>
 
 <p>Number of Rows after iterating. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00219">219</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00218">218</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1760,7 +1760,7 @@ data</h2></td></tr>
 
 <p>Set number of Rows after factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00224">224</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00223">223</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1789,7 +1789,7 @@ data</h2></td></tr>
 
 <p>Number of Rows after factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00229">229</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00228">228</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1818,7 +1818,7 @@ data</h2></td></tr>
 
 <p>Number in L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00234">234</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00233">233</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1847,7 +1847,7 @@ data</h2></td></tr>
 
 <p>Base of L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00240">240</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00239">239</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1876,7 +1876,7 @@ data</h2></td></tr>
 
 <p>Maximum of Rows after iterating. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00245">245</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00244">244</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1905,7 +1905,7 @@ data</h2></td></tr>
 
 <p>Total number of columns in factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00250">250</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00249">249</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1934,7 +1934,7 @@ data</h2></td></tr>
 
 <p>Total number of elements in factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00255">255</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00254">254</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1963,7 +1963,7 @@ data</h2></td></tr>
 
 <p>Length of FT vector. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00260">260</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00259">259</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -1992,7 +1992,7 @@ data</h2></td></tr>
 
 <p>Number of good columns in factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00265">265</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00264">264</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2021,7 +2021,7 @@ data</h2></td></tr>
 
 <p>Whether larger areas needed. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00270">270</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00269">269</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2049,7 +2049,7 @@ data</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00274">274</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00273">273</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2098,7 +2098,7 @@ data</h2></td></tr>
 
 <p>Allows change of pivot accuracy check 1.0 == none &gt;1.0 relaxed. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00281">281</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00280">280</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2125,7 +2125,7 @@ data</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00285">285</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00284">284</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2154,7 +2154,7 @@ data</h2></td></tr>
 
 <p>Level of detail of messages. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00290">290</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00289">289</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2201,7 +2201,7 @@ data</h2></td></tr>
 
 <p>Maximum number of pivots between factorizations. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00296">296</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00295">295</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2248,7 +2248,7 @@ data</h2></td></tr>
 
 <p>Gets dense threshold. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00303">303</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00302">302</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2278,7 +2278,7 @@ data</h2></td></tr>
 
 <p>Sets dense threshold. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00308">308</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00307">307</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2307,7 +2307,7 @@ data</h2></td></tr>
 
 <p>Pivot tolerance. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00313">313</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00312">312</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2354,7 +2354,7 @@ data</h2></td></tr>
 
 <p>Zero tolerance. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00319">319</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00318">318</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2401,7 +2401,7 @@ data</h2></td></tr>
 
 <p>Whether slack value is +1 or -1. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00326">326</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00325">325</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2467,7 +2467,7 @@ data</h2></td></tr>
 
 <p>true if Forrest Tomlin update, false if PFI </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00335">335</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00334">334</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2495,7 +2495,7 @@ data</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00339">339</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00338">338</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2524,7 +2524,7 @@ data</h2></td></tr>
 
 <p>True if FT update and space. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00344">344</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00343">343</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2553,7 +2553,7 @@ data</h2></td></tr>
 
 <p>Returns number of dense rows. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00356">356</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00355">355</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2582,7 +2582,7 @@ data</h2></td></tr>
 
 <p>Returns number in U area. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00362">362</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00361">361</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2612,7 +2612,7 @@ data</h2></td></tr>
 
 <p>Setss number in U area. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00367">367</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00366">366</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2641,7 +2641,7 @@ data</h2></td></tr>
 
 <p>Returns length of U area. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00372">372</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00371">371</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2670,7 +2670,7 @@ data</h2></td></tr>
 
 <p>Returns number in L area. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00377">377</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00376">376</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2699,7 +2699,7 @@ data</h2></td></tr>
 
 <p>Returns length of L area. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00382">382</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00381">381</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2728,7 +2728,7 @@ data</h2></td></tr>
 
 <p>Returns number in R area. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00387">387</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00386">386</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2757,7 +2757,7 @@ data</h2></td></tr>
 
 <p>Number of compressions done. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00392">392</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00391">391</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2786,7 +2786,7 @@ data</h2></td></tr>
 
 <p>Number of entries in each row. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00397">397</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00396">396</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2815,7 +2815,7 @@ data</h2></td></tr>
 
 <p>Number of entries in each column. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00402">402</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00401">401</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2829,7 +2829,7 @@ data</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>* CoinFactorization::elementU </td>
+          <td class="memname"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>* CoinFactorization::elementU </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -2844,7 +2844,7 @@ data</h2></td></tr>
 
 <p>Elements of U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00407">407</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00406">406</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2873,7 +2873,7 @@ data</h2></td></tr>
 
 <p>Row indices of U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00412">412</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00411">411</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2902,7 +2902,7 @@ data</h2></td></tr>
 
 <p>Start of each column in U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00417">417</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00416">416</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2931,7 +2931,7 @@ data</h2></td></tr>
 
 <p>Maximum number of Columns after iterating. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00422">422</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00421">421</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2960,7 +2960,7 @@ data</h2></td></tr>
 
 <p>L to U bias 0 - U bias, 1 - some U bias, 2 some L bias, 3 L bias. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00429">429</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00428">428</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -2988,7 +2988,7 @@ data</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00433">433</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00432">432</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -3017,7 +3017,7 @@ data</h2></td></tr>
 
 <p>Array persistence flag If 0 then as now (delete/new) 1 then only do arrays if bigger needed 2 as 1 but give a bit extra if bigger needed. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00442">442</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00441">441</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -3380,7 +3380,7 @@ data</h2></td></tr>
 
 <p>get sparse threshold </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00634">634</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00633">633</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -3429,7 +3429,7 @@ data</h2></td></tr>
 
 <p>Get rid of all memory. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00647">647</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00646">646</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -3706,7 +3706,7 @@ data</h2></td></tr>
 
 <p>For statistics. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00696">696</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00695">695</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -3736,7 +3736,7 @@ data</h2></td></tr>
 
 <p>For statistics. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00701">701</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00700">700</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -4425,7 +4425,7 @@ data</h2></td></tr>
 
 <p>Adds a link in chain of equal counts. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00789">789</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00788">788</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -4455,7 +4455,7 @@ data</h2></td></tr>
 
 <p>Deletes a link in chain of equal counts. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00807">807</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00806">806</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5573,7 +5573,7 @@ template&lt;class T &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>&#160;</td>
           <td class="paramname"><em>work</em>[], </td>
         </tr>
         <tr>
@@ -5613,7 +5613,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00938">938</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l00937">937</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5667,7 +5667,7 @@ template&lt;class T &gt; </div>
 
 <p>Pivot tolerance. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01421">1421</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01420">1420</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5693,7 +5693,7 @@ template&lt;class T &gt; </div>
 
 <p>Zero tolerance. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01423">1423</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01422">1422</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5719,7 +5719,7 @@ template&lt;class T &gt; </div>
 
 <p>Whether slack value is +1 or -1. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01426">1426</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01425">1425</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5745,7 +5745,7 @@ template&lt;class T &gt; </div>
 
 <p>How much to multiply areas by. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01433">1433</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01432">1432</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5771,7 +5771,7 @@ template&lt;class T &gt; </div>
 
 <p>Relax check on accuracy in replaceColumn. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01435">1435</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01434">1434</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5797,7 +5797,7 @@ template&lt;class T &gt; </div>
 
 <p>Number of Rows in factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01437">1437</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01436">1436</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5823,7 +5823,7 @@ template&lt;class T &gt; </div>
 
 <p>Number of Rows after iterating. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01439">1439</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01438">1438</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5849,7 +5849,7 @@ template&lt;class T &gt; </div>
 
 <p>Maximum number of Rows after iterating. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01441">1441</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01440">1440</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5875,7 +5875,7 @@ template&lt;class T &gt; </div>
 
 <p>Number of Columns in factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01443">1443</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01442">1442</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5901,7 +5901,7 @@ template&lt;class T &gt; </div>
 
 <p>Number of Columns after iterating. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01445">1445</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01444">1444</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5927,7 +5927,7 @@ template&lt;class T &gt; </div>
 
 <p>Maximum number of Columns after iterating. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01447">1447</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01446">1446</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5953,7 +5953,7 @@ template&lt;class T &gt; </div>
 
 <p>Number factorized in U (not row singletons) </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01449">1449</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01448">1448</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -5979,7 +5979,7 @@ template&lt;class T &gt; </div>
 
 <p>Number factorized in L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01451">1451</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01450">1450</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6005,7 +6005,7 @@ template&lt;class T &gt; </div>
 
 <p>Maximum number of pivots before factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01453">1453</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01452">1452</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6031,7 +6031,7 @@ template&lt;class T &gt; </div>
 
 <p>Number pivots since last factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01455">1455</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01454">1454</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6057,7 +6057,7 @@ template&lt;class T &gt; </div>
 
 <p>Number of elements in U (to go) or while iterating total overall. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01458">1458</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01457">1457</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6083,7 +6083,7 @@ template&lt;class T &gt; </div>
 
 <p>Number of elements after factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01460">1460</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01459">1459</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6109,7 +6109,7 @@ template&lt;class T &gt; </div>
 
 <p>Pivot order for each Column. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01462">1462</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01461">1461</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6135,7 +6135,7 @@ template&lt;class T &gt; </div>
 
 <p>Permutation vector for pivot row order. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01464">1464</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01463">1463</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6161,7 +6161,7 @@ template&lt;class T &gt; </div>
 
 <p>DePermutation vector for pivot row order. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01466">1466</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01465">1465</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6187,7 +6187,7 @@ template&lt;class T &gt; </div>
 
 <p>Inverse Pivot order for each Column. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01468">1468</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01467">1467</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6213,7 +6213,7 @@ template&lt;class T &gt; </div>
 
 <p>Status of factorization. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01470">1470</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01469">1469</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6242,7 +6242,7 @@ template&lt;class T &gt; </div>
 <li>taken out as always 2 Number of trials before rejection </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01479">1479</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01478">1478</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6268,7 +6268,7 @@ template&lt;class T &gt; </div>
 
 <p>Start of each Row as pointer. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01481">1481</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01480">1480</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6294,7 +6294,7 @@ template&lt;class T &gt; </div>
 
 <p>Number in each Row. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01484">1484</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01483">1483</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6320,7 +6320,7 @@ template&lt;class T &gt; </div>
 
 <p>Number in each Column. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01487">1487</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01486">1486</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6346,7 +6346,7 @@ template&lt;class T &gt; </div>
 
 <p>Number in each Column including pivoted. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01490">1490</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01489">1489</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6372,7 +6372,7 @@ template&lt;class T &gt; </div>
 
 <p>First Row/Column with count of k, can tell which by offset - Rows then Columns. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01494">1494</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01493">1493</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6398,7 +6398,7 @@ template&lt;class T &gt; </div>
 
 <p>Next Row/Column with count. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01497">1497</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01496">1496</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6424,7 +6424,7 @@ template&lt;class T &gt; </div>
 
 <p>Previous Row/Column with count. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01500">1500</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01499">1499</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6450,7 +6450,7 @@ template&lt;class T &gt; </div>
 
 <p>Next Column in memory order. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01503">1503</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01502">1502</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6476,7 +6476,7 @@ template&lt;class T &gt; </div>
 
 <p>Previous Column in memory order. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01506">1506</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01505">1505</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6502,7 +6502,7 @@ template&lt;class T &gt; </div>
 
 <p>Next Row in memory order. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01509">1509</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01508">1508</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6528,7 +6528,7 @@ template&lt;class T &gt; </div>
 
 <p>Previous Row in memory order. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01512">1512</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01511">1511</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6554,7 +6554,7 @@ template&lt;class T &gt; </div>
 
 <p>Columns left to do in a single pivot. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01515">1515</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01514">1514</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6580,7 +6580,7 @@ template&lt;class T &gt; </div>
 
 <p>Marks rows to be updated. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01518">1518</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01517">1517</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6606,7 +6606,7 @@ template&lt;class T &gt; </div>
 
 <p>Detail in messages. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01521">1521</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01520">1520</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6632,7 +6632,7 @@ template&lt;class T &gt; </div>
 
 <p>Larger of row and column size. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01524">1524</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01523">1523</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6658,7 +6658,7 @@ template&lt;class T &gt; </div>
 
 <p>Base address for U (may change) </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01527">1527</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01526">1526</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6684,7 +6684,7 @@ template&lt;class T &gt; </div>
 
 <p>Pivots for L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01530">1530</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01529">1529</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6710,7 +6710,7 @@ template&lt;class T &gt; </div>
 
 <p>Inverses of pivot values. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01533">1533</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01532">1532</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6736,7 +6736,7 @@ template&lt;class T &gt; </div>
 
 <p>Number of slacks at beginning of U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01536">1536</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01535">1535</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6762,7 +6762,7 @@ template&lt;class T &gt; </div>
 
 <p>Number in U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01539">1539</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01538">1538</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6788,7 +6788,7 @@ template&lt;class T &gt; </div>
 
 <p>Maximum space used in U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01542">1542</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01541">1541</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6815,7 +6815,7 @@ template&lt;class T &gt; </div>
 <p>Base of U is always 0. </p>
 <p>Length of U </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01548">1548</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01547">1547</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6841,7 +6841,7 @@ template&lt;class T &gt; </div>
 
 <p>Length of area reserved for U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01551">1551</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01550">1550</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6867,7 +6867,7 @@ template&lt;class T &gt; </div>
 
 <p>Elements of U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01554">1554</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01553">1553</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6893,7 +6893,7 @@ template&lt;class T &gt; </div>
 
 <p>Row indices of U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01557">1557</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01556">1556</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6919,7 +6919,7 @@ template&lt;class T &gt; </div>
 
 <p>Start of each column in U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01560">1560</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01559">1559</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6945,7 +6945,7 @@ template&lt;class T &gt; </div>
 
 <p>Converts rows to columns in U. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01563">1563</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01562">1562</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6971,7 +6971,7 @@ template&lt;class T &gt; </div>
 
 <p>Number in L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01566">1566</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01565">1565</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -6997,7 +6997,7 @@ template&lt;class T &gt; </div>
 
 <p>Base of L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01569">1569</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01568">1568</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7023,7 +7023,7 @@ template&lt;class T &gt; </div>
 
 <p>Length of L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01572">1572</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01571">1571</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7049,7 +7049,7 @@ template&lt;class T &gt; </div>
 
 <p>Length of area reserved for L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01575">1575</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01574">1574</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7075,7 +7075,7 @@ template&lt;class T &gt; </div>
 
 <p>Elements of L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01578">1578</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01577">1577</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7101,7 +7101,7 @@ template&lt;class T &gt; </div>
 
 <p>Row indices of L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01581">1581</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01580">1580</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7127,7 +7127,7 @@ template&lt;class T &gt; </div>
 
 <p>Start of each column in L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01584">1584</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01583">1583</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7153,7 +7153,7 @@ template&lt;class T &gt; </div>
 
 <p>true if Forrest Tomlin update, false if PFI </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01587">1587</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01586">1586</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7179,7 +7179,7 @@ template&lt;class T &gt; </div>
 
 <p>Number in R. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01590">1590</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01589">1589</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7205,7 +7205,7 @@ template&lt;class T &gt; </div>
 
 <p>Length of R stuff. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01593">1593</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01592">1592</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7231,7 +7231,7 @@ template&lt;class T &gt; </div>
 
 <p>length of area reserved for R </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01596">1596</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01595">1595</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7245,7 +7245,7 @@ template&lt;class T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="CoinTypes_8h.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>* CoinFactorization::elementR_</td>
+          <td class="memname"><a class="el" href="CoinTypes_8hpp.html#a8ff025b1fd5b64b07b7dc31f394d8c32">CoinFactorizationDouble</a>* CoinFactorization::elementR_</td>
         </tr>
       </table>
   </td>
@@ -7257,7 +7257,7 @@ template&lt;class T &gt; </div>
 
 <p>Elements of R. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01599">1599</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01598">1598</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7283,7 +7283,7 @@ template&lt;class T &gt; </div>
 
 <p>Row indices for R. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01602">1602</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01601">1601</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7309,7 +7309,7 @@ template&lt;class T &gt; </div>
 
 <p>Start of columns for R. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01605">1605</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01604">1604</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7335,7 +7335,7 @@ template&lt;class T &gt; </div>
 
 <p>Dense area. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01608">1608</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01607">1607</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7361,7 +7361,7 @@ template&lt;class T &gt; </div>
 
 <p>Dense area - actually used (for alignment etc) </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01611">1611</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01610">1610</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7387,7 +7387,7 @@ template&lt;class T &gt; </div>
 
 <p>Dense permutation. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01614">1614</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01613">1613</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7413,7 +7413,7 @@ template&lt;class T &gt; </div>
 
 <p>Number of dense rows. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01617">1617</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01616">1616</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7439,7 +7439,7 @@ template&lt;class T &gt; </div>
 
 <p>Dense threshold. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01620">1620</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01619">1619</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7465,7 +7465,7 @@ template&lt;class T &gt; </div>
 
 <p>First work area. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01623">1623</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01622">1622</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7491,7 +7491,7 @@ template&lt;class T &gt; </div>
 
 <p>Second work area. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01626">1626</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01625">1625</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7517,7 +7517,7 @@ template&lt;class T &gt; </div>
 
 <p>Number of compressions done. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01629">1629</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01628">1628</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7543,7 +7543,7 @@ template&lt;class T &gt; </div>
 
 <p>Below are all to collect. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01633">1633</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01632">1632</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7567,7 +7567,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01634">1634</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01633">1633</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7591,7 +7591,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01635">1635</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01634">1634</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7615,7 +7615,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01636">1636</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01635">1635</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7639,7 +7639,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01637">1637</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01636">1636</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7663,7 +7663,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01638">1638</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01637">1637</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7687,7 +7687,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01639">1639</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01638">1638</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7711,7 +7711,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01640">1640</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01639">1639</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7737,7 +7737,7 @@ template&lt;class T &gt; </div>
 
 <p>We can roll over factorizations. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01643">1643</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01642">1642</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7761,7 +7761,7 @@ template&lt;class T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01644">1644</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01643">1643</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7779,7 +7779,7 @@ template&lt;class T &gt; </div>
 
 <p>While these are average ratios collected over last period. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01647">1647</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01646">1646</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7795,7 +7795,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01648">1648</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01647">1647</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7811,7 +7811,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01649">1649</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01648">1648</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7827,7 +7827,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01650">1650</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01649">1649</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7843,7 +7843,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01651">1651</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01650">1650</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7859,7 +7859,7 @@ template&lt;class T &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01652">1652</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01651">1651</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7885,7 +7885,7 @@ template&lt;class T &gt; </div>
 
 <p>Below this use sparse technology - if 0 then no L row copy. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01663">1663</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01662">1662</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7911,7 +7911,7 @@ template&lt;class T &gt; </div>
 
 <p>And one for "sparsish". </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01666">1666</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01665">1665</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7937,7 +7937,7 @@ template&lt;class T &gt; </div>
 
 <p>Start of each row in L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01669">1669</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01668">1668</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7963,7 +7963,7 @@ template&lt;class T &gt; </div>
 
 <p>Index of column in row for L. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01672">1672</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01671">1671</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -7989,7 +7989,7 @@ template&lt;class T &gt; </div>
 
 <p>Elements in L (row copy) </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01675">1675</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01674">1674</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -8015,7 +8015,7 @@ template&lt;class T &gt; </div>
 
 <p>Sparse regions. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01678">1678</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01677">1677</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -8041,7 +8041,7 @@ template&lt;class T &gt; </div>
 
 <p>L to U bias 0 - U bias, 1 - some U bias, 2 some L bias, 3 L bias. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01686">1686</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01685">1685</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>
@@ -8067,7 +8067,7 @@ template&lt;class T &gt; </div>
 
 <p>Array persistence flag If 0 then as now (delete/new) 1 then only do arrays if bigger needed 2 as 1 but give a bit extra if bigger needed. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01692">1692</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinFactorization_8hpp_source.html#l01691">1691</a> of file <a class="el" href="CoinFactorization_8hpp_source.html">CoinFactorization.hpp</a>.</p>
 
 </div>
 </div>

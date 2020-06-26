@@ -20,10 +20,6 @@ var searchData=
   ['coin_5fdbl_5fmin',['COIN_DBL_MIN',['../CoinFinite_8hpp.html#accf559b86533b4581e0b3a71968f7a77',1,'CoinFinite.hpp']]],
   ['coin_5fint_5fmax',['COIN_INT_MAX',['../CoinFinite_8hpp.html#aecc106a6efa338ce736f3cd4b95b0dea',1,'CoinFinite.hpp']]],
   ['coin_5fint_5fmax_5fas_5fdouble',['COIN_INT_MAX_AS_DOUBLE',['../CoinFinite_8hpp.html#ae25f16072926338d6aa07e930e408ba3',1,'CoinFinite.hpp']]],
-  ['coinmpsio',['CoinMpsIO',['../CoinMpsIO_8hpp.html#a9f2a25fc465f66da745c7e7aede2dd17',1,'CoinMpsIO.hpp']]],
-  ['coinpackedvector',['CoinPackedVector',['../CoinPackedVectorBase_8hpp.html#abe026ae12b6ed712f4fae48b9db95a74',1,'CoinPackedVectorBase.hpp']]],
-  ['coinpostsolvematrix',['CoinPostsolveMatrix',['../CoinPresolveMatrix_8hpp.html#aed135e3982ad5468724d771b0636701e',1,'CoinPresolveMatrix.hpp']]],
-  ['coinwarmstartdiff',['CoinWarmStartDiff',['../CoinWarmStart_8hpp.html#a1e0b05cb3f12ef46e544b21bc3cd0145',1,'CoinWarmStart.hpp']]],
   ['col',['col',['../structremove__fixed__action_1_1action.html#a71400284e0c03af8856ac9651851b969',1,'remove_fixed_action::action::col()'],['../structdropped__zero.html#acdec790e0e7364235b6dc66284835a54',1,'dropped_zero::col()']]],
   ['colchanged_5f',['colChanged_',['../classCoinPresolveMatrix.html#af085b9e5fed50eca3779cd882ede2312',1,'CoinPresolveMatrix']]],
   ['colel',['colel',['../structdoubleton__action_1_1action.html#ab25e0ea3309eb0083802ce6ecc400199',1,'doubleton_action::action::colel()'],['../structtripleton__action_1_1action.html#a895ac5336255a089f7af8fd42365caf7',1,'tripleton_action::action::colel()']]],
@@ -39,11 +35,8 @@ var searchData=
   ['column',['column',['../structCoinModelTriple.html#aebd95b2674cf97a69b4b8a8b58430b0f',1,'CoinModelTriple']]],
   ['columnblock',['columnBlock',['../structCoinModelInfo2.html#abea58f22add89a5e5bae0f7aff9441bf',1,'CoinModelInfo2']]],
   ['columnblockname_5f',['columnBlockName_',['../classCoinBaseModel.html#adf01fe85bf5a8ca304e5a07fb802c598',1,'CoinBaseModel']]],
-  ['columnlower',['columnLower',['../structampl__info.html#a25bc78993be2da14a2df60ab22fa0ae4',1,'ampl_info']]],
   ['columnname',['columnName',['../structCoinModelInfo2.html#ad9fa42150caf34c649f4fd212c3fc7a4',1,'CoinModelInfo2']]],
   ['columnname_5f',['columnName_',['../classCoinMpsCardReader.html#afbe673f98cf3edc98f22a1510f201c7b',1,'CoinMpsCardReader']]],
-  ['columnstatus',['columnStatus',['../structampl__info.html#afaf2d81660d0724495827b551e199f38',1,'ampl_info']]],
-  ['columnupper',['columnUpper',['../structampl__info.html#ab60b5486b0ffe6ec4346a11dfbe24c59',1,'ampl_info']]],
   ['colupper_5f',['colupper_',['../classCoinLpIO.html#a690097cf8c647b0fe0bf4090e497818b',1,'CoinLpIO::colupper_()'],['../classCoinMpsIO.html#a62b5e67333ea0e288b9ac67bbcb2af30',1,'CoinMpsIO::colupper_()']]],
   ['convertobjective_5f',['convertObjective_',['../classCoinMpsIO.html#a014f91c3c6418b7a3da69c57784541f2',1,'CoinMpsIO']]],
   ['convertrowtocolumnu_5f',['convertRowToColumnU_',['../classCoinFactorization.html#aa77ee1d22cade3261dbcebc494d744a5',1,'CoinFactorization']]],
@@ -53,6 +46,5 @@ var searchData=
   ['cup_5f',['cup_',['../classCoinPrePostsolveMatrix.html#a1604fde98bc50cb0668ba377a63aa16e',1,'CoinPrePostsolveMatrix']]],
   ['cupx',['cupx',['../structdoubleton__action_1_1action.html#a89280ee88c202561c11d289b92631cb9',1,'doubleton_action::action::cupx()'],['../structtripleton__action_1_1action.html#a402b1ef834c2dc5bd339f183e2ce2a34',1,'tripleton_action::action::cupx()']]],
   ['cupy',['cupy',['../structtripleton__action_1_1action.html#a18f2034ad0fa66070bb3cc514fc708e5',1,'tripleton_action::action']]],
-  ['currentmessage_5f',['currentMessage_',['../classCoinMessageHandler.html#a11b2193860adea7bdbcd7f4725d877f7',1,'CoinMessageHandler']]],
-  ['cut',['cut',['../structampl__info.html#a4c1424cdee7a8c4c67f1f55093673d32',1,'ampl_info']]]
+  ['currentmessage_5f',['currentMessage_',['../classCoinMessageHandler.html#a11b2193860adea7bdbcd7f4725d877f7',1,'CoinMessageHandler']]]
 ];

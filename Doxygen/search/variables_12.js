@@ -7,7 +7,6 @@ var searchData=
   ['ucolstarts_5f',['UcolStarts_',['../classCoinSimpFactorization.html#a8f43c12dc16d59c382a662b78c78f6f3',1,'CoinSimpFactorization']]],
   ['ucolumns_5f',['Ucolumns_',['../classCoinSimpFactorization.html#af704cf6a95aa48472b2f14ba9915b47c',1,'CoinSimpFactorization']]],
   ['unsetvalue',['unsetValue',['../classCoinYacc.html#af152994408d7a5a72b47620f18c215c3',1,'CoinYacc']]],
-  ['updatemdegree',['updateMDegree',['../classCoinConflictGraph.html#ae07cd8ae8216ddae5d4817f310eaef1f',1,'CoinConflictGraph']]],
   ['updatetol_5f',['updateTol_',['../classCoinSimpFactorization.html#a5ae53fa2659bf6a169f3680b523f27a9',1,'CoinSimpFactorization']]],
   ['urowend_5f',['UrowEnd_',['../classCoinSimpFactorization.html#af94c3397ed1d3b88c1fe3d1607326a0f',1,'CoinSimpFactorization']]],
   ['urowind_5f',['UrowInd_',['../classCoinSimpFactorization.html#a05ae7208df32075f18783a9df76eb861',1,'CoinSimpFactorization']]],

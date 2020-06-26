@@ -22,12 +22,7 @@ var searchData=
   ['previous_5fnames_5f',['previous_names_',['../classCoinLpIO.html#ac476d2299154d96e0949251d933078ca',1,'CoinLpIO']]],
   ['prevrow',['prevRow',['../classFactorPointers.html#a933943093b03fa505bc36aa1058057b5',1,'FactorPointers']]],
   ['prevrowinu_5f',['prevRowInU_',['../classCoinSimpFactorization.html#a4bf643fe497d8b1f5898a6503e22d29f',1,'CoinSimpFactorization']]],
-  ['primalsolution',['primalSolution',['../structampl__info.html#a3359cec94354f0ac435c2f758a740cee',1,'ampl_info']]],
   ['printerrors_5f',['printErrors_',['../classCoinError.html#a6cb60db8382de5cc79c3f8e7efb253f9',1,'CoinError']]],
   ['printstatus_5f',['printStatus_',['../classCoinMessageHandler.html#af09b8c653b342d02977308cf6b21d99f',1,'CoinMessageHandler']]],
-  ['priorities',['priorities',['../structampl__info.html#a4e7feab4de7d0322d5b5c6c972c71bab',1,'ampl_info']]],
-  ['problemname_5f',['problemName_',['../classCoinLpIO.html#ac792cf25635bbc81b58351939a705c21',1,'CoinLpIO::problemName_()'],['../classCoinBaseModel.html#acbcc919adbdd6097acd55683ce02b89e',1,'CoinBaseModel::problemName_()'],['../classCoinMpsIO.html#a8f377120f6827201ead7d24f7102b290',1,'CoinMpsIO::problemName_()']]],
-  ['problemstatus',['problemStatus',['../structampl__info.html#ab0d27de924fba7b9370432f2f5d0ebe1',1,'ampl_info']]],
-  ['pseudodown',['pseudoDown',['../structampl__info.html#a07713c454d9a80fba0ea814152edc3b2',1,'ampl_info']]],
-  ['pseudoup',['pseudoUp',['../structampl__info.html#a0df451da59b00af3bafa818ad8feed2e',1,'ampl_info']]]
+  ['problemname_5f',['problemName_',['../classCoinLpIO.html#ac792cf25635bbc81b58351939a705c21',1,'CoinLpIO::problemName_()'],['../classCoinBaseModel.html#acbcc919adbdd6097acd55683ce02b89e',1,'CoinBaseModel::problemName_()'],['../classCoinMpsIO.html#a8f377120f6827201ead7d24f7102b290',1,'CoinMpsIO::problemName_()']]]
 ];

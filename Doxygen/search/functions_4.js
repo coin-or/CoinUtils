@@ -10,7 +10,7 @@ var searchData=
   ['enlargeucol',['enlargeUcol',['../classCoinSimpFactorization.html#a556e0d82106e7d83c5b143baed8c3715',1,'CoinSimpFactorization']]],
   ['enlargeurow',['enlargeUrow',['../classCoinSimpFactorization.html#a0a844f767fcb0d6b2619fdb05b16523b',1,'CoinSimpFactorization']]],
   ['expand',['expand',['../classCoinIndexedVector.html#a8e4d1adda13c8a6165233cbda8d28386',1,'CoinIndexedVector']]],
-  ['extend',['extend',['../classCoinArrayWithLength.html#a2ed00999b0bfed078f2457682723a6af',1,'CoinArrayWithLength']]],
-  ['extendclique',['extendClique',['../classCoinCliqueExtender.html#a8b525ccaa7d7e36c1f84d0dc8150c304',1,'CoinCliqueExtender']]],
+  ['expandknapsack',['expandKnapsack',['../classCoinModel.html#a2e5acb06a2aab357ef2ee9278ce554f9',1,'CoinModel']]],
+  ['extend',['extend',['../classCoinArrayWithLength.html#a7c2cbe6f403d93cbab12e64de91b3f66',1,'CoinArrayWithLength']]],
   ['externalnumber',['externalNumber',['../classCoinOneMessage.html#af494c23e528a664573105045e6a7469b',1,'CoinOneMessage']]]
 ];

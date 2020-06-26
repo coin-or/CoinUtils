@@ -9,8 +9,8 @@ var indexSectionsWithContent =
   6: "cefsx",
   7: "cls",
   8: "abcisu",
-  9: "aceo",
-  10: "_cdefhimnpstu",
+  9: "aco",
+  10: "_cdefimnpstu",
   11: "p",
   12: "t"
 };

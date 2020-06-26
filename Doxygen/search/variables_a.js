@@ -28,7 +28,6 @@ var searchData=
   ['lengthr_5f',['lengthR_',['../classCoinFactorization.html#ac50d0106c389278a991e16360280b84d',1,'CoinFactorization']]],
   ['lengthu_5f',['lengthU_',['../classCoinFactorization.html#ad5094de5ef3c615d2eabd9b9a9855f59',1,'CoinFactorization']]],
   ['link_5f',['link_',['../classCoinPostsolveMatrix.html#a418de40a02a8db5cf6ef962a316bc65e',1,'CoinPostsolveMatrix']]],
-  ['loglevel',['logLevel',['../structampl__info.html#aea8b001f4b954558b0e4a9561b1989cb',1,'ampl_info']]],
   ['loglevel_5f',['logLevel_',['../classCoinMessageHandler.html#a2d845cdeade09d07001a146ee60f74a9',1,'CoinMessageHandler::logLevel_()'],['../classCoinBaseModel.html#aa566834589a7774770dce194ac5f1edc',1,'CoinBaseModel::logLevel_()']]],
   ['loglevels_5f',['logLevels_',['../classCoinMessageHandler.html#a0cdcb554aea6cee17c83f3f157e47a44',1,'CoinMessageHandler']]],
   ['longvalue_5f',['longValue_',['../classCoinMessageHandler.html#aca66e8f0152a9e645205020202fd6944',1,'CoinMessageHandler']]],

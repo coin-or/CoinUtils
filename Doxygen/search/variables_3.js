@@ -3,22 +3,18 @@ var searchData=
   ['decimals_5f',['decimals_',['../classCoinLpIO.html#af1cb4a3a4a8deec342154ee7bc466f38',1,'CoinLpIO']]],
   ['defaultbound_5f',['defaultBound_',['../classCoinMpsIO.html#a0286eae321d4ee0ac5b34319a4c9b11c',1,'CoinMpsIO']]],
   ['defaulthandler_5f',['defaultHandler_',['../classCoinLpIO.html#a4944b8b8e6e642945d8b17388c64467e',1,'CoinLpIO::defaultHandler_()'],['../classCoinMpsIO.html#a5936a15e0dffcd6247dce508e3028ce2',1,'CoinMpsIO::defaultHandler_()'],['../classCoinPrePostsolveMatrix.html#a00ae8f1cbe16b141f474e09b806dcef8',1,'CoinPrePostsolveMatrix::defaultHandler_()']]],
-  ['degree',['degree',['../structBKVertex.html#acbcdb7df09038183853ce2e2ea71e294',1,'BKVertex']]],
   ['demark',['demark',['../struct__EKKfactinfo.html#a2346918798da1a3827ca0d95548c9897',1,'_EKKfactinfo']]],
   ['densearea_5f',['denseArea_',['../classCoinFactorization.html#a32c52b7888980dd7dfc753d28b449b97',1,'CoinFactorization']]],
   ['denseareaaddress_5f',['denseAreaAddress_',['../classCoinFactorization.html#abecee95fe9cb1e9fa11192c21877bda3',1,'CoinFactorization']]],
   ['densepermute_5f',['densePermute_',['../classCoinFactorization.html#a8841d6e4b8635e91522322932bd9d2da',1,'CoinFactorization']]],
   ['densethreshold_5f',['denseThreshold_',['../classCoinFactorization.html#a5bde2182b347dd32d049ba30c6b3afdb',1,'CoinFactorization']]],
   ['densevector_5f',['denseVector_',['../classCoinSimpFactorization.html#a9897d5fd0b4d5f5dbaa2d2cd8741e228',1,'CoinSimpFactorization']]],
-  ['density_5f',['density_',['../classCoinConflictGraph.html#a6c69b015ee98498e538677d4d25526f1',1,'CoinConflictGraph']]],
   ['detail_5f',['detail_',['../classCoinOneMessage.html#a0464de7b899b938b93e6b6852bf768e2',1,'CoinOneMessage']]],
-  ['direction',['direction',['../structampl__info.html#a9f29170b61000d86549df1bf981b5f6d',1,'ampl_info']]],
   ['dobias_5f',['dobias_',['../classCoinPresolveMatrix.html#a32c172d3f6cef2b8f019f6e456a3968b',1,'CoinPresolveMatrix']]],
   ['doforresttomlin_5f',['doForrestTomlin_',['../classCoinFactorization.html#ad1944b8cf1db0d0f5de6d120db5c9225',1,'CoinFactorization']]],
   ['dosuhlheuristic_5f',['doSuhlHeuristic_',['../classCoinSimpFactorization.html#a75253a37ee005982f5b7401bbb24bef1',1,'CoinSimpFactorization']]],
   ['doublevalue_5f',['doubleValue_',['../classCoinMessageHandler.html#a9e858f08b44471eecdc06c3c1cfd5401',1,'CoinMessageHandler']]],
   ['drop_5fcol',['DROP_COL',['../CoinPresolveEmpty_8hpp.html#a2bbf6105b13fe789d21a19a54255805f',1,'CoinPresolveEmpty.hpp']]],
   ['drop_5frow',['DROP_ROW',['../CoinPresolveEmpty_8hpp.html#a19ad4fd8b54f4e77262269460a24742e',1,'CoinPresolveEmpty.hpp']]],
-  ['drtpiv',['drtpiv',['../struct__EKKfactinfo.html#a9528794bf9537bcd97ecae360f4f0cff',1,'_EKKfactinfo']]],
-  ['dualsolution',['dualSolution',['../structampl__info.html#aa8f5e7d92aa308465e9ffc7179912e14',1,'ampl_info']]]
+  ['drtpiv',['drtpiv',['../struct__EKKfactinfo.html#a9528794bf9537bcd97ecae360f4f0cff',1,'_EKKfactinfo']]]
 ];

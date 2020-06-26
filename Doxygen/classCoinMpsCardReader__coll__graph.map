@@ -1,13 +1,13 @@
 <map id="CoinMpsCardReader" name="CoinMpsCardReader">
-<area shape="rect" id="node25" href="$classCoinMpsIO.html" title="MPS IO Interface. " alt="" coords="1512,940,1599,967"/>
-<area shape="rect" id="node2" href="$classCoinFileInput.html" title="Abstract base class for file input classes. " alt="" coords="939,1033,1037,1060"/>
-<area shape="rect" id="node3" href="$classCoinFileIOBase.html" title="Base class for FileIO classes. " alt="" coords="529,1312,643,1339"/>
-<area shape="rect" id="node4" title="STL class. " alt="" coords="251,1280,330,1307"/>
-<area shape="rect" id="node12" href="$classCoinMessageHandler.html" title="Base class for message handling. " alt="" coords="915,983,1061,1009"/>
-<area shape="rect" id="node5" title="STL class. " alt="" coords="5,1273,129,1314"/>
-<area shape="rect" id="node6" href="$classCoinMessages.html" title="Class to hold and manipulate an array of massaged messages. " alt="" coords="934,400,1042,427"/>
-<area shape="rect" id="node8" href="$classCoinOneMessage.html" title="Class for one massaged message. " alt="" coords="523,635,649,661"/>
-<area shape="rect" id="node26" href="$structCoinMpsIO_1_1CoinHashLink.html" title="CoinMpsIO::CoinHashLink" alt="" coords="700,195,875,221"/>
-<area shape="rect" id="node27" href="$classCoinPackedMatrix.html" title="Sparse Matrix Base Class. " alt="" coords="1229,1359,1355,1385"/>
-<area shape="rect" id="node14" title="STL class. " alt="" coords="235,1077,347,1104"/>
+<area shape="rect" id="node23" href="$classCoinMpsIO.html" title="MPS IO Interface. " alt="" coords="1480,1127,1567,1153"/>
+<area shape="rect" id="node2" href="$classCoinFileInput.html" title="Abstract base class for file input classes. " alt="" coords="923,685,1021,712"/>
+<area shape="rect" id="node3" href="$classCoinFileIOBase.html" title="Base class for FileIO classes. " alt="" coords="529,441,643,468"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="251,651,330,677"/>
+<area shape="rect" id="node12" href="$classCoinMessageHandler.html" title="Base class for message handling. " alt="" coords="899,763,1045,789"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="5,643,129,685"/>
+<area shape="rect" id="node6" href="$classCoinMessages.html" title="Class to hold and manipulate an array of massaged messages. " alt="" coords="918,528,1026,555"/>
+<area shape="rect" id="node8" href="$classCoinOneMessage.html" title="Class for one massaged message. " alt="" coords="523,599,649,625"/>
+<area shape="rect" id="node24" href="$structCoinMpsIO_1_1CoinHashLink.html" title="CoinMpsIO::CoinHashLink" alt="" coords="700,1252,875,1279"/>
+<area shape="rect" id="node25" href="$classCoinPackedMatrix.html" title="Sparse Matrix Base Class. " alt="" coords="1197,1537,1323,1564"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="235,799,347,825"/>
 </map>

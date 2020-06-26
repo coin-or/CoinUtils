@@ -1,9 +1,11 @@
 var searchData=
 [
-  ['presolve_5fdetail_5fprint',['PRESOLVE_DETAIL_PRINT',['../CoinPresolveMatrix_8hpp.html#a2e41657f79a63541d600091fbd71583b',1,'CoinPresolveMatrix.hpp']]],
-  ['presolve_5finf',['PRESOLVE_INF',['../CoinPresolveMatrix_8hpp.html#a893924e4b8c89248c871be0ce948cd43',1,'CoinPresolveMatrix.hpp']]],
-  ['presolve_5fsmall_5finf',['PRESOLVE_SMALL_INF',['../CoinPresolveMatrix_8hpp.html#ab6db828390f935c6804819fedd934263',1,'CoinPresolveMatrix.hpp']]],
-  ['presolve_5fstmt',['PRESOLVE_STMT',['../CoinPresolveMatrix_8hpp.html#abbbe0a1eadb2f9bbf288495adfd5e1fa',1,'CoinPresolveMatrix.hpp']]],
-  ['presolveassert',['PRESOLVEASSERT',['../CoinPresolveMatrix_8hpp.html#aed7bd2682adbe1103f07a19db585fba2',1,'CoinPresolveMatrix.hpp']]],
-  ['presolvefinite',['PRESOLVEFINITE',['../CoinPresolveMatrix_8hpp.html#ac955f5a027a862eba9af5e3ffdda11a9',1,'CoinPresolveMatrix.hpp']]]
+  ['shift_5findex',['SHIFT_INDEX',['../CoinOslC_8h.html#af675973f7434e884b0b80062190b84cb',1,'CoinOslC.h']]],
+  ['shift_5fref',['SHIFT_REF',['../CoinOslC_8h.html#a0202f37d00c7a73702d23c69be93b214',1,'CoinOslC.h']]],
+  ['slack_5fdoubleton',['SLACK_DOUBLETON',['../CoinPresolveSingleton_8hpp.html#a66c5b30e1d154553dcd1ebb508a19082',1,'CoinPresolveSingleton.hpp']]],
+  ['slack_5fsingleton',['SLACK_SINGLETON',['../CoinPresolveSingleton_8hpp.html#a22e4547d3fee426d13bee734e04558a4',1,'CoinPresolveSingleton.hpp']]],
+  ['slack_5fvalue',['SLACK_VALUE',['../CoinOslC_8h.html#a66b9bd1f0194646269dc2a2edebefaa4',1,'CoinOslC.h']]],
+  ['sparse_5fupdate',['SPARSE_UPDATE',['../CoinOslC_8h.html#a33498026079c143b062f5d57840600b6',1,'CoinOslC.h']]],
+  ['subst_5frow',['SUBST_ROW',['../CoinPresolveSubst_8hpp.html#a8df47926689b7f7deb04b5251a2dc347',1,'CoinPresolveSubst.hpp']]],
+  ['swap',['SWAP',['../CoinOslC_8h.html#aedc4b47898d37a614fd1636ddd105992',1,'CoinOslC.h']]]
 ];

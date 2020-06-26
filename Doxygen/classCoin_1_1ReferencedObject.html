@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">CoinUtils
-   &#160;<span id="projectnumber">devel</span>
+   &#160;<span id="projectnumber">2.11.4</span>
    </div>
   </td>
  </tr>
@@ -144,7 +144,7 @@ Public Member Functions</h2></td></tr>
 <p>3) This <a class="el" href="classCoin_1_1SmartPtr.html" title="Template class for Smart Pointers. ">SmartPtr</a> class could be redesigned with the Weak/Strong design concept. Here, the <a class="el" href="classCoin_1_1SmartPtr.html" title="Template class for Smart Pointers. ">SmartPtr</a> is identified as being Strong (controls lifetime of the object) or Weak (merely referencing the object). The Strong <a class="el" href="classCoin_1_1SmartPtr.html" title="Template class for Smart Pointers. ">SmartPtr</a> increments (and decrements) the reference count in <a class="el" href="classCoin_1_1ReferencedObject.html" title="ReferencedObject class. ">ReferencedObject</a> but the Weak <a class="el" href="classCoin_1_1SmartPtr.html" title="Template class for Smart Pointers. ">SmartPtr</a> does not. In the example above, the higher level object would have Strong SmartPtrs to A and B, but A and B would have Weak SmartPtrs to each other. Then, when the higher level object was done with A and B, they would be deleted. The Weak SmartPtrs in A and B would not decrement the reference count and would, of course, not delete the object. This idea is very similar to item (2), where it is implied that the sequence of events is controlled such that A and B will not call anything using their pointers following the higher level delete (i.e. in their destructors!). This is somehow safer, however, because code can be written (however expensive) to perform run-time detection of this situation. For example, the <a class="el" href="classCoin_1_1ReferencedObject.html" title="ReferencedObject class. ">ReferencedObject</a> could store pointers to all Weak SmartPtrs that are referencing it and, in its destructor, tell these pointers that it is dying. They could then set themselves to NULL, or set an internal flag to detect usage past this point.</p>
 <p>Comments on Non-Intrusive Design: In a non-intrusive design, the reference count is stored somewhere other than the object being referenced. This means, unless the reference counting pointer is the first referencer, it must get a pointer to the referenced object from another smart pointer (so it has access to the reference count location). In this non-intrusive design, if we are pointing to an object with a smart pointer (or a number of smart pointers), and we then give another smart pointer the address through a RAW pointer, we will have two independent, AND INCORRECT, reference counts. To avoid this pitfall, we use an intrusive reference counting technique where the reference count is stored in the object being referenced. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00158">158</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00157">157</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a33f8fa7df67d7f03d1e381fc0f3cdf29"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a33f8fa7df67d7f03d1e381fc0f3cdf29">&#9670;&nbsp;</a></span>ReferencedObject()</h2>
@@ -169,7 +169,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00160">160</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00159">159</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
 
 </div>
 </div>
@@ -196,7 +196,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00161">161</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00163">163</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
 
 </div>
 </div>
@@ -224,7 +224,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00162">162</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00164">164</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
 
 </div>
 </div>
@@ -251,7 +251,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00163">163</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00165">165</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
 
 </div>
 </div>
@@ -278,7 +278,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00164">164</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinSmartPtr_8hpp_source.html#l00166">166</a> of file <a class="el" href="CoinSmartPtr_8hpp_source.html">CoinSmartPtr.hpp</a>.</p>
 
 </div>
 </div>

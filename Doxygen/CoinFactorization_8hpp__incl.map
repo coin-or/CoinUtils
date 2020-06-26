@@ -1,13 +1,13 @@
 <map id="src/CoinFactorization.hpp" name="src/CoinFactorization.hpp">
-<area shape="rect" id="node7" href="$CoinTypes_8h.html" title="CoinTypes.h" alt="" coords="921,229,1015,256"/>
-<area shape="rect" id="node11" href="$CoinIndexedVector_8hpp.html" title="CoinIndexedVector.hpp" alt="" coords="447,80,601,107"/>
-<area shape="rect" id="node8" href="$CoinUtilsConfig_8h.html" title="CoinUtilsConfig.h" alt="" coords="739,304,861,331"/>
-<area shape="rect" id="node9" href="$config__coinutils__default_8h.html" title="config_coinutils_default.h" alt="" coords="717,379,883,405"/>
-<area shape="rect" id="node13" href="$CoinPragma_8hpp.html" title="CoinPragma.hpp" alt="" coords="428,304,545,331"/>
-<area shape="rect" id="node14" href="$CoinFinite_8hpp.html" title="CoinFinite.hpp" alt="" coords="829,155,933,181"/>
-<area shape="rect" id="node16" href="$CoinPackedVectorBase_8hpp.html" title="CoinPackedVectorBase.hpp" alt="" coords="295,155,479,181"/>
-<area shape="rect" id="node20" href="$CoinSort_8hpp.html" title="CoinSort.hpp" alt="" coords="1191,155,1287,181"/>
-<area shape="rect" id="node26" href="$CoinHelperFunctions_8hpp.html" title="CoinHelperFunctions.hpp" alt="" coords="587,155,754,181"/>
-<area shape="rect" id="node18" href="$CoinError_8hpp.html" title="CoinError.hpp" alt="" coords="337,229,436,256"/>
-<area shape="rect" id="node24" href="$CoinDistance_8hpp.html" title="CoinDistance.hpp" alt="" coords="1389,229,1512,256"/>
+<area shape="rect" id="node7" href="$CoinTypes_8hpp.html" title="CoinTypes.hpp" alt="" coords="995,229,1102,256"/>
+<area shape="rect" id="node10" href="$CoinIndexedVector_8hpp.html" title="CoinIndexedVector.hpp" alt="" coords="663,80,818,107"/>
+<area shape="rect" id="node8" href="$CoinUtilsConfig_8h.html" title="CoinUtilsConfig.h" alt="" coords="912,304,1033,331"/>
+<area shape="rect" id="node9" href="$config__coinutils__default_8h.html" title="config_coinutils_default.h" alt="" coords="889,379,1056,405"/>
+<area shape="rect" id="node12" href="$CoinFinite_8hpp.html" title="CoinFinite.hpp" alt="" coords="1277,155,1381,181"/>
+<area shape="rect" id="node14" href="$CoinPackedVectorBase_8hpp.html" title="CoinPackedVectorBase.hpp" alt="" coords="1058,155,1242,181"/>
+<area shape="rect" id="node19" href="$CoinSort_8hpp.html" title="CoinSort.hpp" alt="" coords="370,155,466,181"/>
+<area shape="rect" id="node25" href="$CoinHelperFunctions_8hpp.html" title="CoinHelperFunctions.hpp" alt="" coords="657,155,824,181"/>
+<area shape="rect" id="node16" href="$CoinPragma_8hpp.html" title="CoinPragma.hpp" alt="" coords="1145,304,1262,331"/>
+<area shape="rect" id="node17" href="$CoinError_8hpp.html" title="CoinError.hpp" alt="" coords="822,229,921,256"/>
+<area shape="rect" id="node23" href="$CoinDistance_8hpp.html" title="CoinDistance.hpp" alt="" coords="145,229,267,256"/>
 </map>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">CoinUtils
-   &#160;<span id="projectnumber">devel</span>
+   &#160;<span id="projectnumber">2.11.4</span>
    </div>
   </td>
  </tr>
@@ -112,7 +112,7 @@ Public Member Functions</h2></td></tr>
 <p>The timer stores the start time of the timer, for how much time it was set to and when does it expire (start + limit = end). Queries can be made that tell whether the timer is expired, is past an absolute time, is past a percentage of the length of the timer. All times are given in seconds, but as double numbers, so there can be fractional values.</p>
 <p>The timer can also be initialized with a stream and a specification whether to write to or read from the stream. In the former case the result of every query is written into the stream, in the latter case timing is not tested at all, rather the supposed result is read out from the stream. This makes it possible to exactly retrace time sensitive program execution. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00200">200</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00199">199</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a215866a82a6d0dc257d16b478b9881f7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a215866a82a6d0dc257d16b478b9881f7">&#9670;&nbsp;</a></span>CoinTimer() <span class="overload">[1/2]</span></h2>
@@ -139,7 +139,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Default constructor creates a timer with no time limit and no tracing. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00249">249</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00247">247</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -169,7 +169,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Create a timer with the given time limit and with no tracing. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00261">261</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00259">259</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -199,7 +199,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Restart the timer (keeping the same time limit) </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00297">297</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00295">295</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -228,7 +228,7 @@ Public Member Functions</h2></td></tr>
 
 <p>An alternate name for <code><a class="el" href="classCoinTimer.html#aeabeca2d362847a25d6ba71c05271b9f" title="Restart the timer (keeping the same time limit) ">restart()</a></code> </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00303">303</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00301">301</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -258,7 +258,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Reset (and restart) the timer and change its time limit. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00305">305</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00303">303</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -288,7 +288,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Return whether the given percentage of the time limit has elapsed since the timer was started. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00313">313</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00311">311</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -318,7 +318,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Return whether the given amount of time has elapsed since the timer was started. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00319">319</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00317">317</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -347,7 +347,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Return whether the originally specified time limit has passed since the timer was started. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00325">325</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00323">323</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -376,7 +376,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Return how much time is left on the timer. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00331">331</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00329">329</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -405,7 +405,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Return how much time has elapsed. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00337">337</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00335">335</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>
@@ -433,7 +433,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00342">342</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinTime_8hpp_source.html#l00340">340</a> of file <a class="el" href="CoinTime_8hpp_source.html">CoinTime.hpp</a>.</p>
 
 </div>
 </div>

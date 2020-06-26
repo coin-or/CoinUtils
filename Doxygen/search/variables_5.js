@@ -15,7 +15,6 @@ var searchData=
   ['firstnumberslacks_5f',['firstNumberSlacks_',['../classCoinSimpFactorization.html#aa9183b711e4af88af1ea6e91420aed9d',1,'CoinSimpFactorization']]],
   ['firstrowinu_5f',['firstRowInU_',['../classCoinSimpFactorization.html#a028e86362369a57f38f70732eb4fd9cd',1,'CoinSimpFactorization']]],
   ['firstrowknonzeros',['firstRowKnonzeros',['../classFactorPointers.html#a234fca7f081452e60416111582ea6cd6',1,'FactorPointers']]],
-  ['fitness',['fitness',['../structBKVertex.html#afd03968bfe4bea98d796affe6bae5610',1,'BKVertex']]],
   ['fnctptr',['fnctptr',['../structsymrec.html#a045ee2b3d6577ede517c096cde0f7219',1,'symrec']]],
   ['format_5f',['format_',['../classCoinMessageHandler.html#a8ebfb40fa19e735fd5550f3660e9a04c',1,'CoinMessageHandler']]],
   ['fp_5f',['fp_',['../classCoinMessageHandler.html#ace7ae004b8a9f492f7ddad5f57d9166d',1,'CoinMessageHandler']]],

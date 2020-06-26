@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">CoinUtils
-   &#160;<span id="projectnumber">devel</span>
+   &#160;<span id="projectnumber">2.11.4</span>
    </div>
   </td>
  </tr>
@@ -138,7 +138,7 @@ Additional Inherited Members</h2></td></tr>
 <p>Consider a variable x. Suppose that we can find an equality such that the bound on the equality, combined with the bounds on the other variables involved in the equality, are such that even the worst case values of the other variables still imply bounds for x which are tighter than the variable's original bounds. Since x can never reach its upper or lower bounds, it is an implied free variable. By solving the equality for x and substituting for x in every other constraint entangled with x, we can make x into a column singleton. Now x is an implied free column singleton and both x and the equality can be removed.</p>
 <p>A similar transform for the case where the variable is a natural column singleton is handled by <a class="el" href="classimplied__free__action.html" title="Detect and process implied free variables. ">implied_free_action</a>. In the current presolve architecture, <a class="el" href="classimplied__free__action.html" title="Detect and process implied free variables. ">implied_free_action</a> is responsible for detecting implied free variables that are natural column singletons or can be reduced to column singletons. <a class="el" href="classimplied__free__action.html" title="Detect and process implied free variables. ">implied_free_action</a> calls <a class="el" href="classsubst__constraint__action.html" title="Detect and process implied free variables. ">subst_constraint_action</a> to process variables that must be reduced to column singletons. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveSubst_8hpp_source.html#l00036">36</a> of file <a class="el" href="CoinPresolveSubst_8hpp_source.html">CoinPresolveSubst.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveSubst_8hpp_source.html#l00037">37</a> of file <a class="el" href="CoinPresolveSubst_8hpp_source.html">CoinPresolveSubst.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac25dde81a9b2a8dc0618cb1a82952cec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac25dde81a9b2a8dc0618cb1a82952cec">&#9670;&nbsp;</a></span>~subst_constraint_action()</h2>

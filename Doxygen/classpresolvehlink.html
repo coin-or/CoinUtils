@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">CoinUtils
-   &#160;<span id="projectnumber">devel</span>
+   &#160;<span id="projectnumber">2.11.4</span>
    </div>
   </td>
  </tr>
@@ -108,7 +108,7 @@ Related Functions</h2></td></tr>
 <p>Currently, the matrices held by the <a class="el" href="classCoinPrePostsolveMatrix.html" title="Collects all the information about the problem that is needed in both presolve and postsolve...">CoinPrePostsolveMatrix</a> and <a class="el" href="classCoinPresolveMatrix.html" title="Augments CoinPrePostsolveMatrix with information about the problem that is only needed during presolv...">CoinPresolveMatrix</a> objects are represented in the same way as a <a class="el" href="classCoinPackedMatrix.html" title="Sparse Matrix Base Class. ">CoinPackedMatrix</a>. In the course of presolve and postsolve transforms, it will happen that a major-dimension vector needs to increase in size. In order to check whether there is enough room to add another coefficient in place, it helps to know the next vector (in memory order) in the bulk storage area. To do that, a linked list of major-dimension vectors is maintained; the "pre" and "suc" fields give the previous and next vector, in memory order (that is, the vector whose mcstrt_ or mrstrt_ entry is next smaller or larger).</p>
 <p>Consider a column-major matrix with ncols columns. By definition, presolvehlink[ncols].pre points to the column in the last occupied position of the bulk storage arrays. There is no easy way to find the column which occupies the first position (there is no presolvehlink[-1] to consult). If the column that initially occupies the first position is moved for expansion, there is no way to reclaim the space until the bulk storage is compacted. The same holds for the last and first rows of a row-major matrix, of course. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00783">783</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00809">809</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
 </div><h2 class="groupheader">Friends And Related Function Documentation</h2>
 <a id="a684859187a4ec7fc4ac037b371b06eeb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a684859187a4ec7fc4ac037b371b06eeb">&#9670;&nbsp;</a></span>PRESOLVE_REMOVE_LINK()</h2>
@@ -147,7 +147,7 @@ Related Functions</h2></td></tr>
 <p>unlink vector i </p>
 <p>Remove vector i from the ordering. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00795">795</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00821">821</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
 
 </div>
 </div>
@@ -194,7 +194,7 @@ Related Functions</h2></td></tr>
 <p>insert vector i after vector j </p>
 <p>Insert vector i between j and j.suc. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00813">813</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00839">839</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
 
 </div>
 </div>
@@ -245,7 +245,7 @@ Related Functions</h2></td></tr>
   PRESOLVE_INSERT_LINK(link,j,pre);
 </pre><p> But, this routine will work even if i happens to be first in the order. </p>
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00835">835</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00861">861</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
 
 </div>
 </div>
@@ -262,7 +262,7 @@ Related Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00785">785</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00811">811</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
 
 </div>
 </div>
@@ -278,7 +278,7 @@ Related Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00785">785</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="CoinPresolveMatrix_8hpp_source.html#l00811">811</a> of file <a class="el" href="CoinPresolveMatrix_8hpp_source.html">CoinPresolveMatrix.hpp</a>.</p>
 
 </div>
 </div>
