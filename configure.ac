@@ -9,7 +9,7 @@
 #                       Names and other basic things                        #
 #############################################################################
 
-AC_INIT([CoinUtils],[master],[https://github.com/coin-or/CoinUtils/issues/new],[coin-or-coinutils],[https://github.com/coin-or/CoinUtils])
+AC_INIT([CoinUtils],[devel],[https://github.com/coin-or/CoinUtils/issues/new],[coin-or-coinutils],[https://github.com/coin-or/CoinUtils])
 
 AC_COPYRIGHT([
 Copyright 2006 International Business Machines and others.

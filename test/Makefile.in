@@ -362,7 +362,7 @@ doxyhtmldir = $(doxydocdir)/html
 ########################################################################
 #                    Documentation installation                        #
 ########################################################################
-DocFiles = README AUTHORS LICENSE
+DocFiles = README README.md AUTHORS AUTHORS.md LICENSE LICENSE.md
 COIN_HAS_DOXYGEN = @COIN_HAS_DOXYGEN_TRUE@TRUE
 COIN_HAS_LATEX = @COIN_HAS_LATEX_TRUE@TRUE
 
