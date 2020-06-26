@@ -1,0 +1,70 @@
+Description:
+  Slug: CoinUtils
+  ShortName: CoinUtils
+  LongName: COIN-OR Utilities
+  ShortDescription: Collection of helper classes and functions that are generally useful to multiple COIN-OR projects
+  LongDescription:
+  - |-
+      The CoinUtils project is a collection of
+      open-source utilities developed and used by a variety of other
+      projects in the COIN-OR repository. The project includes
+      classes for storing and manipulating sparse matrices and
+      vectors, performing matrix factorization, parsing input files
+      in standard formats, building representations of mathematical
+      programs, comparing floating point numbers with a tolerance,
+      performing simple presolve operations, and warm starting
+      algorithms for mathematical programs, among others.
+  Manager: 
+  Homepage: https://github.com/coin-or/CoinUtils
+  License: Eclipse Public License 1.0
+  LicenseURL: http://www.opensource.org/licenses/eclipse-1.0
+  Language:
+  - C++
+  Categories: 
+  - Optimization deterministic linear discrete
+
+Dependencies:
+  coin:
+    -Slug: CoinUtils
+     Version: master
+
+  data:
+    -Slug: Data-Sample
+     Version: master
+     Required: Required
+
+  thirdParty:
+    -Slug: ThirdParty-Glpk
+     Version: master
+     Required: Optional
+
+  other:
+    - Description: Basic Linear Algenra Subroutines (BLAS)
+      URL: http://www.netlib.org/blas
+      Required: Recommended
+    - Description: Linear Algebra Package (LAPACK)
+      URL: http://www.netlib.org/lapack
+      Required: Recommended
+
+DevelopmentStatus: 
+  activityStatus: Active
+  maturityLevel: 5
+  testedPlatforms: 
+  - operatingSystem: Linux
+    compiler: gcc
+  - operatingSystem: Mac OS X
+    compiler:
+    - gcc
+    - clang
+  - operatingSystem: Microsoft Windows
+    compiler: cl
+  - operatingSystem: Microsoft Windows with MSys2
+    compiler:
+    - gcc
+    - cl
+    - icl
+  - operatingSystem: Microsoft Windows Subsystem for Linux
+    compiler:
+    - gcc
+    - cl
+    - icl
