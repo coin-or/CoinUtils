@@ -32,6 +32,7 @@ unitTest_LDADD = ../src/libCoinUtils.la
 # Here list all include flags, relative to this "srcdir" directory.
 AM_CPPFLAGS = -I$(srcdir)/../src
 
+# Libtool flags
 AM_LDFLAGS = $(LT_LDFLAGS)
 
 unittestflags =
