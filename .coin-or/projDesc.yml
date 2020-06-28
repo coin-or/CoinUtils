@@ -28,9 +28,6 @@ Description:
   - Optimization deterministic linear discrete
 
 Dependencies:
-  coin:
-    - Slug: CoinUtils
-      Version: master
 
   data:
     - Slug: Data-Sample
