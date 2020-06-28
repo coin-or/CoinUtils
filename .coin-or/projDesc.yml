@@ -29,18 +29,18 @@ Description:
 
 Dependencies:
   coin:
-    -Slug: CoinUtils
-     Version: master
+    - Slug: CoinUtils
+      Version: master
 
   data:
-    -Slug: Data-Sample
-     Version: master
-     Required: Required
+    - Slug: Data-Sample
+      Version: master
+      Required: Required
 
   thirdParty:
-    -Slug: ThirdParty-Glpk
-     Version: master
-     Required: Optional
+    - Slug: ThirdParty-Glpk
+      Version: master
+      Required: Optional
 
   other:
     - Description: Basic Linear Algenra Subroutines (BLAS)
