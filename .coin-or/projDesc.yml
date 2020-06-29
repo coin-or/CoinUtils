@@ -28,24 +28,20 @@ Description:
   - Optimization deterministic linear discrete
 
 Dependencies:
-
-  data:
-    - Slug: Data-Sample
-      Version: master
-      Required: Required
-
-  thirdParty:
-    - Slug: ThirdParty-Glpk
-      Version: master
-      Required: Optional
-
-  other:
-    - Description: Basic Linear Algenra Subroutines (BLAS)
-      URL: http://www.netlib.org/blas
-      Required: Recommended
-    - Description: Linear Algebra Package (LAPACK)
-      URL: http://www.netlib.org/lapack
-      Required: Recommended
+  - Description: COIN-OR sample data files
+    URL: https://github.com/coin-or-tools/Data-Sample
+    Version: master
+    Required: Required
+  - Description: ThirdParty wrapper for building Glpk
+    URL: https://github.com/coin-or-tools/ThirdParty-Glpk
+    Version: master
+    Required: Optional
+  - Description: Basic Linear Algebra Subroutines (BLAS)
+    URL: http://www.netlib.org/blas
+    Required: Recommended
+  - Description: Linear Algebra Package (LAPACK)
+    URL: http://www.netlib.org/lapack
+    Required: Recommended
 
 DevelopmentStatus: 
   activityStatus: Active
