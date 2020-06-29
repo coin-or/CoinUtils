@@ -1,8 +1,7 @@
 # Copyright (C) 2006 International Business Machines and others.
 # All Rights Reserved.
 # This file is distributed under the Eclipse Public License.
-
-
+#
 # Author:  Andreas Waechter           IBM    2006-04-13
 
 include $(top_srcdir)/BuildTools/Makemain.inc
@@ -86,11 +85,11 @@ if BUILD_OSLFACTORIZATION
   libCoinUtils_la_SOURCES += CoinOslFactorization.cpp CoinOslFactorization2.cpp CoinOslFactorization3.cpp CoinSimpFactorization.cpp
 endif
 
-# This is for libtool.
-libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
-
 # Add library dependencies to libCoinUtils.
 libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
+
+# This is for libtool.
+AM_LDFLAGS = $(LT_LDFLAGS)
 
 # Here list all include flags, relative to this "srcdir" directory.
 AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)

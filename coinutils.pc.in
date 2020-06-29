@@ -4,7 +4,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@/coin-or
 
-Name: CoinUtils
+Name: @PACKAGE_NAME@
 Description: COIN-OR Utilities
 URL: @PACKAGE_URL@
 Version: @PACKAGE_VERSION@

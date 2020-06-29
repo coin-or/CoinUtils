@@ -1,8 +1,7 @@
 # Copyright (C) 2006,2009 International Business Machines.
 # All Rights Reserved.
 # This file is distributed under the Eclipse Public License.
-
-
+#
 # Author:  Andreas Waechter            IBM    2006-04-13
 
 #############################################################################

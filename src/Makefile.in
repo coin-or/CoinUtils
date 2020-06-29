@@ -17,23 +17,8 @@
 # Copyright (C) 2006 International Business Machines and others.
 # All Rights Reserved.
 # This file is distributed under the Eclipse Public License.
-
+#
 # Author:  Andreas Waechter           IBM    2006-04-13
-
-# Copyright (C) 2006, 2007 International Business Machines and others.
-# All Rights Reserved.
-# This file is distributed under the Eclipse Public License.
-
-# Author:  Andreas Waechter           IBM    2006-04-13
-
-########################################################################
-#        Variables for documentation and data directories              #
-########################################################################
-
-# Set these up to provide some uniformity in naming while also conforming
-# to Gnu directory standards. For reasons known only to the autoconf
-# developers, autoconf leaves datadir = $(datarootdir) but forces docdir
-# to $(datarootdir)/doc/$(PACKAGE_TARNAME).
 
 
 VPATH = @srcdir@
@@ -191,10 +176,6 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libCoinUtils_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(AM_CXXFLAGS) $(CXXFLAGS) $(libCoinUtils_la_LDFLAGS) \
-	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -398,7 +379,6 @@ LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 LT_LDFLAGS = @LT_LDFLAGS@
 LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
-MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
@@ -486,6 +466,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 pkgdocdir = $(docdir)
+pkgconfiglibdir = $(libdir)/pkgconfig
 
 # doxydocdir is the top-level directory for doxygen documentation. It holds
 # the tag file and possibly the PDF or Postscript version. doxyhtmldir is
@@ -493,16 +474,9 @@ pkgdocdir = $(docdir)
 # html documentation.
 doxydocdir = $(pkgdocdir)/doxydoc
 doxyhtmldir = $(doxydocdir)/html
-
-########################################################################
-#                    Documentation installation                        #
-########################################################################
 DocFiles = README README.md AUTHORS AUTHORS.md LICENSE LICENSE.md
 COIN_HAS_DOXYGEN = @COIN_HAS_DOXYGEN_TRUE@TRUE
 COIN_HAS_LATEX = @COIN_HAS_LATEX_TRUE@TRUE
-
-# Needless to say, it's important that baredocdir_nosub not be a target for
-# autoconf substitution.
 DOXYTAG_EDIT = sed -e 's|@baredocdir_nosub@|$(datarootdir)/doc|g'
 
 ########################################################################
@@ -544,11 +518,11 @@ libCoinUtils_la_SOURCES = CoinAlloc.cpp CoinBuild.cpp \
 	CoinOddWheelSeparator.cpp CoinShortestPath.cpp \
 	CoinStaticConflictGraph.cpp $(am__append_1)
 
-# This is for libtool.
-libCoinUtils_la_LDFLAGS = $(LT_LDFLAGS)
-
 # Add library dependencies to libCoinUtils.
 libCoinUtils_la_LIBADD = $(COINUTILSLIB_LFLAGS)
+
+# This is for libtool.
+AM_LDFLAGS = $(LT_LDFLAGS)
 
 # Here list all include flags, relative to this "srcdir" directory.
 AM_CPPFLAGS = $(COINUTILSLIB_CFLAGS)
@@ -592,7 +566,7 @@ all: config.h config_coinutils.h
 
 .SUFFIXES:
 .SUFFIXES: .cpp .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/BuildTools/Makemain.inc $(am__configure_deps)
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/BuildTools/Makemain.inc $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -617,9 +591,9 @@ $(top_srcdir)/BuildTools/Makemain.inc $(am__empty):
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
+$(top_srcdir)/configure:  $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
+$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
@@ -630,7 +604,7 @@ config.h: stamp-h1
 stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status src/config.h
-$(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
+$(srcdir)/config.h.in:  $(am__configure_deps) 
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@
@@ -682,7 +656,7 @@ clean-libLTLIBRARIES:
 	}
 
 libCoinUtils.la: $(libCoinUtils_la_OBJECTS) $(libCoinUtils_la_DEPENDENCIES) $(EXTRA_libCoinUtils_la_DEPENDENCIES) 
-	$(AM_V_CXXLD)$(libCoinUtils_la_LINK) -rpath $(libdir) $(libCoinUtils_la_OBJECTS) $(libCoinUtils_la_LIBADD) $(LIBS)
+	$(AM_V_CXXLD)$(CXXLINK) -rpath $(libdir) $(libCoinUtils_la_OBJECTS) $(libCoinUtils_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -1210,33 +1184,6 @@ uninstall-doc:
 	  rm -f "$(DESTDIR)$(pkgdocdir)/$$file"; \
 	done
 	rmdir $(DESTDIR)$(pkgdocdir) || true
-
-########################################################################
-#                         Maintainer Stuff                             #
-########################################################################
-
-# Make sure acinclude is using most recent coin.m4
-@MAINTAINER_MODE_TRUE@$(srcdir)/acinclude.m4: $(BUILDTOOLSDIR)/coin.m4
-@MAINTAINER_MODE_TRUE@	cat $(LIBTOOLM4) $< > $@
-
-# Make sure the autotools scripts are up to date
-@MAINTAINER_MODE_TRUE@$(AUX_DIR)/install-sh: $(BUILDTOOLSDIR)/install-sh
-@MAINTAINER_MODE_TRUE@	cp $< $@
-
-@MAINTAINER_MODE_TRUE@$(AUX_DIR)/missing: $(BUILDTOOLSDIR)/missing
-@MAINTAINER_MODE_TRUE@	cp $< $@
-
-@MAINTAINER_MODE_TRUE@$(AUX_DIR)/config.guess: $(BUILDTOOLSDIR)/config.guess
-@MAINTAINER_MODE_TRUE@	cp $< $@
-
-@MAINTAINER_MODE_TRUE@$(AUX_DIR)/config.sub: $(BUILDTOOLSDIR)/config.sub
-@MAINTAINER_MODE_TRUE@	cp $< $@
-
-@MAINTAINER_MODE_TRUE@$(AUX_DIR)/depcomp: $(BUILDTOOLSDIR)/depcomp
-@MAINTAINER_MODE_TRUE@	cp $< $@
-
-@MAINTAINER_MODE_TRUE@$(AUX_DIR)/ltmain.sh: $(BUILDTOOLSDIR)/ltmain.sh
-@MAINTAINER_MODE_TRUE@	cp $< $@
 
 .PHONY: install-doc uninstall-doc \
 	doxygen-docs pdf-doxygen-docs clean-doxygen-docs \

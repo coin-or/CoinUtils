@@ -1,8 +1,7 @@
 # Copyright (C) 2006 International Business Machines and others.
 # All Rights Reserved.
 # This file is distributed under the Eclipse Public License.
-
-
+#
 # Author:  Andreas Waechter           IBM    2006-04-13
 
 include BuildTools/Makemain.inc
@@ -12,14 +11,6 @@ include BuildTools/Makemain.inc
 ########################################################################
 
 SUBDIRS = src
-
-# We don't want to compile the test subdirectory, unless the test target is
-# specified. But we need to list it as a subdirectory to make sure that it
-# is included in the tarball
-
-if ALWAYS_FALSE
-  SUBDIRS += test
-endif
 
 ########################################################################
 #                           Extra Targets                              #
@@ -46,5 +37,4 @@ uninstall-local: uninstall-doc uninstall-doxygen-docs
 #                  Installation of the .pc file                        #
 ########################################################################
 
-pkgconfiglibdir = $(libdir)/pkgconfig
 pkgconfiglib_DATA = coinutils.pc
