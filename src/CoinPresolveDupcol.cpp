@@ -180,7 +180,7 @@ const CoinPresolveAction
   int *sort = prob->usefulColumnInt_; //new int[ncols] ;
   int nlook = 0;
   for (int j = 0; j < ncols; j++) {
-    if (hincol[j] == 0)
+    if (hincol[j] == 0 || (clo[j] < -1.0e5 && cup[j] > 1.0e5))
       continue;
     // sort
     CoinSort_2(hrow + mcstrt[j], hrow + mcstrt[j] + hincol[j],

@@ -28,6 +28,12 @@
 #include "CoinSort.hpp"
 
 using namespace std;
+#define LPIO_MODIFY_MESSAGES 1
+#if LPIO_MODIFY_MESSAGES == 0
+#define CoinLpIOError(a,b,c,d,e) throw CoinError(a,b,c,d,e)
+#else
+#define CoinLpIOError(a,b,c,d,e) throwError(a,b,c,d,e)
+#endif
 
 //#define LPIO_DEBUG
 
@@ -58,6 +64,7 @@ CoinLpIO::CoinLpIO()
   , numberAcross_(10)
   , decimals_(9)
   , wasMaximization_(false)
+  , lineNumber_(0)
   , input_(NULL)
 {
   for (int j = 0; j < MAX_OBJECTIVES; j++) {
@@ -160,6 +167,7 @@ void CoinLpIO::gutsOfCopy(const CoinLpIO &rhs)
   numberColumns_ = rhs.numberColumns_;
   decimals_ = rhs.decimals_;
   wasMaximization_ = rhs.wasMaximization_;
+  lineNumber_ = rhs.lineNumber_;
 
   if (rhs.rowlower_) {
     rowlower_ = reinterpret_cast< double * >(malloc(numberRows_ * sizeof(double)));
@@ -1385,8 +1393,9 @@ int CoinLpIO::is_sense(const char *buff) const
     if (strcmp(buff, ">=") == 0) {
       return (2);
     }
-
-    printf("### ERROR: CoinLpIO: is_sense(): string: %s \n", buff);
+    char generalPrint[1000];
+    sprintf(generalPrint,"### ERROR: CoinLpIO: is_sense(): string: %s", buff);
+    warnError(generalPrint,lineNumber_);
   }
   return (-1);
 } /* is_sense */
@@ -1508,7 +1517,7 @@ int CoinLpIO::are_invalid_names(char const *const *const vnames,
     char str[8192];
     sprintf(str, "### ERROR: card_vnames: %d   number of rows: %d\n",
       card_vnames, getNumRows());
-    throw CoinError(str, "are_invalid_names", "CoinLpIO", __FILE__, __LINE__);
+    CoinLpIOError(str, "are_invalid_names", "CoinLpIO", __FILE__, __LINE__);
   }
 
   for (i = 0; i < card_vnames; i++) {
@@ -1545,7 +1554,7 @@ int CoinLpIO::read_monom_obj(double *coeff, char **name, int *cnt,
   if (x <= 0) {
     char str[8192];
     sprintf(str, "### ERROR: Unable to read objective function\n");
-    throw CoinError(str, "read_monom_obj", "CoinLpIO", __FILE__, __LINE__);
+    CoinLpIOError(str, "read_monom_obj", "CoinLpIO", __FILE__, __LINE__);
   }
 
   if (buff[strlen(buff) - 1] == ':') {
@@ -1777,7 +1786,7 @@ void CoinLpIO::read_row(char *buff,
     if (x <= 0) {
       char str[8192];
       sprintf(str, "### ERROR: Unable to read row monomial\n");
-      throw CoinError(str, "read_monom_row", "CoinLpIO", __FILE__, __LINE__);
+      CoinLpIOError(str, "read_monom_row", "CoinLpIO", __FILE__, __LINE__);
     }
   }
   (*cnt_coeff)--;
@@ -1907,6 +1916,7 @@ void CoinLpIO::readLp()
   bufferPosition_ = 0;
   bufferLength_ = 0;
   eofFound_ = false;
+  lineNumber_ = 0;
 
   int objsense, cnt_coeff = 0, cnt_row = 0, cnt_obj = 0;
   int num_objectives = 0;
@@ -1946,7 +1956,7 @@ void CoinLpIO::readLp()
     if ((lbuff != 2) || (CoinStrNCaseCmp(buff, "to", 2) != 0)) {
       char str[8192];
       sprintf(str, "### ERROR: Can not locate keyword 'Subject To'\n");
-      throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
+      CoinLpIOError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
     }
   }
 
@@ -2041,7 +2051,7 @@ void CoinLpIO::readLp()
           if (read_sense1 < 0) {
             char str[8192];
             sprintf(str, "### ERROR: Bounds; expect a sense, get: %s\n", buff);
-            throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
+            CoinLpIOError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
           }
           fscanfLpIO(buff);
         }
@@ -2090,7 +2100,7 @@ void CoinLpIO::readLp()
                 char str[8192];
                 sprintf(str, "### ERROR: Bounds; expect a number, get: %s\n",
                   buff);
-                throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
+                CoinLpIOError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
               }
             }
           }
@@ -2100,14 +2110,14 @@ void CoinLpIO::readLp()
               char str[8192];
               sprintf(str, "### ERROR: Bounds; variable: %s read_sense1: %d  read_sense2: %d\n",
                 buff, read_sense1, read_sense2);
-              throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
+              CoinLpIOError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
             } else {
               if (read_sense1 == 1) {
                 if (fabs(bnd1 - bnd2) > lp_eps) {
                   char str[8192];
                   sprintf(str, "### ERROR: Bounds; variable: %s read_sense1: %d  read_sense2: %d  bnd1: %f  bnd2: %f\n",
                     buff, read_sense1, read_sense2, bnd1, bnd2);
-                  throw CoinError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
+                  CoinLpIOError(str, "readLp", "CoinLpIO", __FILE__, __LINE__);
                 }
                 collow[icol] = bnd1;
                 colup[icol] = bnd1;
@@ -3000,6 +3010,7 @@ int CoinLpIO::newCardLpIO() const
     bufferPosition_ = 0;
     bufferLength_ = 0;
     char *ok = input_->gets(inputBuffer_, 1024);
+    lineNumber_++;
     if (!ok)
       return 0;
     int length = strlen(inputBuffer_);
@@ -3016,6 +3027,8 @@ int CoinLpIO::newCardLpIO() const
       inputBuffer_[length+1]='\n';  
       inputBuffer_[length+2]='\0';
     }
+    memcpy(originalBuffer_,inputBuffer_,length+1);
+    originalBuffer_[length+1] = '\0'; 
     // go to single blanks and remove all blanks before :: or :
     char *colons = strstr(inputBuffer_, "::");
     int nn = 0;
@@ -3066,7 +3079,7 @@ int CoinLpIO::fscanfLpIO(char *buff) const
       if (eofFound_)
         return 0;
       eofFound_ = true;
-      handler_->message(COIN_GENERAL_WARNING, messages_) << "### CoinLpIO::scan_next(): End inserted" << CoinMessageEol;
+      warnError("scan_next(): End inserted");
       strcpy(buff, "End");
     }
   }
@@ -3107,12 +3120,49 @@ int CoinLpIO::fscanfLpIO(char *buff) const
     skip_comment(buff);
     int x = fscanfLpIO(buff);
     if (x <= 0) {
-      handler_->message(COIN_GENERAL_WARNING, messages_) << "### CoinLpIO::scan_next(): field expected" << CoinMessageEol;
+      warnError("scan_next(): field expected");
       throw("bad fscanf");
     }
   }
   return n + start;
 }
-
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/
+// Throw an error after printing message
+void
+CoinLpIO::throwError(const char * str,const char * methodName,
+		     const char * className, const char * fileName,
+		     int line) const
+{
+  char generalPrint[1200];
+  // could tailor message using LPIO_MODIFY_MESSAGES
+  sprintf(generalPrint,"Line %d %s",lineNumber_,originalBuffer_);
+  handler_->message(COIN_GENERAL_WARNING, messages_) <<
+    generalPrint << CoinMessageEol;
+  throw CoinError(str,methodName,className,fileName,line);
+}
+void
+CoinLpIO::warnError(const char * printBuffer, int line) const
+{
+#if LPIO_MODIFY_MESSAGES == 0
+  handler_->message(COIN_GENERAL_WARNING, messages_) << printBuffer
+						     << CoinMessageEol;
+#else
+  char generalPrint[1200];
+  const char * functions[] = {"is_invalid_name():"};
+  const char * copyFrom = printBuffer;
+  for (int i=0;i<sizeof(functions)/sizeof(char *);i++) {
+    const char * find = strstr(printBuffer,functions[i]);
+    if (find) {
+      copyFrom = find + strlen(functions[i]);
+      break;
+    }
+  }
+  sprintf(generalPrint,"#CoinLpIO %s",copyFrom);
+  handler_->message(COIN_GENERAL_WARNING, messages_) <<
+    generalPrint << CoinMessageEol;
+  if (line>0) {
+    sprintf(generalPrint,"Line %d %s",line,originalBuffer_);
+    handler_->message(COIN_GENERAL_WARNING, messages_) <<
+      generalPrint << CoinMessageEol;
+  }
+#endif
+}

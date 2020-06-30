@@ -502,6 +502,11 @@ public:
   void readLp();
   /// Dump the data. Low level method for debugging.
   void print() const;
+  /// Throw an error after printing message
+  void throwError(const char * str,const char * methodName,
+		  const char * className, const char * fileName,
+		  int line) const;
+  void warnError(const char * printBuffer, int line=1) const;
 
   /// Load in SOS stuff
   void loadSOS(int numberSets, const CoinSet *sets);
@@ -638,6 +643,8 @@ protected:
   /// Maximization reformulation flag
   bool wasMaximization_;
 
+  /// Line number (for errors)
+  mutable int lineNumber_;
   /** Row names (including objective function name) 
       and column names when stopHash() for the corresponding 
       section was last called or for initial names (deemed invalid) 
@@ -679,6 +686,8 @@ protected:
 
   /// Current buffer (needed so can get rid of blanks with :
   mutable char inputBuffer_[1028];
+  /// Buffer as from fgets
+  mutable char originalBuffer_[1028];
   /// Current buffer length (negative if not got eol)
   mutable int bufferLength_;
   /// Current buffer position
