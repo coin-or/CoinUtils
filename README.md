@@ -1,10 +1,15 @@
-# CoinUtils
+# CoinUtils 
 
 [![A COIN-OR Project](https://coin-or.github.io/coin-or-badge.png)](https://www.coin-or.org)
 
 [![Latest Release](https://img.shields.io/github/v/release/coin-or/CoinUtils?sort=semver)](https://github.com/coin-or/CoinUtils/releases)
 
-CoinUtils (*Coin*-OR *Util*itie*s*) is an open-source collection of classes and functions that are generally useful to more than one COIN-OR project.
+_This file is auto-generated from .coin-or/config.yml using the script
+https://github.com/coin-or/coinbrew/tree/master/scripts/generate_readme.
+To make changes, please edit .coin-or/config.yml or the generation script._
+
+CoinUtils is an open-source collection of classes and helper functions
+that are generally useful to multiple COIN-OR projects.
 These utilities include:
  * classes for storing and manipulating sparse matrices and vectors,
  * performing matrix factorization,
@@ -16,8 +21,9 @@ These utilities include:
  * classes for storing and manipulating conflict graphs, and
  * classes for searching and storing cliques and odd cycles in conflict graphs, among others.
 
-CoinUtils is written in C++ and is released as open source code under the [Eclipse Public License (EPL)](http://www.opensource.org/licenses/eclipse-1.0).
-It is available from the [COIN-OR initiative](http://www.coin-or.org/).
+CoinUtils is written in C++ and is released as open source under the [Eclipse Public License 2.0](http://www.opensource.org/licenses/eclipse-2.0).
+
+It is distributed under the auspices of the [COIN-OR Foundation](https://www.coin-or.org)
 
 The CoinUtils website is https://github.com/coin-or/CoinUtils.
 
@@ -36,7 +42,7 @@ The CoinUtils website is https://github.com/coin-or/CoinUtils.
 Binaries for most platforms are available as part of [Cbc](https://bintray.com/coin-or/download/Cbc). 
 
  * *Linux*: On Debian/Ubuntu, CoinUtils is available in the package `coinor-coinutils` and can be installed with apt. On Fedora, CoinUtils is available in the package `coin-or-CoinUtils`.
- * *Windows*: The easiest way to get Cbc on Windows is to download from *[Bintray](https://bintray.com/coin-or/download/Cbc)*.
+ * *Windows*: The easiest way to get CoinUtils on Windows is to download from *[Bintray](https://bintray.com/coin-or/download/Cbc)*.
  * *Mac OS X*: The easiest way to get Cbc on Mac OS X is through [Homebrew](https://brew.sh).
    * `brew tap coin-or-tools/coinor`
    * `brew install coinutils`
@@ -48,8 +54,8 @@ If binaries are not available for your platform for the latest version and you w
 
  * Downloading a snapshot of the source code for the latest release version of CoinUtils from the
  [releases](https://github.com/coin-or/CoinUtils/releases) page.
- * Cloning the repository from [Github](https://github.com/coin-or/CoinUtils) or using the
- `coinbrew` script (recommended).  
+ * Cloning the repository from [Github](https://github.com/coin-or/CoinUtils) or using the 
+`coinbrew` script (recommended).  
 
 Below is a quick start guide for building on common platforms. More detailed
 build instructions are
@@ -92,11 +98,12 @@ directory will be `./build/CoinUtils/version` by default. The doxygen documentat
 is found at `<build-dir>/doxydoc/html/index.html`.
 
 If you don't have `doxygen` installed locally, you can use also find the
-documentation [here](http://www.coin-or.org/Doxygen/CoinUtils).
+documentation [here](http://coin-or.github.io/CoinUtils/Doxygen).
 
 ## Project Links
 
  * [COIN-OR Initiative](http://www.coin-or.org/)
  * [Mailing list](http://list.coin-or.org/mailman/listinfo/coinutils)
  * [Report a bug](https://github.com/coin-or/CoinUtils/issues/new)
- * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen) 
+ * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen)
+
