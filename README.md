@@ -75,7 +75,7 @@ chmod u+x coinbrew
 ./coinbrew build CoinUtils
 ```
 For more detailed instructions on coinbrew, see https://coin-or.github.io/coinbrew.
-The `coinbrew` script will fetch [these](Dependencies) additional projects.
+The `coinbrew` script will fetch the additional projects specified in the Dependencies section of [config.yml](.coin-or/config.yml).
 
 ### Without `coinbrew` (Expert users)
 
