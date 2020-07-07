@@ -4,7 +4,7 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/coin-or/CoinUtils?sort=semver)](https://github.com/coin-or/CoinUtils/releases)
 
-_This file is auto-generated from .coin-or/config.yml using the script
+_This file is auto-generated from [config.yml](.coin-or/config.yml) using the script
 https://github.com/coin-or/coinbrew/tree/master/scripts/generate_readme.
 To make changes, please edit .coin-or/config.yml or the generation script._
 
