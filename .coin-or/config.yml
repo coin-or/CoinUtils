@@ -1,0 +1,68 @@
+Description:
+  Slug: CoinUtils
+  ShortName: CoinUtils
+  LongName: COIN-OR Utilities
+  ShortDescription: Utilities, data structures, and linear algebra methods for COIN-OR projects.
+  LongDescription: |2
+    The CoinUtils project is a collection of
+    open-source utilities developed and used by a variety of other
+    projects in the COIN-OR repository. The project includes
+    classes for storing and manipulating sparse matrices and
+    vectors, performing matrix factorization, parsing input files
+    in standard formats, building representations of mathematical
+    programs, comparing floating point numbers with a tolerance,
+    performing simple presolve operations, and warm starting
+    algorithms for mathematical programs, among others.
+  Manager: Laszlo Ladanyi, ladanyi at us dot ibm dot com 
+  Homepage: https://github.com/coin-or/CoinUtils
+  License: Eclipse Public License 2.0
+  LicenseURL: http://www.opensource.org/licenses/eclipse-2.0
+  Zenodo: 173466792
+  Appveyor:
+    Status: a41muofrtpdw18c5
+    Slug: coinutils-6jtnc
+  Bintray:
+    Package: Cbc
+  Language:
+    - C++
+  Categories: 
+    - Optimization utility
+
+Dependencies:
+  - Description: Sample data files
+    URL: https://github.com/coin-or-tools/Data-Sample
+    Version: 1.2
+    Required: Required
+  - Description: Basic Linear Algebra Subroutines (BLAS)
+    URL: http://www.netlib.org/blas
+    Required: Recommended
+  - Description: Linear Algebra Package (LAPACK)
+    URL: http://www.netlib.org/lapack
+    Required: Recommended
+  - Description: GNU Readline
+    Required: Recommended
+  - Description: GNU History
+    Required: Recommended
+
+DevelopmentStatus: 
+  activityStatus: Active
+  maturityLevel: 5
+  testedPlatforms: 
+  - operatingSystem: Linux
+    compiler: gcc
+  - operatingSystem: Mac OS X
+    compiler:
+    - gcc
+    - clang
+  - operatingSystem: Microsoft Windows
+    compiler: cl
+  - operatingSystem: Microsoft Windows with MSys2
+    compiler:
+    - gcc
+    - cl
+    - icl
+  - operatingSystem: Microsoft Windows Subsystem for Linux
+    compiler:
+    - gcc
+    - cl
+    - icl
