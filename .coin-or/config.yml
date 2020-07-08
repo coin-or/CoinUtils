@@ -2,8 +2,8 @@ Description:
   Slug: CoinUtils
   ShortName: CoinUtils
   LongName: COIN-OR Utilities
-  ShortDescription: Collection of helper classes and functions that are generally useful to multiple COIN-OR projects.
-  LongDescription: |2 
+  ShortDescription: Utilities, data structures, and linear algebra methods for COIN-OR projects.
+  LongDescription: |2
     CoinUtils is an open-source collection of classes and helper functions
     that are generally useful to multiple COIN-OR projects.
     These utilities include:
@@ -16,12 +16,12 @@ Description:
      * comparing floating point numbers with a tolerance
      * classes for storing and manipulating conflict graphs, and
      * classes for searching and storing cliques and odd cycles in conflict graphs, among others.
-  Manager: 
+  Manager: Laszlo Ladanyi, ladanyi at us dot ibm dot com 
   Homepage: https://github.com/coin-or/CoinUtils
   License: Eclipse Public License 2.0
   LicenseURL: http://www.opensource.org/licenses/eclipse-2.0
   Zenodo: 173466792
-  Appveyor: 
+  Appveyor:
     Status: a41muofrtpdw18c5
     Slug: coinutils-6jtnc
   Bintray:
@@ -29,10 +29,10 @@ Description:
   Language:
     - C++
   Categories: 
-    - Optimization deterministic linear discrete
+    - Optimization utility
 
 Dependencies:
-  - Description: COIN-OR sample data files
+  - Description: Sample data files
     URL: https://github.com/coin-or-tools/Data-Sample
     Version: master
     Required: Required
