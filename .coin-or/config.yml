@@ -4,15 +4,18 @@ Description:
   LongName: COIN-OR Utilities
   ShortDescription: Utilities, data structures, and linear algebra methods for COIN-OR projects.
   LongDescription: |2
-    The CoinUtils project is a collection of
-    open-source utilities developed and used by a variety of other
-    projects in the COIN-OR repository. The project includes
-    classes for storing and manipulating sparse matrices and
-    vectors, performing matrix factorization, parsing input files
-    in standard formats, building representations of mathematical
-    programs, comparing floating point numbers with a tolerance,
-    performing simple presolve operations, and warm starting
-    algorithms for mathematical programs, among others.
+    CoinUtils is an open-source collection of classes and helper functions
+    that are generally useful to multiple COIN-OR projects.
+    These utilities include:
+     * classes for storing and manipulating sparse matrices and vectors,
+     * performing matrix factorization,
+     * parsing input files in standard formats, e.g. MPS,
+     * building representations of mathematical programs,
+     * performing simple presolve operations,
+     * warm starting algorithms for mathematical programs,
+     * comparing floating point numbers with a tolerance
+     * classes for storing and manipulating conflict graphs, and
+     * classes for searching and storing cliques and odd cycles in conflict graphs, among others.
   Manager: Laszlo Ladanyi, ladanyi at us dot ibm dot com 
   Homepage: https://github.com/coin-or/CoinUtils
   License: Eclipse Public License 2.0
@@ -38,10 +41,6 @@ Dependencies:
     Required: Recommended
   - Description: Linear Algebra Package (LAPACK)
     URL: http://www.netlib.org/lapack
-    Required: Recommended
-  - Description: GNU Readline
-    Required: Recommended
-  - Description: GNU History
     Required: Recommended
 
 DevelopmentStatus: 
