@@ -44,7 +44,7 @@ Binaries for most platforms are available as part of [Cbc](https://bintray.com/c
  * *Windows*: The easiest way to get CoinUtils on Windows is to download from *[Bintray](https://bintray.com/coin-or/download/Cbc)*.
  * *Mac OS X*: The easiest way to get Cbc on Mac OS X is through [Homebrew](https://brew.sh).
    * `brew tap coin-or-tools/coinor`
-   * `brew install coinutils`
+   * `brew install coin-or-tools/coinor/coinutils`
 
 Due to license incompatibilities, pre-compiled binaries lack some functionality.
 If binaries are not available for your platform for the latest version and you would like to request them to be built and posted, feel free to let us know on the mailing list.
