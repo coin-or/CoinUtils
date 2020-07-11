@@ -70,7 +70,7 @@ To build CoinUtils from source, obtain the `coinbrew` script, do
 ```
 wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
 chmod u+x coinbrew
-./coinbrew fetch CoinUtils@stable/2.10
+./coinbrew fetch CoinUtils@stable/2.11
 ./coinbrew build CoinUtils
 ```
 For more detailed instructions on coinbrew, see https://coin-or.github.io/coinbrew.
