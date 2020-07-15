@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+source $COINBREW_HOME/scripts/generate_readme
+
+create_variables $1
+
+make_header
+
+echo "CoinUtils is an open-source collection of classes and helper functions
+that are generally useful to multiple COIN-OR projects.
+These utilities include:
+ * classes for storing and manipulating sparse matrices and vectors,
+ * performing matrix factorization,
+ * parsing input files in standard formats, e.g. MPS,
+ * building representations of mathematical programs,
+ * performing simple presolve operations,
+ * warm starting algorithms for mathematical programs,
+ * comparing floating point numbers with a tolerance
+ * classes for storing and manipulating conflict graphs, and
+ * classes for searching and storing cliques and odd cycles in conflict graphs, among others.
+"
+
+make_build_info
+
+make_doxygen_info
+
+make_links
