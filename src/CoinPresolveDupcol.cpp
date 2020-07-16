@@ -56,15 +56,21 @@ void compute_sums(int /*n*/, const int *majlens, const CoinBigIndex *majstrts,
 
     CoinBigIndex kcs = majstrts[i];
     CoinBigIndex kce = kcs + majlens[i];
+    /*
+      It seems that depending exactly where elements are stored
+      you can get different results even with same values in same order.
+      It is only in last digit of double - but that is enough for 
+      finding duplicates.  Using long double  is marginally slower 
+      but is solid. */
 
-    double value = 0.0;
+    long double value = 0.0;
 
     for (CoinBigIndex k = kcs; k < kce; k++) {
       int irow = minndxs[k];
       value += minmuls[irow] * elems[k];
     }
 
-    majsums[cndx] = value;
+    majsums[cndx] = static_cast<double>(value);
   }
 
   return;

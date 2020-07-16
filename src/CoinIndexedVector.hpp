@@ -919,7 +919,7 @@ public:
   /**@name Condition methods */
   //@{
   /// Conditionally gets new array
-  inline int *conditionalNew(CoinBigIndex sizeWanted)
+  inline int *conditionalNew(CoinByteArray sizeWanted)
   {
     return reinterpret_cast< int * >(CoinArrayWithLength::conditionalNew(sizeWanted >= 0 ? sizeWanted*CoinSizeofAsInt(int) : -1));
   }
