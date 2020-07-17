@@ -19,7 +19,7 @@ Description:
   Manager: Laszlo Ladanyi, ladanyi at us dot ibm dot com 
   Homepage: https://github.com/coin-or/CoinUtils
   License: Eclipse Public License 2.0
-  LicenseURL: http://www.opensource.org/licenses/eclipse-2.0
+  LicenseURL: http://www.opensource.org/licenses/EPL-2.0
   Zenodo: 173466792
   Appveyor:
     Status: a41muofrtpdw18c5
