@@ -1,6 +1,6 @@
 // Authors: Matthew Saltzman and Ted Ralphs
 // Copyright 2015, Matthew Saltzman and Ted Ralphs
-// Licensed under the Eclipse Public License 1.0
+// Licensed under the Eclipse Public License 
 
 #ifndef CoinRational_H
 #define CoinRational_H
