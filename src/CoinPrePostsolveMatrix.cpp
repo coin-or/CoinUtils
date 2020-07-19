@@ -496,9 +496,9 @@ void CoinPrePostsolveMatrix::setRowStatusUsingValue(int iRow)
   if (lower < -1.0e20 && upper > 1.0e20) {
     setRowStatus(iRow, isFree);
   } else if (fabs(lower - value) <= ztolzb_) {
-    setRowStatus(iRow, atUpperBound);
-  } else if (fabs(upper - value) <= ztolzb_) {
     setRowStatus(iRow, atLowerBound);
+  } else if (fabs(upper - value) <= ztolzb_) {
+    setRowStatus(iRow, atUpperBound);
   } else {
     setRowStatus(iRow, superBasic);
   }
