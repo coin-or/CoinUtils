@@ -14,8 +14,6 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-#include "CoinTypes.h"
-#include "CoinIndexedVector.hpp"
 #include "CoinFactorization.hpp"
 #if COIN_FACTORIZATION_DENSE_CODE == 2
 #undef COIN_FACTORIZATION_DENSE_CODE
@@ -121,11 +119,11 @@ public:
   void slackValue(double value);
 #endif
   /// Returns array to put basis elements in
-  virtual CoinFactorizationDouble *elements() const;
+  virtual CoinFactorizationDouble2 *elements() const;
   /// Returns pivot row
   virtual int *pivotRow() const;
   /// Returns work area
-  virtual CoinFactorizationDouble *workArea() const;
+  virtual CoinFactorizationDouble2 *workArea() const;
   /// Returns int work area
   virtual int *intWorkArea() const;
   /// Number of entries in each row
@@ -286,9 +284,9 @@ protected:
       length is maxR*maxR+maxSpace
       will always be long enough so can have nR*nR ints in maxSpace 
   */
-  CoinFactorizationDouble *elements_;
+  CoinFactorizationDouble2 *elements_;
   /// Work area of numberRows_
-  CoinFactorizationDouble *workArea_;
+  CoinFactorizationDouble2 *workArea_;
   /** Solve mode e.g. 0 C++ code, 1 Lapack, 2 choose
       If 4 set then values pass
       if 8 set then has iterated

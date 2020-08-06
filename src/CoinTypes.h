@@ -45,7 +45,9 @@ typedef long double CoinWorkDouble;
 #define COIN_LONG_WORK 0
 typedef double CoinWorkDouble;
 #endif
-
+/** For factorizations inheriting from CoinDenseFactorization -
+    leave partial conversions but back to double. */
+typedef double CoinFactorizationDouble2;
 #if COIN_BIG_DOUBLE == 0
 typedef double CoinFactorizationDouble;
 #elif COIN_BIG_DOUBLE == 1

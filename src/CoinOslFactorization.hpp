@@ -163,11 +163,11 @@ public:
     return numberRows_ * (numberColumns_ + numberPivots_);
   }
   /// Returns array to put basis elements in
-  virtual CoinFactorizationDouble *elements() const;
+  virtual CoinFactorizationDouble2 *elements() const;
   /// Returns pivot row
   virtual int *pivotRow() const;
   /// Returns work area
-  virtual CoinFactorizationDouble *workArea() const;
+  virtual CoinFactorizationDouble2 *workArea() const;
   /// Returns int work area
   virtual int *intWorkArea() const;
   /// Number of entries in each row

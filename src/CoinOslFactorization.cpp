@@ -147,7 +147,7 @@ void CoinOslFactorization::getAreas(int numberOfRows,
   }
   if (size > maximumSpace_) {
     //delete [] elements_;
-    //elements_ = new CoinFactorizationDouble [size];
+    //elements_ = new CoinFactorizationDouble2 [size];
     maximumSpace_ = size;
   }
   factInfo_.lastEtaCount = factInfo_.nnentu + factInfo_.nnentl;
@@ -201,7 +201,7 @@ void CoinOslFactorization::getAreas(int numberOfRows,
     //delete [] pivotRow_;
     //delete [] workArea_;
     //pivotRow_ = new int [2*maximumRows_+maximumPivots_];
-    //workArea_ = new CoinFactorizationDouble [maximumRows_*WORK_MULT];
+    //workArea_ = new CoinFactorizationDouble2 [maximumRows_*WORK_MULT];
   }
 }
 
@@ -629,7 +629,7 @@ CoinOslFactorization::starts() const
   return reinterpret_cast< CoinBigIndex * >(factInfo_.xcsadr + 1);
 }
 // Returns array to put basis elements in
-CoinFactorizationDouble *
+CoinFactorizationDouble2 *
 CoinOslFactorization::elements() const
 {
   return factInfo_.xeeadr + 1;
@@ -640,7 +640,7 @@ int *CoinOslFactorization::pivotRow() const
   return factInfo_.krpadr + 1;
 }
 // Returns work area
-CoinFactorizationDouble *
+CoinFactorizationDouble2 *
 CoinOslFactorization::workArea() const
 {
   return factInfo_.kw1adr;
