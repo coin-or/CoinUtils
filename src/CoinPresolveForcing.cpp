@@ -637,9 +637,9 @@ void forcing_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
 
       prob->setColumnStatus(joow, CoinPrePostsolveMatrix::basic);
       if (acts[irow] - rlo[irow] < rup[irow] - acts[irow])
-        prob->setRowStatus(irow, CoinPrePostsolveMatrix::atUpperBound);
-      else
         prob->setRowStatus(irow, CoinPrePostsolveMatrix::atLowerBound);
+      else
+        prob->setRowStatus(irow, CoinPrePostsolveMatrix::atUpperBound);
       rowduals[irow] = yi;
 
 #if PRESOLVE_DEBUG > 1

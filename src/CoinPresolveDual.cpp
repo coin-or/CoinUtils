@@ -1664,18 +1664,18 @@ void remove_dual_action::postsolve(CoinPostsolveMatrix *prob) const
     rup[i] = rupi;
     if (rowstat) {
       unsigned char stati = prob->getRowStatus(i);
-      if (stati == CoinPresolveMatrix::atUpperBound) {
+      if (stati == CoinPresolveMatrix::atLowerBound) {
         if (rloi <= -PRESOLVE_INF) {
-          rowstat[i] = CoinPresolveMatrix::atLowerBound;
+          rowstat[i] = CoinPresolveMatrix::atUpperBound;
 #if PRESOLVE_DEBUG > 1
           std::cout
             << ", status forced to "
             << statusName(static_cast< CoinPresolveMatrix::Status >(rowstat[i]));
 #endif
         }
-      } else if (stati == CoinPresolveMatrix::atLowerBound) {
+      } else if (stati == CoinPresolveMatrix::atUpperBound) {
         if (rupi >= PRESOLVE_INF) {
-          rowstat[i] = CoinPresolveMatrix::atUpperBound;
+          rowstat[i] = CoinPresolveMatrix::atLowerBound;
 #if PRESOLVE_DEBUG > 1
           std::cout
             << ", status forced to "

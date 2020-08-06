@@ -870,16 +870,16 @@ void presolve_check_sol(const CoinPresolveMatrix *preObj,
         if (chkStatus >= 2 && preObj->rowstat_) {
           CoinPrePostsolveMatrix::Status stati = preObj->getRowStatus(i);
           switch (stati) {
-          case CoinPrePostsolveMatrix::atUpperBound: {
+          case CoinPrePostsolveMatrix::atLowerBound: {
             if (li <= -PRESOLVE_INF || fabs(lhsi - li) > tol) {
-              printf("Bad status RSOL: %d : status atUpperBound : ", i);
+              printf("Bad status RSOL: %d : status atLowerBound : ", i);
               printf("LB = %g lhs = %g UB = %g\n", li, lhsi, ui);
             }
             break;
           }
-          case CoinPrePostsolveMatrix::atLowerBound: {
+          case CoinPrePostsolveMatrix::atUpperBound: {
             if (ui >= PRESOLVE_INF || fabs(lhsi - ui) > tol) {
-              printf("Bad status RSOL: %d : status atLowerBound : ", i);
+              printf("Bad status RSOL: %d : status atUpperBound : ", i);
               printf("LB = %g lhs = %g UB = %g\n", li, lhsi, ui);
             }
             break;
@@ -1069,16 +1069,16 @@ void presolve_check_sol(const CoinPostsolveMatrix *postObj,
       if (chkStatus >= 2 && postObj->rowstat_) {
         CoinPrePostsolveMatrix::Status stati = postObj->getRowStatus(i);
         switch (stati) {
-        case CoinPrePostsolveMatrix::atUpperBound: {
+        case CoinPrePostsolveMatrix::atLowerBound: {
           if (li <= -PRESOLVE_INF || fabs(lhsi - li) > tol) {
-            printf("Bad status RSOL: %d : status atUpperBound : ", i);
+            printf("Bad status RSOL: %d : status atLowerBound : ", i);
             printf("LB = %g lhs = %g UB = %g\n", li, lhsi, ui);
           }
           break;
         }
-        case CoinPrePostsolveMatrix::atLowerBound: {
+        case CoinPrePostsolveMatrix::atUpperBound: {
           if (ui >= PRESOLVE_INF || fabs(lhsi - ui) > tol) {
-            printf("Bad status RSOL: %d : status atLowerBound : ", i);
+            printf("Bad status RSOL: %d : status atUpperBound : ", i);
             printf("LB = %g lhs = %g UB = %g\n", li, lhsi, ui);
           }
           break;

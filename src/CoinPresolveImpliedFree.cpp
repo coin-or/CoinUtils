@@ -1283,21 +1283,21 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
     if (possibleDual >= 0 && rlo[tgtrow] > -large) {
       sol[tgtcol] = (rlo[tgtrow] - tgtrow_act) / tgt_coeff;
       acts[tgtrow] = rlo[tgtrow];
-      prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atUpperBound);
+      prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atLowerBound);
     } else if (possibleDual <= 0 && rup[tgtrow] < large) {
       sol[tgtcol] = (rup[tgtrow] - tgtrow_act) / tgt_coeff;
       acts[tgtrow] = rup[tgtrow];
-      prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atLowerBound);
+      prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atUpperBound);
     } else {
       assert(rup[tgtrow] < large || rlo[tgtrow] > -large);
       if (rup[tgtrow] < large) {
         sol[tgtcol] = (rup[tgtrow] - tgtrow_act) / tgt_coeff;
         acts[tgtrow] = rup[tgtrow];
-        prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atLowerBound);
+        prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atUpperBound);
       } else {
         sol[tgtcol] = (rlo[tgtrow] - tgtrow_act) / tgt_coeff;
         acts[tgtrow] = rlo[tgtrow];
-        prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atUpperBound);
+        prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atLowerBound);
       }
 #if PRESOLVE_DEBUG > 0
       std::cout

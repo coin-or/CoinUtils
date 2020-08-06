@@ -209,10 +209,13 @@ void check_doubletons1(const CoinPresolveAction *paction,
       while (doubleton_id[j] != j) {
 #if PRESOLVE_DEBUG > 1
         printf("%d %g, ", doubleton_id[j], doubleton_mult[j]);
+#endif
         mult *= doubleton_mult[j];
         j = doubleton_id[j];
       }
+#if PRESOLVE_DEBUG > 1
       printf(" == %g\n", mult);
+#endif
       if (minmult > fabs(mult)) {
         minmult = fabs(mult);
         minid = i;
@@ -223,7 +226,6 @@ void check_doubletons1(const CoinPresolveAction *paction,
     printf("MIN MULT:  %d %g\n", minid, minmult);
 }
 #endif // PRESOLVE_DEBUG
-#endif
 
 } /* end unnamed local namespace */
 static int tryRedundant = 3;

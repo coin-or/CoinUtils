@@ -1046,9 +1046,9 @@ void subst_constraint_action::postsolve(CoinPostsolveMatrix *prob) const
     rowduals[tgtrow] = dj / tgtcoeff;
     rcosts[tgtcol] = 0.0;
     if (rowduals[tgtrow] > 0)
-      prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atUpperBound);
-    else
       prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atLowerBound);
+    else
+      prob->setRowStatus(tgtrow, CoinPrePostsolveMatrix::atUpperBound);
     prob->setColumnStatus(tgtcol, CoinPrePostsolveMatrix::basic);
 
 #if PRESOLVE_DEBUG > 2

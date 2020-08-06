@@ -869,6 +869,7 @@ void slack_singleton_action::postsolve(CoinPostsolveMatrix *prob) const
     double movement = 0.0;
     // acts was without coefficient - adjust
     acts[iRow] += coeff * sol[iCol];
+    rcosts[iCol] -= coeff*rowduals[iRow];
     if (acts[iRow] < rlo[iRow] - ztolzb)
       movement = rlo[iRow] - acts[iRow];
     else if (acts[iRow] > rup[iRow] + ztolzb)
