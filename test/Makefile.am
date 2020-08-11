@@ -24,10 +24,10 @@ unitTest_SOURCES = \
 	unitTest.cpp
 
 # List libraries to link into binary
-unitTest_LDADD = ../src/libCoinUtils.la
+unitTest_LDADD = ../src/libCoinUtils.la $(COINUTILSLIB_LFLAGS)
 
 # Here list all include flags, relative to this "srcdir" directory.
-AM_CPPFLAGS = -I$(srcdir)/../src
+AM_CPPFLAGS = -I$(srcdir)/../src $(COINUTILSLIB_CFLAGS)
 
 # Libtool flags
 AM_LDFLAGS = $(LT_LDFLAGS)
