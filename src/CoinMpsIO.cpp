@@ -2761,58 +2761,54 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
   }
   return numberErrors;
 }
+
 #ifdef COINUTILS_HAS_GLPK
-#include "glpk.h"
-COINUTILSLIB_EXPORT glp_tran *cbc_glp_tran = NULL;
-COINUTILSLIB_EXPORT glp_prob *cbc_glp_prob = NULL;
-#endif
 /* Read a problem in GMPL (subset of AMPL)  format from the given filenames.
    Thanks to Ted Ralphs - I just looked at his coding rather than look at the GMPL documentation.
  */
-int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
-  bool keepNames)
+int CoinMpsIO::readGMPL(const char *modelName, const char *dataName, bool keepNames,
+                        glp_tran **coin_glp_tran, glp_prob **coin_glp_prob)
 {
-#ifdef COINUTILS_HAS_GLPK
   int returnCode;
   gutsOfDestructor();
   // initialize
-  cbc_glp_tran = glp_mpl_alloc_wksp();
+  glp_tran *g_tran = glp_mpl_alloc_wksp();
   // read model
   char name[2000]; // should be long enough
   assert(strlen(modelName) < 2000 && (!dataName || strlen(dataName) < 2000));
   strcpy(name, modelName);
-  returnCode = glp_mpl_read_model(cbc_glp_tran, name, false);
+  returnCode = glp_mpl_read_model(g_tran, name, false);
   if (returnCode != 0) {
     // errors
-    glp_mpl_free_wksp(cbc_glp_tran);
-    cbc_glp_tran = NULL;
+    glp_mpl_free_wksp(g_tran);
+    g_tran = NULL;
     return 1;
   }
   if (dataName) {
     // read data
     strcpy(name, dataName);
-    returnCode = glp_mpl_read_data(cbc_glp_tran, name);
+    returnCode = glp_mpl_read_data(g_tran, name);
     if (returnCode != 0) {
       // errors
-      glp_mpl_free_wksp(cbc_glp_tran);
-      cbc_glp_tran = NULL;
+      glp_mpl_free_wksp(g_tran);
+      g_tran = NULL;
       return 1;
     }
   }
   // generate model
-  returnCode = glp_mpl_generate(cbc_glp_tran, NULL);
+  returnCode = glp_mpl_generate(g_tran, NULL);
   if (returnCode != 0) {
     // errors
-    glp_mpl_free_wksp(cbc_glp_tran);
-    cbc_glp_tran = NULL;
+    glp_mpl_free_wksp(g_tran);
+    g_tran = NULL;
     return 2;
   }
-  cbc_glp_prob = glp_create_prob();
-  glp_mpl_build_prob(cbc_glp_tran, cbc_glp_prob);
+  glp_prob *g_prob = glp_create_prob();
+  glp_mpl_build_prob(g_tran, g_prob);
   // Get number of rows, columns, and elements
-  numberRows_ = glp_get_num_rows(cbc_glp_prob);
-  numberColumns_ = glp_get_num_cols(cbc_glp_prob);
-  numberElements_ = glp_get_num_nz(cbc_glp_prob);
+  numberRows_ = glp_get_num_rows(g_prob);
+  numberColumns_ = glp_get_num_cols(g_prob);
+  numberElements_ = glp_get_num_nz(g_prob);
   int iRow, iColumn;
   CoinBigIndex *start = new CoinBigIndex[numberRows_ + 1];
   int *index = new int[numberElements_];
@@ -2822,7 +2818,7 @@ int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
   rowupper_ = reinterpret_cast< double * >(malloc(numberRows_ * sizeof(double)));
   // and objective
   objective_ = reinterpret_cast< double * >(malloc(numberColumns_ * sizeof(double)));
-  problemName_ = CoinStrdup(glp_get_prob_name(cbc_glp_prob));
+  problemName_ = CoinStrdup(glp_get_prob_name(g_prob));
   int kRow = 0;
   start[0] = 0;
   numberElements_ = 0;
@@ -2836,12 +2832,12 @@ int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
     numberHash_[0] = numberRows_;
   }
   for (iRow = 0; iRow < numberRows_; iRow++) {
-    int number = glp_get_mat_row(cbc_glp_prob, iRow + 1, ind - 1, el - 1);
+    int number = glp_get_mat_row(g_prob, iRow + 1, ind - 1, el - 1);
     double rowLower, rowUpper;
     int rowType;
-    rowLower = glp_get_row_lb(cbc_glp_prob, iRow + 1);
-    rowUpper = glp_get_row_ub(cbc_glp_prob, iRow + 1);
-    rowType = glp_get_row_type(cbc_glp_prob, iRow + 1);
+    rowLower = glp_get_row_lb(g_prob, iRow + 1);
+    rowUpper = glp_get_row_ub(g_prob, iRow + 1);
+    rowType = glp_get_row_type(g_prob, iRow + 1);
     switch (rowType) {
     case GLP_LO:
       rowUpper = COIN_DBL_MAX;
@@ -2864,7 +2860,7 @@ int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
       element[numberElements_++] = el[i];
     }
     if (keepNames) {
-      strcpy(name, glp_get_row_name(cbc_glp_prob, iRow + 1));
+      strcpy(name, glp_get_row_name(g_prob, iRow + 1));
       // could look at name?
       names[kRow] = CoinStrdup(name);
     }
@@ -2875,11 +2871,11 @@ int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
   delete[] ind;
 
   // FIXME why this variable is not used?
-  bool minimize = (glp_get_obj_dir(cbc_glp_prob) == GLP_MAX ? false : true);
+  bool minimize = (glp_get_obj_dir(g_prob) == GLP_MAX ? false : true);
   // sign correct?
-  objectiveOffset_ = glp_get_obj_coef(cbc_glp_prob, 0);
+  objectiveOffset_ = glp_get_obj_coef(g_prob, 0);
   for (int i = 0; i < numberColumns_; i++)
-    objective_[i] = glp_get_obj_coef(cbc_glp_prob, i + 1);
+    objective_[i] = glp_get_obj_coef(g_prob, i + 1);
   if (!minimize) {
     for (int i = 0; i < numberColumns_; i++)
       objective_[i] = -objective_[i];
@@ -2906,9 +2902,9 @@ int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
   }
   int numberIntegers = 0;
   for (iColumn = 0; iColumn < numberColumns_; iColumn++) {
-    double columnLower = glp_get_col_lb(cbc_glp_prob, iColumn + 1);
-    double columnUpper = glp_get_col_ub(cbc_glp_prob, iColumn + 1);
-    int columnType = glp_get_col_type(cbc_glp_prob, iColumn + 1);
+    double columnLower = glp_get_col_lb(g_prob, iColumn + 1);
+    double columnUpper = glp_get_col_ub(g_prob, iColumn + 1);
+    int columnType = glp_get_col_type(g_prob, iColumn + 1);
     switch (columnType) {
     case GLP_LO:
       columnUpper = COIN_DBL_MAX;
@@ -2925,7 +2921,7 @@ int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
     }
     collower_[iColumn] = columnLower;
     colupper_[iColumn] = columnUpper;
-    columnType = glp_get_col_kind(cbc_glp_prob, iColumn + 1);
+    columnType = glp_get_col_kind(g_prob, iColumn + 1);
     if (columnType == GLP_IV) {
       integerType_[iColumn] = 1;
       numberIntegers++;
@@ -2943,14 +2939,14 @@ int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
       integerType_[iColumn] = 0;
     }
     if (keepNames) {
-      strcpy(name, glp_get_col_name(cbc_glp_prob, iColumn + 1));
+      strcpy(name, glp_get_col_name(g_prob, iColumn + 1));
       // could look at name?
       names[iColumn] = CoinStrdup(name);
     }
   }
   // leave in case report needed
-  //glp_free(cbc_glp_prob);
-  //glp_mpl_free_wksp(cbc_glp_tran);
+  //glp_free(g_prob);
+  //glp_mpl_free_wksp(g_tran);
   //glp_free_env();
   if (!numberIntegers) {
     free(integerType_);
@@ -2962,13 +2958,20 @@ int CoinMpsIO::readGMPL(const char *modelName, const char *dataName,
                                                  << numberColumns_
                                                  << numberElements_
                                                  << CoinMessageEol;
+  if (coin_glp_tran){
+     *coin_glp_tran = g_tran;
+  }else{
+     glp_mpl_free_wksp(g_tran);
+  }
+  if (coin_glp_prob){
+     *coin_glp_prob = g_prob;
+  }else{
+     glp_free(g_prob);
+  }
   return 0;
-#else
-  printf("GLPK is not available\n");
-  abort();
-  return 1;
-#endif
 }
+#endif
+
 //------------------------------------------------------------------
 // Read gams files
 //------------------------------------------------------------------
