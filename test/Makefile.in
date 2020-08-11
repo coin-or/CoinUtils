@@ -124,7 +124,8 @@ am_unitTest_OBJECTS = CoinLpIOTest.$(OBJEXT) \
 	CoinPackedVectorTest.$(OBJEXT) \
 	CoinShallowPackedVectorTest.$(OBJEXT) unitTest.$(OBJEXT)
 unitTest_OBJECTS = $(am_unitTest_OBJECTS)
-unitTest_DEPENDENCIES = ../src/libCoinUtils.la
+am__DEPENDENCIES_1 =
+unitTest_DEPENDENCIES = ../src/libCoinUtils.la $(am__DEPENDENCIES_1)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -354,10 +355,10 @@ unitTest_SOURCES = \
 
 
 # List libraries to link into binary
-unitTest_LDADD = ../src/libCoinUtils.la
+unitTest_LDADD = ../src/libCoinUtils.la $(COINUTILSLIB_LFLAGS)
 
 # Here list all include flags, relative to this "srcdir" directory.
-AM_CPPFLAGS = -I$(srcdir)/../src
+AM_CPPFLAGS = -I$(srcdir)/../src $(COINUTILSLIB_CFLAGS)
 
 # Libtool flags
 AM_LDFLAGS = $(LT_LDFLAGS)
