@@ -167,7 +167,7 @@ double CoinBronKerbosch::weightP(const size_t depth, size_t &u) {
         size_t value = P_[depth][t];
 
         while (value) {
-            const size_t node = ((size_t)log2(value & -value)) + (INT_SIZE * t);
+            const size_t node = ((size_t)log2((int)value & -(int)value)) + (INT_SIZE * t);
             weight += vertices_[node].weight;
             value &= value - 1;
 
@@ -233,7 +233,7 @@ void CoinBronKerbosch::bronKerbosch(size_t depth) {
             size_t value = L_[depth][t];
 
             while (value) {
-                const size_t v = ((size_t)log2(value & -value)) + (INT_SIZE * t);
+                const size_t v = ((size_t)log2((int)value & -(int)value)) + (INT_SIZE * t);
                 value &= value - 1;
 
                 //new P and S
