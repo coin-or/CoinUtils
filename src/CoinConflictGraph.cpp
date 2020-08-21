@@ -32,7 +32,7 @@
 
 using namespace std;
 
-size_t CoinConflictGraph::minClqRow = 1024;
+size_t CoinConflictGraph::minClqRow_ = 256;
 
 static void *xmalloc(const size_t size);
 
@@ -303,6 +303,14 @@ void CoinConflictGraph::iniCoinConflictGraph(const CoinConflictGraph *other) {
     minDegree_ = other->minDegree_;
     maxDegree_ = other->maxDegree_;
     updateMDegree = other->updateMDegree;
+}
+
+void CoinConflictGraph::setMinCliqueRow(size_t minClqRow) {
+	CoinConflictGraph::minClqRow_ = minClqRow;
+}
+
+size_t CoinConflictGraph::getMinCliqueRow() {
+	return CoinConflictGraph::minClqRow_;
 }
 
 void CoinConflictGraph::printSummary() const {

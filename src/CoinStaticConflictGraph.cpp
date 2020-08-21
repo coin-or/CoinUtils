@@ -169,7 +169,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
       clqEls[nEl++] = idxNode;
     }
 
-    if ( nEl >= CoinConflictGraph::minClqRow ) {
+    if ( nEl >= CoinConflictGraph::minClqRow_ ) {
       largeClqs.addClique( nEl, clqEls );
     } else {
       smallClqs.addClique( nEl, clqEls );

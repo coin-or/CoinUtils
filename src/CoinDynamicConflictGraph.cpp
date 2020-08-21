@@ -202,7 +202,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
     
     //explicit clique
     if ((twoLargest[0] <= rhs) && ((twoSmallest[0] + twoSmallest[1]) >= (rhs + EPS)) && (nz > 2)) {
-      if (nz >= minClqRow) {
+      if (nz >= CoinConflictGraph::minClqRow_) {
         for ( size_t ie=0 ; ie<nz ; ++ie )
           clqIdxs[ie] = columns[ie].first;
         processClique(clqIdxs, nz);
@@ -339,7 +339,7 @@ void CoinDynamicConflictGraph::addCliqueAsNormalConflicts(const size_t idxs[], c
 
 void CoinDynamicConflictGraph::processClique(const size_t idxs[], const size_t size)
 {
-  if (size >= CoinConflictGraph::minClqRow ) {
+  if (size >= CoinConflictGraph::minClqRow_ ) {
     addClique( size, idxs );
   } else {
     addCliqueAsNormalConflicts(idxs, size);

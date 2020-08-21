@@ -174,19 +174,33 @@ public:
   virtual size_t nTotalCliqueElements() const = 0;
 
   /**
-   * Parameter that controls the minimum size of
-   * a clique to be explicitly stored as a clique
-   * (not pairwise).
-   **/
-  static size_t minClqRow;
-
-  /**
    * Print summarized information about
    * the conflict graph.
    **/
   void printSummary() const;
 
+  /**
+   * Set the the minimum size of a clique
+   * to be explicitly stored as a clique
+   * (not pairwise).
+   **/
+  static void setMinCliqueRow(size_t minClqRow);
+
+  /**
+   * Return the the minimum size of a clique
+   * to be explicitly stored as a clique
+   * (not pairwise).
+   **/
+  static size_t getMinCliqueRow();
+
 protected:
+  /**
+   * Parameter that controls the minimum size of
+   * a clique to be explicitly stored as a clique
+   * (not pairwise).
+   **/
+  static size_t minClqRow_;
+
   /**
    * Sets the degree of a node
    *
