@@ -149,7 +149,6 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\..\..\..\BuildTools\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalOptions>/wd4146 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
