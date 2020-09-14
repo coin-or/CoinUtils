@@ -15,8 +15,10 @@
 #include <vector>
 #include <string>
 #include <cstdio>
+#include <map>
 
 #include "CoinUtilsConfig.h"
+#include "CoinFinite.hpp"
 
 /*! \class CoinParam
     \brief A base class for `keyword value' command line parameters.
@@ -92,12 +94,20 @@ public:
 	   which they are added, starting from zero.
     </ul>
   */
-  typedef enum { coinParamInvalid = 0,
-    coinParamAct,
-    coinParamInt,
-    coinParamDbl,
-    coinParamStr,
-    coinParamKwd } CoinParamType;
+  enum CoinParamType {
+     coinParamInvalid = 0,
+     coinParamAct,
+     coinParamInt,
+     coinParamDbl,
+     coinParamStr,
+     coinParamKwd
+  };
+
+  enum CoinDisplayPriority {
+     displayPriorityNone = 0,
+     displayPriorityLow,
+     displayPriorityHigh
+  };
 
   /*! \brief Type declaration for push and pull functions.
 
@@ -128,49 +138,54 @@ public:
     constructor for an integer parameter.
   */
   CoinParam(std::string name, std::string help,
-    double lower, double upper, double dflt = 0.0,
-    bool display = true);
+            double lower = -COIN_DBL_MAX, double upper = COIN_DBL_MAX,
+            double defaultValue = 0.0, std::string longHelp = "",
+            CoinDisplayPriority displayPriority = displayPriorityHigh);
 
   /*! \brief Constructor for a parameter with an integer value
   
     The default value is 0.
   */
   CoinParam(std::string name, std::string help,
-    int lower, int upper, int dflt = 0,
-    bool display = true);
+            int lower = -COIN_INT_MAX, int upper = COIN_INT_MAX,
+            int defaultValue = 0, std::string longHelp = "",
+            CoinDisplayPriority displayPriority = displayPriorityHigh);
 
   /*! \brief Constructor for a parameter with keyword values
 
     The string supplied as \p firstValue becomes the first value-keyword.
     Additional value-keywords can be added using appendKwd().  It's necessary
     to specify both the first value-keyword (\p firstValue) and the default
-    value-keyword index (\p dflt) in order to distinguish this constructor
+    value-keyword index (\p defaultValue) in order to distinguish this constructor
     from the constructors for string and action parameters.
 
     Value-keywords are associated with an integer, starting with zero and
     increasing as each keyword is added.  The value-keyword given as \p
     firstValue will be associated with the integer zero. The integer supplied
-    for \p dflt can be any value, as long as it will be valid once all
+    for \p defaultValue can be any value, as long as it will be valid once all
     value-keywords have been added.
   */
   CoinParam(std::string name, std::string help,
-    std::string firstValue, int dflt, bool display = true);
+            std::string defaultKwd, int defaultMode, std::string longHelp = "",
+            CoinDisplayPriority displayPriority = displayPriorityHigh);
 
   /*! \brief Constructor for a string parameter
 
-    For some compilers, the default value (\p dflt) must be specified
+    For some compilers, the default value (\p defaultValue) must be specified
     explicitly with type std::string to distinguish the constructor for a
     string parameter from the constructor for an action parameter. For
     example, use std::string("default") instead of simply "default", or use a
     variable of type std::string.
   */
   CoinParam(std::string name, std::string help,
-    std::string dflt, bool display = true);
+            std::string defaultValue, std::string longHelp = "",
+            CoinDisplayPriority displayPriority = displayPriorityHigh);
 
   /*! \brief Constructor for an action parameter */
 
-  CoinParam(std::string name, std::string help,
-    bool display = true);
+  // No defaults to resolve ambiguity
+  CoinParam(std::string name, std::string help, std::string longHelp,
+            CoinDisplayPriority displayPriority);
 
   /*! \brief Copy constructor */
 
@@ -190,12 +205,40 @@ public:
 
   //@}
 
+  /*! \name Methods to initialize parameters already constructed */
+  //@{
+
+  /*! \brief These mirror the constructors with the addition of long help */
+
+  void setup(std::string name, std::string help,
+             double lower = -COIN_DBL_MAX, double upper = COIN_DBL_MAX,
+             double defaultValue = 0.0, std::string longHelp = "",
+             CoinDisplayPriority display = displayPriorityHigh);
+
+  void setup(std::string name, std::string help,
+             int lower = -COIN_INT_MAX, int upper = COIN_INT_MAX,
+             int defaultValue = 0,std::string longHelp = "",
+             CoinDisplayPriority display = displayPriorityHigh);
+
+  void setup(std::string name, std::string help,
+             std::string defaultKwd, int defaultMode, std::string longHelp = "",
+             CoinDisplayPriority display = displayPriorityHigh);
+  
+  void setup(std::string name, std::string help,
+             std::string defaultValue, std::string longHelp = "",
+             CoinDisplayPriority display = displayPriorityHigh);
+
+  // No defaults to resolve ambiguity
+  void setup(std::string name, std::string help, std::string longHelp,
+             CoinDisplayPriority display);
+
+  //@}
   /*! \name Methods to query and manipulate the value(s) of a parameter */
   //@{
 
   /*! \brief Add an additional value-keyword to a keyword parameter */
 
-  void appendKwd(std::string kwd);
+  void appendKwd(std::string kwd, int index);
 
   /*! \brief Return the integer associated with the specified value-keyword
   
@@ -207,6 +250,10 @@ public:
 	     keyword parameter
   */
   std::string kwdVal() const;
+
+  /*! \brief Return the integer mode value of the current keyword parameter
+  */
+  int modeVal() const;
 
   /*! \brief Set the value of the keyword parameter using the integer
 	     associated with a value-keyword.
@@ -245,6 +292,22 @@ public:
 
   double dblVal() const;
 
+  /*! \brief Set the lower value of an double parameter */
+
+  void setLowerDblVal(double value);
+
+  /*! \brief Get the lower value of a double parameter */
+
+  double lowerDblVal() const;
+
+  /*! \brief Set the upper value of a double parameter */
+
+  void setUpperDblVal(double value);
+
+  /*! \brief Get the upper value of a double parameter */
+
+  double upperDblVal() const;
+
   /*! \brief Set the value of a integer parameter */
 
   void setIntVal(int value);
@@ -252,6 +315,22 @@ public:
   /*! \brief Get the value of a integer parameter */
 
   int intVal() const;
+
+  /*! \brief Set the lower value of an integer parameter */
+
+  void setLowerIntVal(int value);
+
+  /*! \brief Get the lower value of a integer parameter */
+
+  int lowerIntVal() const;
+
+  /*! \brief Set the upper value of a integer parameter */
+
+  void setUpperIntVal(int value);
+
+  /*! \brief Get the upper value of a integer parameter */
+
+  int upperIntVal() const;
 
   /*! \brief Add a short help string to a parameter */
 
@@ -330,11 +409,13 @@ public:
     parameters is processed. Used by CoinParamUtils::printHelp when printing
     help messages for a list of parameters.
   */
-  inline void setDisplay(bool display) { display_ = display; }
+  inline void setDisplayPriority(CoinDisplayPriority display) {
+     display_ = display;
+  }
 
   /*! \brief Get visibility of parameter */
 
-  inline bool display() const { return (display_); }
+  inline CoinDisplayPriority getDisplayPriority() const { return (display_); }
 
   /*! \brief Get push function */
 
@@ -401,11 +482,15 @@ private:
   std::string strValue_;
 
   /// Set of valid value-keywords for a keyword parameter
-  std::vector< std::string > definedKwds_;
+  std::map< std::string, int > definedKwds_;
 
-  /*! \brief Current value for a keyword parameter (index into #definedKwds_)
+  /*! \brief Current string value for a keyword parameter 
   */
-  int currentKwd_;
+  std::string currentKwd_;
+
+  /*! \brief Current integer value (mode) for a keyword parameter 
+  */
+  int currentMode_;
 
   /// Push function
   CoinParamFunc pushFunc_;
@@ -420,7 +505,7 @@ private:
   std::string longHelp_;
 
   /// Display when processing lists of parameters?
-  bool display_;
+  CoinDisplayPriority display_;
   //@}
 };
 
