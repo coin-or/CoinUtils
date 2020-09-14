@@ -8,6 +8,7 @@
 
 #include "CoinPragma.hpp"
 #include "CoinParam.hpp"
+#include "CoinFinite.hpp"
 
 /*
   Constructors and destructors
@@ -20,24 +21,27 @@
   Default constructor.
 */
 CoinParam::CoinParam()
+#if 0
   : type_(coinParamInvalid)
   , name_()
   , lengthName_(0)
   , lengthMatch_(0)
-  , lowerDblValue_(0.0)
-  , upperDblValue_(0.0)
+  , lowerDblValue_(-COIN_DBL_MAX)
+  , upperDblValue_(COIN_DBL_MAX)
   , dblValue_(0.0)
-  , lowerIntValue_(0)
-  , upperIntValue_(0)
+  , lowerIntValue_(-COIN_INT_MAX)
+  , upperIntValue_(COIN_INT_MAX)
   , intValue_(0)
   , strValue_()
   , definedKwds_()
-  , currentKwd_(-1)
+  , currentMode_(-1)
+  , currentKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_()
   , longHelp_()
-  , display_(false)
+  , display_(displayPriorityNone)
+#endif
 {
   /* Nothing to be done here */
 }
@@ -46,25 +50,28 @@ CoinParam::CoinParam()
   Constructor for double parameter
 */
 CoinParam::CoinParam(std::string name, std::string help,
-  double lower, double upper, double dflt, bool display)
+                     double lower, double upper, 
+                     double defaultValue, std::string longHelp,
+                     CoinDisplayPriority displayPriority)
   : type_(coinParamDbl)
   , name_(name)
   , lengthName_(0)
   , lengthMatch_(0)
   , lowerDblValue_(lower)
   , upperDblValue_(upper)
-  , dblValue_(dflt)
+  , dblValue_(defaultValue)
   , lowerIntValue_(0)
   , upperIntValue_(0)
   , intValue_(0)
   , strValue_()
   , definedKwds_()
-  , currentKwd_(-1)
+  , currentMode_(-1)
+  , currentKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
-  , longHelp_()
-  , display_(display)
+  , longHelp_(longHelp)
+  , display_(displayPriority)
 {
   processName();
 }
@@ -73,7 +80,9 @@ CoinParam::CoinParam(std::string name, std::string help,
   Constructor for integer parameter
 */
 CoinParam::CoinParam(std::string name, std::string help,
-  int lower, int upper, int dflt, bool display)
+                     int lower, int upper, 
+                     int defaultValue, std::string longHelp,
+                     CoinDisplayPriority displayPriority)
   : type_(coinParamInt)
   , name_(name)
   , lengthName_(0)
@@ -83,15 +92,16 @@ CoinParam::CoinParam(std::string name, std::string help,
   , dblValue_(0.0)
   , lowerIntValue_(lower)
   , upperIntValue_(upper)
-  , intValue_(dflt)
+  , intValue_(defaultValue)
   , strValue_()
   , definedKwds_()
-  , currentKwd_(-1)
+  , currentMode_(-1)
+  , currentKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
-  , longHelp_()
-  , display_(display)
+  , longHelp_(longHelp)
+  , display_(displayPriority)
 {
   processName();
 }
@@ -100,7 +110,8 @@ CoinParam::CoinParam(std::string name, std::string help,
   Constructor for keyword parameter.
 */
 CoinParam::CoinParam(std::string name, std::string help,
-  std::string firstValue, int dflt, bool display)
+                     std::string defaultKwd, int defaultMode,
+                     std::string longHelp, CoinDisplayPriority displayPriority)
   : type_(coinParamKwd)
   , name_(name)
   , lengthName_(0)
@@ -113,22 +124,24 @@ CoinParam::CoinParam(std::string name, std::string help,
   , intValue_(0)
   , strValue_()
   , definedKwds_()
-  , currentKwd_(dflt)
+  , currentMode_(defaultMode)
+  , currentKwd_(defaultKwd)
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
-  , longHelp_()
-  , display_(display)
+  , longHelp_(longHelp)
+  , display_(displayPriority)
 {
   processName();
-  definedKwds_.push_back(firstValue);
+  definedKwds_[defaultKwd] = defaultMode;
 }
 
 /*
   Constructor for string parameter.
 */
 CoinParam::CoinParam(std::string name, std::string help,
-  std::string dflt, bool display)
+                     std::string defaultValue, std::string longHelp,
+                     CoinDisplayPriority displayPriority)
   : type_(coinParamStr)
   , name_(name)
   , lengthName_(0)
@@ -139,14 +152,15 @@ CoinParam::CoinParam(std::string name, std::string help,
   , lowerIntValue_(0)
   , upperIntValue_(0)
   , intValue_(0)
-  , strValue_(dflt)
+  , strValue_(defaultValue)
   , definedKwds_()
-  , currentKwd_(0)
+  , currentMode_(0)
+  , currentKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
-  , longHelp_()
-  , display_(display)
+  , longHelp_(longHelp)
+  , display_(displayPriority)
 {
   processName();
 }
@@ -154,7 +168,8 @@ CoinParam::CoinParam(std::string name, std::string help,
 /*
   Constructor for action parameter.
 */
-CoinParam::CoinParam(std::string name, std::string help, bool display)
+CoinParam::CoinParam(std::string name, std::string help,
+                     std::string longHelp, CoinDisplayPriority displayPriority)
   : type_(coinParamAct)
   , name_(name)
   , lengthName_(0)
@@ -167,12 +182,13 @@ CoinParam::CoinParam(std::string name, std::string help, bool display)
   , intValue_(0)
   , strValue_()
   , definedKwds_()
-  , currentKwd_(0)
+  , currentMode_(0)
+  , currentKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
-  , longHelp_()
-  , display_(display)
+  , longHelp_(longHelp)
+  , display_(displayPriority)
 {
   processName();
 }
@@ -190,6 +206,7 @@ CoinParam::CoinParam(const CoinParam &orig)
   , lowerIntValue_(orig.lowerIntValue_)
   , upperIntValue_(orig.upperIntValue_)
   , intValue_(orig.intValue_)
+  , currentMode_(orig.currentMode_)
   , currentKwd_(orig.currentKwd_)
   , pushFunc_(orig.pushFunc_)
   , pullFunc_(orig.pullFunc_)
@@ -226,6 +243,7 @@ CoinParam &CoinParam::operator=(const CoinParam &rhs)
     intValue_ = rhs.intValue_;
     strValue_ = rhs.strValue_;
     definedKwds_ = rhs.definedKwds_;
+    currentMode_ = rhs.currentMode_;
     currentKwd_ = rhs.currentKwd_;
     pushFunc_ = rhs.pushFunc_;
     pullFunc_ = rhs.pullFunc_;
@@ -247,6 +265,70 @@ CoinParam::~CoinParam()
 /*
   Methods to manipulate a CoinParam object.
 */
+
+/* Methods to initialize a parameter that's already constructed */ 
+
+void CoinParam::setup(std::string name, std::string help,
+                      double lower, double upper,
+                      double defaultValue, std::string longHelp,
+                      CoinDisplayPriority display){
+   name_ = name;
+   processName();
+   shortHelp_ = help;
+   lowerDblValue_ = lower;
+   upperDblValue_ = upper;
+   dblValue_ = defaultValue;
+   longHelp_ = longHelp;
+   display_ = display;
+}
+
+void CoinParam::setup(std::string name, std::string help,
+                      int lower, int upper,
+                      int defaultValue, std::string longHelp,
+                      CoinDisplayPriority display){
+   name_ = name;
+   processName();
+   shortHelp_ = help;
+   lowerIntValue_ = lower;
+   upperIntValue_ = upper;
+   intValue_ = defaultValue;
+   longHelp_ = longHelp;
+   display_ = display;
+}
+
+void CoinParam::setup(std::string name, std::string help,
+                      std::string defaultKwd, int defaultMode, std::string longHelp,
+                      CoinDisplayPriority display){
+   name_ = name;
+   processName();
+   shortHelp_ = help;
+   currentKwd_ = defaultKwd;
+   currentMode_ = defaultMode;
+   definedKwds_[defaultKwd] = defaultMode;
+   longHelp_ = longHelp;
+   display_ = display;
+}
+
+void CoinParam::setup(std::string name, std::string help,
+                      std::string defaultValue, std::string longHelp,
+                      CoinDisplayPriority display){
+   name_ = name;
+   processName();
+   shortHelp_ = help;
+   strValue_ = defaultValue;
+   longHelp_ = longHelp;
+   display_ = display;
+}
+
+void CoinParam::setup(std::string name, std::string help, std::string longHelp,
+                      CoinDisplayPriority display){
+   name_ = name;
+   processName();
+   shortHelp_ = help;
+   longHelp_ = longHelp;
+   display_ = display;
+}
+
 
 /*
   Process the parameter name.
@@ -375,12 +457,16 @@ void CoinParam::printLongHelp() const
 
 /*
   Add a keyword to the list for a keyword parameter.
+
+  Note, we don't check to make sure the index is not already used.
+  The assumption is that we are mapping to an enum and the indices are
+  thus automatically deconflicted.
 */
-void CoinParam::appendKwd(std::string kwd)
+void CoinParam::appendKwd(std::string kwd, int mode)
 {
   assert(type_ == coinParamKwd);
 
-  definedKwds_.push_back(kwd);
+  definedKwds_[kwd] = mode;
 }
 
 /*
@@ -391,18 +477,32 @@ int CoinParam::kwdIndex(std::string input) const
 {
   assert(type_ == coinParamKwd);
 
+  std::map<std::string, int>::const_iterator it;
+  
+  it = definedKwds_.find(input);
+
+  if (it == definedKwds_.end()) {
+      return -1;
+   }else{
+      return it->second;
+   }
+
+#if 0
+
+  // This code scans through the list and allows for partial matches,
+  // It's not finding much use right now and complicates matters.
+  
   int whichItem = -1;
   size_t numberItems = definedKwds_.size();
   if (numberItems > 0) {
     size_t inputLen = input.length();
-    size_t it;
     /*
   Open a loop to check each keyword against the input string. We don't record
   the match length for keywords, so we need to check each one for an `!' and
   do the necessary preprocessing (record position and elide `!') before
   checking for a match of the required length.
 */
-    for (it = 0; it < numberItems; it++) {
+    for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
       std::string kwd = definedKwds_[it];
       std::string::size_type shriekPos = kwd.find('!');
       size_t kwdLen = kwd.length();
@@ -431,6 +531,7 @@ int CoinParam::kwdIndex(std::string input) const
   }
 
   return (whichItem);
+#endif
 }
 
 /*
@@ -440,9 +541,9 @@ void CoinParam::setKwdVal(const std::string value)
 {
   assert(type_ == coinParamKwd);
 
-  int action = kwdIndex(value);
-  if (action >= 0) {
-    currentKwd_ = action;
+  int mode = kwdIndex(value);
+  if (mode >= 0) {
+    currentMode_ = mode;
   }
 }
 
@@ -450,18 +551,26 @@ void CoinParam::setKwdVal(const std::string value)
   Set current value for keyword parameter using an integer. Echo the new value
   to cout if requested.
 */
-void CoinParam::setKwdVal(int value, bool printIt)
+void CoinParam::setKwdVal(int newMode, bool printIt)
 {
   assert(type_ == coinParamKwd);
-  assert(value >= 0 && unsigned(value) < definedKwds_.size());
+  assert(value >= 0);
 
-  if (printIt && value != currentKwd_) {
-    std::cout << "Option for " << name_ << " changed from "
-              << definedKwds_[currentKwd_] << " to "
-              << definedKwds_[value] << std::endl;
+  if (printIt && newMode != currentMode_) {
+     std::map<std::string, int>::const_iterator it;
+     std::string newKwd;
+     for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
+        if (it->second == newMode){
+           newKwd = it->first;
+        }
+     }
+
+     std::cout << "Option for " << name_ << " changed from "
+               << currentKwd_ << " to "
+               << newKwd << std::endl;
+     currentKwd_ = newKwd;
+     currentMode_ = newMode;
   }
-
-  currentKwd_ = value;
 }
 
 /*
@@ -471,7 +580,17 @@ std::string CoinParam::kwdVal() const
 {
   assert(type_ == coinParamKwd);
 
-  return (definedKwds_[currentKwd_]);
+  return (currentKwd_);
+}
+
+/*
+  Return the string corresponding to the current value.
+*/
+int CoinParam::modeVal() const
+{
+  assert(type_ == coinParamKwd);
+
+  return (currentMode_);
 }
 
 /*
@@ -484,24 +603,25 @@ void CoinParam::printKwds() const
   assert(type_ == coinParamKwd);
 
   std::cout << "Possible options for " << name_ << " are:";
-  unsigned int it;
   int maxAcross = 5;
-  for (it = 0; it < definedKwds_.size(); it++) {
-    std::string kwd = definedKwds_[it];
+  std::map<std::string, int>::const_iterator it;
+  int i;
+  for (it = definedKwds_.begin(), i = 0; it != definedKwds_.end(); it++, i++) {
+     std::string kwd = it->first;
     std::string::size_type shriekPos = kwd.find('!');
     if (shriekPos != std::string::npos) {
       kwd = kwd.substr(0, shriekPos) + "(" + kwd.substr(shriekPos + 1) + ")";
     }
-    if (it % maxAcross == 0) {
+    if (i % maxAcross == 0) {
       std::cout << std::endl;
     }
     std::cout << "  " << kwd;
   }
   std::cout << std::endl;
 
-  assert(currentKwd_ >= 0 && unsigned(currentKwd_) < definedKwds_.size());
+  assert(currentMode_ >= 0);
 
-  std::string current = definedKwds_[currentKwd_];
+  std::string current = currentKwd_;
   std::string::size_type shriekPos = current.find('!');
   if (shriekPos != std::string::npos) {
     current = current.substr(0, shriekPos) + "(" + current.substr(shriekPos + 1) + ")";
@@ -545,6 +665,34 @@ double CoinParam::dblVal() const
   return (dblValue_);
 }
 
+void CoinParam::setLowerDblVal(double value)
+{
+  assert(type_ == coinParamDbl);
+
+  lowerDblValue_ = value;
+}
+
+double CoinParam::lowerDblVal() const
+{
+  assert(type_ == coinParamDbl);
+
+  return(lowerDblValue_);
+}
+
+void CoinParam::setUpperDblVal(double value)
+{
+  assert(type_ == coinParamDbl);
+
+  upperDblValue_ = value;
+}
+
+double CoinParam::upperDblVal() const
+{
+  assert(type_ == coinParamDbl);
+
+  return(upperDblValue_);
+}
+
 /*
   Methods to manipulate the value of an integer parameter.
 */
@@ -561,6 +709,34 @@ int CoinParam::intVal() const
   assert(type_ == coinParamInt);
 
   return (intValue_);
+}
+
+void CoinParam::setLowerIntVal(int value)
+{
+  assert(type_ == coinParamInt);
+
+  lowerIntValue_ = value;
+}
+
+int CoinParam::lowerIntVal() const
+{
+  assert(type_ == coinParamInt);
+
+  return(lowerIntValue_);
+}
+
+void CoinParam::setUpperIntVal(int value)
+{
+  assert(type_ == coinParamInt);
+
+  upperIntValue_ = value;
+}
+
+int CoinParam::upperIntVal() const
+{
+  assert(type_ == coinParamInt);
+
+  return(upperIntValue_);
 }
 
 /*
