@@ -842,7 +842,7 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
       CoinParam *param = paramVec[i];
       if (param == 0)
         continue;
-      if (param->display() || hidden) {
+      if (param->getDisplayPriority() || hidden) {
         std::string nme = param->matchName();
         int len = static_cast< int >(nme.length());
         if (!printed) {
@@ -868,7 +868,7 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
       CoinParam *param = paramVec[i];
       if (param == 0)
         continue;
-      if (param->display() || hidden) {
+      if (param->getDisplayPriority() || hidden) {
         std::cout << std::endl
                   << prefix;
         std::cout << param->matchName();
@@ -882,7 +882,7 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
       CoinParam *param = paramVec[i];
       if (param == 0)
         continue;
-      if (param->display() || hidden) {
+      if (param->getDisplayPriority() || hidden) {
         std::cout << std::endl
                   << prefix;
         std::cout << "Command: " << param->matchName();
