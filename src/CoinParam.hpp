@@ -116,7 +116,7 @@ public:
     convention, however; the base class makes no use of the push and pull
     functions and has no hardcoded interpretation of the return code.
   */
-  typedef int (*CoinParamFunc)(CoinParam *param);
+  typedef int (*CoinParamFunc)(CoinParam &param);
 
   //@}
 
@@ -512,7 +512,7 @@ private:
 /*! \relatesalso CoinParam
     \brief A type for a parameter vector.
 */
-typedef std::vector< CoinParam * > CoinParamVec;
+typedef std::vector< CoinParam > CoinParamVec;
 
 /*! \relatesalso CoinParam
     \brief A stream output function for a CoinParam object.
@@ -596,7 +596,7 @@ double getDoubleField(int argc, const char *argv[], int *valid);
   */
 COINUTILSLIB_EXPORT
 int matchParam(const CoinParamVec &paramVec, std::string name,
-  int &matchNdx, int &shortCnt);
+               int &matchNdx, int &shortCnt);
 
 /*! \relatesalso CoinParam
       \brief Get the next command keyword (name)
@@ -671,7 +671,7 @@ std::string getCommand(int argc, const char *argv[],
   */
 COINUTILSLIB_EXPORT
 int lookupParam(std::string name, CoinParamVec &paramVec,
-  int *matchCnt = 0, int *shortCnt = 0, int *queryCnt = 0);
+                int *matchCnt = 0, int *shortCnt = 0, int *queryCnt = 0);
 
 /*! \relatesalso CoinParam
       \brief Utility to print a long message as filled lines of text
@@ -711,8 +711,7 @@ void shortOrHelpOne(CoinParamVec &paramVec, int matchNdx, std::string name, int 
       short help is printed for each matching name.
   */
 COINUTILSLIB_EXPORT
-void shortOrHelpMany(CoinParamVec &paramVec,
-  std::string name, int numQuery);
+void shortOrHelpMany(CoinParamVec &paramVec, std::string name, int numQuery);
 
 /*! \relatesalso CoinParam
       \brief Print a generic `how to use the command interface' help message.
@@ -736,8 +735,8 @@ void printGenericHelp();
   */
 COINUTILSLIB_EXPORT
 void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
-  std::string prefix,
-  bool shortHelp, bool longHelp, bool hidden);
+               std::string prefix,
+               bool shortHelp, bool longHelp, bool hidden);
 }
 
 #endif /* CoinParam_H */
