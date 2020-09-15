@@ -537,11 +537,11 @@ int CoinParam::kwdIndex(std::string input) const
 /*
   Set current value for a keyword parameter using a string.
 */
-void CoinParam::setKwdVal(const std::string value)
+void CoinParam::setKwdVal(const std::string newKwd)
 {
   assert(type_ == coinParamKwd);
 
-  int mode = kwdIndex(value);
+  int mode = kwdIndex(newKwd);
   if (mode >= 0) {
     currentMode_ = mode;
   }
@@ -554,7 +554,7 @@ void CoinParam::setKwdVal(const std::string value)
 void CoinParam::setKwdVal(int newMode, bool printIt)
 {
   assert(type_ == coinParamKwd);
-  assert(value >= 0);
+  assert(newMode >= 0);
 
   if (printIt && newMode != currentMode_) {
      std::map<std::string, int>::const_iterator it;
