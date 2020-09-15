@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include "CoinUtilsConfig.h"
+
 /// Base class for FileIO classes.
 class COINUTILSLIB_EXPORT CoinFileIOBase
 {
