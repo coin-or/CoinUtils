@@ -739,6 +739,38 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
                bool shortHelp, bool longHelp, bool hidden);
 }
 
+COINUTILSLIB_EXPORT
+void CoinPrintString(const std::string input, int maxWidth = 65);
+
+COINUTILSLIB_EXPORT
+void CoinPrintString(const char *input, int maxWidth = 65);
+
+void
+CoinReadFromStream(std::vector<std::string> &inputVector,
+                   std::istream &inputStream);
+
+COINUTILSLIB_EXPORT
+void CoinReadInteractiveInput(std::vector<std::string> &inputVector,
+                              std::string prompt);
+
+COINUTILSLIB_EXPORT
+std::string CoinGetCommand(std::vector<std::string> &inputVector,
+                           int &whichField, bool &interactiveMode,
+                           std::string prompt="");
+COINUTILSLIB_EXPORT
+std::string CoinGetString(std::vector<std::string> &inputVector,
+                          int &whichField, bool &interactiveMode,
+                          std::string prompt="");
+// status 0 - okay, 1 bad, 2 not there
+COINUTILSLIB_EXPORT
+int CoinGetInt(std::vector<std::string> &inputVector,
+               int &whichField, int &status, bool &interactiveMode,
+               std::string prompt="");
+COINUTILSLIB_EXPORT
+double CoinGetDouble(std::vector<std::string> &inputVector,
+                     int &whichField, int &status,
+                     bool &interactiveMode, std::string prompt="");
+
 #endif /* CoinParam_H */
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
