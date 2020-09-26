@@ -2,9 +2,16 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
+#include "CoinUtilsConfig.h"
+
 #include <string>
 #include <cassert>
 #include <iostream>
+#include <sstream>
+#ifdef COINUTILS_HAS_READLINE
+#include <readline/readline.h>
+#include <readline/history.h>
+#endif
 
 #include "CoinPragma.hpp"
 #include "CoinParam.hpp"
@@ -765,6 +772,170 @@ std::ostream &operator<<(std::ostream &s, const CoinParam &param)
     return (s << "!! invalid parameter type !!");
   }
   }
+}
+
+void CoinPrintString(const std::string input, int maxWidth)
+{
+   std::istringstream iss(input);
+   int currentWidth = 0;
+   std::string word;
+   while (iss >> word){
+      currentWidth += word.length();
+      if (currentWidth >= 65){
+         std::cout << std::endl << word;
+      } else {
+         std::cout << word;
+      }         
+   }
+}
+
+void CoinPrintString(const char *input, int maxWidth)
+{
+   CoinPrintString(std::string(input));
+}
+
+void
+CoinReadFromStream(std::vector<std::string> &inputVector,
+                   std::istream &inputStream)
+{
+   inputVector.clear();
+   std::string field;
+   while (inputStream >> field){
+      std::string::size_type found = field.find('=');
+      if (found != std::string::npos) {
+         inputVector.push_back(field.substr(0, found));
+         inputVector.push_back(field.substr(found + 1));
+      } else {
+         inputVector.push_back(field);
+      }
+   }
+}
+
+void
+CoinReadInteractiveInput(std::vector<std::string> &inputVector,
+                         std::string prompt)
+{
+   std::string input;
+   inputVector.clear();
+  
+#ifdef COINUTILS_HAS_READLINE
+   // Get a line from the user.
+   input = std::string(readline(prompt.c_str()));
+   // If the line has any text in it, save it on the history.
+   if (input.length() > 0) {
+      add_history(input.c_str());
+   }
+#else
+   coin_prompt >> std::cout;
+   fflush(stdout);
+   getline(std::cin, input); 
+#endif
+   if (!input.length()){
+      return; 
+   }
+
+   std::istringstream inputStream(input);
+   CoinReadFromStream(inputVector, inputStream);
+}
+
+std::string
+CoinGetCommand(std::vector<std::string> &inputVector, int &whichField,
+               bool &interactiveMode, std::string prompt)
+{
+  if ((whichField < 0 || whichField >= inputVector.size())){
+     if (interactiveMode){
+        CoinReadInteractiveInput(inputVector, prompt);
+        if (inputVector.size()){
+           whichField = 0;
+        }else{
+           whichField = -1;
+           return "";
+        }
+     }else{
+        return "";
+     }
+  }
+
+  return inputVector[whichField++];
+}
+
+std::string
+CoinGetString(std::vector<std::string> &inputVector, int &whichField,
+              bool &interactiveMode, std::string prompt)
+{
+   std::string field = "";
+
+   if (whichField < 0 || whichField >= inputVector.size()){
+      if (interactiveMode) {
+         // may be negative value so do not check for -
+         CoinReadInteractiveInput(inputVector, prompt);
+         whichField = 0;
+      }else{
+         return field;
+      }
+   }
+
+  std::string value = inputVector[whichField++];
+  
+  if (value == "--" || value == "stdin"){
+     field = "-";
+  } else if (value == "stdin_lp"){
+     field = "-lp";
+  }else{
+     field = value;
+  }
+
+  return field;
+}
+
+// status 0 - okay, 1 bad, 2 not there
+int CoinGetInt(std::vector<std::string> &inputVector, int &whichField,
+               int &status, bool &interactiveMode, std::string prompt)
+{
+  if (whichField < 0 || whichField >= inputVector.size()){
+     if (interactiveMode) {
+        CoinReadInteractiveInput(inputVector, prompt);
+        whichField = 0;
+     } else {
+        // Nothing to read
+        status = 2;
+        return 0;
+     }
+  }
+
+  std::string field = inputVector[whichField++];
+
+  int value(0);
+      
+  std::stringstream ss(field);
+  status =  (ss >> value) ? 0:1;
+  
+  return value;
+}
+
+double
+CoinGetDouble(std::vector<std::string> &inputVector, int &whichField,
+              int &status, bool &interactiveMode, std::string prompt)
+{
+  if (whichField < 0 || whichField >= inputVector.size()){
+     if (interactiveMode) {
+        CoinReadInteractiveInput(inputVector, prompt);
+        whichField = 0;
+     } else {
+        // Nothing to read
+        status = 2;
+        return 0.0;
+     }
+  }
+
+  std::string field = inputVector[whichField++];
+
+  double value(0.0);
+  
+  std::stringstream ss(field);
+  status =  (ss >> value) ? 0:1;
+
+  return value;
 }
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
