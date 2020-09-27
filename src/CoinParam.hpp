@@ -745,6 +745,7 @@ void CoinPrintString(const std::string input, int maxWidth = 65);
 COINUTILSLIB_EXPORT
 void CoinPrintString(const char *input, int maxWidth = 65);
 
+COINUTILSLIB_EXPORT
 void
 CoinReadFromStream(std::vector<std::string> &inputVector,
                    std::istream &inputStream);
