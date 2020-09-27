@@ -826,7 +826,7 @@ CoinReadInteractiveInput(std::vector<std::string> &inputVector,
       add_history(input.c_str());
    }
 #else
-   coin_prompt >> std::cout;
+   prompt >> std::cout;
    fflush(stdout);
    getline(std::cin, input); 
 #endif
