@@ -504,6 +504,13 @@ CoinMpsCardReader::nextField()
     gotCard = false;
   } else {
     gotCard = true;
+    //#define COIN_ALLOW_DOLLAR_AS_COMMENT
+#ifdef COIN_ALLOW_DOLLAR_AS_COMMENT
+    if (*next == '$') {
+      if (next[1] == ' ' || next[1] == '\t' || next[1] == '\0')
+	gotCard = false; // comment
+    }
+#endif
   }
   while (!gotCard) {
     // need new image
@@ -629,6 +636,8 @@ CoinMpsCardReader::nextField()
                 }
               }
               strcpyAndCompress(columnName_, next);
+	      if (next-card_!=4)
+		freeFormat_ = true; // free format
               if (nextBlank) {
                 *nextBlank = save;
                 // on to next
@@ -675,6 +684,7 @@ CoinMpsCardReader::nextField()
                   nextBlank = NULL;
                 }
               } else {
+		freeFormat_ = true; // free format
                 if (nextBlank) {
                   save = *nextBlank;
                   *nextBlank = '\0';
@@ -819,6 +829,12 @@ CoinMpsCardReader::nextField()
         // blank
         continue;
       }
+#ifdef COIN_ALLOW_DOLLAR_AS_COMMENT
+      if (*next == '$') {
+	if (next[1] == ' ' || next[1] == '\t' || next[1] == '\0')
+	  position_ = eol_; // comment
+      }
+#endif
       return section_;
     } else if (card_[0] != '*') {
       // not a comment
@@ -857,6 +873,7 @@ CoinMpsCardReader::nextField()
         nextBlank = NULL;
       }
     } else {
+      freeFormat_ = true; // free format
       if (nextBlank) {
         save = *nextBlank;
         *nextBlank = '\0';
@@ -907,6 +924,12 @@ CoinMpsCardReader::nextField()
       value_ = -1.0e100;
     }
   }
+#ifdef COIN_ALLOW_DOLLAR_AS_COMMENT
+  if (*next == '$') {
+    if (next[1] == ' ' || next[1] == '\t' || next[1] == '\0')
+      position_ = eol_; // comment
+  }
+#endif
   return section_;
 }
 static char *
