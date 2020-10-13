@@ -833,7 +833,7 @@ CoinMpsCardReader::nextField()
 	if (next[1] == ' ' || next[1] == '\t' || next[1] == '\0')
 	  position_ = eol_; // comment
       }
-+#endif
+#endif
       return section_;
     } else if (card_[0] != '*') {
       // not a comment
