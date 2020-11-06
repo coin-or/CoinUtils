@@ -275,12 +275,14 @@ CoinParam::~CoinParam()
 
 /* Methods to initialize a parameter that's already constructed */ 
 
+/* Set up a double parameter */
 void CoinParam::setup(std::string name, std::string help,
                       double lower, double upper,
                       double defaultValue, std::string longHelp,
                       CoinDisplayPriority display){
    name_ = name;
    processName();
+   type_ = coinParamDbl;
    shortHelp_ = help;
    lowerDblValue_ = lower;
    upperDblValue_ = upper;
@@ -289,12 +291,14 @@ void CoinParam::setup(std::string name, std::string help,
    display_ = display;
 }
 
+/* Set up an integer parameter */
 void CoinParam::setup(std::string name, std::string help,
                       int lower, int upper,
                       int defaultValue, std::string longHelp,
                       CoinDisplayPriority display){
    name_ = name;
    processName();
+   type_ = coinParamInt;
    shortHelp_ = help;
    lowerIntValue_ = lower;
    upperIntValue_ = upper;
@@ -303,11 +307,14 @@ void CoinParam::setup(std::string name, std::string help,
    display_ = display;
 }
 
+/* Set up a keyword parameter */
 void CoinParam::setup(std::string name, std::string help,
-                      std::string defaultKwd, int defaultMode, std::string longHelp,
+                      std::string defaultKwd, int defaultMode,
+                      std::string longHelp,
                       CoinDisplayPriority display){
    name_ = name;
    processName();
+   type_ = coinParamKwd;
    shortHelp_ = help;
    currentKwd_ = defaultKwd;
    currentMode_ = defaultMode;
@@ -316,26 +323,29 @@ void CoinParam::setup(std::string name, std::string help,
    display_ = display;
 }
 
+/* Set up a string parameter */
 void CoinParam::setup(std::string name, std::string help,
                       std::string defaultValue, std::string longHelp,
                       CoinDisplayPriority display){
    name_ = name;
    processName();
+   type_ = coinParamStr;
    shortHelp_ = help;
    strValue_ = defaultValue;
    longHelp_ = longHelp;
    display_ = display;
 }
 
+/* Set up an action parameter */
 void CoinParam::setup(std::string name, std::string help, std::string longHelp,
                       CoinDisplayPriority display){
    name_ = name;
    processName();
+   type_ = coinParamAct;
    shortHelp_ = help;
    longHelp_ = longHelp;
    display_ = display;
 }
-
 
 /*
   Process the parameter name.
@@ -403,10 +413,21 @@ std::string CoinParam::matchName() const
 }
 
 /*
+  Return the length of the formatted paramter name for printing.
+*/
+int CoinParam::lengthMatchName() const {
+  if (lengthName_ == lengthMatch_)
+    return lengthName_;
+  else
+    return lengthName_ + 2;
+}
+
+/*
   Print the long help message and a message about appropriate values.
 */
-void CoinParam::printLongHelp() const
+std::string CoinParam::printLongHelp() const
 {
+  std::ostringstream buffer;
   if (longHelp_ != "") {
     CoinParamUtils::printIt(longHelp_.c_str());
   } else if (shortHelp_ != "") {
@@ -416,42 +437,43 @@ void CoinParam::printLongHelp() const
   }
 
   switch (type_) {
-  case coinParamDbl: {
-    std::cout << "<Range of values is " << lowerDblValue_ << " to "
-              << upperDblValue_ << ";\n\tcurrent " << dblValue_ << ">"
-              << std::endl;
-    assert(upperDblValue_ > lowerDblValue_);
-    break;
+   case coinParamDbl: {
+      buffer << "<Range of values is " << lowerDblValue_ << " to "
+             << upperDblValue_ << ";\n\tcurrent " << dblValue_ << ">"
+             << std::endl;
+      assert(upperDblValue_ > lowerDblValue_);
+      break;
+   }
+   case coinParamInt: {
+      buffer << "<Range of values is " << lowerIntValue_ << " to "
+             << upperIntValue_ << ";\n\tcurrent " << intValue_ << ">"
+             << std::endl;
+      assert(upperIntValue_ > lowerIntValue_);
+      break;
+   }
+   case coinParamKwd: {
+      printKwds();
+      break;
+   }
+   case coinParamStr: {
+      buffer << "<Current value is ";
+      if (strValue_ == "") {
+         buffer << "(unset)>";
+      } else {
+         buffer << "`" << strValue_ << "'>";
+      }
+      buffer << std::endl;
+      break;
+   }
+   case coinParamAct: {
+      break;
+   }
+   default: {
+      buffer << "!! invalid parameter type !!" << std::endl;
+      assert(false);
+   }
   }
-  case coinParamInt: {
-    std::cout << "<Range of values is " << lowerIntValue_ << " to "
-              << upperIntValue_ << ";\n\tcurrent " << intValue_ << ">"
-              << std::endl;
-    assert(upperIntValue_ > lowerIntValue_);
-    break;
-  }
-  case coinParamKwd: {
-    printKwds();
-    break;
-  }
-  case coinParamStr: {
-    std::cout << "<Current value is ";
-    if (strValue_ == "") {
-      std::cout << "(unset)>";
-    } else {
-      std::cout << "`" << strValue_ << "'>";
-    }
-    std::cout << std::endl;
-    break;
-  }
-  case coinParamAct: {
-    break;
-  }
-  default: {
-    std::cout << "!! invalid parameter type !!" << std::endl;
-    assert(false);
-  }
-  }
+  return buffer.str();
 }
 
 /*
@@ -462,7 +484,99 @@ void CoinParam::printLongHelp() const
   Methods to manipulate the values associated with a keyword parameter.
 */
 
-/*
+/* Set value of a parameter of any type */
+int CoinParam::setVal(std::string value, std::string *message,
+                        ParamPushMode pMode)
+{
+   switch(type_){
+    case coinParamKwd:
+      setKwdVal(value, message, pMode);
+      return 0;
+    case coinParamStr:
+      setStrVal(value, message, pMode);
+      return 0;
+    default:
+      std::cout << "setVal(): Parameter type must be set to string or "
+                << "keyword for this function call!" << std::endl;
+      return 1;
+   }
+}
+
+int CoinParam::setVal(double value, std::string *message, ParamPushMode pMode)
+{
+   if (type_ == coinParamDbl){
+      setDblVal(value, message, pMode);
+      return 0;
+   }else{
+      std::cout << "setVal(): Parameter type must be set to double "
+                << "for this function call!" << std::endl;
+      return 1;
+   }
+}
+
+int CoinParam::setVal(int value, std::string *message, ParamPushMode pMode)
+{
+   switch(type_){
+    case coinParamInt:
+      setIntVal(value, message, pMode);
+      return 0;
+    case coinParamKwd:
+      setKwdVal(value, message, pMode);
+      return 0;
+    default:
+      std::cout << "setVal(): Parameter type must be set to int "
+                << "for this function call!" << std::endl;
+      return 1;
+   }
+}
+
+/* Get value of a parameter of any type */
+int CoinParam::getVal(std::string &value)
+{
+   switch(type_){
+    case coinParamKwd:
+      value = currentKwd_;
+      return 0;
+    case coinParamStr:
+      value = strValue_;
+      return 0;
+    default:
+      std::cout << "getVal(): Parameter type must be set to string or "
+                << "keyword for this function call!" << std::endl;
+      return 1;
+   }      
+}
+
+int CoinParam::getVal(double &value)
+{
+   if (type_ == coinParamDbl){
+      value = dblValue_;
+      return 0;
+   }else{
+      std::cout << "getVal(): Parameter type must be set to double "
+                << "for this function call!" << std::endl;
+      return 1;
+   }
+}
+
+int CoinParam::getVal(int &value)
+{
+   switch(type_){
+    case coinParamInt:
+      value = intValue_;
+      return 0;
+    case coinParamKwd:
+      value = currentMode_;
+      return 0;
+    default:
+      std::cout << "getVal(): Parameter type must be set to int "
+                << "for this function call!" << std::endl;
+      return 1;
+   }
+
+}
+
+   /*
   Add a keyword to the list for a keyword parameter.
 
   Note, we don't check to make sure the index is not already used.
@@ -474,6 +588,13 @@ void CoinParam::appendKwd(std::string kwd, int mode)
   assert(type_ == coinParamKwd);
 
   definedKwds_[kwd] = mode;
+}
+
+void CoinParam::appendKwd(std::string kwd)
+{
+  assert(type_ == coinParamKwd);
+
+  definedKwds_[kwd] = definedKwds_.size();
 }
 
 /*
@@ -544,13 +665,32 @@ int CoinParam::kwdIndex(std::string input) const
 /*
   Set current value for a keyword parameter using a string.
 */
-void CoinParam::setKwdVal(const std::string newKwd)
+int CoinParam::setKwdVal(const std::string newKwd, std::string *message,
+                         ParamPushMode pMode)
 {
   assert(type_ == coinParamKwd);
 
-  int mode = kwdIndex(newKwd);
-  if (mode >= 0) {
-    currentMode_ = mode;
+  int newMode = kwdIndex(newKwd);
+  if (newMode >= 0) {
+     if (message){
+        std::ostringstream buffer;
+        buffer << "Option for " << name_ << " changed from ";
+        buffer << currentKwd_ << " to " << newKwd << std::endl;
+        *message = buffer.str();
+     }
+     currentKwd_ = newKwd;
+     currentMode_ = newMode;
+     if (pMode == pushOn){
+        pushFunc_(*this);
+     }
+     return 0;
+  }else{
+     if (message){
+        std::ostringstream buffer;
+        buffer << "Illegal keyword. Options are" << std::endl;
+        *message = buffer.str();
+     }
+     return 1;
   }
 }
 
@@ -558,25 +698,37 @@ void CoinParam::setKwdVal(const std::string newKwd)
   Set current value for keyword parameter using an integer. Echo the new value
   to cout if requested.
 */
-void CoinParam::setKwdVal(int newMode, bool printIt)
+int CoinParam::setKwdVal(int newMode, std::string *message, ParamPushMode pMode)
 {
   assert(type_ == coinParamKwd);
-  assert(newMode >= 0);
 
-  if (printIt && newMode != currentMode_) {
-     std::map<std::string, int>::const_iterator it;
-     std::string newKwd;
-     for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
-        if (it->second == newMode){
-           newKwd = it->first;
-        }
+  std::map<std::string, int>::const_iterator it;
+  std::string newKwd;
+  for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
+     if (it->second == newMode){
+        newKwd = it->first;
      }
-
-     std::cout << "Option for " << name_ << " changed from "
-               << currentKwd_ << " to "
-               << newKwd << std::endl;
+  }
+  if (it == definedKwds_.end()){
+     if (message){
+        std::ostringstream buffer;  
+        buffer << "Illegal keyword." << printKwds() << std::endl;
+        *message = buffer.str();
+     }
+     return 1;
+  }else{
+     if (message){
+        std::ostringstream buffer;  
+        buffer << "Option for " << name_ << " changed from ";
+        buffer << currentKwd_ << " to " << newKwd << std::endl;
+        *message = buffer.str();
+     }
      currentKwd_ = newKwd;
      currentMode_ = newMode;
+     if (pMode == pushOn){
+        pushFunc_(*this);
+     }
+     return 0;
   }
 }
 
@@ -605,11 +757,12 @@ int CoinParam::modeVal() const
   be matched. (E.g., some!Name prints as some(Name).). Follow with current
   value.
 */
-void CoinParam::printKwds() const
+std::string CoinParam::printKwds() const
 {
   assert(type_ == coinParamKwd);
 
-  std::cout << "Possible options for " << name_ << " are:";
+  std::ostringstream buffer;
+  buffer << "Possible options for " << name_ << " are:";
   int maxAcross = 5;
   std::map<std::string, int>::const_iterator it;
   int i;
@@ -620,11 +773,11 @@ void CoinParam::printKwds() const
       kwd = kwd.substr(0, shriekPos) + "(" + kwd.substr(shriekPos + 1) + ")";
     }
     if (i % maxAcross == 0) {
-      std::cout << std::endl;
+      buffer << std::endl;
     }
-    std::cout << "  " << kwd;
+    buffer << "  " << kwd;
   }
-  std::cout << std::endl;
+  buffer << std::endl;
 
   assert(currentMode_ >= 0);
 
@@ -633,18 +786,30 @@ void CoinParam::printKwds() const
   if (shriekPos != std::string::npos) {
     current = current.substr(0, shriekPos) + "(" + current.substr(shriekPos + 1) + ")";
   }
-  std::cout << "  <current: " << current << ">" << std::endl;
+  buffer << "  <current: " << current << ">" << std::endl;
+
+  return buffer.str();
 }
 
 /*
   Methods to manipulate the value of a string parameter.
 */
 
-void CoinParam::setStrVal(std::string value)
+int CoinParam::setStrVal(std::string value, std::string *message, ParamPushMode pMode)
 {
   assert(type_ == coinParamStr);
 
+  if (message){
+     std::ostringstream buffer;  
+     buffer << name_ << " was changed from ";
+     buffer << strValue_ << " to " << value << std::endl;
+     *message = buffer.str();
+  }
   strValue_ = value;
+  if (pMode == pushOn){
+     pushFunc_(*this);
+  }
+  return 0;
 }
 
 std::string CoinParam::strVal() const
@@ -658,11 +823,32 @@ std::string CoinParam::strVal() const
   Methods to manipulate the value of a double parameter.
 */
 
-void CoinParam::setDblVal(double value)
+int CoinParam::setDblVal(double value, std::string *message, ParamPushMode pMode)
 {
   assert(type_ == coinParamDbl);
 
-  dblValue_ = value;
+  if (value < lowerDblValue_ || value > upperDblValue_) {
+     if (message){
+        std::ostringstream buffer;
+        buffer << value << " was provided for " << name_;
+        buffer << " - valid range is " << lowerDblValue_;
+        buffer << " to " << upperDblValue_ << std::endl;
+        *message = buffer.str();
+     }
+     return 1;
+  } else {
+     if (message){
+        std::ostringstream buffer;
+        buffer << name_ << " was changed from ";
+        buffer << dblValue_ << " to " << value << std::endl;
+        *message = buffer.str();
+     }
+     dblValue_ = value;
+     if (pMode == pushOn){
+        pushFunc_(*this);
+     }
+     return 0;
+  }
 }
 
 double CoinParam::dblVal() const
@@ -704,11 +890,32 @@ double CoinParam::upperDblVal() const
   Methods to manipulate the value of an integer parameter.
 */
 
-void CoinParam::setIntVal(int value)
+int CoinParam::setIntVal(int value, std::string *message, ParamPushMode pMode)
 {
   assert(type_ == coinParamInt);
 
-  intValue_ = value;
+  if (value < lowerIntValue_ || value > upperIntValue_) {
+     if (message){
+        std::ostringstream buffer;
+        buffer << value << " was provided for " << name_;
+        buffer << " - valid range is " << lowerIntValue_ << " to ";
+        buffer << upperIntValue_ << std::endl;
+        *message = buffer.str();
+     }
+     return 1;
+  } else {
+     if (message){
+        std::ostringstream buffer;
+        buffer << name_ << " was changed from " << intValue_;
+        buffer << " to " << value << std::endl;
+        *message = buffer.str();
+     }
+     intValue_ = value;
+     if (pMode == pushOn){
+        pushFunc_(*this);
+     }
+     return 0;
+  }
 }
 
 int CoinParam::intVal() const
@@ -774,24 +981,26 @@ std::ostream &operator<<(std::ostream &s, const CoinParam &param)
   }
 }
 
-void CoinPrintString(const std::string input, int maxWidth)
+std::string CoinPrintString(const std::string input, int maxWidth)
 {
+   std::ostringstream buffer;
    std::istringstream iss(input);
    int currentWidth = 0;
    std::string word;
    while (iss >> word){
       currentWidth += word.length();
       if (currentWidth >= 65){
-         std::cout << std::endl << word;
+         buffer << std::endl << word;
       } else {
-         std::cout << word;
+         buffer << word;
       }         
    }
+   return buffer.str();
 }
 
-void CoinPrintString(const char *input, int maxWidth)
+std::string CoinPrintString(const char *input, int maxWidth)
 {
-   CoinPrintString(std::string(input));
+   return CoinPrintString(std::string(input));
 }
 
 void
