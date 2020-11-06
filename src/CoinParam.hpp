@@ -109,6 +109,12 @@ public:
      displayPriorityHigh
   };
 
+  enum ParamPushMode {
+     pushDefault = 0,
+     pushOn = 1,
+     pushOff = 2
+  };
+
   /*! \brief Type declaration for push and pull functions.
 
     By convention, a return code of  0 indicates execution without error, >0
@@ -156,8 +162,8 @@ public:
     The string supplied as \p firstValue becomes the first value-keyword.
     Additional value-keywords can be added using appendKwd().  It's necessary
     to specify both the first value-keyword (\p firstValue) and the default
-    value-keyword index (\p defaultValue) in order to distinguish this constructor
-    from the constructors for string and action parameters.
+    value-keyword index (\p defaultValue) in order to distinguish this 
+    constructor from the constructors for string and action parameters.
 
     Value-keywords are associated with an integer, starting with zero and
     increasing as each keyword is added.  The value-keyword given as \p
@@ -182,25 +188,20 @@ public:
             CoinDisplayPriority displayPriority = displayPriorityHigh);
 
   /*! \brief Constructor for an action parameter */
-
   // No defaults to resolve ambiguity
   CoinParam(std::string name, std::string help, std::string longHelp,
             CoinDisplayPriority displayPriority);
 
   /*! \brief Copy constructor */
-
   CoinParam(const CoinParam &orig);
 
   /*! \brief Clone */
-
   virtual CoinParam *clone();
 
   /*! \brief Assignment */
-
   CoinParam &operator=(const CoinParam &rhs);
 
   /*! \brief  Destructor */
-
   virtual ~CoinParam();
 
   //@}
@@ -209,7 +210,6 @@ public:
   //@{
 
   /*! \brief These mirror the constructors with the addition of long help */
-
   void setup(std::string name, std::string help,
              double lower = -COIN_DBL_MAX, double upper = COIN_DBL_MAX,
              double defaultValue = 0.0, std::string longHelp = "",
@@ -228,7 +228,7 @@ public:
              std::string defaultValue, std::string longHelp = "",
              CoinDisplayPriority display = displayPriorityHigh);
 
-  // No defaults to resolve ambiguity
+  // Action parameter No defaults to resolve ambiguity
   void setup(std::string name, std::string help, std::string longHelp,
              CoinDisplayPriority display);
 
@@ -236,9 +236,25 @@ public:
   /*! \name Methods to query and manipulate the value(s) of a parameter */
   //@{
 
-  /*! \brief Add an additional value-keyword to a keyword parameter */
+  /*! Set the value of a parameter of any type */
+  int setVal(std::string value, std::string *message = NULL,
+             ParamPushMode pMode = pushDefault);
+  int setVal(double value, std::string *message = NULL,
+             ParamPushMode pMode = pushDefault);
+  int setVal(int value, std::string *message = NULL,
+             ParamPushMode pMode = pushDefault);
+  
+  /*! Set the value of a parameter of any type */
+  int getVal(std::string &value);
+  int getVal(double &value);
+  int getVal(int &value);
 
+  /*! \brief Add an additional value-keyword to a keyword parameter */
   void appendKwd(std::string kwd, int index);
+
+  /*! \brief Add an additional value-keyword to a keyword parameter,
+    generating sequential mode values */
+  void appendKwd(std::string kwd);
 
   /*! \brief Return the integer associated with the specified value-keyword
   
@@ -261,7 +277,8 @@ public:
     If \p printIt is true, the corresponding value-keyword string will be
     echoed to std::cout.
   */
-  void setKwdVal(int value, bool printIt = false);
+  int setKwdVal(int value, std::string *message = NULL,
+                ParamPushMode pMode = pushDefault);
 
   /*! \brief Set the value of the keyword parameter using a value-keyword
 	     string.
@@ -269,75 +286,63 @@ public:
     The given string will be tested against the set of value-keywords for
     the parameter using the shortest match rules.
   */
-  void setKwdVal(const std::string value);
+  int setKwdVal(const std::string value, std::string *message = NULL,
+                ParamPushMode pMode = pushDefault);
 
   /*! \brief Prints the set of value-keywords defined for this keyword
 	     parameter
   */
-  void printKwds() const;
+  std::string printKwds() const;
 
   /*! \brief Set the value of a string parameter */
-
-  void setStrVal(std::string value);
+  int setStrVal(std::string value, std::string *message = NULL,
+                ParamPushMode pMode = pushDefault);
 
   /*! \brief Get the value of a string parameter */
-
   std::string strVal() const;
 
   /*! \brief Set the value of a double parameter */
-
-  void setDblVal(double value);
+  int setDblVal(double value, std::string *message = NULL,
+                ParamPushMode pMode = pushDefault);
 
   /*! \brief Get the value of a double parameter */
-
   double dblVal() const;
 
   /*! \brief Set the lower value of an double parameter */
-
   void setLowerDblVal(double value);
 
   /*! \brief Get the lower value of a double parameter */
-
   double lowerDblVal() const;
 
   /*! \brief Set the upper value of a double parameter */
-
   void setUpperDblVal(double value);
 
   /*! \brief Get the upper value of a double parameter */
-
   double upperDblVal() const;
 
   /*! \brief Set the value of a integer parameter */
-
-  void setIntVal(int value);
+  int setIntVal(int value, std::string *message = NULL,
+                ParamPushMode pMode = pushDefault);
 
   /*! \brief Get the value of a integer parameter */
-
   int intVal() const;
 
   /*! \brief Set the lower value of an integer parameter */
-
   void setLowerIntVal(int value);
 
   /*! \brief Get the lower value of a integer parameter */
-
   int lowerIntVal() const;
 
   /*! \brief Set the upper value of a integer parameter */
-
   void setUpperIntVal(int value);
 
   /*! \brief Get the upper value of a integer parameter */
-
   int upperIntVal() const;
 
   /*! \brief Add a short help string to a parameter */
-
   inline void setShortHelp(const std::string help) { shortHelp_ = help; }
 
   /*! \brief Retrieve the short help string */
-
   inline std::string shortHelp() const { return (shortHelp_); }
 
   /*! \brief Add a long help message to a parameter
@@ -348,7 +353,6 @@ public:
   inline void setLongHelp(const std::string help) { longHelp_ = help; }
 
   /*! \brief Retrieve the long help message */
-
   inline std::string longHelp() const { return (longHelp_); }
 
   /*! \brief  Print long help
@@ -359,7 +363,7 @@ public:
     message will be observed. The short help string will be used if
     long help is not available.
   */
-  void printLongHelp() const;
+  std::string printLongHelp() const;
 
   //@}
 
@@ -367,19 +371,15 @@ public:
   //@{
 
   /*! \brief Return the type of the parameter */
-
   inline CoinParamType type() const { return (type_); }
 
   /*! \brief Set the type of the parameter */
-
   inline void setType(CoinParamType type) { type_ = type; }
 
   /*! \brief Return the parameter keyword (name) string */
-
   inline std::string name() const { return (name_); }
 
   /*! \brief Set the parameter keyword (name) string */
-
   inline void setName(std::string name)
   {
     name_ = name;
@@ -403,6 +403,9 @@ public:
   */
   std::string matchName() const;
 
+  /*! \brief Return the length of the formatted paramter name for printing. */
+  int lengthMatchName() const;
+
   /*! \brief Set visibility of parameter
 
     Intended to control whether the parameter is shown when a list of
@@ -414,29 +417,24 @@ public:
   }
 
   /*! \brief Get visibility of parameter */
-
   inline CoinDisplayPriority getDisplayPriority() const { return (display_); }
 
   /*! \brief Get push function */
-
   inline CoinParamFunc pushFunc() { return (pushFunc_); }
 
   /*! \brief Set push function */
-
   inline void setPushFunc(CoinParamFunc func) { pushFunc_ = func; }
 
   /*! \brief Get pull function */
-
   inline CoinParamFunc pullFunc() { return (pullFunc_); }
 
   /*! \brief Set pull function */
-
   inline void setPullFunc(CoinParamFunc func) { pullFunc_ = func; }
 
   //@}
 
-private:
-  /*! \name Private methods */
+protected:
+  /*! \name Protected methods */
   //@{
 
   /*! Process a name for efficient matching */
@@ -444,7 +442,7 @@ private:
 
   //@}
 
-  /*! \name Private parameter data */
+  /*! \name Protected parameter data */
   //@{
   /// Parameter type (see #CoinParamType)
   CoinParamType type_;
@@ -740,10 +738,10 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
 }
 
 COINUTILSLIB_EXPORT
-void CoinPrintString(const std::string input, int maxWidth = 65);
+std::string CoinPrintString(const std::string input, int maxWidth = 65);
 
 COINUTILSLIB_EXPORT
-void CoinPrintString(const char *input, int maxWidth = 65);
+std::string CoinPrintString(const char *input, int maxWidth = 65);
 
 COINUTILSLIB_EXPORT
 void
