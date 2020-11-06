@@ -818,9 +818,7 @@ void printGenericHelp()
 */
 
 void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
-  std::string prefix,
-  bool shortHelp, bool longHelp, bool hidden)
-
+  std::string prefix, bool shortHelp, bool longHelp, bool hidden)
 {
   bool noHelp = !(shortHelp || longHelp);
   int i;
