@@ -95,12 +95,12 @@ public:
     </ul>
   */
   enum CoinParamType {
-     coinParamInvalid = 0,
-     coinParamAct,
-     coinParamInt,
-     coinParamDbl,
-     coinParamStr,
-     coinParamKwd
+     paramInvalid = 0,
+     paramAct,
+     paramInt,
+     paramDbl,
+     paramStr,
+     paramKwd
   };
 
   enum CoinDisplayPriority {
@@ -260,7 +260,7 @@ public:
   
     Returns -1 if no value-keywords match the specified string.
   */
-  int kwdIndex(std::string kwd) const;
+  int kwdToMode(std::string kwd) const;
 
   /*! \brief Return the value-keyword that is the current value of the
 	     keyword parameter
@@ -277,8 +277,8 @@ public:
     If \p printIt is true, the corresponding value-keyword string will be
     echoed to std::cout.
   */
-  int setKwdVal(int value, std::string *message = NULL,
-                ParamPushMode pMode = pushDefault);
+  int setModeVal(int value, std::string *message = NULL,
+                 ParamPushMode pMode = pushDefault);
 
   /*! \brief Set the value of the keyword parameter using a value-keyword
 	     string.
@@ -338,6 +338,9 @@ public:
 
   /*! \brief Get the upper value of a integer parameter */
   int upperIntVal() const;
+
+  /*! \brief Print possible options for a keyword parameter */
+  void printOptions();
 
   /*! \brief Add a short help string to a parameter */
   inline void setShortHelp(const std::string help) { shortHelp_ = help; }
