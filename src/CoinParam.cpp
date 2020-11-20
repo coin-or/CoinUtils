@@ -28,7 +28,6 @@
   Default constructor.
 */
 CoinParam::CoinParam()
-#if 0
   : type_(paramInvalid)
   , name_()
   , lengthName_(0)
@@ -48,7 +47,6 @@ CoinParam::CoinParam()
   , shortHelp_()
   , longHelp_()
   , display_(displayPriorityNone)
-#endif
 {
   /* Nothing to be done here */
 }
@@ -585,15 +583,11 @@ int CoinParam::getVal(int &value)
 */
 void CoinParam::appendKwd(std::string kwd, int mode)
 {
-  assert(type_ == paramKwd);
-
   definedKwds_[kwd] = mode;
 }
 
 void CoinParam::appendKwd(std::string kwd)
 {
-  assert(type_ == paramKwd);
-
   definedKwds_[kwd] = definedKwds_.size();
 }
 
