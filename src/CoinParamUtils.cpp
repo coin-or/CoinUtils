@@ -602,7 +602,7 @@ int matchParam(const CoinParamVec &paramVec, std::string name,
   shortCnt = 0;
 
   for (int i = 0; i < vecLen; i++) {
-    int match = paramVec[i].matches(name);
+    int match = paramVec[i]->matches(name);
     if (match == 1) {
       matchNdx = i;
       matchCnt++;
@@ -679,7 +679,7 @@ void shortOrHelpOne(CoinParamVec &paramVec,
   if (matchNdx < 0) {
     int match = 0;
     for (i = 0; i < numParams; i++) {
-      int match = paramVec[i].matches(name);
+      int match = paramVec[i]->matches(name);
       if (match != 0) {
         lclNdx = i;
         break;
@@ -691,16 +691,16 @@ void shortOrHelpOne(CoinParamVec &paramVec,
     if (match == 1) {
       std::cout
         << "Match for '" << name << "': "
-        << paramVec[matchNdx].matchName() << ".";
+        << paramVec[matchNdx]->matchName() << ".";
     } else {
       std::cout
         << "Short match for '" << name << "'; possible completion: "
-        << paramVec[lclNdx].matchName() << ".";
+        << paramVec[lclNdx]->matchName() << ".";
     }
   } else {
     assert(matchNdx >= 0 && matchNdx < static_cast< int >(paramVec.size()));
     std::cout << "Match for `" << name << "': "
-              << paramVec[matchNdx].matchName();
+              << paramVec[matchNdx]->matchName();
     lclNdx = matchNdx;
   }
   /*
@@ -709,9 +709,9 @@ void shortOrHelpOne(CoinParamVec &paramVec,
   if (numQuery > 0) {
     std::cout << std::endl;
     if (numQuery == 1) {
-      std::cout << paramVec[lclNdx].shortHelp();
+      std::cout << paramVec[lclNdx]->shortHelp();
     } else {
-      paramVec[lclNdx].printLongHelp();
+      paramVec[lclNdx]->printLongHelp();
     }
   }
   std::cout << std::endl;
@@ -739,12 +739,12 @@ void shortOrHelpMany(CoinParamVec &paramVec, std::string name, int numQuery)
   int lineLen = 0;
   bool printed = false;
   for (int i = 0; i < numParams; i++) {
-    int match = paramVec[i].matches(name);
+    int match = paramVec[i]->matches(name);
     if (match > 0) {
-      std::string nme = paramVec[i].matchName();
+      std::string nme = paramVec[i]->matchName();
       int len = static_cast< int >(nme.length());
       if (numQuery >= 2) {
-        std::cout << nme << " : " << paramVec[i].shortHelp();
+        std::cout << nme << " : " << paramVec[i]->shortHelp();
         std::cout << std::endl;
       } else {
         lineLen += 2 + len;
@@ -828,8 +828,8 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
   if (noHelp) {
     int lineLen = 0;
     for (i = firstParam; i <= lastParam; i++) {
-      if (paramVec[i].getDisplayPriority() || hidden) {
-        std::string nme = paramVec[i].matchName();
+      if (paramVec[i]->getDisplayPriority() || hidden) {
+        std::string nme = paramVec[i]->matchName();
         int len = static_cast< int >(nme.length());
         if (!printed) {
           std::cout << std::endl
@@ -851,25 +851,25 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
     }
   } else if (shortHelp) {
     for (i = firstParam; i <= lastParam; i++) {
-      if (paramVec[i].getDisplayPriority() || hidden) {
+      if (paramVec[i]->getDisplayPriority() || hidden) {
         std::cout << std::endl
                   << prefix;
-        std::cout << paramVec[i].matchName();
+        std::cout << paramVec[i]->matchName();
         std::cout << ": ";
-        std::cout << paramVec[i].shortHelp();
+        std::cout << paramVec[i]->shortHelp();
       }
     }
     std::cout << std::endl;
   } else if (longHelp) {
     for (i = firstParam; i <= lastParam; i++) {
-      if (paramVec[i].getDisplayPriority() || hidden) {
+      if (paramVec[i]->getDisplayPriority() || hidden) {
         std::cout << std::endl
                   << prefix;
-        std::cout << "Command: " << paramVec[i].matchName();
+        std::cout << "Command: " << paramVec[i]->matchName();
         std::cout << std::endl
                   << prefix;
         std::cout << "---- description" << std::endl;
-        printIt(paramVec[i].longHelp().c_str());
+        printIt(paramVec[i]->longHelp().c_str());
         std::cout << prefix << "----" << std::endl;
       }
     }
