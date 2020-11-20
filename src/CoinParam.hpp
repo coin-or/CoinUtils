@@ -513,7 +513,7 @@ protected:
 /*! \relatesalso CoinParam
     \brief A type for a parameter vector.
 */
-typedef std::vector< CoinParam > CoinParamVec;
+typedef std::vector< CoinParam * > CoinParamVec;
 
 /*! \relatesalso CoinParam
     \brief A stream output function for a CoinParam object.
