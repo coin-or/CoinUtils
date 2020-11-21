@@ -1136,9 +1136,10 @@ int CoinGetInt(std::vector<std::string> &inputVector, int &whichField,
   std::string field = inputVector[whichField++];
 
   int value(0);
-      
+  char c;
   std::stringstream ss(field);
-  status =  (ss >> value) ? 0:1;
+  ss >> value;
+  status =  (!ss.fail() && !ss.get(c)) ? 0:1;
   
   return value;
 }
@@ -1161,9 +1162,10 @@ CoinGetDouble(std::vector<std::string> &inputVector, int &whichField,
   std::string field = inputVector[whichField++];
 
   double value(0.0);
-  
+  char c;
   std::stringstream ss(field);
-  status =  (ss >> value) ? 0:1;
+  ss >> value;
+  status =  (!ss.fail() && !ss.get(c)) ? 0:1;
 
   return value;
 }
