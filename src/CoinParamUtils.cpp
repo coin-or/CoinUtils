@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cerrno>
 #include <iostream>
+#include <sstream>
 
 #include "CoinUtilsConfig.h"
 #include "CoinParam.hpp"
@@ -128,6 +129,129 @@ std::string nextField(const char *prompt)
 /* Visible functions */
 
 namespace CoinParamUtils {
+
+std::string printString(const std::string input, int maxWidth)
+{
+   std::ostringstream buffer;
+   std::istringstream iss(input);
+   int currentWidth = 0;
+   std::string word;
+   while (iss >> word){
+      currentWidth += word.length();
+      if (currentWidth >= 65){
+         buffer << std::endl << word;
+      } else {
+         buffer << word;
+      }         
+   }
+   return buffer.str();
+}
+
+std::string printString(const char *input, int maxWidth)
+{
+   return CoinParamUtils::printString(std::string(input));
+}
+
+void
+readFromStream(std::queue<std::string> &inputQueue,
+               std::istream &inputStream)
+{
+   std::string field;
+   while (inputStream >> field){
+      std::string::size_type found = field.find('=');
+      if (found != std::string::npos) {
+         inputQueue.push(field.substr(0, found));
+         inputQueue.push(field.substr(found + 1));
+      } else {
+         inputQueue.push(field);
+      }
+   }
+}
+
+void
+readInteractiveInput(std::queue<std::string> &inputQueue,
+                         std::string prompt)
+{
+   std::string input;
+  
+#ifdef COINUTILS_HAS_READLINE
+   // Get a line from the user.
+   input = std::string(readline(prompt.c_str()));
+   // If the line has any text in it, save it on the history.
+   if (input.length() > 0) {
+      add_history(input.c_str());
+   }
+#else
+   std::cout << prompt;
+   fflush(stdout);
+   getline(std::cin, input); 
+#endif
+   if (!input.length()){
+      return; 
+   }
+
+   std::istringstream inputStream(input);
+   CoinParamUtils::readFromStream(inputQueue, inputStream);
+}
+
+std::string
+getNextField(std::queue<std::string> &inputQueue, bool interactiveMode,
+                 std::string prompt)
+{
+  if (inputQueue.empty() && interactiveMode){
+     CoinParamUtils::readInteractiveInput(inputQueue, prompt);
+  }
+
+  if (inputQueue.empty()){
+     return "";
+  }else{
+     std::string field = inputQueue.front();
+     inputQueue.pop();
+     return field;
+  }
+}
+
+int getValue(std::queue<std::string> &inputQueue, std::string &value)
+{
+   value = CoinParamUtils::getNextField(inputQueue);
+
+   if (value == "--" || value == "stdin"){
+      value == "-";
+   } else if (value == "stdin_lp"){
+      value == "-lp";
+   }
+
+   return value == "" ? 1 : 0;
+}
+
+// return 0 - okay, 1 bad, 2 not there
+int getValue(std::queue<std::string> &inputQueue, int &value)
+{
+   std::string field = CoinParamUtils::getNextField(inputQueue);
+
+   if (field.empty()){
+      return 2;
+   }
+   
+   char c;
+   std::stringstream ss(field);
+   ss >> value;
+   return (!ss.fail() && !ss.get(c)) ? 0 : 1;
+}
+
+int getValue(std::queue<std::string> &inputQueue, double &value)
+{
+   std::string field = CoinParamUtils::getNextField(inputQueue);
+
+   if (field.empty()){
+      return 2;
+   }
+   
+  char c;
+  std::stringstream ss(field);
+  ss >> value;
+  return (!ss.fail() && !ss.get(c)) ? 0 : 1;
+}
 
 /*
   As mentioned above, cmdField set to -1 is the indication that we're reading
