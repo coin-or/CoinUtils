@@ -1025,28 +1025,26 @@ std::string CoinPrintString(const char *input, int maxWidth)
 }
 
 void
-CoinReadFromStream(std::vector<std::string> &inputVector,
+CoinReadFromStream(std::queue<std::string> &inputQueue,
                    std::istream &inputStream)
 {
-   inputVector.clear();
    std::string field;
    while (inputStream >> field){
       std::string::size_type found = field.find('=');
       if (found != std::string::npos) {
-         inputVector.push_back(field.substr(0, found));
-         inputVector.push_back(field.substr(found + 1));
+         inputQueue.push(field.substr(0, found));
+         inputQueue.push(field.substr(found + 1));
       } else {
-         inputVector.push_back(field);
+         inputQueue.push(field);
       }
    }
 }
 
 void
-CoinReadInteractiveInput(std::vector<std::string> &inputVector,
+CoinReadInteractiveInput(std::queue<std::string> &inputQueue,
                          std::string prompt)
 {
    std::string input;
-   inputVector.clear();
   
 #ifdef COINUTILS_HAS_READLINE
    // Get a line from the user.
@@ -1065,109 +1063,66 @@ CoinReadInteractiveInput(std::vector<std::string> &inputVector,
    }
 
    std::istringstream inputStream(input);
-   CoinReadFromStream(inputVector, inputStream);
+   CoinReadFromStream(inputQueue, inputStream);
 }
 
 std::string
-CoinGetCommand(std::vector<std::string> &inputVector, int &whichField,
-               bool &interactiveMode, std::string prompt)
+CoinGetNextField(std::queue<std::string> &inputQueue, bool interactiveMode,
+                 std::string prompt)
 {
-  if ((whichField < 0 || whichField >= inputVector.size())){
-     if (interactiveMode){
-        CoinReadInteractiveInput(inputVector, prompt);
-        if (inputVector.size()){
-           whichField = 0;
-        }else{
-           whichField = -1;
-           return "";
-        }
-     }else{
-        return "";
-     }
+  if (inputQueue.empty() && interactiveMode){
+     CoinReadInteractiveInput(inputQueue, prompt);
   }
 
-  return inputVector[whichField++];
+  if (inputQueue.empty()){
+     return "";
+  }else{
+     std::string field = inputQueue.front();
+     inputQueue.pop();
+     return field;
+  }
 }
 
-std::string
-CoinGetString(std::vector<std::string> &inputVector, int &whichField,
-              bool &interactiveMode, std::string prompt)
+int CoinGetValue(std::queue<std::string> &inputQueue, std::string &value)
 {
-   std::string field = "";
+   value = CoinGetNextField(inputQueue);
 
-   if (whichField < 0 || whichField >= inputVector.size()){
-      if (interactiveMode) {
-         // may be negative value so do not check for -
-         CoinReadInteractiveInput(inputVector, prompt);
-         whichField = 0;
-      }else{
-         return field;
-      }
+   if (value == "--" || value == "stdin"){
+      value == "-";
+   } else if (value == "stdin_lp"){
+      value == "-lp";
    }
 
-  std::string value = inputVector[whichField++];
-  
-  if (value == "--" || value == "stdin"){
-     field = "-";
-  } else if (value == "stdin_lp"){
-     field = "-lp";
-  }else{
-     field = value;
-  }
-
-  return field;
+   return value == "" ? 1 : 0;
 }
 
-// status 0 - okay, 1 bad, 2 not there
-int CoinGetInt(std::vector<std::string> &inputVector, int &whichField,
-               int &status, bool &interactiveMode, std::string prompt)
+// return 0 - okay, 1 bad, 2 not there
+int CoinGetValue(std::queue<std::string> &inputQueue, int &value)
 {
-  if (whichField < 0 || whichField >= inputVector.size()){
-     if (interactiveMode) {
-        CoinReadInteractiveInput(inputVector, prompt);
-        whichField = 0;
-     } else {
-        // Nothing to read
-        status = 2;
-        return 0;
-     }
-  }
+   std::string field = CoinGetNextField(inputQueue);
 
-  std::string field = inputVector[whichField++];
+   if (field.empty()){
+      return 2;
+   }
+   
+   char c;
+   std::stringstream ss(field);
+   ss >> value;
+   return (!ss.fail() && !ss.get(c)) ? 0 : 1;
+}
 
-  int value(0);
+int CoinGetValue(std::queue<std::string> &inputQueue, double &value)
+{
+   std::string field = CoinGetNextField(inputQueue);
+
+   if (field.empty()){
+      return 2;
+   }
+   
   char c;
   std::stringstream ss(field);
   ss >> value;
-  status =  (!ss.fail() && !ss.get(c)) ? 0:1;
-  
-  return value;
-}
-
-double
-CoinGetDouble(std::vector<std::string> &inputVector, int &whichField,
-              int &status, bool &interactiveMode, std::string prompt)
-{
-  if (whichField < 0 || whichField >= inputVector.size()){
-     if (interactiveMode) {
-        CoinReadInteractiveInput(inputVector, prompt);
-        whichField = 0;
-     } else {
-        // Nothing to read
-        status = 2;
-        return 0.0;
-     }
-  }
-
-  std::string field = inputVector[whichField++];
-
-  double value(0.0);
-  char c;
-  std::stringstream ss(field);
-  ss >> value;
-  status =  (!ss.fail() && !ss.get(c)) ? 0:1;
-
-  return value;
+  return (!ss.fail() && !ss.get(c)) ? 0 : 1;
 }
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
