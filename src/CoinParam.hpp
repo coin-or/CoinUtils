@@ -12,7 +12,7 @@
     \brief Declaration of a class for command line parameters.
 */
 
-#include <vector>
+#include <queue>
 #include <string>
 #include <cstdio>
 #include <map>
@@ -748,30 +748,26 @@ std::string CoinPrintString(const char *input, int maxWidth = 65);
 
 COINUTILSLIB_EXPORT
 void
-CoinReadFromStream(std::vector<std::string> &inputVector,
+CoinReadFromStream(std::queue<std::string> &inputQueue,
                    std::istream &inputStream);
 
 COINUTILSLIB_EXPORT
-void CoinReadInteractiveInput(std::vector<std::string> &inputVector,
+void CoinReadInteractiveInput(std::queue<std::string> &inputQueue,
                               std::string prompt);
 
 COINUTILSLIB_EXPORT
-std::string CoinGetCommand(std::vector<std::string> &inputVector,
-                           int &whichField, bool &interactiveMode,
-                           std::string prompt="");
+std::string CoinGetNextField(std::queue<std::string> &inputQueue,
+                             bool interactiveMode = false,
+                             std::string prompt="");
 COINUTILSLIB_EXPORT
-std::string CoinGetString(std::vector<std::string> &inputVector,
-                          int &whichField, bool &interactiveMode,
-                          std::string prompt="");
+int CoinGetValue(std::queue<std::string> &inputQueue, std::string &value);
+
 // status 0 - okay, 1 bad, 2 not there
 COINUTILSLIB_EXPORT
-int CoinGetInt(std::vector<std::string> &inputVector,
-               int &whichField, int &status, bool &interactiveMode,
-               std::string prompt="");
+int CoinGetValue(std::queue<std::string> &inputQueue, int &value);
+
 COINUTILSLIB_EXPORT
-double CoinGetDouble(std::vector<std::string> &inputVector,
-                     int &whichField, int &status,
-                     bool &interactiveMode, std::string prompt="");
+int CoinGetValue(std::queue<std::string> &inputQueue, double &value);
 
 #endif /* CoinParam_H */
 
