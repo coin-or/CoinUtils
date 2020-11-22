@@ -738,37 +738,37 @@ COINUTILSLIB_EXPORT
 void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
                std::string prefix,
                bool shortHelp, bool longHelp, bool hidden);
-}
 
 COINUTILSLIB_EXPORT
-std::string CoinPrintString(const std::string input, int maxWidth = 65);
+std::string printString(const std::string input, int maxWidth = 65);
 
 COINUTILSLIB_EXPORT
-std::string CoinPrintString(const char *input, int maxWidth = 65);
+std::string printString(const char *input, int maxWidth = 65);
 
 COINUTILSLIB_EXPORT
 void
-CoinReadFromStream(std::queue<std::string> &inputQueue,
+readFromStream(std::queue<std::string> &inputQueue,
                    std::istream &inputStream);
 
 COINUTILSLIB_EXPORT
-void CoinReadInteractiveInput(std::queue<std::string> &inputQueue,
+void readInteractiveInput(std::queue<std::string> &inputQueue,
                               std::string prompt);
 
 COINUTILSLIB_EXPORT
-std::string CoinGetNextField(std::queue<std::string> &inputQueue,
+std::string getNextField(std::queue<std::string> &inputQueue,
                              bool interactiveMode = false,
                              std::string prompt="");
 COINUTILSLIB_EXPORT
-int CoinGetValue(std::queue<std::string> &inputQueue, std::string &value);
+int getValue(std::queue<std::string> &inputQueue, std::string &value);
 
 // status 0 - okay, 1 bad, 2 not there
 COINUTILSLIB_EXPORT
-int CoinGetValue(std::queue<std::string> &inputQueue, int &value);
+int getValue(std::queue<std::string> &inputQueue, int &value);
 
 COINUTILSLIB_EXPORT
-int CoinGetValue(std::queue<std::string> &inputQueue, double &value);
+int getValue(std::queue<std::string> &inputQueue, double &value);
 
+}
 #endif /* CoinParam_H */
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
