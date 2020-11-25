@@ -66,7 +66,8 @@ const CoinPresolveAction *isolated_constraint_action::presolve(CoinPresolveMatri
   CoinBigIndex k;
   for (k = krs; k < kre; ++k) {
     int jcol = hcol[k];
-    if ((clo[jcol] != 0.0 && cup[jcol] != 0.0) || (maxmin * dcost[jcol] > 0.0 && clo[jcol] != 0.0) || (maxmin * dcost[jcol] < 0.0 && cup[jcol] != 0.0)) {
+    if ((clo[jcol] != 0.0 && cup[jcol] != 0.0) || (maxmin * dcost[jcol] > 0.0 && clo[jcol] != 0.0) || (maxmin * dcost[jcol] < 0.0 && cup[jcol] != 0.0)
+	|| prob->colProhibited2(jcol)) {
 #if PRESOLVE_DEBUG
       printf("can't handle non-trivial isolated constraints for now\n");
 #endif

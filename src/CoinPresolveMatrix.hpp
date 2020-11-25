@@ -1349,6 +1349,29 @@ class COINUTILSLIB_EXPORT CoinPresolveMatrix : public CoinPrePostsolveMatrix
   {
     colChanged_[i] = static_cast< unsigned char >(colChanged_[i] | (8));
   }
+  /// Test if column can be touched at all
+  inline bool colCanTouch(int i) const
+  {
+    return (colChanged_[i] & 16) == 0;
+  }
+  /*! \brief Test if column can be touched at all
+
+    The difference between this method and #colCanTouch() is that this
+    method first tests #anyProhibited_ before examining the specific entry
+    for the specified column.
+  */
+  inline bool colCanTouch2(int i) const
+  {
+    if (!anyProhibited_)
+      return true;
+    else
+      return (colChanged_[i] & 16) == 0;
+  }
+  /// Mark column as totally ineligible for preprocessing
+  inline void setColLeaveTotallyAlone(int i)
+  {
+    colChanged_[i] = static_cast< unsigned char >(colChanged_[i] | (16));
+  }
 
   /*! \brief Initialise the row ToDo lists
 
@@ -1388,7 +1411,7 @@ class COINUTILSLIB_EXPORT CoinPresolveMatrix : public CoinPrePostsolveMatrix
   /// Mark row as changed and add to list of rows to process next
   inline void addRow(int i)
   {
-    if ((rowChanged_[i] & 1) == 0) {
+    if ((rowChanged_[i] & 3) == 0) {
       rowChanged_[i] = static_cast< unsigned char >(rowChanged_[i] | (1));
       nextRowsToDo_[numberNextRowsToDo_++] = i;
     }

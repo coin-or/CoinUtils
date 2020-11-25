@@ -653,6 +653,8 @@ const CoinPresolveAction
 */
     if (prob->colProhibited(tgtcolx) && prob->colProhibited(tgtcoly))
       continue;
+    if (!prob->colCanTouch(tgtcolx) || !prob->colCanTouch(tgtcoly))
+      continue;
     if (fabs(rowCoeffs[krs]) < ZTOLDP2 || fabs(rowCoeffs[krs + 1]) < ZTOLDP2)
       continue;
     if ((fabs(cup[tgtcolx] - clo[tgtcolx]) < ZTOLDP) || (fabs(cup[tgtcoly] - clo[tgtcoly]) < ZTOLDP))

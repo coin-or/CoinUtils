@@ -429,6 +429,12 @@ const CoinPresolveAction *tripleton_action::presolve(CoinPresolveMatrix *prob,
         coeffy = coeffx;
         coeffx = dTemp;
       }
+      // check any prohibited
+      if (prob->anyProhibited_) {
+	if (!prob->colCanTouch(icolx)||!prob->colCanTouch(icoly)||
+	    !prob->colCanTouch(icolz))
+	  continue;
+      }
       // Not all same sign and y is odd one out
       // don't bother with fixed variables
       if (!(fabs(cup[icolx] - clo[icolx]) < ZTOLDP) && !(fabs(cup[icoly] - clo[icolx]) < ZTOLDP) && !(fabs(cup[icolz] - clo[icoly]) < ZTOLDP)) {

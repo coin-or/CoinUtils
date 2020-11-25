@@ -23,6 +23,11 @@
 bool CoinRational::nearestRational_(double val, double maxdelta, long maxdnom)
 {
   double intpart;
+  if (floor(val)==val) {
+    numerator_ = val;
+    denominator_ = 1.0;
+    return true;
+  }
   double fracpart = fabs(modf(val, &intpart));
   // Consider using remainder() instead?
 
