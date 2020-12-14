@@ -1946,8 +1946,7 @@ const CoinPresolveAction
   double bound[2];
   double alpha[2] = { 0.0, 0.0 };
   double offset = 0.0;
-#define PRINT_VALUES 0
-#if PRINT_VALUES > 0
+#ifdef PRINT_VALUES
   int nDone=0;
   int oddActions[4]={0};
 #endif
@@ -2388,7 +2387,7 @@ const CoinPresolveAction
 		     row[i],els[i][0],which[0],els[i][1],which[1],rhs[i]);
 #endif
 	    // see what we can do - four cases
-#if PRINT_VALUES > 0
+#ifdef PRINT_VALUES
 	    oddActions[isint[0]+2*isint[1]]++;
 #endif
 	    if (!isint[0]&&isint[1]&&ub[1]<100) {
@@ -2420,7 +2419,7 @@ const CoinPresolveAction
 	      if (loInt>upInt) {
 		// infeasible
 		costPair[0]=COIN_DBL_MAX;
-#if PRINT_VALUES > 0
+#ifdef PRINT_VALUES
 		printf("INFEAS\n");
 		abort();
 #endif
@@ -2467,7 +2466,7 @@ const CoinPresolveAction
 		cost[otherCol] = newCost;
 		double newCost2 = clo[icol]*cost[icol];
 		newCost2 += (loInt+adjBound[1])*cost[otherCol];
-#if PRINT_VALUES > 0
+#ifdef PRINT_VALUES
 		printf("icol fixed %g otherCol %g %g newCost %g - change %g\n",
 		       clo[icol],clo[otherCol],cup[otherCol],newCost,
 		       newCost2-oldCost);
@@ -2486,7 +2485,7 @@ const CoinPresolveAction
         if (!binding0 || !binding1) {
           PRESOLVE_DETAIL_PRINT(printf("Row redundant for column %d\n", icol));
         } else {
-#if PRINT_VALUES > 0
+#ifdef PRINT_VALUES
 	  nDone++;
 #endif
           PRESOLVE_DETAIL_PRINT(printf("Column %d bounds %g,%g lowest %g,%g highest %g,%g\n",
@@ -2720,7 +2719,7 @@ const CoinPresolveAction
       sort, nactions,
       next);
   }
-#if PRINT_VALUES > 0
+#ifdef PRINT_VALUES
   if (nDone)
     printf("twoxtwo %d\n",nDone);
   if (oddActions[2])

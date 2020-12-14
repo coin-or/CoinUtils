@@ -782,7 +782,14 @@ void transferCosts (CoinPresolveMatrix *prob)
 #endif
 
   int numberIntegers = 0;
+  // Second loop can be very slow - so only turn on if this set
+#ifdef TRY_MOVING_INTEGER_COSTS
+  int * used = prob->usefulColumnInt_;
+#endif
   for (int icol = 0; icol < ncols; icol++) {
+#ifdef TRY_MOVING_INTEGER_COSTS
+    used[icol] = 0;
+#endif
     if (integerType[icol])
       numberIntegers++;
   }
@@ -792,12 +799,16 @@ void transferCosts (CoinPresolveMatrix *prob)
 */
   int nchanged = 0;
   for (int js = 0; js < ncols; js++) {
-    if (cost[js] && hincol[js] == 1 && cup[js] > clo[js]) {
+    if (hincol[js] == 1 && cost[js] && cup[js] > clo[js]
+	&& !integerType[js]) {
       const CoinBigIndex &jsstrt = mcstrt[js];
       const int &i = hrow[jsstrt];
       if (rlo[i] == rup[i]) {
         const double ratio = cost[js] / colels[jsstrt];
         bias += rlo[i] * ratio;
+#ifdef TRY_MOVING_INTEGER_COSTS
+	used[js] = 1;
+#endif
         const CoinBigIndex &istrt = mrstrt[i];
         const CoinBigIndex iend = istrt + hinrow[i];
         for (CoinBigIndex jj = istrt; jj < iend; jj++) {
@@ -827,12 +838,13 @@ void transferCosts (CoinPresolveMatrix *prob)
   number of integer variables with costs (nThen > nNow), do the transform.
   One per column, please.
 */
-  if (numberIntegers) {
+#ifdef TRY_MOVING_INTEGER_COSTS
+  if (numberIntegers && TRY_MOVING_INTEGER_COSTS) {
     int changed = -1;
     while (changed) {
       changed = 0;
       for (int js = 0; js < ncols; js++) {
-        if (cost[js] && cup[js] > clo[js]) {
+        if (cost[js] && cup[js] > clo[js] && !used[js]) {
           const CoinBigIndex &jsstrt = mcstrt[js];
           const CoinBigIndex jsend = jsstrt + hincol[js];
           for (CoinBigIndex ii = jsstrt; ii < jsend; ii++) {
@@ -848,13 +860,14 @@ void transferCosts (CoinPresolveMatrix *prob)
                   nThen++;
               }
               if (nThen > nNow) {
-                const double ratio = cost[js] / colels[jsstrt];
+                const double ratio = cost[js] / colels[ii];
                 bias += rlo[i] * ratio;
                 for (CoinBigIndex jj = istrt; jj < iend; jj++) {
-                  int j = hcol[jj];
+		  int j = hcol[jj];
                   double aij = rowels[jj];
                   cost[j] -= ratio * aij;
                 }
+		assert (fabs(cost[js])<1.0e-3);
                 cost[js] = 0.0;
                 changed++;
                 break;
@@ -873,6 +886,7 @@ void transferCosts (CoinPresolveMatrix *prob)
       }
     }
   }
+#endif
 #if PRESOLVE_DEBUG > 0
   if (bias != prob->dobias_)
     std::cout << "  new bias " << bias << "." << std::endl;
@@ -885,6 +899,3 @@ void transferCosts (CoinPresolveMatrix *prob)
   presolve_check_nbasic(prob);
 #endif
 }
-
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/
