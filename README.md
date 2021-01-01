@@ -1,11 +1,11 @@
-# CoinUtils
+# CoinUtils refactor
 
 [![A COIN-OR Project](https://coin-or.github.io/coin-or-badge.png)](https://www.coin-or.org)
 
 [![Latest Release](https://img.shields.io/github/v/release/coin-or/CoinUtils?sort=semver)](https://github.com/coin-or/CoinUtils/releases)
 
 _This file is auto-generated from [config.yml](.coin-or/config.yml) using the 
-[generate_readme](.coin-or/generate_readme).
+[generate_readme](.coin-or/generate_readme) script.
 To make changes, please edit [config.yml](.coin-or/config.yml) or the generation script._
 
 CoinUtils is an open-source collection of classes and helper functions
@@ -34,11 +34,19 @@ The CoinUtils website is https://github.com/coin-or/CoinUtils.
 
 ## CURRENT BUILD STATUS
 
-[![Build Status](https://travis-ci.org/coin-or/CoinUtils.svg?branch=master)](https://travis-ci.org/coin-or/CoinUtils)
+[![Build Status](https://travis-ci.com/coin-or/CoinUtils.svg?branch=refactor)](https://travis-ci.com/coin-or/CoinUtils)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/a41muofrtpdw18c5/branch/master?svg=true)](https://ci.appveyor.com/project/tkralphs/coinutils-6jtnc/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/a41muofrtpdw18c5/branch/refactor?svg=true)](https://ci.appveyor.com/project/coin-or/CoinUtils/branch/refactor)
 
 ## DOWNLOAD
+
+### Docker image
+
+There is a Docker image that provides CoinUtils, as well as other projects
+in the [COIN-OR Optimization
+Suite](https://github.com/coin-or/COIN-OR-OptimizationSuite)[here](https://hub.docker.com/repository/docker/coinor/coin-or-optimization-suite)
+
+### Binaries
 
 Binaries for most platforms are available as part of [Cbc](https://bintray.com/coin-or/download/Cbc). 
 
@@ -72,7 +80,7 @@ To build CoinUtils from source, obtain the `coinbrew` script, do
 ```
 wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
 chmod u+x coinbrew
-./coinbrew fetch CoinUtils@master
+./coinbrew fetch CoinUtils@refactor
 ./coinbrew build CoinUtils
 ```
 For more detailed instructions on coinbrew, see https://coin-or.github.io/coinbrew.
@@ -98,7 +106,7 @@ If you have `Doxygen` available, you can build a HTML documentation by typing
 `make doxygen-docs` 
 
 in the build directory. If CoinUtils was built via `coinbrew`, then the build
-directory will be `./build/CoinUtils/master` by default. The doxygen documentation main file
+directory will be `./build/CoinUtils/refactor` by default. The doxygen documentation main file
 is found at `<build-dir>/doxydoc/html/index.html`.
 
 If you don't have `doxygen` installed locally, you can use also find the
@@ -108,7 +116,7 @@ documentation [here](http://coin-or.github.io/CoinUtils/Doxygen).
 ## Project Links
 
  * [COIN-OR Initiative](http://www.coin-or.org/)
- * [Mailing list](http://list.coin-or.org/mailman/listinfo/coinutils)
+ * [Mailing list](https://github.com/coin-or/CoinUtils/discussions)
  * [Report a bug](https://github.com/coin-or/CoinUtils/issues/new)
  * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen)
 
