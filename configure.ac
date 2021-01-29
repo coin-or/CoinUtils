@@ -94,7 +94,7 @@ AC_COINUTILS_MEMPOOL(4096,no)
 # Collect information required to use component libraries.
 
 AC_COIN_CHK_LAPACK(CoinUtilsLib)
-AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib],[],[build],[])
+AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib],[coinglpk])
 AC_COIN_CHK_PKG(ASL,[CoinUtilsLib],[coinasl])
 AC_COIN_CHK_PKG(Sample,[],[coindatasample],[],dataonly)
 AC_COIN_CHK_PKG(Netlib,[],[coindatanetlib],[],dataonly)
