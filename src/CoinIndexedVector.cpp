@@ -527,6 +527,12 @@ void CoinIndexedVector::operator/=(double value)
 
 void CoinIndexedVector::reserve(int n)
 {
+  assert (!packedMode_||!nElements_);
+#if OLD_COININDEXED_RESERVE_CODE
+  /* Code was modified in 2017 to fix a bug
+     I can not see justification for the changes then, so going back 
+     to approximately old way.  
+     Leaving this in for another few years - just in case. */
   int i;
   int nPlus;
   if (sizeof(int) == 4 * sizeof(char))
@@ -588,6 +594,66 @@ void CoinIndexedVector::reserve(int n)
       delete[] delTemp;
     delete[] tempIndices;
   }
+#else
+  // extra space for char array off end and for alignment
+  int nPlus;
+  if (sizeof(int) == 4 * sizeof(char))
+    nPlus = (n + 3) >> 2;
+  else
+    nPlus = (n + 7) >> 4;
+#ifdef COIN_AVX2
+  nPlus += 16;
+#endif
+  // don't make allocated space smaller but do take off values
+  if (n < capacity_) {
+#ifndef COIN_FAST_CODE
+    if (n < 0)
+      throw CoinError("negative capacity", "reserve", "CoinIndexedVector");
+#endif
+    int nNew = 0;
+    for (int i = 0; i < nElements_; i++) {
+      int indexValue = indices_[i];
+      if (indexValue < n) {
+        indices_[nNew++] = indexValue;
+      } else {
+        elements_[indexValue] = 0.0;
+      }
+    }
+    nElements_ = nNew;
+  } else if (n > capacity_) {
+    // save pointers to existing data
+    int *tempIndices = indices_;
+    double *tempElements = elements_;
+    // true address for delete []
+    double *delTemp = elements_ - offset_;
+
+    // allocate new space
+    indices_ = new int[n + nPlus];
+    // align doubles on 64 byte boundary
+    double *temp = new double[n + 9];
+    offset_ = 0;
+    CoinInt64 xx = reinterpret_cast< CoinInt64 >(temp);
+    int iBottom = static_cast< int >(xx & 63);
+    offset_ = (64 - iBottom) >> 3;
+    elements_ = temp + offset_;
+
+    // copy data to new space
+    // and zero out part of array
+    if (nElements_ > 0) {
+      CoinMemcpyN(tempIndices, nElements_, indices_);
+      CoinMemcpyN(tempElements, capacity_, elements_);
+      CoinZeroN(elements_ + capacity_, n - capacity_);
+    } else {
+      CoinZeroN(elements_, n);
+    }
+    // free old data
+    delete[] delTemp;
+    delete[] tempIndices;
+    capacity_ = n;
+  }
+  // be on safe side - zero out hidden char array
+  CoinZeroN(indices_ + n, nPlus);
+#endif
 }
 
 //#############################################################################
