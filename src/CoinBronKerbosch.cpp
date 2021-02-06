@@ -36,7 +36,7 @@ static void *xmalloc( const size_t size );
 static void *xcalloc( const size_t elements, const size_t size );
 static void *xrealloc( void *ptr, const size_t size );
 
-bool compareNodes(BKVertex &u, const BKVertex &v) {
+bool compareNodes(const BKVertex &u, const BKVertex &v) {
     return u.fitness >= v.fitness + BK_EPS;
 }
 
