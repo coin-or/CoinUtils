@@ -38,6 +38,21 @@ static void *xmalloc( const size_t size );
 static void *xrealloc( void *ptr, const size_t size );
 static void *xcalloc( const size_t elements, const size_t size );
 
+// used to compare values
+bool isEqual(const double a, const double b) {
+	if (a == b) {
+		return true;
+	}
+
+	return (fabs(a - b) < EPS);
+}
+bool isLessThan(const double a, const double b) {
+	return (a + EPS < b);
+}
+bool isLessOrEqualThan(const double a, const double b) {
+	return isEqual(a, b) || isLessThan(a, b);
+}
+
 // helper functions to build the conflict graph
 static void update_two_largest(double val, double v[2]);
 static void update_two_smallest(double val, double v[2]);
@@ -367,7 +382,7 @@ size_t binary_search(const std::pair< size_t, double > *columns, size_t pos, dou
     assert(pos <= colEnd);
 #endif
 
-    if (lhs <= rhs) {
+    if (isLessOrEqualThan(lhs, rhs)) {
       left = mid + 1;
     } else {
       if (mid > 0) {
@@ -395,7 +410,7 @@ size_t clique_start(const std::pair< size_t, double > *columns, size_t nz, doubl
     assert(mid + 1 < nz);
     const double lhs = columns[mid].second + columns[mid + 1].second;
 
-    if (lhs <= rhs) {
+    if (isLessOrEqualThan(lhs, rhs)) {
       left = mid + 1;
     } else {
       if (mid > 0) {
@@ -415,7 +430,7 @@ void CoinDynamicConflictGraph::cliqueDetection(const std::pair< size_t, double >
   assert(nz > 1);
 #endif
 
-  if (columns[nz - 1].second + columns[nz - 2].second <= rhs) {
+  if (isLessOrEqualThan(columns[nz - 1].second + columns[nz - 2].second, rhs)) {
     return; //there is no clique in this constraint
   }
 
@@ -439,7 +454,7 @@ void CoinDynamicConflictGraph::cliqueDetection(const std::pair< size_t, double >
   for (size_t j = cliqueStart; j-- > 0;) {
     const size_t idx = columns[j].first;
 
-    if (columns[j].second + columns[nz - 1].second <= rhs) {
+    if (isLessOrEqualThan(columns[j].second + columns[nz - 1].second, rhs)) {
       break;
     }
 

@@ -144,7 +144,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
   for ( size_t i=0 ; (i<n) ; ++i )
     newIdx[elements[i]] = i;
   
-  char *iv = (char *) calloc( size_, sizeof(char *) );
+  char *iv = (char *) calloc( size_, sizeof(char) );
   if (!iv) {
     fprintf( stderr, "no more memory.\n" );
     abort();
