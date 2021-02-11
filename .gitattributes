@@ -1,102 +1,13 @@
 * text=auto !eol
-.ci/.travis.pre -text
-.ci/appveyor.pre -text
-.coin-or/Dependencies -text
-.coin-or/projDesc.xml -text
-/.travis.yml -text
-/LICENSE -text
-MSVisualStudio/v10/CoinUtils.sln -text
-MSVisualStudio/v10/libCoinUtils/libCoinUtils.vcxproj -text
-MSVisualStudio/v10/unitTestCoinUtils/unitTestCoinUtils.vcxproj -text
-MSVisualStudio/v10alt/CoinUtils.sln -text
-MSVisualStudio/v10alt/CoinUtilsUnitTest.vcxproj -text
-MSVisualStudio/v10alt/coinutils.props -text
-MSVisualStudio/v10alt/genDefForCoinUtils.ps1 -text
-MSVisualStudio/v10alt/libCoinUtils.vcxproj -text
-MSVisualStudio/v14/libCoinUtils/libCoinUtils.vcxproj -text
-MSVisualStudio/v16/libCoinUtils/libCoinUtils.sln -text
-MSVisualStudio/v16/libCoinUtils/libCoinUtils.vcxproj -text
-MSVisualStudio/v9/CoinUtils.sln -text
-MSVisualStudio/v9/libCoinUtils/libCoinUtils.vcproj -text
-MSVisualStudio/v9/unitTestCoinUtils/unitTestCoinUtils.vcproj -text
-MSVisualStudio/v9alt/CoinUtils.sln -text
-MSVisualStudio/v9alt/CoinUtilsUnitTest.vcproj -text
-MSVisualStudio/v9alt/coinutils.vsprops -text
-MSVisualStudio/v9alt/genDefForCoinUtils.ps1 -text
-MSVisualStudio/v9alt/libCoinUtils.vcproj -text
-/appveyor.yml -text
-/ar-lib -text
-/coinutils.pc.in -text
-/compile -text
-/config.guess -text
-/config.sub -text
-/configure -text
-/configure.ac -text
-/depcomp -text
-doxydoc/doxygen.conf.in -text
-/install-sh -text
-/ltmain.sh -text
-m4/ac_coinutils_inttypes.m4 -text
-m4/ac_coinutils_mempool.m4 -text
-m4/ac_coinutils_threads.m4 -text
-/missing -text
-src/.ycm_extra_conf.py -text
-src/CoinAdjacencyVector.cpp -text
-src/CoinAdjacencyVector.hpp -text
-src/CoinAlloc.cpp -text
-src/CoinAlloc.hpp -text
-src/CoinBronKerbosch.cpp -text
-src/CoinBronKerbosch.hpp -text
-src/CoinCliqueExtender.cpp -text
-src/CoinCliqueExtender.hpp -text
-src/CoinCliqueList.cpp -text
-src/CoinCliqueList.hpp -text
-src/CoinCliqueSet.cpp -text
-src/CoinCliqueSet.hpp -text
-src/CoinConflictGraph.cpp -text
-src/CoinConflictGraph.hpp -text
-src/CoinCutPool.cpp -text
-src/CoinCutPool.hpp -text
-src/CoinDenseFactorization.cpp -text
-src/CoinDenseFactorization.hpp -text
-src/CoinDynamicConflictGraph.cpp -text
-src/CoinDynamicConflictGraph.hpp -text
-src/CoinFinite.cpp -text
-src/CoinNodeHeap.cpp -text
-src/CoinNodeHeap.hpp -text
-src/CoinOddWheelSeparator.cpp -text
-src/CoinOddWheelSeparator.hpp -text
-src/CoinOslC.h -text
-src/CoinOslFactorization.cpp -text
-src/CoinOslFactorization.hpp -text
-src/CoinOslFactorization2.cpp -text
-src/CoinOslFactorization3.cpp -text
-src/CoinPresolveMonitor.cpp -text
-src/CoinPresolveMonitor.hpp -text
-src/CoinRational.cpp -text
-src/CoinRational.hpp -text
-src/CoinSearchTree.cpp -text
-src/CoinSearchTree.hpp -text
-src/CoinShortestPath.cpp -text
-src/CoinShortestPath.hpp -text
-src/CoinSimpFactorization.cpp -text
-src/CoinSimpFactorization.hpp -text
-src/CoinSmartPtr.hpp -text
-src/CoinSnapshot.cpp -text
-src/CoinSnapshot.hpp -text
-src/CoinStaticConflictGraph.cpp -text
-src/CoinStaticConflictGraph.hpp -text
-src/CoinStructuredModel.cpp -text
-src/CoinStructuredModel.hpp -text
-src/CoinWarmStartPrimalDual.cpp -text
-src/CoinWarmStartPrimalDual.hpp -text
-src/CoinWarmStartVector.cpp -text
-src/CoinWarmStartVector.hpp -text
-src/config.h.in -text
-src/config_coinutils.h.in -text
-src/config_coinutils_default.h -text
-src/config_default.h -text
-src/format-source.sh -text
-test/CoinLpIOTest.cpp -text
-test/CoinMessageHandlerTest.cpp -text
-test/plan.mod -text
+*.sh text eol=lf
+install-sh text eol=lf
+config.sub text eol=lf
+config.guess text eol=lf
+missing text eol=lf
+decomp text eol=lf
+configure text eol=lf
+*.ac text eol=lf
+*.am text eol=lf
+*.in text eol=lf
+Makefile text eol=lf
+*.bat eol=crlf
