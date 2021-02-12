@@ -652,7 +652,8 @@ void CoinIndexedVector::reserve(int n)
     capacity_ = n;
   }
   // be on safe side - zero out hidden char array
-  CoinZeroN(indices_ + n, nPlus);
+  if (indices_)
+    CoinZeroN(indices_ + n, nPlus);
 #endif
 }
 
