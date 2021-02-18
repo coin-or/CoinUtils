@@ -1519,7 +1519,6 @@ int CoinLpIO::are_invalid_names(char const *const *const vnames,
       card_vnames, getNumRows());
     CoinLpIOError(str, "are_invalid_names", "CoinLpIO", __FILE__, __LINE__);
   }
-
   for (i = 0; i < card_vnames; i++) {
 
     if ((check_ranged) && (i < nrows) && (rSense[i] == 'R')) {
@@ -1529,11 +1528,6 @@ int CoinLpIO::are_invalid_names(char const *const *const vnames,
     }
     flag = is_invalid_name(vnames[i], is_ranged);
     if (flag) {
-      char printBuffer[512];
-      sprintf(printBuffer, "### CoinLpIO::are_invalid_names(): Invalid name: vnames[%d]: %s",
-        i, vnames[i]);
-      handler_->message(COIN_GENERAL_WARNING, messages_) << printBuffer
-                                                         << CoinMessageEol;
       invalid = flag;
     }
   }
@@ -3006,16 +3000,29 @@ void CoinLpIO::newLanguage(CoinMessages::Language language)
 int CoinLpIO::newCardLpIO() const
 {
   while (bufferPosition_ == bufferLength_) {
+    // check if really new line
+    if (bufferLength_>=0)
+      lineNumber_++;
     // new line
     bufferPosition_ = 0;
     bufferLength_ = 0;
-    char *ok = input_->gets(inputBuffer_, 1024);
-    lineNumber_++;
+    // maximum length of name 100? so this can be 900?
+#define BUFFER_LENGTH 900
+    char *ok = input_->gets(inputBuffer_, BUFFER_LENGTH);
     if (!ok)
       return 0;
     int length = strlen(inputBuffer_);
+    if (length == BUFFER_LENGTH-1) {
+      // OK if last is blank or \n
+      char lastChar = inputBuffer_[BUFFER_LENGTH-2];
+      while (lastChar > ' ') {
+	char * next = input_->gets(&lastChar,1);
+	inputBuffer_[length++] = lastChar;
+      }
+      inputBuffer_[length] = '\0';
+    }
     // take off blanks or below
-    if (length  && length < 1023) {
+    if (length  && inputBuffer_[length-1] == '\n') {
       length--;
       while(length>=0) {
 	if (inputBuffer_[length]<=' ')

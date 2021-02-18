@@ -611,7 +611,7 @@ public:
   */
 #define COIN_NUM_LOG 4
 /// Maximum length of constructed message (characters)
-#define COIN_MESSAGE_HANDLER_MAX_BUFFER_SIZE 1000
+#define COIN_MESSAGE_HANDLER_MAX_BUFFER_SIZE 1200
 protected:
   /**@name Protected member data */
   //@{
