@@ -3019,7 +3019,25 @@ int CoinLpIO::newCardLpIO() const
 	char * next = input_->gets(&lastChar,1);
 	inputBuffer_[length++] = lastChar;
       }
+      if (lastChar == ' ') {
+	// put space back on file
+	input_->gets(&lastChar,-1);
+	length--;
+      }
       inputBuffer_[length] = '\0';
+    } else {
+      // complete line in - make sure \n at end
+      int usefulChar;
+      for (usefulChar=length-1;usefulChar>=0;usefulChar--) {
+	char thisChar = inputBuffer_[usefulChar];
+	if (thisChar>=' ') {
+	  break;
+	}
+      }
+      // add \n\0
+      inputBuffer_[usefulChar+1]='\n';
+      inputBuffer_[usefulChar+2]='\0';
+      length = usefulChar+3;
     }
     // take off blanks or below
     if (length  && inputBuffer_[length-1] == '\n') {
