@@ -77,6 +77,8 @@ int CoinPlainFileInput::read(void *buffer, int size)
 
 char *CoinPlainFileInput::gets(char *buffer, int size)
 {
+  // was too clever ? ungetc buggy
+#if 0
   if (abs(size) != 1) {
     return fgets(buffer, size, f_);
   } else if (size == 1) {
@@ -92,6 +94,9 @@ char *CoinPlainFileInput::gets(char *buffer, int size)
     // Put back character!
     ungetc(buffer[0],f_);
   }
+#else
+  return fgets(buffer, size, f_);
+#endif
 }
 
 // ------ helper class supporting buffered gets -------

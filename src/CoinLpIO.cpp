@@ -1909,6 +1909,7 @@ void CoinLpIO::readLp()
   char buff[1024];
   bufferPosition_ = 0;
   bufferLength_ = 0;
+  fakeBufferLength_ = 0;
   eofFound_ = false;
   lineNumber_ = 0;
 
@@ -3001,30 +3002,36 @@ int CoinLpIO::newCardLpIO() const
 {
   while (bufferPosition_ == bufferLength_) {
     // check if really new line
-    if (bufferLength_>=0)
+    if (!fakeBufferLength_)
       lineNumber_++;
     // new line
     bufferPosition_ = 0;
     bufferLength_ = 0;
     // maximum length of name 100? so this can be 900?
 #define BUFFER_LENGTH 900
-    char *ok = input_->gets(inputBuffer_, BUFFER_LENGTH);
+    char * buffer = inputBuffer_;
+    int getLength = 1024;
+    if (fakeBufferLength_) {
+      // still stuff in fake buffer
+      strcpy(inputBuffer_,fakeBuffer_);
+      buffer = inputBuffer_+fakeBufferLength_;
+      getLength -= fakeBufferLength_;
+      fakeBufferLength_ = 0;
+    }
+    char * ok = input_->gets(buffer, getLength);
     if (!ok)
       return 0;
     int length = strlen(inputBuffer_);
-    if (length == BUFFER_LENGTH-1) {
-      // OK if last is blank or \n
-      char lastChar = inputBuffer_[BUFFER_LENGTH-2];
-      while (lastChar > ' ') {
-	char * next = input_->gets(&lastChar,1);
-	inputBuffer_[length++] = lastChar;
-      }
-      if (lastChar == ' ') {
-	// put space back on file
-	input_->gets(&lastChar,-1);
-	length--;
-      }
-      inputBuffer_[length] = '\0';
+    if (length == 1023) {
+      // find first space after 900
+      char * space = strchr(inputBuffer_+900,' ');
+      assert (space);
+      // copy rest
+      strcpy(fakeBuffer_,space+1);
+      space[1] = '\n';
+      space[2] = '\0';
+      fakeBufferLength_ = strlen(fakeBuffer_);
+      assert (fakeBufferLength_<=130);
     } else {
       // complete line in - make sure \n at end
       int usefulChar;
@@ -3039,19 +3046,6 @@ int CoinLpIO::newCardLpIO() const
       inputBuffer_[usefulChar+2]='\0';
       length = usefulChar+3;
     }
-    // take off blanks or below
-    if (length  && inputBuffer_[length-1] == '\n') {
-      length--;
-      while(length>=0) {
-	if (inputBuffer_[length]<=' ')
-	  length--;
-	else
-	  break;
-      }
-      // but put back something
-      inputBuffer_[length+1]='\n';  
-      inputBuffer_[length+2]='\0';
-    }
     memcpy(originalBuffer_,inputBuffer_,length+1);
     originalBuffer_[length+1] = '\0'; 
     // go to single blanks and remove all blanks before :: or :
@@ -3064,7 +3058,6 @@ int CoinLpIO::newCardLpIO() const
           inputBuffer_[bufferLength_++] = inputBuffer_[i];
       }
     }
-    bool gotEol = false;
     while (nn < 1024) {
       if (inputBuffer_[nn] == ':') {
         // take out blank before
@@ -3075,20 +3068,18 @@ int CoinLpIO::newCardLpIO() const
         inputBuffer_[nn] = ' ';
       if (inputBuffer_[nn] == '\0' || inputBuffer_[nn] == '\n' || inputBuffer_[nn] == '\r') {
         if (inputBuffer_[nn] == '\n' || inputBuffer_[nn] == '\r')
-          gotEol = true;
+          inputBuffer_[nn] = '\n';
         break;
       }
       if (inputBuffer_[nn] != ' ' || inputBuffer_[nn + 1] != ' ')
         inputBuffer_[bufferLength_++] = inputBuffer_[nn];
       nn++;
     }
-    if (gotEol) {
-      //inputBuffer_[bufferLength_]='\n';
-      inputBuffer_[bufferLength_] = '\0';
-    }
+    //inputBuffer_[bufferLength_]='\n';
+    inputBuffer_[bufferLength_] = '\0';
     if (inputBuffer_[0] == ' ')
       bufferPosition_++;
-    if (!gotEol)
+    if (fakeBufferLength_)
       bufferLength_ = -bufferLength_;
   }
   return abs(bufferLength_);

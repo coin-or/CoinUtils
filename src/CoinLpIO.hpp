@@ -686,12 +686,16 @@ protected:
 
   /// Current buffer (needed so can get rid of blanks with :
   mutable char inputBuffer_[1028];
-  /// Buffer as from fgets
+  /// Buffer as from fake fgets
   mutable char originalBuffer_[1028];
+  /// Buffer as from fgets (used so can deal with long lines better)
+  mutable char fakeBuffer_[1028];
   /// Current buffer length (negative if not got eol)
   mutable int bufferLength_;
   /// Current buffer position
   mutable int bufferPosition_;
+  /// Current fake buffer length
+  mutable int fakeBufferLength_;
   /// File handler
   CoinFileInput *input_;
   /// If already inserted one End
