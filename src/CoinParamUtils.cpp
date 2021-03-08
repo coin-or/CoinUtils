@@ -153,24 +153,24 @@ std::string printString(const char *input, int maxWidth)
 }
 
 void
-readFromStream(std::queue<std::string> &inputQueue,
+readFromStream(std::deque<std::string> &inputQueue,
                std::istream &inputStream)
 {
    std::string field;
    while (inputStream >> field){
       std::string::size_type found = field.find('=');
       if (found != std::string::npos) {
-         inputQueue.push(field.substr(0, found));
-         inputQueue.push(field.substr(found + 1));
+         inputQueue.push_back(field.substr(0, found));
+         inputQueue.push_back(field.substr(found + 1));
       } else {
-         inputQueue.push(field);
+         inputQueue.push_back(field);
       }
    }
 }
 
 void
-readInteractiveInput(std::queue<std::string> &inputQueue,
-                         std::string prompt)
+readInteractiveInput(std::deque<std::string> &inputQueue,
+                     std::string prompt)
 {
    std::string input;
   
@@ -195,8 +195,8 @@ readInteractiveInput(std::queue<std::string> &inputQueue,
 }
 
 std::string
-getNextField(std::queue<std::string> &inputQueue, bool interactiveMode,
-                 std::string prompt)
+getNextField(std::deque<std::string> &inputQueue, bool interactiveMode,
+             std::string prompt)
 {
   if (inputQueue.empty() && interactiveMode){
      CoinParamUtils::readInteractiveInput(inputQueue, prompt);
@@ -206,12 +206,12 @@ getNextField(std::queue<std::string> &inputQueue, bool interactiveMode,
      return "";
   }else{
      std::string field = inputQueue.front();
-     inputQueue.pop();
+     inputQueue.pop_back();
      return field;
   }
 }
 
-int getValue(std::queue<std::string> &inputQueue, std::string &value)
+int getValue(std::deque<std::string> &inputQueue, std::string &value)
 {
    value = CoinParamUtils::getNextField(inputQueue);
 
@@ -225,7 +225,7 @@ int getValue(std::queue<std::string> &inputQueue, std::string &value)
 }
 
 // return 0 - okay, 1 bad, 2 not there
-int getValue(std::queue<std::string> &inputQueue, int &value)
+int getValue(std::deque<std::string> &inputQueue, int &value)
 {
    std::string field = CoinParamUtils::getNextField(inputQueue);
 
@@ -239,7 +239,7 @@ int getValue(std::queue<std::string> &inputQueue, int &value)
    return (!ss.fail() && !ss.get(c)) ? 0 : 1;
 }
 
-int getValue(std::queue<std::string> &inputQueue, double &value)
+int getValue(std::deque<std::string> &inputQueue, double &value)
 {
    std::string field = CoinParamUtils::getNextField(inputQueue);
 
@@ -864,7 +864,8 @@ void shortOrHelpMany(CoinParamVec &paramVec, std::string name, int numQuery)
   bool printed = false;
   for (int i = 0; i < numParams; i++) {
     int match = paramVec[i]->matches(name);
-    if (match > 0) {
+    if (match > 0 &&
+        paramVec[i]->getDisplayPriority() != CoinParam::displayPriorityNone) {
       std::string nme = paramVec[i]->matchName();
       int len = static_cast< int >(nme.length());
       if (numQuery >= 2) {

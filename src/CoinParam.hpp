@@ -12,7 +12,8 @@
     \brief Declaration of a class for command line parameters.
 */
 
-#include <queue>
+#include <vector>
+#include <deque>
 #include <string>
 #include <cstdio>
 #include <map>
@@ -747,26 +748,26 @@ std::string printString(const char *input, int maxWidth = 65);
 
 COINUTILSLIB_EXPORT
 void
-readFromStream(std::queue<std::string> &inputQueue,
-                   std::istream &inputStream);
+readFromStream(std::deque<std::string> &inputQueue,
+               std::istream &inputStream);
 
 COINUTILSLIB_EXPORT
-void readInteractiveInput(std::queue<std::string> &inputQueue,
+void readInteractiveInput(std::deque<std::string> &inputQueue,
                               std::string prompt);
 
 COINUTILSLIB_EXPORT
-std::string getNextField(std::queue<std::string> &inputQueue,
-                             bool interactiveMode = false,
-                             std::string prompt="");
+std::string getNextField(std::deque<std::string> &inputQueue,
+                         bool interactiveMode = false,
+                         std::string prompt="");
 COINUTILSLIB_EXPORT
-int getValue(std::queue<std::string> &inputQueue, std::string &value);
+int getValue(std::deque<std::string> &inputQueue, std::string &value);
 
 // status 0 - okay, 1 bad, 2 not there
 COINUTILSLIB_EXPORT
-int getValue(std::queue<std::string> &inputQueue, int &value);
+int getValue(std::deque<std::string> &inputQueue, int &value);
 
 COINUTILSLIB_EXPORT
-int getValue(std::queue<std::string> &inputQueue, double &value);
+int getValue(std::deque<std::string> &inputQueue, double &value);
 
 }
 #endif /* CoinParam_H */
