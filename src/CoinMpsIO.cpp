@@ -473,7 +473,7 @@ void CoinMpsCardReader::strcpyAndCompress(char *to, const char *from)
   int nto = 0;
 
   for (i = 0; i < n; i++) {
-    if (from[i] != ' ') {
+    if (from[i] != ' ' && from[i] != '\t') {
       to[nto++] = from[i];
     }
   }
