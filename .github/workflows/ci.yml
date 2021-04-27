@@ -78,7 +78,7 @@ jobs:
           repository: coin-or/coinbrew
           path: coinbrew
       - name: Install requirements
-        run: brew install metis
+        run: brew install metis bash
       - name: Fetch dependencies
         run: |
           bash coinbrew/.ci/install_packages.sh
