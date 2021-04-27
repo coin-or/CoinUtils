@@ -10,13 +10,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-linux:
-    name: Configure, compile and run tests on Ubuntu
+  test:
+    name: Run tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04]
-        build_static: [true, false]
+        include:
+          - os: ubuntu-16.04
+            flags: BUILD_STATIC=true ADD_CXXFLAGS=-fvisibility=hidden
+            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
+          - os: ubuntu-18.04
+            flags: BUILD_STATIC=true ADD_CXXFLAGS=-fvisibility=hidden
+            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
+          - os: ubuntu-20.04
+            flags: BUILD_STATIC=false ADD_CXXFLAGS=-fvisibility=hidden
+            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
+          - os: ubuntu-20.04
+            flags: BUILD_STATIC=true ADD_CXXFLAGS=-fvisibility=hidden
+            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
+          - os: macos-10.15
+            flags: CC=clang OSX=10.15 BUILD_STATIC=false
+            download_requirements: brew install metis bash
+          - os: macos-10.15
+            flags: CC=gcc-9 CXX=g++-9 OSX=10.15 BUILD_STATIC=false
+            download_requirements: brew install metis bash
+          - os: macos-10.15
+            flags: CC=gcc-10 CXX=g++-10 OSX=10.15 BUILD_STATIC=false
+            download_requirements: brew install metis bash
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
@@ -28,9 +48,7 @@ jobs:
           repository: coin-or/coinbrew
           path: coinbrew
       - name: Install required packages from package manager
-        run: |
-          sudo apt update -y -qq
-          sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
+        run: ${{ matrix.download_requirements }}
       - name: Fetch dependencies
         run: |
           bash coinbrew/.ci/install_packages.sh
@@ -39,64 +57,12 @@ jobs:
           --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack'
       - name: Build project
         run: |
+          export ${{ matrix.flags }}
           source coinbrew/.ci/setup_environment.sh
           bash coinbrew/coinbrew build ${{ github.event.repository.name }} \
           --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' \
           "${COMMON_ARGS[@]}" "${ADD_ARGS[@]}" "${DBG_ARGS[@]}" \
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
         env:
-          BUILD_STATIC: ${{ matrix.build_static }}
-          DEBUG: false
-          ASAN: false
-          ADD_CXXFLAGS: "-fvisibility=hidden"
-  test-macos:
-    name: Configure, compile and run tests on MacOS
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-10.15
-            osx: 10.15
-            cc: clang
-            cxx: ""
-          - os: macos-10.15
-            osx: 10.15
-            cc: gcc-9
-            cxx: g++-9
-          - os: macos-10.15
-            osx: 10.15
-            cc: gcc-10
-            cxx: g++-10
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v2
-        with:
-          path: ${{ github.event.repository.name }}
-      - name: Checkout coinbrew
-        uses: actions/checkout@v2
-        with:
-          repository: coin-or/coinbrew
-          path: coinbrew
-      - name: Install requirements
-        run: brew install metis bash
-      - name: Fetch dependencies
-        run: |
-          bash coinbrew/.ci/install_packages.sh
-          bash coinbrew/coinbrew fetch ${{ github.event.repository.name }} \
-          --no-prompt --skip-update \
-          --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack'
-      - name: Build project
-        run: |
-          export ${{ matrix.additional_env }}
-          source coinbrew/.ci/setup_environment.sh
-          bash coinbrew/coinbrew build ${{ github.event.repository.name }} \
-          --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' \
-          "${COMMON_ARGS[@]}" "${ADD_ARGS[@]}" "${DBG_ARGS[@]}" \
-          ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
-        env:
-          CXX: ${{ matrix.cxx }}
-          CC: ${{ matrix.cc }}
-          OSX: ${{ matrix.osx }}
-          BUILD_STATIC: false
           DEBUG: false
           ASAN: false
