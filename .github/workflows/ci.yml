@@ -55,14 +55,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-11.0
-            osx: 11.0
-            cc: clang
-            cxx: ""
-          - os: macos-11.0
-            osx: 11.0
-            cc: gcc-10
-            cxx: g++-10
           - os: macos-10.15
             osx: 10.15
             cc: clang
@@ -71,6 +63,10 @@ jobs:
             osx: 10.15
             cc: gcc-9
             cxx: g++-9
+          - os: macos-10.15
+            osx: 10.15
+            cc: gcc-10
+            cxx: g++-10
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
