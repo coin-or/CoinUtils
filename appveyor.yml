@@ -1,8 +1,10 @@
 platform:
   - x64
 
-environment:
+matrix:
+  fast_finish: true
 
+environment:
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       ARCH: x86_64-w64-mingw32
@@ -24,11 +26,6 @@ environment:
       HOST_ARCH_ARG: --host=i686-w64-mingw32 --enable-debug
       TESTS: none 
       ADD_PATH: /mingw32/bin
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      ARCH: win64-msvc14-md
-      HOST_ARCH_ARG: --enable-msvc
-      TESTS: main
-      ADD_PATH: 
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       ARCH: win64-msvc15-md
       HOST_ARCH_ARG: --enable-msvc
@@ -39,11 +36,6 @@ environment:
       HOST_ARCH_ARG: --enable-msvc
       TESTS: main
       ADD_PATH: /mingw64/bin
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      ARCH: win64-msvc14-mdd
-      HOST_ARCH_ARG: --enable-msvc --enable-debug 
-      TESTS: none
-      ADD_PATH: 
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       ARCH: win64-msvc15-mdd
       HOST_ARCH_ARG: --enable-msvc --enable-debug
