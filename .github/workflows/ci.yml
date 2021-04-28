@@ -65,7 +65,7 @@ jobs:
         env:
           BUILD_STATIC: ${{ matrix.build_static }}
           DEBUG: false
-          ASAN: true
+          ASAN: false
       - name: Archive dist contents
         run: |
           cp ${{ github.event.repository.name }}/README.md dist/
