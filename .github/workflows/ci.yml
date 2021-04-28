@@ -61,7 +61,7 @@ jobs:
           --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' \
           "${COMMON_ARGS[@]}" "${ADD_ARGS[@]}" "${DBG_ARGS[@]}" \
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
-          echo "cc=${CC}" >> $GITHUB_ENV
+          echo "cc=-${CC}" >> $GITHUB_ENV
         env:
           BUILD_STATIC: ${{ matrix.build_static }}
           DEBUG: false
@@ -75,14 +75,17 @@ jobs:
         if: ${{ github.event_name != 'release'}}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.os }}-${{ matrix.build_static }}-${{ env.cc }}.tar.gz
+          name: ${{ github.event.repository.name }}-${{ matrix.os }}-${{ matrix.build_static }}${{ env.cc }}.tar.gz
           path: release.tar.gz
           if-no-files-found: error
       - name: Construct package name
         if: ${{ github.event_name == 'release'}}
         run: |
-          [${{ matrix.build_static }}] && static="static-" || static="-"
-          name=${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ matrix.os }}-$static${{ env.cc }}
+          [${{ matrix.build_static }}] && static="-static" || static=""
+          os=`uname`
+          os_kernel=`uname -r | cut -d "-" -f 1`
+          platform=`uname -i`
+          name=${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-$os-$os_kernel-$platform$static${{ env.cc }}
           echo "package_name=${name}" >> $GITHUB_ENV
       - name: Upload package to release
         if: ${{ github.event_name == 'release'}}
