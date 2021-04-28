@@ -71,6 +71,7 @@ jobs:
           [[ ${{ matrix.build_static }} == "true" ]] && static="-static" || static=""
           echo "static=${static}" >> $GITHUB_ENV
           echo "os=`uname`" >> $GITHUB_ENV
+          echo `uname -a`
           echo "os_kernel=`uname -r`" >> $GITHUB_ENV
           echo "platform=`uname -m`" >> $GITHUB_ENV
       - name: Archive dist contents
