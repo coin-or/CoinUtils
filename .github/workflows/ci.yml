@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - '*'
-  workflow_dispatch:
   release:
     types:
       - created
@@ -61,32 +60,31 @@ jobs:
           --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' \
           "${COMMON_ARGS[@]}" "${ADD_ARGS[@]}" "${DBG_ARGS[@]}" \
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
-          echo "cc=-${CC}" >> $GITHUB_ENV
+          [[ ${CC} ]] && CC="-${CC}" || CC=""
+          echo "cc=${CC}" >> $GITHUB_ENV
         env:
           BUILD_STATIC: ${{ matrix.build_static }}
           DEBUG: false
           ASAN: false
+      - name: Compute environment variables for package name
+        run: |
+          [[ ${{ matrix.build_static }} == "true" ]] && static="-static" || static=""
+          echo "static=${static}" >> $GITHUB_ENV
+          echo "os=`uname`" >> $GITHUB_ENV
+          echo "os_kernel=`uname -r`" >> $GITHUB_ENV
+          echo "platform=`uname -m`" >> $GITHUB_ENV
       - name: Archive dist contents
         run: |
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
           tar -czvf release.tar.gz -C dist .
       - name: Upload Artifact
-        if: ${{ github.event_name != 'release'}}
+        if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.os }}-${{ matrix.build_static }}${{ env.cc }}.tar.gz
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ env.os }}-${{ env.os_kernel }}-${{ env.platform }}${{ env.static }}${{ env.cc }}.tar.gz
           path: release.tar.gz
           if-no-files-found: error
-      - name: Construct package name
-        if: ${{ github.event_name == 'release'}}
-        run: |
-          [${{ matrix.build_static }}] && static="-static" || static=""
-          os=`uname`
-          os_kernel=`uname -r | cut -d "-" -f 1`
-          platform=`uname -i`
-          name=${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-$os-$os_kernel-$platform$static${{ env.cc }}
-          echo "package_name=${name}" >> $GITHUB_ENV
       - name: Upload package to release
         if: ${{ github.event_name == 'release'}}
         uses: actions/upload-release-asset@v1
@@ -95,5 +93,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./release.tar.gz
-          asset_name: ${{ env.package_name }}.tar.gz
+          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.os }}-${{ env.os_kernel }}-${{ env.platform }}${{ env.static }}${{ env.cc }}.tar.gz
           asset_content_type: application/gzip
