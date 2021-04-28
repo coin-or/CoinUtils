@@ -8,6 +8,9 @@ on:
     branches:
       - '*'
   workflow_dispatch:
+  release:
+    types:
+      - created
 
 jobs:
   test:
@@ -15,27 +18,22 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04]
+        build_static: [true, false]
+        flags: [ADD_CXXFLAGS=-fvisibility=hidden]
+        download_requirements: [sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev]
         include:
-          - os: ubuntu-16.04
-            flags: BUILD_STATIC=true ADD_CXXFLAGS=-fvisibility=hidden
-            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
-          - os: ubuntu-18.04
-            flags: BUILD_STATIC=true ADD_CXXFLAGS=-fvisibility=hidden
-            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
-          - os: ubuntu-20.04
-            flags: BUILD_STATIC=false ADD_CXXFLAGS=-fvisibility=hidden
-            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
-          - os: ubuntu-20.04
-            flags: BUILD_STATIC=true ADD_CXXFLAGS=-fvisibility=hidden
-            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
           - os: macos-10.15
-            flags: CC=clang OSX=10.15 BUILD_STATIC=false
+            build_static: false
+            flags: CC=clang OSX=10.15
             download_requirements: brew install metis bash
           - os: macos-10.15
-            flags: CC=gcc-9 CXX=g++-9 OSX=10.15 BUILD_STATIC=false
+            build_static: false
+            flags: CC=gcc-9 CXX=g++-9 OSX=10.15
             download_requirements: brew install metis bash
           - os: macos-10.15
-            flags: CC=gcc-10 CXX=g++-10 OSX=10.15 BUILD_STATIC=false
+            build_static: false
+            flags: CC=gcc-10 CXX=g++-10 OSX=10.15
             download_requirements: brew install metis bash
     steps:
       - name: Checkout source
@@ -63,6 +61,36 @@ jobs:
           --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' \
           "${COMMON_ARGS[@]}" "${ADD_ARGS[@]}" "${DBG_ARGS[@]}" \
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
+          echo "cc=${CC}" >> $GITHUB_ENV
         env:
+          BUILD_STATIC: ${{ matrix.build_static }}
           DEBUG: false
-          ASAN: false
+          ASAN: true
+      - name: Archive dist contents
+        run: |
+          cp ${{ github.event.repository.name }}/README.md dist/
+          cp ${{ github.event.repository.name }}/LICENSE dist/
+          tar -czvf release.tar.gz -C dist .
+      - name: Upload Artifact
+        if: ${{ github.event_name != 'release'}}
+        uses: actions/upload-artifact@v2
+        with:
+          name: release.tar.gz
+          path: release.tar.gz
+          if-no-files-found: error
+      - name: Construct package name
+        if: ${{ github.event_name == 'release'}}
+        run: |
+          [${{ matrix.build_static }}] && static="static-" || static="-"
+          name=${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ matrix.os }}-$static${{ env.cc }}
+          echo "package_name=${name}" >> $GITHUB_ENV
+      - name: Upload package to release
+        if: ${{ github.event_name == 'release'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./release.tar.gz
+          asset_name: ${{ env.package_name }}.tar.gz
+          asset_content_type: application/gzip
