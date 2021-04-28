@@ -34,7 +34,7 @@ The CoinUtils website is https://github.com/coin-or/CoinUtils.
 
 ## CURRENT BUILD STATUS
 
-[![Build Status](https://travis-ci.com/coin-or/CoinUtils.svg?branch=master)](https://travis-ci.com/coin-or/CoinUtils)
+[![Build Status](https://github.com/coin-or/CoinUtils/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/coin-or/CoinUtils/actions/workflows/ci.yml?query=branch%3Amaster)
 
 [![Build status](https://ci.appveyor.com/api/projects/status/a41muofrtpdw18c5/branch/master?svg=true)](https://ci.appveyor.com/project/coin-or/CoinUtils/branch/master)
 

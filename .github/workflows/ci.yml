@@ -1,5 +1,5 @@
 ---
-name: Build source and run tests
+name: Compile and test
 on:
   push:
     branches:
