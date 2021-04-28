@@ -75,7 +75,7 @@ jobs:
         if: ${{ github.event_name != 'release'}}
         uses: actions/upload-artifact@v2
         with:
-          name: release.tar.gz
+          name: ${{ github.event.repository.name }}-${{ matrix.os }}-${{ matrix.build_static }}-${{ env.cc }}.tar.gz
           path: release.tar.gz
           if-no-files-found: error
       - name: Construct package name
