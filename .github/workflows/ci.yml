@@ -61,29 +61,36 @@ jobs:
           "${COMMON_ARGS[@]}" "${ADD_ARGS[@]}" "${DBG_ARGS[@]}" \
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
           [[ ${CC} ]] && CC="-${CC}" || CC=""
-          echo "cc=${CC}" >> $GITHUB_ENV
+          echo "CC=${CC}" >> $GITHUB_ENV
         env:
           BUILD_STATIC: ${{ matrix.build_static }}
           DEBUG: false
           ASAN: false
-      - name: Compute environment variables for package name
-        run: |
-          [[ ${{ matrix.build_static }} == "true" ]] && static="-static" || static=""
-          echo "static=${static}" >> $GITHUB_ENV
-          echo "os=`uname`" >> $GITHUB_ENV
-          echo `uname -a`
-          echo "os_kernel=`uname -r`" >> $GITHUB_ENV
-          echo "platform=`uname -m`" >> $GITHUB_ENV
       - name: Archive dist contents
         run: |
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
           tar -czvf release.tar.gz -C dist .
+      - name: Checkout package name generation script
+        uses: actions/checkout@v2
+        with:
+          repository: HSF/tools
+          path: tools
+          ref: 9cca1bf29081b8b5861c2d6125d6773a8bb6ddae
+      - name: Retrieve platform info
+        run: |
+          if [[ ${{ matrix.build_static }} == "true" ]]
+          then
+            platform_str=`./tools/hsf_get_platform.py -b static`
+          else
+            platform_str=`./tools/hsf_get_platform.py`
+          fi
+          echo "platform_string=${platform_str}" >> $GITHUB_ENV
       - name: Upload Artifact
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ env.os }}-${{ env.os_kernel }}-${{ env.platform }}${{ env.static }}${{ env.cc }}.tar.gz
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ env.platform_string }}.tar.gz
           path: release.tar.gz
           if-no-files-found: error
       - name: Upload package to release
@@ -94,5 +101,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./release.tar.gz
-          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.os }}-${{ env.os_kernel }}-${{ env.platform }}${{ env.static }}${{ env.cc }}.tar.gz
+          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.platform_string }}.tar.gz
           asset_content_type: application/gzip
