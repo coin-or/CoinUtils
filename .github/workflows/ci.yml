@@ -74,8 +74,9 @@ jobs:
       - name: Checkout package name generation script
         uses: actions/checkout@v2
         with:
-          repository: xmunoz/tools
+          repository: coin-or-tools/platform-analysis-tools
           path: tools
+          ref: 0.0.1
       - name: Retrieve platform info
         run: |
           python3 -m venv venv
