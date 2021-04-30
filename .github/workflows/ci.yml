@@ -78,6 +78,9 @@ jobs:
           path: tools
       - name: Retrieve platform info
         run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install distro
           if [[ ${{ matrix.build_static }} == "true" ]]
           then
             platform_str=`python3 tools/hsf_get_platform.py -b static`
