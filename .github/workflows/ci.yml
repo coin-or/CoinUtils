@@ -80,13 +80,9 @@ jobs:
         run: |
           python3 -m venv venv
           source venv/bin/activate
-          pip install distro
-          if [[ ${{ matrix.build_static }} == "true" ]]
-          then
-            platform_str=`python3 tools/hsf_get_platform.py -b static`
-          else
-            platform_str=`python3 tools/hsf_get_platform.py`
-          fi
+          pip install -r tools/requirements.txt
+          [[ ${{ matrix.build_static }} == "true" ]] && buildtype=static || buildtype=
+          platform_str=`python3 tools/hsf_get_platform.py -b $buildtype`
           echo "platform_string=${platform_str}" >> $GITHUB_ENV
       - name: Upload Artifact
         if: ${{ github.event_name == 'pull_request'}}
