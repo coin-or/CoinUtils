@@ -39,18 +39,23 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: ${{ github.event.repository.name }}
+      - name: Install required packages from package manager
+        run: ${{ matrix.download_requirements }}
+      - name: Fetch Data-Sample repository
+        uses: actions/checkout@v2
+        with:
+          repository: coin-or-tools/Data-Sample
+          path: Data/Sample
+      - name: Fetch ThirdParty-Glpk repository
+        uses: actions/checkout@v2
+        with:
+          repository: coin-or-tools/ThirdParty-Glpk
+          path: ThirdParty/Glpk
       - name: Checkout coinbrew
         uses: actions/checkout@v2
         with:
           repository: coin-or/coinbrew
           path: coinbrew
-      - name: Install required packages from package manager
-        run: ${{ matrix.download_requirements }}
-      - name: Fetch dependencies
-        run: |
-          bash coinbrew/coinbrew fetch ${{ github.event.repository.name }} \
-          --no-prompt --skip-update \
-          --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack'
       - name: Build project
         run: |
           export ${{ matrix.flags }}
