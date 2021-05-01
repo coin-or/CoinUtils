@@ -7,7 +7,9 @@ on:
   pull_request:
     branches:
       - '*'
-  workflow_dispatch:
+  release:
+    types:
+      - created
 
 jobs:
   test:
@@ -15,27 +17,22 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04]
+        build_static: [true, false]
+        flags: [ADD_CXXFLAGS=-fvisibility=hidden]
+        download_requirements: [sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev]
         include:
-          - os: ubuntu-16.04
-            flags: BUILD_STATIC=true ADD_CXXFLAGS=-fvisibility=hidden
-            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
-          - os: ubuntu-18.04
-            flags: BUILD_STATIC=true ADD_CXXFLAGS=-fvisibility=hidden
-            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
-          - os: ubuntu-20.04
-            flags: BUILD_STATIC=false ADD_CXXFLAGS=-fvisibility=hidden
-            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
-          - os: ubuntu-20.04
-            flags: BUILD_STATIC=true ADD_CXXFLAGS=-fvisibility=hidden
-            download_requirements: sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev
           - os: macos-10.15
-            flags: CC=clang OSX=10.15 BUILD_STATIC=false
+            build_static: false
+            flags: CC=clang OSX=10.15
             download_requirements: brew install metis bash
           - os: macos-10.15
-            flags: CC=gcc-9 CXX=g++-9 OSX=10.15 BUILD_STATIC=false
+            build_static: false
+            flags: CC=gcc-9 CXX=g++-9 OSX=10.15
             download_requirements: brew install metis bash
           - os: macos-10.15
-            flags: CC=gcc-10 CXX=g++-10 OSX=10.15 BUILD_STATIC=false
+            build_static: false
+            flags: CC=gcc-10 CXX=g++-10 OSX=10.15
             download_requirements: brew install metis bash
     steps:
       - name: Checkout source
@@ -63,6 +60,45 @@ jobs:
           --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' \
           "${COMMON_ARGS[@]}" "${ADD_ARGS[@]}" "${DBG_ARGS[@]}" \
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
+          [[ ${CC} ]] && CC="${CC}" || CC=""
+          echo "CC=${CC}" >> $GITHUB_ENV
         env:
+          BUILD_STATIC: ${{ matrix.build_static }}
           DEBUG: false
           ASAN: false
+      - name: Archive dist contents
+        run: |
+          cp ${{ github.event.repository.name }}/README.md dist/
+          cp ${{ github.event.repository.name }}/LICENSE dist/
+          tar -czvf release.tar.gz -C dist .
+      - name: Checkout package name generation script
+        uses: actions/checkout@v2
+        with:
+          repository: coin-or-tools/platform-analysis-tools
+          path: tools
+          ref: 0.0.1
+      - name: Retrieve platform info
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install -r tools/requirements.txt
+          [[ ${{ matrix.build_static }} == "true" ]] && buildtype=static || buildtype=
+          platform_str=`python3 tools/hsf_get_platform.py -b $buildtype`
+          echo "platform_string=${platform_str}" >> $GITHUB_ENV
+      - name: Upload Artifact
+        if: ${{ github.event_name == 'pull_request'}}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ env.platform_string }}.tar.gz
+          path: release.tar.gz
+          if-no-files-found: error
+      - name: Upload package to release
+        if: ${{ github.event_name == 'release'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./release.tar.gz
+          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.platform_string }}.tar.gz
+          asset_content_type: application/gzip
