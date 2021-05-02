@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.XMUNOZ_PAT }}
+          GITHUB_TOKEN: ${{ secrets.TKRALPHS_RELEASE }}
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
