@@ -1,0 +1,82 @@
+---
+name: Windows build and test
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    branches:
+      - '*'
+  release:
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2019]
+        tests: [none, main]
+        arch: [x86_64, i686]
+        debug: ["--enable-debug", ""]
+        flags: ["--host=${{ matrix.arch }}-w64-mingw32"]
+        download_requirements: ['CALL C:\msys64\usr\bin\bash -lc "pacman -S \
+                                                                  mingw-w64-${{ matrix.arch }}-lapack \
+                                                                  mingw-w64-${{ matrix.arch }}-winpthreads-git \
+                                                                  mingw-w64-${{ matrix.arch }}-readline \
+                                                                  mingw-w64-${{ matrix.arch }}-suitesparse \
+                                                                  mingw-w64-${{ matrix.arch }}-metis \
+                                                                  --noconfirm"']
+        include:
+          - os: windows-2019
+            tests: main
+            arch: win64
+            debug: ""
+            flags: "--enable-msvc"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+          - os: windows-2019
+            tests: none
+            arch: win64
+            debug: "--enable-debug"
+            flags: "--enable-msvc"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+          - os: windows-2017
+            tests: main
+            arch: win64
+            debug: ""
+            flags: "--enable-msvc"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+          - os: windows-2017
+            tests: none
+            arch: win64
+            debug: "--enable-debug"
+            flags: "--enable-msvc"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+        with:
+          path: ${{ github.event.repository.name }}
+      - name: Install required packages
+        run: ${{ matrix.install_dependencies }}
+      - name: Fetch Data-Sample repository
+        uses: actions/checkout@v2
+        with:
+          repository: coin-or-tools/Data-Sample
+          path: Data/Sample
+      - name: Fetch ThirdParty-Glpk repository
+        uses: actions/checkout@v2
+        with:
+          repository: coin-or-tools/ThirdParty-Glpk
+          path: ThirdParty/Glpk
+      - name: Checkout coinbrew
+        uses: actions/checkout@v2
+        with:
+          repository: coin-or/coinbrew
+          path: coinbrew
+      - name: Build project
+        run: |
+          C:\msys64\usr\bin\bash -lc "./coinbrew/coinbrew build  ${{ github.event.repository.name }} \
+                                      --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' \
+                                      --build=x86_64-w64-mingw32 ${{ matrix.flags }} ${{ matrix.debug }}
+                                      --verbosity 2 --tests ${{ matrix.tests }}  --enable-relocatable"
