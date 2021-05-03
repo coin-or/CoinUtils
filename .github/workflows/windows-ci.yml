@@ -24,22 +24,22 @@ jobs:
             tests: main
             arch: win64
             debug: ""
-            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2019
             tests: none
             arch: win64
             debug: "--enable-debug"
-            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
             tests: main
             arch: win64
             debug: ""
-            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
             tests: none
             arch: win64
             debug: "--enable-debug"
-            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
