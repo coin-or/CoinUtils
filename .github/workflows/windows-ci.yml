@@ -75,4 +75,4 @@ jobs:
           echo "host_flag=--host=${{ matrix.arch }}-w64-mingw32" >> $GITHUB_ENV
           C:\msys64\usr\bin\pacman -S mingw-w64-${{ matrix.arch }}-lapack mingw-w64-${{ matrix.arch }}-winpthreads-git mingw-w64-${{ matrix.arch }}-readline mingw-w64-${{ matrix.arch }}-suitesparse mingw-w64-${{ matrix.arch }}-metis --noconfirm
       - name: Build project
-        run: C:\msys64\usr\bin\bash -lc "cd C:\projects; export PATH=/mingw64/bin:$PATH; ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} ${{ matrix.debug }} --verbosity 2 --tests ${{ matrix.tests }} --enable-relocatable"
+        run: bash -l -c "./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} ${{ matrix.debug }} --verbosity 2 --tests ${{ matrix.tests }} --enable-relocatable"
