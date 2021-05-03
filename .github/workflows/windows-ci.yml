@@ -17,29 +17,29 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2019]
-        tests: [none, main]
         arch: [x86_64, i686]
         debug: ["--enable-debug", ""]
+        tests: [none, main]
         include:
           - os: windows-2019
-            tests: main
             arch: win64
             debug: ""
+            tests: main
             download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2019
-            tests: none
             arch: win64
             debug: "--enable-debug"
+            tests: none
             download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
-            tests: main
             arch: win64
             debug: ""
+            tests: main
             download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
-            tests: none
             arch: win64
             debug: "--enable-debug"
+            tests: none
             download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
     steps:
       - name: Checkout source
