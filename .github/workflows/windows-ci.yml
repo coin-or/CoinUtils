@@ -69,6 +69,7 @@ jobs:
           echo "host_flag=--enable-msvc" >> $GITHUB_ENV
           ${{ matrix.download_requirements }}
         shell: cmd
+      - uses: msys2/setup-msys2@v2
       - name: Set correct host flag and install requirements
         if: ${{ matrix.arch != 'win64' }}
         run: |
