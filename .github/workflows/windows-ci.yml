@@ -63,6 +63,7 @@ jobs:
         run: |
           echo "host_flag=--enable-msvc" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           ${{ matrix.download_requirements }}
+          echo 'C:"\Program Files (x86)\Microsoft Visual Studio"' | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Set correct host flag and install requirements for i686/x86_64
         if: ${{ matrix.arch != 'win64' }}
         run: |
