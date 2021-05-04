@@ -23,19 +23,19 @@ jobs:
           - os: windows-2019
             arch: win64
             tests: main
-            download_requirements: C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2019
             arch: win64
             tests: none
-            download_requirements: C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
             arch: win64
             tests: main
-            download_requirements: C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
             arch: win64
             tests: none
-            download_requirements: C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
@@ -58,15 +58,21 @@ jobs:
         with:
           repository: coin-or/coinbrew
           path: coinbrew
-      - name: Set correct host flag and install requirements for win64
+      - name: Install requirements for win64
         if: ${{ matrix.arch == 'win64' }}
         run: |
-          echo "host_flag=--enable-msvc" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           ${{ matrix.download_requirements }}
           which cl
           cl /?
+        shell: cmd
+      - name: Set correct host and compiler flags and path for win64
+        if: ${{ matrix.arch == 'win64' }}
+        run: |
+          echo "host_flag=--enable-msvc" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "CC=cl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "CXX=cl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "/c/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.28.29910/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "/c/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/VC/Tools/MSVC/14.16.27023/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Set correct host flag and install requirements for i686/x86_64
         if: ${{ matrix.arch != 'win64' }}
         run: |
@@ -82,7 +88,6 @@ jobs:
       - name: Build project
         run: |
           [[ ${{ matrix.tests }} == "none" ]] && debug="--enable-debug" || debug=""
-          which cl
           ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
         shell: msys2 {0}
       - name: Upload failed build directory
