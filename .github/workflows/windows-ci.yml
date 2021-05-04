@@ -66,13 +66,13 @@ jobs:
       - name: Set correct host flag and install requirements
         if: ${{ matrix.arch == 'win64' }}
         run: |
-          echo "host_flag=--enable-msvc" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "host_flag=--enable-msvc" >> %GITHUB_ENV%
           ${{ matrix.download_requirements }}
         shell: cmd
       - name: Set correct host flag and install requirements
         if: ${{ matrix.arch != 'win64' }}
         run: |
-          echo "host_flag=--host=${{ matrix.arch }}-w64-mingw32" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "host_flag=--host=${{ matrix.arch }}-w64-mingw32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           C:\msys64\usr\bin\pacman -S mingw-w64-${{ matrix.arch }}-lapack mingw-w64-${{ matrix.arch }}-winpthreads-git mingw-w64-${{ matrix.arch }}-readline mingw-w64-${{ matrix.arch }}-suitesparse mingw-w64-${{ matrix.arch }}-metis --noconfirm
       - name: Build project
         run: bash -l -c "./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} ${{ matrix.debug }} --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable"
