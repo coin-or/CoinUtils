@@ -23,19 +23,19 @@ jobs:
           - os: windows-2019
             arch: win64
             tests: main
-            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2019
             arch: win64
             tests: none
-            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
             arch: win64
             tests: main
-            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
             arch: win64
             tests: none
-            download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+            download_requirements: C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
@@ -61,10 +61,8 @@ jobs:
       - name: Set correct host flag and install requirements for win64
         if: ${{ matrix.arch == 'win64' }}
         run: |
-          echo host_flag=--enable-msvc >> %GITHUB_ENV%
+          echo "host_flag=--enable-msvc" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           ${{ matrix.download_requirements }}
-          which cl
-        shell: cmd
       - name: Set correct host flag and install requirements for i686/x86_64
         if: ${{ matrix.arch != 'win64' }}
         run: |
