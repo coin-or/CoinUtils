@@ -18,27 +18,22 @@ jobs:
       matrix:
         os: [windows-2019]
         arch: [x86_64, i686]
-        debug: ["--enable-debug", ""]
         tests: [none, main]
         include:
           - os: windows-2019
             arch: win64
-            debug: ""
             tests: main
             download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2019
             arch: win64
-            debug: "--enable-debug"
             tests: none
             download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
             arch: win64
-            debug: ""
             tests: main
             download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           - os: windows-2016
             arch: win64
-            debug: "--enable-debug"
             tests: none
             download_requirements: CALL C:\"Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
     steps:
@@ -68,6 +63,7 @@ jobs:
         run: |
           echo host_flag=--enable-msvc >> %GITHUB_ENV%
           ${{ matrix.download_requirements }}
+          which cl
         shell: cmd
       - name: Set correct host flag and install requirements for i686/x86_64
         if: ${{ matrix.arch != 'win64' }}
@@ -82,5 +78,18 @@ jobs:
             git
           path-type: inherit
       - name: Build project
-        run: ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} ${{ matrix.debug }} --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
+        run: |
+          [[ ${{ matrix.tests }} == "none" ]] && debug="--enable-debug" || debug=""
+          ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
         shell: msys2 {0}
+      - name: Upload failed build directory
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-tests=${{ matrix.tests }}-failedbuild
+          path: build/
+      - name: Upload package
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-tests=${{ matrix.tests }}
+          path: dist/
