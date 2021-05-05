@@ -48,17 +48,7 @@ jobs:
         run: |
           echo "host_flag=--host=${{ matrix.arch }}-w64-mingw32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           C:\msys64\usr\bin\pacman -S mingw-w64-${{ matrix.arch }}-lapack mingw-w64-${{ matrix.arch }}-winpthreads-git mingw-w64-${{ matrix.arch }}-readline mingw-w64-${{ matrix.arch }}-suitesparse mingw-w64-${{ matrix.arch }}-metis --noconfirm
-      - name: Set up msys for 32-bit builds
-        if: ${{ matrix.arch == 'i686' }}
-        uses: msys2/setup-msys2@v2
-        with:
-          update: true
-          install: >-
-            base-devel
-            git
-          path-type: inherit
-          msystem: MINGW32
-      - name: Set up msys for 64-bit builds
+      - name: Set up msys with ${{ matrix.msystem }}
         uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -75,6 +65,7 @@ jobs:
           cp ${{ github.event.repository.name }}/LICENSE dist/
           tar -czvf release.tar.gz -C dist .
           echo "package_suffix=${suffix}" >> $GITHUB_ENV
+          echo "msystem_lower=${${{ matrix.msystem }},,}" >> $GITHUB_ENV
         shell: msys2 {0}
       - name: Upload failed build directory
         uses: actions/upload-artifact@v2
@@ -86,7 +77,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ matrix.os }}-${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ env.package_suffix }}.tar.gz
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ matrix.arch }}-w64-${{ env.msystem_lower }}${{ env.package_suffix }}.tar.gz
           path: release.tar.gz
           if-no-files-found: error
       - name: Upload package to release
