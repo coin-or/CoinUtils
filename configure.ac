@@ -143,7 +143,7 @@ AC_CONFIG_FILES([Makefile
 AC_CONFIG_FILES([doxydoc/doxygen.conf])
 
 # Here put the location and name of the configuration header file
-AC_CONFIG_HEADER([src/config.h src/config_coinutils.h])
+AC_CONFIG_HEADERS([src/config.h src/config_coinutils.h])
 
 # Here make sure we have data files in the build directory
 AC_CONFIG_LINKS(test/plan.mod:test/plan.mod)
