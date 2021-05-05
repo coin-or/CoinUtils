@@ -68,7 +68,7 @@ jobs:
         if: failure()
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}-tests=${{ matrix.tests }}-failedbuild
-          path: build/
+          path: build
       - name: Upload artifact
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
