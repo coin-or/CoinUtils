@@ -12,13 +12,16 @@ on:
 jobs:
   test:
     name: Run tests
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-2019
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019]
-        arch: [x86_64, i686]
-        tests: [none, main]
+        include: [
+          { arch: x86_64, msystem: MINGW64, tests: none },
+          { arch: x86_64, msystem: MINGW64, tests: main },
+          { arch: i686, msystem: MINGW32, tests: main },
+          { arch: i686, msystem: MINGW32, tests: none },
+        ]
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
@@ -56,7 +59,6 @@ jobs:
           path-type: inherit
           msystem: MINGW32
       - name: Set up msys for 64-bit builds
-        if: ${{ matrix.arch != 'i686' }}
         uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -64,14 +66,15 @@ jobs:
             base-devel
             git
           path-type: inherit
-          msystem: MINGW64
+          msystem: ${{ matrix.msystem }}
       - name: Build project
         run: |
-          [[ ${{ matrix.tests }} == "none" ]] && debug="--enable-debug" || debug=""
+          [[ ${{ matrix.tests }} == "none" ]] && debug="--enable-debug" suffix="-dbg" || debug="" suffix=""
           ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
           tar -czvf release.tar.gz -C dist .
+          echo "package_suffix=${suffix}" >> $GITHUB_ENV
         shell: msys2 {0}
       - name: Upload failed build directory
         uses: actions/upload-artifact@v2
@@ -79,25 +82,11 @@ jobs:
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}-tests=${{ matrix.tests }}-failedbuild
           path: build/
-      - name: Checkout package name generation script
-        uses: actions/checkout@v2
-        with:
-          repository: coin-or-tools/platform-analysis-tools
-          path: tools
-          ref: 0.0.1
-      - name: Retrieve platform info
-        run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install -r tools/requirements.txt
-          platform_str=`python3 tools/hsf_get_platform.py`
-          echo "platform_string=${platform_str}" >> $GITHUB_ENV
-        shell: msys2 {0}
       - name: Upload artifact
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ env.platform_string }}.tar.gz
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ matrix.os }}-${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ env.package_suffix }}.tar.gz
           path: release.tar.gz
           if-no-files-found: error
       - name: Upload package to release
@@ -108,5 +97,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./release.tar.gz
-          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.platform_string }}.tar.gz
+          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ env.package_suffix }}.tar.gz
           asset_content_type: application/gzip
