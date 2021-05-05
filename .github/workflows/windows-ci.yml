@@ -63,7 +63,7 @@ jobs:
         run: |
           ${{ matrix.download_requirements }}
           which cl
-          cl /?
+          echo %Path%
         shell: cmd
       - name: Set correct host and compiler flags and path for win64
         if: ${{ matrix.arch == 'win64' }}
