@@ -1,0 +1,91 @@
+---
+name: Windows build and test
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    branches:
+      - '*'
+  release:
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { arch: x86_64, msystem: mingw64, tests: none },
+          { arch: x86_64, msystem: mingw64, tests: main },
+          { arch: i686, msystem: mingw32, tests: main },
+          { arch: i686, msystem: mingw32, tests: none },
+        ]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+        with:
+          path: ${{ github.event.repository.name }}
+      - name: Fetch Data-Sample repository
+        uses: actions/checkout@v2
+        with:
+          repository: coin-or-tools/Data-Sample
+          path: Data/Sample
+      - name: Fetch ThirdParty-Glpk repository
+        uses: actions/checkout@v2
+        with:
+          repository: coin-or-tools/ThirdParty-Glpk
+          path: ThirdParty/Glpk
+      - name: Checkout coinbrew
+        uses: actions/checkout@v2
+        with:
+          repository: coin-or/coinbrew
+          path: coinbrew
+      - name: Set correct host flag and install requirements
+        run: |
+          echo "host_flag=--host=${{ matrix.arch }}-w64-mingw32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          C:\msys64\usr\bin\pacman -S mingw-w64-${{ matrix.arch }}-lapack mingw-w64-${{ matrix.arch }}-winpthreads-git mingw-w64-${{ matrix.arch }}-readline mingw-w64-${{ matrix.arch }}-suitesparse mingw-w64-${{ matrix.arch }}-metis --noconfirm
+      - name: Set up msys with ${{ matrix.msystem }}
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            git
+          path-type: inherit
+          msystem: ${{ matrix.msystem }}
+      - name: Build project
+        run: |
+          [[ ${{ matrix.tests }} == "none" ]] && debug="" suffix="" || debug="--enable-debug" suffix="-dbg"
+          ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
+          cp ${{ github.event.repository.name }}/README.md dist/
+          cp ${{ github.event.repository.name }}/LICENSE dist/
+          echo "package_suffix=${suffix}" >> $GITHUB_ENV
+        shell: msys2 {0}
+      - name: Upload failed build directory
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-tests=${{ matrix.tests }}-failedbuild
+          path: build
+      - name: Upload artifact
+        if: ${{ github.event_name == 'pull_request'}}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ env.package_suffix }}
+          path: dist
+          if-no-files-found: error
+      - name: Zip up dist contents for release
+        if: ${{ github.event_name == 'release'}}
+        run: cd dist && zip -r ../release.zip *
+      - name: Upload package to release
+        if: ${{ github.event_name == 'release'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./release.zip
+          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ env.package_suffix }}.zip
+          asset_content_type: application/gzip
