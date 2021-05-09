@@ -130,26 +130,27 @@ std::string nextField(const char *prompt)
 
 namespace CoinParamUtils {
 
-std::string printString(const std::string input, int maxWidth)
+std::string printString(const std::string &input, int maxWidth)
 {
    std::ostringstream buffer;
    std::istringstream iss(input);
    int currentWidth = 0;
    std::string word;
    while (iss >> word){
-      currentWidth += word.length();
-      if (currentWidth >= 65){
+      if (currentWidth >= maxWidth){
          buffer << std::endl << word;
+         currentWidth = 0;
       } else {
          buffer << word;
       }         
+      currentWidth += word.length();
    }
    return buffer.str();
 }
 
 std::string printString(const char *input, int maxWidth)
 {
-   return CoinParamUtils::printString(std::string(input));
+   return CoinParamUtils::printString(std::string(input), maxWidth);
 }
 
 void
@@ -170,7 +171,7 @@ readFromStream(std::deque<std::string> &inputQueue,
 
 void
 readInteractiveInput(std::deque<std::string> &inputQueue,
-                     std::string prompt)
+                     const std::string &prompt)
 {
    std::string input;
   
@@ -949,12 +950,17 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
   int i;
   int pfxLen = static_cast< int >(prefix.length());
   bool printed = false;
+  CoinParam *param; 
 
   if (noHelp) {
     int lineLen = 0;
     for (i = firstParam; i <= lastParam; i++) {
-      if (paramVec[i]->getDisplayPriority() || hidden) {
-        std::string nme = paramVec[i]->matchName();
+      param = paramVec[i]; 
+      if (param == 0){
+         continue;
+      }
+      if (param->getDisplayPriority() || hidden) {
+        std::string nme = param->matchName();
         int len = static_cast< int >(nme.length());
         if (!printed) {
           std::cout << std::endl
@@ -976,25 +982,33 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
     }
   } else if (shortHelp) {
     for (i = firstParam; i <= lastParam; i++) {
-      if (paramVec[i]->getDisplayPriority() || hidden) {
+      param = paramVec[i]; 
+      if (param == 0){
+         continue;
+      }
+      if (param->getDisplayPriority() || hidden) {
         std::cout << std::endl
                   << prefix;
-        std::cout << paramVec[i]->matchName();
+        std::cout << param->matchName();
         std::cout << ": ";
-        std::cout << paramVec[i]->shortHelp();
+        std::cout << param->shortHelp();
       }
     }
     std::cout << std::endl;
   } else if (longHelp) {
     for (i = firstParam; i <= lastParam; i++) {
-      if (paramVec[i]->getDisplayPriority() || hidden) {
+      param = paramVec[i]; 
+      if (param == 0){
+         continue;
+      }
+      if (param->getDisplayPriority() || hidden) {
         std::cout << std::endl
                   << prefix;
-        std::cout << "Command: " << paramVec[i]->matchName();
+        std::cout << "Command: " << param->matchName();
         std::cout << std::endl
                   << prefix;
         std::cout << "---- description" << std::endl;
-        printIt(paramVec[i]->longHelp().c_str());
+        printIt(param->longHelp().c_str());
         std::cout << prefix << "----" << std::endl;
       }
     }
