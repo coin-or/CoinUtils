@@ -484,7 +484,7 @@ std::string CoinParam::printLongHelp() const
 
 /* Set value of a parameter of any type */
 int CoinParam::setVal(std::string value, std::string *message,
-                        ParamPushMode pMode)
+                      ParamPushMode pMode)
 {
    switch(type_){
     case paramKwd:
@@ -493,21 +493,32 @@ int CoinParam::setVal(std::string value, std::string *message,
     case paramStr:
       setStrVal(value, message, pMode);
       return 0;
+    case paramAct:
+      std::cout << "setVal(): Cannot be called for an action parameter!"
+                << std::endl;
+      return 1;
     default:
-      std::cout << "setVal(): Parameter type must be set to string or "
-                << "keyword for this function call!" << std::endl;
+      std::cout << "setVal(): attepting to pass string as an argument, "
+                << "to a parameter that is not of type paramStr or "
+                << "paramKwd keyword!" << std::endl;
       return 1;
    }
 }
 
 int CoinParam::setVal(double value, std::string *message, ParamPushMode pMode)
 {
-   if (type_ == paramDbl){
+   switch(type_){
+    case paramDbl:
       setDblVal(value, message, pMode);
       return 0;
-   }else{
-      std::cout << "setVal(): Parameter type must be set to double "
-                << "for this function call!" << std::endl;
+    case paramAct:
+      std::cout << "setVal(): Cannot be called for an action parameter!"
+                << std::endl;
+      return 1;
+    default:
+      std::cout << "setVal(): attepting to pass double as an argument, "
+                << "to a parameter that is not of type paramDbl!"
+                << std::endl;
       return 1;
    }
 }
@@ -521,9 +532,14 @@ int CoinParam::setVal(int value, std::string *message, ParamPushMode pMode)
     case paramKwd:
       setModeVal(value, message, pMode);
       return 0;
+    case paramAct:
+      std::cout << "setVal(): Cannot be called for an action parameter!"
+                << std::endl;
+      return 1;
     default:
-      std::cout << "setVal(): Parameter type must be set to int "
-                << "for this function call!" << std::endl;
+      std::cout << "setVal(): attepting to pass integer as an argument, "
+                << "to a parameter that is not of type paramInt or ParamKwd!"
+                << std::endl;
       return 1;
    }
 }
@@ -538,21 +554,30 @@ int CoinParam::getVal(std::string &value)
     case paramStr:
       value = strValue_;
       return 0;
+    case paramAct:
+      std::cout << "getVal(): Cannot be called for an action parameter!"
+                << std::endl;
+      return 1;
     default:
-      std::cout << "getVal(): Parameter type must be set to string or "
-                << "keyword for this function call!" << std::endl;
+      std::cout << "getVal(): argument type doesn't match parameter type!"
+                << std::endl;
       return 1;
    }      
 }
 
 int CoinParam::getVal(double &value)
 {
-   if (type_ == paramDbl){
+   switch(type_){
+    case paramDbl:
       value = dblValue_;
       return 0;
-   }else{
-      std::cout << "getVal(): Parameter type must be set to double "
-                << "for this function call!" << std::endl;
+    case paramAct:
+      std::cout << "getVal(): Cannot be called for an action parameter!"
+                << std::endl;
+      return 1;
+    default:
+      std::cout << "getVal(): argument type doesn't match parameter type!"
+                << std::endl;
       return 1;
    }
 }
@@ -563,15 +588,15 @@ int CoinParam::getVal(int &value)
     case paramInt:
       value = intValue_;
       return 0;
-    case paramKwd:
-      value = currentMode_;
-      return 0;
+    case paramAct:
+      std::cout << "getVal(): Cannot be called for an action parameter!"
+                << std::endl;
+      return 1;
     default:
-      std::cout << "getVal(): Parameter type must be set to int "
-                << "for this function call!" << std::endl;
+      std::cout << "getVal(): argument type doesn't match parameter type!"
+                << std::endl;
       return 1;
    }
-
 }
 
    /*
