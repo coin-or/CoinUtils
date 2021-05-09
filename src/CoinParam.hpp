@@ -741,7 +741,7 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
                bool shortHelp, bool longHelp, bool hidden);
 
 COINUTILSLIB_EXPORT
-std::string printString(const std::string input, int maxWidth = 65);
+std::string printString(const std::string &input, int maxWidth = 65);
 
 COINUTILSLIB_EXPORT
 std::string printString(const char *input, int maxWidth = 65);
@@ -753,7 +753,7 @@ readFromStream(std::deque<std::string> &inputQueue,
 
 COINUTILSLIB_EXPORT
 void readInteractiveInput(std::deque<std::string> &inputQueue,
-                              std::string prompt);
+                          const std::string &prompt);
 
 COINUTILSLIB_EXPORT
 std::string getNextField(std::deque<std::string> &inputQueue,
