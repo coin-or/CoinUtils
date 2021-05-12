@@ -51,6 +51,7 @@ jobs:
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
           echo "package_suffix=${suffix}" >> $GITHUB_ENV
+        shell: bash
       - name: Upload failed build directory
         uses: actions/upload-artifact@v2
         if: failure()
