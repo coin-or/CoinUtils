@@ -42,23 +42,15 @@ jobs:
         with:
           repository: coin-or/coinbrew
           path: coinbrew
-      - name: Set up msys with ${{ matrix.msystem }}
-        uses: msys2/setup-msys2@v2
-        with:
-          update: true
-          install: >-
-            base-devel
-            git
-          path-type: inherit
+      - name: Set up msvc
+        uses: ilammy/msvc-dev-cmd@v1
       - name: Build project
         run: |
-          cmd <'C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.msvc_year }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat'
           [[ ${{ matrix.tests }} == "none" ]] && debug="" suffix="" || debug="--enable-debug" suffix="-dbg"
           ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 --enable-msvc $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
           echo "package_suffix=${suffix}" >> $GITHUB_ENV
-        shell: msys2 {0}
       - name: Upload failed build directory
         uses: actions/upload-artifact@v2
         if: failure()
