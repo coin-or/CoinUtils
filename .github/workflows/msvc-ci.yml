@@ -17,10 +17,10 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { os: windows-2019, msvc_version: 16, tests: none, batch_file: "C:\\'Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat'"},
-          { os: windows-2019, msvc_version: 16, tests: main, batch_file: "C:\\'Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat'"},
-          { os: windows-2016, msvc_version: 15, tests: main, batch_file: /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Auxiliary/Build/vcvars64.bat},
-          { os: windows-2016, msvc_version: 15, tests: none, batch_file: /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Auxiliary/Build/vcvars64.bat},
+          { os: windows-2019, msvc_version: 16, tests: none, msvc_year: 2019},
+          { os: windows-2019, msvc_version: 16, tests: main, msvc_year: 2019},
+          { os: windows-2016, msvc_version: 15, tests: main, msvc_year: 2017},
+          { os: windows-2016, msvc_version: 15, tests: none, msvc_year: 2017},
         ]
     steps:
       - name: Checkout source
@@ -53,7 +53,7 @@ jobs:
       - name: Build project
         run: |
           [[ ${{ matrix.tests }} == "none" ]] && debug="" suffix="" || debug="--enable-debug" suffix="-dbg"
-          cmd <${{ matrix.batch_file }}
+          cmd <C:\'Program Files (x86)\Microsoft Visual Studio\{{ matrix.msvc_year }}\Community\VC\Auxiliary\Build\vcvars64.bat'
           ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 --enable-msvc $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
