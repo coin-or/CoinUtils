@@ -17,8 +17,8 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { os: windows-2019, msvc_version: 16, tests: none, batch_file: /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2019/Community/VC/Auxiliary/Build/vcvars64.bat},
-          { os: windows-2019, msvc_version: 16, tests: main, batch_file: /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2019/Community/VC/Auxiliary/Build/vcvars64.bat},
+          { os: windows-2019, msvc_version: 16, tests: none, batch_file: "C:\\'Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat'"},
+          { os: windows-2019, msvc_version: 16, tests: main, batch_file: "C:\\'Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat'"},
           { os: windows-2016, msvc_version: 15, tests: main, batch_file: /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Auxiliary/Build/vcvars64.bat},
           { os: windows-2016, msvc_version: 15, tests: none, batch_file: /c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/Community/VC/Auxiliary/Build/vcvars64.bat},
         ]
