@@ -17,10 +17,10 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { os: windows-2019, msvc_version: 16, tests: none, msvc_year: 2019},
-          { os: windows-2019, msvc_version: 16, tests: main, msvc_year: 2019},
-          { os: windows-2016, msvc_version: 15, tests: main, msvc_year: 2017},
-          { os: windows-2016, msvc_version: 15, tests: none, msvc_year: 2017},
+          { os: windows-2019, tests: none},
+          { os: windows-2019, tests: main},
+          { os: windows-2016, tests: main},
+          { os: windows-2016, tests: none},
         ]
     steps:
       - name: Checkout source
@@ -44,7 +44,7 @@ jobs:
           path: coinbrew
       - name: Set up msvc
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Set up msys with ${{ matrix.msystem }}
+      - name: Set up msys
         uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -55,23 +55,23 @@ jobs:
       - name: Build project
         run: |
           [[ ${{ matrix.tests }} == "none" ]] && debug="" suffix="" || debug="--enable-debug" suffix="-dbg"
-          echo `env`
           ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 --enable-msvc $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
           echo "package_suffix=${suffix}" >> $GITHUB_ENV
+          echo "msvc_version=${VisualStudioVersion%.*}" >> $GITHUB_ENV
         shell: msys2 {0}
       - name: Upload failed build directory
         uses: actions/upload-artifact@v2
         if: failure()
         with:
-          name: ${{ matrix.os }}-msvc-tests=${{ matrix.tests }}-failedbuild
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-w64-msvc${{ env.msvc_version }}${{ env.package_suffix }}-failedbuild
           path: build
       - name: Upload artifact
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-w64-msvc${{ matrix.msvc_version }}${{ env.package_suffix }}
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-w64-msvc${{ env.msvc_version }}${{ env.package_suffix }}
           path: dist
           if-no-files-found: error
       - name: Zip up dist contents for release
@@ -85,5 +85,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./release.zip
-          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-w64-msvc${{ matrix.msvc_version }}${{ env.package_suffix }}.zip
+          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-w64-msvc${{ env.msvc_version }}${{ env.package_suffix }}.zip
           asset_content_type: application/gzip
