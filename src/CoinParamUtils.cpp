@@ -206,7 +206,7 @@ getNextField(std::deque<std::string> &inputQueue, bool interactiveMode,
      return "";
   }else{
      std::string field = inputQueue.front();
-     inputQueue.pop_back();
+     inputQueue.pop_front();
      return field;
   }
 }
