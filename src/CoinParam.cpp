@@ -488,11 +488,9 @@ int CoinParam::setVal(std::string value, std::string *message,
 {
    switch(type_){
     case paramKwd:
-      setKwdVal(value, message, pMode);
-      return 0;
+      return setKwdVal(value, message, pMode);
     case paramStr:
-      setStrVal(value, message, pMode);
-      return 0;
+      return setStrVal(value, message, pMode);
     case paramAct:
       std::cout << "setVal(): Cannot be called for an action parameter!"
                 << std::endl;
