@@ -44,6 +44,14 @@ jobs:
           path: coinbrew
       - name: Set up msvc
         uses: ilammy/msvc-dev-cmd@v1
+      - name: Set up msys with ${{ matrix.msystem }}
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            git
+          path-type: inherit
       - name: Build project
         run: |
           [[ ${{ matrix.tests }} == "none" ]] && debug="" suffix="" || debug="--enable-debug" suffix="-dbg"
@@ -52,7 +60,7 @@ jobs:
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
           echo "package_suffix=${suffix}" >> $GITHUB_ENV
-        shell: bash
+        shell: msys2 {0}
       - name: Upload failed build directory
         uses: actions/upload-artifact@v2
         if: failure()
