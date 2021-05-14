@@ -54,7 +54,7 @@ jobs:
           path-type: inherit
       - name: Build project
         run: |
-          [[ ${{ matrix.tests }} == "none" ]] && debug="" suffix="" || debug="--enable-debug" suffix="-dbg"
+          [[ ${{ matrix.tests }} == "none" ]] && debug="" suffix="-md" || debug="--enable-debug" suffix="-mdd"
           ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 --enable-msvc $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
