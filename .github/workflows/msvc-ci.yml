@@ -1,5 +1,5 @@
 ---
-name: Windows build and test
+name: MSVC build and test
 on:
   push:
     branches:
@@ -12,15 +12,15 @@ on:
 jobs:
   test:
     name: Run tests
-    runs-on: windows-2019
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include: [
-          { arch: x86_64, msystem: mingw64, tests: none },
-          { arch: x86_64, msystem: mingw64, tests: main },
-          { arch: i686, msystem: mingw32, tests: main },
-          { arch: i686, msystem: mingw32, tests: none },
+          { os: windows-2019, tests: none},
+          { os: windows-2019, tests: main},
+          { os: windows-2016, tests: main},
+          { os: windows-2016, tests: none},
         ]
     steps:
       - name: Checkout source
@@ -42,11 +42,9 @@ jobs:
         with:
           repository: coin-or/coinbrew
           path: coinbrew
-      - name: Set correct host flag and install requirements
-        run: |
-          echo "host_flag=--host=${{ matrix.arch }}-w64-mingw32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          C:\msys64\usr\bin\pacman -S mingw-w64-${{ matrix.arch }}-lapack mingw-w64-${{ matrix.arch }}-winpthreads-git mingw-w64-${{ matrix.arch }}-readline mingw-w64-${{ matrix.arch }}-suitesparse mingw-w64-${{ matrix.arch }}-metis --noconfirm
-      - name: Set up msys with ${{ matrix.msystem }}
+      - name: Set up msvc
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Set up msys
         uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -54,26 +52,26 @@ jobs:
             base-devel
             git
           path-type: inherit
-          msystem: ${{ matrix.msystem }}
       - name: Build project
         run: |
-          [[ ${{ matrix.tests }} == "none" ]] && debug="" suffix="" || debug="--enable-debug" suffix="-dbg"
-          ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
+          [[ ${{ matrix.tests }} == "none" ]] && debug="" suffix="-md" || debug="--enable-debug" suffix="-mdd"
+          ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 --enable-msvc $debug --verbosity 4 --tests ${{ matrix.tests }} --enable-relocatable
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
           echo "package_suffix=${suffix}" >> $GITHUB_ENV
+          echo "msvc_version=${VisualStudioVersion%.*}" >> $GITHUB_ENV
         shell: msys2 {0}
       - name: Upload failed build directory
         uses: actions/upload-artifact@v2
         if: failure()
         with:
-          name: ${{ matrix.arch }}-tests=${{ matrix.tests }}-failedbuild
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-w64-msvc${{ env.msvc_version }}${{ env.package_suffix }}-failedbuild
           path: build
       - name: Upload artifact
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ env.package_suffix }}
+          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-w64-msvc${{ env.msvc_version }}${{ env.package_suffix }}
           path: dist
           if-no-files-found: error
       - name: Zip up dist contents for release
@@ -87,5 +85,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./release.zip
-          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ env.package_suffix }}.zip
+          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-w64-msvc${{ env.msvc_version }}${{ env.package_suffix }}.zip
           asset_content_type: application/gzip
