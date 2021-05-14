@@ -988,7 +988,7 @@ void CoinParam::printOptions()
    assert(currentMode_ >= 0 &&
           currentMode_ < static_cast< int >(definedKwds_.size()));
    std::string::size_type shriekPos = currentKwd_.find('!');
-   std::string current;
+   std::string current = currentKwd_;
    if (shriekPos != std::string::npos) {
       //contains '!'
       current = currentKwd_.substr(0, shriekPos) + "(" +
