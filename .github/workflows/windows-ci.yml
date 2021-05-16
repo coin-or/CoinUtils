@@ -79,13 +79,13 @@ jobs:
       - name: Generate package name for msvc
         run: |
           msvc_version=${VisualStudioVersion%.*}
-          package_name=w64-msvc${msvc_version}${{ matrix.suffix }}
-          export package_suffix=${package_name} >> $GITHUB_ENV
+          echo "package_suffix=w64-msvc${msvc_version}${{ matrix.suffix }}" >> $GITHUB_ENV
+        shell: msys2 {0}
         if: ${{ matrix.arch == 'msvc' }}
       - name: Generate package name
         run: |
-          package_name=${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ matrix.suffix }}
-          export package_suffix=${package_name} >> $GITHUB_ENV
+          echo "package_suffix=${{ matrix.arch }}-w64-${{ matrix.msystem }}${{ matrix.suffix }}" >> $GITHUB_ENV
+        shell: msys2 {0}
         if: ${{ matrix.arch != 'msvc' }}
       - name: Upload artifact
         if: ${{ github.event_name == 'pull_request'}}
