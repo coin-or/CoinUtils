@@ -724,6 +724,7 @@ int CoinParam::setModeVal(int newMode, std::string *message, ParamPushMode pMode
   for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
      if (it->second == newMode){
         newKwd = it->first;
+	break;
      }
   }
   if (it == definedKwds_.end()){
