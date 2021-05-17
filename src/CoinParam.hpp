@@ -245,10 +245,10 @@ public:
   int setVal(int value, std::string *message = NULL,
              ParamPushMode pMode = pushDefault);
   
-  /*! Set the value of a parameter of any type */
-  int getVal(std::string &value);
-  int getVal(double &value);
-  int getVal(int &value);
+  /*! Set the value of a parameter of any type */  // FIXME comment says "Set", but option looks like "get'
+  int getVal(std::string &value) const;
+  int getVal(double &value) const;
+  int getVal(int &value) const;
 
   /*! \brief Add an additional value-keyword to a keyword parameter */
   void appendKwd(std::string kwd, int index);
