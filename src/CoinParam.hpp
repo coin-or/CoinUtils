@@ -295,6 +295,12 @@ public:
   */
   std::string printKwds() const;
 
+  /// Set of valid value-keywords for a keyword parameter
+  const std::map<std::string, int>& definedKwds() const
+  {
+    return definedKwds_;
+  }
+
   /*! \brief Set the value of a string parameter */
   int setStrVal(std::string value, std::string *message = NULL,
                 ParamPushMode pMode = pushDefault);
