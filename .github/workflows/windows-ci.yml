@@ -17,14 +17,14 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { os: windows-2019, arch: x86_64, msystem: mingw64, debug: true, suffix: "-dbg"},
-          { os: windows-2019, arch: x86_64, msystem: mingw64, debug: false, suffix: ""},
-          { os: windows-2019, arch: i686, msystem: mingw32, debug: true, suffix: "-dbg"},
-          { os: windows-2019, arch: i686, msystem: mingw32, debug: false, suffix: ""},
-          { os: windows-2019, arch: msvc, msystem: mingw64, debug: true, suffix: "-mdd"},
-          { os: windows-2019, arch: msvc, msystem: mingw64, debug: false, suffix: "-md"},
-          { os: windows-2016, arch: msvc, msystem: mingw64, debug: true, suffix: "-mdd"},
-          { os: windows-2016, arch: msvc, msystem: mingw64, debug: false, suffix: "-md"},
+          { os: windows-2019, arch: x86_64, msystem: mingw64, debug: true, suffix: "-dbg" },
+          { os: windows-2019, arch: x86_64, msystem: mingw64, debug: false, suffix: "" },
+          { os: windows-2019, arch: i686, msystem: mingw32, debug: true, suffix: "-dbg" },
+          { os: windows-2019, arch: i686, msystem: mingw32, debug: false, suffix: "" },
+          { os: windows-2019, arch: msvc, msystem: mingw64, debug: true, suffix: "-mdd" },
+          { os: windows-2019, arch: msvc, msystem: mingw64, debug: false, suffix: "-md" },
+          { os: windows-2016, arch: msvc, msystem: mingw64, debug: true, suffix: "-mdd" },
+          { os: windows-2016, arch: msvc, msystem: mingw64, debug: false, suffix: "-md" },
         ]
     steps:
       - name: Checkout source
@@ -65,8 +65,8 @@ jobs:
           msystem: ${{ matrix.msystem }}
       - name: Build project
         run: |
-          [[ ${{ matrix.debug }} == "false" ]] && debug="" tests="none" || debug="--enable-debug" tests="main"
-          ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} $debug --verbosity 4 --tests $tests --enable-relocatable
+          [[ ${{ matrix.debug }} == "false" ]] && debug="" || debug="--enable-debug"
+          ./coinbrew/coinbrew build ${{ github.event.repository.name }} --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps' --build=x86_64-w64-mingw32 ${{ env.host_flag }} $debug --verbosity 4 --tests main --enable-relocatable
           cp ${{ github.event.repository.name }}/README.md dist/
           cp ${{ github.event.repository.name }}/LICENSE dist/
         shell: msys2 {0}
