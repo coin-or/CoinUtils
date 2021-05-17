@@ -228,7 +228,7 @@ void check_doubletons1(const CoinPresolveAction *paction,
 #endif // PRESOLVE_DEBUG
 
 } /* end unnamed local namespace */
-static int tryRedundant = 3;
+static const int tryRedundant = 3;
 /*
   It is always the case that one of the variables of a doubleton is, or
   can be made, implied free, but neither will necessarily be a singleton.
