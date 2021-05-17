@@ -543,7 +543,7 @@ int CoinParam::setVal(int value, std::string *message, ParamPushMode pMode)
 }
 
 /* Get value of a parameter of any type */
-int CoinParam::getVal(std::string &value)
+int CoinParam::getVal(std::string &value) const
 {
    switch(type_){
     case paramKwd:
@@ -563,7 +563,7 @@ int CoinParam::getVal(std::string &value)
    }      
 }
 
-int CoinParam::getVal(double &value)
+int CoinParam::getVal(double &value) const
 {
    switch(type_){
     case paramDbl:
@@ -580,7 +580,7 @@ int CoinParam::getVal(double &value)
    }
 }
 
-int CoinParam::getVal(int &value)
+int CoinParam::getVal(int &value) const
 {
    switch(type_){
     case paramInt:
