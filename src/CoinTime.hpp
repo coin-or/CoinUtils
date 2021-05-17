@@ -43,6 +43,10 @@
 #define DELTA_EPOCH_IN_SECS 11644473600.0
 inline double CoinGetTimeOfDay()
 {
+#ifdef COIN_DOING_DIFFS
+  // when trying to see differences between runs it can be helpful
+  return 0.0;
+#endif
   FILETIME ft;
  
   GetSystemTimeAsFileTime(&ft);
@@ -55,6 +59,10 @@ inline double CoinGetTimeOfDay()
 #include <sys/timeb.h>
 inline double CoinGetTimeOfDay()
 {
+#ifdef COIN_DOING_DIFFS
+  // when trying to see differences between runs it can be helpful
+  return 0.0;
+#endif
   struct _timeb timebuffer;
 #pragma warning(disable : 4996)
   _ftime(&timebuffer); // C4996
@@ -69,6 +77,10 @@ inline double CoinGetTimeOfDay()
 
 inline double CoinGetTimeOfDay()
 {
+#ifdef COIN_DOING_DIFFS
+  // when trying to see differences between runs it can be helpful
+  return 0.0;
+#endif
   struct timeval tv;
   gettimeofday(&tv, NULL);
   return static_cast< double >(tv.tv_sec) + static_cast< int >(tv.tv_usec) / 1000000.0;
