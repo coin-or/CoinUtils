@@ -816,10 +816,10 @@ std::string CoinParam::printKwds() const
   std::ostringstream buffer;
   buffer << "Possible options for " << name_ << " are:";
   int maxAcross = 5;
-  std::map<std::string, int>::const_iterator it;
-  int i;
-  for (it = definedKwds_.begin(), i = 0; it != definedKwds_.end(); it++, i++) {
-     std::string kwd = it->first;
+  std::vector<std::string> kwds = definedKwdsSorted();
+  size_t i;
+  for (i = 0; i < kwds.size(); ++i) {
+    std::string kwd = kwds[i];
     std::string::size_type shriekPos = kwd.find('!');
     if (shriekPos != std::string::npos) {
       kwd = kwd.substr(0, shriekPos) + "(" + kwd.substr(shriekPos + 1) + ")";
