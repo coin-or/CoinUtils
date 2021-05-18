@@ -1,5 +1,5 @@
 ---
-name: Compile and test
+name: Linux build and test
 on:
   push:
     branches:
