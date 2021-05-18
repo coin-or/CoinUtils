@@ -21,10 +21,6 @@ Description:
   License: Eclipse Public License 2.0
   LicenseURL: http://www.opensource.org/licenses/EPL-2.0
   Zenodo: 173466792
-  Appveyor:
-    Status: a41muofrtpdw18c5
-  Bintray:
-    Package: Cbc
   Language:
     - C++
   Categories: 

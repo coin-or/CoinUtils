@@ -36,8 +36,6 @@ The CoinUtils development site is https://github.com/coin-or/CoinUtils.
 
 [![Build Status](https://github.com/coin-or/CoinUtils/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/coin-or/CoinUtils/actions/workflows/ci.yml?query=branch%3Amaster)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/a41muofrtpdw18c5/branch/master?svg=true)](https://ci.appveyor.com/project/coin-or/CoinUtils/branch/master)
-
 ## DOWNLOAD
 
 ### Docker image
@@ -55,7 +53,7 @@ are archived as part of Cbc
 [here](https://www.coin-or.org/download/binary/Cbc).
 
  * *Linux*: On Debian/Ubuntu, CoinUtils is available in the package `coinor-coinutils` and can be installed with apt. On Fedora, CoinUtils is available in the package `coin-or-CoinUtils`.
- * *Windows*: The easiest way to get CoinUtils on Windows is to download from *[Bintray](https://bintray.com/coin-or/download/Cbc)*.
+ * *Windows*: The easiest way to get CoinUtils on Windows is to download [the latest release](https://github.com/coin-or/CoinUtils/releases).
  * *Mac OS X*: The easiest way to get Cbc on Mac OS X is through [Homebrew](https://brew.sh).
    * `brew tap coin-or-tools/coinor`
    * `brew install coin-or-tools/coinor/coinutils`
