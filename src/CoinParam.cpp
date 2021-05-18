@@ -8,6 +8,7 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 #ifdef COINUTILS_HAS_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -768,6 +769,39 @@ int CoinParam::modeVal() const
   assert(type_ == paramKwd);
 
   return (currentMode_);
+}
+
+class kwds_compare
+{
+  const std::map<std::string, int>& definedKwds_;
+public:
+  kwds_compare(
+    const std::map<std::string, int>& definedKwds
+  )
+  : definedKwds_(definedKwds)
+  { }
+
+  bool operator()(
+    const std::string& kwd1,
+    const std::string& kwd2
+  ) const
+  {
+    return definedKwds_.at(kwd1) < definedKwds_.at(kwd2);
+  }
+};
+
+/// Valid value-keywords for a keyword parameter sorted by integer mode
+std::vector<std::string> CoinParam::definedKwdsSorted() const
+{
+  // could be done simpler if one were assuming a bijection between keywords and modes being in {0...definedKwds_.size()-1}
+  std::vector<std::string> kwds;
+  kwds.reserve(definedKwds_.size());
+  for( std::map<std::string, int>::const_iterator it(definedKwds_.begin()); it != definedKwds_.end(); ++it )
+    kwds.push_back(it->first);
+
+  std::sort(kwds.begin(), kwds.end(), kwds_compare(definedKwds_));
+
+  return kwds;
 }
 
 /*
