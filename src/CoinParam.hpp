@@ -301,6 +301,9 @@ public:
     return definedKwds_;
   }
 
+  /// Valid value-keywords for a keyword parameter sorted by integer mode
+  std::vector<std::string> definedKwdsSorted() const;
+
   /*! \brief Set the value of a string parameter */
   int setStrVal(std::string value, std::string *message = NULL,
                 ParamPushMode pMode = pushDefault);
