@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-18.04, ubuntu-20.04]
         build_static: [true, false]
         flags: [ADD_CXXFLAGS=-fvisibility=hidden]
         download_requirements: [sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev]
@@ -41,16 +41,6 @@ jobs:
           path: ${{ github.event.repository.name }}
       - name: Install required packages from package manager
         run: ${{ matrix.download_requirements }}
-      - name: Fetch Data-Sample repository
-        uses: actions/checkout@v2
-        with:
-          repository: coin-or-tools/Data-Sample
-          path: Data/Sample
-      - name: Fetch ThirdParty-Glpk repository
-        uses: actions/checkout@v2
-        with:
-          repository: coin-or-tools/ThirdParty-Glpk
-          path: ThirdParty/Glpk
       - name: Checkout coinbrew
         uses: actions/checkout@v2
         with:
@@ -60,6 +50,9 @@ jobs:
         run: |
           export ${{ matrix.flags }}
           source coinbrew/.ci/setup_environment.sh
+          bash coinbrew/coinbrew fetch ${{ github.event.repository.name }} \
+          --no-prompt --skip-update \
+          --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack'
           bash coinbrew/coinbrew build ${{ github.event.repository.name }} \
           --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' \
           "${COMMON_ARGS[@]}" "${ADD_ARGS[@]}" "${DBG_ARGS[@]}" \
