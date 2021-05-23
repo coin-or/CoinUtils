@@ -88,6 +88,7 @@ jobs:
       - name: Zip up dist contents for release
         if: ${{ github.event_name == 'release'}}
         run: cd dist && zip -r ../release.zip *
+        shell: msys2 {0}
       - name: Upload package to release
         if: ${{ github.event_name == 'release'}}
         uses: actions/upload-release-asset@v1
