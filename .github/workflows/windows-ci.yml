@@ -51,6 +51,7 @@ jobs:
           install: >-
             base-devel
             git
+            zip
           path-type: inherit
           msystem: ${{ matrix.msystem }}
       - name: Build project
