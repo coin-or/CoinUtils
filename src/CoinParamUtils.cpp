@@ -218,9 +218,9 @@ int getValue(std::deque<std::string> &inputQueue, std::string &value)
    value = CoinParamUtils::getNextField(inputQueue);
 
    if (value == "--" || value == "stdin"){
-      value == "-";
+      value = "-";
    } else if (value == "stdin_lp"){
-      value == "-lp";
+      value = "-lp";
    }
 
    return value == "" ? 1 : 0;
