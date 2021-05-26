@@ -36,13 +36,18 @@ CoinParam::CoinParam()
   , lowerDblValue_(-COIN_DBL_MAX)
   , upperDblValue_(COIN_DBL_MAX)
   , dblValue_(0.0)
+  , dblDefaultValue_(0.0)
   , lowerIntValue_(-COIN_INT_MAX)
   , upperIntValue_(COIN_INT_MAX)
   , intValue_(0)
-  , strValue_()
+  , intDefaultValue_(0)
+  , strValue_("")
+  , strDefaultValue_("")
   , definedKwds_()
   , currentMode_(-1)
+  , defaultMode_(-1)
   , currentKwd_("")
+  , defaultKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_()
@@ -66,13 +71,18 @@ CoinParam::CoinParam(std::string name, std::string help,
   , lowerDblValue_(lower)
   , upperDblValue_(upper)
   , dblValue_(defaultValue)
+  , dblDefaultValue_(defaultValue)
   , lowerIntValue_(0)
   , upperIntValue_(0)
   , intValue_(0)
-  , strValue_()
+  , intDefaultValue_(0)
+  , strValue_("")
+  , strDefaultValue_("")
   , definedKwds_()
   , currentMode_(-1)
+  , defaultMode_(-1)
   , currentKwd_("")
+  , defaultKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
@@ -96,13 +106,18 @@ CoinParam::CoinParam(std::string name, std::string help,
   , lowerDblValue_(0.0)
   , upperDblValue_(0.0)
   , dblValue_(0.0)
+  , dblDefaultValue_(0.0)
   , lowerIntValue_(lower)
   , upperIntValue_(upper)
   , intValue_(defaultValue)
-  , strValue_()
+  , intDefaultValue_(defaultValue)
+  , strValue_("")
+  , strDefaultValue_("")
   , definedKwds_()
   , currentMode_(-1)
+  , defaultMode_(-1)
   , currentKwd_("")
+  , defaultKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
@@ -125,13 +140,18 @@ CoinParam::CoinParam(std::string name, std::string help,
   , lowerDblValue_(0.0)
   , upperDblValue_(0.0)
   , dblValue_(0.0)
+  , dblDefaultValue_(0.0)
   , lowerIntValue_(0)
   , upperIntValue_(0)
   , intValue_(0)
-  , strValue_()
+  , intDefaultValue_(0)
+  , strValue_("")
+  , strDefaultValue_("")
   , definedKwds_()
   , currentMode_(defaultMode)
+  , defaultMode_(defaultMode)
   , currentKwd_(defaultKwd)
+  , defaultKwd_(defaultKwd)
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
@@ -155,13 +175,18 @@ CoinParam::CoinParam(std::string name, std::string help,
   , lowerDblValue_(0.0)
   , upperDblValue_(0.0)
   , dblValue_(0.0)
+  , dblDefaultValue_(0.0)
   , lowerIntValue_(0)
   , upperIntValue_(0)
   , intValue_(0)
+  , intDefaultValue_(0)
   , strValue_(defaultValue)
+  , strDefaultValue_(defaultValue)
   , definedKwds_()
   , currentMode_(0)
+  , defaultMode_(0)
   , currentKwd_("")
+  , defaultKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
@@ -183,13 +208,18 @@ CoinParam::CoinParam(std::string name, std::string help,
   , lowerDblValue_(0.0)
   , upperDblValue_(0.0)
   , dblValue_(0.0)
+  , dblDefaultValue_(0.0)
   , lowerIntValue_(0)
   , upperIntValue_(0)
   , intValue_(0)
-  , strValue_()
+  , intDefaultValue_(0)
+  , strValue_("")
+  , strDefaultValue_("")
   , definedKwds_()
   , currentMode_(0)
+  , defaultMode_(0)
   , currentKwd_("")
+  , defaultKwd_("")
   , pushFunc_(0)
   , pullFunc_(0)
   , shortHelp_(help)
@@ -209,11 +239,17 @@ CoinParam::CoinParam(const CoinParam &orig)
   , lowerDblValue_(orig.lowerDblValue_)
   , upperDblValue_(orig.upperDblValue_)
   , dblValue_(orig.dblValue_)
+  , dblDefaultValue_(orig.dblDefaultValue_)
   , lowerIntValue_(orig.lowerIntValue_)
   , upperIntValue_(orig.upperIntValue_)
   , intValue_(orig.intValue_)
+  , intDefaultValue_(orig.intDefaultValue_)
+  , strValue_(orig.strValue_)
+  , strDefaultValue_(orig.strDefaultValue_)
   , currentMode_(orig.currentMode_)
+  , defaultMode_(orig.defaultMode_)
   , currentKwd_(orig.currentKwd_)
+  , defaultKwd_(orig.defaultKwd_)
   , pushFunc_(orig.pushFunc_)
   , pullFunc_(orig.pullFunc_)
   , display_(orig.display_)
@@ -244,13 +280,18 @@ CoinParam &CoinParam::operator=(const CoinParam &rhs)
     lowerDblValue_ = rhs.lowerDblValue_;
     upperDblValue_ = rhs.upperDblValue_;
     dblValue_ = rhs.dblValue_;
+    dblDefaultValue_ = rhs.dblDefaultValue_;
     lowerIntValue_ = rhs.lowerIntValue_;
     upperIntValue_ = rhs.upperIntValue_;
     intValue_ = rhs.intValue_;
+    intDefaultValue_ = rhs.intDefaultValue_;
     strValue_ = rhs.strValue_;
+    strDefaultValue_ = rhs.strDefaultValue_;
     definedKwds_ = rhs.definedKwds_;
     currentMode_ = rhs.currentMode_;
+    defaultMode_ = rhs.defaultMode_;
     currentKwd_ = rhs.currentKwd_;
+    defaultKwd_ = rhs.defaultKwd_;
     pushFunc_ = rhs.pushFunc_;
     pullFunc_ = rhs.pullFunc_;
     shortHelp_ = rhs.shortHelp_;
@@ -276,8 +317,7 @@ CoinParam::~CoinParam()
 
 /* Set up a double parameter */
 void CoinParam::setup(std::string name, std::string help,
-                      double lower, double upper,
-                      double defaultValue, std::string longHelp,
+                      double lower, double upper, std::string longHelp,
                       CoinDisplayPriority display){
    name_ = name;
    processName();
@@ -285,15 +325,13 @@ void CoinParam::setup(std::string name, std::string help,
    shortHelp_ = help;
    lowerDblValue_ = lower;
    upperDblValue_ = upper;
-   dblValue_ = defaultValue;
    longHelp_ = longHelp;
    display_ = display;
 }
 
 /* Set up an integer parameter */
 void CoinParam::setup(std::string name, std::string help,
-                      int lower, int upper,
-                      int defaultValue, std::string longHelp,
+                      int lower, int upper, std::string longHelp,
                       CoinDisplayPriority display){
    name_ = name;
    processName();
@@ -301,46 +339,15 @@ void CoinParam::setup(std::string name, std::string help,
    shortHelp_ = help;
    lowerIntValue_ = lower;
    upperIntValue_ = upper;
-   intValue_ = defaultValue;
    longHelp_ = longHelp;
    display_ = display;
 }
 
-/* Set up a keyword parameter */
+/* Set up a keyword, string, or action parameter */
 void CoinParam::setup(std::string name, std::string help,
-                      std::string defaultKwd, int defaultMode,
-                      std::string longHelp,
-                      CoinDisplayPriority display){
+                      std::string longHelp, CoinDisplayPriority display){
    name_ = name;
    processName();
-   type_ = paramKwd;
-   shortHelp_ = help;
-   currentKwd_ = defaultKwd;
-   currentMode_ = defaultMode;
-   definedKwds_[defaultKwd] = defaultMode;
-   longHelp_ = longHelp;
-   display_ = display;
-}
-
-/* Set up a string parameter */
-void CoinParam::setup(std::string name, std::string help,
-                      std::string defaultValue, std::string longHelp,
-                      CoinDisplayPriority display){
-   name_ = name;
-   processName();
-   type_ = paramStr;
-   shortHelp_ = help;
-   strValue_ = defaultValue;
-   longHelp_ = longHelp;
-   display_ = display;
-}
-
-/* Set up an action parameter */
-void CoinParam::setup(std::string name, std::string help, std::string longHelp,
-                      CoinDisplayPriority display){
-   name_ = name;
-   processName();
-   type_ = paramAct;
    shortHelp_ = help;
    longHelp_ = longHelp;
    display_ = display;
@@ -499,7 +506,7 @@ int CoinParam::setVal(std::string value, std::string *message,
     default:
       std::cout << "setVal(): attepting to pass string as an argument, "
                 << "to a parameter that is not of type paramStr or "
-                << "paramKwd keyword!" << std::endl;
+                << "paramKwd!" << std::endl;
       return 1;
    }
 }
@@ -538,6 +545,88 @@ int CoinParam::setVal(int value, std::string *message, ParamPushMode pMode)
     default:
       std::cout << "setVal(): attepting to pass integer as an argument, "
                 << "to a parameter that is not of type paramInt or ParamKwd!"
+                << std::endl;
+      return 1;
+   }
+}
+
+/* Set value of a parameter of any type */
+int CoinParam::setDefault(std::string value, std::string *message)
+{
+   switch(type_){
+    case paramKwd:
+      return setKwdValDefault(value, message);
+    case paramStr:
+      return setStrValDefault(value, message);
+    case paramAct:
+      std::cout << "setDefault(): Cannot be called for an action parameter!"
+                << std::endl;
+      return 1;
+    default:
+      std::cout << "setDefault(): attepting to pass string as an argument, "
+                << "to a parameter that is not of type paramStr or "
+                << "paramKwd!" << std::endl;
+      return 1;
+   }
+}
+
+int CoinParam::setDefault(double value, std::string *message)
+{
+   switch(type_){
+    case paramDbl:
+      setDblValDefault(value, message);
+      return 0;
+    case paramAct:
+      std::cout << "setDefault(): Cannot be called for an action parameter!"
+                << std::endl;
+      return 1;
+    default:
+      std::cout << "setDefault(): attepting to pass double as an argument, "
+                << "to a parameter that is not of type paramDbl!"
+                << std::endl;
+      return 1;
+   }
+}
+
+int CoinParam::setDefault(int value, std::string *message)
+{
+   switch(type_){
+    case paramInt:
+      setIntValDefault(value, message);
+      return 0;
+    case paramKwd:
+      setModeValDefault(value, message);
+      return 0;
+    case paramAct:
+      std::cout << "setDefault(): Cannot be called for an action parameter!"
+                << std::endl;
+      return 1;
+    default:
+      std::cout << "setDefault(): attepting to pass integer as an argument, "
+                << "to a parameter that is not of type paramInt or ParamKwd!"
+                << std::endl;
+      return 1;
+   }
+}
+
+/* Restore value of a parameter to its default */
+int CoinParam::restoreDefault(){
+   switch(type_){
+    case paramInt:
+      intValue_ = intDefaultValue_;
+      return 0;
+    case paramDbl:
+      dblValue_ = dblDefaultValue_;
+      return 0;
+    case paramStr:
+      strValue_ = strDefaultValue_;
+      return 0;
+    case paramKwd:
+      currentMode_ = defaultMode_;
+      currentKwd_ = defaultKwd_;
+      return 0;
+    default:
+      std::cout << "restoreDefault() is illegal for parameter of this type!"
                 << std::endl;
       return 1;
    }
@@ -712,6 +801,31 @@ int CoinParam::setKwdVal(const std::string newKwd, std::string *message,
   }
 }
 
+int CoinParam::setKwdValDefault(const std::string newKwd, std::string *message)
+{
+  assert(type_ == paramKwd);
+
+  int newMode = kwdToMode(newKwd);
+  if (newMode >= 0) {
+     if (message){
+        std::ostringstream buffer;
+        buffer << "Default option for " << name_ << " set to " << newKwd
+               << std::endl;
+        *message = buffer.str();
+     }
+     defaultKwd_ = newKwd;
+     defaultMode_ = newMode;
+     return 0;
+  }else{
+     if (message){
+        std::ostringstream buffer;
+        buffer << "Illegal keyword. Options are" << std::endl;
+        *message = buffer.str();
+     }
+     return 1;
+  }
+}
+
 /*
   Set current value for keyword parameter using an integer. Echo the new value
   to cout if requested.
@@ -747,6 +861,38 @@ int CoinParam::setModeVal(int newMode, std::string *message, ParamPushMode pMode
      if (pMode == pushOn){
         pushFunc_(*this);
      }
+     return 0;
+  }
+}
+
+int CoinParam::setModeValDefault(int newMode, std::string *message)
+{
+  assert(type_ == paramKwd);
+
+  std::map<std::string, int>::const_iterator it;
+  std::string newKwd;
+  for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
+     if (it->second == newMode){
+        newKwd = it->first;
+	break;
+     }
+  }
+  if (it == definedKwds_.end()){
+     if (message){
+        std::ostringstream buffer;  
+        buffer << "Illegal keyword." << printKwds() << std::endl;
+        *message = buffer.str();
+     }
+     return 1;
+  }else{
+     if (message){
+        std::ostringstream buffer;  
+        buffer << "Default option for " << name_ << " set to " << newKwd
+               << std::endl;
+        *message = buffer.str();
+     }
+     defaultKwd_ = newKwd;
+     defaultMode_ = newMode;
      return 0;
   }
 }
@@ -847,7 +993,8 @@ std::string CoinParam::printKwds() const
   Methods to manipulate the value of a string parameter.
 */
 
-int CoinParam::setStrVal(std::string value, std::string *message, ParamPushMode pMode)
+int CoinParam::setStrVal(std::string value, std::string *message,
+                         ParamPushMode pMode)
 {
   assert(type_ == paramStr);
 
@@ -861,6 +1008,20 @@ int CoinParam::setStrVal(std::string value, std::string *message, ParamPushMode 
   if (pMode == pushOn){
      pushFunc_(*this);
   }
+  return 0;
+}
+
+int CoinParam::setStrValDefault(std::string value, std::string *message)
+{
+  assert(type_ == paramStr);
+
+  if (message){
+     std::ostringstream buffer;  
+     buffer << "default value for " << name_ << " was set to " << value
+            << std::endl;
+     *message = buffer.str();
+  }
+  strDefaultValue_ = value;
   return 0;
 }
 
@@ -899,6 +1060,30 @@ int CoinParam::setDblVal(double value, std::string *message, ParamPushMode pMode
      if (pMode == pushOn){
         pushFunc_(*this);
      }
+     return 0;
+  }
+}
+
+int CoinParam::setDblValDefault(double value, std::string *message)
+{
+  assert(type_ == paramDbl);
+
+  if (value < lowerDblValue_ || value > upperDblValue_) {
+     if (message){
+        std::ostringstream buffer;
+        buffer << value << " was provided as default value for " << name_;
+        buffer << " - valid range is " << lowerDblValue_;
+        buffer << " to " << upperDblValue_ << std::endl;
+        *message = buffer.str();
+     }
+     return 1;
+  } else {
+     if (message){
+        std::ostringstream buffer;
+        buffer << name_ << " default was set to " << value << std::endl;
+        *message = buffer.str();
+     }
+     dblDefaultValue_ = value;
      return 0;
   }
 }
@@ -966,6 +1151,30 @@ int CoinParam::setIntVal(int value, std::string *message, ParamPushMode pMode)
      if (pMode == pushOn){
         pushFunc_(*this);
      }
+     return 0;
+  }
+}
+
+int CoinParam::setIntValDefault(int value, std::string *message)
+{
+  assert(type_ == paramInt);
+
+  if (value < lowerIntValue_ || value > upperIntValue_) {
+     if (message){
+        std::ostringstream buffer;
+        buffer << value << " was provided as default value for " << name_;
+        buffer << " - valid range is " << lowerIntValue_ << " to ";
+        buffer << upperIntValue_ << std::endl;
+        *message = buffer.str();
+     }
+     return 1;
+  } else {
+     if (message){
+        std::ostringstream buffer;
+        buffer << name_ << " default was set to " << value << std::endl;
+        *message = buffer.str();
+     }
+     intDefaultValue_ = value;
      return 0;
   }
 }
