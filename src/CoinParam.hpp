@@ -213,26 +213,17 @@ public:
   /*! \brief These mirror the constructors with the addition of long help */
   void setup(std::string name, std::string help,
              double lower = -COIN_DBL_MAX, double upper = COIN_DBL_MAX,
-             double defaultValue = 0.0, std::string longHelp = "",
+             std::string longHelp = "",
              CoinDisplayPriority display = displayPriorityHigh);
 
   void setup(std::string name, std::string help,
              int lower = -COIN_INT_MAX, int upper = COIN_INT_MAX,
-             int defaultValue = 0,std::string longHelp = "",
+             std::string longHelp = "",
              CoinDisplayPriority display = displayPriorityHigh);
 
-  void setup(std::string name, std::string help,
-             std::string defaultKwd, int defaultMode, std::string longHelp = "",
+  void setup(std::string name, std::string help, std::string longHelp = "",
              CoinDisplayPriority display = displayPriorityHigh);
   
-  void setup(std::string name, std::string help,
-             std::string defaultValue, std::string longHelp = "",
-             CoinDisplayPriority display = displayPriorityHigh);
-
-  // Action parameter No defaults to resolve ambiguity
-  void setup(std::string name, std::string help, std::string longHelp,
-             CoinDisplayPriority display);
-
   //@}
   /*! \name Methods to query and manipulate the value(s) of a parameter */
   //@{
@@ -245,6 +236,14 @@ public:
   int setVal(int value, std::string *message = NULL,
              ParamPushMode pMode = pushDefault);
   
+  /*! Set the default value of a parameter of any type */
+  int setDefault(std::string value, std::string *message = NULL);
+  int setDefault(double value, std::string *message = NULL);
+  int setDefault(int value, std::string *message = NULL);
+  
+  /*! Restore the default value of a parameter of any type */
+  int restoreDefault();
+
   /*! Set the value of a parameter of any type */  // FIXME comment says "Set", but option looks like "get'
   int getVal(std::string &value) const;
   int getVal(double &value) const;
@@ -281,6 +280,14 @@ public:
   int setModeVal(int value, std::string *message = NULL,
                  ParamPushMode pMode = pushDefault);
 
+  /*! \brief Set the default value of the keyword parameter using the integer
+	     associated with a value-keyword.
+  
+    If \p printIt is true, the corresponding value-keyword string will be
+    echoed to std::cout.
+  */
+  int setModeValDefault(int value, std::string *message = NULL);
+
   /*! \brief Set the value of the keyword parameter using a value-keyword
 	     string.
   
@@ -289,6 +296,14 @@ public:
   */
   int setKwdVal(const std::string value, std::string *message = NULL,
                 ParamPushMode pMode = pushDefault);
+
+  /*! \brief Set the default value of the keyword parameter using a value-keyword
+	     string.
+  
+    The given string will be tested against the set of value-keywords for
+    the parameter using the shortest match rules.
+  */
+  int setKwdValDefault(const std::string value, std::string *message = NULL);
 
   /*! \brief Prints the set of value-keywords defined for this keyword
 	     parameter
@@ -308,12 +323,18 @@ public:
   int setStrVal(std::string value, std::string *message = NULL,
                 ParamPushMode pMode = pushDefault);
 
+  /*! \brief Set the default value of a string parameter */
+  int setStrValDefault(std::string value, std::string *message = NULL);
+
   /*! \brief Get the value of a string parameter */
   std::string strVal() const;
 
   /*! \brief Set the value of a double parameter */
   int setDblVal(double value, std::string *message = NULL,
                 ParamPushMode pMode = pushDefault);
+
+  /*! \brief Set the default value of a double parameter */
+  int setDblValDefault(double value, std::string *message = NULL);
 
   /*! \brief Get the value of a double parameter */
   double dblVal() const;
@@ -333,6 +354,9 @@ public:
   /*! \brief Set the value of a integer parameter */
   int setIntVal(int value, std::string *message = NULL,
                 ParamPushMode pMode = pushDefault);
+
+  /*! \brief Set the value of a integer parameter */
+  int setIntValDefault(int value, std::string *message = NULL);
 
   /*! \brief Get the value of a integer parameter */
   int intVal() const;
@@ -480,6 +504,9 @@ protected:
   /// Double parameter - current value
   double dblValue_;
 
+  /// Double parameter - current value
+  double dblDefaultValue_;
+
   /// Lower bound on value for an integer parameter
   int lowerIntValue_;
 
@@ -489,8 +516,14 @@ protected:
   /// Integer parameter - current value
   int intValue_;
 
+  /// Integer parameter - default value
+  int intDefaultValue_;
+
   /// String parameter - current value
   std::string strValue_;
+
+  /// String parameter - default value
+  std::string strDefaultValue_;
 
   /// Set of valid value-keywords for a keyword parameter
   std::map< std::string, int > definedKwds_;
@@ -499,9 +532,17 @@ protected:
   */
   std::string currentKwd_;
 
+  /*! \brief Default string value for a keyword parameter 
+  */
+  std::string defaultKwd_;
+
   /*! \brief Current integer value (mode) for a keyword parameter 
   */
   int currentMode_;
+
+  /*! \brief Default integer value (mode) for a keyword parameter 
+  */
+  int defaultMode_;
 
   /// Push function
   CoinParamFunc pushFunc_;
