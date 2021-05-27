@@ -1,5 +1,10 @@
-*aclocal.m4*
-*acinclude.m4*
-*aclocal.m4.orig*
-*autom4te*
+aclocal.m4*
+aclocal.m4.orig*
+autom4te*
 *~
+Makefile
+config.cache
+config.log
+config.status
+libtool
+dist
