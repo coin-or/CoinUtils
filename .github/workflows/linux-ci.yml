@@ -92,11 +92,8 @@ jobs:
           if-no-files-found: error
       - name: Upload package to release
         if: ${{ github.event_name == 'release'}}
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./release.tar.gz
-          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.platform_string }}.tar.gz
-          asset_content_type: application/gzip
+        run: |
+          mv release.tar.gz ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.platform_string }}.tar.gz
+          gh release upload ${{ github.event.release.tag_name }} ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.platform_string }}.tar.gz
