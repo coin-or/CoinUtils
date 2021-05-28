@@ -1773,7 +1773,9 @@ void gubrow_action::postsolve(CoinPostsolveMatrix *prob) const
   double *rup = prob->rup_;
   //double *cost = prob->cost_ ;
   //double *sol = prob->sol_ ;
-  //double *rcosts = prob->rcosts_ ;
+#if PRESOLVE_DEBUG > 2
+  double *rcosts = prob->rcosts_ ;
+#endif
   double *acts = prob->acts_;
   double *rowduals = prob->rowduals_;
 
@@ -2912,6 +2914,3 @@ void twoxtwo_action::postsolve(CoinPostsolveMatrix *prob) const
     }
   }
 }
-
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/

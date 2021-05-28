@@ -1561,6 +1561,10 @@ class COINUTILSLIB_EXPORT CoinPostsolveMatrix : public CoinPrePostsolveMatrix
 
   /// debug
   void check_nbasic();
+  /// Pointer to rowLower in original model
+  const double *originalRowLower_;
+  /// Pointer to rowUpper in original model
+  const double *originalRowUpper_;
 };
 
 /*! \defgroup MtxManip Presolve Matrix Manipulation Functions
