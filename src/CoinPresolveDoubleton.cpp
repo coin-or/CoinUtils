@@ -1655,26 +1655,120 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
       bool basicx = prob->columnIsBasic(jcolx);
       bool nblbxok = (fabs(lo0 - sol[jcolx]) < ztolzb) && (rcosts[jcolx] >= -ztoldj);
       bool nbubxok = (fabs(up0 - sol[jcolx]) < ztolzb) && (rcosts[jcolx] <= ztoldj);
+      int basicColumn;
       if (basicx || nblbxok || nbubxok) {
-        if (!basicx) {
-          if (nblbxok) {
-            prob->setColumnStatus(jcolx,
-              CoinPrePostsolveMatrix::atLowerBound);
-          } else if (nbubxok) {
-            prob->setColumnStatus(jcolx,
-              CoinPrePostsolveMatrix::atUpperBound);
-          }
-        }
-        prob->setColumnStatus(jcoly, CoinPrePostsolveMatrix::basic);
-        rowduals[irow] = djy / coeffy;
-        rcosts[jcolx] = djx - rowduals[irow] * coeffx;
-        rcosts[jcoly] = 0.0;
+	if (!basicx) {
+	  if (nblbxok) {
+	    prob->setColumnStatus(jcolx,
+				  CoinPrePostsolveMatrix::atLowerBound);
+	  } else if (nbubxok) {
+	    prob->setColumnStatus(jcolx,
+				  CoinPrePostsolveMatrix::atUpperBound);
+	  }
+	}
+	prob->setColumnStatus(jcoly, CoinPrePostsolveMatrix::basic);
+	basicColumn = jcoly;
+	rowduals[irow] = djy / coeffy;
+	rcosts[jcolx] = djx - rowduals[irow] * coeffx;
+	rcosts[jcoly] = 0.0;
       } else {
-        prob->setColumnStatus(jcolx, CoinPrePostsolveMatrix::basic);
-        prob->setColumnStatusUsingValue(jcoly);
-        rowduals[irow] = djx / coeffx;
-        rcosts[jcoly] = djy - rowduals[irow] * coeffy;
-        rcosts[jcolx] = 0.0;
+	prob->setColumnStatus(jcolx, CoinPrePostsolveMatrix::basic);
+	basicColumn = jcolx;
+	prob->setColumnStatusUsingValue(jcoly);
+	rowduals[irow] = djx / coeffx;
+	rcosts[jcoly] = djy - rowduals[irow] * coeffy;
+	rcosts[jcolx] = 0.0;
+      }
+      if (prob->originalRowLower_[irow] != prob->originalRowUpper_[irow]
+	  && !basicx) {
+	// row was not originally == (? dual)
+	// 0 lower, 1 between, 2 upper
+	int statusx;
+	if (sol[jcolx]-clo[jcolx] < ztolzb)
+	  statusx = 0;
+	else if (cup[jcolx]-sol[jcolx] < ztolzb)
+	  statusx = 1;
+	else
+	  statusx = 2;
+	int statusy;
+	if (sol[jcoly]-clo[jcoly] < ztolzb)
+	  statusy = 0;
+	else if (cup[jcoly]-sol[jcoly] < ztolzb)
+	  statusy = 1;
+	else
+	  statusy = 2;
+	if (statusx != 2 && statusy != 2) {
+	  double activity = acts[irow];
+	  double lower = prob->originalRowLower_[irow];
+	  double upper = prob->originalRowUpper_[irow];
+	  double multiplier[3]={1.0,-1.0,0.0};
+	  int statusRow = 2;
+	  if (activity-lower<10.0*ztolzb)
+	    statusRow = 0;
+	  else if (upper-activity<10.0*ztolzb)
+	    statusRow = 1;
+	  if (rowduals[irow]*multiplier[statusRow]  < -ztoldj) {
+	    // See if slack basic works
+	    if (djx*multiplier[statusx] > -ztoldj &&
+		djy*multiplier[statusy] > -ztoldj) {
+	      // make slack basic
+	      rowduals[irow] = 0.0;
+	      prob->setRowStatus(irow, CoinPrePostsolveMatrix::basic);
+	      rcosts[jcolx] = djx;
+	      prob->setColumnStatus(jcolx, statusx ?
+				    CoinPrePostsolveMatrix::atUpperBound :
+				    CoinPrePostsolveMatrix::atLowerBound);
+	      prob->setColumnStatus(jcoly, statusy ?
+				    CoinPrePostsolveMatrix::atUpperBound :
+				    CoinPrePostsolveMatrix::atLowerBound);
+	      rcosts[jcoly] = djy;
+	      basicColumn = -1;
+	    } else {
+	      // See if other way works
+	      if (basicColumn == jcoly) {
+		double newDual = djx / coeffx;
+		double newDj = djy - newDual * coeffy;
+		if (newDj*multiplier[statusy] > -ztoldj &&
+		    newDual*multiplier[statusRow] >= -ztoldj) {
+		  // works
+		  rowduals[irow] = newDual;
+		  rcosts[jcoly] = newDj;
+		  rcosts[jcolx] = 0.0;
+		  basicColumn = jcolx;
+		} else {
+		  // no good 
+		  //printf("no good\n");
+		}
+	      } else {
+		// basicColumn is jcolx
+		double newDual = djy / coeffy;
+		double newDj = djx - newDual * coeffx;
+		if (newDj*multiplier[statusy] > -ztoldj &&
+		    newDual >= -ztoldj) {
+		  // works
+		  rowduals[irow] = newDual;
+		  rcosts[jcolx] = newDj;
+		  rcosts[jcoly] = 0.0;
+		  basicColumn = jcoly;
+		} else {
+		  // no good 
+		  //printf("no good\n");
+		}
+	      }
+	    }
+	    if (basicColumn == jcolx) {
+	    prob->setColumnStatus(jcolx, CoinPrePostsolveMatrix::basic);
+	    prob->setColumnStatus(jcoly, statusy ?
+				  CoinPrePostsolveMatrix::atUpperBound :
+				  CoinPrePostsolveMatrix::atLowerBound);
+	    } else if (basicColumn == jcoly) {
+	      prob->setColumnStatus(jcoly, CoinPrePostsolveMatrix::basic);
+	      prob->setColumnStatus(jcolx, statusx ?
+				    CoinPrePostsolveMatrix::atUpperBound :
+				    CoinPrePostsolveMatrix::atLowerBound);
+	    }
+	  }
+	}
       }
 #if PRESOLVE_DEBUG > 2
       std::cout

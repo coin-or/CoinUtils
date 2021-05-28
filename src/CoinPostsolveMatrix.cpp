@@ -38,6 +38,8 @@ CoinPostsolveMatrix::CoinPostsolveMatrix(int ncols_alloc, int nrows_alloc, CoinB
   , link_(0)
   , cdone_(0)
   , rdone_(0)
+  , originalRowLower_(NULL)
+  , originalRowUpper_(NULL)
 
 { /* nothing to do here */
 
