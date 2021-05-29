@@ -89,7 +89,7 @@ jobs:
           if-no-files-found: error
       - name: Zip up dist contents for release
         if: ${{ github.event_name == 'release'}}
-        run: cd dist && zip -r ../${{ github.event.release.tag_name }} ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.package_suffix }}.zip *
+        run: cd dist && zip -r ../${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.package_suffix }}.zip *
         shell: msys2 {0}
       - name: Upload package to release
         if: ${{ github.event_name == 'release'}}
