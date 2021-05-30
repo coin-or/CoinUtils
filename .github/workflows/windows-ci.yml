@@ -9,6 +9,8 @@ on:
     branches:
       - '*'
   release:
+    types:
+      - created
 
 jobs:
   test:
