@@ -374,7 +374,7 @@ public:
   int upperIntVal() const;
 
   /*! \brief Print possible options for a keyword parameter */
-  void printOptions();
+  void printOptions(std::string *message = NULL);
 
   /*! \brief Add a short help string to a parameter */
   inline void setShortHelp(const std::string help) { shortHelp_ = help; }
