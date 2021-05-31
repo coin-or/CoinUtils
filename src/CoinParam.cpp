@@ -794,8 +794,9 @@ int CoinParam::setKwdVal(const std::string newKwd, std::string *message,
   }else{
      if (message){
         std::ostringstream buffer;
-        buffer << "Illegal keyword. Options are" << std::endl;
-        *message = buffer.str();
+        buffer << "Illegal keyword. " << std::endl;
+        *message += buffer.str();
+        printOptions(message);
      }
      return 1;
   }
@@ -904,7 +905,16 @@ std::string CoinParam::kwdVal() const
 {
   assert(type_ == paramKwd);
 
-  return (currentKwd_);
+  std::string returnStr;
+  
+  std::string::size_type shriekPos = currentKwd_.find('!');
+  if (shriekPos != std::string::npos) {
+     //contains '!'
+     returnStr = currentKwd_.substr(0, shriekPos) + "(" +
+        currentKwd_.substr(shriekPos + 1) + ")";
+  }
+
+  return (returnStr);
 }
 
 /*
@@ -1215,9 +1225,10 @@ int CoinParam::upperIntVal() const
 }
 
 // Prints parameter options
-void CoinParam::printOptions()
+void CoinParam::printOptions(std::string *message)
 {
-   std::cout << "<Possible options for " << name_ << " are:";
+   std::ostringstream buffer;
+   buffer << "Possible options for " << name_ << " are:";
    std::map<std::string, int>::const_iterator it;
    for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
       std::string thisOne = it->first;
@@ -1227,7 +1238,7 @@ void CoinParam::printOptions()
          thisOne = thisOne.substr(0, shriekPos) + "(" +
             thisOne.substr(shriekPos + 1) + ")";
       }
-      std::cout << " " << thisOne;
+      buffer << " " << thisOne;
    }
    assert(currentMode_ >= 0 &&
           currentMode_ < static_cast< int >(definedKwds_.size()));
@@ -1238,7 +1249,13 @@ void CoinParam::printOptions()
       current = currentKwd_.substr(0, shriekPos) + "(" +
          currentKwd_.substr(shriekPos + 1) + ")";
    }
-   std::cout << ";\n\tcurrent  " << current << ">" << std::endl;
+   buffer << "\nCurrent setting is " << current << std::endl;
+
+   if (message == NULL){
+      std::cout << buffer.str();
+   }else{
+      *message += buffer.str();
+   }
 }
 
 /*
