@@ -213,59 +213,16 @@ getNextField(std::deque<std::string> &inputQueue, bool interactiveMode,
   }
 }
 
-int getValue(std::deque<std::string> &inputQueue, std::string &value)
-{
-   value = CoinParamUtils::getNextField(inputQueue);
-
-   if (value == "--" || value == "stdin"){
-      value = "-";
-   } else if (value == "stdin_lp"){
-      value = "-lp";
-   }
-
-   return value == "" ? 1 : 0;
-}
-
-// return 0 - okay, 1 bad, 2 not there
-int getValue(std::deque<std::string> &inputQueue, int &value)
-{
-   std::string field = CoinParamUtils::getNextField(inputQueue);
-
-   if (field.empty()){
-      return 2;
-   }
-   
-   char c;
-   std::stringstream ss(field);
-   ss >> value;
-   return (!ss.fail() && !ss.get(c)) ? 0 : 1;
-}
-
-int getValue(std::deque<std::string> &inputQueue, double &value)
-{
-   std::string field = CoinParamUtils::getNextField(inputQueue);
-
-   if (field.empty()){
-      return 2;
-   }
-   
-  char c;
-  std::stringstream ss(field);
-  ss >> value;
-  return (!ss.fail() && !ss.get(c)) ? 0 : 1;
-}
-
 /*
   As mentioned above, cmdField set to -1 is the indication that we're reading
   from stdin or a file.
 */
 void setInputSrc(FILE *src)
-
 {
-  if (src != 0) {
-    cmdField = -1;
-    readSrc = src;
-  }
+   if (src != 0) {
+      cmdField = -1;
+      readSrc = src;
+   }
 }
 
 /*
