@@ -891,6 +891,7 @@ int CoinParam::setKwdValDefault(const std::string newKwd, std::string *message)
      }
      defaultKwd_ = newKwd;
      defaultMode_ = newMode;
+     currentMode_ = newMode;
      return 0;
   }else{
      if (message){
