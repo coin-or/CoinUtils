@@ -461,6 +461,8 @@ std::string CoinParam::printLongHelp() const
       printKwds();
       break;
    }
+   case paramDir:
+   case paramFile:
    case paramStr: {
       buffer << "<Current value is ";
       if (strValue_ == "") {
@@ -499,14 +501,18 @@ int CoinParam::setVal(std::string value, std::string *message,
       return setKwdVal(value, message, pMode);
     case paramStr:
       return setStrVal(value, message, pMode);
+    case paramDir:
+      return setDirName(value, message, pMode);
+    case paramFile:
+      return setFileName(value, message, pMode);
     case paramAct:
       std::cout << "setVal(): Cannot be called for an action parameter!"
                 << std::endl;
       return 1;
     default:
       std::cout << "setVal(): attepting to pass string as an argument, "
-                << "to a parameter that is not of type paramStr or "
-                << "paramKwd!" << std::endl;
+                << "to a parameter that is not of type string, "
+                << "directory, file, or keyword!" << std::endl;
       return 1;
    }
 }
@@ -523,7 +529,7 @@ int CoinParam::setVal(double value, std::string *message, ParamPushMode pMode)
       return 1;
     default:
       std::cout << "setVal(): attepting to pass double as an argument, "
-                << "to a parameter that is not of type paramDbl!"
+                << "to a parameter that is not of type double!"
                 << std::endl;
       return 1;
    }
@@ -544,7 +550,7 @@ int CoinParam::setVal(int value, std::string *message, ParamPushMode pMode)
       return 1;
     default:
       std::cout << "setVal(): attepting to pass integer as an argument, "
-                << "to a parameter that is not of type paramInt or ParamKwd!"
+                << "to a parameter that is not of type integer or keyword!"
                 << std::endl;
       return 1;
    }
@@ -558,14 +564,18 @@ int CoinParam::setDefault(std::string value, std::string *message)
       return setKwdValDefault(value, message);
     case paramStr:
       return setStrValDefault(value, message);
+    case paramDir:
+      return setDirNameDefault(value, message);
+    case paramFile:
+      return setFileNameDefault(value, message);
     case paramAct:
       std::cout << "setDefault(): Cannot be called for an action parameter!"
                 << std::endl;
       return 1;
     default:
       std::cout << "setDefault(): attepting to pass string as an argument, "
-                << "to a parameter that is not of type paramStr or "
-                << "paramKwd!" << std::endl;
+                << "to a parameter that is not of type string, "
+                << "directory, file, or keyword!" << std::endl;
       return 1;
    }
 }
@@ -582,7 +592,7 @@ int CoinParam::setDefault(double value, std::string *message)
       return 1;
     default:
       std::cout << "setDefault(): attepting to pass double as an argument, "
-                << "to a parameter that is not of type paramDbl!"
+                << "to a parameter that is not of type double!"
                 << std::endl;
       return 1;
    }
@@ -603,7 +613,7 @@ int CoinParam::setDefault(int value, std::string *message)
       return 1;
     default:
       std::cout << "setDefault(): attepting to pass integer as an argument, "
-                << "to a parameter that is not of type paramInt or ParamKwd!"
+                << "to a parameter that is not of type int or keyword!"
                 << std::endl;
       return 1;
    }
@@ -619,6 +629,8 @@ int CoinParam::restoreDefault(){
       dblValue_ = dblDefaultValue_;
       return 0;
     case paramStr:
+    case paramDir:
+    case paramFile:
       strValue_ = strDefaultValue_;
       return 0;
     case paramKwd:
@@ -640,6 +652,8 @@ int CoinParam::getVal(std::string &value) const
       value = currentKwd_;
       return 0;
     case paramStr:
+    case paramDir:
+    case paramFile:
       value = strValue_;
       return 0;
     case paramAct:
@@ -702,15 +716,32 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
    if (value != ""){
       return 0;
    } else {
-      std::ostringstream buffer;
-      buffer << name_ << " has value ";
-      if (type_ == paramStr){
-         buffer << strValue_;
-      } else {
-         buffer << kwdVal();
+      if (message){
+         std::ostringstream buffer;
+         if (type_ == paramDir){
+            if (strValue_ != ""){
+               buffer << "Default directory for parameter '" << name_ << "' is "
+                      << strValue_ << std::endl;
+            } else {
+               buffer << "Default directory for parameter '" << name_
+                      << "' is unset.";
+            }
+         } else if (type_ == paramFile){
+            if (strValue_ != ""){
+               buffer << "Default file name for parameter '" << name_ << "' is "
+                      << strValue_ << std::endl;
+            } else {
+               buffer << "Default file name for pameters '" << name_
+                      << "' is unset.";
+            }
+         } else if (type_ == paramStr){
+            buffer << "Parameter '" << name_ << "' has value " << strValue_;
+         } else {
+            buffer << "Parameter '" << name_ << "' has value " << kwdVal();
+         }
+         buffer << std::endl;
+         *message = buffer.str();
       }
-      buffer << std::endl;
-      *message = buffer.str();
       return 1;
    }
 }
@@ -733,7 +764,8 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       return 0;
    } else {
       std::ostringstream buffer;
-      buffer << name_ << " has value " << intValue_ << std::endl;
+      buffer << "Parameter '" << name_ << "' has value " << intValue_
+             << std::endl;
       *message = buffer.str();
       return 1;
    }
@@ -756,7 +788,8 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       return 0;
    } else {
       std::ostringstream buffer;
-      buffer << name_ << " has value " << dblValue_ << std::endl;
+      buffer << "Parameter '" << name_ << "' has value " << dblValue_
+             << std::endl;
       *message = buffer.str();
       return 1;
    }
@@ -1092,7 +1125,20 @@ int CoinParam::setStrVal(std::string value, std::string *message,
      buffer << strValue_ << " to " << value << std::endl;
      *message = buffer.str();
   }
-  strValue_ = value;
+  if (type_ == paramDir){
+     std::string dir;
+     size_t length = value.length();
+     if (length > 0 && value[length - 1] == CoinFindDirSeparator()) {
+        dir = value;
+     } else {
+        dir = value + CoinFindDirSeparator();
+     }
+     strValue_ = dir;
+  } else if (type_ == paramFile){
+  } else{
+     strValue_ = value;
+  }
+  
   if (pMode == pushOn){
      pushFunc_(*this);
   }
@@ -1116,6 +1162,146 @@ int CoinParam::setStrValDefault(std::string value, std::string *message)
 std::string CoinParam::strVal() const
 {
   assert(type_ == paramStr);
+
+  return (strValue_);
+}
+
+/*
+  Methods to manipulate the value of a directory parameter.
+*/
+
+int CoinParam::setDirName(std::string value, std::string *message,
+                      ParamPushMode pMode)
+{
+  assert(type_ == paramDir);
+
+  std::string dir;
+  size_t length = value.length();
+  if (length > 0 && value[length - 1] == CoinFindDirSeparator()) {
+     dir = value;
+  } else {
+     dir = value + CoinFindDirSeparator();
+  }
+
+  if (message){
+     std::ostringstream buffer;  
+     buffer << "directory parameter " << name_ << " was changed from ";
+     buffer << strValue_ << " to " << dir << std::endl;
+     *message = buffer.str();
+  }
+
+  strValue_ = dir;
+  
+  if (pMode == pushOn){
+     pushFunc_(*this);
+  }
+  return 0;
+}
+
+int CoinParam::setDirNameDefault(std::string value, std::string *message)
+{
+  assert(type_ == paramDir);
+
+  std::string dir;
+  size_t length = value.length();
+  if (length > 0 && value[length - 1] == CoinFindDirSeparator()) {
+     dir = value;
+  } else {
+     dir = value + CoinFindDirSeparator();
+  }
+
+  if (message){
+     std::ostringstream buffer;  
+     buffer << "default value for directory parameter " << name_
+            << " was set to " << dir << std::endl;
+     *message = buffer.str();
+  }
+
+  strValue_ = strDefaultValue_ = dir;
+  
+  return 0;
+}
+
+std::string CoinParam::dirName() const
+{
+  assert(type_ == paramDir);
+
+  return (strValue_);
+}
+
+/*
+  Methods to manipulate the value of a file name parameter.
+*/
+
+int CoinParam::setFileName(std::string value, std::string *message,
+                           ParamPushMode pMode)
+{
+  assert(type_ == paramFile);
+
+  std::string fileName;
+  bool canOpen = false;
+  if (value[0] == '/' || value[0] == '\\') {
+     fileName = value;
+  } else if (value[0] == '~') {
+     char *environVar = getenv("HOME");
+     if (environVar) {
+        std::string home(environVar);
+        value = value.erase(0, 1);
+        fileName = home + value;
+     } else {
+        fileName = value;
+     }
+  }
+
+  if (message){
+     std::ostringstream buffer;  
+     buffer << "file parameter " << name_ << " was changed from ";
+     buffer << strValue_ << " to " << fileName << std::endl;
+     *message = buffer.str();
+  }
+
+  strValue_ = fileName;
+  
+  if (pMode == pushOn){
+     pushFunc_(*this);
+  }
+  return 0;
+}
+
+int CoinParam::setFileNameDefault(std::string value, std::string *message)
+{
+  assert(type_ == paramFile);
+
+  std::string fileName;
+  bool canOpen = false;
+  if (value[0] == '/' || value[0] == '\\') {
+     fileName = value;
+  } else if (value[0] == '~') {
+     char *environVar = getenv("HOME");
+     if (environVar) {
+        std::string home(environVar);
+        value = value.erase(0, 1);
+        fileName = home + value;
+     } else {
+        fileName = value;
+     }
+  }
+
+  if (message){
+     std::ostringstream buffer;  
+     buffer << "default value for file parameter "<< name_ << " was set to ";
+     buffer << strValue_;
+     *message = buffer.str();
+  }
+
+  strDefaultValue_ = strValue_ = fileName;
+
+  return 0;
+}
+
+std::string CoinParam::fileName() const
+{
+  assert(type_ == paramFile);
 
   return (strValue_);
 }
@@ -1352,6 +1538,8 @@ std::ostream &operator<<(std::ostream &s, const CoinParam &param)
   case CoinParam::paramKwd: {
     return (s << param.kwdVal());
   }
+  case CoinParam::paramDir:
+  case CoinParam::paramFile:
   case CoinParam::paramStr: {
     return (s << param.strVal());
   }
