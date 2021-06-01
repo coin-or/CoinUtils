@@ -1268,7 +1268,7 @@ int CoinParam::setFileName(std::string value, std::string *message,
 
   std::string fileName;
   if (value[0] == '/' || value[0] == '\\' ||
-      strchr(field.c_str(), ':')) {
+      strchr(value.c_str(), ':')) {
      fileName = value;
   } else if (value[0] == '~') {
      char *environVar = getenv("HOME");
