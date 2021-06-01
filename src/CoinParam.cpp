@@ -1211,6 +1211,15 @@ int CoinParam::setDirName(std::string value, std::string *message,
      dir = value + CoinFindDirSeparator();
   }
 
+  if (dir[0] == '~') {
+     char *environVar = getenv("HOME");
+     if (environVar) {
+        std::string home(environVar);
+        dir = dir.erase(0, 1);
+        dir = home + dir;
+     } 
+  }
+
   if (message){
      std::ostringstream buffer;  
      buffer << "directory parameter " << name_ << " was changed from ";
