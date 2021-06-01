@@ -687,7 +687,82 @@ int CoinParam::getVal(int &value) const
    }
 }
 
-   /*
+int CoinParam::readValue(std::deque<std::string> &inputQueue,
+                         std::string &value,
+                         std::string *message)
+{
+   value = CoinParamUtils::getNextField(inputQueue);
+   
+   if (value == "--" || value == "stdin"){
+      value = "-";
+   } else if (value == "stdin_lp"){
+      value = "-lp";
+   }
+
+   if (value != ""){
+      return 0;
+   } else {
+      std::ostringstream buffer;
+      buffer << name_ << " has value ";
+      if (type_ == paramStr){
+         buffer << strValue_;
+      } else {
+         buffer << kwdVal();
+      }
+      buffer << std::endl;
+      *message = buffer.str();
+      return 1;
+   }
+}
+
+// return 0 - okay, 1 bad, 2 not there
+int CoinParam::readValue(std::deque<std::string> &inputQueue,
+                         int &value,
+                         std::string *message)
+{
+   std::string field = CoinParamUtils::getNextField(inputQueue);
+
+   if (field.empty()){
+      return 2;
+   }
+   
+   char c;
+   std::stringstream ss(field);
+   ss >> value;
+   if (!ss.fail() && !ss.get(c)){
+      return 0;
+   } else {
+      std::ostringstream buffer;
+      buffer << name_ << " has value " << intValue_ << std::endl;
+      *message = buffer.str();
+      return 1;
+   }
+}
+
+int CoinParam::readValue(std::deque<std::string> &inputQueue,
+                         double &value,
+                         std::string *message)
+{
+   std::string field = CoinParamUtils::getNextField(inputQueue);
+
+   if (field.empty()){
+      return 2;
+   }
+   
+   char c;
+   std::stringstream ss(field);
+   ss >> value;
+   if (!ss.fail() && !ss.get(c)){
+      return 0;
+   } else {
+      std::ostringstream buffer;
+      buffer << name_ << " has value " << dblValue_ << std::endl;
+      *message = buffer.str();
+      return 1;
+   }
+}
+
+/*
   Add a keyword to the list for a keyword parameter.
 
   Note, we don't check to make sure the index is not already used.

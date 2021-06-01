@@ -244,10 +244,18 @@ public:
   /*! Restore the default value of a parameter of any type */
   int restoreDefault();
 
-  /*! Set the value of a parameter of any type */  // FIXME comment says "Set", but option looks like "get'
+  /*! Get the value of a parameter of any type */ 
   int getVal(std::string &value) const;
   int getVal(double &value) const;
   int getVal(int &value) const;
+
+  /*! Try to read the value of a parameter from the input queue*/ 
+  int readValue(std::deque<std::string> &inputQueue, std::string &value,
+               std::string *message = NULL);
+  int readValue(std::deque<std::string> &inputQueue, int &value,
+                std::string *message = NULL);
+  int readValue(std::deque<std::string> &inputQueue, double &value,
+                std::string *message = NULL);
 
   /*! \brief Add an additional value-keyword to a keyword parameter */
   void appendKwd(std::string kwd, int index);
@@ -809,16 +817,6 @@ COINUTILSLIB_EXPORT
 std::string getNextField(std::deque<std::string> &inputQueue,
                          bool interactiveMode = false,
                          std::string prompt="");
-COINUTILSLIB_EXPORT
-int getValue(std::deque<std::string> &inputQueue, std::string &value);
-
-// status 0 - okay, 1 bad, 2 not there
-COINUTILSLIB_EXPORT
-int getValue(std::deque<std::string> &inputQueue, int &value);
-
-COINUTILSLIB_EXPORT
-int getValue(std::deque<std::string> &inputQueue, double &value);
-
 }
 #endif /* CoinParam_H */
 
