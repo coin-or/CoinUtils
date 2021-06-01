@@ -705,17 +705,15 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
                          std::string &value,
                          std::string *message)
 {
-   value = CoinParamUtils::getNextField(inputQueue);
+   std::string field = CoinParamUtils::getNextField(inputQueue);
    
-   if (value == "--" || value == "stdin"){
-      value = "-";
-   } else if (value == "stdin_lp"){
-      value = "-lp";
+   if (field == "--" || field == "stdin"){
+      field = "-";
+   } else if (field == "stdin_lp"){
+      field = "-lp";
    }
 
-   if (value != ""){
-      return 0;
-   } else {
+   if (field == ""){
       if (message){
          std::ostringstream buffer;
          if (type_ == paramDir){
@@ -742,8 +740,18 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
          buffer << std::endl;
          *message = buffer.str();
       }
+      return 2;
+   }
+   
+   if (field[0] == '-') {
+      std::ostringstream buffer;
+      buffer << "Illegal parameter value " << field << std::endl;
+      *message = buffer.str();
       return 1;
    }
+
+   value = field;
+   return 0;
 }
 
 // return 0 - okay, 1 bad, 2 not there
@@ -754,9 +762,20 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
    std::string field = CoinParamUtils::getNextField(inputQueue);
 
    if (field.empty()){
+      std::ostringstream buffer;
+      buffer << "Parameter '" << name_ << "' has value " << intValue_
+             << std::endl;
+      *message = buffer.str();
       return 2;
    }
-   
+
+   if (field[0] == '-') {
+      std::ostringstream buffer;
+      buffer << "Illegal parameter value " << field << std::endl;
+      *message = buffer.str();
+      return 1;
+   }
+
    char c;
    std::stringstream ss(field);
    ss >> value;
@@ -764,8 +783,7 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       return 0;
    } else {
       std::ostringstream buffer;
-      buffer << "Parameter '" << name_ << "' has value " << intValue_
-             << std::endl;
+      buffer << "Illegal parameter value " << field << std::endl;
       *message = buffer.str();
       return 1;
    }
@@ -778,9 +796,20 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
    std::string field = CoinParamUtils::getNextField(inputQueue);
 
    if (field.empty()){
+      std::ostringstream buffer;
+      buffer << "Parameter '" << name_ << "' has value " << dblValue_
+             << std::endl;
+      *message = buffer.str();
       return 2;
    }
    
+   if (field[0] == '-') {
+      std::ostringstream buffer;
+      buffer << "Illegal parameter value " << field << std::endl;
+      *message = buffer.str();
+      return 1;
+   }
+
    char c;
    std::stringstream ss(field);
    ss >> value;
@@ -788,8 +817,7 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       return 0;
    } else {
       std::ostringstream buffer;
-      buffer << "Parameter '" << name_ << "' has value " << dblValue_
-             << std::endl;
+      buffer << "Illegal parameter value " << field << std::endl;
       *message = buffer.str();
       return 1;
    }
