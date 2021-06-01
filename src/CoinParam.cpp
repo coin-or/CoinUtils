@@ -988,8 +988,10 @@ std::string CoinParam::kwdVal() const
      //contains '!'
      returnStr = currentKwd_.substr(0, shriekPos) + "(" +
         currentKwd_.substr(shriekPos + 1) + ")";
+  }else{
+     returnStr = currentKwd_;
   }
-
+  
   return (returnStr);
 }
 
