@@ -20,6 +20,7 @@
 
 #include "CoinUtilsConfig.h"
 #include "CoinFinite.hpp"
+#include "CoinHelperFunctions.hpp"
 
 /*! \class CoinParam
     \brief A base class for `keyword value' command line parameters.
@@ -101,6 +102,8 @@ public:
      paramInt,
      paramDbl,
      paramStr,
+     paramDir,
+     paramFile,
      paramKwd
   };
 
@@ -336,6 +339,26 @@ public:
 
   /*! \brief Get the value of a string parameter */
   std::string strVal() const;
+
+  /*! \brief Set the value of a directory parameter */
+  int setDirName(std::string value, std::string *message = NULL,
+                 ParamPushMode pMode = pushDefault);
+
+  /*! \brief Set the default value of a directory parameter */
+  int setDirNameDefault(std::string value, std::string *message = NULL);
+
+  /*! \brief Get the value of a directory parameter */
+  std::string dirName() const;
+
+  /*! \brief Set the value of a file name parameter */
+  int setFileName(std::string value, std::string *message = NULL,
+                  ParamPushMode pMode = pushDefault);
+
+  /*! \brief Set the default value of a file name parameter */
+  int setFileNameDefault(std::string value, std::string *message = NULL);
+
+  /*! \brief Get the value of a file name parameter */
+  std::string fileName() const;
 
   /*! \brief Set the value of a double parameter */
   int setDblVal(double value, std::string *message = NULL,
