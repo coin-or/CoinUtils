@@ -828,9 +828,8 @@ COINUTILSLIB_EXPORT
 std::string printString(const char *input, int maxWidth = 65);
 
 COINUTILSLIB_EXPORT
-void
-readFromStream(std::deque<std::string> &inputQueue,
-               std::istream &inputStream);
+void readFromStream(std::deque<std::string> &inputQueue,
+                    std::istream &inputStream);
 
 COINUTILSLIB_EXPORT
 void readInteractiveInput(std::deque<std::string> &inputQueue,
@@ -840,6 +839,11 @@ COINUTILSLIB_EXPORT
 std::string getNextField(std::deque<std::string> &inputQueue,
                          bool interactiveMode = false,
                          std::string prompt="");
+
+COINUTILSLIB_EXPORT
+void processFile(std::string &fileName, std::string dirName,
+                 bool *fileExists = NULL);
+
 }
 #endif /* CoinParam_H */
 

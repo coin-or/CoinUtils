@@ -2,21 +2,22 @@
 // Corporation and others.  All Rights Reserved.
 // This code is licensed under the terms of the Eclipse Public License (EPL).
 
+#include "CoinUtilsConfig.h"
+
 #include <cassert>
 #include <cerrno>
 #include <iostream>
 #include <sstream>
-
-#include "CoinUtilsConfig.h"
-#include "CoinParam.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
-
 #ifdef COINUTILS_HAS_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
 #endif
+
+#include "CoinParam.hpp"
+#include "CoinFileIO.hpp"
 
 /* Unnamed local namespace */
 namespace {
@@ -970,6 +971,19 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
   std::cout << std::endl;
 
   return;
+}
+
+/* Take in file name and directory name, determine whether file name 
+   is absolute and if not, prepend with directory name. */
+void processFile(std::string &fileName, std::string dirName,
+                 bool *fileExists){
+   if (fileName[0] != '/' && fileName[0] != '\\' &&
+       !strchr(fileName.c_str(), ':')) {
+      fileName = dirName + fileName;
+   }
+   if (fileExists != NULL){
+      *fileExists = fileCoinReadable(fileName);
+   }
 }
 
 } // end namespace CoinParamUtils
