@@ -701,6 +701,7 @@ int CoinParam::getVal(int &value) const
    }
 }
 
+// return 0 - okay, 1 bad, 2 not there
 int CoinParam::readValue(std::deque<std::string> &inputQueue,
                          std::string &value,
                          std::string *message)
@@ -751,6 +752,24 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
    }
 
    value = field;
+
+   if (type_ == paramDir){
+     std::string dir;
+     size_t length = value.length();
+     if (length > 0 && value[length - 1] != CoinFindDirSeparator()) {
+        value = field + CoinFindDirSeparator();
+     }
+   }
+
+   if ((type_ == paramDir || type_ == paramFile) && value[0] == '~') {
+      char *environVar = getenv("HOME");
+      if (environVar) {
+         std::string home(environVar);
+         value = value.erase(0, 1);
+         value = home + value;
+      } 
+   }
+   
    return 0;
 }
 
@@ -789,6 +808,7 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
    }
 }
 
+// return 0 - okay, 1 bad, 2 not there
 int CoinParam::readValue(std::deque<std::string> &inputQueue,
                          double &value,
                          std::string *message)
@@ -950,9 +970,10 @@ int CoinParam::setKwdValDefault(const std::string newKwd, std::string *message)
                << std::endl;
         *message = buffer.str();
      }
-     defaultKwd_ = newKwd;
-     defaultMode_ = newMode;
-     currentMode_ = newMode;
+
+     defaultKwd_ = currentKwd_ = newKwd;
+     defaultMode_ = currentMode_ = newMode;
+
      return 0;
   }else{
      if (message){
@@ -1029,8 +1050,10 @@ int CoinParam::setModeValDefault(int newMode, std::string *message)
                << std::endl;
         *message = buffer.str();
      }
-     defaultKwd_ = newKwd;
-     defaultMode_ = newMode;
+
+     defaultKwd_ = currentKwd_ = newKwd;
+     defaultMode_ = currentMode_ = newMode;
+     
      return 0;
   }
 }
@@ -1183,7 +1206,9 @@ int CoinParam::setStrValDefault(std::string value, std::string *message)
             << std::endl;
      *message = buffer.str();
   }
-  strDefaultValue_ = value;
+  
+  strDefaultValue_ = strValue_ = value;
+  
   return 0;
 }
 
@@ -1254,7 +1279,7 @@ int CoinParam::setDirNameDefault(std::string value, std::string *message)
      *message = buffer.str();
   }
 
-  strValue_ = strDefaultValue_ = dir;
+  strDefaultValue_ = strValue_ = dir;
   
   return 0;
 }
@@ -1394,7 +1419,9 @@ int CoinParam::setDblValDefault(double value, std::string *message)
         buffer << name_ << " default was set to " << value << std::endl;
         *message = buffer.str();
      }
-     dblDefaultValue_ = value;
+     
+     dblDefaultValue_ = dblValue_ = value;
+
      return 0;
   }
 }
@@ -1485,7 +1512,9 @@ int CoinParam::setIntValDefault(int value, std::string *message)
         buffer << name_ << " default was set to " << value << std::endl;
         *message = buffer.str();
      }
-     intDefaultValue_ = value;
+
+     intDefaultValue_ = intValue_ = value;
+
      return 0;
   }
 }
