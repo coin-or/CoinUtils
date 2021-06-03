@@ -867,6 +867,12 @@ void CoinParam::appendKwd(std::string kwd)
 int CoinParam::kwdToMode(std::string input) const
 {
   assert(type_ == paramKwd);
+  
+  /* We need code to scan for !.  With current code
+     -direction max or -direction maximize does not work
+     (only -direction max!imize works!)
+  */
+#if 0
 
   std::map<std::string, int>::const_iterator it;
   
@@ -878,26 +884,27 @@ int CoinParam::kwdToMode(std::string input) const
       return it->second;
    }
 
-#if 0
-
+#else
+  std::map<std::string, int>::const_iterator it;
+  int numberMatches = 0;
+  // take out ! in input!
+  if (input.find('!') != std::string::npos) {
+    std::string::size_type shriekPos = input.find('!');
+    input = input.substr(0, shriekPos) + input.substr(shriekPos + 1);
+  }
   // This code scans through the list and allows for partial matches,
-  // It's not finding much use right now and complicates matters.
   
-  int whichItem = -1;
+  int whichItem = -987654321;
   size_t numberItems = definedKwds_.size();
   if (numberItems > 0) {
     size_t inputLen = input.length();
-    /*
-  Open a loop to check each keyword against the input string. We don't record
-  the match length for keywords, so we need to check each one for an `!' and
-  do the necessary preprocessing (record position and elide `!') before
-  checking for a match of the required length.
-*/
+    int position =-1;
     for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
-      std::string kwd = definedKwds_[it];
+      std::string kwd = it->first;
       std::string::size_type shriekPos = kwd.find('!');
       size_t kwdLen = kwd.length();
       size_t matchLen = kwdLen;
+      position++;
       if (shriekPos != std::string::npos) {
         matchLen = shriekPos;
         kwd = kwd.substr(0, shriekPos) + kwd.substr(shriekPos + 1);
@@ -914,14 +921,25 @@ int CoinParam::kwdToMode(std::string input) const
             break;
         }
         if (i >= inputLen && i >= matchLen) {
-          whichItem = static_cast< int >(it);
-          break;
+	  if (!numberMatches)
+	    whichItem = it->second;
+          numberMatches++;
         }
       }
     }
   }
 
-  return (whichItem);
+
+  if (whichItem != -987654321) {
+    // ? what to do about multiple matches
+    if (numberMatches>1) {
+      std::cout << "Input " << input << "gives multiple matches!" <<std::endl;
+    }
+    return whichItem;
+  } else {
+    return -1;
+  }
+
 #endif
 }
 
@@ -941,7 +959,7 @@ int CoinParam::setKwdVal(const std::string newKwd, std::string *message,
         buffer << currentKwd_ << " to " << newKwd << std::endl;
         *message = buffer.str();
      }
-     currentKwd_ = newKwd;
+     currentKwd_ = modeString(newMode); // to get full name
      currentMode_ = newMode;
      if (pMode == pushOn){
         pushFunc_(*this);
@@ -1078,6 +1096,21 @@ std::string CoinParam::kwdVal() const
   
   return (returnStr);
 }
+// Return the string for an integer mode of keyword parameter
+std::string CoinParam::modeString(int value) const
+{
+  /* Not sure why we are using maps not vector.
+     Must be better way of doing this. */
+  std::map<std::string, int>::const_iterator it;
+  for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
+    if (it->second==value)
+      return it->first;
+  }
+  std::cout <<"Logical error - no match for value " << value << std::endl;
+  abort;
+  return "";
+}
+
 
 /*
   Return the string corresponding to the current value.

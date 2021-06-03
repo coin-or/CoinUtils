@@ -477,8 +477,9 @@ int lookupParam(std::string name, CoinParamVec &paramVec,
   /*
   A unique match and no `?' in the name says we have our parameter. Return
   the result.
+  allow if exact match (e.g. -netlib)
 */
-  if (matchCnt == 1 && shortCnt == 0 && numQuery == 0) {
+  if (matchCnt == 1 /* && shortCnt == 0 */ && numQuery == 0) {
     assert(matchNdx >= 0 && matchNdx < static_cast< int >(paramVec.size()));
     return (matchNdx);
   }

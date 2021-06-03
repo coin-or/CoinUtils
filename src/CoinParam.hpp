@@ -282,6 +282,10 @@ public:
   */
   int modeVal() const;
 
+  /*! \brief Return the string for an integer mode of keyword parameter
+  */
+  std::string  modeString(int value) const;
+
   /*! \brief Set the value of the keyword parameter using the integer
 	     associated with a value-keyword.
   
