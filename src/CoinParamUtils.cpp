@@ -791,7 +791,7 @@ void shortOrHelpOne(CoinParamVec &paramVec,
     if (numQuery == 1) {
       std::cout << paramVec[lclNdx]->shortHelp();
     } else {
-      paramVec[lclNdx]->printLongHelp();
+      std::cout << paramVec[lclNdx]->printLongHelp();
     }
   }
   std::cout << std::endl;
