@@ -510,7 +510,7 @@ int CoinParam::setVal(std::string value, std::string *message,
                 << std::endl;
       return 1;
     default:
-      std::cout << "setVal(): attepting to pass string as an argument, "
+      std::cout << "setVal(): attempting to pass string as an argument, "
                 << "to a parameter that is not of type string, "
                 << "directory, file, or keyword!" << std::endl;
       return 1;
@@ -528,7 +528,7 @@ int CoinParam::setVal(double value, std::string *message, ParamPushMode pMode)
                 << std::endl;
       return 1;
     default:
-      std::cout << "setVal(): attepting to pass double as an argument, "
+      std::cout << "setVal(): attempting to pass double as an argument, "
                 << "to a parameter that is not of type double!"
                 << std::endl;
       return 1;
@@ -549,7 +549,7 @@ int CoinParam::setVal(int value, std::string *message, ParamPushMode pMode)
                 << std::endl;
       return 1;
     default:
-      std::cout << "setVal(): attepting to pass integer as an argument, "
+      std::cout << "setVal(): attempting to pass integer as an argument, "
                 << "to a parameter that is not of type integer or keyword!"
                 << std::endl;
       return 1;
@@ -573,7 +573,7 @@ int CoinParam::setDefault(std::string value, std::string *message)
                 << std::endl;
       return 1;
     default:
-      std::cout << "setDefault(): attepting to pass string as an argument, "
+      std::cout << "setDefault(): attempting to pass string as an argument, "
                 << "to a parameter that is not of type string, "
                 << "directory, file, or keyword!" << std::endl;
       return 1;
@@ -591,7 +591,7 @@ int CoinParam::setDefault(double value, std::string *message)
                 << std::endl;
       return 1;
     default:
-      std::cout << "setDefault(): attepting to pass double as an argument, "
+      std::cout << "setDefault(): attempting to pass double as an argument, "
                 << "to a parameter that is not of type double!"
                 << std::endl;
       return 1;
@@ -612,7 +612,7 @@ int CoinParam::setDefault(int value, std::string *message)
                 << std::endl;
       return 1;
     default:
-      std::cout << "setDefault(): attepting to pass integer as an argument, "
+      std::cout << "setDefault(): attempting to pass integer as an argument, "
                 << "to a parameter that is not of type int or keyword!"
                 << std::endl;
       return 1;
@@ -788,12 +788,15 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       return 2;
    }
 
+   // NO NO NO
+#if 0
    if (field[0] == '-') {
       std::ostringstream buffer;
       buffer << "Illegal parameter value " << field << std::endl;
       *message = buffer.str();
       return 1;
    }
+#endif
 
    char c;
    std::stringstream ss(field);
@@ -822,13 +825,15 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       *message = buffer.str();
       return 2;
    }
-   
+   // NO NO NO
+#if 0
    if (field[0] == '-') {
       std::ostringstream buffer;
       buffer << "Illegal parameter value " << field << std::endl;
       *message = buffer.str();
       return 1;
    }
+#endif
 
    char c;
    std::stringstream ss(field);
