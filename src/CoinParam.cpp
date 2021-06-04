@@ -458,7 +458,7 @@ std::string CoinParam::printLongHelp() const
       break;
    }
    case paramKwd: {
-      printKwds();
+      buffer << printKwds();
       break;
    }
    case paramDir:
