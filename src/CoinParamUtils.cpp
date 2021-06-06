@@ -978,6 +978,10 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
    is absolute and if not, prepend with directory name. */
 void processFile(std::string &fileName, std::string dirName,
                  bool *fileExists){
+
+   if (fileName == "$"){
+      fileName = "";
+   }
    if (fileName[0] != '/' && fileName[0] != '\\' &&
        !strchr(fileName.c_str(), ':')) {
       fileName = dirName + fileName;
