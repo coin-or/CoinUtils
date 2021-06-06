@@ -979,9 +979,19 @@ void printHelp(CoinParamVec &paramVec, int firstParam, int lastParam,
 void processFile(std::string &fileName, std::string dirName,
                  bool *fileExists){
 
-   if (fileName == "--" || fileName == "stdin" || fileName == "stdin_lp" ||
-       fileName == "-lp"){
+   if (fileName == "--" || fileName == "stdin"){
+      // This is for the case of stdin
       fileName = "-";
+      if (fileExists != NULL){
+         *fileExists = true;
+      }
+   } 
+   if (fileName == "stdin_lp"){
+      // This is for the case of stdin
+      fileName = "-lp";
+      if (fileExists != NULL){
+         *fileExists = true;
+      }
    } 
 
    if (fileName == "$"){
