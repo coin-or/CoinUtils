@@ -708,13 +708,12 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
 {
    std::string field = CoinParamUtils::getNextField(inputQueue);
    
-   if (field == "--" || field == "stdin"){
-      field = "-";
-   } else if (field == "stdin_lp"){
-      field = "-lp";
-   }
-
    if (field == ""){
+      if (type_ == paramAct){
+         // An argument is not required in this case, so just return
+         value = "";
+         return 0;
+      }
       if (message){
          std::ostringstream buffer;
          if (type_ == paramDir){
