@@ -62,7 +62,7 @@ CoinParam::CoinParam()
 */
 CoinParam::CoinParam(std::string name, std::string help,
                      double lower, double upper, 
-                     double defaultValue, std::string longHelp,
+                     std::string longHelp,
                      CoinDisplayPriority displayPriority)
   : type_(paramDbl)
   , name_(name)
@@ -70,8 +70,8 @@ CoinParam::CoinParam(std::string name, std::string help,
   , lengthMatch_(0)
   , lowerDblValue_(lower)
   , upperDblValue_(upper)
-  , dblValue_(defaultValue)
-  , dblDefaultValue_(defaultValue)
+  , dblValue_(0.0)
+  , dblDefaultValue_(0.0)
   , lowerIntValue_(0)
   , upperIntValue_(0)
   , intValue_(0)
@@ -97,7 +97,7 @@ CoinParam::CoinParam(std::string name, std::string help,
 */
 CoinParam::CoinParam(std::string name, std::string help,
                      int lower, int upper, 
-                     int defaultValue, std::string longHelp,
+                     std::string longHelp,
                      CoinDisplayPriority displayPriority)
   : type_(paramInt)
   , name_(name)
@@ -109,8 +109,8 @@ CoinParam::CoinParam(std::string name, std::string help,
   , dblDefaultValue_(0.0)
   , lowerIntValue_(lower)
   , upperIntValue_(upper)
-  , intValue_(defaultValue)
-  , intDefaultValue_(defaultValue)
+  , intValue_(0)
+  , intDefaultValue_(0)
   , strValue_("")
   , strDefaultValue_("")
   , definedKwds_()
@@ -128,80 +128,13 @@ CoinParam::CoinParam(std::string name, std::string help,
 }
 
 /*
-  Constructor for keyword parameter.
+  Constructor for any parameter taking a string (or no value). 
+  Type is not optional to resolve ambiguity.
 */
-CoinParam::CoinParam(std::string name, std::string help,
-                     std::string defaultKwd, int defaultMode,
-                     std::string longHelp, CoinDisplayPriority displayPriority)
-  : type_(paramKwd)
-  , name_(name)
-  , lengthName_(0)
-  , lengthMatch_(0)
-  , lowerDblValue_(0.0)
-  , upperDblValue_(0.0)
-  , dblValue_(0.0)
-  , dblDefaultValue_(0.0)
-  , lowerIntValue_(0)
-  , upperIntValue_(0)
-  , intValue_(0)
-  , intDefaultValue_(0)
-  , strValue_("")
-  , strDefaultValue_("")
-  , definedKwds_()
-  , currentMode_(defaultMode)
-  , defaultMode_(defaultMode)
-  , currentKwd_(defaultKwd)
-  , defaultKwd_(defaultKwd)
-  , pushFunc_(0)
-  , pullFunc_(0)
-  , shortHelp_(help)
-  , longHelp_(longHelp)
-  , display_(displayPriority)
-{
-  processName();
-  definedKwds_[defaultKwd] = defaultMode;
-}
-
-/*
-  Constructor for string parameter.
-*/
-CoinParam::CoinParam(std::string name, std::string help,
-                     std::string defaultValue, std::string longHelp,
+CoinParam::CoinParam(std::string name, CoinParamType type,
+                     std::string help, std::string longHelp,
                      CoinDisplayPriority displayPriority)
-  : type_(paramStr)
-  , name_(name)
-  , lengthName_(0)
-  , lengthMatch_(0)
-  , lowerDblValue_(0.0)
-  , upperDblValue_(0.0)
-  , dblValue_(0.0)
-  , dblDefaultValue_(0.0)
-  , lowerIntValue_(0)
-  , upperIntValue_(0)
-  , intValue_(0)
-  , intDefaultValue_(0)
-  , strValue_(defaultValue)
-  , strDefaultValue_(defaultValue)
-  , definedKwds_()
-  , currentMode_(0)
-  , defaultMode_(0)
-  , currentKwd_("")
-  , defaultKwd_("")
-  , pushFunc_(0)
-  , pullFunc_(0)
-  , shortHelp_(help)
-  , longHelp_(longHelp)
-  , display_(displayPriority)
-{
-  processName();
-}
-
-/*
-  Constructor for action parameter.
-*/
-CoinParam::CoinParam(std::string name, std::string help,
-                     std::string longHelp, CoinDisplayPriority displayPriority)
-  : type_(paramAct)
+  : type_(type)
   , name_(name)
   , lengthName_(0)
   , lengthMatch_(0)
@@ -216,8 +149,8 @@ CoinParam::CoinParam(std::string name, std::string help,
   , strValue_("")
   , strDefaultValue_("")
   , definedKwds_()
-  , currentMode_(0)
-  , defaultMode_(0)
+  , currentMode_(-1)
+  , defaultMode_(-1)
   , currentKwd_("")
   , defaultKwd_("")
   , pushFunc_(0)
@@ -343,7 +276,9 @@ void CoinParam::setup(std::string name, std::string help,
    display_ = display;
 }
 
-/* Set up a keyword, string, or action parameter */
+/* Set up a parameter that takes a string value. Note that type must be set
+   using setType in order to complete setup.
+*/
 void CoinParam::setup(std::string name, std::string help,
                       std::string longHelp, CoinDisplayPriority display){
    name_ = name;
