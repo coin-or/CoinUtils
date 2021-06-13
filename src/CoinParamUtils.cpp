@@ -458,6 +458,9 @@ int lookupParam(std::string name, CoinParamVec &paramVec,
     *shortCntp = shortCnt;
   }
   if (numQuery > 0) {
+     if (numQuery > 0){
+        std::cout << "Sorry, no match found!" << std::endl;
+     }
     retval = -1;
   } else {
     if (matchCnt + shortCnt == 0) {
