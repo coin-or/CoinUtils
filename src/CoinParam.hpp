@@ -149,7 +149,7 @@ public:
   */
   CoinParam(std::string name, std::string help,
             double lower = -COIN_DBL_MAX, double upper = COIN_DBL_MAX,
-            double defaultValue = 0.0, std::string longHelp = "",
+            std::string longHelp = "",
             CoinDisplayPriority displayPriority = displayPriorityHigh);
 
   /*! \brief Constructor for a parameter with an integer value
@@ -158,43 +158,17 @@ public:
   */
   CoinParam(std::string name, std::string help,
             int lower = -COIN_INT_MAX, int upper = COIN_INT_MAX,
-            int defaultValue = 0, std::string longHelp = "",
+            std::string longHelp = "",
             CoinDisplayPriority displayPriority = displayPriorityHigh);
 
-  /*! \brief Constructor for a parameter with keyword values
+  /*! \brief Constructor for any parameter taking a string (or no) value 
+    (all others). Type is not optional to resolve ambiguity.
 
-    The string supplied as \p firstValue becomes the first value-keyword.
-    Additional value-keywords can be added using appendKwd().  It's necessary
-    to specify both the first value-keyword (\p firstValue) and the default
-    value-keyword index (\p defaultValue) in order to distinguish this 
-    constructor from the constructors for string and action parameters.
-
-    Value-keywords are associated with an integer, starting with zero and
-    increasing as each keyword is added.  The value-keyword given as \p
-    firstValue will be associated with the integer zero. The integer supplied
-    for \p defaultValue can be any value, as long as it will be valid once all
-    value-keywords have been added.
+    The default value is "" for all such parameter types
   */
-  CoinParam(std::string name, std::string help,
-            std::string defaultKwd, int defaultMode, std::string longHelp = "",
+  CoinParam(std::string name, CoinParamType type, std::string help,
+            std::string longHelp = "",
             CoinDisplayPriority displayPriority = displayPriorityHigh);
-
-  /*! \brief Constructor for a string parameter
-
-    For some compilers, the default value (\p defaultValue) must be specified
-    explicitly with type std::string to distinguish the constructor for a
-    string parameter from the constructor for an action parameter. For
-    example, use std::string("default") instead of simply "default", or use a
-    variable of type std::string.
-  */
-  CoinParam(std::string name, std::string help,
-            std::string defaultValue, std::string longHelp = "",
-            CoinDisplayPriority displayPriority = displayPriorityHigh);
-
-  /*! \brief Constructor for an action parameter */
-  // No defaults to resolve ambiguity
-  CoinParam(std::string name, std::string help, std::string longHelp,
-            CoinDisplayPriority displayPriority);
 
   /*! \brief Copy constructor */
   CoinParam(const CoinParam &orig);
