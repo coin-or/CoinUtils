@@ -679,9 +679,9 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
    }
    
    if (field[0] == '-') {
-      std::ostringstream buffer;
-      buffer << "Illegal parameter value " << field << std::endl;
-      *message = buffer.str();
+      value = "";
+      // This is a command, put back on queue
+      inputQueue.push_front(field);
       return 1;
    }
 
@@ -722,15 +722,14 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       return 2;
    }
 
-   // NO NO NO
-#if 0
    if (field[0] == '-') {
+      // This is a command, put back on queue, in case
+      inputQueue.push_front(field);
       std::ostringstream buffer;
-      buffer << "Illegal parameter value " << field << std::endl;
+      buffer << "Missing parameter value!" << std::endl;
       *message = buffer.str();
       return 1;
    }
-#endif
 
    char c;
    std::stringstream ss(field);
@@ -759,15 +758,15 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       *message = buffer.str();
       return 2;
    }
-   // NO NO NO
-#if 0
+
    if (field[0] == '-') {
+      // This is a command, put back on queue, in case
+      inputQueue.push_front(field);
       std::ostringstream buffer;
-      buffer << "Illegal parameter value " << field << std::endl;
+      buffer << "Missing parameter value!" << std::endl;
       *message = buffer.str();
       return 1;
    }
-#endif
 
    char c;
    std::stringstream ss(field);
