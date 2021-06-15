@@ -391,6 +391,11 @@ int lookupParam(std::string name, CoinParamVec &paramVec,
 {
   int retval = -3;
 
+  // crude fix to stop no match message on clp when in cbc
+  bool printMessage = true;
+  if (queryCntp && *queryCntp == 999)
+    printMessage = false;
+
   *matchCntp = 0;
   *shortCntp = 0;
   *queryCntp = 0;
@@ -458,7 +463,7 @@ int lookupParam(std::string name, CoinParamVec &paramVec,
     *shortCntp = shortCnt;
   }
   if (numQuery > 0) {
-     if (numQuery > 0){
+    if (/* was numQuery! */  (matchCnt + shortCnt == 0) && printMessage){
         std::cout << "Sorry, no match found!" << std::endl;
      }
     retval = -1;
