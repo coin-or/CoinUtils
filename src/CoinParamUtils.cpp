@@ -1004,6 +1004,7 @@ void processFile(std::string &fileName, std::string dirName,
 
    if (fileName == "$"){
       fileName = "";
+      return;
    }
    if (fileName[0] != '/' && fileName[0] != '\\' &&
        !strchr(fileName.c_str(), ':')) {

@@ -695,7 +695,7 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
      }
    }
 
-   if ((type_ == paramDir || type_ == paramFile) && value[0] == '~') {
+   if (value[0] == '~') {
       char *environVar = getenv("HOME");
       if (environVar) {
          std::string home(environVar);
@@ -1243,6 +1243,15 @@ int CoinParam::setDirNameDefault(std::string value, std::string *message)
      dir = value + CoinFindDirSeparator();
   }
 
+  if (dir[0] == '~') {
+     char *environVar = getenv("HOME");
+     if (environVar) {
+        std::string home(environVar);
+        dir = dir.erase(0, 1);
+        dir = home + dir;
+     } 
+  }
+
   if (message){
      std::ostringstream buffer;  
      buffer << "default value for directory parameter " << name_
@@ -1272,10 +1281,7 @@ int CoinParam::setFileName(std::string value, std::string *message,
   assert(type_ == paramFile);
 
   std::string fileName;
-  if (value[0] == '/' || value[0] == '\\' ||
-      strchr(value.c_str(), ':')) {
-     fileName = value;
-  } else if (value[0] == '~') {
+  if (value[0] == '~') {
      char *environVar = getenv("HOME");
      if (environVar) {
         std::string home(environVar);
@@ -1284,6 +1290,8 @@ int CoinParam::setFileName(std::string value, std::string *message,
      } else {
         fileName = value;
      }
+  } else {
+     fileName = value;
   }
 
   if (message){
@@ -1306,10 +1314,7 @@ int CoinParam::setFileNameDefault(std::string value, std::string *message)
   assert(type_ == paramFile);
 
   std::string fileName;
-  bool canOpen = false;
-  if (value[0] == '/' || value[0] == '\\') {
-     fileName = value;
-  } else if (value[0] == '~') {
+  if (value[0] == '~') {
      char *environVar = getenv("HOME");
      if (environVar) {
         std::string home(environVar);
@@ -1318,6 +1323,8 @@ int CoinParam::setFileNameDefault(std::string value, std::string *message)
      } else {
         fileName = value;
      }
+  } else {
+     fileName = value;
   }
 
   if (message){
