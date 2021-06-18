@@ -1002,7 +1002,7 @@ void processFile(std::string &fileName, std::string dirName,
       }
    } 
 
-   if (fileName == "$"){
+   if (fileName == "$" || fileName == ""){
       fileName = "";
       return;
    }
