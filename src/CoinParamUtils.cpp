@@ -1015,6 +1015,27 @@ void processFile(std::string &fileName, std::string dirName,
    }
 }
 
+void formInputQueue(std::deque<std::string> &inputQueue,
+                    int argc, char **argv)
+{
+   for (int i = 1; i < argc; i++){
+      std::string tmp(argv[i]);
+      std::string::size_type found = tmp.find("cbc");
+      if (found != std::string::npos) {
+         // For some reason, the command can sometimes be listed more than once
+         // in argv
+         continue;
+      }
+      found = tmp.find('=');
+      if (found != std::string::npos) {
+         inputQueue.push_back(tmp.substr(0, found));
+         inputQueue.push_back(tmp.substr(found + 1));
+      } else {
+         inputQueue.push_back(tmp);
+      }
+   }
+}
+
 } // end namespace CoinParamUtils
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2

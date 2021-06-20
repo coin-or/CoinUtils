@@ -821,7 +821,10 @@ std::string getNextField(std::deque<std::string> &inputQueue,
 COINUTILSLIB_EXPORT
 void processFile(std::string &fileName, std::string dirName,
                  bool *fileExists = NULL);
-
+  // moved from main programs
+COINUTILSLIB_EXPORT
+void formInputQueue(std::deque<std::string> &inputQueue,
+                    int argc, char **argv);
 }
 #endif /* CoinParam_H */
 
