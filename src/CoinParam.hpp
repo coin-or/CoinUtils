@@ -593,55 +593,6 @@ std::ostream &operator<<(std::ostream &s, const CoinParam &param);
   documentation.
 */
 namespace CoinParamUtils {
-/*! \relatesalso CoinParam
-      \brief Take command input from the file specified by src.
-
-      Use stdin for \p src to specify interactive prompting for commands.
-  */
-COINUTILSLIB_EXPORT
-void setInputSrc(FILE *src);
-
-/*! \relatesalso CoinParam
-      \brief Returns true if command line parameters are being processed.
-  */
-COINUTILSLIB_EXPORT
-bool isCommandLine();
-
-/*! \relatesalso CoinParam
-      \brief Returns true if parameters are being obtained from stdin.
-  */
-COINUTILSLIB_EXPORT
-bool isInteractive();
-
-/*! \relatesalso CoinParam
-      \brief Attempt to read a string from the input.
-      
-      \p argc and \p argv are used only if isCommandLine() would return true.
-      If \p valid is supplied, it will be set to 0 if a string is parsed
-      without error, 2 if no field is present.
-  */
-COINUTILSLIB_EXPORT
-std::string getStringField(int argc, const char *argv[], int *valid);
-
-/*! \relatesalso CoinParam
-      \brief Attempt to read an integer from the input.
-      
-      \p argc and \p argv are used only if isCommandLine() would return true.
-      If \p valid is supplied, it will be set to 0 if an integer is parsed
-      without error, 1 if there's a parse error, and 2 if no field is present.
-  */
-COINUTILSLIB_EXPORT
-int getIntField(int argc, const char *argv[], int *valid);
-
-/*! \relatesalso CoinParam
-      \brief Attempt to read a real (double) from the input.
-      
-      \p argc and \p argv are used only if isCommandLine() would return true.
-      If \p valid is supplied, it will be set to 0 if a real number is parsed
-      without error, 1 if there's a parse error, and 2 if no field is present.
-  */
-COINUTILSLIB_EXPORT
-double getDoubleField(int argc, const char *argv[], int *valid);
 
 /*! \relatesalso CoinParam
       \brief Scan a parameter vector for parameters whose keyword (name) string
@@ -658,40 +609,6 @@ double getDoubleField(int argc, const char *argv[], int *valid);
 COINUTILSLIB_EXPORT
 int matchParam(const CoinParamVec &paramVec, std::string name,
                int &matchNdx, int &shortCnt);
-
-/*! \relatesalso CoinParam
-      \brief Get the next command keyword (name)
-
-    To be precise, return the next field from the current command input
-    source, after a bit of processing. In command line mode (isCommandLine()
-    returns true) the next field will normally be of the form `-keyword' or
-    `--keyword' (\e i.e., a parameter keyword), and the string returned would
-    be `keyword'. In interactive mode (isInteractive() returns true), the
-    user will be prompted if necessary.  It is assumed that the user knows
-    not to use the `-' or `--' prefixes unless specifying parameters on the
-    command line.
-
-    There are a number of special cases if we're in command line mode. The
-    order of processing of the raw string goes like this:
-    <ul>
-      <li> A stand-alone `-' is forced to `stdin'.
-      <li> A stand-alone '--' is returned as a word; interpretation is up to
-	   the client.
-      <li> A prefix of '-' or '--' is stripped from the string.
-    </ul>
-    If the result is the string `stdin', command processing shifts to
-    interactive mode and the user is immediately prompted for a new command.
-
-    Whatever results from the above sequence is returned to the user as the
-    return value of the function. An empty string indicates end of input.
-
-    \p prompt will be used only if it's necessary to prompt the user in
-    interactive mode.
-  */
-
-COINUTILSLIB_EXPORT
-std::string getCommand(int argc, const char *argv[],
-  const std::string prompt, std::string *pfx = 0);
 
 /*! \relatesalso CoinParam
       \brief Look up the command keyword (name) in the parameter vector.
@@ -821,9 +738,10 @@ std::string getNextField(std::deque<std::string> &inputQueue,
 COINUTILSLIB_EXPORT
 void processFile(std::string &fileName, std::string dirName,
                  bool *fileExists = NULL);
-  // moved from main programs
+
 COINUTILSLIB_EXPORT
 void formInputQueue(std::deque<std::string> &inputQueue,
+                    std::string commandName,
                     int argc, char **argv);
 }
 #endif /* CoinParam_H */
