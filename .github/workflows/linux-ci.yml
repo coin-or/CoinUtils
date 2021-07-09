@@ -60,8 +60,8 @@ jobs:
           ADD_BUILD_ARGS+=( --static --with-lapack='-llapack -lblas -lgfortran -lquadmath -lm' )
           bash coinbrew/coinbrew fetch ${{ github.event.repository.name }} --skip-update \
           "${ADD_ARGS[@]}"
-          bash coinbrew/coinbrew build ${{ github.event.repository.name }} 
-          "${ADD_ARGS[@]}" "${ADD_ARGS[@]}" \
+          bash coinbrew/coinbrew build ${{ github.event.repository.name }} \
+          "${ADD_ARGS[@]}" "${ADD_BUILD_ARGS[@]}" \
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
           [[ ${CC} ]] && CC="${CC}" || CC=""
           echo "CC=${CC}" >> $GITHUB_ENV
