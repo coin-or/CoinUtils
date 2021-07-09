@@ -50,14 +50,15 @@ jobs:
       - name: Build project
         run: |
           export ${{ matrix.flags }}
+          ADD_ARGS=()
           [[ ${{ matrix.build_static }} == "true" ]] && \
-          static="--static --with-lapack='-llapack -lblas -lgfortran -lquadmath -lm'" || static=""
+          ADD_ARGS+=( --static --with-lapack='-llapack -lblas -lgfortran -lquadmath -lm' )
           bash coinbrew/coinbrew fetch ${{ github.event.repository.name }} \
           --no-prompt --skip-update \
           --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack'
           bash coinbrew/coinbrew build ${{ github.event.repository.name }} \
           --no-prompt --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' \
-          $static $debug --tests main --enable-relocatable \
+          "${ADD_ARGS[@]}" --tests main --enable-relocatable \
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
           [[ ${CC} ]] && CC="${CC}" || CC=""
           echo "CC=${CC}" >> $GITHUB_ENV
