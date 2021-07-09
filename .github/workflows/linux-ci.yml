@@ -62,10 +62,6 @@ jobs:
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
           [[ ${CC} ]] && CC="${CC}" || CC=""
           echo "CC=${CC}" >> $GITHUB_ENV
-        env:
-          BUILD_STATIC: ${{ matrix.build_static }}
-          DEBUG: false
-          ASAN: false
       - name: Archive dist contents
         run: |
           cp ${{ github.event.repository.name }}/README.md dist/
