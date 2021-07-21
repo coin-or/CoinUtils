@@ -677,7 +677,7 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       }
       return 2;
    }
-   
+   // not sure about this
    if (field[0] == '-') {
       value = "";
       // This is a command, put back on queue
@@ -722,6 +722,8 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       return 2;
    }
 
+   //I think it a bit harsh not to allow negative numbers!
+#if 0
    if (field[0] == '-') {
       // This is a command, put back on queue, in case
       inputQueue.push_front(field);
@@ -730,6 +732,7 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       *message = buffer.str();
       return 1;
    }
+#endif
 
    char c;
    std::stringstream ss(field);
@@ -758,7 +761,8 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       *message = buffer.str();
       return 2;
    }
-
+   //I think it a bit harsh not to allow negative numbers!
+#if 0
    if (field[0] == '-') {
       // This is a command, put back on queue, in case
       inputQueue.push_front(field);
@@ -767,6 +771,7 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       *message = buffer.str();
       return 1;
    }
+#endif
 
    char c;
    std::stringstream ss(field);
