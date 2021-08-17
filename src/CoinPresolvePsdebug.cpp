@@ -430,7 +430,7 @@ void presolve_check_free_list(const CoinPostsolveMatrix *obj, bool chkElemCnt)
 	use the call presolve_check_reduced_costs(0), which will reinitialise
 	and return.
 */
-#if PRESOLVE_DEBUG
+#if PRESOLVE_DEBUG  || PRESOLVE_CONSISTENCY
 
 void presolve_check_reduced_costs(const CoinPostsolveMatrix *postObj)
 {
@@ -1187,11 +1187,25 @@ void presolve_check_nbasic(const CoinPresolveMatrix *preObj)
   int nbasic = 0;
   int ncb = 0;
   int nrb = 0;
+#define PRE_MORE_DETAIL
+#ifdef PRE_MORE_DETAIL
+  int ncb0 = 0;
+  int nrb0 = 0;
+  int ncnb0 = 0;
+  int nrnb0 = 0;
+#endif
 
   for (int j = 0; j < ncols; j++) {
     if (preObj->columnIsBasic(j)) {
       nbasic++;
       ncb++;
+#ifdef PRE_MORE_DETAIL
+      if (!preObj->hincol_[j])
+	ncb0++;
+    } else {
+      if (!preObj->hincol_[j])
+	ncnb0++;
+#endif
     }
   }
 
@@ -1199,6 +1213,13 @@ void presolve_check_nbasic(const CoinPresolveMatrix *preObj)
     if (preObj->rowIsBasic(i)) {
       nbasic++;
       nrb++;
+#ifdef PRE_MORE_DETAIL
+      if (!preObj->hinrow_[i])
+	nrb0++;
+    } else {
+      if (!preObj->hinrow_[i])
+	nrnb0++;
+#endif
     }
   }
 
@@ -1208,6 +1229,11 @@ void presolve_check_nbasic(const CoinPresolveMatrix *preObj)
     printf(" cb %d, rb %d.\n", ncb, nrb);
     fflush(stdout);
   }
+#ifdef PRE_MORE_DETAIL
+  if (ncb0||nrb0||ncnb0||nrnb0)
+    printf(" cb %d (%d, nb %d), rb %d (%d, nb %d) - %d rows.\n", ncb, ncb0,
+	   ncnb0,nrb,nrb0,nrnb0,nrows);
+#endif
   return;
 }
 

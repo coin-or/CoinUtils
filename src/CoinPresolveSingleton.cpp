@@ -398,8 +398,10 @@ void slack_doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
   double *acts = prob->acts_;
   double *rowduals = prob->rowduals_;
 
-#if PRESOLVE_DEBUG
+#if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
   char *rdone = prob->rdone_;
+#endif
+#if PRESOLVE_DEBUG
   std::cout
     << "Entering slack_doubleton_action::postsolve, "
     << nactions << " constraints to process." << std::endl;
