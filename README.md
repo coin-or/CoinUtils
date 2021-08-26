@@ -125,4 +125,5 @@ documentation [here](http://coin-or.github.io/CoinUtils/Doxygen).
  * [Discussion formum](https://github.com/coin-or/CoinUtils/discussions)
  * [Report a bug](https://github.com/coin-or/CoinUtils/issues/new)
  * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen)
+ * [Code of Conduct](https://www.coin-or.org/code-of-conduct/)
 
