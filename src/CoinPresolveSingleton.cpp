@@ -300,7 +300,11 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       }
       if (prob->rowIsBasic(i))
         numberBasic++;
-      PRESOLVEASSERT(numberBasic > 0);
+#if PRESOLVE_DEBUG 
+      if(numberBasic == 0)
+	printf("warning neither row %d or column %d basic\n",
+	       i,j);
+#endif
       if (sol[j] <= clo[j] + ztolzb) {
         movement = clo[j] - sol[j];
         sol[j] = clo[j];
