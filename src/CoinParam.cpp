@@ -386,6 +386,13 @@ std::string CoinParam::printLongHelp() const
       break;
    }
    case paramInt: {
+      if (definedKwds_.size()) {
+	// print keyword values
+	std::map<std::string, int>::const_iterator it;
+	for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
+	  std::cout << "keyword " << it->first << " -> " << it->second << std::endl;
+	}
+      }
       buffer << "<Range of values is " << lowerIntValue_ << " to "
              << upperIntValue_ << ";\n\tcurrent " << intValue_ << ">"
              << std::endl;
@@ -739,12 +746,63 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
    ss >> value;
    if (!ss.fail() && !ss.get(c)){
       return 0;
-   } else {
+   } else if (definedKwds_.size()==0) {
       std::ostringstream buffer;
       buffer << "Illegal parameter value " << field << std::endl;
       *message = buffer.str();
       return 1;
+   } else {
+     // see if we can match
+     value = 0;
+     std::map<std::string, int>::const_iterator it;
+     std::string fieldLeft = field;
+     while (fieldLeft.size()) {
+       std::string fieldThis = fieldLeft;
+       size_t fieldLen = fieldThis.length();
+       std::string::size_type orPos = fieldThis.find('|');
+       if (orPos == std::string::npos)
+	 orPos = fieldThis.find('+');
+       if (orPos != std::string::npos) {
+	 fieldThis = fieldLeft.substr(0,orPos);
+	 fieldLeft = fieldLeft.substr(orPos+1);
+       } else {
+	 fieldLeft = "";
+       }
+       bool found = false;
+       for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
+	 std::string kwd = it->first;
+	 std::string::size_type shriekPos = kwd.find('!');
+	 size_t kwdLen = kwd.length();
+	 size_t matchLen = kwdLen;
+	 kwd = kwd.substr(0, shriekPos);
+	 if (kwd==fieldThis) {
+	   found = true;
+	   // maybe it should be |=
+	   value += it->second;
+	   break;
+	 }
+       }
+       if (!found) {
+	 // may be trminating integer value
+	 if (!fieldLeft.size()) {
+	   int thisValue;
+	   std::stringstream ss(fieldThis);
+	   ss >> thisValue;
+	   if (!ss.fail() && !ss.get(c)) {
+	     found = true;
+	     value += thisValue;
+	     break;
+	   }
+	 }
+	 std::ostringstream buffer;
+	 buffer << "Illegal parameter value " << field << std::endl;
+	 *message = buffer.str();
+	 return 1;
+	 break;
+       }
+     }
    }
+   return 0;
 }
 
 // return 0 - okay, 1 bad, 2 not there
