@@ -534,7 +534,8 @@ protected:
   /// String parameter - default value
   std::string strDefaultValue_;
 
-  /// Set of valid value-keywords for a keyword parameter
+  /** Set of valid value-keywords for a keyword parameter
+      (can also be used for keyword/bit for integer values */
   std::map< std::string, int > definedKwds_;
 
   /*! \brief Current string value for a keyword parameter 
