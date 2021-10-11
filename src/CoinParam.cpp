@@ -387,10 +387,19 @@ std::string CoinParam::printLongHelp() const
    }
    case paramInt: {
       if (definedKwds_.size()) {
+	std::cout << "Can set some values using keywords -" << std::endl;
 	// print keyword values
 	std::map<std::string, int>::const_iterator it;
 	for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
-	  std::cout << "keyword " << it->first << " -> " << it->second << std::endl;
+	  std::string kwd = it->first;
+	  std::string::size_type hashPos = kwd.find('#'); // always there
+	  std::string description = kwd.substr(hashPos+1);
+	  kwd = kwd.substr(0,hashPos);
+	  std::string::size_type shriekPos = kwd.find('!');
+	  if (shriekPos != std::string::npos) {
+	    kwd = kwd.substr(0, shriekPos) + "(" + kwd.substr(shriekPos + 1) + ")";
+	  }
+	  std::cout << "- " << kwd << " (" << description << ") -> " << it->second << std::endl;
 	}
       }
       buffer << "<Range of values is " << lowerIntValue_ << " to "
@@ -772,6 +781,8 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
        for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
 	 std::string kwd = it->first;
 	 std::string::size_type shriekPos = kwd.find('!');
+	 if (shriekPos == std::string::npos) 
+	   shriekPos = kwd.find('#');
 	 size_t kwdLen = kwd.length();
 	 size_t matchLen = kwdLen;
 	 kwd = kwd.substr(0, shriekPos);
