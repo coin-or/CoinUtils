@@ -387,19 +387,33 @@ std::string CoinParam::printLongHelp() const
    }
    case paramInt: {
       if (definedKwds_.size()) {
-	std::cout << "Can set some values using keywords -" << std::endl;
+	std::cout << "Alternative syntax - kwd1+kwd2+1234 -" << std::endl;
 	// print keyword values
 	std::map<std::string, int>::const_iterator it;
-	for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
-	  std::string kwd = it->first;
-	  std::string::size_type hashPos = kwd.find('#'); // always there
-	  std::string description = kwd.substr(hashPos+1);
-	  kwd = kwd.substr(0,hashPos);
-	  std::string::size_type shriekPos = kwd.find('!');
-	  if (shriekPos != std::string::npos) {
-	    kwd = kwd.substr(0, shriekPos) + "(" + kwd.substr(shriekPos + 1) + ")";
+	// better to print by increasing value rather than alphabetical order
+	int numberItems = definedKwds_.size();
+	int lo=0;
+	while (numberItems) {
+	  std::string kwd;
+	  std::string description;
+	  int value=COIN_INT_MAX;
+	  for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
+	    if (it->second<value && it->second>lo) {
+	      value = it->second;
+	      kwd = it->first;
+	      std::string::size_type hashPos = kwd.find('#'); // always there
+	      description = kwd.substr(hashPos+1);
+	      kwd = kwd.substr(0,hashPos);
+	      std::string::size_type shriekPos = kwd.find('!');
+	      if (shriekPos != std::string::npos) {
+		kwd = kwd.substr(0, shriekPos) + "(" + kwd.substr(shriekPos + 1) + ")";
+	      }
+	    }
 	  }
-	  std::cout << "- " << kwd << " (" << description << ") -> " << it->second << std::endl;
+	  numberItems--;
+	  lo = value;
+	  std::cout << "- " << kwd << " (" << description << ") -> "
+		    << value << std::endl;
 	}
       }
       buffer << "<Range of values is " << lowerIntValue_ << " to "
