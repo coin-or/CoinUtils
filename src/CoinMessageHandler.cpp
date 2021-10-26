@@ -343,12 +343,22 @@ int CoinMessageHandler::internalPrint()
     //take off trailing spaces and commas
     messageOut_--;
     while (messageOut_ >= messageBuffer_) {
+      // define ALLOW_NN to allow \n\n
+#ifdef ALLOW_NN
       if (*messageOut_ == ' ' || *messageOut_ == ',') {
         *messageOut_ = 0;
         messageOut_--;
       } else {
         break;
       }
+#else
+      if (*messageOut_ == ' ' || *messageOut_ == ',' || *messageOut_ == 10) {
+        *messageOut_ = 0;
+        messageOut_--;
+      } else {
+        break;
+      }
+#endif
     }
     // take off %%
     if (strstr(messageBuffer_, "%%")) {
