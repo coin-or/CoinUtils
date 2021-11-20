@@ -173,19 +173,35 @@ slack_doubleton_action::presolve(CoinPresolveMatrix *prob,
       lo = -lo;
       up = -up;
     }
-    if (lo <= -PRESOLVE_INF)
+    if (lo <= -1.0e-10*PRESOLVE_INF)
       lo = -PRESOLVE_INF;
     else {
       lo /= abs_aij;
-      if (lo <= -PRESOLVE_INF)
-        lo = -PRESOLVE_INF;
+      if (lo <= -1.0e-10*PRESOLVE_INF) {
+	lo = -PRESOLVE_INF;
+      } else {
+	// check tolerances
+	if (lo && fabs(lo)<=prob->feasibilityTolerance_ && abs_aij >1.0) {
+	  // be safe
+	  nactions--;
+	  continue;
+	}
+      }
     }
-    if (up > PRESOLVE_INF)
+    if (up > 1.0e-10*PRESOLVE_INF)
       up = PRESOLVE_INF;
     else {
       up /= abs_aij;
-      if (up > PRESOLVE_INF)
+      if (up > 1.0e-10*PRESOLVE_INF) {
         up = PRESOLVE_INF;
+      } else {
+	// check tolerances
+	if (up && fabs(up)<=prob->feasibilityTolerance_ && abs_aij >1.0) {
+	  // be safe
+	  nactions--;
+	  continue;
+	}
+      }
     }
 #if PRESOLVE_DEBUG > 2
     std::cout
