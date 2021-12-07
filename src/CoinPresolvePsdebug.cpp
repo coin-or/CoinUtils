@@ -1107,6 +1107,56 @@ void presolve_check_sol(const CoinPostsolveMatrix *postObj,
     }
     delete[] rsol;
   }
+#if PRESOLVE_DEBUG > 1
+  // This dumps out state of postsolve
+  static int zzzzzz=0;
+  zzzzzz++;
+  {
+    char name[20];
+    sprintf(name,"/tmp/dump%d.txt",zzzzzz);
+    printf("Dumping to %s\n",name);
+    FILE * fp = fopen(name,"w");
+    int nels=0;
+    double *colels = postObj->colels_;
+    int *hrow = postObj->hrow_;
+    int *mcstrt = postObj->mcstrt_;
+    int *hincol = postObj->hincol_;
+    CoinBigIndex *link = postObj->link_;
+    int n = postObj->ncols_;
+    int m = postObj->nrows_;
+    for (int i=0;i<n;i++)
+      nels += hincol[i];
+    double *clo = postObj->clo_;
+    double *cup = postObj->cup_;
+    double *rlo = postObj->rlo_;
+    double *rup = postObj->rup_;
+    double *obj = postObj->cost_;
+    fprintf(fp,"size rows - %d cols - %d els - %d\n",m,n,nels);
+    fprintf(fp,"ROWS\n");
+    for (int i=0;i<m;i++)
+      fprintf(fp,"%d %g <= <= %g\n",i,rlo[i],rup[i]);
+    fprintf(fp,"COLUMNS\n");
+    for (int i=0;i<n;i++) {
+      fprintf(fp,"%d %g <= <= %g - %d els - cost %g\n",i,clo[i],cup[i],
+	      hincol[i],obj[i]);
+      CoinBigIndex k=mcstrt[i];
+      int kk = 0;
+      for (int j=0;j<hincol[i];j++) {
+	int iRow = hrow[k];
+	kk++;
+	if (kk==5) {
+	  fprintf(fp,"\n");
+	  kk=0;
+	}
+	fprintf(fp,"(%d,%g) ",iRow,colels[k]);
+	k = link[k];
+      }
+      if (kk)
+	fprintf(fp,"\n");
+    }
+    fclose(fp);
+  }
+#endif
   return;
 }
 
