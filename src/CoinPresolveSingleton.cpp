@@ -671,14 +671,10 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
         }
         if (integerType && integerType[iCol]) {
           // only possible if everything else integer
-          if (newLower > -1.0e30) {
-            if (newLower != floor(newLower + 0.5))
-              continue;
-          }
-          if (newUpper < 1.0e30) {
-            if (newUpper != floor(newUpper + 0.5))
-              continue;
-          }
+	  if (currentLower != floor(currentLower + 0.5))
+	    continue;
+	  if (currentUpper != floor(currentUpper + 0.5))
+	    continue;
           bool allInt = true;
           for (CoinBigIndex j = mrstrt[iRow];
                j < mrstrt[iRow] + hinrow[iRow]; j++) {
