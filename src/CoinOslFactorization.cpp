@@ -765,17 +765,19 @@ void clp_memory(int type)
       printf("%g ", malloc_counts[i]);
     printf("\n");
     malloc_counts_on = 0;
-    if (previous->previous != &startM) {
+    if (malloc_current && previous->previous != &startM) {
       int n = 0;
+      int smallestAlloc = COIN_INT_MAX;
       printf("Allocated blocks\n");
       while (previous->previous != &startM) {
         printf("(%d at %d) ", previous->size, previous->when);
+	smallestAlloc = CoinMin(smallestAlloc,previous->when);
         n++;
         if ((n % 5) == 0)
           printf("\n");
         previous = (malloc_struct *)previous->previous;
       }
-      printf("\n - total %d\n", n);
+      printf("\n - total %d -earliest bad %d\n", n,smallestAlloc);
     }
   }
   malloc_number = 0;
