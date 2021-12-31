@@ -34,9 +34,9 @@ The CoinUtils development site is https://github.com/coin-or/CoinUtils.
 
 ## CURRENT BUILD STATUS
 
-[![Build Status](https://github.com/coin-or/CoinUtils/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/coin-or/CoinUtils/actions/workflows/ci.yml?query=branch%3Amaster)
+[![Windows Builds](https://github.com/coin-or/CoinUtils/actions/workflows/windows-ci.yml/badge.svg?branch=master)](https://github.com/coin-or/CoinUtils/actions/workflows/windows-ci.yml?query=branch%3Amaster)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/a41muofrtpdw18c5/branch/master?svg=true)](https://ci.appveyor.com/project/coin-or/CoinUtils/branch/master)
+[![Linux and MacOS Builds](https://github.com/coin-or/CoinUtils/actions/workflows/linux-ci.yml/badge.svg?branch=master)](https://github.com/coin-or/CoinUtils/actions/workflows/linux-ci.yml?query=branch%3Amaster)
 
 ## DOWNLOAD
 
@@ -44,7 +44,7 @@ The CoinUtils development site is https://github.com/coin-or/CoinUtils.
 
 There is a Docker image that provides CoinUtils, as well as other projects
 in the [COIN-OR Optimization
-Suite](https://github.com/coin-or/COIN-OR-OptimizationSuite)[here](https://hub.docker.com/repository/docker/coinor/coin-or-optimization-suite)
+Suite](https://github.com/coin-or/COIN-OR-OptimizationSuite) [here](https://hub.docker.com/repository/docker/coinor/coin-or-optimization-suite)
 
 ### Binaries
 
@@ -55,7 +55,7 @@ are archived as part of Cbc
 [here](https://www.coin-or.org/download/binary/Cbc).
 
  * *Linux*: On Debian/Ubuntu, CoinUtils is available in the package `coinor-coinutils` and can be installed with apt. On Fedora, CoinUtils is available in the package `coin-or-CoinUtils`.
- * *Windows*: The easiest way to get CoinUtils on Windows is to download from *[Bintray](https://bintray.com/coin-or/download/Cbc)*.
+ * *Windows*: The easiest way to get CoinUtils on Windows is to download an archive as described above.
  * *Mac OS X*: The easiest way to get Cbc on Mac OS X is through [Homebrew](https://brew.sh).
    * `brew tap coin-or-tools/coinor`
    * `brew install coin-or-tools/coinor/coinutils`
@@ -125,4 +125,5 @@ documentation [here](http://coin-or.github.io/CoinUtils/Doxygen).
  * [Discussion formum](https://github.com/coin-or/CoinUtils/discussions)
  * [Report a bug](https://github.com/coin-or/CoinUtils/issues/new)
  * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen)
+ * [Code of Conduct](https://www.coin-or.org/code-of-conduct/)
 

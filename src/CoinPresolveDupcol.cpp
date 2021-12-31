@@ -1227,6 +1227,17 @@ const CoinPresolveAction
                 idelete = ilast;
                 PRESOLVE_DETAIL_PRINT(printf("pre_duprow %dR %dR E\n", ilast, ithis));
                 rup[ithis] = rup1;
+#define PRE_GET_RID 1
+#if PRE_GET_RID == 1
+		// need to get rid of a basic variable
+		if (prob->getRowStatus(idelete)!=CoinPrePostsolveMatrix::basic
+		    &&prob->getRowStatus(ithis)==CoinPrePostsolveMatrix::basic) {
+		  if (prob->acts_[ithis]<rlo[ithis]+tolerance)
+		    prob->setRowStatus(ithis,CoinPrePostsolveMatrix::atLowerBound);
+		  else if (prob->acts_[ithis]>rup[ithis]-tolerance)
+		    prob->setRowStatus(ithis,CoinPrePostsolveMatrix::atUpperBound);
+		}
+#endif
               }
             }
           } else {
@@ -1265,8 +1276,25 @@ const CoinPresolveAction
               }
             }
           }
-          if (idelete >= 0)
+          if (idelete >= 0) {
             sort[nuseless_rows++] = idelete;
+#if PRE_GET_RID == 2
+	    // need to get rid of a basic variable
+	    if (idelete==ithis)
+	      ithis = ilast;
+	    if (prob->getRowStatus(idelete)!=CoinPrePostsolveMatrix::basic
+		&&prob->getRowStatus(ithis)==CoinPrePostsolveMatrix::basic) {
+	      if (prob->acts_[ithis]<rlo[ithis]+tolerance)
+		prob->setRowStatus(ithis,CoinPrePostsolveMatrix::atLowerBound);
+	      else if (prob->acts_[ithis]>rup[ithis]-tolerance)
+		prob->setRowStatus(ithis,CoinPrePostsolveMatrix::atUpperBound);
+	      if (prob->acts_[ithis]<rlo[ithis]+tolerance)
+		printf("ssss %d to lower\n",ithis);
+	      else if (prob->acts_[ithis]>rup[ithis]-tolerance)
+		printf("ssss %d to upper\n",ithis);
+	    }
+#endif
+	  }
         }
       }
     }

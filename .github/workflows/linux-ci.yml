@@ -1,9 +1,10 @@
 ---
-name: Compile and test
+name: Linux build and test
 on:
   push:
     branches:
       - 'master'
+      - 'stable/*'
   pull_request:
     branches:
       - '*'
@@ -17,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-18.04, ubuntu-20.04]
         build_static: [true, false]
         flags: [ADD_CXXFLAGS=-fvisibility=hidden]
         download_requirements: [sudo apt install -y -qq gfortran liblapack-dev libmetis-dev libnauty2-dev]
@@ -41,16 +42,6 @@ jobs:
           path: ${{ github.event.repository.name }}
       - name: Install required packages from package manager
         run: ${{ matrix.download_requirements }}
-      - name: Fetch Data-Sample repository
-        uses: actions/checkout@v2
-        with:
-          repository: coin-or-tools/Data-Sample
-          path: Data/Sample
-      - name: Fetch ThirdParty-Glpk repository
-        uses: actions/checkout@v2
-        with:
-          repository: coin-or-tools/ThirdParty-Glpk
-          path: ThirdParty/Glpk
       - name: Checkout coinbrew
         uses: actions/checkout@v2
         with:
@@ -59,17 +50,21 @@ jobs:
       - name: Build project
         run: |
           export ${{ matrix.flags }}
-          source coinbrew/.ci/setup_environment.sh
+          ADD_ARGS=()
+          ADD_ARGS+=( --no-prompt )
+          ADD_ARGS+=( --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' )
+          ADD_BUILD_ARGS=()
+          ADD_BUILD_ARGS+=( --tests main --enable-relocatable )
+          ADD_BUILD_ARGS+=( --verbosity 2 )
+          [[ ${{ matrix.build_static }} == "true" ]] && \
+          ADD_BUILD_ARGS+=( --static --with-lapack='-llapack -lblas -lgfortran -lquadmath -lm' )
+          bash coinbrew/coinbrew fetch ${{ github.event.repository.name }} --skip-update \
+          "${ADD_ARGS[@]}"
           bash coinbrew/coinbrew build ${{ github.event.repository.name }} \
-          --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' \
-          "${COMMON_ARGS[@]}" "${ADD_ARGS[@]}" "${DBG_ARGS[@]}" \
+          "${ADD_ARGS[@]}" "${ADD_BUILD_ARGS[@]}" \
           ADD_CXXFLAGS="${ADD_CXXFLAGS}" CC=${CC} CXX=${CXX}
           [[ ${CC} ]] && CC="${CC}" || CC=""
           echo "CC=${CC}" >> $GITHUB_ENV
-        env:
-          BUILD_STATIC: ${{ matrix.build_static }}
-          DEBUG: false
-          ASAN: false
       - name: Archive dist contents
         run: |
           cp ${{ github.event.repository.name }}/README.md dist/

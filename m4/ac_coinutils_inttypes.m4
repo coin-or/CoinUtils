@@ -133,7 +133,7 @@ AC_DEFUN([AC_COINUTILS_BIGTYPES],
 [
   AC_MSG_CHECKING([type to use for CoinBigIndex])
   AC_ARG_ENABLE([coinutils-bigindex],
-    [AC_HELP_STRING([--enable-coinutils-bigindex],[use a long integer type for CoinBigIndex])],
+    [AS_HELP_STRING([--enable-coinutils-bigindex],[use a long integer type for CoinBigIndex])],
     [if test "$enableval" = yes ; then
        bigindextype="long long"
      else
