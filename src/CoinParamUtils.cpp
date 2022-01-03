@@ -117,6 +117,12 @@ getNextField(std::deque<std::string> &inputQueue, bool interactiveMode,
   }else{
      std::string field = inputQueue.front();
      inputQueue.pop_front();
+     std::string::size_type found = field.find('=');
+     if (found != std::string::npos) {
+        field = (field[0] == '-' ? field.substr(0, found) :
+                 '-' + field.substr(0, found));
+        inputQueue.push_back(field.substr(found + 1));
+     }
      return field;
   }
 }
@@ -687,7 +693,8 @@ void formInputQueue(std::deque<std::string> &inputQueue,
 #endif
       found = tmp.find('=');
       if (found != std::string::npos) {
-         inputQueue.push_back(tmp.substr(0, found));
+         inputQueue.push_back(tmp[0] == '-' ? tmp.substr(0, found) :
+                              '-' + tmp.substr(0, found));
          inputQueue.push_back(tmp.substr(found + 1));
       } else {
          inputQueue.push_back(tmp);
