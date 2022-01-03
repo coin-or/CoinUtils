@@ -119,9 +119,11 @@ getNextField(std::deque<std::string> &inputQueue, bool interactiveMode,
      inputQueue.pop_front();
      std::string::size_type found = field.find('=');
      if (found != std::string::npos) {
-        field = (field[0] == '-' ? field.substr(0, found) :
-                 '-' + field.substr(0, found));
+        inputQueue.push_back(field[0] == '-' ? field.substr(0, found) :
+                             '-' + field.substr(0, found));
         inputQueue.push_back(field.substr(found + 1));
+        field = inputQueue.front();
+        inputQueue.pop_front();
      }
      return field;
   }
