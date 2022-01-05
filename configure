@@ -679,6 +679,8 @@ coin_doxy_tagname
 coin_doxy_usedot
 coin_have_latex
 coin_have_doxygen
+COINUTILSTEST_CFLAGS_NOPC
+COINUTILSTEST_LFLAGS_NOPC
 COINUTILSLIB_CFLAGS_NOPC
 COINUTILSLIB_LFLAGS_NOPC
 COIN_HAS_READLINE_FALSE
@@ -697,6 +699,9 @@ COIN_HAS_ASL_FALSE
 COIN_HAS_ASL_TRUE
 COIN_HAS_GLPK_FALSE
 COIN_HAS_GLPK_TRUE
+COINUTILSTEST_PCFILES
+COINUTILSTEST_CFLAGS
+COINUTILSTEST_LFLAGS
 COINUTILSLIB_CFLAGS
 COIN_HAS_LAPACK_FALSE
 COIN_HAS_LAPACK_TRUE
@@ -19062,9 +19067,13 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
   if test "$lapack_keep_looking" = yes ; then
     case $build in
       *-linux*)
+        case "  " in
+          *\ int64\ * ) coin_mkl="-lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lm" ;;
+          *)          coin_mkl="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm" ;;
+        esac
 
   ac_save_LIBS="$LIBS"
-  LIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm $LIBS"
+  LIBS="$coin_mkl $LIBS"
 
 
   dsyev_namemangling=unknown
@@ -19121,7 +19130,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
 
   if test $ac_success = yes ; then
     coin_has_lapack=yes
-           lapack_lflags="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm"
+           lapack_lflags="$coin_mkl"
            lapack_what="Intel MKL ($lapack_lflags)"
 
 
@@ -19130,7 +19139,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
       ;;
 
       *-*-solaris*)
-
+        case "  " in
+          *\ int64\ * ) ;;
+          *)
   ac_save_LIBS="$LIBS"
   LIBS="-lsunperf $LIBS"
 
@@ -19189,12 +19200,13 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
 
   if test $ac_success = yes ; then
     coin_has_lapack=yes
-           lapack_lflags=-lsunperf
-           lapack_what="Sun Performance Library ($lapack_lflags)"
+                lapack_lflags=-lsunperf
+                lapack_what="Sun Performance Library ($lapack_lflags)"
 
 
   fi
-
+ ;;
+        esac
       ;;
 
       *-cygwin* | *-mingw* | *-msys*)
@@ -19208,12 +19220,18 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
           d=`cygpath -u "$d"`
           if test "$enable_shared" = yes ; then
             if test -e "$d/mkl_core_dll.lib" ; then
-              coin_mkl="$d/mkl_intel_lp64_dll.lib $d/mkl_sequential_dll.lib $d/mkl_core_dll.lib"
+              case "  " in
+                *\ int64\ * ) coin_mkl="$d/mkl_intel_ilp64_dll.lib $d/mkl_sequential_dll.lib $d/mkl_core_dll.lib" ;;
+                *)          coin_mkl="$d/mkl_intel_lp64_dll.lib $d/mkl_sequential_dll.lib $d/mkl_core_dll.lib" ;;
+              esac
               break
             fi
           else
             if test -e "$d/mkl_core.lib" ; then
-              coin_mkl="$d/mkl_intel_lp64.lib $d/mkl_sequential.lib $d/mkl_core.lib"
+              case "  " in
+                *\ int64\ * ) coin_mkl="$d/mkl_intel_ilp64.lib $d/mkl_sequential.lib $d/mkl_core.lib" ;;
+                *)          coin_mkl="$d/mkl_intel_lp64.lib $d/mkl_sequential.lib $d/mkl_core.lib" ;;
+              esac
               break
             fi
           fi
@@ -19289,9 +19307,13 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
       ;;
 
       *-darwin*)
+        case "  " in
+          *\ int64\ * ) coin_mkl="-lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lm" ;;
+          *)          coin_mkl="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm" ;;
+        esac
 
   ac_save_LIBS="$LIBS"
-  LIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm $LIBS"
+  LIBS="$coin_mkl $LIBS"
 
 
   dsyev_namemangling=unknown
@@ -19348,14 +19370,16 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
 
   if test $ac_success = yes ; then
     coin_has_lapack=yes
-           lapack_lflags="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lm"
+           lapack_lflags="$coin_mkl"
            lapack_what="Intel MKL ($lapack_lflags)"
 
 
   fi
 
         if test "$coin_has_lapack" = no ; then
-
+          case "  " in
+            *\ int64\ * ) ;;
+            *)
   ac_save_LIBS="$LIBS"
   LIBS="-framework Accelerate $LIBS"
 
@@ -19414,12 +19438,14 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
 
   if test $ac_success = yes ; then
     coin_has_lapack=yes
-             lapack_lflags="-framework Accelerate"
-             lapack_what="Accelerate framework ($lapack_lflags)"
+                  lapack_lflags="-framework Accelerate"
+                  lapack_what="Accelerate framework ($lapack_lflags)"
 
 
   fi
 
+               ;;
+          esac
         fi
       ;;
     esac
@@ -19429,7 +19455,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
   fi
 
   if test "$lapack_keep_looking" = yes ; then
-
+    case "  " in
+      *\ int64\ * ) ;;
+      *)
 
 
   if test -n "$PKG_CONFIG" ; then
@@ -19500,11 +19528,12 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
 
   if test $ac_success = yes ; then
     coin_has_lapack=yes
-         lapack_keep_looking=no
-         lapack_pcfiles="lapack blas"
+               lapack_keep_looking=no
+               lapack_pcfiles="lapack blas"
     else { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: lapack.pc and blas.pc present, but could not find dsyev when trying to link with LAPACK." >&5
 printf "%s\n" "$as_me: WARNING: lapack.pc and blas.pc present, but could not find dsyev when trying to link with LAPACK." >&2;}
   fi
+
 
     else
       LAPACK_PKG_ERRORS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG $pkg_short_errors --errors-to-stdout --print-errors "lapack blas"`
@@ -19514,12 +19543,18 @@ printf "%s\n" "$as_me: WARNING: lapack.pc and blas.pc present, but could not fin
     as_fn_error $? "\"Cannot check for existence of module lapack without pkgconf\"" "$LINENO" 5
   fi
 
+         ;;
+    esac
   fi
 
   if test "$lapack_keep_looking" = yes ; then
+    case "  " in
+      *\ int64\ * ) coin_lapack="-llapack64 -lblas64" ;;
+      *) coin_lapack="-llapack -lblas" ;;
+    esac
 
   ac_save_LIBS="$LIBS"
-  LIBS="-llapack -lblas $LIBS"
+  LIBS="$coin_lapack $LIBS"
 
 
   dsyev_namemangling=unknown
@@ -19576,7 +19611,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
 
   if test $ac_success = yes ; then
     coin_has_lapack=yes
-       lapack_lflags="-llapack -lblas"
+       lapack_lflags="$coin_lapack"
        lapack_what="generic library ($lapack_lflags)"
 
   fi
@@ -19682,6 +19717,9 @@ printf "%s\n" "$as_me: WARNING: Unsupported or unknown name-mangling scheme: ${d
 
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for package Glpk" >&5
 printf %s "checking for package Glpk... " >&6; }
+
+
+
 
 
 
@@ -19910,6 +19948,9 @@ printf "%s\n" "#define COINUTILS_HAS_GLPK 1" >>confdefs.h
     COINUTILSLIB_PCFILES="$glpk_pcfiles $COINUTILSLIB_PCFILES"
        COINUTILSLIB_LFLAGS="$glpk_lflags $COINUTILSLIB_LFLAGS"
        COINUTILSLIB_CFLAGS="$glpk_cflags $COINUTILSLIB_CFLAGS"
+      COINUTILSTEST_PCFILES="$glpk_pcfiles $COINUTILSTEST_PCFILES"
+       COINUTILSTEST_LFLAGS="$glpk_lflags $COINUTILSTEST_LFLAGS"
+       COINUTILSTEST_CFLAGS="$glpk_cflags $COINUTILSTEST_CFLAGS"
 
 
 
@@ -21024,6 +21065,56 @@ printf "%s\n" "$as_me: adding \"${COINUTILSLIB_PCFILES}\"" >&6;}
 printf "%s\n" "$as_me: COINUTILSLIB_LFLAGS: \"${COINUTILSLIB_LFLAGS}\"" >&6;}
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: COINUTILSLIB_CFLAGS: \"${COINUTILSLIB_CFLAGS}\"" >&5
 printf "%s\n" "$as_me: COINUTILSLIB_CFLAGS: \"${COINUTILSLIB_CFLAGS}\"" >&6;}
+      fi
+
+
+
+   if test "$BUILDTOOLS_DEBUG" = 1 ; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: FINALIZE_FLAGS for CoinUtilsTest:" >&5
+printf "%s\n" "$as_me: FINALIZE_FLAGS for CoinUtilsTest:" >&6;}
+      fi
+      COINUTILSTEST_LFLAGS_NOPC=$COINUTILSTEST_LFLAGS
+
+      COINUTILSTEST_CFLAGS_NOPC=$COINUTILSTEST_CFLAGS
+
+      if test -n "${COINUTILSTEST_PCFILES}" ; then
+        temp_CFLAGS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --cflags ${COINUTILSTEST_PCFILES}`
+        temp_LFLAGS=`PKG_CONFIG_PATH="$COIN_PKG_CONFIG_PATH" $PKG_CONFIG --libs $pkg_static ${COINUTILSTEST_PCFILES}`
+        COINUTILSTEST_CFLAGS="$temp_CFLAGS ${COINUTILSTEST_CFLAGS}"
+        COINUTILSTEST_LFLAGS="$temp_LFLAGS ${COINUTILSTEST_LFLAGS}"
+      fi
+
+      # setup XYZ_EXPORT symbol for library users
+      libexport_attribute=
+      if test "$enable_shared" = yes ; then
+        case $build_os in
+          cygwin* | mingw* | msys* | cegcc* )
+            libexport_attribute="__declspec(dllimport)"
+            if test "$enable_static" = yes ; then
+              as_fn_error $? "Cannot do DLL and static LIB builds simultaneously. Do not add --enable-static without --disable-shared." "$LINENO" 5
+            fi
+          ;;
+        esac
+      fi
+
+printf "%s\n" "#define COINUTILSTEST_EXPORT $libexport_attribute" >>confdefs.h
+
+
+      # add -DXYZ_BUILD to XYZ_CFLAGS
+      COINUTILSTEST_CFLAGS="${COINUTILSTEST_CFLAGS} -DCOINUTILSTEST_BUILD"
+
+      # Define BUILDTOOLS_DEBUG to enable debugging output
+      if test "$BUILDTOOLS_DEBUG" = 1 ; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: COINUTILSTEST_LFLAGS_NOPC: \"${COINUTILSTEST_LFLAGS_NOPC}\"" >&5
+printf "%s\n" "$as_me: COINUTILSTEST_LFLAGS_NOPC: \"${COINUTILSTEST_LFLAGS_NOPC}\"" >&6;}
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: COINUTILSTEST_CFLAGS_NOPC: \"${COINUTILSTEST_CFLAGS_NOPC}\"" >&5
+printf "%s\n" "$as_me: COINUTILSTEST_CFLAGS_NOPC: \"${COINUTILSTEST_CFLAGS_NOPC}\"" >&6;}
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: adding \"${COINUTILSTEST_PCFILES}\"" >&5
+printf "%s\n" "$as_me: adding \"${COINUTILSTEST_PCFILES}\"" >&6;}
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: COINUTILSTEST_LFLAGS: \"${COINUTILSTEST_LFLAGS}\"" >&5
+printf "%s\n" "$as_me: COINUTILSTEST_LFLAGS: \"${COINUTILSTEST_LFLAGS}\"" >&6;}
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: COINUTILSTEST_CFLAGS: \"${COINUTILSTEST_CFLAGS}\"" >&5
+printf "%s\n" "$as_me: COINUTILSTEST_CFLAGS: \"${COINUTILSTEST_CFLAGS}\"" >&6;}
       fi
 
 

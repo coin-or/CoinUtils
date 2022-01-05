@@ -94,7 +94,7 @@ AC_COINUTILS_MEMPOOL(4096,no)
 # Collect information required to use component libraries.
 
 AC_COIN_CHK_LAPACK(CoinUtilsLib)
-AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib],[coinglpk])
+AC_COIN_CHK_PKG(Glpk,[CoinUtilsLib CoinUtilsTest],[coinglpk])
 AC_COIN_CHK_PKG(ASL,[CoinUtilsLib],[coinasl])
 AC_COIN_CHK_PKG(Sample,[],[coindatasample],[],dataonly)
 AC_COIN_CHK_PKG(Netlib,[],[coindatanetlib],[],dataonly)
@@ -106,6 +106,7 @@ AC_COIN_CHK_GNU_READLINE(CoinUtilsLib)
 
 # Finalize libs and cflags for building CoinUtilsLib.
 AC_COIN_FINALIZE_FLAGS(CoinUtilsLib)
+AC_COIN_FINALIZE_FLAGS(CoinUtilsTest)
 
 AC_LANG_POP(C++)
 
