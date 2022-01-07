@@ -5,6 +5,7 @@ on:
     branches:
       - 'master'
       - 'stable/*'
+      - 'tmp-release'
   pull_request:
     branches:
       - '*'
