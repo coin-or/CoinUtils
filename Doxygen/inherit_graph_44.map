@@ -1,6 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classCoinOtherFactorization.html" title="Abstract base class which also has some scalars so can be used from Dense or Simp. " alt="" coords="5,56,160,83"/>
-<area shape="rect" id="node2" href="$classCoinDenseFactorization.html" title="This deals with Factorization and Updates This is a simple dense version so other people can write a ..." alt="" coords="208,5,367,32"/>
-<area shape="rect" id="node3" href="$classCoinOslFactorization.html" title="CoinOslFactorization" alt="" coords="216,56,359,83"/>
-<area shape="rect" id="node4" href="$classCoinSimpFactorization.html" title="CoinSimpFactorization" alt="" coords="211,107,363,133"/>
-</map>

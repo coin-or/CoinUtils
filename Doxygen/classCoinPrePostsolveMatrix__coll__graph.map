@@ -1,9 +1,0 @@
-<map id="CoinPrePostsolveMatrix" name="CoinPrePostsolveMatrix">
-<area shape="rect" id="node3" href="$classCoinMessageHandler.html" title="Base class for message handling. " alt="" coords="828,531,975,557"/>
-<area shape="rect" id="node11" href="$classCoinOneMessage.html" title="Class for one massaged message. " alt="" coords="523,781,649,808"/>
-<area shape="rect" id="node18" href="$classCoinMessages.html" title="Class to hold and manipulate an array of massaged messages. " alt="" coords="847,800,955,827"/>
-<area shape="rect" id="node6" title="STL class. " alt="" coords="235,395,347,421"/>
-<area shape="rect" id="node12" title="STL class. " alt="" coords="251,257,330,284"/>
-<area shape="rect" id="node13" title="STL class. " alt="" coords="5,250,129,291"/>
-<area shape="rect" id="node17" href="$classCoinMessage.html" title="The standard set of Coin messages. " alt="" coords="1024,719,1125,745"/>
-</map>

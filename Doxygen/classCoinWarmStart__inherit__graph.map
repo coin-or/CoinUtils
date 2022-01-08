@@ -1,9 +1,0 @@
-<map id="CoinWarmStart" name="CoinWarmStart">
-<area shape="rect" id="node2" href="$classCoinWarmStartBasis.html" title="The default COIN simplex (basis&#45;oriented) warm start class. " alt="" coords="183,5,326,32"/>
-<area shape="rect" id="node3" href="$classCoinWarmStartDual.html" title="WarmStart information that is only a dual vector. " alt="" coords="187,56,323,83"/>
-<area shape="rect" id="node4" href="$classCoinWarmStartPrimalDual.html" title="WarmStart information that is only a dual vector. " alt="" coords="168,107,341,133"/>
-<area shape="rect" id="node5" href="$classCoinWarmStartVector.html" title="WarmStart information that is only a vector. " alt="" coords="165,208,344,235"/>
-<area shape="rect" id="node6" href="$classCoinWarmStartVector.html" title="CoinWarmStartVector\l\&lt; double \&gt;" alt="" coords="472,171,620,213"/>
-<area shape="rect" id="node7" href="$classCoinWarmStartVector.html" title="CoinWarmStartVector\&lt; U \&gt;" alt="" coords="456,252,636,279"/>
-<area shape="rect" id="node8" href="$classCoinWarmStartVectorPair.html" title="CoinWarmStartVectorPair\l\&lt; T, U \&gt;" alt="" coords="169,333,340,374"/>
-</map>
