@@ -1,0 +1,8 @@
+<map id="CoinBaseModel" name="CoinBaseModel">
+<area shape="rect" id="node2" href="$classCoinMessages.html" title="Class to hold and manipulate an array of massaged messages. " alt="" coords="867,371,975,397"/>
+<area shape="rect" id="node4" href="$classCoinOneMessage.html" title="Class for one massaged message. " alt="" coords="523,455,649,481"/>
+<area shape="rect" id="node8" href="$classCoinMessageHandler.html" title="Base class for message handling. " alt="" coords="848,663,995,689"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="235,740,347,767"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="251,943,330,969"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="5,935,129,977"/>
+</map>

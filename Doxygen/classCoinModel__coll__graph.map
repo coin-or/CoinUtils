@@ -1,0 +1,16 @@
+<map id="CoinModel" name="CoinModel">
+<area shape="rect" id="node2" href="$classCoinBaseModel.html" title="CoinBaseModel" alt="" coords="1226,1353,1339,1380"/>
+<area shape="rect" id="node3" href="$classCoinMessages.html" title="Class to hold and manipulate an array of massaged messages. " alt="" coords="907,755,1015,781"/>
+<area shape="rect" id="node5" href="$classCoinOneMessage.html" title="Class for one massaged message. " alt="" coords="533,967,658,993"/>
+<area shape="rect" id="node9" href="$classCoinMessageHandler.html" title="Base class for message handling. " alt="" coords="887,1193,1034,1220"/>
+<area shape="rect" id="node19" href="$classCoinModelHash.html" title="CoinModelHash" alt="" coords="903,103,1018,129"/>
+<area shape="rect" id="node20" href="$structCoinModelHashLink.html" title="for names and hashing " alt="" coords="526,13,665,40"/>
+<area shape="rect" id="node21" href="$structCoinModelTriple.html" title="for linked lists " alt="" coords="538,1547,653,1573"/>
+<area shape="rect" id="node22" href="$classCoinModelLinkedList.html" title="CoinModelLinkedList" alt="" coords="709,237,853,264"/>
+<area shape="rect" id="node24" href="$classCoinModelHash2.html" title="For int,int hashing. " alt="" coords="900,273,1021,300"/>
+<area shape="rect" id="node25" href="$structCoinModelHashLink2.html" title="CoinModelHashLink2" alt="" coords="522,396,669,423"/>
+<area shape="rect" id="node27" href="$classCoinPackedMatrix.html" title="Sparse Matrix Base Class. " alt="" coords="532,1759,659,1785"/>
+<area shape="rect" id="node11" title="STL class. " alt="" coords="235,1296,347,1323"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="251,1425,330,1452"/>
+<area shape="rect" id="node16" title="STL class. " alt="" coords="5,1418,129,1459"/>
+</map>

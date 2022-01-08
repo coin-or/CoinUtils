@@ -1,0 +1,39 @@
+<map id="/mnt/c/Users/tkral/Documents/Projects/CoinUtils/CoinUtils/src/config_coinutils_default.h" name="/mnt/c/Users/tkral/Documents/Projects/CoinUtils/CoinUtils/src/config_coinutils_default.h">
+<area shape="rect" id="node2" href="$CoinUtilsConfig_8h.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinUtilsConfig.h" alt="" coords="1978,139,2125,209"/>
+<area shape="rect" id="node38" href="$config__default_8h.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/config_default.h" alt="" coords="2149,139,2293,209"/>
+<area shape="rect" id="node3" href="$CoinAlloc_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinAlloc.hpp" alt="" coords="446,257,590,328"/>
+<area shape="rect" id="node4" href="$CoinTypes_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinTypes.hpp" alt="" coords="614,257,758,328"/>
+<area shape="rect" id="node9" href="$CoinHelperFunctions_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinHelperFunctions.hpp" alt="" coords="1435,376,1628,447"/>
+<area shape="rect" id="node23" href="$CoinMpsIO_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinMpsIO.hpp" alt="" coords="2806,732,2950,803"/>
+<area shape="rect" id="node30" href="$CoinMessageHandler_8hpp.html" title="This is a first attempt at a message handler. " alt="" coords="2659,495,2855,565"/>
+<area shape="rect" id="node34" href="$CoinError_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinError.hpp" alt="" coords="2153,257,2297,328"/>
+<area shape="rect" id="node5" href="$CoinBuild_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinBuild.hpp" alt="" coords="183,376,327,447"/>
+<area shape="rect" id="node6" href="$CoinDenseFactorization_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinDenseFactorization.hpp" alt="" coords="485,732,695,803"/>
+<area shape="rect" id="node7" href="$CoinOslFactorization_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinOslFactorization.hpp" alt="" coords="481,851,673,921"/>
+<area shape="rect" id="node8" href="$CoinSimpFactorization_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinSimpFactorization.hpp" alt="" coords="697,851,899,921"/>
+<area shape="rect" id="node11" href="$CoinFactorization_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinFactorization.hpp" alt="" coords="504,613,676,684"/>
+<area shape="rect" id="node19" href="$CoinPackedMatrix_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinPackedMatrix.hpp" alt="" coords="2381,613,2559,684"/>
+<area shape="rect" id="node32" href="$CoinModelUseful_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinModelUseful.hpp" alt="" coords="453,376,623,447"/>
+<area shape="rect" id="node33" href="$CoinSnapshot_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinSnapshot.hpp" alt="" coords="5,376,159,447"/>
+<area shape="rect" id="node10" href="$CoinIndexedVector_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinIndexedVector.hpp" alt="" coords="749,495,930,565"/>
+<area shape="rect" id="node12" href="$CoinDenseVector_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinDenseVector.hpp" alt="" coords="1445,495,1618,565"/>
+<area shape="rect" id="node13" href="$CoinOslC_8h.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinOslC.h" alt="" coords="1693,495,1837,565"/>
+<area shape="rect" id="node14" href="$CoinSearchTree_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinSearchTree.hpp" alt="" coords="1861,495,2026,565"/>
+<area shape="rect" id="node15" href="$CoinWarmStartBasis_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinWarmStartBasis.hpp" alt="" coords="1227,495,1420,565"/>
+<area shape="rect" id="node16" href="$CoinWarmStartDual_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinWarmStartDual.hpp" alt="" coords="1401,613,1587,684"/>
+<area shape="rect" id="node17" href="$CoinWarmStartVector_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinWarmStartVector.hpp" alt="" coords="1004,495,1203,565"/>
+<area shape="rect" id="node18" href="$CoinWarmStartPrimalDual_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinWarmStartPrimalDual.hpp" alt="" coords="948,613,1171,684"/>
+<area shape="rect" id="node20" href="$CoinLpIO_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinLpIO.hpp" alt="" coords="2411,732,2555,803"/>
+<area shape="rect" id="node21" href="$CoinModel_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinModel.hpp" alt="" coords="2206,732,2350,803"/>
+<area shape="rect" id="node24" href="$CoinPresolveMatrix_8hpp.html" title="Declarations for CoinPresolveMatrix and CoinPostsolveMatrix and their common base class CoinPrePostso..." alt="" coords="2598,732,2782,803"/>
+<area shape="rect" id="node22" href="$CoinStructuredModel_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinStructuredModel.hpp" alt="" coords="2056,851,2249,921"/>
+<area shape="rect" id="node25" href="$CoinPresolveDupcol_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinPresolveDupcol.hpp" alt="" coords="2917,851,3106,921"/>
+<area shape="rect" id="node26" href="$CoinPresolveForcing_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinPresolveForcing.hpp" alt="" coords="3130,851,3322,921"/>
+<area shape="rect" id="node27" href="$CoinPresolveIsolated_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinPresolveIsolated.hpp" alt="" coords="2274,851,2469,921"/>
+<area shape="rect" id="node28" href="$CoinPresolveSubst_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinPresolveSubst.hpp" alt="" coords="2493,851,2676,921"/>
+<area shape="rect" id="node29" href="$CoinPresolveTighten_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinPresolveTighten.hpp" alt="" coords="2701,851,2893,921"/>
+<area shape="rect" id="node31" href="$CoinMessage_8hpp.html" title="This file contains the enum for the standard set of Coin messages and a class definition whose sole p..." alt="" coords="2635,613,2785,684"/>
+<area shape="rect" id="node35" href="$CoinPackedVectorBase_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinPackedVectorBase.hpp" alt="" coords="2119,376,2330,447"/>
+<area shape="rect" id="node36" href="$CoinShallowPackedVector_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinShallowPackedVector.hpp" alt="" coords="2357,495,2583,565"/>
+<area shape="rect" id="node37" href="$CoinPackedVector_8hpp.html" title="/mnt/c/Users/tkral\l/Documents/Projects\l/CoinUtils/CoinUtils\l/src/CoinPackedVector.hpp" alt="" coords="2152,495,2332,565"/>
+</map>
