@@ -1,5 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classCoinPackedVectorBase.html" title="Abstract base class for various sparse vectors. " alt="" coords="5,31,165,57"/>
-<area shape="rect" id="node2" href="$classCoinPackedVector.html" title="Sparse Vector. " alt="" coords="236,5,367,32"/>
-<area shape="rect" id="node3" href="$classCoinShallowPackedVector.html" title="Shallow Sparse Vector. " alt="" coords="213,56,389,83"/>
-</map>
