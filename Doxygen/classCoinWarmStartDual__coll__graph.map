@@ -1,0 +1,5 @@
+<map id="CoinWarmStartDual" name="CoinWarmStartDual">
+<area shape="rect" id="node2" href="$classCoinWarmStart.html" title="Abstract base class for warm start information. " alt="" coords="47,5,158,32"/>
+<area shape="rect" id="node3" href="$classCoinWarmStartVector.html" title="CoinWarmStartVector\l\&lt; double \&gt;" alt="" coords="97,184,245,225"/>
+<area shape="rect" id="node6" href="$classCoinWarmStartVector.html" title="WarmStart information that is only a vector. " alt="" coords="225,95,404,121"/>
+</map>
