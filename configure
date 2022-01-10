@@ -1583,40 +1583,45 @@ Optional Packages:
                           specify the debug verbosity level
   --with-coinutils-checklevel
                           specify the sanity check level
-  --with-lapack           Use lapack. If an argument is given, 'yes' is
-                          equivalent to --with-lapack, 'no' is
-                          equivalent to --without-lapack. Any other argument
-                          is applied as for --with-lapack-lflags
+  --without-lapack        Do not use lapack. If an argument is given to
+                          --with-lapack, then 'yes' is equivalent
+                          to --with-lapack, 'no' is equivalent to
+                          --without-lapack and any other argument is applied
+                          as for --with-lapack-lflags.
   --with-lapack-lflags    Linker flags for lapack appropriate for your
                           environment. (Most often, -l specs for libraries.)
-  --with-glpk             Use Glpk. If an argument is given, 'yes' is
-                          equivalent to --with-glpk, 'no' is
-                          equivalent to --without-glpk. Any other argument is
-                          applied as for --with-glpk-lflags
+  --without-glpk          Do not use Glpk. If an argument is given to
+                          --with-glpk, then 'yes' is equivalent to
+                          --with-glpk, 'no' is equivalent to
+                          --without-glpk and any other argument is applied as
+                          for --with-glpk-lflags.
   --with-glpk-lflags      Linker flags for Glpk appropriate for your
                           environment. (Most often, -l specs for libraries.)
   --with-glpk-cflags      Compiler flags for Glpk appropriate for your
                           environment. (Most often, -I specs for header file
                           directories.)
-  --with-asl              Use ASL. If an argument is given, 'yes' is
-                          equivalent to --with-asl, 'no' is
-                          equivalent to --without-asl. Any other argument is
-                          applied as for --with-asl-lflags
+  --without-asl           Do not use ASL. If an argument is given to
+                          --with-asl, then 'yes' is equivalent to
+                          --with-asl, 'no' is equivalent to
+                          --without-asl and any other argument is applied as
+                          for --with-asl-lflags.
   --with-asl-lflags       Linker flags for ASL appropriate for your
                           environment. (Most often, -l specs for libraries.)
   --with-asl-cflags       Compiler flags for ASL appropriate for your
                           environment. (Most often, -I specs for header file
                           directories.)
-  --with-sample           Use Sample. If an argument is given, 'yes' is
-                          equivalent to --with-sample, 'no' is
-                          equivalent to --without-sample. Any other argument
-                          is applied as for --with-sample-data
+  --without-sample        Do not use Sample. If an argument is given to
+                          --with-sample, then 'yes' is equivalent
+                          to --with-sample, 'no' is equivalent to
+                          --without-sample and any other argument is applied
+                          as for --with-sample-data.
   --with-sample-data      A data directory specification for Sample
                           appropriate for your environment.
-  --with-netlib           Use Netlib. If an argument is given, 'yes' is
-                          equivalent to --with-netlib, 'no' is
-                          equivalent to --without-netlib. Any other argument
-                          is applied as for --with-netlib-data
+  --without-netlib        Do not use Netlib. If an argument is given to
+                          --with-netlib, then 'yes' is equivalent
+                          to --with-netlib, 'no' is equivalent to
+                          --without-netlib and any other argument is applied
+                          as for --with-netlib-data.
   --with-netlib-data      A data directory specification for Netlib
                           appropriate for your environment.
   --with-dot              use dot (from graphviz) when creating documentation
@@ -3542,7 +3547,7 @@ fi
       : ${FFLAGS:="-nologo -fpp -Z7 -MDd $ADD_FFLAGS"}
       : ${FCFLAGS:="-nologo -fpp -Z7 -MDd $ADD_FCFLAGS"}
       : ${CFLAGS:="-nologo -Z7 -MDd $ADD_CFLAGS"}
-      : ${CXXFLAGS:="-nologo -EHs -Z7 -MDd $ADD_CXXFLAGS"}
+      : ${CXXFLAGS:="-nologo -EHs -Z7 -MDd -Zc:__cplusplus $ADD_CXXFLAGS"}
     else
       : ${FFLAGS:="-g $ADD_FFLAGS"}
       : ${FCFLAGS:="-g $ADD_FCFLAGS"}
@@ -3554,7 +3559,7 @@ fi
       : ${FFLAGS:="-nologo -fpp -O2 -MD $ADD_FFLAGS"}
       : ${FCFLAGS:="-nologo -fpp -O2 -MD $ADD_FCFLAGS"}
       : ${CFLAGS:="-nologo -DNDEBUG -O2 -MD $ADD_CFLAGS"}
-      : ${CXXFLAGS:="-nologo -EHs -DNDEBUG -O2 -MD $ADD_CXXFLAGS"}
+      : ${CXXFLAGS:="-nologo -EHs -DNDEBUG -O2 -MD -Zc:__cplusplus $ADD_CXXFLAGS"}
     else
       : ${FFLAGS:="-O2 $ADD_FFLAGS"}
       : ${FCFLAGS:="-O2 $ADD_FCFLAGS"}
@@ -18988,7 +18993,7 @@ fi
   lapack_keep_looking=yes
 
   if test "$with_lapack" != "no" ; then
-    if test "$with_lapack" != "yes" ; then
+    if test "$with_lapack" != "yes" && test -z "$with_lapack_lflags" ; then
       with_lapack_lflags="$with_lapack"
     fi
     if test -n "$with_lapack_lflags" ; then
