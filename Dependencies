@@ -1,2 +1,2 @@
-BuildTools    https://github.com/coin-or-tools/BuildTools stable/0.8
 Data/Sample   https://github.com/coin-or-tools/Data-Sample stable/1.2
+ThirdParty/Glpk   https://github.com/coin-or-tools/ThirdParty-Glpk stable/1.10
