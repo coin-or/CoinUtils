@@ -155,6 +155,13 @@ public:
     deleteAction(actions_, action *);
     delete faction_;
   }
+  
+  /// Number of actions
+  inline int nActions() const {return nactions_;} 
+  /// variable to be fixed
+  inline int fixVariable (int iFix) const {return actions_[iFix].col;} 
+  /// Fixing
+  inline bool fixToLower() const {return fix_to_lower_;} 
 };
 
 /*! \relates make_fixed_action
