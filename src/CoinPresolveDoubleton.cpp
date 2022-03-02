@@ -1046,7 +1046,9 @@ const CoinPresolveAction
 
     rlo[tgtrow] = 0.0;
     rup[tgtrow] = 0.0;
-    prob->setRowStatus(tgtrow,CoinPrePostsolveMatrix::atLowerBound);
+    if (rowstat) {
+      prob->setRowStatus(tgtrow,CoinPrePostsolveMatrix::atLowerBound);
+    }
 
     zeros[nzeros++] = tgtcolx;
 
@@ -1679,7 +1681,8 @@ void doubleton_action::postsolve(CoinPostsolveMatrix *prob) const
 	rcosts[jcoly] = djy - rowduals[irow] * coeffy;
 	rcosts[jcolx] = 0.0;
       }
-      if (prob->originalRowLower_[irow] != prob->originalRowUpper_[irow]
+      if (prob->originalRowLower_ &&
+          prob->originalRowLower_[irow] != prob->originalRowUpper_[irow]
 	  && !basicx) {
 	// row was not originally == (? dual)
 	// 0 lower, 1 between, 2 upper

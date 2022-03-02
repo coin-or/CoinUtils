@@ -892,7 +892,8 @@ class COINUTILSLIB_EXPORT CoinPresolveMatrix : public CoinPrePostsolveMatrix
 
     See CoinPostsolveMatrix::assignPresolveToPostsolve.
   */
-  friend void assignPresolveToPostsolve(CoinPresolveMatrix *&preObj);
+  friend void assignPresolveToPostsolve(CoinPresolveMatrix *&preObj,
+    const double *origRL, const double *origRU);
 
   /*! \name Functions to load the problem representation
   */
@@ -1505,9 +1506,14 @@ class COINUTILSLIB_EXPORT CoinPostsolveMatrix : public CoinPrePostsolveMatrix
     This constructor creates an empty object which must then be loaded.
     On the other hand, it doesn't assume that the client is an
     OsiSolverInterface.
+
+    If provided, parameters \c origRL and \c origRU should be the row lower
+    and upper bound vectors of the original problem. These are not required
+    but if provided are used to improve the presolved system.
   */
   CoinPostsolveMatrix(int ncols_alloc, int nrows_alloc,
-    CoinBigIndex nelems_alloc);
+    CoinBigIndex nelems_alloc,
+    const double *origRL = 0, const double *origRU = 0);
 
   /*! \brief Load an empty CoinPostsolveMatrix from a CoinPresolveMatrix
 
@@ -1516,10 +1522,14 @@ class COINUTILSLIB_EXPORT CoinPostsolveMatrix : public CoinPrePostsolveMatrix
     object and completes initialisation of the CoinPostsolveMatrix object.
     The empty shell of the CoinPresolveMatrix object is destroyed.
 
+    As noted for CoinPostsolveMatrix(), you can supply optional vectors
+    \c origRL and \c origRU for the row lower and upper bounds.
+
     The routine expects an empty CoinPostsolveMatrix object. If handed a loaded
     object, a lot of memory will leak.
   */
-  void assignPresolveToPostsolve(CoinPresolveMatrix *&preObj);
+  void assignPresolveToPostsolve(CoinPresolveMatrix *&preObj,
+    const double *origRL = 0, const double *origRU = 0);
 
   /// Destructor
   ~CoinPostsolveMatrix();
@@ -1548,6 +1558,18 @@ class COINUTILSLIB_EXPORT CoinPostsolveMatrix : public CoinPrePostsolveMatrix
 
   //@}
 
+  /*! \name Row bounds from the original problem
+
+    (Optional) If provided, these vectors are used during postsolve to tighten
+    the presolved system.
+  */
+  //@{
+  /// Pointer to row lower bounds from the original problem
+  const double *originalRowLower_;
+  /// Pointer to row upper bounds from the original problem
+  const double *originalRowUpper_;
+  //@}
+
   /*! \name Debugging aids
 
      These arrays are allocated only when CoinPresolve is compiled with
@@ -1557,14 +1579,10 @@ class COINUTILSLIB_EXPORT CoinPostsolveMatrix : public CoinPrePostsolveMatrix
   //@{
   char *cdone_;
   char *rdone_;
-  //@}
 
   /// debug
   void check_nbasic();
-  /// Pointer to rowLower in original model
-  const double *originalRowLower_;
-  /// Pointer to rowUpper in original model
-  const double *originalRowUpper_;
+  //@}
 };
 
 /*! \defgroup MtxManip Presolve Matrix Manipulation Functions
