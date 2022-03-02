@@ -30,7 +30,9 @@
   Postpone allocation of space until we actually load the object.
 */
 
-CoinPostsolveMatrix::CoinPostsolveMatrix(int ncols_alloc, int nrows_alloc, CoinBigIndex nelems_alloc)
+CoinPostsolveMatrix::CoinPostsolveMatrix(
+    int ncols_alloc, int nrows_alloc, CoinBigIndex nelems_alloc,
+    const double *origRL, const double *origRU)
 
   : CoinPrePostsolveMatrix(ncols_alloc, nrows_alloc, nelems_alloc)
   , free_list_(0)
@@ -38,8 +40,8 @@ CoinPostsolveMatrix::CoinPostsolveMatrix(int ncols_alloc, int nrows_alloc, CoinB
   , link_(0)
   , cdone_(0)
   , rdone_(0)
-  , originalRowLower_(NULL)
-  , originalRowUpper_(NULL)
+  , originalRowLower_(origRL)
+  , originalRowUpper_(origRU)
 
 { /* nothing to do here */
 
@@ -71,7 +73,8 @@ CoinPostsolveMatrix::~CoinPostsolveMatrix()
   any memory already allocated.
 */
 
-void CoinPostsolveMatrix::assignPresolveToPostsolve(CoinPresolveMatrix *&preObj)
+void CoinPostsolveMatrix::assignPresolveToPostsolve(
+  CoinPresolveMatrix *&preObj, const double *origRL, const double *origRU)
 
 {
   /*
@@ -132,6 +135,13 @@ void CoinPostsolveMatrix::assignPresolveToPostsolve(CoinPresolveMatrix *&preObj)
   preObj->colstat_ = 0;
   rowstat_ = preObj->rowstat_;
   preObj->rowstat_ = 0;
+/*
+  (Optional) vectors holding the row upper and lower bounds of the original
+  problem. Check before we assign, we don't want to overwrite values supplied
+  via the constructor with a null.
+*/
+  if (origRL) { originalRowLower_ = origRL ; }
+  if (origRU) { originalRowUpper_ = origRU ; }
   /*
   The CoinPostsolveMatrix comes with messages and a handler, but replace them
   with the versions from the CoinPresolveObject, in case they've been
