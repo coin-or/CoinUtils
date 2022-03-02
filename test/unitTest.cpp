@@ -161,7 +161,7 @@ int main (int argc, const char *argv[])
   { allOK = false ;
     testingMessage( "ERROR" ) ; }
   testingMessage( "; NaN value: " ) ;
-# ifdef COIN_C_FINITE
+# ifdef COINUTILS_C_FINITE
   checkVal = checkVal/checkVal ;
   if (CoinIsnan(checkVal))
   { testingMessage( "ok.\n" ) ; }

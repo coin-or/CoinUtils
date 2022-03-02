@@ -702,7 +702,7 @@ CoinPackedVectorUnitTest()
     rV.setConstant(ne1,inx1,0) ;
     r = v2 / v1;
     assert(r.isEquivalent(rV)) ;
-#  ifdef COIN_C_FINITE
+#  ifdef COINUTILS_C_FINITE
     rV.setConstant(ne1,inx1,infty) ;
     r = v1 / v2;
     assert(r.isEquivalent(rV)) ;
