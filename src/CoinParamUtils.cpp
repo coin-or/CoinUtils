@@ -117,11 +117,15 @@ getNextField(std::deque<std::string> &inputQueue, bool interactiveMode,
   }else{
      std::string field = inputQueue.front();
      inputQueue.pop_front();
-     std::string::size_type found = field.find('=');
+     const std::string::size_type found = field.find('=');
      if (found != std::string::npos) {
-        inputQueue.push_back(field[0] == '-' ? field.substr(0, found) :
-                             '-' + field.substr(0, found));
-        inputQueue.push_back(field.substr(found + 1));
+        // Adds a '-' at the beginning of the parameter name if not present.
+        const std::string s1 = field.at(0) == '-' ? field.substr(0, found) :
+                             '-' + field.substr(0, found);
+        const std::string s2 = field.substr(found + 1);
+        inputQueue.push_front(s2);
+        inputQueue.push_front(s1);
+
         field = inputQueue.front();
         inputQueue.pop_front();
      }

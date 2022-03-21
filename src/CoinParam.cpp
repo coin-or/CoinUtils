@@ -994,7 +994,7 @@ int CoinParam::setKwdVal(const std::string newKwd, std::string *message,
   }else{
      if (message){
         std::ostringstream buffer;
-        buffer << "Illegal keyword. " << std::endl;
+        buffer << "Illegal keyword: " << newKwd << std::endl;
         *message += buffer.str();
         printOptions(message);
      }
