@@ -1059,23 +1059,30 @@ const CoinPresolveAction
   }
   /*
   Tidy up the collected actions and clean up explicit zeros and fixed
-  variables. Don't bother unless we're feasible (status of 0).
+  variables. Don't bother creating actions unless we're feasible (status of
+  0). But even if we're not feasible we need to delete any saved column
+  vectors.
 */
-  if (nactions && !prob->status_) {
+  if (nactions) {
+    if (!prob->status_) {
 #if PRESOLVE_SUMMARY > 0
-    printf("NDOUBLETONS:  %d\n", nactions);
+      printf("NDOUBLETONS:  %d\n", nactions);
 #endif
-    action *actions1 = new action[nactions];
-    CoinMemcpyN(actions, nactions, actions1);
+      action *actions1 = new action[nactions];
+      CoinMemcpyN(actions, nactions, actions1);
 
-    next = new doubleton_action(nactions, actions1, next);
+      next = new doubleton_action(nactions, actions1, next);
 
-    if (nzeros)
-      next = drop_zero_coefficients_action::presolve(prob, zeros, nzeros, next);
-    if (nfixed)
-      next = remove_fixed_action::presolve(prob, fixed, nfixed, next);
+      if (nzeros)
+	next = drop_zero_coefficients_action::presolve(prob, zeros, nzeros, next);
+      if (nfixed)
+	next = remove_fixed_action::presolve(prob, fixed, nfixed, next);
+    } else {
+      for (int i = nactions - 1; i >= 0; i--) {
+        delete[] actions[i].colel;
+      }
+    }
   }
-
   deleteAction(actions, action *);
 
 #if COIN_PRESOLVE_TUNING > 0
