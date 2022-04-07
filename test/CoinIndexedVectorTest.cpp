@@ -213,6 +213,7 @@ CoinIndexedVectorUnitTest()
     double el[ne] = { 10., 40., 1., 50. };
     CoinIndexedVector r;
     bool errorThrown = false;
+#ifndef COIN_FAST_CODE
     try {
       assert( r[1]==0. );
     }
@@ -220,9 +221,11 @@ CoinIndexedVectorUnitTest()
       errorThrown = true;
     }
     assert( errorThrown );
+#endif
     
     r.setVector(ne,inx,el);
     
+#ifndef COIN_FAST_CODE
     errorThrown = false;
     try {
       assert( r[-1]==0. );
@@ -231,12 +234,14 @@ CoinIndexedVectorUnitTest()
       errorThrown = true;
     }
     assert( errorThrown );
+#endif
     
     assert( r[ 0]==1. );
     assert( r[ 1]==10.);
     assert( r[ 2]==50.);
     assert( r[ 3]==0. );
     assert( r[ 4]==40.);
+#ifndef COIN_FAST_CODE 
     errorThrown = false;
     try {
       assert( r[5]==0. );
@@ -245,6 +250,7 @@ CoinIndexedVectorUnitTest()
       errorThrown = true;
     }
     assert( errorThrown );
+#endif
     
     assert ( r.getMaxIndex()==4 );
     assert ( r.getMinIndex()==0 );

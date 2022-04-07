@@ -452,7 +452,8 @@ CoinPackedMatrixUnitTest()
     assert( globalP->getVectorSize(2)==2 );
     assert( globalP->getVectorSize(3)==2 );
     assert( globalP->getVectorSize(4)==3 );
-    
+
+#ifndef COIN_FAST_CODE
     // Test getVectorSize exceptions
     {
       bool errorThrown = false;
@@ -474,6 +475,7 @@ CoinPackedMatrixUnitTest()
       }
       assert( errorThrown );
     }
+#endif
     
     // Test vector method
     {
@@ -513,6 +515,7 @@ CoinPackedMatrixUnitTest()
     }
     
     // Test vector method exceptions
+#ifndef COIN_FAST_CODE
     {
       bool errorThrown = false;
       try {
@@ -533,6 +536,7 @@ CoinPackedMatrixUnitTest()
       }
       assert( errorThrown );
     }
+#endif
 
     {
       CoinPackedMatrix pm(*globalP);

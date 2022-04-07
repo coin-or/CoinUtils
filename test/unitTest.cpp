@@ -146,11 +146,15 @@ int main (int argc, const char *argv[])
   { allOK = false ;
     testingMessage( "ERROR" ) ; }
   testingMessage( "; infinite value: " ) ;
+#ifndef COIN_FAST_CODE
   if (!CoinFinite(checkVal))
   { testingMessage( "ok.\n" ) ; }
   else
   { allOK = false ;
     testingMessage( "ERROR.\n" ) ; }
+#else
+#undef COINUTILS_C_FINITE
+#endif
 
 # ifdef COINUTILS_C_ISNAN
   testingMessage( "Testing CoinIsnan ... " ) ;

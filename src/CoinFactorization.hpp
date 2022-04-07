@@ -115,9 +115,9 @@ public:
   int factorizePart1(int numberRows,
     int numberColumns,
     int estimateNumberElements,
-    int *indicesRow[],
-    int *indicesColumn[],
-    CoinFactorizationDouble *elements[],
+    int *COIN_RESTRICT indicesRow[],
+    int *COIN_RESTRICT indicesColumn[],
+    CoinFactorizationDouble *COIN_RESTRICT elements[],
     double areaFactor = 0.0);
   /** This is part two of factorization
       Arrays belong to factorization and were returned by part 1
@@ -466,7 +466,7 @@ public:
       otherwise store where elements are
   */
   void replaceColumnU(CoinIndexedVector *regionSparse,
-    int *deleted,
+    int *COIN_RESTRICT deleted,
     int internalPivotRow);
 #ifdef ABC_USE_COIN_FACTORIZATION
   /** returns empty fake vector carved out of existing
@@ -788,9 +788,9 @@ protected:
   /// Adds a link in chain of equal counts
   inline void addLink(int index, int count)
   {
-    int *nextCount = nextCount_.array();
-    int *firstCount = firstCount_.array();
-    int *lastCount = lastCount_.array();
+    int *COIN_RESTRICT nextCount = nextCount_.array();
+    int *COIN_RESTRICT firstCount = firstCount_.array();
+    int *COIN_RESTRICT lastCount = lastCount_.array();
     int next = firstCount[count];
     lastCount[index] = -2 - count;
     if (next < 0) {
@@ -806,9 +806,9 @@ protected:
   /// Deletes a link in chain of equal counts
   inline void deleteLink(int index)
   {
-    int *nextCount = nextCount_.array();
-    int *firstCount = firstCount_.array();
-    int *lastCount = lastCount_.array();
+    int *COIN_RESTRICT nextCount = nextCount_.array();
+    int *COIN_RESTRICT firstCount = firstCount_.array();
+    int *COIN_RESTRICT lastCount = lastCount_.array();
     int next = nextCount[index];
     int last = lastCount[index];
     if (last >= 0) {
@@ -831,29 +831,29 @@ protected:
   void cleanup();
 
   /// Updates part of column (FTRANL)
-  void updateColumnL(CoinIndexedVector *region, int *indexIn) const;
+  void updateColumnL(CoinIndexedVector *region, int *COIN_RESTRICT indexIn) const;
   /// Updates part of column (FTRANL) when densish
-  void updateColumnLDensish(CoinIndexedVector *region, int *indexIn) const;
+  void updateColumnLDensish(CoinIndexedVector *region, int *COIN_RESTRICT indexIn) const;
   /// Updates part of column (FTRANL) when sparse
-  void updateColumnLSparse(CoinIndexedVector *region, int *indexIn) const;
+  void updateColumnLSparse(CoinIndexedVector *region, int *COIN_RESTRICT indexIn) const;
   /// Updates part of column (FTRANL) when sparsish
-  void updateColumnLSparsish(CoinIndexedVector *region, int *indexIn) const;
+  void updateColumnLSparsish(CoinIndexedVector *region, int *COIN_RESTRICT indexIn) const;
 
   /// Updates part of column (FTRANR) without FT update
   void updateColumnR(CoinIndexedVector *region) const;
   /** Updates part of column (FTRANR) with FT update.
       Also stores update after L and R */
-  void updateColumnRFT(CoinIndexedVector *region, int *indexIn);
+  void updateColumnRFT(CoinIndexedVector *region, int *COIN_RESTRICT indexIn);
 
   /// Updates part of column (FTRANU)
-  void updateColumnU(CoinIndexedVector *region, int *indexIn) const;
+  void updateColumnU(CoinIndexedVector *region, int *COIN_RESTRICT indexIn) const;
 
   /// Updates part of column (FTRANU) when sparse
   void updateColumnUSparse(CoinIndexedVector *regionSparse,
-    int *indexIn) const;
+    int *COIN_RESTRICT indexIn) const;
   /// Updates part of column (FTRANU) when sparsish
   void updateColumnUSparsish(CoinIndexedVector *regionSparse,
-    int *indexIn) const;
+    int *COIN_RESTRICT indexIn) const;
   /// Updates part of column (FTRANU)
   int updateColumnUDensish(double *COIN_RESTRICT region,
     int *COIN_RESTRICT regionIndex) const;
@@ -939,24 +939,24 @@ protected:
     int pivotColumn,
     int pivotRowPosition,
     int pivotColumnPosition,
-    CoinFactorizationDouble work[],
-    unsigned int workArea2[],
+    CoinFactorizationDouble *COIN_RESTRICT work,
+    unsigned int *COIN_RESTRICT workArea2,
     int increment2,
-    T markRow[],
+    T *COIN_RESTRICT markRow,
     int largeInteger)
   {
-    int *indexColumnU = indexColumnU_.array();
-    int *startColumnU = startColumnU_.array();
-    int *numberInColumn = numberInColumn_.array();
-    CoinFactorizationDouble *elementU = elementU_.array();
-    int *indexRowU = indexRowU_.array();
-    int *startRowU = startRowU_.array();
-    int *numberInRow = numberInRow_.array();
-    CoinFactorizationDouble *elementL = elementL_.array();
-    int *indexRowL = indexRowL_.array();
-    int *saveColumn = saveColumn_.array();
-    int *nextRow = nextRow_.array();
-    int *lastRow = lastRow_.array();
+    int *COIN_RESTRICT indexColumnU = indexColumnU_.array();
+    int *COIN_RESTRICT startColumnU = startColumnU_.array();
+    int *COIN_RESTRICT numberInColumn = numberInColumn_.array();
+    CoinFactorizationDouble *COIN_RESTRICT elementU = elementU_.array();
+    int *COIN_RESTRICT indexRowU = indexRowU_.array();
+    int *COIN_RESTRICT startRowU = startRowU_.array();
+    int *COIN_RESTRICT numberInRow = numberInRow_.array();
+    CoinFactorizationDouble *COIN_RESTRICT elementL = elementL_.array();
+    int *COIN_RESTRICT indexRowL = indexRowL_.array();
+    int *COIN_RESTRICT saveColumn = saveColumn_.array();
+    int *COIN_RESTRICT nextRow = nextRow_.array();
+    int *COIN_RESTRICT lastRow = lastRow_.array();
 
     //store pivot columns (so can easily compress)
     int numberInPivotRow = numberInRow[pivotRow] - 1;
@@ -1008,7 +1008,7 @@ protected:
     //l+=currentAreaL_->elementByColumn-elementL;
     int lSave = l;
 
-    int *startColumnL = startColumnL_.array();
+    int *COIN_RESTRICT startColumnL = startColumnL_.array();
     startColumnL[numberGoodL_] = l; //for luck and first time
     numberGoodL_++;
     startColumnL[numberGoodL_] = l + numberInPivotColumn;
@@ -1103,8 +1103,8 @@ protected:
     //compress pivot column (move pivot to front including saved)
     numberInColumn[pivotColumn] = 0;
     //use end of L for temporary space
-    int *indexL = &indexRowL[lSave];
-    CoinFactorizationDouble *multipliersL = &elementL[lSave];
+    int *COIN_RESTRICT indexL = &indexRowL[lSave];
+    CoinFactorizationDouble *COIN_RESTRICT multipliersL = &elementL[lSave];
 
     //adjust
     int j;
@@ -1119,8 +1119,8 @@ protected:
       workArea2[iErase] = 0;
     }
     int added = numberInPivotRow * numberInPivotColumn;
-    unsigned int *temp2 = workArea2;
-    int *nextColumn = nextColumn_.array();
+    unsigned int *COIN_RESTRICT temp2 = workArea2;
+    int *COIN_RESTRICT nextColumn = nextColumn_.array();
 
     //pack down and move to work
     int jColumn;
@@ -1203,7 +1203,7 @@ protected:
       //clean up counts
       startColumn++;
       numberInColumn[iColumn] = put - startColumn;
-      int *numberInColumnPlus = numberInColumnPlus_.array();
+      int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlus_.array();
       numberInColumnPlus[iColumn]++;
       startColumnU[iColumn]++;
       //how much space have we got
@@ -1225,7 +1225,7 @@ protected:
       }
       double tolerance = zeroTolerance_;
 
-      int *nextCount = nextCount_.array();
+      int *COIN_RESTRICT nextCount = nextCount_.array();
       for (j = 0; j < numberInPivotColumn; j++) {
         value = work[j] - thisPivotValue * multipliersL[j];
         double absValue = fabs(value);
@@ -1291,7 +1291,7 @@ protected:
       temp2 += increment2;
     }
     //get space for row list
-    unsigned int *putBase = workArea2;
+    unsigned int *COIN_RESTRICT putBase = workArea2;
     int bigLoops = numberInPivotColumn >> COINFACTORIZATION_SHIFT_PER_INT;
     int i = 0;
 
@@ -1300,7 +1300,7 @@ protected:
       bigLoops--;
       int bit;
       for (bit = 0; bit < COINFACTORIZATION_BITS_PER_INT; i++, bit++) {
-        unsigned int *putThis = putBase;
+        unsigned int *COIN_RESTRICT putThis = putBase;
         int iRow = indexL[i];
 
         //get space
@@ -1353,7 +1353,7 @@ protected:
     int bit;
 
     for (bit = 0; i < numberInPivotColumn; i++, bit++) {
-      unsigned int *putThis = putBase;
+      unsigned int *COIN_RESTRICT putThis = putBase;
       int iRow = indexL[i];
 
       //get space
@@ -1863,7 +1863,7 @@ typedef const int cipfint;
     numberInColumn[iPivotColumn] = 0;
     //use end of L for temporary space
     int *indexL = &indexRowL[lSave];
-    CoinFactorizationDouble *multipliersL = &elementL[lSave];
+    CoinFactorizationDouble *COIN_RESTRICT multipliersL = &elementL[lSave];
 
     //adjust
     int j;
