@@ -2,6 +2,11 @@
 
 [![A COIN-OR Project](https://coin-or.github.io/coin-or-badge.png)](https://www.coin-or.org)
 
+Projects such as this one are maintained by a small group of volunteers under
+the auspices of the non-profit [COIN-OR Foundation](https://www.coin-or.org)
+and we need your help! Please consider [sponsoring our
+activities](https://github.com/sponsors/coin-or).
+
 [![Latest Release](https://img.shields.io/github/v/release/coin-or/CoinUtils?sort=semver)](https://github.com/coin-or/CoinUtils/releases)
 
 _This file is auto-generated from [config.yml](.coin-or/config.yml) using the 
@@ -25,14 +30,13 @@ These utilities include:
 
 CoinUtils is written in C++ and is released as open source under the [Eclipse Public License 2.0](http://www.opensource.org/licenses/EPL-2.0).
 
-It is distributed under the auspices of the [COIN-OR Foundation](https://www.coin-or.org)
+It is distributed under the auspices of the [COIN-OR Foundation](https://www.coin-or.org).
 
 The CoinUtils development site is https://github.com/coin-or/CoinUtils.
 
 ## CITE
 
 Code: [![DOI](https://zenodo.org/badge/173466792.svg)](https://zenodo.org/badge/latestdoi/173466792)
-
 
 ## CURRENT BUILD STATUS
 
@@ -60,11 +64,37 @@ releases in Github
 are archived as part of Cbc
 [here](https://www.coin-or.org/download/binary/Cbc).
 
- * *Linux*: On Debian/Ubuntu, CoinUtils is available in the package `coinor-coinutils` and can be installed with apt. On Fedora, CoinUtils is available in the package `coin-or-CoinUtils`.
+ * *Linux* (see https://repology.org/project/coin-or-coinutils/versions for a complete listing): 
+   * arch:
+     ```
+     $ sudo pacman -S  coin-or-coinutils
+     ```
+   * Debian/Ubuntu:
+     ```
+     $ sudo apt-get install  coinor-coinutils coinor-libcoinutils-dev
+     ```
+   * Fedora/Redhat/CentOS:
+     ```
+     $ sudo yum install  coin-or-CoinUtils coin-or-CoinUtils-devel
+     ```
+   * freebsd:
+     ```
+     $ sudo pkg install math/coinutils
+     ```
+   * linuxbrew:
+     ```
+     $ brew install coinutils
+     ```
  * *Windows*: The easiest way to get CoinUtils on Windows is to download an archive as described above.
  * *Mac OS X*: The easiest way to get CoinUtils on Mac OS X is through [Homebrew](https://brew.sh).
-   * `brew tap coin-or-tools/coinor`
-   * `brew install coin-or-tools/coinor/coinutils`
+     ```
+     $ brew tap coin-or-tools/coinor
+     $ brew install coin-or-tools/coinor/coinutils
+     ```
+ * *conda* (cross-platform, no Windows for now):
+     ```
+     $ conda install coincoinutils
+     ```
 
 Due to license incompatibilities, pre-compiled binaries lack some functionality.
 If binaries are not available for your platform for the latest version and you would like to request them to be built and posted, feel free to let us know on the mailing list.
@@ -74,8 +104,8 @@ If binaries are not available for your platform for the latest version and you w
 Source code can be obtained either by
 
  * Downloading a snapshot of the source code for the latest release version of CoinUtils from the
- [releases](https://github.com/coin-or/CoinUtils/releases) page.
- * Cloning this repository from [Github](https://github.com/coin-or/CoinUtils) or 
+ [releases](https://github.com/coin-or/CoinUtils/releases) page,
+ * Cloning this repository from [Github](https://github.com/coin-or/CoinUtils), or 
  * Using the [coinbrew](https://github.com/coin-or/coinbrew) script to get the project and all dependencies (recommended, see below).   
 
 ### Dependencies
@@ -91,7 +121,7 @@ OS by default).
 
 ## BUILDING from source
 
-The quick start assumes you are in a bash shell. 
+These quick start instructions assumes you are in a bash shell. 
 
 ### Using `coinbrew`
 
@@ -137,7 +167,8 @@ documentation [here](http://coin-or.github.io/CoinUtils/Doxygen).
 
  * [Code of Conduct](https://www.coin-or.org/code-of-conduct/)
  * [COIN-OR Web Site](http://www.coin-or.org/)
- * [Discussion formum](https://github.com/coin-or/CoinUtils/discussions)
+ * [COIN-OR general discussion forum](https://github.com/orgs/coin-or/discussions)
+ * [CoinUtils Discussion forum](https://github.com/coin-or/CoinUtils/discussions)
  * [Report a bug](https://github.com/coin-or/CoinUtils/issues/new)
  * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen)
 
