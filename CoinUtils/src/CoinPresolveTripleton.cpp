@@ -1065,6 +1065,7 @@ tripleton_action::~tripleton_action()
 
 static double *tripleton_mult;
 static int *tripleton_id;
+static
 void check_tripletons(const CoinPresolveAction *paction)
 {
   const CoinPresolveAction *paction0 = paction;
