@@ -21,6 +21,7 @@
 #if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
+static
 int check_row(CoinBigIndex *mrstrt,
   double *rowels, int *hcol, int *hinrow,
   double coeff_factor, double kill_ratio, int irowx, int irowy, int &numberBadElements)
