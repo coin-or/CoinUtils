@@ -1988,9 +1988,9 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
     objUsed = false;
     memset(lastColumn, '\0', 200);
     bool gotRhs = false;
-
+    bool gotNextSection = false;
     // need coding for blank rhs
-    while (cardReader_->nextField() == COIN_RHS_SECTION) {
+    while (!gotNextSection && cardReader_->nextField() == COIN_RHS_SECTION) {
       COINRowIndex irow;
 
       switch (cardReader_->mpsType()) {
@@ -2001,6 +2001,7 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
           if (gotRhs) {
             while (cardReader_->nextField() == COIN_RHS_SECTION) {
             }
+	    gotNextSection = true;
             break;
           } else {
             gotRhs = true;
@@ -2085,7 +2086,8 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
         }
       }
     }
-    if (cardReader_->whichSection() == COIN_RANGES_SECTION) {
+    gotNextSection = false;
+    if (!gotNextSection && cardReader_->whichSection() == COIN_RANGES_SECTION) {
       memset(lastColumn, '\0', 200);
       bool gotRange = false;
       COINRowIndex irow;
@@ -2100,6 +2102,7 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
             if (gotRange) {
               while (cardReader_->nextField() == COIN_RANGES_SECTION) {
               }
+	      gotNextSection = true;
               break;
             } else {
               gotRange = true;
@@ -2247,17 +2250,19 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
     }
     // start hash even if no bound section - to make sure names survive
     startHash(columnName, numberColumns_, 1);
+    gotNextSection = false;
     if (cardReader_->whichSection() == COIN_BOUNDS_SECTION) {
       memset(lastColumn, '\0', 200);
       bool gotBound = false;
 
-      while (cardReader_->nextField() == COIN_BOUNDS_SECTION) {
+      while (!gotNextSection && cardReader_->nextField() == COIN_BOUNDS_SECTION) {
         if (strcmp(lastColumn, cardReader_->columnName())) {
 
           // skip rest if got a bound
           if (gotBound) {
             while (cardReader_->nextField() == COIN_BOUNDS_SECTION) {
             }
+	    gotNextSection = true;
             break;
           } else {
             gotBound = true;
