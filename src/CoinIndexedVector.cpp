@@ -630,7 +630,11 @@ void CoinIndexedVector::reserve(int n)
     // allocate new space
     indices_ = new int[n + nPlus];
     // align doubles on 64 byte boundary
+#ifndef COIN_AVX2
     double *temp = new double[n + 9];
+#else
+    double *temp = new double[n + 11]; // allow extra
+#endif
     offset_ = 0;
     CoinInt64 xx = reinterpret_cast< CoinInt64 >(temp);
     int iBottom = static_cast< int >(xx & 63);
