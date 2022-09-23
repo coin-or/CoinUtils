@@ -22,7 +22,6 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinModel.hpp"
 #include "CoinSort.hpp"
-
 //#############################################################################
 // type - 0 normal, 1 INTEL IEEE, 2 other IEEE
 
@@ -230,7 +229,7 @@ double CoinMpsCardReader::osi_strtod(char *ptr, char **output)
 namespace {
 const static char *section[] = {
   "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ", "QSECTION", "CSECTION",
-  "QUADOBJ", "SOS", "BASIS",
+  "QUADOBJ", "SOS", "BASIS", "INDICATORS",
   " "
 };
 
@@ -242,7 +241,7 @@ const static COINMpsType startType[] = {
   COIN_UP_BOUND, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
   COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_S1_BOUND,
-  COIN_BS_BASIS, COIN_UNKNOWN_MPS_TYPE
+  COIN_BS_BASIS, COIN_IF_INDICATOR, COIN_UNKNOWN_MPS_TYPE
 };
 const static COINMpsType endType[] = {
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
@@ -261,7 +260,7 @@ const static int allowedLength[] = {
   0, 0,
   0, 0,
   0, 2,
-  0
+  2, 0
 };
 
 // names of types
@@ -269,7 +268,7 @@ const static char *mpsTypes[] = {
   "N", "E", "L", "G",
   "  ", "S1", "S2", "S3", "  ", "  ", "  ",
   "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "LI", "XX", "SC",
-  "X1", "X2", "BS", "XL", "XU", "LL", "UL", "  "
+  "X1", "X2", "BS", "XL", "XU", "LL", "UL", "IF", "  "
 };
 } // namespace {
 
@@ -1398,7 +1397,7 @@ CoinMpsIO::findHash(const char *name, int section) const
 //------------------------------------------------------------------
 double CoinMpsIO::getInfinity() const
 {
-  return infinity_;
+  return infinity_; // if negative then indicators!
 }
 //------------------------------------------------------------------
 // Set value for infinity
@@ -1620,6 +1619,10 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
   COINRowIndex *row;
   double *element;
   objectiveOffset_ = 0.0;
+  // For Indicators
+  COINColumnIndex * binaryInd = NULL;
+  unsigned int * rowInd = NULL;
+  int numberIndicators = 0;
 
   int numberErrors = 0;
   int i;
@@ -2680,12 +2683,60 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
       }
     }
     free(columnType);
-    if (cardReader_->whichSection() != COIN_ENDATA_SECTION && cardReader_->whichSection() != COIN_QUAD_SECTION && cardReader_->whichSection() != COIN_CONIC_SECTION) {
+    if (cardReader_->whichSection() != COIN_ENDATA_SECTION
+	&& cardReader_->whichSection() != COIN_QUAD_SECTION
+	&& cardReader_->whichSection() != COIN_INDICATOR_SECTION
+	&& cardReader_->whichSection() != COIN_CONIC_SECTION) {
       handler_->message(COIN_MPS_BADIMAGE, messages_) << cardReader_->cardNumber()
                                                       << cardReader_->card()
                                                       << CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING, messages_) << CoinMessageEol;
       return numberErrors + 100000;
+    } else if (cardReader_->whichSection() == COIN_INDICATOR_SECTION) {
+      memset(lastColumn, '\0', 200);
+      bool gotBound = false;
+      // recreate hash
+      startHash(0);
+      startHash(1);
+      // get space for indicators
+      binaryInd = new COINColumnIndex [numberRows_+1];
+      rowInd = new unsigned int [numberRows_+1];
+      memset(rowInd,0,numberRows_*sizeof(unsigned int));
+      while (cardReader_->nextField() == COIN_INDICATOR_SECTION) {
+	int ifError = 0;
+	if (cardReader_->mpsType() != COIN_IF_INDICATOR) {
+	  ifError = 1;
+	} else {
+          double value = cardReader_->value();
+	  COINColumnIndex ibinary = findHash(cardReader_->rowName(), 1);
+	  COINColumnIndex irow = findHash(cardReader_->columnName(), 0);
+	  if (value !=0.0 && value != 1.0) 
+	    ifError = 2;
+	  else if (irow <0 ) 
+	    ifError = 3;
+	  else if (ibinary <0 ) 
+	    ifError = 4;
+	  if (!ifError) {
+	    binaryInd[numberIndicators] = ibinary;
+	    rowInd[numberIndicators] = (value==0.0) ? irow : irow |0x80000000;
+	    numberIndicators++;
+	  }
+	}
+	if (ifError) {
+	  numberErrors++;
+	  if (numberErrors < 100) {
+	    handler_->message(COIN_MPS_BADIMAGE, messages_)
+	      << cardReader_->cardNumber()
+	      << cardReader_->card()
+	      << CoinMessageEol;
+	  } else if (numberErrors > 100000) {
+	    handler_->message(COIN_MPS_RETURNING, messages_) << CoinMessageEol;
+	    return numberErrors;
+	  }
+        }
+      }
+      stopHash(0);
+      stopHash(1);
     }
   } else {
     // This is very simple format - what should we use?
@@ -2752,6 +2803,60 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
       }
       start[i + 1] = numberElements_;
     }
+  }
+  if (binaryInd) {
+    // indicators
+    // mark by setting infinity!
+    infinity_ = -COIN_DBL_MAX;
+    // add fake elements 
+    // don't bother being very efficient
+    CoinSort_2(binaryInd,binaryInd+numberIndicators,rowInd);
+    binaryInd[numberIndicators]=numberColumns_+1;
+    rowInd[numberIndicators]=0;
+    CoinBigIndex n = start[numberColumns_]+numberIndicators;
+    CoinBigIndex * start2 = reinterpret_cast< CoinBigIndex * >(malloc((numberColumns_ + 1) * sizeof(CoinBigIndex)));
+    COINRowIndex * row2 = reinterpret_cast< COINRowIndex * >(malloc(n * sizeof(COINRowIndex)));
+    double * element2 = reinterpret_cast< double * >(malloc(n * sizeof(double)));
+    int lastCol = 0;
+    CoinBigIndex lastEl = 0;
+    start2[0]=0;
+    CoinBigIndex j = 0;
+    int ind = 0;
+    int iColumn = binaryInd[ind];
+    int iRow = rowInd[ind]&0x7fffffff;
+    for (int jColumn=0;jColumn<numberColumns_;jColumn++) {
+      start2[jColumn] = j;
+      for (CoinBigIndex k=start[jColumn];k<start[jColumn+1];k++) {
+	int irow = row[k];
+	double el = element[k];
+	if (i==iColumn)
+	  assert(irow != iRow);
+	row2[j] = irow;
+	element2[j++] = el;
+      }
+      while (jColumn==iColumn) {
+	// now add in
+	double el = COIN_DBL_MAX;
+	if (rowInd[ind]!=iRow)
+	  el = -el;
+	row2[j] = iRow;
+	element2[j++] = el;
+	// onto next
+	ind++;
+	iColumn = binaryInd[ind];
+	iRow = rowInd[ind]&0x7fffffff;
+      }
+    }
+    start2[numberColumns_] = j;
+    numberElements_ = j;
+    free (start);
+    start = start2;
+    free (row);
+    row = row2;
+    free (element);
+    element = element2;
+    delete [] binaryInd;
+    delete [] rowInd;
   }
   // construct packed matrix
   matrixByColumn_ = new CoinPackedMatrix(true,

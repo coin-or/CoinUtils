@@ -54,6 +54,7 @@ enum COINSectionType { COIN_NO_SECTION,
   COIN_QUAD_SECTION,
   COIN_SOS_SECTION,
   COIN_BASIS_SECTION,
+  COIN_INDICATOR_SECTION,
   COIN_UNKNOWN_SECTION
 };
 
@@ -87,6 +88,7 @@ enum COINMpsType { COIN_N_ROW,
   COIN_XU_BASIS,
   COIN_LL_BASIS,
   COIN_UL_BASIS,
+  COIN_IF_INDICATOR,
   COIN_UNKNOWN_MPS_TYPE
 };
 class COINUTILSLIB_EXPORT CoinMpsIO;
@@ -1125,7 +1127,11 @@ protected:
   char **stringElements_;
   //@}
 };
-
+// Special value for Indicator
+#ifndef COIN_INDICATOR_VALUE
+#define COIN_INDICATOR_VALUE COIN_DBL_MAX
+//#define COIN_INDICATOR_VALUE 1.0e7
+#endif
 //#############################################################################
 /** A function that tests the methods in the CoinMpsIO class. The
     only reason for it not to be a member method is that this way it doesn't
@@ -1147,6 +1153,3 @@ COINUTILSLIB_EXPORT
 void CoinConvertDouble(int section, int formatType, double value, char outputValue[24]);
 
 #endif
-
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/
