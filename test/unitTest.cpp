@@ -11,6 +11,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "CoinUtilsConfig.h"
+
 #include "CoinPragma.hpp"
 #include "CoinFinite.hpp"
 #include "CoinError.hpp"
