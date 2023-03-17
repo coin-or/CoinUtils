@@ -150,7 +150,7 @@ const CoinPresolveAction *testRedundant(CoinPresolveMatrix *prob,
 
   int numberInfeasible = 0;
   int numberChanged = 0;
-  int totalTightened = 0;
+  //int totalTightened = 0;
   int numberCheck = -1;
 
   const int MAXPASS = 10;
@@ -456,7 +456,7 @@ const CoinPresolveAction *testRedundant(CoinPresolveMatrix *prob,
       }
     }
 
-    totalTightened += numberChanged;
+    //totalTightened += numberChanged;
     if (iPass == 1)
       numberCheck = CoinMax(10, numberChanged >> 5);
     if (numberInfeasible) {
