@@ -126,21 +126,21 @@ class COINUTILSLIB_EXPORT duprow3_action : public CoinPresolveAction {
     double ubound;
   };
 
-  const int nactions_;
-  const action *const actions_;
+  //const int nactions_;
+  //const action *const actions_;
 
   duprow3_action()
     : CoinPresolveAction(NULL)
-    , nactions_(0)
-    , actions_(NULL)
+    //, nactions_(0)
+    //, actions_(NULL)
   {
   }
   duprow3_action(int nactions,
     const action *actions,
     const CoinPresolveAction *next)
     : CoinPresolveAction(next)
-    , nactions_(nactions)
-    , actions_(actions)
+    //, nactions_(nactions)
+    //, actions_(actions)
   {
   }
 
