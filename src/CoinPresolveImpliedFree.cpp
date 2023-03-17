@@ -940,10 +940,10 @@ const CoinPresolveAction *implied_free_action::presolve(
 	  Count up the total number of coefficients in entangled rows and mark them as
 	  contaminated.
 	*/
-        int ntotels = 0;
+        //int ntotels = 0;
         for (CoinBigIndex kcol = tgtcs; kcol < tgtce; ++kcol) {
           const int i = rowIndices[kcol];
-          ntotels += rowLengths[i];
+          //ntotels += rowLengths[i];
           PRESOLVEASSERT(!prob->rowUsed(i));
           prob->setRowUsed(i);
           rowsUsed[nRowsUsed++] = i;

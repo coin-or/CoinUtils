@@ -590,7 +590,9 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
   int *fixed_cols = new int[numberLook];
   int nfixed_cols = 0;
   int nWithCosts = 0;
+#ifdef COIN_DEVELOP
   double costOffset = 0.0;
+#endif
   for (iLook = 0; iLook < numberLook; iLook++) {
     int iCol = look[iLook];
     if (dcost[iCol])
@@ -739,7 +741,9 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
           rowObjective[iRow] = -dcost[iCol] / coeff;
           nWithCosts++;
           // adjust offset
+#ifdef COIN_DEVELOP
           costOffset += currentLower * rowObjective[iRow];
+#endif
           prob->dobias_ -= currentLower * rowObjective[iRow];
         }
         if (sol) {
