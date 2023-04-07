@@ -7,6 +7,20 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libCoinUtils", "libCoinUtil
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CoinUtilsUnitTest", "CoinUtilsUnitTest\CoinUtilsUnitTest.vcxproj", "{FCF90EF8-93AE-482A-9B55-018B8338B99D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B8AB58C7-FB01-45B3-97CC-3F3E6583BF85}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\.gitignore = ..\..\.gitignore
+		..\..\LICENSE = ..\..\LICENSE
+		..\..\README.md = ..\..\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{E712FDE2-9810-416F-B615-FD827259BABA}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\.github\workflows\linux-ci.yml = ..\..\.github\workflows\linux-ci.yml
+		..\..\.github\workflows\release.yml = ..\..\.github\workflows\release.yml
+		..\..\.github\workflows\windows-ci.yml = ..\..\.github\workflows\windows-ci.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +48,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E712FDE2-9810-416F-B615-FD827259BABA} = {B8AB58C7-FB01-45B3-97CC-3F3E6583BF85}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {47CE0831-9FE3-4146-A085-43BC3B8AE89A}
