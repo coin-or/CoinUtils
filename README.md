@@ -1,11 +1,11 @@
-# CoinUtils 2.11
+# CoinUtils 2.11.7
 
 [![A COIN-OR Project](https://coin-or.github.io/coin-or-badge.png)](https://www.coin-or.org)
 
 Projects such as this one are maintained by a small group of volunteers under
 the auspices of the non-profit [COIN-OR Foundation](https://www.coin-or.org)
 and we need your help! Please consider [sponsoring our
-activities](https://github.com/sponsors/coin-or).
+activities](https://github.com/sponsors/coin-or) or [volunteering](mailto:volunteer@coin-or.org) to help!
 
 [![Latest Release](https://img.shields.io/github/v/release/coin-or/CoinUtils?sort=semver)](https://github.com/coin-or/CoinUtils/releases)
 
@@ -40,9 +40,9 @@ Code: [![DOI](https://zenodo.org/badge/173466792.svg)](https://zenodo.org/badge/
 
 ## CURRENT BUILD STATUS
 
-[![Windows Builds](https://github.com/coin-or/CoinUtils/actions/workflows/windows-ci.yml/badge.svg?branch=stable/2.11)](https://github.com/coin-or/CoinUtils/actions/workflows/windows-ci.yml?query=branch%3Astable/2.11)
+[![Windows Builds](https://github.com/coin-or/CoinUtils/actions/workflows/windows-ci.yml/badge.svg?branch=releases/2.11.7)](https://github.com/coin-or/CoinUtils/actions/workflows/windows-ci.yml?query=branch%3Areleases/2.11.7)
 
-[![Linux and MacOS Builds](https://github.com/coin-or/CoinUtils/actions/workflows/linux-ci.yml/badge.svg?branch=stable/2.11)](https://github.com/coin-or/CoinUtils/actions/workflows/linux-ci.yml?query=branch%3Astable/2.11)
+[![Linux and MacOS Builds](https://github.com/coin-or/CoinUtils/actions/workflows/linux-ci.yml/badge.svg?branch=releases/2.11.7)](https://github.com/coin-or/CoinUtils/actions/workflows/linux-ci.yml?query=branch%3Areleases/2.11.7)
 
 ## DOWNLOAD
 
@@ -133,7 +133,7 @@ following on the command line.
 ```
 wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
 chmod u+x coinbrew
-./coinbrew fetch CoinUtils@2.11
+./coinbrew fetch CoinUtils@2.11.7
 ./coinbrew build CoinUtils
 ```
 For more detailed instructions on coinbrew, see https://coin-or.github.io/coinbrew.
@@ -159,7 +159,7 @@ If you have `Doxygen` available, you can build a HTML documentation by typing
 `make doxygen-docs` 
 
 in the build directory. If CoinUtils was built via `coinbrew`, then the build
-directory will be `./build/CoinUtils/2.11` by default. The doxygen documentation main file
+directory will be `./build/CoinUtils/2.11.7` by default. The doxygen documentation main file
 is found at `<build-dir>/doxydoc/html/index.html`.
 
 If you don't have `doxygen` installed locally, you can use also find the
@@ -173,5 +173,5 @@ documentation [here](http://coin-or.github.io/CoinUtils/Doxygen).
  * [COIN-OR general discussion forum](https://github.com/orgs/coin-or/discussions)
  * [CoinUtils Discussion forum](https://github.com/coin-or/CoinUtils/discussions)
  * [Report a bug](https://github.com/coin-or/CoinUtils/issues/new)
- * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen)
+ * [Doxygen generated documentation](http://coin-or.github.io/CoinUtils/Doxygen)
 
