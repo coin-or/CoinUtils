@@ -1,0 +1,4 @@
+<map id="gubrow_action" name="gubrow_action">
+<area shape="rect" id="node1" title="Detect and remove entries whose sum is known." alt="" coords="20,80,127,107"/>
+<area shape="rect" id="node2" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="5,5,141,32"/>
+</map>

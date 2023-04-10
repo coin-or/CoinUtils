@@ -1,0 +1,4 @@
+<map id="tripleton_action" name="tripleton_action">
+<area shape="rect" id="node1" title="We are only going to do this if it does not increase number of elements?." alt="" coords="18,80,129,107"/>
+<area shape="rect" id="node2" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="5,5,141,32"/>
+</map>
