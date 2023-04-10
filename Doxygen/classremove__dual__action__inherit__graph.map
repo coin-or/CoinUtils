@@ -1,4 +1,0 @@
-<map id="remove_dual_action" name="remove_dual_action">
-<area shape="rect" id="node1" title="Attempt to fix variables by bounding reduced costs." alt="" coords="5,80,144,107"/>
-<area shape="rect" id="node2" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="7,5,143,32"/>
-</map>

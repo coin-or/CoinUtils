@@ -1,9 +1,0 @@
-<map id="CoinWarmStartPrimalDual" name="CoinWarmStartPrimalDual">
-<area shape="rect" id="node1" title="WarmStart information that is only a dual vector." alt="" coords="5,303,179,329"/>
-<area shape="rect" id="node2" href="$classCoinWarmStart.html" title="Abstract base class for warm start information." alt="" coords="66,5,177,32"/>
-<area shape="rect" id="node3" href="$classCoinWarmStartVector.html" title=" " alt="" coords="119,184,267,225"/>
-<area shape="rect" id="node6" href="$classCoinWarmStartVector.html" title="WarmStart information that is only a vector." alt="" coords="252,95,431,121"/>
-<area shape="rect" id="node4" title=" " alt="" coords="159,95,227,121"/>
-<area shape="rect" id="node5" title=" " alt="" coords="431,5,470,32"/>
-<area shape="rect" id="node7" title=" " alt="" coords="322,5,361,32"/>
-</map>

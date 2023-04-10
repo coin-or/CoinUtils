@@ -1,4 +1,0 @@
-<map id="duprow_action" name="duprow_action">
-<area shape="rect" id="node1" title="Detect and remove duplicate rows." alt="" coords="20,81,127,108"/>
-<area shape="rect" id="node2" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="5,5,141,32"/>
-</map>
