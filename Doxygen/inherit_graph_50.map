@@ -1,5 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classCoinPrePostsolveMatrix.html" title="Collects all the information about the problem that is needed in both presolve and postsolve..." alt="" coords="5,31,167,57"/>
-<area shape="rect" id="node2" href="$classCoinPostsolveMatrix.html" title="Augments CoinPrePostsolveMatrix with information about the problem that is only needed during postsol..." alt="" coords="215,5,356,32"/>
-<area shape="rect" id="node3" href="$classCoinPresolveMatrix.html" title="Augments CoinPrePostsolveMatrix with information about the problem that is only needed during presolv..." alt="" coords="218,56,353,83"/>
-</map>
