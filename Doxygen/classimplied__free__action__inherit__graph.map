@@ -1,0 +1,4 @@
+<map id="implied_free_action" name="implied_free_action">
+<area shape="rect" id="node1" title="Detect and process implied free variables." alt="" coords="6,80,141,107"/>
+<area shape="rect" id="node2" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="5,5,141,32"/>
+</map>
