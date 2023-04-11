@@ -26,7 +26,6 @@ jobs:
           { os: windows-2019, arch: i686, msystem: mingw32, debug: false, suffix: "" },
           { os: windows-2019, arch: msvc, msystem: mingw64, debug: false, suffix: "-md" },
           { os: windows-2022, arch: msvc, msystem: mingw64, debug: false, suffix: "-md" },
-          { os: windows-2022, arch: msvs, msystem: mingw64, debug: false, suffix: "" },
         ]
     steps:
       - name: Checkout source
@@ -39,8 +38,8 @@ jobs:
           repository: coin-or/coinbrew
           path: coinbrew
       - name: Set up msvc
-        uses: ilammy/msvc-dev-cmd@v1
         if: ${{ matrix.arch == 'msvc' }}
+        uses: ilammy/msvc-dev-cmd@v1
       - name: Set correct host flag and install requirements
         run: |
           echo "host_flag=--host=${{ matrix.arch }}-w64-mingw32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
