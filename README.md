@@ -5,7 +5,7 @@
 Projects such as this one are maintained by a small group of volunteers under
 the auspices of the non-profit [COIN-OR Foundation](https://www.coin-or.org)
 and we need your help! Please consider [sponsoring our
-activities](https://github.com/sponsors/coin-or).
+activities](https://github.com/sponsors/coin-or) or [volunteering](mailto:volunteer@coin-or.org) to help!
 
 [![Latest Release](https://img.shields.io/github/v/release/coin-or/CoinUtils?sort=semver)](https://github.com/coin-or/CoinUtils/releases)
 
@@ -173,5 +173,5 @@ documentation [here](http://coin-or.github.io/CoinUtils/Doxygen).
  * [COIN-OR general discussion forum](https://github.com/orgs/coin-or/discussions)
  * [CoinUtils Discussion forum](https://github.com/coin-or/CoinUtils/discussions)
  * [Report a bug](https://github.com/coin-or/CoinUtils/issues/new)
- * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen)
+ * [Doxygen generated documentation](http://coin-or.github.io/CoinUtils/Doxygen)
 
