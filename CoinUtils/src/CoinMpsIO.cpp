@@ -1635,9 +1635,17 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
     cardReader_->nextField();
     // Fudge for what ever code has OBJSENSE
     if (!strncmp(cardReader_->card(), "OBJSENSE", 8)) {
+      // Correct format has min/max on next card
+      const char *thisCard = cardReader_->card();
+      char temp[80];
+      cardReader_->strcpyAndCompress(temp,cardReader_->card());
+      bool onSameCard = false;
+      if (strlen(temp)>10) {
+	onSameCard = true;
+	thisCard += 8; // move on
+      }
       cardReader_->nextField();
       int i;
-      const char *thisCard = cardReader_->card();
       int direction = 0;
       for (i = 0; i < 20; i++) {
         if (thisCard[i] != ' ') {
@@ -1653,7 +1661,8 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
       else
         printf("%s found after OBJSENSE - Coin ignores\n",
           (direction > 0 ? "MIN" : "MAX"));
-      cardReader_->nextField();
+      if (!onSameCard)
+	cardReader_->nextField();
     }
     if (cardReader_->whichSection() != COIN_ROW_SECTION) {
       handler_->message(COIN_MPS_BADIMAGE, messages_) << cardReader_->cardNumber()
