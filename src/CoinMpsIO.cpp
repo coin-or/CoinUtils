@@ -1658,11 +1658,13 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
           break;
         }
       }
-      if (!direction)
+      if (!direction) {
         printf("No MAX/MIN found after OBJSENSE\n");
-      else
-        printf("%s found after OBJSENSE - Coin ignores\n",
+      } else {
+        printf("%s found after OBJSENSE - Coin sets isMaximization flag\n",
           (direction > 0 ? "MIN" : "MAX"));
+	isMaximization_ = 1;
+      }
       if (!onSameCard)
 	cardReader_->nextField();
     }
@@ -5496,6 +5498,7 @@ CoinMpsIO::CoinMpsIO()
   , maximumStringElements_(0)
   , numberStringElements_(0)
   , stringElements_(NULL)
+  , isMaximization_(0)
 {
   numberHash_[0] = 0;
   hash_[0] = NULL;
@@ -5541,6 +5544,7 @@ CoinMpsIO::CoinMpsIO(const CoinMpsIO &rhs)
   , maximumStringElements_(rhs.maximumStringElements_)
   , numberStringElements_(rhs.numberStringElements_)
   , stringElements_(NULL)
+  , isMaximization_(0)
 {
   numberHash_[0] = 0;
   hash_[0] = NULL;
@@ -5629,6 +5633,7 @@ void CoinMpsIO::gutsOfCopy(const CoinMpsIO &rhs)
   } else {
     stringElements_ = NULL;
   }
+  isMaximization_ = rhs.isMaximization_;
 }
 
 //-------------------------------------------------------------------

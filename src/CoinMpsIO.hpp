@@ -662,6 +662,17 @@ public:
   {
     smallElement_ = value;
   }
+  /// Return true if maximization problem reformulated as minimization
+  inline bool wasMaximization() const
+  {
+    return isMaximization_==-1;
+  }
+  /// Return true if maximization problem and still formulated as maximization
+  inline bool isMaximization() const
+  {
+    return isMaximization_==1;
+  }
+
   //@}
 
   /** @name Methods for problem input and output
@@ -1125,6 +1136,13 @@ protected:
   int numberStringElements_;
   /// String elements
   char **stringElements_;
+  /** Maximization reformulation flag
+      0 - minimization
+      1 - maximization and currently treated as maximization
+      -1 - maximization but currently treated as minimization
+   */
+  int isMaximization_;
+
   //@}
 };
 // Special value for Indicator
