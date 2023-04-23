@@ -2996,7 +2996,7 @@ void CoinLpIO::newLanguage(CoinMessages::Language language)
 // Get next line into inputBuffer_ (returns number in)
 int CoinLpIO::newCardLpIO() const
 {
-  while (bufferPosition_ == abs(bufferLength_)) {
+  while (bufferPosition_ == bufferLength_) {
     // new line
     bufferPosition_ = 0;
     bufferLength_ = 0;
@@ -3061,7 +3061,7 @@ int CoinLpIO::newCardLpIO() const
 int CoinLpIO::fscanfLpIO(char *buff) const
 {
   assert(input_);
-  if (bufferPosition_ == abs(bufferLength_)) {
+  if (bufferPosition_ == bufferLength_) {
     int returnCode = newCardLpIO();
     if (!returnCode) {
       if (eofFound_)
