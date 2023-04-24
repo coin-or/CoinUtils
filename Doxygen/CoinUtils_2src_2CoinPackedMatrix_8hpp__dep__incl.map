@@ -1,0 +1,13 @@
+<map id="/home/ted/Projects/CoinUtils/CoinUtils/src/CoinPackedMatrix.hpp" name="/home/ted/Projects/CoinUtils/CoinUtils/src/CoinPackedMatrix.hpp">
+<area shape="rect" id="node1" title=" " alt="" coords="225,5,402,61"/>
+<area shape="rect" id="node2" href="$CoinUtils_2src_2CoinLpIO_8hpp.html" title=" " alt="" coords="5,109,141,165"/>
+<area shape="rect" id="node3" href="$CoinUtils_2src_2CoinModel_8hpp.html" title=" " alt="" coords="165,109,301,165"/>
+<area shape="rect" id="node5" href="$CoinUtils_2src_2CoinMpsIO_8hpp.html" title=" " alt="" coords="326,109,463,165"/>
+<area shape="rect" id="node6" href="$CoinUtils_2src_2CoinPresolveMatrix_8hpp.html" title=" " alt="" coords="639,109,823,165"/>
+<area shape="rect" id="node4" href="$CoinUtils_2src_2CoinStructuredModel_8hpp.html" title=" " alt="" coords="95,213,289,269"/>
+<area shape="rect" id="node7" href="$CoinUtils_2src_2CoinPresolveDupcol_8hpp.html" title=" " alt="" coords="313,213,503,269"/>
+<area shape="rect" id="node8" href="$CoinUtils_2src_2CoinPresolveForcing_8hpp.html" title=" " alt="" coords="527,213,719,269"/>
+<area shape="rect" id="node9" href="$CoinUtils_2src_2CoinPresolveIsolated_8hpp.html" title=" " alt="" coords="743,213,937,269"/>
+<area shape="rect" id="node10" href="$CoinUtils_2src_2CoinPresolveSubst_8hpp.html" title=" " alt="" coords="962,213,1145,269"/>
+<area shape="rect" id="node11" href="$CoinUtils_2src_2CoinPresolveTighten_8hpp.html" title=" " alt="" coords="1169,213,1361,269"/>
+</map>

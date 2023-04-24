@@ -1,0 +1,14 @@
+<map id="/home/ted/Projects/CoinUtils/tmp/include/coin/CoinMessageHandler.hpp" name="/home/ted/Projects/CoinUtils/tmp/include/coin/CoinMessageHandler.hpp">
+<area shape="rect" id="node1" title="This is a first attempt at a message handler." alt="" coords="645,5,848,61"/>
+<area shape="rect" id="node2" href="$tmp_2include_2coin_2CoinMessage_8hpp.html" title=" " alt="" coords="469,109,627,165"/>
+<area shape="rect" id="node10" href="$tmp_2include_2coin_2CoinModel_8hpp.html" title=" " alt="" coords="671,109,822,165"/>
+<area shape="rect" id="node12" href="$tmp_2include_2coin_2CoinMpsIO_8hpp.html" title=" " alt="" coords="846,109,997,165"/>
+<area shape="rect" id="node3" href="$tmp_2include_2coin_2CoinLpIO_8hpp.html" title=" " alt="" coords="278,213,429,269"/>
+<area shape="rect" id="node4" href="$tmp_2include_2coin_2CoinPresolveMatrix_8hpp.html" title=" " alt="" coords="453,213,643,269"/>
+<area shape="rect" id="node5" href="$tmp_2include_2coin_2CoinPresolveDupcol_8hpp.html" title=" " alt="" coords="5,317,200,373"/>
+<area shape="rect" id="node6" href="$tmp_2include_2coin_2CoinPresolveForcing_8hpp.html" title=" " alt="" coords="225,317,423,373"/>
+<area shape="rect" id="node7" href="$tmp_2include_2coin_2CoinPresolveIsolated_8hpp.html" title=" " alt="" coords="447,317,649,373"/>
+<area shape="rect" id="node8" href="$tmp_2include_2coin_2CoinPresolveSubst_8hpp.html" title=" " alt="" coords="673,317,863,373"/>
+<area shape="rect" id="node9" href="$tmp_2include_2coin_2CoinPresolveTighten_8hpp.html" title=" " alt="" coords="887,317,1086,373"/>
+<area shape="rect" id="node11" href="$tmp_2include_2coin_2CoinStructuredModel_8hpp.html" title=" " alt="" coords="667,213,866,269"/>
+</map>

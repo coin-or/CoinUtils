@@ -1,0 +1,7 @@
+<map id="drop_empty_cols_action" name="drop_empty_cols_action">
+<area shape="rect" id="node1" title="Physically removes empty columns in presolve, and reinserts empty columns in postsolve." alt="" coords="160,243,323,269"/>
+<area shape="rect" id="node2" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="5,146,141,173"/>
+<area shape="rect" id="node3" title=" " alt="" coords="267,5,306,32"/>
+<area shape="rect" id="node4" href="$structdrop__empty__cols__action_1_1action.html" title=" " alt="" coords="325,139,488,180"/>
+<area shape="rect" id="node5" title=" " alt="" coords="377,5,437,32"/>
+</map>
