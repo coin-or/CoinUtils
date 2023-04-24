@@ -1,6 +1,0 @@
-<map id="CoinWarmStartBasis" name="CoinWarmStartBasis">
-<area shape="rect" id="node1" title="The default COIN simplex (basis&#45;oriented) warm start class." alt="" coords="88,124,231,151"/>
-<area shape="rect" id="node2" href="$classCoinWarmStart.html" title="Abstract base class for warm start information." alt="" coords="5,5,116,32"/>
-<area shape="rect" id="node3" title=" " alt="" coords="140,5,179,32"/>
-<area shape="rect" id="node4" title=" " alt="" coords="252,5,307,32"/>
-</map>
