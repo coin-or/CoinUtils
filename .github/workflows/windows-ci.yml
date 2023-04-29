@@ -80,7 +80,7 @@ jobs:
         if: ${{ matrix.arch == 'msvs' }}
         shell: cmd
         run: |
-          .\${{ github.event.repository.name }}\${{ github.event.repository.name }}\MSVisualStudio\v17\${{ github.event.repository.name }}Test.cmd .\${{ github.event.repository.name }}\MSVisualStudio\v17\x64\Release .\Data\Sample .\Data\Netlib .\Data\Miplib3
+          .\${{ github.event.repository.name }}\${{ github.event.repository.name }}\MSVisualStudio\v17\${{ github.event.repository.name }}Test.cmd .\${{ github.event.repository.name }}\${{ github.event.repository.name }}\MSVisualStudio\v17\x64\Release .\Data\Sample .\Data\Netlib .\Data\Miplib3
       - name: Install project for msvs
         if: ${{ matrix.arch == 'msvs' }}
         shell: cmd
