@@ -89,7 +89,6 @@ jobs:
         run: |
           head_ref=${{ github.head_ref }}
           echo "safe_head_ref=${head_ref//\//-}" >> $GITHUB_ENV
-        shell: msys2 {0}
       - name: Upload Artifact
         if: ${{ github.event_name == 'pull_request'}}
         uses: actions/upload-artifact@v3
