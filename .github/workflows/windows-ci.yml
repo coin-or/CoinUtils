@@ -131,7 +131,6 @@ jobs:
       - name: Generate safe branch name
         # Replace forward slash in branch name head_ref, such as stable/1.1 
         # because slash is not allowed in artifact name.
-        if: ${{ matrix.arch != 'msvc' }}
         run: |
           head_ref=${{ github.head_ref }}
           echo "safe_head_ref=${head_ref//\//-}" >> $GITHUB_ENV
