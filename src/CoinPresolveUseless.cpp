@@ -550,7 +550,9 @@ const CoinPresolveAction *testRedundant(CoinPresolveMatrix *prob,
       double *cup = prob->cup_;
       int *fixed = prob->usefulColumnInt_;
       int nFixed = 0;
+#ifdef CLP_INVESTIGATE
       int nChanged = 0;
+#endif
       for (int j = 0; j < n; j++) {
         if (clo[j] == cup[j])
           continue;
@@ -575,12 +577,16 @@ const CoinPresolveAction *testRedundant(CoinPresolveMatrix *prob,
           if (integerType[j]) {
             if (upper < cup[j]) {
               cup[j] = upper;
+#ifdef CLP_INVESTIGATE
               nChanged++;
+#endif
               prob->addCol(j);
             }
             if (lower > clo[j]) {
               clo[j] = lower;
+#ifdef CLP_INVESTIGATE
               nChanged++;
+#endif
               prob->addCol(j);
             }
           }
