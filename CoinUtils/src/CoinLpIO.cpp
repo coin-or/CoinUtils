@@ -1090,7 +1090,7 @@ int CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 
   fprintf(fp, "Subject To\n");
 
-  int cnt_out_rows = 0;
+  //int cnt_out_rows = 0;
 
   for (i = 0; i < nrow; i++) {
     cnt_print = 0;
@@ -1098,7 +1098,7 @@ int CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
     if (useRowNames) {
       fprintf(fp, "%s: ", rowNames[i]);
     }
-    cnt_out_rows++;
+    //cnt_out_rows++;
 
     for (j = matrixByRow_->getVectorFirst(i);
          j < matrixByRow_->getVectorLast(i); j++) {
@@ -1132,7 +1132,7 @@ int CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
           if (useRowNames) {
             fprintf(fp, "%s_low:", rowNames[i]);
           }
-          cnt_out_rows++;
+          //cnt_out_rows++;
 
           for (j = matrixByRow_->getVectorFirst(i);
                j < matrixByRow_->getVectorLast(i); j++) {
