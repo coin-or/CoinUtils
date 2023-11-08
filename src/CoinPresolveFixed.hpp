@@ -66,6 +66,9 @@ public:
 
   void postsolve(CoinPostsolveMatrix *prob) const;
 
+  /// Just fixes
+  int fix(double * lower, double * upper) const;
+  
   /// Destructor
   virtual ~remove_fixed_action();
 };

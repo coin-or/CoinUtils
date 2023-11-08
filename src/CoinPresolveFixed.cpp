@@ -444,6 +444,18 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
 
   return;
 }
+// Just fixes
+int remove_fixed_action::fix(double * lower, double * upper) const
+{
+  for (int i=0;i<nactions_;i++) {
+    int icol = actions_[i].col;
+    double fix = actions_[i].sol;
+    assert (fix>=lower[icol]&&fix<=upper[icol]);
+    lower[icol] = fix;
+    upper[icol] = fix;
+  }
+  return nactions_;
+}
 
 /*
   Scan the problem for variables that are already fixed, and remove them.

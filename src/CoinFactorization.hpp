@@ -829,6 +829,8 @@ protected:
   void separateLinks(int count, bool rowsFirst);
   /// Cleans up at end of factorization
   void cleanup();
+  /// Sets up all array pointers
+  void setupPointers();
 
   /// Updates part of column (FTRANL)
   void updateColumnL(CoinIndexedVector *region, int *COIN_RESTRICT indexIn) const;
@@ -1694,6 +1696,76 @@ protected:
   /// Says if parallel
   int parallelMode_;
 #endif
+  /// Arrays - for speed of accessing
+  /// Pivot order for each Column
+  int * pivotColumnArray_;
+  /// Permutation vector for pivot row order
+  int * permuteArray_;
+  /// DePermutation vector for pivot row order
+  int * permuteBackArray_;
+  /// Inverse Pivot order for each Column
+  int * pivotColumnBackArray_;
+  /// Start of each Row as pointer
+  int * startRowUArray_;
+  /// Number in each Row
+  int * numberInRowArray_;
+  /// Number in each Column
+  int * numberInColumnArray_;
+  /// Number in each Column including pivoted
+  int * numberInColumnPlusArray_;
+  /** First Row/Column with count of k,
+      can tell which by offset - Rows then Columns */
+  int * firstCountArray_;
+  /// Next Row/Column with count
+  int * nextCountArray_;
+  /// Previous Row/Column with count
+  int * lastCountArray_;
+  /// Next Column in memory order
+  int * nextColumnArray_;
+  /// Previous Column in memory order
+  int * lastColumnArray_;
+  /// Next Row in memory order
+  int * nextRowArray_;
+  /// Previous Row in memory order
+  int * lastRowArray_;
+  /// Columns left to do in a single pivot
+  int * saveColumnArray_;
+  /// Marks rows to be updated
+  int * markRowArray_;
+  /// Base address for U (may change)
+  int * indexColumnUArray_;
+  /// Pivots for L
+  int * pivotRowLArray_;
+  /// Inverses of pivot values
+  CoinFactorizationDouble * pivotRegionArray_;
+  /// Elements of U
+  CoinFactorizationDouble * elementUArray_;
+  /// Row indices of U
+  int * indexRowUArray_;
+  /// Start of each column in U
+  int * startColumnUArray_;
+  /// Converts rows to columns in U
+  int * convertRowToColumnUArray_;
+  /// Elements of L
+  CoinFactorizationDouble * elementLArray_;
+  /// Row indices of L
+  int * indexRowLArray_;
+  /// Start of each column in L
+  int * startColumnLArray_;
+  /// Start of columns for R
+  int * startColumnRArray_;
+  /// First work area
+  CoinFactorizationDouble * workAreaArray_;
+  /// Second work area
+  unsigned int * workArea2Array_;
+  /// Start of each row in L
+  int * startRowLArray_;
+  /// Index of column in row for L
+  int * indexColumnLArray_;
+  /// Elements in L (row copy)
+  CoinFactorizationDouble * elementByRowLArray_;
+  /// Sparse regions
+  mutable int * sparseArray_;
   //@}
 };
 // Dense coding

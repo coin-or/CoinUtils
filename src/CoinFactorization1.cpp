@@ -43,6 +43,7 @@ CoinFactorization::CoinFactorization(const CoinFactorization &other)
   gutsOfInitialize(3);
   persistenceFlag_ = other.persistenceFlag_;
   gutsOfCopy(other);
+  setupPointers();
 }
 /// The real work of constructors etc
 /// Really really delete if type 2
@@ -288,6 +289,7 @@ void CoinFactorization::gutsOfInitialize(int type)
     lastColumn_.array()[0] = 0;
 #endif
   }
+  setupPointers();
 }
 //Part of LP
 int CoinFactorization::factorize(
@@ -343,9 +345,9 @@ int CoinFactorization::factorize(
   //copy
   numberBasic = 0;
   numberElements = 0;
-  int *COIN_RESTRICT indexColumnU = indexColumnU_.array();
-  int *COIN_RESTRICT indexRowU = indexRowU_.array();
-  CoinFactorizationDouble *COIN_RESTRICT elementU = elementU_.array();
+  int *COIN_RESTRICT indexColumnU = indexColumnUArray_;
+  int *COIN_RESTRICT indexRowU = indexRowUArray_;
+  CoinFactorizationDouble *COIN_RESTRICT elementU = elementUArray_;
   for (i = 0; i < numberRows; i++) {
     if (rowIsBasic[i] >= 0) {
       indexRowU[numberElements] = i;
@@ -372,7 +374,7 @@ int CoinFactorization::factorize(
   factor();
   numberBasic = 0;
   if (status_ == 0) {
-    int *COIN_RESTRICT permuteBack = permuteBack_.array();
+    int *COIN_RESTRICT permuteBack = permuteBackArray_;
     int *COIN_RESTRICT back = pivotColumnBack();
     for (i = 0; i < numberRows; i++) {
       if (rowIsBasic[i] >= 0) {
@@ -387,10 +389,10 @@ int CoinFactorization::factorize(
     // Set up permutation vector
     // these arrays start off as copies of permute
     // (and we could use permute_ instead of pivotColumn (not back though))
-    CoinMemcpyN(permute_.array(), numberRows_, pivotColumn_.array());
-    CoinMemcpyN(permuteBack_.array(), numberRows_, pivotColumnBack());
+    CoinMemcpyN(permuteArray_, numberRows_, pivotColumnArray_);
+    CoinMemcpyN(permuteBackArray_, numberRows_, pivotColumnBack());
   } else if (status_ == -1) {
-    const int *pivotColumn = pivotColumn_.array();
+    const int *pivotColumn = pivotColumnArray_;
     // mark as basic or non basic
     for (i = 0; i < numberRows_; i++) {
       if (rowIsBasic[i] >= 0) {
@@ -433,10 +435,10 @@ int CoinFactorization::factorize(
     areaFactor_ = areaFactor;
   getAreas(numberOfRows, numberOfColumns, maximumL, maximumU);
   //copy
-  CoinMemcpyN(indicesRow, numberOfElements, indexRowU_.array());
-  CoinMemcpyN(indicesColumn, numberOfElements, indexColumnU_.array());
+  CoinMemcpyN(indicesRow, numberOfElements, indexRowUArray_);
+  CoinMemcpyN(indicesColumn, numberOfElements, indexColumnUArray_);
   int i;
-  CoinFactorizationDouble *COIN_RESTRICT elementU = elementU_.array();
+  CoinFactorizationDouble *COIN_RESTRICT elementU = elementUArray_;
   for (i = 0; i < numberOfElements; i++)
     elementU[i] = elements[i];
   lengthU_ = numberOfElements;
@@ -445,7 +447,7 @@ int CoinFactorization::factorize(
   factor();
   //say which column is pivoting on which row
   if (status_ == 0) {
-    int *COIN_RESTRICT permuteBack = permuteBack_.array();
+    int *COIN_RESTRICT permuteBack = permuteBackArray_;
     int *COIN_RESTRICT back = pivotColumnBack();
     // permute so slacks on own rows etc
     for (i = 0; i < numberOfColumns; i++) {
@@ -454,10 +456,10 @@ int CoinFactorization::factorize(
     // Set up permutation vector
     // these arrays start off as copies of permute
     // (and we could use permute_ instead of pivotColumn (not back though))
-    CoinMemcpyN(permute_.array(), numberRows_, pivotColumn_.array());
-    CoinMemcpyN(permuteBack_.array(), numberRows_, pivotColumnBack());
+    CoinMemcpyN(permuteArray_, numberRows_, pivotColumnArray_);
+    CoinMemcpyN(permuteBackArray_, numberRows_, pivotColumnBack());
   } else if (status_ == -1) {
-    const int *pivotColumn = pivotColumn_.array();
+    const int *pivotColumn = pivotColumnArray_;
     // mark as basic or non basic
     for (i = 0; i < numberOfColumns; i++) {
       if (pivotColumn[i] >= 0) {
@@ -493,9 +495,9 @@ int CoinFactorization::factorizePart1(int numberOfRows,
   getAreas(numberOfRows, numberOfRows, numberElements,
     2 * numberElements);
   // need to trap memory for -99 code
-  *indicesRow = indexRowU_.array();
-  *indicesColumn = indexColumnU_.array();
-  *elements = elementU_.array();
+  *indicesRow = indexRowUArray_;
+  *indicesColumn = indexColumnUArray_;
+  *elements = elementUArray_;
   lengthU_ = numberOfElements;
   maximumU_ = numberElements;
   return 0;
@@ -513,7 +515,7 @@ int CoinFactorization::factorizePart2(int permutation[], int exactNumberElements
   factor();
   //say which column is pivoting on which row
   int i;
-  int *COIN_RESTRICT permuteBack = permuteBack_.array();
+  int *COIN_RESTRICT permuteBack = permuteBackArray_;
   int *COIN_RESTRICT back = pivotColumnBack();
   // permute so slacks on own rows etc
   for (i = 0; i < numberColumns_; i++) {
@@ -523,10 +525,10 @@ int CoinFactorization::factorizePart2(int permutation[], int exactNumberElements
     // Set up permutation vector
     // these arrays start off as copies of permute
     // (and we could use permute_ instead of pivotColumn (not back though))
-    CoinMemcpyN(permute_.array(), numberRows_, pivotColumn_.array());
-    CoinMemcpyN(permuteBack_.array(), numberRows_, pivotColumnBack());
+    CoinMemcpyN(permuteArray_, numberRows_, pivotColumnArray_);
+    CoinMemcpyN(permuteBackArray_, numberRows_, pivotColumnBack());
   } else if (status_ == -1) {
-    const int *pivotColumn = pivotColumn_.array();
+    const int *pivotColumn = pivotColumnArray_;
     // mark as basic or non basic
     for (i = 0; i < numberColumns_; i++) {
       if (pivotColumn[i] >= 0) {
@@ -720,6 +722,7 @@ void CoinFactorization::getAreas(int numberOfRows,
 #endif
     biggerDimension_ = 0;
   }
+  setupPointers();
 }
 
 //  preProcess.  PreProcesses raw triplet data
@@ -727,15 +730,15 @@ void CoinFactorization::getAreas(int numberOfRows,
 void CoinFactorization::preProcess(int state,
   int)
 {
-  int *COIN_RESTRICT indexRow = indexRowU_.array();
-  int *COIN_RESTRICT indexColumn = indexColumnU_.array();
-  CoinFactorizationDouble *COIN_RESTRICT element = elementU_.array();
+  int *COIN_RESTRICT indexRow = indexRowUArray_;
+  int *COIN_RESTRICT indexColumn = indexColumnUArray_;
+  CoinFactorizationDouble *COIN_RESTRICT element = elementUArray_;
   int numberElements = lengthU_;
-  int *COIN_RESTRICT numberInRow = numberInRow_.array();
-  int *COIN_RESTRICT numberInColumn = numberInColumn_.array();
-  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlus_.array();
-  int *COIN_RESTRICT startRow = startRowU_.array();
-  int *COIN_RESTRICT startColumn = startColumnU_.array();
+  int *COIN_RESTRICT numberInRow = numberInRowArray_;
+  int *COIN_RESTRICT numberInColumn = numberInColumnArray_;
+  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlusArray_;
+  int *COIN_RESTRICT startRow = startRowUArray_;
+  int *COIN_RESTRICT startColumn = startColumnUArray_;
   int numberRows = numberRows_;
   int numberColumns = numberColumns_;
 
@@ -847,13 +850,13 @@ void CoinFactorization::preProcess(int state,
     }
   case 3: //links and initialize pivots
   {
-    int *COIN_RESTRICT lastRow = lastRow_.array();
-    int *COIN_RESTRICT nextRow = nextRow_.array();
-    int *COIN_RESTRICT lastColumn = lastColumn_.array();
-    int *COIN_RESTRICT nextColumn = nextColumn_.array();
+    int *COIN_RESTRICT lastRow = lastRowArray_;
+    int *COIN_RESTRICT nextRow = nextRowArray_;
+    int *COIN_RESTRICT lastColumn = lastColumnArray_;
+    int *COIN_RESTRICT nextColumn = nextColumnArray_;
 
-    CoinFillN(firstCount_.array(), biggerDimension_ + 2, -1);
-    CoinFillN(pivotColumn_.array(), numberColumns_, -1);
+    CoinFillN(firstCountArray_, biggerDimension_ + 2, -1);
+    CoinFillN(pivotColumnArray_, numberColumns_, -1);
     CoinZeroN(numberInColumnPlus, maximumColumnsExtra_ + 1);
     int iRow;
     for (iRow = 0; iRow < numberRows; iRow++) {
@@ -886,7 +889,7 @@ void CoinFactorization::preProcess(int state,
   case 4: //move largest in column to beginning
   {
     int i, k;
-    CoinFactorizationDouble *COIN_RESTRICT pivotRegion = pivotRegion_.array();
+    CoinFactorizationDouble *COIN_RESTRICT pivotRegion = pivotRegionArray_;
     int iColumn;
     int iRow;
     for (iRow = 0; iRow < numberRows; iRow++) {
@@ -973,10 +976,10 @@ void CoinFactorization::preProcess(int state,
     // modified 3
     {
       //set markRow so no rows updated
-      //CoinFillN ( markRow_.array(), numberRows_, -1 );
-      int *COIN_RESTRICT lastColumn = lastColumn_.array();
-      int *COIN_RESTRICT nextColumn = nextColumn_.array();
-      CoinFactorizationDouble *COIN_RESTRICT pivotRegion = pivotRegion_.array();
+      //CoinFillN ( markRowArray_, numberRows_, -1 );
+      int *COIN_RESTRICT lastColumn = lastColumnArray_;
+      int *COIN_RESTRICT nextColumn = nextColumnArray_;
+      CoinFactorizationDouble *COIN_RESTRICT pivotRegion = pivotRegionArray_;
 
       int iRow;
       int numberGood = 0;
@@ -1047,7 +1050,7 @@ int CoinFactorization::factor()
   printf("%.18g time in factorization, using %.18g (%d) -average %.18g\n",
     timeInFactorize, dUse, nUse, dUse / static_cast< double >(nUse));
   //collectStatistics_=true;
-  int *COIN_RESTRICT startColumnU = startColumnU_.array();
+  int *COIN_RESTRICT startColumnU = startColumnUArray_;
   int numberSlacksX = 0;
   for (int i = 0; i < numberRows_; i++) {
     if (startColumnU[i + 1] != startColumnU[i] + 1)
@@ -1086,19 +1089,19 @@ int CoinFactorization::factor()
   currentLengthU = 0;
   currentTakeoutU = 0;
 #endif
-  int *COIN_RESTRICT lastColumn = lastColumn_.array();
-  int *COIN_RESTRICT lastRow = lastRow_.array();
+  int *COIN_RESTRICT lastColumn = lastColumnArray_;
+  int *COIN_RESTRICT lastRow = lastRowArray_;
   //sparse
   status_ = factorSparse();
   switch (status_) {
   case 0: //finished
     totalElements_ = 0;
     {
-      int *COIN_RESTRICT pivotColumn = pivotColumn_.array();
+      int *COIN_RESTRICT pivotColumn = pivotColumnArray_;
       if (numberGoodU_ < numberRows_) {
         int i, k;
         // Clean out unset nextRow
-        int *COIN_RESTRICT nextRow = nextRow_.array();
+        int *COIN_RESTRICT nextRow = nextRowArray_;
         //int nSing =0;
         k = nextRow[maximumRowsExtra_];
         while (k != maximumRowsExtra_ && k >= 0) {
@@ -1111,7 +1114,7 @@ int CoinFactorization::factor()
         //printf("%d singularities - good %d rows %d\n",nSing,
         //     numberGoodU_,numberRows_);
         // Now nextRow has -1 or sequence into numberGoodU_;
-        int *COIN_RESTRICT permuteA = permute_.array();
+        int *COIN_RESTRICT permuteA = permuteArray_;
         for (i = 0; i < numberRows_; i++) {
           int iGood = nextRow[i];
           if (iGood >= 0)
@@ -1120,7 +1123,9 @@ int CoinFactorization::factor()
 
         // swap arrays
         permute_.swap(nextRow_);
-        int *COIN_RESTRICT permute = permute_.array();
+	permuteArray_ = permute_.array();
+	nextRowArray_ = nextRow_.array();
+        int *COIN_RESTRICT permute = permuteArray_;
         for (i = 0; i < numberRows_; i++) {
           lastRow[i] = -1;
         }
@@ -1197,18 +1202,18 @@ bool CoinFactorization::pivotRowSingleton(int pivotRow,
   int pivotColumn)
 {
   //store pivot columns (so can easily compress)
-  int *COIN_RESTRICT startColumnU = startColumnU_.array();
+  int *COIN_RESTRICT startColumnU = startColumnUArray_;
   int startColumn = startColumnU[pivotColumn];
-  int *COIN_RESTRICT numberInRow = numberInRow_.array();
-  int *COIN_RESTRICT numberInColumn = numberInColumn_.array();
+  int *COIN_RESTRICT numberInRow = numberInRowArray_;
+  int *COIN_RESTRICT numberInColumn = numberInColumnArray_;
   int numberDoColumn = numberInColumn[pivotColumn] - 1;
   int endColumn = startColumn + numberDoColumn + 1;
   int pivotRowPosition = startColumn;
-  int *COIN_RESTRICT indexRowU = indexRowU_.array();
+  int *COIN_RESTRICT indexRowU = indexRowUArray_;
   int iRow = indexRowU[pivotRowPosition];
-  int *COIN_RESTRICT startRowU = startRowU_.array();
-  int *COIN_RESTRICT nextRow = nextRow_.array();
-  int *COIN_RESTRICT lastRow = lastRow_.array();
+  int *COIN_RESTRICT startRowU = startRowUArray_;
+  int *COIN_RESTRICT nextRow = nextRowArray_;
+  int *COIN_RESTRICT lastRow = lastRowArray_;
 
   while (iRow != pivotRow) {
     pivotRowPosition++;
@@ -1224,21 +1229,21 @@ bool CoinFactorization::pivotRowSingleton(int pivotRow,
       std::cout << "more memory needed in middle of invert" << std::endl;
     return false;
   }
-  int *COIN_RESTRICT startColumnL = startColumnL_.array();
-  CoinFactorizationDouble *COIN_RESTRICT elementL = elementL_.array();
-  int *COIN_RESTRICT indexRowL = indexRowL_.array();
+  int *COIN_RESTRICT startColumnL = startColumnLArray_;
+  CoinFactorizationDouble *COIN_RESTRICT elementL = elementLArray_;
+  int *COIN_RESTRICT indexRowL = indexRowLArray_;
   startColumnL[numberGoodL_] = l; //for luck and first time
   numberGoodL_++;
   startColumnL[numberGoodL_] = l + numberDoColumn;
   lengthL_ += numberDoColumn;
-  CoinFactorizationDouble *COIN_RESTRICT elementU = elementU_.array();
+  CoinFactorizationDouble *COIN_RESTRICT elementU = elementUArray_;
   CoinFactorizationDouble pivotElement = elementU[pivotRowPosition];
   CoinFactorizationDouble pivotMultiplier = 1.0 / pivotElement;
 
-  pivotRegion_.array()[numberGoodU_] = pivotMultiplier;
+  pivotRegionArray_[numberGoodU_] = pivotMultiplier;
   int i;
 
-  int *COIN_RESTRICT indexColumnU = indexColumnU_.array();
+  int *COIN_RESTRICT indexColumnU = indexColumnUArray_;
   for (i = startColumn; i < pivotRowPosition; i++) {
     int iRow = indexRowU[i];
 
@@ -1303,20 +1308,20 @@ bool CoinFactorization::pivotRowSingleton(int pivotRow,
 bool CoinFactorization::pivotColumnSingleton(int pivotRow,
   int pivotColumn)
 {
-  int *COIN_RESTRICT numberInRow = numberInRow_.array();
-  int *COIN_RESTRICT numberInColumn = numberInColumn_.array();
-  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlus_.array();
+  int *COIN_RESTRICT numberInRow = numberInRowArray_;
+  int *COIN_RESTRICT numberInColumn = numberInColumnArray_;
+  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlusArray_;
   //store pivot columns (so can easily compress)
   int numberDoRow = numberInRow[pivotRow] - 1;
-  int *COIN_RESTRICT startColumnU = startColumnU_.array();
+  int *COIN_RESTRICT startColumnU = startColumnUArray_;
   int startColumn = startColumnU[pivotColumn];
   int put = 0;
-  int *COIN_RESTRICT startRowU = startRowU_.array();
+  int *COIN_RESTRICT startRowU = startRowUArray_;
   int startRow = startRowU[pivotRow];
   int endRow = startRow + numberDoRow + 1;
-  int *COIN_RESTRICT indexColumnU = indexColumnU_.array();
-  int *COIN_RESTRICT indexRowU = indexRowU_.array();
-  int *COIN_RESTRICT saveColumn = saveColumn_.array();
+  int *COIN_RESTRICT indexColumnU = indexColumnUArray_;
+  int *COIN_RESTRICT indexRowU = indexRowUArray_;
+  int *COIN_RESTRICT saveColumn = saveColumnArray_;
   int i;
 
   for (i = startRow; i < endRow; i++) {
@@ -1326,8 +1331,8 @@ bool CoinFactorization::pivotColumnSingleton(int pivotRow,
       saveColumn[put++] = iColumn;
     }
   }
-  int *COIN_RESTRICT nextRow = nextRow_.array();
-  int *COIN_RESTRICT lastRow = lastRow_.array();
+  int *COIN_RESTRICT nextRow = nextRowArray_;
+  int *COIN_RESTRICT lastRow = lastRowArray_;
   //take out this bit of indexColumnU
   int next = nextRow[pivotRow];
   int last = lastRow[pivotRow];
@@ -1337,10 +1342,10 @@ bool CoinFactorization::pivotColumnSingleton(int pivotRow,
   nextRow[pivotRow] = numberGoodU_; //use for permute
   lastRow[pivotRow] = -2; //mark
   //clean up counts
-  CoinFactorizationDouble *COIN_RESTRICT elementU = elementU_.array();
+  CoinFactorizationDouble *COIN_RESTRICT elementU = elementUArray_;
   CoinFactorizationDouble pivotElement = elementU[startColumn];
 
-  pivotRegion_.array()[numberGoodU_] = 1.0 / pivotElement;
+  pivotRegionArray_[numberGoodU_] = 1.0 / pivotElement;
   numberInColumn[pivotColumn] = 0;
   //totalElements_ --;
   //numberInColumnPlus[pivotColumn]++;
@@ -1413,7 +1418,7 @@ bool CoinFactorization::pivotColumnSingleton(int pivotRow,
   //put in dummy pivot in L
   int l = lengthL_;
 
-  int *COIN_RESTRICT startColumnL = startColumnL_.array();
+  int *COIN_RESTRICT startColumnL = startColumnLArray_;
   startColumnL[numberGoodL_] = l; //for luck and first time
   numberGoodL_++;
   startColumnL[numberGoodL_] = l;
@@ -1426,15 +1431,15 @@ bool CoinFactorization::pivotColumnSingleton(int pivotRow,
 bool CoinFactorization::getColumnSpace(int iColumn,
   int extraNeeded)
 {
-  int *COIN_RESTRICT numberInColumn = numberInColumn_.array();
-  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlus_.array();
-  int *COIN_RESTRICT nextColumn = nextColumn_.array();
-  int *COIN_RESTRICT lastColumn = lastColumn_.array();
+  int *COIN_RESTRICT numberInColumn = numberInColumnArray_;
+  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlusArray_;
+  int *COIN_RESTRICT nextColumn = nextColumnArray_;
+  int *COIN_RESTRICT lastColumn = lastColumnArray_;
   int number = numberInColumnPlus[iColumn] + numberInColumn[iColumn];
-  int *COIN_RESTRICT startColumnU = startColumnU_.array();
+  int *COIN_RESTRICT startColumnU = startColumnUArray_;
   int space = lengthAreaU_ - startColumnU[maximumColumnsExtra_];
-  CoinFactorizationDouble *COIN_RESTRICT elementU = elementU_.array();
-  int *COIN_RESTRICT indexRowU = indexRowU_.array();
+  CoinFactorizationDouble *COIN_RESTRICT elementU = elementUArray_;
+  int *COIN_RESTRICT indexRowU = indexRowUArray_;
 
   if (space < extraNeeded + number + 4) {
     //compression
@@ -1548,13 +1553,13 @@ bool CoinFactorization::getColumnSpace(int iColumn,
 bool CoinFactorization::getRowSpace(int iRow,
   int extraNeeded)
 {
-  int *COIN_RESTRICT numberInRow = numberInRow_.array();
+  int *COIN_RESTRICT numberInRow = numberInRowArray_;
   int number = numberInRow[iRow];
-  int *COIN_RESTRICT startRowU = startRowU_.array();
+  int *COIN_RESTRICT startRowU = startRowUArray_;
   int space = lengthAreaU_ - startRowU[maximumRowsExtra_];
-  int *COIN_RESTRICT nextRow = nextRow_.array();
-  int *COIN_RESTRICT lastRow = lastRow_.array();
-  int *COIN_RESTRICT indexColumnU = indexColumnU_.array();
+  int *COIN_RESTRICT nextRow = nextRowArray_;
+  int *COIN_RESTRICT lastRow = lastRowArray_;
+  int *COIN_RESTRICT indexColumnU = indexColumnUArray_;
 
   if (space < extraNeeded + number + 2) {
     //compression
@@ -1624,9 +1629,9 @@ bool CoinFactorization::reorderU()
 #else
   if (numberRows_ != numberColumns_)
     return false;
-  int *COIN_RESTRICT startColumnU = startColumnU_.array();
-  int *COIN_RESTRICT numberInColumn = numberInColumn_.array();
-  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlus_.array();
+  int *COIN_RESTRICT startColumnU = startColumnUArray_;
+  int *COIN_RESTRICT numberInColumn = numberInColumnArray_;
+  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlusArray_;
   int iColumn;
   int put = 0;
   for (iColumn = 0; iColumn < numberRows_; iColumn++)
@@ -1637,9 +1642,9 @@ bool CoinFactorization::reorderU()
     //   space,lengthAreaU_,put);
     return false;
   }
-  int *COIN_RESTRICT indexRowU = indexRowU_.array();
-  CoinFactorizationDouble *COIN_RESTRICT elementU = elementU_.array();
-  int *COIN_RESTRICT pivotColumn = pivotColumn_.array();
+  int *COIN_RESTRICT indexRowU = indexRowUArray_;
+  CoinFactorizationDouble *COIN_RESTRICT elementU = elementUArray_;
+  int *COIN_RESTRICT pivotColumn = pivotColumnArray_;
   put = startColumnU[maximumColumnsExtra_];
   for (int jColumn = 0; jColumn < numberRows_; jColumn++) {
     iColumn = pivotColumn[jColumn];
@@ -1680,13 +1685,15 @@ bool CoinFactorization::reorderU()
   }
 #if 0
   // reset nextColumn - probably not necessary
-  int *COIN_RESTRICT  nextColumn = nextColumn_.array();
+  int *COIN_RESTRICT  nextColumn = nextColumnArray_;
   nextColumn[maximumColumnsExtra_]=0;
   nextColumn[numberRows_-1] = maximumColumnsExtra_;
   for (iColumn=0;iColumn<numberRows_-1;iColumn++)
     nextColumn[iColumn]=iColumn+1;
   // swap arrays
   numberInColumn_.swap(numberInColumnPlus_);
+  numberInColumnArray_ = numberInColumn_.array();
+  numberInColumnPlusArray_ = numberInColumnPlus_.array();
 #endif
   //return false;
   return true;
@@ -1702,13 +1709,17 @@ void CoinFactorization::cleanup()
     getColumnSpace(0, COIN_INT_MAX >> 1); //compress
     // swap arrays
     numberInColumn_.swap(numberInColumnPlus_);
+    numberInColumnArray_ = numberInColumn_.array();
+    numberInColumnPlusArray_ = numberInColumnPlus_.array();
   }
 #else
   getColumnSpace(0, COIN_INT_MAX >> 1); //compress
   // swap arrays
   numberInColumn_.swap(numberInColumnPlus_);
+  numberInColumnArray_ = numberInColumn_.array();
+  numberInColumnPlusArray_ = numberInColumnPlus_.array();
 #endif
-  int *COIN_RESTRICT startColumnU = startColumnU_.array();
+  int *COIN_RESTRICT startColumnU = startColumnUArray_;
   int lastU = startColumnU[maximumColumnsExtra_];
 
   //free some memory here
@@ -1717,9 +1728,9 @@ void CoinFactorization::cleanup()
   //firstCount_.conditionalDelete() ;
   nextCount_.conditionalDelete();
   lastCount_.conditionalDelete();
-  int *COIN_RESTRICT numberInRow = numberInRow_.array();
-  int *COIN_RESTRICT numberInColumn = numberInColumn_.array();
-  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlus_.array();
+  int *COIN_RESTRICT numberInRow = numberInRowArray_;
+  int *COIN_RESTRICT numberInColumn = numberInColumnArray_;
+  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlusArray_;
   //make column starts OK
   //for best cache behavior get in order (last pivot at bottom of space)
   //that will need thinking about
@@ -1733,7 +1744,7 @@ void CoinFactorization::cleanup()
     char *mark = new char[numberRows_];
     memset(mark, 0, numberRows_);
     int *COIN_RESTRICT array;
-    array = nextRow_.array();
+    array = nextRowArray_;
     for (i = 0; i < numberRows_; i++) {
       int k = array[i];
       if (k < 0 || k >= numberRows_)
@@ -1753,11 +1764,14 @@ void CoinFactorization::cleanup()
 #endif
   // swap arrays
   permute_.swap(nextRow_);
+  permuteArray_ = permute_.array();
+  nextRowArray_ = nextRow_.array();
   //safety feature
-  int *COIN_RESTRICT permute = permute_.array();
+  int *COIN_RESTRICT permute = permuteArray_;
   permute[numberRows_] = 0;
   permuteBack_.conditionalNew(maximumRowsExtra_ + 1);
   int *COIN_RESTRICT permuteBack = permuteBack_.array();
+  permuteBackArray_ = permuteBack;
 #ifdef ZEROFAULT
   memset(permuteBack_.array(), 'w', (maximumRowsExtra_ + 1) * sizeof(int));
 #endif
@@ -1795,10 +1809,11 @@ void CoinFactorization::cleanup()
 #endif
   const int *pivotColumn = pivotColumn_.array();
   int *COIN_RESTRICT pivotColumnB = pivotColumnBack();
-  int *COIN_RESTRICT indexColumnU = indexColumnU_.array();
+  pivotColumnBackArray_ = pivotColumnB;
+  int *COIN_RESTRICT indexColumnU = indexColumnUArray_;
   int *COIN_RESTRICT startColumn = startColumnU;
-  int *COIN_RESTRICT indexRowU = indexRowU_.array();
-  CoinFactorizationDouble *COIN_RESTRICT elementU = elementU_.array();
+  int *COIN_RESTRICT indexRowU = indexRowUArray_;
+  CoinFactorizationDouble *COIN_RESTRICT elementU = elementUArray_;
 #if COIN_ONE_ETA_COPY
   if (!compressDone) {
 #endif
@@ -1838,7 +1853,7 @@ void CoinFactorization::cleanup()
       } /* endwhile */
     }
     //sort - using indexColumn
-    CoinFillN(indexColumnU_.array(), lastU, -1);
+    CoinFillN(indexColumnUArray_, lastU, -1);
     int k = 0;
 
     for (i = numberSlacks_; i < numberRows_; i++) {
@@ -1900,8 +1915,8 @@ void CoinFactorization::cleanup()
   }
   // and add L and dense
   totalElements_ += numberDense_ * numberDense_ + lengthL_;
-  int *COIN_RESTRICT nextColumn = nextColumn_.array();
-  int *COIN_RESTRICT lastColumn = lastColumn_.array();
+  int *COIN_RESTRICT nextColumn = nextColumnArray_;
+  int *COIN_RESTRICT lastColumn = lastColumnArray_;
   // See whether to have extra copy of R
 #ifndef ABC_USE_COIN_FACTORIZATION
   if (maximumU_ > 10 * numberRows_ || numberRows_ < 200) {
@@ -1932,7 +1947,7 @@ void CoinFactorization::cleanup()
     }
   }
 #endif
-  CoinFactorizationDouble *COIN_RESTRICT pivotRegion = pivotRegion_.array();
+  CoinFactorizationDouble *COIN_RESTRICT pivotRegion = pivotRegionArray_;
   for (i = numberSlacks_; i < numberU; i++) {
     int start = startColumnU[i];
     int end = start + numberInColumn[i];
@@ -1954,8 +1969,9 @@ void CoinFactorization::cleanup()
     int lengthU = lengthAreaU_ + EXTRA_U_SPACE;
     convertRowToColumnU_.conditionalNew(lengthU);
     int *COIN_RESTRICT convertRowToColumn = convertRowToColumnU_.array();
+    convertRowToColumnUArray_ = convertRowToColumn;
     int j = 0;
-    int *COIN_RESTRICT startRow = startRowU_.array();
+    int *COIN_RESTRICT startRow = startRowUArray_;
 
     int iRow;
     for (iRow = 0; iRow < numberRows_; iRow++) {
@@ -1964,7 +1980,7 @@ void CoinFactorization::cleanup()
     }
     int numberInU = j;
 
-    CoinZeroN(numberInRow_.array(), numberRows_);
+    CoinZeroN(numberInRowArray_, numberRows_);
 
     for (i = numberSlacks_; i < numberRows_; i++) {
       int start = startColumnU[i];
@@ -1986,8 +2002,8 @@ void CoinFactorization::cleanup()
         elementU[j] *= pivotValue;
       }
     }
-    int *COIN_RESTRICT nextRow = nextRow_.array();
-    int *COIN_RESTRICT lastRow = lastRow_.array();
+    int *COIN_RESTRICT nextRow = nextRowArray_;
+    int *COIN_RESTRICT lastRow = lastRowArray_;
     for (j = 0; j < numberRows_; j++) {
       lastRow[j] = j - 1;
       nextRow[j] = j + 1;
@@ -2017,8 +2033,8 @@ void CoinFactorization::cleanup()
 
   int firstReal = numberRows_;
 
-  int *COIN_RESTRICT startColumnL = startColumnL_.array();
-  int *COIN_RESTRICT indexRowL = indexRowL_.array();
+  int *COIN_RESTRICT startColumnL = startColumnLArray_;
+  int *COIN_RESTRICT indexRowL = indexRowLArray_;
   for (i = numberRows_ - 1; i >= 0; i--) {
     int start = startColumnL[i];
     int end = startColumnL[i + 1];
@@ -2050,7 +2066,7 @@ void CoinFactorization::cleanup()
   if (needed < 2 * numberRows_) {
     needed = 2 * numberRows_;
   }
-  if (numberInColumnPlus_.array()) {
+  if (numberInColumnPlusArray_) {
     // Need double the space for R
     space = space / 2;
     startColumnR_.conditionalNew(maximumPivots_ + 1 + maximumColumnsExtra_ + 1);
@@ -2059,19 +2075,20 @@ void CoinFactorization::cleanup()
   } else {
     startColumnR_.conditionalNew(maximumPivots_ + 1);
   }
+  startColumnRArray_ = startColumnR_.array();
 #ifdef ZEROFAULT
   memset(startColumnR_.array(), 'z', (maximumPivots_ + 1) * sizeof(int));
 #endif
   if (space >= needed) {
     lengthR_ = 0;
     lengthAreaR_ = space;
-    elementR_ = elementL_.array() + lengthL_;
-    indexRowR_ = indexRowL_.array() + lengthL_;
+    elementR_ = elementLArray_ + lengthL_;
+    indexRowR_ = indexRowLArray_ + lengthL_;
   } else {
     lengthR_ = 0;
     lengthAreaR_ = space;
-    elementR_ = elementL_.array() + lengthL_;
-    indexRowR_ = indexRowL_.array() + lengthL_;
+    elementR_ = elementLArray_ + lengthL_;
+    indexRowR_ = indexRowLArray_ + lengthL_;
     if ((messageLevel_ & 4))
       std::cout << "Factorization may need some increasing area space"
                 << std::endl;
@@ -2082,6 +2099,7 @@ void CoinFactorization::cleanup()
     }
   }
   numberR_ = 0;
+  setupPointers();
 }
 // Returns areaFactor but adjusted for dense
 double
@@ -2103,12 +2121,12 @@ void CoinFactorization::checkConsistency()
   bool bad = false;
 
   int iRow;
-  int *COIN_RESTRICT startRowU = startRowU_.array();
-  int *COIN_RESTRICT numberInRow = numberInRow_.array();
-  int *COIN_RESTRICT numberInColumn = numberInColumn_.array();
-  int *COIN_RESTRICT indexColumnU = indexColumnU_.array();
-  int *COIN_RESTRICT indexRowU = indexRowU_.array();
-  int *COIN_RESTRICT startColumnU = startColumnU_.array();
+  int *COIN_RESTRICT startRowU = startRowUArray_;
+  int *COIN_RESTRICT numberInRow = numberInRowArray_;
+  int *COIN_RESTRICT numberInColumn = numberInColumnArray_;
+  int *COIN_RESTRICT indexColumnU = indexColumnUArray_;
+  int *COIN_RESTRICT indexRowU = indexRowUArray_;
+  int *COIN_RESTRICT startColumnU = startColumnUArray_;
   for (iRow = 0; iRow < numberRows_; iRow++) {
     if (numberInRow[iRow]) {
       int startRow = startRowU[iRow];
@@ -2170,19 +2188,19 @@ void CoinFactorization::checkConsistency()
 bool CoinFactorization::pivotOneOtherRow(int pivotRow,
   int pivotColumn)
 {
-  int *COIN_RESTRICT numberInRow = numberInRow_.array();
-  int *COIN_RESTRICT numberInColumn = numberInColumn_.array();
-  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlus_.array();
+  int *COIN_RESTRICT numberInRow = numberInRowArray_;
+  int *COIN_RESTRICT numberInColumn = numberInColumnArray_;
+  int *COIN_RESTRICT numberInColumnPlus = numberInColumnPlusArray_;
   int numberInPivotRow = numberInRow[pivotRow] - 1;
-  int *COIN_RESTRICT startRowU = startRowU_.array();
-  int *COIN_RESTRICT startColumnU = startColumnU_.array();
+  int *COIN_RESTRICT startRowU = startRowUArray_;
+  int *COIN_RESTRICT startColumnU = startColumnUArray_;
   int startColumn = startColumnU[pivotColumn];
   int startRow = startRowU[pivotRow];
   int endRow = startRow + numberInPivotRow + 1;
 
   //take out this bit of indexColumnU
-  int *COIN_RESTRICT nextRow = nextRow_.array();
-  int *COIN_RESTRICT lastRow = lastRow_.array();
+  int *COIN_RESTRICT nextRow = nextRowArray_;
+  int *COIN_RESTRICT lastRow = lastRowArray_;
   int next = nextRow[pivotRow];
   int last = lastRow[pivotRow];
 
@@ -2202,9 +2220,9 @@ bool CoinFactorization::pivotOneOtherRow(int pivotRow,
   }
   //l+=currentAreaL_->elementByColumn-elementL_;
   //int lSave=l;
-  int *COIN_RESTRICT startColumnL = startColumnL_.array();
-  CoinFactorizationDouble *COIN_RESTRICT elementL = elementL_.array();
-  int *COIN_RESTRICT indexRowL = indexRowL_.array();
+  int *COIN_RESTRICT startColumnL = startColumnLArray_;
+  CoinFactorizationDouble *COIN_RESTRICT elementL = elementLArray_;
+  int *COIN_RESTRICT indexRowL = indexRowLArray_;
   startColumnL[numberGoodL_] = l; //for luck and first time
   numberGoodL_++;
   startColumnL[numberGoodL_] = l + 1;
@@ -2212,9 +2230,9 @@ bool CoinFactorization::pivotOneOtherRow(int pivotRow,
   CoinFactorizationDouble pivotElement;
   CoinFactorizationDouble otherMultiplier;
   int otherRow;
-  int *COIN_RESTRICT saveColumn = saveColumn_.array();
-  CoinFactorizationDouble *COIN_RESTRICT elementU = elementU_.array();
-  int *COIN_RESTRICT indexRowU = indexRowU_.array();
+  int *COIN_RESTRICT saveColumn = saveColumnArray_;
+  CoinFactorizationDouble *COIN_RESTRICT elementU = elementUArray_;
+  int *COIN_RESTRICT indexRowU = indexRowUArray_;
 
   if (indexRowU[startColumn] == pivotRow) {
     pivotElement = elementU[startColumn];
@@ -2228,7 +2246,7 @@ bool CoinFactorization::pivotOneOtherRow(int pivotRow,
   int numberSave = numberInRow[otherRow];
   CoinFactorizationDouble pivotMultiplier = 1.0 / pivotElement;
 
-  CoinFactorizationDouble *COIN_RESTRICT pivotRegion = pivotRegion_.array();
+  CoinFactorizationDouble *COIN_RESTRICT pivotRegion = pivotRegionArray_;
   pivotRegion[numberGoodU_] = pivotMultiplier;
   numberInColumn[pivotColumn] = 0;
   otherMultiplier = otherMultiplier * pivotMultiplier;
@@ -2238,7 +2256,7 @@ bool CoinFactorization::pivotOneOtherRow(int pivotRow,
   int start = startRowU[otherRow];
   int end = start + numberSave;
   int where = start;
-  int *COIN_RESTRICT indexColumnU = indexColumnU_.array();
+  int *COIN_RESTRICT indexColumnU = indexColumnUArray_;
 
   while (indexColumnU[where] != pivotColumn) {
     where++;
@@ -2251,8 +2269,8 @@ bool CoinFactorization::pivotOneOtherRow(int pivotRow,
 
   //pack down and move to work
   int j;
-  const int *nextCount = nextCount_.array();
-  int *COIN_RESTRICT nextColumn = nextColumn_.array();
+  const int *nextCount = nextCountArray_;
+  int *COIN_RESTRICT nextColumn = nextColumnArray_;
 
   for (j = startRow; j < endRow; j++) {
     int iColumn = indexColumnU[j];
@@ -2523,6 +2541,41 @@ void CoinFactorization::almostDestructor()
 {
   gutsOfDestructor(2);
 }
-
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/
+// Sets up all array pointers
+void CoinFactorization::setupPointers()
+{
+  pivotColumnArray_ = pivotColumn_.array();
+  permuteArray_ = permute_.array();
+  permuteBackArray_ = permuteBack_.array();
+  pivotColumnBackArray_ = pivotColumnBack_.array();
+  startRowUArray_ = startRowU_.array();
+  numberInRowArray_ = numberInRow_.array();
+  numberInColumnArray_ = numberInColumn_.array();
+  numberInColumnPlusArray_ = numberInColumnPlus_.array();
+  firstCountArray_ = firstCount_.array();
+  nextCountArray_ = nextCount_.array();
+  lastCountArray_ = lastCount_.array();
+  nextColumnArray_ = nextColumn_.array();
+  lastColumnArray_ = lastColumn_.array();
+  nextRowArray_ = nextRow_.array();
+  lastRowArray_ = lastRow_.array();
+  saveColumnArray_ = saveColumn_.array();
+  markRowArray_ = markRow_.array();
+  indexColumnUArray_ = indexColumnU_.array();
+  pivotRowLArray_ = pivotRowL_.array();
+  pivotRegionArray_ = pivotRegion_.array();
+  elementUArray_ = elementU_.array();
+  indexRowUArray_ = indexRowU_.array();
+  startColumnUArray_ = startColumnU_.array();
+  convertRowToColumnUArray_ = convertRowToColumnU_.array();
+  elementLArray_ = elementL_.array();
+  indexRowLArray_ = indexRowL_.array();
+  startColumnLArray_ = startColumnL_.array();
+  startColumnRArray_ = startColumnR_.array();
+  workAreaArray_ = workArea_.array();
+  workArea2Array_ = workArea2_.array();
+  startRowLArray_ = startRowL_.array();
+  indexColumnLArray_ = indexColumnL_.array();
+  elementByRowLArray_ = elementByRowL_.array();
+  sparseArray_ = sparse_.array();
+}
