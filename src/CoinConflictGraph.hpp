@@ -80,7 +80,7 @@ public:
    * the array may be a pointer to temp if the temporary storage
    * area was used or a pointer to an array in the conflict graph itself.
    **/
-  std::pair< size_t, const size_t* > conflictingNodes ( size_t node, size_t* temp, bool *iv ) const;
+  std::pair< size_t, const size_t* > conflictingNodes ( size_t node, size_t* temp, char *iv ) const;
 
   /**
    * Density of the conflict graph:

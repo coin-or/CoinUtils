@@ -84,8 +84,8 @@ CoinOddWheelSeparator::CoinOddWheelSeparator(const CoinConflictGraph *cgraph, co
             }
         }
 
-        iv_ = (bool *) xcalloc(cgSize, sizeof(bool));
-        iv2_ = (bool *) xcalloc(cgSize, sizeof(bool));
+        iv_ = (char *) xcalloc(cgSize, sizeof(char));
+        iv2_ = (char *) xcalloc(cgSize, sizeof(char));
 
         spf_ = NULL;
 
@@ -279,16 +279,16 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
 
         if (iv_[tmp_[i]]) { //repeated entry
             for (size_t j = 0; j <= i; j++) {
-                iv_[tmp_[j]] = false;
+                iv_[tmp_[j]] = 0;
             }
             return;
         }
 
-        iv_[tmp_[i]] = true;
+        iv_[tmp_[i]] = 1;
     }
     // clearing iv
     for (size_t i = 0; i < oddSize; i++) {
-        iv_[tmp_[i]] = false;
+        iv_[tmp_[i]] = 0;
     }
 
     /* checking if it is violated */
@@ -332,7 +332,7 @@ bool CoinOddWheelSeparator::alreadyInserted(size_t nz, const size_t *idxs) {
     bool repeated = false;
 
     for (size_t i = 0; i < nz; i++) {
-        iv_[idxs[i]] = true;
+        iv_[idxs[i]] = 1;
     }
 
     for (size_t idxOH = 0; idxOH < numOH_; idxOH++) {
@@ -359,7 +359,7 @@ bool CoinOddWheelSeparator::alreadyInserted(size_t nz, const size_t *idxs) {
 
     // clearing iv
     for (size_t i = 0; i < nz; i++) {
-        iv_[idxs[i]] = false;
+        iv_[idxs[i]] = 0;
     }
 
     return repeated;
@@ -380,7 +380,7 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
 
     /* picking node with the smallest degree */
     size_t nodeSD = ohIdxs[0], minDegree = cgraph_->degree(ohIdxs[0]);
-    iv_[ohIdxs[0]] = true;
+    iv_[ohIdxs[0]] = 1;
     for (size_t i = 1; i < ohSize; i++) {
         const size_t dg = cgraph_->degree(ohIdxs[i]);
         if (dg < minDegree) {
@@ -388,7 +388,7 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
             nodeSD = ohIdxs[i];
         }
 
-        iv_[ohIdxs[i]] = true;
+        iv_[ohIdxs[i]] = 1;
     }
 
     // generating candidates
@@ -471,7 +471,7 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
 
     // clearing iv
     for (size_t i = 0; i < ohSize; i++) {
-        iv_[ohIdxs[i]] = false;
+        iv_[ohIdxs[i]] = 0;
     }
 }
 

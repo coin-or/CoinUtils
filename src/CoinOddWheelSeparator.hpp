@@ -198,7 +198,7 @@ private:
   /**
    * Auxiliary incidence arrays
    **/
-  bool *iv_, *iv2_;
+  char *iv_, *iv2_;
 
   /**
    * Class that contains the shortest path algorithm.

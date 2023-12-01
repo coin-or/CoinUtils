@@ -380,7 +380,7 @@ void CoinBronKerbosch::computeFitness(const double *weights) {
         }
         case 5: { //modified weight
             size_t *neighs = (size_t*)xmalloc(sizeof(size_t) * cgraph_->size());
-            bool *iv = (bool*)xcalloc(cgraph_->size(), sizeof(bool));
+            char *iv = (char*)xcalloc(cgraph_->size(), sizeof(char));
             for (size_t u = 0; u < nVertices_; u++) {
                 const size_t uIdx = vertices_[u].idx;
                 const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(uIdx, neighs, iv);
@@ -397,7 +397,7 @@ void CoinBronKerbosch::computeFitness(const double *weights) {
         }
         case 6: { //modified degree + modified weight
             size_t *neighs = (size_t*)xmalloc(sizeof(size_t) * cgraph_->size());
-            bool *iv = (bool*)xcalloc(cgraph_->size(), sizeof(bool));
+            char *iv = (char*)xcalloc(cgraph_->size(), sizeof(char));
             for (size_t u = 0; u < nVertices_; u++) {
                 const size_t uIdx = vertices_[u].idx;
                 const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(uIdx, neighs, iv);

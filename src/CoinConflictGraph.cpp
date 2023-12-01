@@ -116,15 +116,15 @@ void CoinConflictGraph::recomputeDegree() {
     minDegree_ = numeric_limits<size_t>::max();
     maxDegree_ = numeric_limits<size_t>::min();
 
-    vector<bool> iv(size_, false);
+    char *iv = (char *) xcalloc(size_, sizeof(char));
 
     for (size_t i = 0; (i < size_); ++i) {
         const size_t ndc = nDirectConflicts(i);
         const size_t *dc = directConflicts(i);
 
-        iv[i] = true;
+        iv[i] = 1;
         for (size_t k = 0; k < ndc; k++) {
-            iv[dc[k]] = true;
+            iv[dc[k]] = 1;
         }
 
         size_t dg = ndc;
@@ -137,19 +137,19 @@ void CoinConflictGraph::recomputeDegree() {
             for (size_t l = 0; (l < clqsize); ++l) {
                 const size_t clqEl = clqEls[l];
                 dg += 1 - ((int) iv[clqEl]);
-                iv[clqEl] = true;
+                iv[clqEl] = 1;
             }
         }
 
-        iv[i] = false;
+        iv[i] = 0;
         for (size_t k = 0; (k < ndc); ++k)
-            iv[dc[k]] = false;
+            iv[dc[k]] = 0;
         for (size_t k = 0; (k < nnc); ++k) {
             const size_t idxc = nc[k];
             const size_t clqsize = this->cliqueSize(idxc);
             const size_t *clqEls = this->cliqueElements(idxc);
             for (size_t l = 0; (l < clqsize); ++l) {
-                iv[clqEls[l]] = false;
+                iv[clqEls[l]] = 0;
             }
         }
 
@@ -160,9 +160,11 @@ void CoinConflictGraph::recomputeDegree() {
         nConflicts_ += dg;
     }
 
+    free(iv);
     density_ = (double) nConflicts_ / maxConflicts_;
     double secs = CoinCpuTime() - start;
-//  printf("recompute degree took %.3f seconds.\n", secs);
+    if (secs>1.0)
+      printf("recompute degree took %.3f seconds!\n", secs);
 }
 
 void CoinConflictGraph::computeModifiedDegree() {
@@ -170,17 +172,17 @@ void CoinConflictGraph::computeModifiedDegree() {
         return;
     }
 
-    bool *iv = (bool *) xcalloc(size_, sizeof(bool));
+    char *iv = (char *) xcalloc(size_, sizeof(char));
 
     for (size_t i = 0; i < size_; i++) {
         const size_t ndc = nDirectConflicts(i);
         const size_t *dc = directConflicts(i);
         size_t mdegree = degree(i);
 
-        iv[i] = true;
+        iv[i] = 1;
         for (size_t k = 0; k < ndc; k++) {
             mdegree += degree(dc[k]);
-            iv[dc[k]] = true;
+            iv[dc[k]] = 1;
         }
 
         const size_t nnc = nNodeCliques(i);
@@ -190,7 +192,7 @@ void CoinConflictGraph::computeModifiedDegree() {
             for (size_t l = 0; l < cliqueSize(nc[k]); l++) {
                 if (!iv[clqEls[l]]) {
                     mdegree += degree(clqEls[l]);
-                    iv[clqEls[l]] = true;
+                    iv[clqEls[l]] = 1;
                 }
             }
         }
@@ -198,14 +200,14 @@ void CoinConflictGraph::computeModifiedDegree() {
         setModifiedDegree(i, mdegree);
 
         //clearing iv
-        iv[i] = false;
+        iv[i] = 0;
         for (size_t k = 0; k < ndc; k++) {
-            iv[dc[k]] = false;
+            iv[dc[k]] = 0;
         }
         for (size_t k = 0; k < nnc; k++) {
             const size_t *clqEls = cliqueElements(nc[k]);
             for (size_t l = 0; l < cliqueSize(nc[k]); l++) {
-                iv[clqEls[l]] = false;
+                iv[clqEls[l]] = 0;
             }
         }
     }
@@ -214,16 +216,16 @@ void CoinConflictGraph::computeModifiedDegree() {
     free(iv);
 }
 
-std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t node, size_t *temp, bool *iv) const {
+std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t node, size_t *temp, char *iv) const {
     if (nNodeCliques(node)) {
         const size_t ndc = nDirectConflicts(node);
         const size_t *dc = directConflicts(node);
 
         // adding direct conflicts and after conflicts from cliques
-        iv[node] = true;
+        iv[node] = 1;
         for (size_t k = 0; k < ndc; k++) {
             temp[k] = dc[k];
-            iv[dc[k]] = true;
+            iv[dc[k]] = 1;
         }
 
         size_t nConf = ndc;
@@ -236,7 +238,7 @@ std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t nod
                 const size_t neigh = cliqueElements(idxClq)[j];
                 if (!iv[neigh]) {
                     temp[nConf++] = neigh;
-                    iv[neigh] = true;
+                    iv[neigh] = 1;
                 }
             }
         }
@@ -246,9 +248,9 @@ std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t nod
 #endif
 
         // clearing iv
-        iv[node] = false;
+        iv[node] = 0;
         for (size_t i = 0; (i < nConf); ++i)
-            iv[temp[i]] = false;
+            iv[temp[i]] = 0;
 
         std::sort(temp, temp + nConf);
         return std::pair<size_t, const size_t *>(nConf, temp);
@@ -334,7 +336,7 @@ void CoinConflictGraph::printSummary() const {
 
     if (numEdges) {
         size_t *neighs = (size_t *) xmalloc(sizeof(size_t) * size_);
-        bool *iv = (bool*)xcalloc(size_, sizeof(bool));
+	char *iv = (char *) xcalloc(size_, sizeof(char));
 
         avgDegree = ((double) numEdges) / ((double) numVertices);
         density = (2.0 * ((double) numEdges)) / (((double) numVertices) * (((double) numVertices) - 1.0));

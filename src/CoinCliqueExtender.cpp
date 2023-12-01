@@ -58,8 +58,8 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
     newClique_ = (size_t*)xmalloc(sizeof(size_t) * cgSize);
     costs_ = NULL;
 
-    iv_ = (bool*)xcalloc(cgSize, sizeof(bool));
-    iv2_ = (bool*)xcalloc(cgSize, sizeof(bool));
+    iv_ = (char*)xcalloc(cgSize, sizeof(char));
+    iv2_ = (char*)xcalloc(cgSize, sizeof(char));
 
     extMethod_ = extMethod;
     rc_ = rc;
@@ -298,7 +298,7 @@ void CoinCliqueExtender::fillCandidates(const size_t *clqIdxs, const size_t clqS
         }
 
         newClique_[nNewClique_++] = clqIdx;
-        iv_[clqIdx] = true;
+        iv_[clqIdx] = 1;
     }
 
     const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(nodeSD, candidates_, iv2_);
@@ -327,7 +327,7 @@ void CoinCliqueExtender::fillCandidates(const size_t *clqIdxs, const size_t clqS
     }
 
     for (size_t i = 0; i < clqSize; i++) {
-        iv_[clqIdxs[i]] = false;
+        iv_[clqIdxs[i]] = 0;
     }
 
 #ifdef DEBUGCG

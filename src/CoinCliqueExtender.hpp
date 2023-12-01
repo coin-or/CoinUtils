@@ -150,7 +150,7 @@ private:
   /**
    * Auxiliary incidence vectors
    **/
-  bool *iv_, *iv2_;
+  char *iv_, *iv2_;
 
   /**
    * Array containing the reduced cost associated
