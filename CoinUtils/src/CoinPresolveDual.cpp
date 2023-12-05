@@ -200,7 +200,7 @@ const CoinPresolveAction
      4 - fixed
      8 - don't touch
   */
-  char *active = reinterpret_cast< char * >(prob->usefulColumnInt_);
+  char *active = reinterpret_cast< char * >(prob->usefulColumnInt_+ncols);
   memset(active, 0, ncols);
   //int nOneBound = 0;
   int numberLook = prob->numberColsToDo_;
