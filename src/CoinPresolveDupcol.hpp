@@ -12,6 +12,11 @@
 */
 
 #define DUPCOL 10
+#ifndef CBC_PREPROCESS_EXPERIMENT
+#define CBC_PREPROCESS_EXPERIMENT 1
+#elif CBC_PREPROCESS_EXPERIMENT == 0
+#undef CBC_PREPROCESS_EXPERIMENT
+#endif
 
 /*! \class dupcol_action
     \brief Detect and remove duplicate columns
