@@ -2164,6 +2164,15 @@ const CoinPresolveAction
 	  printf("row1 %g <= %g x0 + %g x1 <= %g - translated %g x0 + %g x1 <= %g\n",
 		 rlo[row1],els1x[0],els1x[1],rup[row1],els[1][0],els[1][1],rhs[1]);
 #endif
+	  // Coding below has a bug - very complicated
+	  // so just check for duplicate when flipped
+	  if (rhs[0]==rhs[1]&&els[0][0]==els[1][0]&&els[0][1]==els[1][1]) {
+	    // duplicate
+	    // make row0 free
+	    rlo[row0]=-COIN_DBL_MAX;
+	    rup[row0]=COIN_DBL_MAX;
+	  }
+	  continue;
 	  double value0=COIN_DBL_MAX;
 	  double value1=COIN_DBL_MAX;
 	  if (obj[0]>0.0) {
