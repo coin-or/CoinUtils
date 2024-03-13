@@ -29,7 +29,7 @@ jobs:
             download_requirements: brew install metis bash
           - os: macos-13
             build_static: false
-            flags: CC=gcc-13 CXX=g++-13 OSX=13
+            flags: CC=gcc-13 CXX=g++-13 OSX=13 ADD_CXXFLAGS=-Wl,-ld_classic
             download_requirements: brew install metis bash
     steps:
       - name: Checkout source
