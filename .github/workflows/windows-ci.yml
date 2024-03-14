@@ -128,7 +128,7 @@ jobs:
         if: ${{ matrix.arch != 'msvc' }}
       - name: Upload artifact
         if: ${{ github.event_name == 'pull_request'}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-${{ env.package_suffix }}
           path: dist
