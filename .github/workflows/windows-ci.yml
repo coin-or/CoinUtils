@@ -28,11 +28,11 @@ jobs:
         ]
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ github.event.repository.name }}
       - name: Checkout coinbrew
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: coin-or/coinbrew
           path: coinbrew
@@ -41,7 +41,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
       - name: Set up for msvs
         if: ${{ matrix.arch == 'msvs' }}
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v2
       - name: Set correct host flag and install requirements
         if: ${{ matrix.arch != 'msvc' && matrix.arch != 'msvs' }}
         run: |
@@ -110,7 +110,7 @@ jobs:
           cp ${{ github.event.repository.name }}/LICENSE dist/
         shell: msys2 {0}
       - name: Upload failed build directory
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: ${{ matrix.os}}-{{ matrix.arch }}-debug=${{ matrix.debug }}-failedbuild
@@ -128,9 +128,9 @@ jobs:
         if: ${{ matrix.arch != 'msvc' }}
       - name: Upload artifact
         if: ${{ github.event_name == 'pull_request'}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ github.head_ref }}-${{ env.package_suffix }}
+          name: ${{ github.event.repository.name }}-${{ env.package_suffix }}
           path: dist
           if-no-files-found: error
       - name: Zip up dist contents for release
