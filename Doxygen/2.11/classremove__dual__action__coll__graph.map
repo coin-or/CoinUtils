@@ -1,7 +1,0 @@
-<map id="remove_dual_action" name="remove_dual_action">
-<area shape="rect" id="node1" title="Attempt to fix variables by bounding reduced costs." alt="" coords="172,213,311,240"/>
-<area shape="rect" id="node2" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="5,117,141,143"/>
-<area shape="rect" id="node3" title=" " alt="" coords="262,5,301,32"/>
-<area shape="rect" id="node4" href="$structremove__dual__action_1_1action.html" title="Postsolve (bound restore) instruction." alt="" coords="325,109,464,151"/>
-<area shape="rect" id="node5" title=" " alt="" coords="365,5,425,32"/>
-</map>

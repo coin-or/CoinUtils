@@ -1,9 +1,0 @@
-<map id="CoinSnapshot" name="CoinSnapshot">
-<area shape="rect" id="node1" title="NON Abstract Base Class for interfacing with cut generators or branching code or ." alt="" coords="326,568,429,595"/>
-<area shape="rect" id="node2" title=" " alt="" coords="24,5,84,32"/>
-<area shape="rect" id="node6" href="$classCoinPackedMatrix.html" title="Sparse Matrix Base Class." alt="" coords="169,331,296,357"/>
-<area shape="rect" id="node3" title=" " alt="" coords="688,331,734,357"/>
-<area shape="rect" id="node4" title=" " alt="" coords="358,5,397,32"/>
-<area shape="rect" id="node5" href="$structCoinSnapshot_1_1coinOwned.html" title="To say whether arrays etc are owned by CoinSnapshot." alt="" coords="489,331,664,357"/>
-<area shape="rect" id="node7" title=" " alt="" coords="150,5,197,32"/>
-</map>
