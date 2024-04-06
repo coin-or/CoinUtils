@@ -28,8 +28,6 @@
 #include "CoinFinite.hpp"
 #include "CoinSort.hpp"
 
-using namespace std;
-
 //#define LPIO_DEBUG
 
 /************************************************************************/
