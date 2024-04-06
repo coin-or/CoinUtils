@@ -1,0 +1,27 @@
+<map id="CoinMpsIO" name="CoinMpsIO">
+<area shape="rect" id="node1" title="MPS IO Interface." alt="" coords="1215,796,1301,823"/>
+<area shape="rect" id="node20" href="$classCoinMpsCardReader.html" title="Very simple code for reading MPS data." alt="" coords="1447,941,1588,968"/>
+<area shape="rect" id="node2" href="$classCoinMessages.html" title="Class to hold and manipulate an array of massaged messages." alt="" coords="918,852,1026,879"/>
+<area shape="rect" id="node3" title=" " alt="" coords="267,1233,314,1260"/>
+<area shape="rect" id="node4" href="$classCoinOneMessage.html" title="Class for one massaged message." alt="" coords="523,981,649,1008"/>
+<area shape="rect" id="node8" href="$classCoinMessageHandler.html" title="Base class for message handling." alt="" coords="899,1320,1045,1347"/>
+<area shape="rect" id="node9" title=" " alt="" coords="521,1471,651,1497"/>
+<area shape="rect" id="node5" title=" " alt="" coords="271,395,310,421"/>
+<area shape="rect" id="node12" title=" " alt="" coords="496,1263,676,1289"/>
+<area shape="rect" id="node18" href="$structCoinMpsIO_1_1CoinHashLink.html" title=" " alt="" coords="700,273,875,300"/>
+<area shape="rect" id="node25" href="$classCoinPackedMatrix.html" title="Sparse Matrix Base Class." alt="" coords="909,273,1035,300"/>
+<area shape="rect" id="node6" title=" " alt="" coords="547,588,625,615"/>
+<area shape="rect" id="node7" title=" " alt="" coords="261,857,321,884"/>
+<area shape="rect" id="node17" title=" " alt="" coords="515,1313,657,1340"/>
+<area shape="rect" id="node10" title="STL class." alt="" coords="235,1428,347,1455"/>
+<area shape="rect" id="node16" title=" " alt="" coords="506,1635,666,1661"/>
+<area shape="rect" id="node11" title=" " alt="" coords="48,1428,87,1455"/>
+<area shape="rect" id="node13" title=" " alt="" coords="557,1212,615,1239"/>
+<area shape="rect" id="node14" title="STL class." alt="" coords="251,1631,330,1657"/>
+<area shape="rect" id="node22" href="$classCoinFileIOBase.html" title="Base class for FileIO classes." alt="" coords="529,1687,643,1713"/>
+<area shape="rect" id="node15" title="STL class." alt="" coords="5,1623,129,1665"/>
+<area shape="rect" id="node19" title=" " alt="" coords="563,72,609,99"/>
+<area shape="rect" id="node21" href="$classCoinFileInput.html" title="Abstract base class for file input classes." alt="" coords="1071,1649,1169,1676"/>
+<area shape="rect" id="node23" title=" " alt="" coords="1204,1697,1312,1724"/>
+<area shape="rect" id="node24" title=" " alt="" coords="1195,1748,1321,1775"/>
+</map>

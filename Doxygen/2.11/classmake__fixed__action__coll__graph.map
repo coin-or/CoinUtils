@@ -1,0 +1,10 @@
+<map id="make_fixed_action" name="make_fixed_action">
+<area shape="rect" id="node1" title="Fix a variable at a specified bound." alt="" coords="274,303,404,329"/>
+<area shape="rect" id="node2" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="27,117,163,143"/>
+<area shape="rect" id="node3" href="$classremove__fixed__action.html" title="Excise fixed variables from the model." alt="" coords="269,213,409,240"/>
+<area shape="rect" id="node4" title=" " alt="" coords="504,5,564,32"/>
+<area shape="rect" id="node5" href="$structremove__fixed__action_1_1action.html" title="Structure to hold information necessary to reintroduce a column into the problem representation." alt="" coords="345,109,485,151"/>
+<area shape="rect" id="node7" href="$structmake__fixed__action_1_1action.html" title="Structure to preserve the bound overwritten when fixing a variable." alt="" coords="604,109,738,151"/>
+<area shape="rect" id="node6" title=" " alt="" coords="276,5,314,32"/>
+<area shape="rect" id="node8" title=" " alt="" coords="645,213,692,240"/>
+</map>
