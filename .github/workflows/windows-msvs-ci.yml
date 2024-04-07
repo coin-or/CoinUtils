@@ -21,22 +21,25 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { os: windows-2019, configuration: "Release", platform: "x86" },
+          # Only os: windows-2022 has MSVS v17 (2022) installed, which is required.
+          { os: windows-2022, configuration: "Release", platform: "x86" },
           { os: windows-2022, configuration: "Release", platform: "x64" },
+          { os: windows-2022, configuration: "Debug", platform: "x64" },
+          { os: windows-2022, configuration: "Debug", platform: "x86" },
         ]
     steps:
       - name: Set up environment variables
         shell: cmd
         run: |
-          if "${{ matrix.platform }}"=="x64" echo output_dir=x64\${{ matrix.configuration }} >> %GITHUB_ENV%
-          if "${{ matrix.platform }}"=="x86" echo output_dir=${{ matrix.configuration }} >> %GITHUB_ENV%
+          if "${{ matrix.platform }}"=="x64" echo "output_dir=x64\${{ matrix.configuration }}" >> %GITHUB_ENV%
+          if "${{ matrix.platform }}"=="x86" echo "output_dir=${{ matrix.configuration }}" >> %GITHUB_ENV%
           echo "package_suffix=${{ matrix.os}}-msvs-v17-{{ matrix.configuration }}-{{ matrix.platform }}" >> %GITHUB_ENV%
       - name: Check environment variables
         shell: cmd
         run: |
-          type %GITHUB_ENV%
-          if "${{ env.output_dir }}"=="" echo "ERROR - Unsupported platform '${{ matrix.platform }}'. Expecting x64 or x86." && exit 1
-          echo "Output directory - ${{ env.output_dir }}"
+          echo "Output directory - '${{ env.output_dir }}'"
+          echo "Package suffix - '${{ env.package_suffix }}'"
+          if "${{ env.output_dir }}"=="" echo "ERROR - No output_dir set, possibly unsupported platform '${{ matrix.platform }}'. Expecting x64 or x86." && exit 1
       - name: Checkout source
         uses: actions/checkout@v4
         with:
