@@ -25,6 +25,24 @@ jobs:
           { os: windows-2022, configuration: "Release", platform: "x64" },
         ]
     steps:
+      - name: Set up environment variables
+        shell: cmd
+        run: |
+          set
+          echo GITHUB_ENV - %GITHUB_ENV%
+          if "${{ matrix.platform }}"=="x64" ( 
+            echo "output_dir=x64\${{ matrix.configuration }}" >> "%GITHUB_ENV%"
+          ) else if "${{ matrix.platform }}"=="x86" (
+            echo "output_dir=${{ matrix.configuration }}" >> "%GITHUB_ENV%"
+          ) else (
+            echo "ERROR Unsupported platform '${{ matrix.platform }}'. Expecting x64 or x86." 1>&2
+            exit /b 1
+          )
+          if "${{ env.output_dir }}"=="" echo ERROR - No output_dir && exit 1
+
+          echo "Output directory - ${{ env.output_dir }}"
+          echo "package_suffix=${{ matrix.os}}-msvs-v17-{{ matrix.configuration }}-{{ matrix.platform }}" >> "%GITHUB_ENV%"
+
       - name: Checkout source
         uses: actions/checkout@v4
         with:
@@ -60,15 +78,6 @@ jobs:
       - name: Build project
         shell: cmd
         run: |
-          if "${{ matrix.platform }}"=="x64" ( 
-            echo "output_dir=x64\${{ matrix.configuration }}" >> %GITHUB_ENV%
-          ) else if "${{ matrix.platform }}"=="x86" (
-            echo "output_dir=${{ matrix.configuration }}" >> %GITHUB_ENV%
-          ) else (
-            echo "ERROR Unsupported platform '${{ matrix.platform }}'. Expecting x64 or x86." 1>&2
-            exit /b 1
-          )
-          echo "Output directory ${{ env.output_dir }}"
           msbuild ${{ github.event.repository.name }}\MSVisualStudio\v17\${{ github.event.repository.name }}.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }} /m
       - name: Test project
         shell: cmd
@@ -87,10 +96,6 @@ jobs:
           if exist .\Data\Sample xcopy .\Data\Sample dist\share\coin-or-sample /i
           if exist .\Data\Netlib xcopy .\Data\Netlib dist\share\coin-or-netlib /i
           if exist .\Data\Miplib3 xcopy .\Data\Miplib3 dist\share\coin-or-miplib3 /i
-      - name: Generate package name
-        run: |
-          echo "package_suffix=${{ matrix.os}}-msvs-v17-{{ matrix.configuration }}-{{ matrix.platform }}" >> $GITHUB_ENV
-        shell: msys2 {0}
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
