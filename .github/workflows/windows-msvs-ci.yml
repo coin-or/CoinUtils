@@ -28,8 +28,9 @@ jobs:
       - name: Set up environment variables
         shell: cmd
         run: |
-          if "${{ matrix.platform }}"=="x64" echo "output_dir=x64\${{ matrix.configuration }}" >> %GITHUB_ENV%
-          if "${{ matrix.platform }}"=="x86" echo "output_dir=${{ matrix.configuration }}" >> %GITHUB_ENV%
+          if "${{ matrix.platform }}"=="x64" echo output_dir=x64\${{ matrix.configuration }} >> %GITHUB_ENV%
+          if "${{ matrix.platform }}"=="x86" echo output_dir=${{ matrix.configuration }} >> %GITHUB_ENV%
+          type %GITHUB_ENV%
           if "${{ env.output_dir }}"=="" echo "ERROR - Unsupported platform '${{ matrix.platform }}'. Expecting x64 or x86." && exit 1
           echo "Output directory - ${{ env.output_dir }}"
           echo "package_suffix=${{ matrix.os}}-msvs-v17-{{ matrix.configuration }}-{{ matrix.platform }}" >> %GITHUB_ENV%
