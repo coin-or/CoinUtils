@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		..\..\.github\workflows\linux-ci.yml = ..\..\.github\workflows\linux-ci.yml
 		..\..\.github\workflows\release.yml = ..\..\.github\workflows\release.yml
 		..\..\.github\workflows\windows-ci.yml = ..\..\.github\workflows\windows-ci.yml
+		..\..\.github\workflows\windows-msvs-ci.yml = ..\..\.github\workflows\windows-msvs-ci.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{7032C4C9-B7AE-42F2-A4C0-26F1A9F054F1}"
