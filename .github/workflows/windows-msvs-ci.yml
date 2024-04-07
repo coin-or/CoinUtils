@@ -5,7 +5,6 @@ on:
     branches:
       - 'master'
       - 'stable/*'
-      - 'dev*'
   pull_request:
     branches:
       - '**'
@@ -22,10 +21,8 @@ jobs:
       matrix:
         include: [
           # Only os: windows-2022 has Visual Studio 2022 (v17) installed with toolset v143, which is required.
-          { os: windows-2022, configuration: "Release", platform: "x86" },
+          # configuration: "Release" or "Debug", platform: "x86" or "x64". See solution Configuration Manager.
           { os: windows-2022, configuration: "Release", platform: "x64" },
-          { os: windows-2022, configuration: "Debug", platform: "x64" },
-          { os: windows-2022, configuration: "Debug", platform: "x86" },
         ]
     steps:
       - name: Set up environment variables
