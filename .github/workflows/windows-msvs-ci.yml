@@ -1,0 +1,112 @@
+---
+name: Windows build and test
+on:
+  push:
+    branches:
+      - 'master'
+      - 'stable/*'
+      - 'dev*'
+  pull_request:
+    branches:
+      - '**'
+  release:
+    types:
+      - created
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { os: windows-2019, configuration: "Release", platform: "Win32" },
+          { os: windows-2022, configuration: "Release", platform: "x64" },
+        ]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.event.repository.name }}
+      - name: Checkout coinbrew
+        uses: actions/checkout@v4
+        with:
+          repository: coin-or/coinbrew
+          path: coinbrew
+      - name: Set up msbuild
+        uses: microsoft/setup-msbuild@v2
+      - name: Set up msys for coinbrew
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            git
+            zip
+          path-type: inherit
+          msystem: mingw64
+      - name: Fetch project
+        run: |
+          ADD_ARGS=()
+          ADD_ARGS+=( --skip='ThirdParty/Metis ThirdParty/Mumps ThirdParty/Blas ThirdParty/Lapack' )
+          ./coinbrew/coinbrew fetch ${{ github.event.repository.name }} --skip-update "${ADD_ARGS[@]}"
+          echo "##################################################"
+          echo "### Extracting Netlib and Miplib3 if available"
+          if [ -d "./Data/Netlib/" ]; then gunzip ./Data/Netlib/*.gz; fi
+          if [ -d "./Data/Miplib3/" ]; then gunzip ./Data/Miplib3/*.gz; fi
+          echo "##################################################"       
+        shell: msys2 {0}
+      - name: Build project
+        shell: cmd
+        run: |
+          if "${{ matrix.platform }}"=="x64" ( 
+            echo "output_dir=x64\${{ matrix.configuration }}" >> $GITHUB_ENV
+          ) else if "${{ matrix.platform }}"=="Win32" (
+            echo "output_dir=Win32\${{ matrix.configuration }}" >> $GITHUB_ENV
+          ) else (
+            echo "ERROR: Unsupported platform '${{ matrix.platform }}'. Expecting x64 or Win32." 1>&2
+            exit /b 1
+          )
+          msbuild ${{ github.event.repository.name }}\MSVisualStudio\v17\${{ github.event.repository.name }}.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }} /m
+      - name: Test project
+        shell: cmd
+        run: |
+          .\${{ github.event.repository.name }}\MSVisualStudio\v17\${{ github.event.repository.name }}Test.cmd .\${{ github.event.repository.name }}\MSVisualStudio\v17\${{ env.output_dir }} .\Data\Sample .\Data\Netlib .\Data\Miplib3
+      - name: Install project
+        shell: cmd
+        run: |
+          mkdir dist
+          copy ${{ github.event.repository.name }}\README.* dist\.
+          copy ${{ github.event.repository.name }}\AUTHORS.* dist\.
+          copy ${{ github.event.repository.name }}\LICENSE.* dist\.
+          mkdir dist\bin
+          copy ${{ github.event.repository.name }}\MSVisualStudio\v17\${{ env.output_dir }}\*.exe dist\bin\.
+          mkdir dist\share
+          if exist .\Data\Sample xcopy .\Data\Sample dist\share\coin-or-sample /i
+          if exist .\Data\Netlib xcopy .\Data\Netlib dist\share\coin-or-netlib /i
+          if exist .\Data\Miplib3 xcopy .\Data\Miplib3 dist\share\coin-or-miplib3 /i
+      - name: Generate package name
+        run: |
+          echo "package_suffix=${{ matrix.os}}-msvs-v17-{{ matrix.configuration }}-{{ matrix.platform }}" >> $GITHUB_ENV
+        shell: msys2 {0}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-${{ env.package_suffix }}
+          path: dist
+          if-no-files-found: error
+      - name: Zip up dist contents for release
+        if: ${{ github.event_name == 'release'}}
+        run: cd dist && zip -r ../release.zip *
+        shell: msys2 {0}
+      - name: Upload package to release
+        if: ${{ github.event_name == 'release'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./release.zip
+          asset_name: ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}-${{ env.package_suffix }}.zip
+          asset_content_type: application/gzip
