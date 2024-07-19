@@ -136,11 +136,7 @@ int main (int argc, const char *argv[])
   double checkVal ;
 
   testingMessage( "Testing CoinFinite ... " ) ;
-# ifdef COINUTILS_C_FINITE
   checkVal = finiteVal/zero ;
-# else
-  checkVal = COIN_DBL_MAX ;
-# endif
   testingMessage( " finite value: " ) ;
   if (CoinFinite(finiteVal))
   { testingMessage( "ok" ) ; }
@@ -154,11 +150,8 @@ int main (int argc, const char *argv[])
   else
   { allOK = false ;
     testingMessage( "ERROR.\n" ) ; }
-#else
-#undef COINUTILS_C_FINITE
 #endif
 
-# ifdef COINUTILS_C_ISNAN
   testingMessage( "Testing CoinIsnan ... " ) ;
   testingMessage( " finite value: " ) ;
   if (!CoinIsnan(finiteVal))
@@ -167,19 +160,12 @@ int main (int argc, const char *argv[])
   { allOK = false ;
     testingMessage( "ERROR" ) ; }
   testingMessage( "; NaN value: " ) ;
-# ifdef COINUTILS_C_FINITE
   checkVal = checkVal/checkVal ;
   if (CoinIsnan(checkVal))
   { testingMessage( "ok.\n" ) ; }
   else
   { allOK = false ;
     testingMessage( "ERROR.\n" ) ; }
-# endif
-# else
-  allOK = false ;
-  testingMessage( "ERROR: No functional CoinIsnan.\n" ) ;
-# endif
-
 
   if (netlibDir != "" && mpsDir != "" && testModel != ""){
      testingMessage( "Testing CoinModel\n" );
