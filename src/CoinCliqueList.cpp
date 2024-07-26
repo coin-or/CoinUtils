@@ -40,8 +40,8 @@ CoinCliqueList::CoinCliqueList( size_t _iniClqCap, size_t _iniClqElCap )
   , clqEls_( (size_t *) xmalloc( sizeof(size_t)*(nCliqueElCap_) ) )
   , nodeOccur_( NULL )
   , startNodeOccur_( NULL )
-  , diffNodes_( NULL )
   , nDifferent_ ( 0 )
+  , diffNodes_( NULL )
 {
   clqStart_[0] = 0;
 }

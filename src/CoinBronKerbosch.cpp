@@ -40,9 +40,13 @@ bool compareNodes(const BKVertex &u, const BKVertex &v) {
     return u.fitness >= v.fitness + BK_EPS;
 }
 
-CoinBronKerbosch::CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights, size_t pivotingStrategy) :
-nVertices_(0), minWeight_(0.0), calls_(0), maxCalls_(std::numeric_limits<size_t >::max()), completeSearch_(false),
-pivotingStrategy_(pivotingStrategy)
+CoinBronKerbosch::CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights, size_t pivotingStrategy)
+  : nVertices_(0)
+  , minWeight_(0.0)
+  , calls_(0)
+  , maxCalls_(std::numeric_limits<size_t >::max())
+  , pivotingStrategy_(pivotingStrategy)
+  , completeSearch_(false)
 {
     const size_t cgSize = cgraph->size();
     size_t maxDegree = 0;
