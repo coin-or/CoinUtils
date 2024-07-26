@@ -781,7 +781,6 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
      std::string fieldLeft = field;
      while (fieldLeft.size()) {
        std::string fieldThis = fieldLeft;
-       size_t fieldLen = fieldThis.length();
        std::string::size_type orPos = fieldThis.find('|');
        if (orPos == std::string::npos)
 	 orPos = fieldThis.find('+');
@@ -797,8 +796,6 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
 	 std::string::size_type shriekPos = kwd.find('!');
 	 if (shriekPos == std::string::npos) 
 	   shriekPos = kwd.find('#');
-	 size_t kwdLen = kwd.length();
-	 size_t matchLen = kwdLen;
 	 kwd = kwd.substr(0, shriekPos);
 	 if (kwd==fieldThis) {
 	   found = true;
@@ -924,13 +921,11 @@ int CoinParam::kwdToMode(std::string input) const
   size_t numberItems = definedKwds_.size();
   if (numberItems > 0) {
     size_t inputLen = input.length();
-    int position =-1;
     for (it = definedKwds_.begin(); it != definedKwds_.end(); it++) {
       std::string kwd = it->first;
       std::string::size_type shriekPos = kwd.find('!');
       size_t kwdLen = kwd.length();
       size_t matchLen = kwdLen;
-      position++;
       if (shriekPos != std::string::npos) {
         matchLen = shriekPos;
         kwd = kwd.substr(0, shriekPos) + kwd.substr(shriekPos + 1);

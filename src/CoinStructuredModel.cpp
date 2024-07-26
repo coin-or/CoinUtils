@@ -739,7 +739,6 @@ int CoinStructuredModel::decompose(const CoinPackedMatrix &matrix,
   bool wantDecomposition = type > 2;
   type %= 10;
   if (type == 1) { // Try master at top and bottom
-    bool goodDW = true;
     // get row copy
     CoinPackedMatrix rowCopy = matrix;
     rowCopy.reverseOrdering();
@@ -977,7 +976,6 @@ int CoinStructuredModel::decompose(const CoinPackedMatrix &matrix,
           rowBlock[stack[i]] = -1;
       }
       if (nMaster * 2 > numberRows) {
-        goodDW = false;
         sprintf(generalPrint, "%d rows out of %d would be in master - no good",
           nMaster, numberRows);
         handler_->message(COIN_GENERAL_WARNING, messages_) << generalPrint << CoinMessageEol;
@@ -1313,7 +1311,6 @@ int CoinStructuredModel::decompose(const CoinPackedMatrix &matrix,
     delete[] rowUp;
   } else if (type == 2) {
     // Try master at beginning and end
-    bool goodBenders = true;
     // get row copy
     CoinPackedMatrix rowCopy = matrix;
     rowCopy.reverseOrdering();
@@ -1525,7 +1522,6 @@ int CoinStructuredModel::decompose(const CoinPackedMatrix &matrix,
           columnBlock[stack[i]] = -1;
       }
       if (nMaster * 2 > numberColumns) {
-        goodBenders = false;
         sprintf(generalPrint, "%d columns out of %d would be in master - no good",
           nMaster, numberColumns);
         handler_->message(COIN_GENERAL_WARNING, messages_) << generalPrint << CoinMessageEol;

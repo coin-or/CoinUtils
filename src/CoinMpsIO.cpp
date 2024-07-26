@@ -2828,8 +2828,6 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
     CoinBigIndex * start2 = reinterpret_cast< CoinBigIndex * >(malloc((numberColumns_ + 1) * sizeof(CoinBigIndex)));
     COINRowIndex * row2 = reinterpret_cast< COINRowIndex * >(malloc(n * sizeof(COINRowIndex)));
     double * element2 = reinterpret_cast< double * >(malloc(n * sizeof(double)));
-    int lastCol = 0;
-    CoinBigIndex lastEl = 0;
     start2[0]=0;
     CoinBigIndex j = 0;
     int ind = 0;
