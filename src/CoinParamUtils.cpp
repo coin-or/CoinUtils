@@ -670,8 +670,8 @@ void processFile(std::string &fileName, std::string dirName,
    }
    if (fileName[0] != '/' && fileName[0] != '\\' &&
        !(fileName.length() >= 2 && fileName[1] == ':' &&
-         (fileName[0] >= 'a' && fileName[0] <= 'z' ||
-          fileName[0] >= 'A' && fileName[0] <= 'Z'))) {
+         ((fileName[0] >= 'a' && fileName[0] <= 'z') ||
+          (fileName[0] >= 'A' && fileName[0] <= 'Z')))) {
       fileName = dirName + fileName;
    }
    if (fileExists != NULL){
