@@ -223,6 +223,11 @@ private:
     double minWeight_;
 
     /**
+     * Number of calls made by BK algorithm
+     **/
+    size_t calls_;
+
+    /**
      * Maximum number of recursive calls of BK algorithm.
      **/
     size_t maxCalls_;
@@ -237,11 +242,6 @@ private:
      * 6 - modified degree + modified weight
      **/
     size_t pivotingStrategy_;
-
-    /**
-     * Number of calls made by BK algorithm
-     **/
-    size_t calls_;
 
     /**
      * If BK algorithm ran completely, without stopping

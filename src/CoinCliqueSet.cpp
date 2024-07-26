@@ -36,8 +36,8 @@ static void *xrealloc( void *ptr, const size_t size );
 CoinCliqueSet::CoinCliqueSet(size_t _iniClqCap, size_t _iniClqElCap)
   : CoinCliqueList(_iniClqCap, _iniClqElCap)
   , hash_(NEW_VECTOR(size_t*, nBuckets_ * 2))
-  , expandedBucket_(hash_ + nBuckets_)
   , iniHashSpace_(NEW_VECTOR(size_t, (nBuckets_ * INI_SPACE_BUCKETS) + (2 * nBuckets_)))
+  , expandedBucket_(hash_ + nBuckets_)
   , bucketSize_(iniHashSpace_ + (nBuckets_ * INI_SPACE_BUCKETS))
   , bucketCap_(bucketSize_ + nBuckets_) {
     hash_[0] = iniHashSpace_;

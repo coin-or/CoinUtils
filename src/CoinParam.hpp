@@ -538,14 +538,6 @@ protected:
       (can also be used for keyword/bit for integer values */
   std::map< std::string, int > definedKwds_;
 
-  /*! \brief Current string value for a keyword parameter 
-  */
-  std::string currentKwd_;
-
-  /*! \brief Default string value for a keyword parameter 
-  */
-  std::string defaultKwd_;
-
   /*! \brief Current integer value (mode) for a keyword parameter 
   */
   int currentMode_;
@@ -553,6 +545,14 @@ protected:
   /*! \brief Default integer value (mode) for a keyword parameter 
   */
   int defaultMode_;
+
+  /*! \brief Current string value for a keyword parameter 
+  */
+  std::string currentKwd_;
+
+  /*! \brief Default string value for a keyword parameter 
+  */
+  std::string defaultKwd_;
 
   /// Push function
   CoinParamFunc pushFunc_;

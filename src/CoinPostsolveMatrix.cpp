@@ -38,10 +38,10 @@ CoinPostsolveMatrix::CoinPostsolveMatrix(
   , free_list_(0)
   , maxlink_(nelems_alloc)
   , link_(0)
-  , cdone_(0)
-  , rdone_(0)
   , originalRowLower_(origRL)
   , originalRowUpper_(origRU)
+  , cdone_(0)
+  , rdone_(0)
 
 { /* nothing to do here */
 
