@@ -2140,7 +2140,6 @@ const CoinPresolveAction
           continue;
         }
 	if (isint[1]&&bound[1]-bound[0]==1.0&&true) {
-	  double fixValue[2];
 	  bool skipThis = false;
 #if PRESOLVE_DEBUG > 0
 	  printf("icol(x0) %d cost %g bounds %g %g - translated cost %g ub %g\n",
