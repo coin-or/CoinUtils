@@ -362,7 +362,7 @@ CoinModel::CoinModel(const char *fileName, int allowStrings)
           // element
           setElement(iRow, iColumn, pos);
         } else {
-          fprintf(stderr, "code CoinModel strings for rim\n");
+          std::cerr << "code CoinModel strings for rim" << std::endl;
           abort();
         }
       }
@@ -3759,7 +3759,7 @@ int CoinModel::convertMatrix()
 // Aborts with message about packedMatrix
 void CoinModel::badType() const
 {
-  fprintf(stderr, "******** operation not allowed when in block mode ****\n");
+  std::cerr << "******** operation not allowed when in block mode ****" << std::endl;
   abort();
 }
 
@@ -4264,9 +4264,7 @@ mip_stuff(void)
       saveInfo->branchDirection[i] = value;
     }
     if (baddir)
-      fprintf(stderr,
-        "Treating %d .direction values outside [-1, 1] as 0.\n",
-        baddir);
+      std::cerr << "Treating " << baddir << " .direction values outside [-1, 1] as 0." << std::endl;
   }
   if (priority) {
     int badpri = 0;
@@ -4280,9 +4278,7 @@ mip_stuff(void)
       saveInfo->priorities[i] = value;
     }
     if (badpri)
-      fprintf(stderr,
-        "Treating %d negative .priority values as 0\n",
-        badpri);
+      std::cerr << "Treating " << badpri << " negative .priority values as 0" << std::endl;
   }
   if (special) {
     int badspecial = 0;
@@ -4296,9 +4292,7 @@ mip_stuff(void)
       saveInfo->special[i] = value;
     }
     if (badspecial)
-      fprintf(stderr,
-        "Treating %d negative special values as 0\n",
-        badspecial);
+      std::cerr << "Treating " << badspecial << " negative special values as 0" << std::endl;
   }
   int numberRows = saveInfo->numberRows;
   if (cut) {
@@ -4313,15 +4307,12 @@ mip_stuff(void)
       saveInfo->cut[i] = value;
     }
     if (badcut)
-      fprintf(stderr,
-        "Treating %d negative cut values as 0\n",
-        badcut);
+      std::cerr << "Treating " << badcut << " negative cut values as 0" << std::endl;
   }
   if (pseudoDown || pseudoUp) {
     int badpseudo = 0;
     if (!pseudoDown || !pseudoUp)
-      fprintf(stderr,
-        "Only one set of pseudocosts - assumed same\n");
+      std::cerr << "Only one set of pseudocosts - assumed same" << std::endl;
     saveInfo->pseudoDown = (double *)malloc(numberColumns * sizeof(double));
     saveInfo->pseudoUp = (double *)malloc(numberColumns * sizeof(double));
     for (i = 0; i < numberColumns; i++) {
@@ -4348,15 +4339,13 @@ mip_stuff(void)
       saveInfo->pseudoUp[i] = valueU;
     }
     if (badpseudo)
-      fprintf(stderr,
-        "Treating %d negative pseudoCosts as 0.0\n", badpseudo);
+      std::cerr << "Treating " << badpseudo << " negative pseudoCosts as 0.0" << std::endl;
   }
 }
 static void
 stat_map(int *stat, int n, int *map, int mx, const char *what)
 {
   int bad, i, i1 = 0, j, j1 = 0;
-  static char badfmt[] = "Coin driver: %s[%d] = %d\n";
 
   for (i = bad = 0; i < n; i++) {
     if ((j = stat[i]) >= 0 && j <= mx)
@@ -4366,16 +4355,14 @@ stat_map(int *stat, int n, int *map, int mx, const char *what)
       i1 = i;
       j1 = j;
       if (!bad++)
-        fprintf(stderr, badfmt, what, i, j);
+        std::cerr << "Coin driver: " << what << "[" << i << "] = " << j << std::endl;
     }
   }
   if (bad > 1) {
     if (bad == 2)
-      fprintf(stderr, badfmt, what, i1, j1);
+      std::cerr << "Coin driver: " << what << "[" << i1 << "] = " << j1 << std::endl;
     else
-      fprintf(stderr,
-        "Coin driver: %d messages about bad %s values suppressed.\n",
-        bad - 1, what);
+      std::cerr << "Coin driver: " << bad - 1 << " messages about bad " << what << " values suppressed." << std::endl;
   }
 }
 
@@ -4656,8 +4643,8 @@ int readAmpl(ampl_info *info, int argc, char **argv, void **coinModel, const cha
     }
     if (foundSleep) {
       /* let user copy .nl file */
-      fprintf(stderr, "You can copy .nl file %s for debug purposes or attach debugger\n", saveArgv[1]);
-      fprintf(stderr, "Type q to quit, anything else to continue\n");
+      std::cerr << "You can copy .nl file " << saveArgv[1] << " for debug purposes or attach debugger" << std::endl;
+      std::cerr << "Type q to quit, anything else to continue" << std::endl;
       int getChar = getc(stdin);
       if (getChar == 'q' || getChar == 'Q')
         exit(1);

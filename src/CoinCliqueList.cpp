@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+#include <iostream>
 #include "CoinCliqueList.hpp"
 
 #ifdef DEBUGCG
@@ -91,7 +92,7 @@ static void *xmalloc( const size_t size )
   void *result = malloc( size );
   if (!result)
   {
-    fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinCliqueList.\n", size);
+    std::cerr << "No more memory available. Trying to allocate " << size << " bytes in CoinCliqueList." << std::endl;
     exit(1);
   }
 
@@ -113,7 +114,7 @@ void CoinCliqueList::computeNodeOccurrences(size_t nNodes)
   // couting number of occurrences for each node
   size_t *noc = (size_t *)calloc( nNodes, sizeof(size_t) );
   if (!noc) {
-    fprintf( stderr, "No more memory available.\n" );
+    std::cerr << "No more memory available." << std::endl;
     abort();
   }
 
@@ -160,7 +161,7 @@ static void *xrealloc( void *ptr, const size_t size )
   void * res = realloc( ptr, size );
   if (!res)
   {
-    fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinCliqueList", size);
+    std::cerr << "No more memory available. Trying to allocate " << size << " bytes in CoinCliqueList";
     abort();
   }
 
@@ -194,7 +195,7 @@ size_t CoinCliqueList::nNodeOccurrences(size_t idxNode) const
 #ifdef DEBUGCG
 void CoinCliqueList::validateClique(const CoinConflictGraph *cgraph, const size_t *idxs, const size_t size) {
     if (size == 0) {
-        fprintf(stderr, "Empty clique!\n");
+        std::cerr << "Empty clique!" << std::endl;
         abort();
     }
 
@@ -206,7 +207,7 @@ void CoinCliqueList::validateClique(const CoinConflictGraph *cgraph, const size_
     for (size_t i = 0; i < size - 1; i++) {
         for (size_t j = i + 1; j < size; j++) {
             if ((!cgraph->conflicting(idxs[i], idxs[j])) || (idxs[i] == idxs[j])) {
-                fprintf(stderr, "ERROR: Nodes %ld and %ld are not in conflict.\n", idxs[i], idxs[j]);
+                std::cerr << "ERROR: Nodes " << idxs[i] << " and " << idxs[j] << " are not in conflict." << std::endl;
                 abort();
             }
         }

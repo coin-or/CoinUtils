@@ -21,6 +21,7 @@
 #include <limits>
 #include <cstdlib>
 #include <cstdio>
+#include <iostream>
 
 #include "CoinStaticConflictGraph.hpp"
 #include "CoinDynamicConflictGraph.hpp"
@@ -72,7 +73,7 @@ static void *xmalloc( const size_t size )
    void *result = malloc( size );
    if (!result)
    {
-      fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinStaticConflictGraph.\n", size);
+      std::cerr << "No more memory available. Trying to allocate " << size << " bytes in CoinStaticConflictGraph." << std::endl;
       exit(1);
    }
 
@@ -146,7 +147,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
   
   char *iv = (char *) calloc( size_, sizeof(char) );
   if (!iv) {
-    fprintf( stderr, "no more memory.\n" );
+    std::cerr << "no more memory." << std::endl;
     abort();
   }
 
@@ -246,7 +247,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
   size_t prevTotalDC = 0;
   size_t *prevDC = (size_t *) calloc( size_, sizeof(size_t) );
   if (!prevDC) {
-    fprintf( stderr, "no memory available.\n");
+    std::cerr << "no memory available." << std::endl;
     abort();
   }
 

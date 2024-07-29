@@ -22,6 +22,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 
 const size_t CoinCliqueSet::sequence_[] = {37, 31, 29, 17, 13, 11, 7, 1};
 const size_t CoinCliqueSet::nSequence_ = 8;
@@ -184,7 +185,7 @@ bool CoinCliqueSet::alreadyInserted(size_t size, const size_t els[], size_t hash
 static void *xmalloc( const size_t size ) {
     void *result = malloc( size );
     if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
+        std::cerr << "No more memory available. Trying to allocate " << size << " bytes.";
         abort();
     }
 
@@ -194,7 +195,7 @@ static void *xmalloc( const size_t size ) {
 static void *xrealloc( void *ptr, const size_t size ) {
     void * result = realloc( ptr, size );
     if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinCliqueList", size);
+        std::cerr << "No more memory available. Trying to allocate " << size << " bytes in CoinCliqueList";
         abort();
     }
 

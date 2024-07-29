@@ -20,6 +20,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstdio>
+#include <iostream>
 #include <limits>
 #include "CoinShortestPath.hpp"
 #include "CoinNodeHeap.hpp"
@@ -173,7 +174,7 @@ size_t CoinShortestPath::previous(size_t node) const {
 static void *xmalloc( const size_t size ) {
     void *result = malloc( size );
     if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
+        std::cerr << "No more memory available. Trying to allocate " << size << " bytes.";
         abort();
     }
 

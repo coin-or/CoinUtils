@@ -93,7 +93,7 @@ bool CoinConflictGraph::conflicting(size_t n1, size_t n2) const {
 static void *xmalloc(const size_t size) {
     void *result = malloc(size);
     if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
+        std::cerr << "No more memory available. Trying to allocate " << size << " bytes.";
         abort();
     }
 
@@ -103,7 +103,7 @@ static void *xmalloc(const size_t size) {
 static void *xcalloc(const size_t elements, const size_t size) {
     void *result = calloc(elements, size);
     if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
+        std::cerr << "No more memory available. Trying to callocate " << size * elements << " bytes.";
         abort();
     }
 

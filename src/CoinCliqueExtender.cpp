@@ -20,6 +20,7 @@
 #include <ctime>
 #include <cassert>
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <algorithm>
 #include "CoinCliqueExtender.hpp"
@@ -66,7 +67,7 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
     maxRC_ = maxRC;
 
     if ((extMethod_ == 4 || extMethod_ == 5) && !rc_) {
-        fprintf(stderr, "Warning: using random selection for extension since no costs were informed.\n");
+        std::cerr << "Warning: using random selection for extension since no costs were informed." << std::endl;
         extMethod_ = 1;
     }
 
@@ -133,7 +134,7 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
             break;
         }
         default:
-            fprintf(stderr, "Invalid option %lu\n", extMethod_);
+            std::cerr << "Invalid option " << extMethod_ << std::endl;
             abort();
     }
 }
@@ -273,7 +274,7 @@ bool CoinCliqueExtender::extendClique(const size_t *clqIdxs, const size_t clqSiz
             result = greedySelection(clqIdxs, clqSize, costs_);
             break;
         default:
-            fprintf(stderr, "Invalid option %lu\n", extMethod_);
+            std::cerr << "Invalid option " << extMethod_ << std::endl;
             abort();
     }
 
@@ -363,7 +364,7 @@ size_t CoinCliqueExtender::getCliqueSize(const size_t i) const {
 static void *xmalloc( const size_t size ) {
     void *result = malloc( size );
     if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
+        std::cerr << "No more memory available. Trying to allocate " << size << " bytes.";
         abort();
     }
 
@@ -373,7 +374,7 @@ static void *xmalloc( const size_t size ) {
 static void *xcalloc( const size_t elements, const size_t size ) {
     void *result = calloc( elements, size );
     if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
+        std::cerr << "No more memory available. Trying to callocate " << size * elements << " bytes.";
         abort();
     }
 

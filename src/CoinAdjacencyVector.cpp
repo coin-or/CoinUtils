@@ -22,6 +22,7 @@
 #include <vector>
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 #include <limits>
 #include "CoinAdjacencyVector.hpp"
 
@@ -116,7 +117,7 @@ static void *xmalloc( const size_t size )
    void *result = malloc( size );
    if (!result)
    {
-      fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
+      std::cerr << "No more memory available. Trying to allocate " << size << " bytes.";
       abort();
    }
 
@@ -128,7 +129,7 @@ static void *xrealloc( void *ptr, const size_t size )
     void * res = realloc( ptr, size );
     if (!res)
     {
-       fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
+       std::cerr << "No more memory available. Trying to allocate " << size << " bytes.";
        abort();
     }
     

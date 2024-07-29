@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
+#include <iostream>
 #include <limits>
 
 #define NODEHEAP_EPS 1e-6
@@ -114,7 +115,7 @@ bool CoinNodeHeap::isEmpty() const {
 static void *xmalloc( const size_t size ) {
     void *result = malloc( size );
     if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
+        std::cerr << "No more memory available. Trying to allocate " << size << " bytes.";
         abort();
     }
 

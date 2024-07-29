@@ -1004,7 +1004,7 @@ protected:
     if (l + numberInPivotColumn > lengthAreaL_) {
       //need more memory
       if ((messageLevel_ & 4) != 0)
-        printf("more memory needed in middle of invert\n");
+        std::cout <<"more memory needed in middle of invert\n";
       return false;
     }
     //l+=currentAreaL_->elementByColumn-elementL;
