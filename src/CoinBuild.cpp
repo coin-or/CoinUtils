@@ -47,13 +47,13 @@ CoinBuild::CoinBuild()
   , currentItem_(NULL)
   , firstItem_(NULL)
   , lastItem_(NULL)
-  , type_(-1)
+  , type_(Type::Unset)
 {
 }
 //-------------------------------------------------------------------
 // Constructor with type
 //-------------------------------------------------------------------
-CoinBuild::CoinBuild(int type)
+CoinBuild::CoinBuild(Type type)
   : numberItems_(0)
   , numberOther_(0)
   , numberElements_(0)
@@ -62,8 +62,6 @@ CoinBuild::CoinBuild(int type)
   , lastItem_(NULL)
   , type_(type)
 {
-  if (type < 0 || type > 1)
-    type_ = -1; // unset
 }
 
 //-------------------------------------------------------------------
@@ -171,9 +169,9 @@ void CoinBuild::addRow(int numberInRow, const int *columns,
   const double *elements, double rowLower,
   double rowUpper)
 {
-  if (type_ < 0) {
-    type_ = 0;
-  } else if (type_ == 1) {
+  if (type_ == Type::Unset) {
+    type_ = Type::Row;
+  } else if (type_ == Type::Column) {
     printf("CoinBuild:: unable to add a row in column mode\n");
     abort();
   }
@@ -189,7 +187,7 @@ void CoinBuild::addRow(int numberInRow, const int *columns,
 int CoinBuild::row(int whichRow, double &rowLower, double &rowUpper,
   const int *&indices, const double *&elements) const
 {
-  assert(type_ == 0);
+  assert(type_ == Type::Row);
   setMutableCurrent(whichRow);
   double dummyObjective;
   return currentItem(rowLower, rowUpper, dummyObjective, indices, elements);
@@ -200,20 +198,20 @@ int CoinBuild::row(int whichRow, double &rowLower, double &rowUpper,
 int CoinBuild::currentRow(double &rowLower, double &rowUpper,
   const int *&indices, const double *&elements) const
 {
-  assert(type_ == 0);
+  assert(type_ == Type::Row);
   double dummyObjective;
   return currentItem(rowLower, rowUpper, dummyObjective, indices, elements);
 }
 // Set current row
 void CoinBuild::setCurrentRow(int whichRow)
 {
-  assert(type_ == 0);
+  assert(type_ == Type::Row);
   setMutableCurrent(whichRow);
 }
 // Returns current row number
 int CoinBuild::currentRow() const
 {
-  assert(type_ == 0);
+  assert(type_ == Type::Row);
   return currentItem();
 }
 // add a column
@@ -222,9 +220,9 @@ void CoinBuild::addColumn(int numberInColumn, const int *rows,
   double columnLower,
   double columnUpper, double objectiveValue)
 {
-  if (type_ < 0) {
-    type_ = 1;
-  } else if (type_ == 0) {
+  if (type_ == Type::Unset) {
+    type_ = Type::Column;
+  } else if (type_ == Type::Row) {
     printf("CoinBuild:: unable to add a column in row mode\n");
     abort();
   }
@@ -237,7 +235,7 @@ int CoinBuild::column(int whichColumn,
   double &columnLower, double &columnUpper, double &objectiveValue,
   const int *&indices, const double *&elements) const
 {
-  assert(type_ == 1);
+  assert(type_ == Type::Column);
   setMutableCurrent(whichColumn);
   return currentItem(columnLower, columnUpper, objectiveValue, indices, elements);
 }
@@ -247,19 +245,19 @@ int CoinBuild::column(int whichColumn,
 int CoinBuild::currentColumn(double &columnLower, double &columnUpper, double &objectiveValue,
   const int *&indices, const double *&elements) const
 {
-  assert(type_ == 1);
+  assert(type_ == Type::Column);
   return currentItem(columnLower, columnUpper, objectiveValue, indices, elements);
 }
 // Set current column
 void CoinBuild::setCurrentColumn(int whichColumn)
 {
-  assert(type_ == 1);
+  assert(type_ == Type::Column);
   setMutableCurrent(whichColumn);
 }
 // Returns current column number
 int CoinBuild::currentColumn() const
 {
-  assert(type_ == 1);
+  assert(type_ == Type::Column);
   return currentItem();
 }
 // add a item

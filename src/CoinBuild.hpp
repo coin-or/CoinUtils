@@ -24,6 +24,12 @@
 class COINUTILSLIB_EXPORT CoinBuild {
 
 public:
+  enum Type {
+    Unset = -1,
+    Row = 0,
+    Column = 1,
+  };
+
   /**@name Useful methods */
   //@{
   /// add a row
@@ -46,12 +52,12 @@ public:
   /// Return number of rows or maximum found so far
   inline int numberRows() const
   {
-    return (type_ == 0) ? numberItems_ : numberOther_;
+    return (type_ == Type::Row) ? numberItems_ : numberOther_;
   }
   /// Return number of columns or maximum found so far
   inline int numberColumns() const
   {
-    return (type_ == 1) ? numberItems_ : numberOther_;
+    return (type_ == Type::Column) ? numberItems_ : numberOther_;
   }
   /// Return number of elements
   inline CoinBigIndex numberElements() const
@@ -86,7 +92,7 @@ public:
   /// Returns current column number
   int currentColumn() const;
   /// Returns type
-  inline int type() const
+  inline Type type() const
   {
     return type_;
   }
@@ -96,8 +102,8 @@ public:
   //@{
   /** Default constructor. */
   CoinBuild();
-  /** Constructor with type 0==for addRow, 1== for addColumn. */
-  CoinBuild(int type);
+  /** Constructor with type Type::Row == for addRow, Type::Column == for addColumn. */
+  CoinBuild(Type type);
   /** Destructor */
   ~CoinBuild();
   //@}
@@ -147,8 +153,8 @@ private:
   double *firstItem_;
   /// Last item pointer
   double *lastItem_;
-  /// Type of build - 0 for row, 1 for column, -1 unset
-  int type_;
+  /// Type of build
+  Type type_;
   //@}
 };
 
