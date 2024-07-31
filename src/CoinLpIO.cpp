@@ -27,7 +27,6 @@
 #include "CoinFinite.hpp"
 #include "CoinSort.hpp"
 
-using namespace std;
 #define LPIO_MODIFY_MESSAGES 1
 #if LPIO_MODIFY_MESSAGES == 0
 #define CoinLpIOError(a,b,c,d,e) throw CoinError(a,b,c,d,e)
