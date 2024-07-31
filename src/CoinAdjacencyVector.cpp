@@ -32,8 +32,6 @@ static void *xrealloc( void *ptr, const size_t size );
 
 #define NEW_VECTOR(type, size) ((type *) xmalloc((sizeof(type))*(size)))
 
-using namespace std;
-
 CoinAdjacencyVector::CoinAdjacencyVector( size_t _nRows, size_t _iniRowSize )
   : nRows_( _nRows )
   , rows_( NEW_VECTOR( size_t *, (nRows_*2)  ) )
@@ -47,10 +45,10 @@ CoinAdjacencyVector::CoinAdjacencyVector( size_t _nRows, size_t _iniRowSize )
   for ( size_t i=1 ; (i<nRows_) ; ++i )
     rows_[i] = rows_[i-1] + _iniRowSize;
 
-  fill( rowCap_, rowCap_+nRows_, _iniRowSize );
-  fill( notUpdated_, notUpdated_+nRows_, 0);
+  std::fill( rowCap_, rowCap_+nRows_, _iniRowSize );
+  std::fill( notUpdated_, notUpdated_+nRows_, 0);
   memset( rowSize_, 0, sizeof(size_t)*nRows_ );
-  fill( expandedRows_, expandedRows_+nRows_, (size_t *)NULL);
+  std::fill( expandedRows_, expandedRows_+nRows_, (size_t *)NULL);
 }
 
 CoinAdjacencyVector::~CoinAdjacencyVector()
@@ -76,7 +74,7 @@ bool CoinAdjacencyVector::isNeighbor(size_t idxNode, size_t idxNeigh) const {
     size_t *endR = rows_[idxNode] + rowSize_[idxNode];
     
 #ifdef KEEP_SORTED
-    return binary_search(r, endR, idxNeigh);
+    return std::binary_search(r, endR, idxNeigh);
 #else
     for (  ; (r<endR) ; ++r )
         if (*r == idxNeigh)
@@ -148,7 +146,7 @@ void CoinAdjacencyVector::checkCapNode( const size_t idxNode, const size_t newEl
       return;
 
     // for resizing
-    const size_t newIdxNodeCap = max( rowCap_[idxNode]*2, currSize+newEl );
+    const size_t newIdxNodeCap = std::max( rowCap_[idxNode]*2, currSize+newEl );
 
     if ( expandedRows_[idxNode] ) {
       // already outside initial vector
@@ -229,7 +227,7 @@ char CoinAdjacencyVector::tryAddElementSortedVector(size_t* el, size_t n, size_t
   int l = 0;
   int r = n - 1;
   int m;
-  int ip = numeric_limits<int>::max();  /* insertion pos */
+  int ip = std::numeric_limits<int>::max();  /* insertion pos */
 
   while (l <= r) {
       m = (l + r) / 2;
@@ -249,7 +247,7 @@ char CoinAdjacencyVector::tryAddElementSortedVector(size_t* el, size_t n, size_t
       }
   }
 
-  if (ip == numeric_limits<int>::max()) {
+  if (ip == std::numeric_limits<int>::max()) {
       ip = l;
   }
 

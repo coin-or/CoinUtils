@@ -26,8 +26,6 @@
 #include "CoinDynamicConflictGraph.hpp"
 #include "CoinCliqueList.hpp"
 
-using namespace std;
-
 static void *xmalloc( const size_t size );
 
 #define NEW_VECTOR(type, size) ((type *) xmalloc((sizeof(type))*(size)))
@@ -59,7 +57,7 @@ bool CoinStaticConflictGraph::nodeInClique( size_t idxClique, size_t node ) cons
 {
   const size_t *st = cliqueElements( idxClique );
   const size_t *ed = st + cliqueSize_[idxClique];
-  return binary_search(st, ed, node);
+  return std::binary_search(st, ed, node);
 }
 
 CoinStaticConflictGraph *CoinStaticConflictGraph::clone() const
@@ -137,7 +135,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
 {
   iniCoinConflictGraph( n );
 
-#define REMOVED numeric_limits< size_t >::max()
+#define REMOVED std::numeric_limits< size_t >::max()
   nDirectConflicts_ = totalCliqueElements_ = nCliques_ = memSize_ = 0;
 
   std::vector< size_t > newIdx( cgraph->size(), REMOVED );
@@ -150,7 +148,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
     abort();
   }
 
-  vector< bool > ivNeighs;
+  std::vector< bool > ivNeighs;
 
   // large and small cliques set
   CoinCliqueList smallClqs( 4096, 32768 );
@@ -383,9 +381,9 @@ void CoinStaticConflictGraph::iniCoinStaticConflictGraph(const CoinConflictGraph
     startClique_  = cliqueSize_ + nCliques_;
     cliques_  = startClique_ + nCliques_ + 1;
 
-    fill( nConflictsNode_, nConflictsNode_+(3*size_), 0);  // clears nConflictsNode, degree and modified degree
-    fill( nNodeCliques_, nNodeCliques_+size_, 0); // clears the number of cliques each node appears
-    fill( cliqueSize_, cliqueSize_+nCliques_, 0);
+    std::fill( nConflictsNode_, nConflictsNode_+(3*size_), 0);  // clears nConflictsNode, degree and modified degree
+    std::fill( nNodeCliques_, nNodeCliques_+size_, 0); // clears the number of cliques each node appears
+    std::fill( cliqueSize_, cliqueSize_+nCliques_, 0);
     startNodeCliques_[0] = 0;
     startClique_[0] = 0;
 

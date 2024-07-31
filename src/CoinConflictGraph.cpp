@@ -30,8 +30,6 @@
 #include "CoinAdjacencyVector.hpp"
 #include "CoinTime.hpp"
 
-using namespace std;
-
 size_t CoinConflictGraph::minClqRow_ = 256;
 
 static void *xmalloc(const size_t size);
@@ -84,7 +82,7 @@ bool CoinConflictGraph::conflicting(size_t n1, size_t n2) const {
         nodeToSearch = n1;
     }
 
-    if (binary_search(dc, dc + ndc, nodeToSearch))
+    if (std::binary_search(dc, dc + ndc, nodeToSearch))
         return true;
 
     return conflictInCliques(n1, n2);
@@ -113,8 +111,8 @@ static void *xcalloc(const size_t elements, const size_t size) {
 void CoinConflictGraph::recomputeDegree() {
     double start = CoinCpuTime();
     this->nConflicts_ = 0;
-    minDegree_ = numeric_limits<size_t>::max();
-    maxDegree_ = numeric_limits<size_t>::min();
+    minDegree_ = std::numeric_limits<size_t>::max();
+    maxDegree_ = std::numeric_limits<size_t>::min();
 
     char *iv = (char *) xcalloc(size_, sizeof(char));
 
@@ -155,8 +153,8 @@ void CoinConflictGraph::recomputeDegree() {
 
         setDegree(i, dg);
         setModifiedDegree(i, dg);
-        minDegree_ = min(minDegree_, dg);
-        maxDegree_ = max(maxDegree_, dg);
+        minDegree_ = std::min(minDegree_, dg);
+        maxDegree_ = std::max(maxDegree_, dg);
         nConflicts_ += dg;
     }
 
@@ -279,7 +277,7 @@ bool CoinConflictGraph::conflictInCliques(size_t n1, size_t n2) const {
         size_t idxClq = nodeCliques(nnc)[i];
         const size_t *clq = cliqueElements(idxClq);
         size_t clqSize = cliqueSize(idxClq);
-        if (binary_search(clq, clq + clqSize, nodeToSearch))
+        if (std::binary_search(clq, clq + clqSize, nodeToSearch))
             return true;
     }
 

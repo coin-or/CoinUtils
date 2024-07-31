@@ -100,9 +100,6 @@ bool sort_columns(const std::pair< size_t, double > &left, const std::pair< size
 }
 
 
-
-using namespace std;
-
 CoinDynamicConflictGraph::CoinDynamicConflictGraph ( size_t _size )
   : CoinConflictGraph ( _size )
   , conflicts( new CoinAdjacencyVector(_size, CG_INI_SPACE_NODE_CONFLICTS)  )
@@ -239,9 +236,9 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
         }
 
         if (columns[j].first < (size_t) numCols) {
-          newBounds_.push_back(make_pair(columns[j].first, make_pair( 0.0, 0.0)));
+          newBounds_.push_back(std::make_pair(columns[j].first, std::make_pair( 0.0, 0.0)));
         } else {
-          newBounds_.push_back(make_pair(columns[j].first - numCols, make_pair( 1.0, 1.0)));
+          newBounds_.push_back(std::make_pair(columns[j].first - numCols, std::make_pair( 1.0, 1.0)));
         }
       }
 
@@ -249,7 +246,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
       assert(rhs >= 0.0);
 #endif
 
-      maxNzOC = max(maxNzOC, nz);
+      maxNzOC = std::max(maxNzOC, nz);
       
       this->addTmpRow( nz, &columns[0], rhs );
 
@@ -508,8 +505,8 @@ void CoinDynamicConflictGraph::printInfo() const
   size_t maxClq = 0;
   
   for ( size_t i=0 ; (i<this->nCliques()) ; ++i ) {
-    minClq = min( minClq, cliqueSize(i) );
-    maxClq = max( maxClq, cliqueSize(i) );
+    minClq = std::min( minClq, cliqueSize(i) );
+    maxClq = std::max( maxClq, cliqueSize(i) );
   }
   
   double totalDegree = 0.0;
@@ -518,8 +515,8 @@ void CoinDynamicConflictGraph::printInfo() const
   for ( size_t i=0 ; (i<size()) ; ++i )
   {
     totalDegree += conflicts->rowSize(i);
-    minD = min( minD, conflicts->rowSize(i) );
-    maxD = max( maxD, conflicts->rowSize(i) );
+    minD = std::min( minD, conflicts->rowSize(i) );
+    maxD = std::max( maxD, conflicts->rowSize(i) );
   }
   double avd = totalDegree /  ((double)size_);
   
@@ -532,7 +529,7 @@ void CoinDynamicConflictGraph::printInfo() const
 
 void CoinDynamicConflictGraph::addTmpRow( size_t nz, const std::pair< size_t, double > *els, double rhs )
 {
-  memcpy( tRowElements + tnEl, els, sizeof(pair< size_t, double>)*nz );
+  memcpy( tRowElements + tnEl, els, sizeof(std::pair< size_t, double>)*nz );
 
   tnEl += nz;
   
