@@ -34,10 +34,6 @@
 
 #define CUTPOOL_EPS 1e-8
 
-static void *xmalloc( const size_t size );
-static void *xrealloc( void *ptr, const size_t size );
-static void *xcalloc( const size_t elements, const size_t size );
-
 struct CompareIdxs {
     explicit CompareIdxs(const int *idxs) { this->idxs_ = idxs; }
 
@@ -48,17 +44,16 @@ struct CompareIdxs {
     const int *idxs_;
 };
 
-CoinCut::CoinCut(const int *idxs, const double *coefs, int nz, double rhs) {
-    nz_ = nz;
-    rhs_ = rhs;
-    idxs_ = (int*)xmalloc(sizeof(int) * nz_);
-    coefs_ = (double*)xmalloc(sizeof(double) * nz_);
-
+CoinCut::CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs)
+  : idxs_(std::vector<int>(nz))
+  , coefs_(std::vector<double>(nz))
+  , rhs_(rhs)
+{
     for (size_t i = 0; i < nz; i++) {
         idxs_[i] = i;
     }
 
-    std::sort(idxs_, idxs_ + nz_, CompareIdxs(idxs));
+    std::sort(idxs_.begin(), idxs_.end(), CompareIdxs(idxs));
 
     for (size_t i = 0; i < nz; i++) {
         const int pos = idxs_[i];
@@ -67,14 +62,11 @@ CoinCut::CoinCut(const int *idxs, const double *coefs, int nz, double rhs) {
     }
 
 #ifdef DEBUGCG
-    assert(std::is_sorted(idxs_, idxs_ + nz_));
+    assert(std::is_sorted(idxs_.begin(), idxs_.end()));
 #endif
 }
 
-CoinCut::~CoinCut() {
-    free(idxs_);
-    free(coefs_);
-}
+CoinCut::~CoinCut() {}
 
 int binarySearch(const int *v, const int n, const int x) {
     int mid, left = 0, right = n - 1;
@@ -93,7 +85,7 @@ int binarySearch(const int *v, const int n, const int x) {
     return -1;
 }
 
-bool CoinCut::dominates(const CoinCut *other, bool *iv) const {
+bool CoinCut::dominates(const CoinCut *other) const {
     /* thisRHS == 0 && otherRHS < 0 */
     if (fabs(this->rhs()) <= CUTPOOL_EPS && other->rhs() <= -CUTPOOL_EPS) {
         return false;
@@ -110,7 +102,7 @@ bool CoinCut::dominates(const CoinCut *other, bool *iv) const {
     const double rhsA = this->rhs(), rhsB = other->rhs();
     double normConstA, normConstB;
 
-    std::fill(iv, iv + sizeB, false);
+    std::vector<bool> iv(sizeB, false);
 
     if (fabs(rhsA) <= CUTPOOL_EPS) {
         normConstA = 1.0;
@@ -159,30 +151,21 @@ bool CoinCut::dominates(const CoinCut *other, bool *iv) const {
 
 CoinCutPool::CoinCutPool(const double *x, int numCols) {
     x_ = x;
-    nCols_ = numCols;
     nullCuts_ = 0;
 
-    bestCutByCol_ = (size_t*)xmalloc(sizeof(size_t) * nCols_);
-    std::fill(bestCutByCol_, bestCutByCol_ + nCols_, -1);
+    bestCutByCol_ = std::vector<int>(numCols, -1);
 
     nCuts_ = 0;
     cutsCap_ = 1024;
-    cuts_ = (CoinCut**)xmalloc(sizeof(CoinCut*) * cutsCap_);
-    cutFrequency_ = (size_t*)xmalloc(sizeof(size_t) * cutsCap_);
-    cutFitness_ = (double*)xmalloc(sizeof(double) * cutsCap_);
-    iv_ = (bool*)xmalloc(sizeof(iv_) * nCols_);
+    cuts_ = std::vector<CoinCut*>(cutsCap_);
+    cutFrequency_ = std::vector<size_t>(cutsCap_);
+    cutFitness_ = std::vector<double>(cutsCap_);
 }
 
 CoinCutPool::~CoinCutPool() {
     for (size_t i = 0; i < nCuts_; i++) {
         delete cuts_[i];
     }
-
-    free(bestCutByCol_);
-    free(cuts_);
-    free(cutFrequency_);
-    free(cutFitness_);
-    free(iv_);
 }
 
 bool CoinCutPool::add(const int *idxs, const double *coefs, int nz, double rhs) {
@@ -277,9 +260,9 @@ void CoinCutPool::checkMemory() {
     }
 
     cutsCap_ *= 2;
-    cuts_ = (CoinCut**)xrealloc(cuts_, sizeof(CoinCut*) * cutsCap_);
-    cutFrequency_ = (size_t*)xrealloc(cutFrequency_, sizeof(size_t) * cutsCap_);
-    cutFitness_ = (double*)xrealloc(cutFitness_, sizeof(double) * cutsCap_);
+    cuts_.resize(cutsCap_);
+    cutFrequency_.resize(cutsCap_);
+    cutFitness_.resize(cutsCap_);
 }
 
 void CoinCutPool::removeDominated() {
@@ -333,12 +316,12 @@ int CoinCutPool::checkCutDomination(size_t idxA, size_t idxB) {
     const CoinCut *cutB = cuts_[idxB];
 
     /* checks if cutA dominates cutB */
-    if (cutA->dominates(cutB, iv_)) {
+    if (cutA->dominates(cutB)) {
         return 0;
     }
 
     /* checks if cutB dominates cutA */
-    if (cutB->dominates(cutA, iv_)) {
+    if (cutB->dominates(cutA)) {
         return 1;
     }
 
@@ -405,32 +388,3 @@ void CoinCutPool::removeNullCuts() {
     }
 }
 
-static void *xmalloc( const size_t size ) {
-    void *result = malloc( size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-        abort();
-    }
-
-    return result;
-}
-
-static void *xrealloc( void *ptr, const size_t size ) {
-    void * res = realloc( ptr, size );
-    if (!res) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinCliqueList", size);
-        abort();
-    }
-
-    return res;
-}
-
-static void *xcalloc( const size_t elements, const size_t size ) {
-    void *result = calloc( elements, size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
-        abort();
-    }
-
-    return result;
-}
