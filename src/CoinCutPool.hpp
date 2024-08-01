@@ -30,6 +30,7 @@
 
 #include "CoinUtilsConfig.h"
 #include <cstddef>
+#include <vector>
 
 /**
  * Class for representing a cut.
@@ -44,7 +45,7 @@ public:
    * @param nz size of the cut
    * @param rhs right-hand side of the cut
    **/
-  CoinCut(const int *idxs, const double *coefs, int nz, double rhs);
+  CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs);
 
   /**
    * Destructor
@@ -54,17 +55,17 @@ public:
   /**
    * Return the indexes of the variables of the cut.
    **/
-  const int* idxs() const { return idxs_; }
+  const int* idxs() const { return idxs_.data(); }
 
   /**
    * Return the coefficients of the variables of the cut.
    **/
-  const double* coefs() const { return  coefs_; }
+  const double* coefs() const { return  coefs_.data(); }
 
   /**
    * Return the size of the cut.
    **/
-  int size() const { return nz_; }
+  int size() const { return idxs_.size(); }
 
   /**
    * Return the right-hand side of the cut.
@@ -85,17 +86,12 @@ private:
   /**
    * indexes of the variables of the cut
    **/
-  int *idxs_;
+  std::vector<int> idxs_;
 
   /**
    * coefficients of the variables of the cut
    **/
-  double *coefs_;
-
-  /**
-   * size of the cut
-   **/
-  int nz_;
+  std::vector<double> coefs_;
 
   /**
    * right-hand side of the cut

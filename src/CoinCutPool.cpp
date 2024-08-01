@@ -36,7 +36,6 @@
 
 static void *xmalloc( const size_t size );
 static void *xrealloc( void *ptr, const size_t size );
-static void *xcalloc( const size_t elements, const size_t size );
 
 struct CompareIdxs {
     explicit CompareIdxs(const int *idxs) { this->idxs_ = idxs; }
@@ -48,17 +47,16 @@ struct CompareIdxs {
     const int *idxs_;
 };
 
-CoinCut::CoinCut(const int *idxs, const double *coefs, int nz, double rhs) {
-    nz_ = nz;
-    rhs_ = rhs;
-    idxs_ = (int*)xmalloc(sizeof(int) * nz_);
-    coefs_ = (double*)xmalloc(sizeof(double) * nz_);
-
+CoinCut::CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs)
+  : idxs_(std::vector<int>(nz))
+  , coefs_(std::vector<double>(nz))
+  , rhs_(rhs)
+{
     for (size_t i = 0; i < nz; i++) {
         idxs_[i] = i;
     }
 
-    std::sort(idxs_, idxs_ + nz_, CompareIdxs(idxs));
+    std::sort(idxs_.begin(), idxs_.end(), CompareIdxs(idxs));
 
     for (size_t i = 0; i < nz; i++) {
         const int pos = idxs_[i];
@@ -67,14 +65,11 @@ CoinCut::CoinCut(const int *idxs, const double *coefs, int nz, double rhs) {
     }
 
 #ifdef DEBUGCG
-    assert(std::is_sorted(idxs_, idxs_ + nz_));
+    assert(std::is_sorted(idxs_.begin(), idxs_.end()));
 #endif
 }
 
-CoinCut::~CoinCut() {
-    free(idxs_);
-    free(coefs_);
-}
+CoinCut::~CoinCut() {}
 
 int binarySearch(const int *v, const int n, const int x) {
     int mid, left = 0, right = n - 1;
@@ -425,12 +420,3 @@ static void *xrealloc( void *ptr, const size_t size ) {
     return res;
 }
 
-static void *xcalloc( const size_t elements, const size_t size ) {
-    void *result = calloc( elements, size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
-        abort();
-    }
-
-    return result;
-}
