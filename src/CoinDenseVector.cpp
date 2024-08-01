@@ -16,7 +16,7 @@
 template < typename T >
 void CoinDenseVector< T >::clear()
 {
-  memset(elements_, 0, nElements_ * sizeof(T));
+  elements_.clear();
 }
 
 //#############################################################################
@@ -36,8 +36,7 @@ CoinDenseVector< T >::operator=(const CoinDenseVector< T > &rhs)
 template < typename T >
 void CoinDenseVector< T >::setVector(int size, const T *elems)
 {
-  resize(size);
-  CoinMemcpyN(elems, size, elements_);
+  elements_ = std::vector<T>(elems, elems + size);
 }
 
 //#############################################################################
@@ -53,27 +52,20 @@ void CoinDenseVector< T >::setConstant(int size, T value)
 //#############################################################################
 
 template < typename T >
-void CoinDenseVector< T >::resize(int newsize, T value)
+void CoinDenseVector< T >::resize(size_t newsize, T value)
 {
-  if (newsize != nElements_) {
+  if (newsize != elements_.size()) {
     assert(newsize > 0);
-    T *newarray = new T[newsize];
-    int cpysize = std::min(newsize, nElements_);
-    CoinMemcpyN(elements_, cpysize, newarray);
-    delete[] elements_;
-    elements_ = newarray;
-    nElements_ = newsize;
-    for (int i = cpysize; i < newsize; i++)
-      elements_[i] = value;
+    elements_.resize(newsize, value);
   }
 }
 
 //#############################################################################
 
 template < typename T >
-void CoinDenseVector< T >::setElement(int index, T element)
+void CoinDenseVector< T >::setElement(size_t index, T element)
 {
-  assert(index >= 0 && index < nElements_);
+  assert(index < elements_.size());
   elements_[index] = element;
 }
 
@@ -82,12 +74,10 @@ void CoinDenseVector< T >::setElement(int index, T element)
 template < typename T >
 void CoinDenseVector< T >::append(const CoinDenseVector< T > &caboose)
 {
-  const int s = nElements_;
   const int cs = caboose.getNumElements();
-  int newsize = s + cs;
-  resize(newsize);
   const T *celem = caboose.getElements();
-  CoinDisjointCopyN(celem, cs, elements_ + s);
+  for (int i = 0; i< cs; ++i)
+    elements_.push_back(celem[i]);
 }
 
 //#############################################################################
@@ -95,7 +85,7 @@ void CoinDenseVector< T >::append(const CoinDenseVector< T > &caboose)
 template < typename T >
 void CoinDenseVector< T >::operator+=(T value)
 {
-  for (int i = 0; i < nElements_; i++)
+  for (size_t i = 0; i < elements_.size(); i++)
     elements_[i] += value;
 }
 
@@ -104,7 +94,7 @@ void CoinDenseVector< T >::operator+=(T value)
 template < typename T >
 void CoinDenseVector< T >::operator-=(T value)
 {
-  for (int i = 0; i < nElements_; i++)
+  for (size_t i = 0; i < elements_.size(); i++)
     elements_[i] -= value;
 }
 
@@ -113,7 +103,7 @@ void CoinDenseVector< T >::operator-=(T value)
 template < typename T >
 void CoinDenseVector< T >::operator*=(T value)
 {
-  for (int i = 0; i < nElements_; i++)
+  for (size_t i = 0; i < elements_.size(); i++)
     elements_[i] *= value;
 }
 
@@ -122,7 +112,7 @@ void CoinDenseVector< T >::operator*=(T value)
 template < typename T >
 void CoinDenseVector< T >::operator/=(T value)
 {
-  for (int i = 0; i < nElements_; i++)
+  for (size_t i = 0; i < elements_.size(); i++)
     elements_[i] /= value;
 }
 
@@ -130,37 +120,31 @@ void CoinDenseVector< T >::operator/=(T value)
 
 template < typename T >
 CoinDenseVector< T >::CoinDenseVector()
-  : nElements_(0)
-  , elements_(NULL)
+  : elements_()
 {
 }
 
 //#############################################################################
 
 template < typename T >
-CoinDenseVector< T >::CoinDenseVector(int size, const T *elems)
-  : nElements_(0)
-  , elements_(NULL)
+CoinDenseVector< T >::CoinDenseVector(size_t size, const T *elems)
+  : elements_(elems, elems + size)
 {
-  gutsOfSetVector(size, elems);
 }
 
 //-----------------------------------------------------------------------------
 
 template < typename T >
-CoinDenseVector< T >::CoinDenseVector(int size, T value)
-  : nElements_(0)
-  , elements_(NULL)
+CoinDenseVector< T >::CoinDenseVector(size_t size, T value)
+  : elements_(size, value)
 {
-  gutsOfSetConstant(size, value);
 }
 
 //-----------------------------------------------------------------------------
 
 template < typename T >
 CoinDenseVector< T >::CoinDenseVector(const CoinDenseVector< T > &rhs)
-  : nElements_(0)
-  , elements_(NULL)
+  : elements_()
 {
   setVector(rhs.getNumElements(), rhs.getElements());
 }
@@ -170,30 +154,25 @@ CoinDenseVector< T >::CoinDenseVector(const CoinDenseVector< T > &rhs)
 template < typename T >
 CoinDenseVector< T >::~CoinDenseVector()
 {
-  delete[] elements_;
 }
 
 //#############################################################################
 
 template < typename T >
-void CoinDenseVector< T >::gutsOfSetVector(int size, const T *elems)
+void CoinDenseVector< T >::gutsOfSetVector(size_t size, const T *elems)
 {
   if (size != 0) {
-    resize(size);
-    nElements_ = size;
-    CoinDisjointCopyN(elems, size, elements_);
+    elements_= std::vector<T>(elems, elems + size);
   }
 }
 
 //-----------------------------------------------------------------------------
 
 template < typename T >
-void CoinDenseVector< T >::gutsOfSetConstant(int size, T value)
+void CoinDenseVector< T >::gutsOfSetConstant(size_t size, T value)
 {
   if (size != 0) {
-    resize(size);
-    nElements_ = size;
-    CoinFillN(elements_, size, value);
+    elements_ = std::vector<T>(size, value);
   }
 }
 
@@ -201,11 +180,19 @@ void CoinDenseVector< T >::gutsOfSetConstant(int size, T value)
 /** Access the i'th element of the dense vector.  */
 template < typename T >
 T &
-  CoinDenseVector< T >::operator[](int index) const
+  CoinDenseVector< T >::operator[](size_t index)
 {
-  assert(index >= 0 && index < nElements_);
-  T *where = elements_ + index;
-  return *where;
+  assert(index < elements_.size());
+  return elements_[index];
+}
+
+/** Access the i'th element of the dense vector.  */
+template < typename T >
+const T &
+  CoinDenseVector< T >::operator[](size_t index) const
+{
+  assert(index < elements_.size());
+  return elements_[index];
 }
 //#############################################################################
 

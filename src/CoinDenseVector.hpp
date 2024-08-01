@@ -13,6 +13,8 @@
 #include <cassert>
 #include <cstdlib>
 #include <cmath>
+#include <numeric>
+#include <vector>
 #include "CoinHelperFunctions.hpp"
 
 //#############################################################################
@@ -68,22 +70,20 @@ class CoinDenseVector {
 private:
   /**@name Private member data */
   //@{
-  /// Size of element vector
-  int nElements_;
   ///Vector elements
-  T *elements_;
+  std::vector<T> elements_;
   //@}
 
 public:
   /**@name Get methods. */
   //@{
   /// Get the size
-  inline int getNumElements() const { return nElements_; }
-  inline int size() const { return nElements_; }
+  inline int getNumElements() const { return elements_.size(); }
+  inline int size() const { return elements_.size(); }
   /// Get element values
-  inline const T *getElements() const { return elements_; }
+  inline const T *getElements() const { return elements_.data(); }
   /// Get element values
-  inline T *getElements() { return elements_; }
+  inline T *getElements() { return elements_.data(); }
   //@}
 
   //-------------------------------------------------------------------
@@ -96,7 +96,9 @@ public:
   /** Assignment operator */
   CoinDenseVector &operator=(const CoinDenseVector &);
   /** Member of array operator */
-  T &operator[](int index) const;
+  T &operator[](size_t index);
+  /** Member of array operator */
+  const T &operator[](size_t index) const;
 
   /** Set vector size, and elements.
        Size is the length of the elements vector.
@@ -110,11 +112,11 @@ public:
   /** Set an existing element in the dense vector
        The first argument is the "index" into the elements() array
    */
-  void setElement(int index, T element);
+  void setElement(size_t index, T element);
   /** Resize the dense vector to be the first newSize elements.
        If length is decreased, vector is truncated. If increased
        new entries, set to new default element */
-  void resize(int newSize, T fill = T());
+  void resize(size_t newSize, T fill = T());
 
   /** Append a dense vector to this dense vector */
   void append(const CoinDenseVector &);
@@ -126,7 +128,7 @@ public:
   inline T oneNorm() const
   {
     T norm = 0;
-    for (int i = 0; i < nElements_; i++)
+    for (size_t i = 0; i < elements_.size(); i++)
       norm += CoinAbs(elements_[i]);
     return norm;
   }
@@ -134,7 +136,7 @@ public:
   inline double twoNorm() const
   {
     double norm = 0.;
-    for (int i = 0; i < nElements_; i++)
+    for (size_t i = 0; i < elements_.size(); i++)
       norm += elements_[i] * elements_[i];
     // std namespace removed because it was causing a compile
     // problem with Microsoft Visual C++
@@ -144,22 +146,19 @@ public:
   inline T infNorm() const
   {
     T norm = 0;
-    for (int i = 0; i < nElements_; i++)
+    for (size_t i = 0; i < elements_.size(); i++)
       norm = std::max(norm, CoinAbs(elements_[i]));
     return norm;
   }
   /// sum of vector elements
   inline T sum() const
   {
-    T sume = 0;
-    for (int i = 0; i < nElements_; i++)
-      sume += elements_[i];
-    return sume;
+    return std::accumulate(elements_.begin(), elements_.end(), 0);
   }
   /// scale vector elements
   inline void scale(T factor)
   {
-    for (int i = 0; i < nElements_; i++)
+    for (size_t i = 0; i < elements_.size(); i++)
       elements_[i] *= factor;
     return;
   }
@@ -182,9 +181,9 @@ public:
   /** Default constructor */
   CoinDenseVector();
   /** Alternate Constructors - set elements to vector of Ts */
-  CoinDenseVector(int size, const T *elems);
+  CoinDenseVector(size_t size, const T *elems);
   /** Alternate Constructors - set elements to same scalar value */
-  CoinDenseVector(int size, T element = T());
+  CoinDenseVector(size_t size, T element = T());
   /** Copy constructors */
   CoinDenseVector(const CoinDenseVector &);
 
@@ -196,9 +195,9 @@ private:
   /**@name Private methods */
   //@{
   /// Copy internal data
-  void gutsOfSetVector(int size, const T *elems);
+  void gutsOfSetVector(size_t size, const T *elems);
   /// Set all elements to a given value
-  void gutsOfSetConstant(int size, T value);
+  void gutsOfSetConstant(size_t size, T value);
   //@}
 };
 
