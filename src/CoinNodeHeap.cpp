@@ -31,22 +31,17 @@
 // position of the first child node in vector
 #define childPos(node) ((node * 2) + 1)
 
-static void *xmalloc( const size_t size );
-
 CoinNodeHeap::CoinNodeHeap(size_t numNodes) {
 #ifdef DEBUGCG
     assert(numNodes > 0);
 #endif
     numNodes_ = numNodes;
-    pq_ = (std::pair<size_t, double>*)xmalloc(sizeof(std::pair<size_t, double>) * numNodes_);
-    pos_ = (size_t*)xmalloc(sizeof(size_t) * numNodes_);
+    pq_ = std::vector<std::pair<size_t, double> >(numNodes);
+    pos_ = std::vector<size_t>(numNodes);
     reset();
 }
 
-CoinNodeHeap::~CoinNodeHeap() {
-    free(pq_);
-    free(pos_);
-}
+CoinNodeHeap::~CoinNodeHeap() {}
 
 void CoinNodeHeap::reset() {
     for (size_t i = 0; i < numNodes_; i++) {
@@ -111,12 +106,3 @@ bool CoinNodeHeap::isEmpty() const {
     return (pq_[0].second >= NODEHEAP_INFTY);
 }
 
-static void *xmalloc( const size_t size ) {
-    void *result = malloc( size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-        abort();
-    }
-
-    return result;
-}
