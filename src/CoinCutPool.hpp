@@ -76,11 +76,8 @@ public:
    * Check if the cut dominates another one.
    *
    * @param other cut to be checked.
-   * @param iv incidence array with size equal to the
-   * number of cols of the MILP. All entries must be
-   * initialized as false.
    **/
-  bool dominates(const CoinCut *other, bool *iv) const;
+  bool dominates(const CoinCut *other) const;
 
 private:
   /**
@@ -204,7 +201,7 @@ private:
   /**
     * Array of pointers to the cuts stored in the pool.
     **/
-  CoinCut **cuts_;
+  std::vector<CoinCut *> cuts_;
 
   /**
    * Number of cuts stored in the pool.
@@ -220,30 +217,18 @@ private:
    * For each cut, stores the number of variables in
    * which it has the best score.
    **/
-  size_t *cutFrequency_;
+  std::vector<size_t> cutFrequency_;
 
   /**
    * Score of each cut
    **/
-  double *cutFitness_;
-
-  /**
-   * Incidence array used in the method
-   * that checks the dominance between two cuts.
-   **/
-  bool *iv_;
-
-  /**
-   * Number of variables of the MILP associated
-   * with the cuts.
-   **/
-  int nCols_;
+  std::vector<double> cutFitness_;
 
   /**
    * For each variable, stores the index of the cut
    * with the best score that contains this variable.
    **/
-  size_t *bestCutByCol_;
+  std::vector<int> bestCutByCol_;
 
   /**
    * Number of cuts that were deleted from the pool.
