@@ -40,7 +40,7 @@ bool compareNodes(const BKVertex &u, const BKVertex &v) {
     return u.fitness >= v.fitness + BK_EPS;
 }
 
-CoinBronKerbosch::CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights, size_t pivotingStrategy)
+CoinBronKerbosch::CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights, PivotingStrategy pivotingStrategy)
   : nVertices_(0)
   , minWeight_(0.0)
   , calls_(0)
@@ -351,14 +351,14 @@ size_t CoinBronKerbosch::numCalls() const {
 
 void CoinBronKerbosch::computeFitness(const double *weights) {
     switch (pivotingStrategy_) {
-        case 0:
+        case PivotingStrategy::Off:
             //do nothing
             break;
-        case 1: { //random
+        case PivotingStrategy::Random: {
             shuffle_vertices(vertices_, nVertices_);
             break;
         }
-        case 2: { //degree
+        case PivotingStrategy::Degree: {
             for (size_t u = 0; u < nVertices_; u++) {
                 const size_t uIdx = vertices_[u].idx;
                 vertices_[u].fitness = cgraph_->degree(uIdx);
@@ -366,7 +366,7 @@ void CoinBronKerbosch::computeFitness(const double *weights) {
             std::sort(vertices_, vertices_ + nVertices_, compareNodes);
             break;
         }
-        case 3: { //weight
+        case PivotingStrategy::Weight: {
             for (size_t u = 0; u < nVertices_; u++) {
                 const size_t uIdx = vertices_[u].idx;
                 vertices_[u].fitness = weights[uIdx];
@@ -374,7 +374,7 @@ void CoinBronKerbosch::computeFitness(const double *weights) {
             std::sort(vertices_, vertices_ + nVertices_, compareNodes);
             break;
         }
-        case 4: { //modified degree
+        case PivotingStrategy::ModifiedDegree: {
             for (size_t u = 0; u < nVertices_; u++) {
                 const size_t uIdx = vertices_[u].idx;
                 vertices_[u].fitness = cgraph_->modifiedDegree(uIdx);
@@ -382,7 +382,7 @@ void CoinBronKerbosch::computeFitness(const double *weights) {
             std::sort(vertices_, vertices_ + nVertices_, compareNodes);
             break;
         }
-        case 5: { //modified weight
+        case PivotingStrategy::ModifiedWeight: {
             size_t *neighs = (size_t*)xmalloc(sizeof(size_t) * cgraph_->size());
             char *iv = (char*)xcalloc(cgraph_->size(), sizeof(char));
             for (size_t u = 0; u < nVertices_; u++) {
@@ -399,7 +399,7 @@ void CoinBronKerbosch::computeFitness(const double *weights) {
             std::sort(vertices_, vertices_ + nVertices_, compareNodes);
             break;
         }
-        case 6: { //modified degree + modified weight
+        case PivotingStrategy::ModifiedDegreeWeight: {
             size_t *neighs = (size_t*)xmalloc(sizeof(size_t) * cgraph_->size());
             char *iv = (char*)xcalloc(cgraph_->size(), sizeof(char));
             for (size_t u = 0; u < nVertices_; u++) {
