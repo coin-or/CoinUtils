@@ -60,15 +60,27 @@ struct BKVertex {
 class COINUTILSLIB_EXPORT CoinBronKerbosch {
 public:
   /**
+   * Pivoting strategies used in BK algorithm.
+   **/
+  enum PivotingStrategy {
+    Off = 0,
+    Random = 1,
+    Degree = 2,
+    Weight = 3,
+    ModifiedDegree = 4,
+    ModifiedWeight = 5,
+    ModifiedDegreeWeight = 6,
+  };
+
+  /**
    * Default constructor.
    *
    * @param cgraph conflict graph
    * @param weights array containing the weights for each vertex
-   * @param pivotingStrategy pivoting strategy used in BK algorithm. Values:
-   * 0 = off; 1 = random; 2 = degree; 3 = weight; 4 = modified degree;
-   * 5 = modified weight; 6 = modified degree + modified weight. Default: 3
+   * @param pivotingStrategy pivoting strategy used in BK algorithm.
    **/
-  CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights, size_t pivotingStrategy = 3);
+  CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights,
+    PivotingStrategy pivotingStrategy = PivotingStrategy::Weight);
 
   /**
    * Destructor
@@ -232,16 +244,10 @@ private:
      **/
     size_t maxCalls_;
 
-    /** Pivoting strategy used in BK algorithm. Options:
-     * 0 - off
-     * 1 - random
-     * 2 - degree
-     * 3 - weight
-     * 4 - modified degree
-     * 5 - modified weight
-     * 6 - modified degree + modified weight
+    /**
+     * Pivoting strategy used in BK algorithm.
      **/
-    size_t pivotingStrategy_;
+    PivotingStrategy pivotingStrategy_;
 
     /**
      * If BK algorithm ran completely, without stopping
