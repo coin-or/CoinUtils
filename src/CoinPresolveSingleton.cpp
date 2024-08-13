@@ -584,7 +584,7 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
   int iLook;
   int *look = prob->colsToDo_;
   // Make sure we allocate at least one action
-  int maxActions = CoinMin(numberLook, nrows / 10) + 1;
+  int maxActions = std::min(numberLook, nrows / 10) + 1;
   action *actions = new action[maxActions];
   int nactions = 0;
   int *fixed_cols = new int[numberLook];
@@ -691,7 +691,7 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
             continue; // no good
         }
         if (nactions >= maxActions) {
-          maxActions += CoinMin(numberLook - iLook, maxActions);
+          maxActions += std::min(numberLook - iLook, maxActions);
           action *temp = new action[maxActions];
           memcpy(temp, actions, nactions * sizeof(action));
           // changed as 4.6 compiler bug! CoinMemcpyN(actions,nactions,temp) ;

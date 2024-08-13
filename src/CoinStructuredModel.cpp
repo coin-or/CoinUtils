@@ -916,7 +916,7 @@ int CoinStructuredModel::decompose(const CoinPackedMatrix &matrix,
 #endif
           rowsDone++;
           if (iBlock >= 0)
-            maximumInBlock = CoinMax(maximumInBlock, rowBlock[iBlock]);
+            maximumInBlock = std::max(maximumInBlock, rowBlock[iBlock]);
           if (rowsDone >= checkAfterRows) {
             assert(numberGoodBlocks > 0);
             double averageSize = static_cast< double >(numberMarkedColumns) / static_cast< double >(numberGoodBlocks);
@@ -1191,7 +1191,7 @@ int CoinStructuredModel::decompose(const CoinPackedMatrix &matrix,
         rowCount[i], columnCount[i]);
       handler_->message(COIN_GENERAL_INFO2, messages_) << generalPrint << CoinMessageEol;
       int k = 2 * rowCount[i] + columnCount[i];
-      maximumSize = CoinMax(maximumSize, k);
+      maximumSize = std::max(maximumSize, k);
     }
     if (maximumSize * 10 > 4 * (2 * numberRows + numberColumns) && !wantDecomposition) {
       // No good
@@ -1462,7 +1462,7 @@ int CoinStructuredModel::decompose(const CoinPackedMatrix &matrix,
           }
           columnsDone++;
           if (iBlock >= 0)
-            maximumInBlock = CoinMax(maximumInBlock, columnBlock[iBlock]);
+            maximumInBlock = std::max(maximumInBlock, columnBlock[iBlock]);
           if (columnsDone >= checkAfterColumns) {
             assert(numberGoodBlocks > 0);
             double averageSize = static_cast< double >(numberMarkedRows) / static_cast< double >(numberGoodBlocks);
@@ -1718,7 +1718,7 @@ int CoinStructuredModel::decompose(const CoinPackedMatrix &matrix,
         columnCount[i], rowCount[i]);
       handler_->message(COIN_GENERAL_INFO2, messages_) << generalPrint << CoinMessageEol;
       int k = 2 * columnCount[i] + rowCount[i];
-      maximumSize = CoinMax(maximumSize, k);
+      maximumSize = std::max(maximumSize, k);
     }
     if ((maximumSize * 10 > 4 * (2 * numberColumns + numberRows) || numberMasterRows * 10 > numberRows) && !wantDecomposition) {
       // No good
@@ -1868,7 +1868,7 @@ int CoinStructuredModel::decompose(const CoinModel &coinModel, int type,
     // allow at least 400 per problem
     maxBlocks = (numberTotal + 399) / 400;
     // but gate at 8 and 1000
-    maxBlocks = CoinMax(8, CoinMin(maxBlocks, 1000));
+    maxBlocks = std::max(8, std::min(maxBlocks, 1000));
     sprintf(generalPrint, "Trying for %d blocks", maxBlocks);
     handler_->message(COIN_GENERAL_INFO, messages_) << generalPrint << CoinMessageEol;
   }

@@ -198,7 +198,7 @@ void CoinPackedVector::insert(int index, double element)
   }
 
   if (capacity_ <= s) {
-    reserve(CoinMax(5, 2 * capacity_));
+    reserve(std::max(5, 2 * capacity_));
     assert(capacity_ > s);
   }
   indices_[s] = index;
@@ -222,7 +222,7 @@ void CoinPackedVector::append(const CoinPackedVectorBase &caboose)
   const int s = nElements_;
   // Make sure there is enough room for the caboose
   if (capacity_ < s + cs)
-    reserve(CoinMax(s + cs, 2 * capacity_));
+    reserve(std::max(s + cs, 2 * capacity_));
 
   const int *cind = caboose.getIndices();
   const double *celem = caboose.getElements();

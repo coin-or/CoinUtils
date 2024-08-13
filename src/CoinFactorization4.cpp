@@ -195,7 +195,7 @@ bool CoinFactorization::getColumnSpaceIterateR(int iColumn, double value,
   indexRowR[put++] = iRow;
   numberInColumnPlus[iColumn]++;
   //add 4 for luck
-  startR[maximumColumnsExtra_] = CoinMin(static_cast< int >(put + 4), lengthAreaR_);
+  startR[maximumColumnsExtra_] = std::min(static_cast< int >(put + 4), lengthAreaR_);
   return true;
 }
 int CoinFactorization::checkPivot(double saveFromU,
@@ -373,7 +373,7 @@ int CoinFactorization::replaceColumn(CoinIndexedVector *regionSparse,
       for (int i = start; i < end; i++) {
         int iColumn = indexColumn[i];
         assert(iColumn < numberRowsExtra_);
-        smallestIndex = CoinMin(smallestIndex, iColumn);
+        smallestIndex = std::min(smallestIndex, iColumn);
         int j = convertRowToColumn[i];
 
         region[iColumn] = element[j];
@@ -387,7 +387,7 @@ int CoinFactorization::replaceColumn(CoinIndexedVector *regionSparse,
     } else {
       for (int i = start; i < end; i++) {
         int iColumn = indexColumn[i];
-        smallestIndex = CoinMin(smallestIndex, iColumn);
+        smallestIndex = std::min(smallestIndex, iColumn);
         int j = convertRowToColumn[i];
 
         region[iColumn] = element[j];
@@ -657,7 +657,7 @@ int CoinFactorization::replaceColumn(CoinIndexedVector *regionSparse,
     for (int i = 0; i < number; i++) {
       elementU[i] *= pivotValue;
     }
-    maximumU_ = CoinMax(maximumU_, startU + number);
+    maximumU_ = std::max(maximumU_, startU + number);
     numberRowsExtra_++;
     numberColumnsExtra_++;
     numberGoodU_++;
@@ -710,7 +710,7 @@ int CoinFactorization::replaceColumn(CoinIndexedVector *regionSparse,
         elementR[put] = region[iRow];
         //add 4 for luck
         if (next == maximumColumnsExtra_)
-          startR[maximumColumnsExtra_] = CoinMin(static_cast< int >(put + 4), lengthAreaR_);
+          startR[maximumColumnsExtra_] = std::min(static_cast< int >(put + 4), lengthAreaR_);
       } else {
         // no space - do we shuffle?
         if (!getColumnSpaceIterateR(iRow, region[iRow], pivotRow)) {
@@ -781,7 +781,7 @@ void CoinFactorization::replaceColumn1(CoinIndexedVector *regionSparse,
   for (int i = start; i < end; i++) {
     int iColumn = indexColumn[i];
     assert(iColumn < numberRowsExtra_);
-    smallestIndex = CoinMin(smallestIndex, iColumn);
+    smallestIndex = std::min(smallestIndex, iColumn);
     int j = convertRowToColumn[i];
 
     region[iColumn] = element[j];
@@ -1108,7 +1108,7 @@ int CoinFactorization::replaceColumn2(CoinIndexedVector *regionSparse,
     for (int i = 0; i < number; i++) {
       elementU[i] *= pivotValue;
     }
-    maximumU_ = CoinMax(maximumU_, startU + number);
+    maximumU_ = std::max(maximumU_, startU + number);
     numberRowsExtra_++;
     numberColumnsExtra_++;
     numberGoodU_++;
@@ -1161,7 +1161,7 @@ int CoinFactorization::replaceColumn2(CoinIndexedVector *regionSparse,
         elementR[put] = region[iRow];
         //add 4 for luck
         if (next == maximumColumnsExtra_)
-          startR[maximumColumnsExtra_] = CoinMin(static_cast< int >(put + 4), lengthAreaR_);
+          startR[maximumColumnsExtra_] = std::min(static_cast< int >(put + 4), lengthAreaR_);
       } else {
         // no space - do we shuffle?
         if (!getColumnSpaceIterateR(iRow, region[iRow], pivotRow)) {
@@ -1242,7 +1242,7 @@ int CoinFactorization::updateColumnTranspose(CoinIndexedVector *regionSparse,
   int smallestIndex = numberRowsExtra_;
   for (int j = 0; j < numberNonZero; j++) {
     int iRow = regionIndex[j];
-    smallestIndex = CoinMin(smallestIndex, iRow);
+    smallestIndex = std::min(smallestIndex, iRow);
     region[iRow] *= pivotRegion[iRow];
   }
   updateColumnTransposeU(regionSparse, smallestIndex);
@@ -1328,7 +1328,7 @@ void CoinFactorization::updateOneColumnTranspose(CoinIndexedVector *regionWork,
   int smallestIndex = numberRowsExtra_;
   for (int j = 0; j < numberNonZero; j++) {
     int iRow = regionIndex[j];
-    smallestIndex = CoinMin(smallestIndex, iRow);
+    smallestIndex = std::min(smallestIndex, iRow);
     region[iRow] *= pivotRegion[iRow];
   }
   updateColumnTransposeU(regionWork, smallestIndex);
@@ -1450,7 +1450,7 @@ void CoinFactorization::updateTwoColumnsTranspose(CoinIndexedVector *regionSpars
     int smallestIndexA = numberRowsExtra_;
     for (int j = 0; j < numberNonZeroA; j++) {
       int iRow = regionIndexA[j];
-      smallestIndexA = CoinMin(smallestIndexA, iRow);
+      smallestIndexA = std::min(smallestIndexA, iRow);
       regionA[iRow] *= pivotRegion[iRow];
     }
     updateColumnTransposeU(regionWorkA, smallestIndexA);
@@ -1471,7 +1471,7 @@ void CoinFactorization::updateTwoColumnsTranspose(CoinIndexedVector *regionSpars
     int smallestIndexB = numberRowsExtra_;
     for (int j = 0; j < numberNonZeroB; j++) {
       int iRow = regionIndexB[j];
-      smallestIndexB = CoinMin(smallestIndexB, iRow);
+      smallestIndexB = std::min(smallestIndexB, iRow);
       regionB[iRow] *= pivotRegion[iRow];
     }
     updateColumnTransposeU(regionWorkB, smallestIndexB);
@@ -1510,13 +1510,13 @@ void CoinFactorization::updateTwoColumnsTranspose(CoinIndexedVector *regionSpars
     int smallestIndexA = numberRowsExtra_;
     for (int j = 0; j < numberNonZeroA; j++) {
       int iRow = regionIndexA[j];
-      smallestIndexA = CoinMin(smallestIndexA, iRow);
+      smallestIndexA = std::min(smallestIndexA, iRow);
       regionA[iRow] *= pivotRegion[iRow];
     }
     int smallestIndexB = numberRowsExtra_;
     for (int j = 0; j < numberNonZeroB; j++) {
       int iRow = regionIndexB[j];
-      smallestIndexB = CoinMin(smallestIndexB, iRow);
+      smallestIndexB = std::min(smallestIndexB, iRow);
       regionB[iRow] *= pivotRegion[iRow];
     }
     updateColumnTransposeU(regionWorkA, smallestIndexA);
@@ -1556,13 +1556,13 @@ void CoinFactorization::updateTwoColumnsTranspose(CoinIndexedVector *regionSpars
   int smallestIndexA = numberRowsExtra_;
   for (int j = 0; j < numberNonZeroA; j++) {
     int iRow = regionIndexA[j];
-    smallestIndexA = CoinMin(smallestIndexA, iRow);
+    smallestIndexA = std::min(smallestIndexA, iRow);
     regionA[iRow] *= pivotRegion[iRow];
   }
   int smallestIndexB = numberRowsExtra_;
   for (int j = 0; j < numberNonZeroB; j++) {
     int iRow = regionIndexB[j];
-    smallestIndexB = CoinMin(smallestIndexB, iRow);
+    smallestIndexB = std::min(smallestIndexB, iRow);
     regionB[iRow] *= pivotRegion[iRow];
   }
   updateColumnTransposeU(regionWorkA, smallestIndexA);
@@ -2411,7 +2411,7 @@ void CoinFactorization::replaceColumnU(CoinIndexedVector *regionSparse,
     deleted++;
   }
   int nPut = 0;
-  for (int i = CoinMax(numberSlacks_, internalPivotRow);
+  for (int i = std::max(numberSlacks_, internalPivotRow);
        i < numberU_; i++) {
     assert(!region[i]);
     CoinFactorizationDouble pivotValue = 0.0; //region[i]*pivotRegion[i];
@@ -2474,7 +2474,7 @@ void CoinFactorization::updateColumnTransposeUByColumn(CoinIndexedVector *region
         region[i] = 0.0;
     }
   }
-  for (int i = CoinMax(numberSlacks_, smallestIndex);
+  for (int i = std::max(numberSlacks_, smallestIndex);
        i < numberU_; i++) {
     CoinFactorizationDouble pivotValue = region[i] * pivotRegion[i];
     //printf("pv %g reg %g pr %g\n",
@@ -2614,7 +2614,7 @@ void CoinFactorization::updateColumnTransposeR(CoinIndexedVector *regionSparse) 
       // we have lost indices
       // make sure won't try and go sparse again
       if (collectStatistics_)
-        btranCountAfterR_ += CoinMin((numberNonZero << 1), numberRows_);
+        btranCountAfterR_ += std::min((numberNonZero << 1), numberRows_);
       regionSparse->setNumElements(numberRows_ + 1);
     }
   }
@@ -2630,13 +2630,13 @@ void CoinFactorization::goSparse()
     if (numberRows_ > setSparseSmall) {
       if (numberRows_ < 10000) {
         sparseThreshold_ =
-	  CoinMin(numberRows_ / setSparseDivMedium, setSparseMinMedium);
+	  std::min(numberRows_ / setSparseDivMedium, setSparseMinMedium);
         sparseThreshold2_ = numberRows_/setSparseThresh2;
       } else {
         sparseThreshold_ = 1000;
         sparseThreshold2_ = numberRows_ >> 2;
         sparseThreshold_ = 500;
-        sparseThreshold2_ = CoinMax(sparseThreshold_, numberRows_ >> 3);
+        sparseThreshold2_ = std::max(sparseThreshold_, numberRows_ >> 3);
       }
       //printf("sparseThreshold %d threshold2 %d - numberDense %d\n",
       //     sparseThreshold_,sparseThreshold2_,numberDense_);
@@ -2646,7 +2646,7 @@ void CoinFactorization::goSparse()
     }
   } else {
     if (!sparseThreshold_ && numberRows_ > 400) {
-      sparseThreshold_ = CoinMin((numberRows_ - 300) / 9, 1000);
+      sparseThreshold_ = std::min((numberRows_ - 300) / 9, 1000);
     }
     sparseThreshold2_ = sparseThreshold_;
   }
@@ -2947,7 +2947,7 @@ int CoinFactorization::getColumnSpaceIterate(int iColumn, double value,
       indexRowU[put] = iRow;
       numberInColumn[iColumn]++;
       //add 4 for luck
-      startColumnU[maximumColumnsExtra_] = CoinMin(static_cast< int >(put + 4), lengthAreaU_);
+      startColumnU[maximumColumnsExtra_] = std::min(static_cast< int >(put + 4), lengthAreaU_);
     } else {
       // no room
       put = -1;
@@ -3506,7 +3506,7 @@ void CoinFactorization::gutsOfCopy(const CoinFactorization &other)
   for (int iRow = 0; iRow < numberRowsExtra_; iRow++) {
     int start = startColumnU[iRow];
     int numberIn = numberInColumn[iRow];
-    maxU = CoinMax(maxU, start + numberIn);
+    maxU = std::max(maxU, start + numberIn);
   }
   assert(maximumU_ >= maxU);
 #endif
@@ -3553,14 +3553,14 @@ void CoinFactorization::checkSparse()
 {
   // See if worth going sparse and when
   if (numberFtranCounts_ > 100) {
-    ftranCountInput_ = CoinMax(ftranCountInput_, 1.0);
-    ftranAverageAfterL_ = CoinMax(ftranCountAfterL_ / ftranCountInput_, 1.0);
-    ftranAverageAfterR_ = CoinMax(ftranCountAfterR_ / ftranCountAfterL_, 1.0);
-    ftranAverageAfterU_ = CoinMax(ftranCountAfterU_ / ftranCountAfterR_, 1.0);
+    ftranCountInput_ = std::max(ftranCountInput_, 1.0);
+    ftranAverageAfterL_ = std::max(ftranCountAfterL_ / ftranCountInput_, 1.0);
+    ftranAverageAfterR_ = std::max(ftranCountAfterR_ / ftranCountAfterL_, 1.0);
+    ftranAverageAfterU_ = std::max(ftranCountAfterU_ / ftranCountAfterR_, 1.0);
     if (btranCountInput_ && btranCountAfterU_ && btranCountAfterR_) {
-      btranAverageAfterU_ = CoinMax(btranCountAfterU_ / btranCountInput_, 1.0);
-      btranAverageAfterR_ = CoinMax(btranCountAfterR_ / btranCountAfterU_, 1.0);
-      btranAverageAfterL_ = CoinMax(btranCountAfterL_ / btranCountAfterR_, 1.0);
+      btranAverageAfterU_ = std::max(btranCountAfterU_ / btranCountInput_, 1.0);
+      btranAverageAfterR_ = std::max(btranCountAfterR_ / btranCountAfterU_, 1.0);
+      btranAverageAfterL_ = std::max(btranCountAfterL_ / btranCountAfterR_, 1.0);
     } else {
       // we have not done any useful btrans (values pass?)
       btranAverageAfterU_ = 1.0;
@@ -3588,7 +3588,7 @@ CoinFactorization::conditionNumber() const
   for (int i = 0; i < numberRows_; i++) {
     condition *= pivotRegion[i];
   }
-  condition = CoinMax(fabs(condition), 1.0e-50);
+  condition = std::max(fabs(condition), 1.0e-50);
   return 1.0 / condition;
 }
 #ifdef ABC_USE_COIN_FACTORIZATION
@@ -3627,7 +3627,7 @@ CoinFactorization::checkReplacePart1(CoinIndexedVector *regionSparse,
   int smallestIndex = numberRowsExtra_;
   for (int i = start; i < end; i++) {
     int iColumn = indexColumn[i];
-    smallestIndex = CoinMin(smallestIndex, iColumn);
+    smallestIndex = std::min(smallestIndex, iColumn);
     int j = convertRowToColumn[i];
 
     region[iColumn] = element[j];
@@ -3690,7 +3690,7 @@ CoinFactorization::checkReplacePart1(CoinIndexedVector *regionSparse,
   int smallestIndex = numberRowsExtra_;
   for (int i = start; i < end; i++) {
     int iColumn = indexColumn[i];
-    smallestIndex = CoinMin(smallestIndex, iColumn);
+    smallestIndex = std::min(smallestIndex, iColumn);
     int j = convertRowToColumn[i];
 
     region[iColumn] = element[j];
@@ -3918,7 +3918,7 @@ void CoinFactorization::replaceColumnPart3(CoinIndexedVector *regionSparse,
   for (int i = 0; i < number; i++) {
     elementU[i] *= pivotValue;
   }
-  maximumU_ = CoinMax(maximumU_, startU + number);
+  maximumU_ = std::max(maximumU_, startU + number);
   numberRowsExtra_++;
   numberColumnsExtra_++;
   numberGoodU_++;
@@ -3970,7 +3970,7 @@ void CoinFactorization::replaceColumnPart3(CoinIndexedVector *regionSparse,
       elementR[put] = region[iRow];
       //add 4 for luck
       if (next == maximumColumnsExtra_)
-        startR[maximumColumnsExtra_] = CoinMin(static_cast< int >(put + 4), lengthAreaR_);
+        startR[maximumColumnsExtra_] = std::min(static_cast< int >(put + 4), lengthAreaR_);
     } else {
       // no space - do we shuffle?
       if (!getColumnSpaceIterateR(iRow, region[iRow], pivotRowNew)) {

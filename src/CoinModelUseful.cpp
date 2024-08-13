@@ -312,7 +312,7 @@ void CoinModelHash::addHash(int index, const char *name)
   assert(!names_[index]);
   names_[index] = CoinStrdup(name);
   int ipos = hashValue(name);
-  numberItems_ = CoinMax(numberItems_, index + 1);
+  numberItems_ = std::max(numberItems_, index + 1);
   if (hash_[ipos].index < 0) {
     hash_[ipos].index = index;
   } else {
@@ -414,7 +414,7 @@ int CoinModelHash::hashValue(const char *name) const
   // may get better spread with unsigned
   const unsigned char *name2 = reinterpret_cast< const unsigned char * >(name);
   while (length) {
-    int length2 = CoinMin(length, lengthMult);
+    int length2 = std::min(length, lengthMult);
     for (j = 0; j < length2; ++j) {
       n += mmult[j] * name2[j];
     }
@@ -618,9 +618,9 @@ void CoinModelHash2::addHash(CoinBigIndex index, int row, int column, const Coin
 {
   // resize if necessary
   if (numberItems_ >= maximumItems_ || index + 1 >= maximumItems_)
-    resize(CoinMax(1000 + 3 * numberItems_ / 2, index + 1), triples);
+    resize(std::max(1000 + 3 * numberItems_ / 2, index + 1), triples);
   CoinBigIndex ipos = hashValue(row, column);
-  numberItems_ = CoinMax(numberItems_, index + 1);
+  numberItems_ = std::max(numberItems_, index + 1);
   assert(numberItems_ <= maximumItems_);
   if (hash_[ipos].index < 0) {
     hash_[ipos].index = index;
@@ -825,8 +825,8 @@ CoinModelLinkedList::operator=(const CoinModelLinkedList &rhs)
 // Resize list - for row list maxMajor is maximum rows
 void CoinModelLinkedList::resize(int maxMajor, CoinBigIndex maxElements)
 {
-  maxMajor = CoinMax(maxMajor, maximumMajor_);
-  maxElements = CoinMax(maxElements, maximumElements_);
+  maxMajor = std::max(maxMajor, maximumMajor_);
+  maxElements = std::max(maxElements, maximumElements_);
   if (maxMajor > maximumMajor_) {
     CoinBigIndex *first = new CoinBigIndex[maxMajor + 1];
     CoinBigIndex free;
@@ -883,10 +883,10 @@ void CoinModelLinkedList::create(int maxMajor, CoinBigIndex maxElements,
   int numberMajor, int /*numberMinor*/, int type,
   CoinBigIndex numberElements, const CoinModelTriple *triples)
 {
-  maxMajor = CoinMax(maxMajor, maximumMajor_);
-  maxMajor = CoinMax(maxMajor, numberMajor);
-  maxElements = CoinMax(maxElements, maximumElements_);
-  maxElements = CoinMax(maxElements, numberElements);
+  maxMajor = std::max(maxMajor, maximumMajor_);
+  maxMajor = std::max(maxMajor, numberMajor);
+  maxElements = std::max(maxElements, maximumElements_);
+  maxElements = std::max(maxElements, numberElements);
   type_ = type;
   assert(!previous_);
   previous_ = new CoinBigIndex[maxElements];
@@ -1030,7 +1030,7 @@ CoinModelLinkedList::addEasy(int majorIndex, CoinBigIndex numberOfElements, cons
       last_[maximumMajor_] = -1;
     }
   }
-  numberMajor_ = CoinMax(numberMajor_, majorIndex + 1);
+  numberMajor_ = std::max(numberMajor_, majorIndex + 1);
   return first;
 }
 /* Adds to list - hard case i.e. add row to column list
@@ -1099,7 +1099,7 @@ void CoinModelLinkedList::addHard(CoinBigIndex first, const CoinModelTriple *tri
   int minorIndex = -1;
   while (put >= 0) {
     assert(put < maximumElements_);
-    numberElements_ = CoinMax(numberElements_, put + 1);
+    numberElements_ = std::max(numberElements_, put + 1);
     int other;
     if (type_ == 0) {
       // row
@@ -1412,7 +1412,7 @@ void CoinModelLinkedList::validateLinks(const CoinModelTriple *triples) const
       assert(!type_ || i == triples[position].column); // i == iMajor
       assert(triples[position].column >= 0);
       mark[position] = 1;
-      lastElement = CoinMax(lastElement, position);
+      lastElement = std::max(lastElement, position);
 #ifndef NDEBUG
       lastPosition = position;
 #endif

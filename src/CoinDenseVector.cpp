@@ -58,7 +58,7 @@ void CoinDenseVector< T >::resize(int newsize, T value)
   if (newsize != nElements_) {
     assert(newsize > 0);
     T *newarray = new T[newsize];
-    int cpysize = CoinMin(newsize, nElements_);
+    int cpysize = std::min(newsize, nElements_);
     CoinMemcpyN(elements_, cpysize, newarray);
     delete[] elements_;
     elements_ = newarray;

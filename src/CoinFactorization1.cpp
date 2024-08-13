@@ -646,12 +646,12 @@ void CoinFactorization::getAreas(int numberOfRows,
   if (persistenceFlag_) {
     // But we can use all we have if bigger
     int length;
-    length = static_cast< int >(CoinMin(elementU_.getSize(), indexRowU_.getSize())) - lengthU;
+    length = static_cast< int >(std::min(elementU_.getSize(), indexRowU_.getSize())) - lengthU;
     if (length > lengthAreaU_) {
       lengthAreaU_ = length;
       assert(indexColumnU_.getSize() == indexRowU_.getSize());
     }
-    length = static_cast< int >(CoinMin(elementL_.getSize(), indexRowL_.getSize()));
+    length = static_cast< int >(std::min(elementL_.getSize(), indexRowL_.getSize()));
     if (length > lengthAreaL_) {
       lengthAreaL_ = length;
     }
@@ -705,7 +705,7 @@ void CoinFactorization::getAreas(int numberOfRows,
     } else {
       biggerDimension_ = numberColumns_;
     }
-    firstCount_.conditionalNew(CoinMax(biggerDimension_ + 2, maximumRowsExtra_ + 1));
+    firstCount_.conditionalNew(std::max(biggerDimension_ + 2, maximumRowsExtra_ + 1));
     nextCount_.conditionalNew(numberRows_ + numberColumns_);
     lastCount_.conditionalNew(numberRows_ + numberColumns_);
 #ifdef ZEROFAULT
@@ -2512,7 +2512,7 @@ void CoinFactorization::setPersistenceFlag(int flag)
   numberInRow_.setPersistence(flag, maximumRowsExtra_ + 1);
   numberInColumn_.setPersistence(flag, maximumColumnsExtra_ + 1);
   numberInColumnPlus_.setPersistence(flag, maximumColumnsExtra_ + 1);
-  firstCount_.setPersistence(flag, CoinMax(biggerDimension_ + 2, maximumRowsExtra_ + 1));
+  firstCount_.setPersistence(flag, std::max(biggerDimension_ + 2, maximumRowsExtra_ + 1));
   nextCount_.setPersistence(flag, numberRows_ + numberColumns_);
   lastCount_.setPersistence(flag, numberRows_ + numberColumns_);
   nextColumn_.setPersistence(flag, maximumColumnsExtra_ + 1);

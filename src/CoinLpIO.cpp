@@ -3285,7 +3285,7 @@ int CoinLpIO::fscanfLpIO(char *buff) const
       n = bufferLength_ - bufferPosition_;
     } else {
       // partial line - get more
-      start = CoinMax(abs(bufferLength_) - bufferPosition_, 0);
+      start = std::max(abs(bufferLength_) - bufferPosition_, 0);
       memcpy(buff, inputBuffer_ + bufferPosition_, start);
       bufferPosition_ = bufferLength_;
       int returnCode = newCardLpIO();

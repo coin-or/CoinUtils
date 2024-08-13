@@ -565,7 +565,7 @@ void clp_free(void *oldArray);
               ileft = ((nrow - fact->npivots + 32) & -32);
               if (kstart + ileft * ileft + 32 < lstart) {
                 iadd32 = ileft;
-                xnewro = CoinMax(kstart, xnewro);
+                xnewro = std::max(kstart, xnewro);
                 xnewro = (xnewro & -32) + ileft;
               } else {
                 xnewro = ((kstart + 31) & -32);
@@ -855,9 +855,9 @@ void clp_free(void *oldArray);
         if (1) {
           /* return and increase size of etas if possible */
           if (!noRoomForDense) {
-            int etasize = CoinMax(4 * fact->nnentu + (nnetas - fact->nnentl) + 1000, fact->eta_size);
+            int etasize = std::max(4 * fact->nnentu + (nnetas - fact->nnentl) + 1000, fact->eta_size);
             noRoomForDense = ndense;
-            fact->eta_size = CoinMin(static_cast< int >(1.2 * fact->eta_size), etasize);
+            fact->eta_size = std::min(static_cast< int >(1.2 * fact->eta_size), etasize);
             if (fact->maxNNetas > 0 && fact->eta_size > fact->maxNNetas) {
               fact->eta_size = fact->maxNNetas;
             }

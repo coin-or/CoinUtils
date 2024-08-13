@@ -537,7 +537,7 @@ const CoinPresolveAction
 		    double x=lowerBound;
 #endif
 		    lowerBound = (rup[iRow]-maxdown)/value1;
-		    assert (lowerBound == CoinMax(x,(rup[iRow]-maxdown)/value1));
+		    assert (lowerBound == std::max(x,(rup[iRow]-maxdown)/value1));
 		  }
 		if (!posinf&&rlo[iRow]>-1.0e10)
 		  if (upperBound*value1<rlo[iRow]-maxup) {
@@ -545,7 +545,7 @@ const CoinPresolveAction
 		    double x=upperBound;
 #endif
 		    upperBound = (rlo[iRow]-maxup)/value1;
-		    assert(upperBound == CoinMin(x,(rlo[iRow]-maxup)/value1));
+		    assert(upperBound == std::min(x,(rlo[iRow]-maxup)/value1));
 		  }
 	      }
 	    }
@@ -1390,7 +1390,7 @@ const CoinPresolveAction
       rowBack[i] = -1;
     }
   }
-  if (numberRows < CoinMax(100, nrows / 4)) {
+  if (numberRows < std::max(100, nrows / 4)) {
     //printf("equality rows %d - %d with rhs - unlikely to help much\n",numberRows,numberRhs);
     //numberRows=0;
   } else {
@@ -1421,8 +1421,8 @@ const CoinPresolveAction
           if (iRow >= 0) {
             n++;
             double value = fabs(colels[j]);
-            minValue[iRow] = CoinMin(minValue[iRow], value);
-            maxValue[iRow] = CoinMax(maxValue[iRow], value);
+            minValue[iRow] = std::min(minValue[iRow], value);
+            maxValue[iRow] = std::max(maxValue[iRow], value);
           }
         }
         if (n) {
@@ -1439,7 +1439,7 @@ const CoinPresolveAction
     factorization.setDenseThreshold(0);
     CoinPackedMatrix matrix(true, 0.0, 0.0);
     matrix.reserve(numberColumns, nElements);
-    int maxDimension = CoinMax(numberRows, numberColumns);
+    int maxDimension = std::max(numberRows, numberColumns);
     matrix.setDimensions(maxDimension, numberColumns);
     double *element = matrix.getMutableElements();
     int *row = matrix.getMutableIndices();
@@ -1483,7 +1483,7 @@ const CoinPresolveAction
       int numberBasic = factorization.numberGoodColumns();
       //printf("%d good columns out of %d - %d rows\n",numberBasic,
       //     numberColumns,numberRows);
-      if (numberBasic < numberRows - CoinMax(20, nrows / 10)) {
+      if (numberBasic < numberRows - std::max(20, nrows / 10)) {
         // get list of real rows which are dependent (maybe infeasible)
         int *badRow = new int[numberRows - numberBasic];
         int nBad = 0;
@@ -2196,7 +2196,7 @@ const CoinPresolveAction
 #endif
 	      skipThis = true;
 	    } else {
-	      value0 = CoinMax(rhs[1]/els[1][0],value0);
+	      value0 = std::max(rhs[1]/els[1][0],value0);
 	      if (isint[0])
 		value0 = ceil(value0);
 	    }
@@ -2221,7 +2221,7 @@ const CoinPresolveAction
 #endif
 	      skipThis = true;
 	    } else {
-	      value1 = CoinMax((rhs[1]-els[1][1])/els[1][0],value1);
+	      value1 = std::max((rhs[1]-els[1][1])/els[1][0],value1);
 	      if (isint[0])
 		value1 = ceil(value1);
 	    }
@@ -2245,7 +2245,7 @@ const CoinPresolveAction
 	    }
 	    if (rhs[1]>=0.0) {
 	      if (els[1][0]>0.0) {
-		value0 = CoinMin(rhs[1]/els[1][0],value0);
+		value0 = std::min(rhs[1]/els[1][0],value0);
 		if (isint[0])
 		  value0 = floor(value0);
 	      }
@@ -2274,7 +2274,7 @@ const CoinPresolveAction
 	    }
 	    if (rhs[1]-els[1][1]>=0.0) {
 	      if (els[1][0]>0.0) {
-		value1 = CoinMin((rhs[1]-els[1][1])/els[1][0],value0);
+		value1 = std::min((rhs[1]-els[1][1])/els[1][0],value0);
 		if (isint[0])
 		  value1 = floor(value1);
 	      }
@@ -2379,10 +2379,10 @@ const CoinPresolveAction
               binding1 |= 1 << k;
             thisHighest0 = thisHighest1;
           }
-          lowestLowest = CoinMin(lowestLowest, thisLowest0);
-          highestHighest = CoinMax(highestHighest, thisHighest0);
-          lowestHighest = CoinMin(lowestHighest, thisHighest0);
-          highestLowest = CoinMax(highestLowest, thisLowest0);
+          lowestLowest = std::min(lowestLowest, thisLowest0);
+          highestHighest = std::max(highestHighest, thisHighest0);
+          lowestHighest = std::min(lowestHighest, thisHighest0);
+          highestLowest = std::max(highestLowest, thisLowest0);
         }
         // see if any good
 	if (binding0 && binding1) {
@@ -2440,9 +2440,9 @@ const CoinPresolveAction
 		for (int i=0;i<2;i++) {
 		  double thisRhs = rhs[i]-iBound*els[i][1];
 		  if (els[i][0]>0.0) 
-		    hi0 = CoinMin(hi0,thisRhs/els[i][0]);
+		    hi0 = std::min(hi0,thisRhs/els[i][0]);
 		  else
-		    lo0 = CoinMax(lo0,thisRhs/els[i][0]);
+		    lo0 = std::max(lo0,thisRhs/els[i][0]);
 		}
 		if (lo0>hi0) {
 		  // infeasible
@@ -2450,8 +2450,8 @@ const CoinPresolveAction
 		} else {
 		  costPair[iBound]=iBound*obj[1]+lo0*obj[0];
 		  solAt[iBound] = lo0;
- 		  upInt = CoinMax(upInt,iBound);
- 		  loInt = CoinMin(loInt,iBound);
+		  upInt = std::max(upInt,iBound);
+		  loInt = std::min(loInt,iBound);
 		}
 	      }
 	      if (loInt>upInt) {
@@ -2539,12 +2539,12 @@ const CoinPresolveAction
           // if costed may be able to adjust
           if (cost[icol] >= 0.0) {
             if (highestLowest < upperX && highestLowest >= lowerX && highestHighest < 1.0e30) {
-              highestHighest = CoinMin(highestHighest, highestLowest);
+              highestHighest = std::min(highestHighest, highestLowest);
             }
           }
           if (cost[icol] <= 0.0) {
             if (lowestHighest > lowerX && lowestHighest <= upperX && lowestHighest > -1.0e30) {
-              lowestLowest = CoinMax(lowestLowest, lowestHighest);
+              lowestLowest = std::max(lowestLowest, lowestHighest);
             }
           }
 #if 1
@@ -2636,8 +2636,8 @@ const CoinPresolveAction
 	  }
           yValue0 = (rowUpper0 - xValue * alpha[0]) / element0;
           yValue1 = (rowUpper1 - xValue * alpha[1]) / element1;
-          newLower = CoinMin(newLower, CoinMax(yValue0, yValue1));
-          newUpper = CoinMax(newUpper, CoinMax(yValue0, yValue1));
+          newLower = std::min(newLower, std::max(yValue0, yValue1));
+          newUpper = std::max(newUpper, std::max(yValue0, yValue1));
           double xValueEqual = xValue;
           double yValueEqual = yValue0;
           costEqual = xValue * cost[otherCol] + yValueEqual * cost[icol];
@@ -2665,29 +2665,29 @@ const CoinPresolveAction
             slope[0] = costTotal - costEqual;
           }
           PRESOLVE_DETAIL_PRINT(printf("equal value of %d is %g, value of %d is max(%g,%g) - %g\n",
-            otherCol, xValue, icol, yValue0, yValue1, CoinMax(yValue0, yValue1)));
+            otherCol, xValue, icol, yValue0, yValue1, std::max(yValue0, yValue1)));
           PRESOLVE_DETAIL_PRINT(printf("Cost at equality %g for constraint 0 slope %g for constraint 1 slope %g\n",
             costEqual, slope[0], slope[1]));
           xValue = bound[0];
           yValue0 = (rowUpper0 - xValue * alpha[0]) / element0;
           yValue1 = (rowUpper1 - xValue * alpha[1]) / element1;
           PRESOLVE_DETAIL_PRINT(printf("value of %d is %g, value of %d is max(%g,%g) - %g\n",
-            otherCol, xValue, icol, yValue0, yValue1, CoinMax(yValue0, yValue1)));
-          newLower = CoinMin(newLower, CoinMax(yValue0, yValue1));
+            otherCol, xValue, icol, yValue0, yValue1, std::max(yValue0, yValue1)));
+          newLower = std::min(newLower, std::max(yValue0, yValue1));
           // cost>0 so will be at lower
           //double yValueAtBound0=newLower;
-          newUpper = CoinMax(newUpper, CoinMax(yValue0, yValue1));
+          newUpper = std::max(newUpper, std::max(yValue0, yValue1));
           xValue = bound[1];
           yValue0 = (rowUpper0 - xValue * alpha[0]) / element0;
           yValue1 = (rowUpper1 - xValue * alpha[1]) / element1;
           PRESOLVE_DETAIL_PRINT(printf("value of %d is %g, value of %d is max(%g,%g) - %g\n",
-            otherCol, xValue, icol, yValue0, yValue1, CoinMax(yValue0, yValue1)));
-          newLower = CoinMin(newLower, CoinMax(yValue0, yValue1));
+            otherCol, xValue, icol, yValue0, yValue1, std::max(yValue0, yValue1)));
+          newLower = std::min(newLower, std::max(yValue0, yValue1));
           // cost>0 so will be at lower
           //double yValueAtBound1=newLower;
-          newUpper = CoinMax(newUpper, CoinMax(yValue0, yValue1));
-          lowerX = CoinMax(lowerX, newLower - 1.0e-12 * fabs(newLower));
-          upperX = CoinMin(upperX, newUpper + 1.0e-12 * fabs(newUpper));
+          newUpper = std::max(newUpper, std::max(yValue0, yValue1));
+          lowerX = std::max(lowerX, newLower - 1.0e-12 * fabs(newLower));
+          upperX = std::min(upperX, newUpper + 1.0e-12 * fabs(newUpper));
           // Now make duplicate row
           // keep row 0 so need to adjust costs so same
           PRESOLVE_DETAIL_PRINT(printf("Costs for x %g,%g,%g are %g,%g,%g\n",
@@ -2696,12 +2696,12 @@ const CoinPresolveAction
           double costOther = cost[otherCol] + slope[1];
           double costThis = cost[icol] + slope[1] * (element0 / alpha[0]);
           xValue = xValueEqual;
-          yValue0 = CoinMax((rowUpper0 - xValue * alpha[0]) / element0, lowerX);
+          yValue0 = std::max((rowUpper0 - xValue * alpha[0]) / element0, lowerX);
           double thisOffset = costEqual - (costOther * xValue + costThis * yValue0);
           offset += thisOffset;
           PRESOLVE_DETAIL_PRINT(printf("new cost at equal %g\n", costOther * xValue + costThis * yValue0 + thisOffset));
           xValue = xValueEqual - 1.0;
-          yValue0 = CoinMax((rowUpper0 - xValue * alpha[0]) / element0, lowerX);
+          yValue0 = std::max((rowUpper0 - xValue * alpha[0]) / element0, lowerX);
           PRESOLVE_DETAIL_PRINT(printf("new cost at -1 %g\n", costOther * xValue + costThis * yValue0 + thisOffset));
           if(fabs((costOther * xValue + costThis * yValue0 + thisOffset) - (costEqual - slope[0])) > 1.0e-5) {
 #if PRESOLVE_DEBUG > 0
@@ -2710,7 +2710,7 @@ const CoinPresolveAction
 	    continue;
 	  }  
           xValue = xValueEqual + 1.0;
-          yValue0 = CoinMax((rowUpper0 - xValue * alpha[0]) / element0, lowerX);
+          yValue0 = std::max((rowUpper0 - xValue * alpha[0]) / element0, lowerX);
           PRESOLVE_DETAIL_PRINT(printf("new cost at +1 %g\n", costOther * xValue + costThis * yValue0 + thisOffset));
           if(fabs((costOther * xValue + costThis * yValue0 + thisOffset) - (costEqual + slope[1])) > 1.0e-5) {
 #if PRESOLVE_DEBUG > 0
