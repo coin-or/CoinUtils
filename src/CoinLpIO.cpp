@@ -2020,6 +2020,18 @@ void CoinLpIO::readLp(const char *filename)
   // see if just .lp
   int length = strlen(filename);
   if ((length > 3 && !strncmp(filename + length - 3, ".lp", 3))) {
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN32__)
+    // leave problemName_ as null
+#else
+    // find last /
+    length--;
+    while (length>=0) {
+      if (filename[length]=='/')
+	break;
+      length--;
+    }
+    problemName_ = CoinStrdup(filename+length+1);
+#endif
     FILE *fp = fopen(filename, "r");
     if (fp) {
       readable = true;
@@ -2746,7 +2758,12 @@ void CoinLpIO::readLp()
   int saveNumberSets = numberSets_;
   set_ = NULL;
   numberSets_ = 0;
-
+  if (strlen(problemName_))
+    handler_->message(COIN_MPS_STATS, messages_) << problemName_
+						 << numberRows_
+						 << numberColumns_
+						 << numberElements_
+						 << CoinMessageEol;
   setLpDataWithoutRowAndColNames(*matrix, collow, colup,
     const_cast< const double ** >(obj),
     num_objectives, has_int ? is_int : 0, rowlow, rowup);
