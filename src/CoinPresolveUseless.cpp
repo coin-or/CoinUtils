@@ -457,7 +457,7 @@ const CoinPresolveAction *testRedundant(CoinPresolveMatrix *prob,
 
     //totalTightened += numberChanged;
     if (iPass == 1)
-      numberCheck = CoinMax(10, numberChanged >> 5);
+      numberCheck = std::max(10, numberChanged >> 5);
     if (numberInfeasible) {
       prob->status_ = 1;
       break;
@@ -565,7 +565,7 @@ const CoinPresolveAction *testRedundant(CoinPresolveMatrix *prob,
         if (upper - lower < 1.0e-8) {
           if (upper - lower < -feasTol)
             numberInfeasible++;
-          if (CoinMin(fabs(upper), fabs(lower)) <= 1.0e-7)
+          if (std::min(fabs(upper), fabs(lower)) <= 1.0e-7)
             upper = 0.0;
           fixed[nFixed++] = j;
           prob->addCol(j);

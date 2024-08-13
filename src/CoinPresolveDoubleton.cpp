@@ -892,8 +892,8 @@ const CoinPresolveAction
   done, break out of the main loop.
 */
       {
-        double lo2 = CoinMax(clo[tgtcolx], lo1);
-        double up2 = CoinMin(cup[tgtcolx], up1);
+        double lo2 = std::max(clo[tgtcolx], lo1);
+        double up2 = std::min(cup[tgtcolx], up1);
         if (lo2 > up2) {
           if (lo2 <= up2 + prob->feasibilityTolerance_ || fixInfeasibility) {
             double nearest = floor(lo2 + 0.5);

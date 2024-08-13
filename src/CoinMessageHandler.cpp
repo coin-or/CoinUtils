@@ -622,7 +622,7 @@ CoinMessageHandler::message(int messageNumber,
   currentMessage_ = *(normalMessages.message_[messageNumber]);
   source_ = normalMessages.source_;
   format_ = currentMessage_.message_;
-  highestNumber_ = CoinMax(highestNumber_, currentMessage_.externalNumber_);
+  highestNumber_ = std::max(highestNumber_, currentMessage_.externalNumber_);
 
   // Initialise the message construction buffer
   messageBuffer_[0] = '\0';
@@ -661,7 +661,7 @@ CoinMessageHandler::message(int externalNumber, const char *source,
   char detail = ((loglvl >= 0) ? (static_cast< char >(loglvl)) : '\000');
   currentMessage_ = CoinOneMessage(externalNumber, detail, msg);
   source_ = source;
-  highestNumber_ = CoinMax(highestNumber_, externalNumber);
+  highestNumber_ = std::max(highestNumber_, externalNumber);
 
   // Initialise the message construction buffer
   messageBuffer_[0] = '\0';

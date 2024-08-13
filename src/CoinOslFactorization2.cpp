@@ -150,8 +150,8 @@ static int c_ekkshfpi_list(const int *COIN_RESTRICT mpermu,
   if ((k & 1) != 0) {
     int ipt = mptr[i];
     irow0 = mpermu[ipt];
-    first = CoinMin(irow0, first);
-    last = CoinMax(irow0, last);
+    first = std::min(irow0, first);
+    last = std::max(irow0, last);
     i++;
     worko[irow0] = *worki;
     *worki++ = 0.0;
@@ -163,10 +163,10 @@ static int c_ekkshfpi_list(const int *COIN_RESTRICT mpermu,
     irow0 = mpermu[ipt0];
     irow1 = mpermu[ipt1];
     i += 2;
-    first = CoinMin(irow0, first);
-    last = CoinMax(irow0, last);
-    first = CoinMin(irow1, first);
-    last = CoinMax(irow1, last);
+    first = std::min(irow0, first);
+    last = std::max(irow0, last);
+    first = std::min(irow1, first);
+    last = std::max(irow1, last);
     worko[irow0] = worki[0];
     worko[irow1] = worki[1];
     worki[0] = 0.0;
@@ -200,8 +200,8 @@ static int c_ekkshfpi_list2(const int *COIN_RESTRICT mpermu, double *COIN_RESTRI
   if ((k & 1) != 0) {
     int ipt = mptr[i];
     irow0 = mpermu[ipt];
-    first = CoinMin(irow0, first);
-    last = CoinMax(irow0, last);
+    first = std::min(irow0, first);
+    last = std::max(irow0, last);
     i++;
     worko[irow0] = worki[ipt];
     worki[ipt] = 0.0;
@@ -213,10 +213,10 @@ static int c_ekkshfpi_list2(const int *COIN_RESTRICT mpermu, double *COIN_RESTRI
     irow0 = mpermu[ipt0];
     irow1 = mpermu[ipt1];
     i += 2;
-    first = CoinMin(irow0, first);
-    last = CoinMax(irow0, last);
-    first = CoinMin(irow1, first);
-    last = CoinMax(irow1, last);
+    first = std::min(irow0, first);
+    last = std::max(irow0, last);
+    first = std::min(irow1, first);
+    last = std::max(irow1, last);
     worko[irow0] = worki[ipt0];
     worko[irow1] = worki[ipt1];
     worki[ipt0] = 0.0;
@@ -229,8 +229,8 @@ static int c_ekkshfpi_list2(const int *COIN_RESTRICT mpermu, double *COIN_RESTRI
   for (int i = 0; i < nincol; i++) {
     int ipt = mptr[i];
     int irow = mpermu[ipt];
-    first = CoinMin(irow, first);
-    last = CoinMax(irow, last);
+    first = std::min(irow, first);
+    last = std::max(irow, last);
     worko[irow] = worki[ipt];
     worki[ipt] = 0.0;
   }
@@ -2069,7 +2069,7 @@ int c_ekketsj(COIN_REGISTER2 /*const*/ EKKfactinfo *COIN_RESTRICT2 fact,
                 int jrow, jput;
                 if (1) {
                   if (fact->num_resets < 1000000) {
-                    int etasize = CoinMax(4 * fact->nnentu + (fact->nnetas - fact->nnentl) + 1000, fact->eta_size);
+                    int etasize = std::max(4 * fact->nnentu + (fact->nnetas - fact->nnentl) + 1000, fact->eta_size);
                     if (ifrows) {
                       fact->num_resets++;
                       if (npivot > 40 && fact->num_resets << 4 > npivot) {
@@ -2080,7 +2080,7 @@ int c_ekketsj(COIN_REGISTER2 /*const*/ EKKfactinfo *COIN_RESTRICT2 fact,
                       fact->eta_size = static_cast< int >(1.1 * fact->eta_size);
                       fact->num_resets = 1000000;
                     }
-                    fact->eta_size = CoinMin(fact->eta_size, etasize);
+                    fact->eta_size = std::min(fact->eta_size, etasize);
                     if (fact->maxNNetas > 0 && fact->eta_size > fact->maxNNetas) {
                       fact->eta_size = fact->maxNNetas;
                     }
@@ -2284,7 +2284,7 @@ int c_ekketsj(COIN_REGISTER2 /*const*/ EKKfactinfo *COIN_RESTRICT2 fact,
     double dout = dluval[kx];
     double dcheck = fabs(dalpha / dout);
     double difference = 0.0;
-    if (fabs(del3) > CoinMin(1.0e-8, fact->drtpiv * 0.99999)) {
+    if (fabs(del3) > std::min(1.0e-8, fact->drtpiv * 0.99999)) {
       double checkTolerance;
       if (fact->npivots < 2) {
         checkTolerance = 1.0e-5;
@@ -2492,7 +2492,7 @@ int c_ekketsj(COIN_REGISTER2 /*const*/ EKKfactinfo *COIN_RESTRICT2 fact,
       ifrows = false;
     }
 
-    if (nroom > CoinMin(50, fact->maxinv - (fact->iterno - fact->iterin))) {
+    if (nroom > std::min(50, fact->maxinv - (fact->iterno - fact->iterin))) {
       ifrows = true;
     }
 

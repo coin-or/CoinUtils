@@ -791,7 +791,7 @@ CoinIndexedVector::operator+(
   assert(!packedMode_);
   int i;
   int nElements = nElements_;
-  int capacity = CoinMax(capacity_, op2.capacity_);
+  int capacity = std::max(capacity_, op2.capacity_);
   CoinIndexedVector newOne(*this);
   newOne.reserve(capacity);
   bool needClean = false;
@@ -838,7 +838,7 @@ CoinIndexedVector::operator-(
   assert(!packedMode_);
   int i;
   int nElements = nElements_;
-  int capacity = CoinMax(capacity_, op2.capacity_);
+  int capacity = std::max(capacity_, op2.capacity_);
   CoinIndexedVector newOne(*this);
   newOne.reserve(capacity);
   bool needClean = false;
@@ -885,7 +885,7 @@ CoinIndexedVector
   assert(!packedMode_);
   int i;
   int nElements = nElements_;
-  int capacity = CoinMax(capacity_, op2.capacity_);
+  int capacity = std::max(capacity_, op2.capacity_);
   CoinIndexedVector newOne(*this);
   newOne.reserve(capacity);
   bool needClean = false;
@@ -929,7 +929,7 @@ CoinIndexedVector::operator/(const CoinIndexedVector &op2)
   // I am treating 0.0/0.0 as 0.0
   int i;
   int nElements = nElements_;
-  int capacity = CoinMax(capacity_, op2.capacity_);
+  int capacity = std::max(capacity_, op2.capacity_);
   CoinIndexedVector newOne(*this);
   newOne.reserve(capacity);
   bool needClean = false;
@@ -1447,7 +1447,7 @@ int CoinIndexedVector::isApproximatelyEqual(const CoinIndexedVector &rhs, double
     }
   } else if (packedMode_ && tempB.packedMode_) {
     double *celem2 = rhs.elements_;
-    memset(celem, 0, CoinMin(capacity_, tempB.capacity_) * sizeof(double));
+    memset(celem, 0, std::min(capacity_, tempB.capacity_) * sizeof(double));
     for (int i = 0; i < cs; i++) {
       int iRow = cind[i];
       celem[iRow] = celem2[i];
@@ -1519,8 +1519,8 @@ bool CoinIndexedVector::operator==(const CoinIndexedVector &rhs) const
       }
     }
   } else if (packedMode_ && rhs.packedMode_) {
-    double *temp = new double[CoinMax(capacity_, rhs.capacity_)];
-    memset(temp, 0, CoinMax(capacity_, rhs.capacity_) * sizeof(double));
+    double *temp = new double[std::max(capacity_, rhs.capacity_)];
+    memset(temp, 0, std::max(capacity_, rhs.capacity_) * sizeof(double));
     for (int i = 0; i < cs; i++) {
       int iRow = cind[i];
       temp[iRow] = celem[i];
@@ -1575,7 +1575,7 @@ int CoinIndexedVector::getMaxIndex() const
   int maxIndex = -COIN_INT_MAX;
   int i;
   for (i = 0; i < nElements_; i++)
-    maxIndex = CoinMax(maxIndex, indices_[i]);
+    maxIndex = std::max(maxIndex, indices_[i]);
   return maxIndex;
 }
 // Get value of minimum index
@@ -1584,7 +1584,7 @@ int CoinIndexedVector::getMinIndex() const
   int minIndex = COIN_INT_MAX;
   int i;
   for (i = 0; i < nElements_; i++)
-    minIndex = CoinMin(minIndex, indices_[i]);
+    minIndex = std::min(minIndex, indices_[i]);
   return minIndex;
 }
 // Scan dense region and set up indices
@@ -1597,8 +1597,8 @@ int CoinIndexedVector::scan()
 int CoinIndexedVector::scan(int start, int end)
 {
   assert(!packedMode_);
-  end = CoinMin(end, capacity_);
-  start = CoinMax(start, 0);
+  end = std::min(end, capacity_);
+  start = std::max(start, 0);
   int i;
   int number = 0;
   int *indices = indices_ + nElements_;
@@ -1623,11 +1623,11 @@ int CoinIndexedVector::scan(int start, int end, double tolerance)
 {
   assert(!packedMode_);
 #if ABOCA_LITE_FACTORIZATION == 0
-  end = CoinMin(end, capacity_);
+  end = std::min(end, capacity_);
 #else
-  end = CoinMin(end, capacity_ & 0x7fffffff);
+  end = std::min(end, capacity_ & 0x7fffffff);
 #endif
-  start = CoinMax(start, 0);
+  start = std::max(start, 0);
   int i;
   int number = 0;
   int *indices = indices_ + nElements_;
@@ -1717,8 +1717,8 @@ int CoinIndexedVector::scanAndPack()
 int CoinIndexedVector::scanAndPack(int start, int end)
 {
   assert(!packedMode_);
-  end = CoinMin(end, capacity_);
-  start = CoinMax(start, 0);
+  end = std::min(end, capacity_);
+  start = std::max(start, 0);
   int i;
   int number = 0;
   int *indices = indices_ + nElements_;
@@ -1744,8 +1744,8 @@ int CoinIndexedVector::scanAndPack(double tolerance)
 int CoinIndexedVector::scanAndPack(int start, int end, double tolerance)
 {
   assert(!packedMode_);
-  end = CoinMin(end, capacity_);
-  start = CoinMax(start, 0);
+  end = std::min(end, capacity_);
+  start = std::max(start, 0);
   int i;
   int number = 0;
   int *indices = indices_ + nElements_;
@@ -1886,7 +1886,7 @@ void CoinArrayWithLength::getCapacity(CoinByteArray numberBytes, CoinByteArray n
     CoinByteArray saveSize = size_;
     reallyFreeArray();
     size_ = saveSize;
-    getArray(CoinMax(numberBytes, numberNeeded));
+    getArray(std::max(numberBytes, numberNeeded));
   } else if (size_ < 0) {
     size_ = -size_ - 2;
   }
@@ -2110,7 +2110,7 @@ void CoinPartitionedVector::compact()
       numberElementsPartition_[i] = 0;
       int end = nThis + start;
       if (nElements_ < end) {
-        int offset = CoinMax(nElements_ - start, 0);
+        int offset = std::max(nElements_ - start, 0);
         start += offset;
         nThis -= offset;
         memset(elements_ + start, 0, nThis * sizeof(double));

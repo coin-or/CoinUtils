@@ -145,7 +145,7 @@ public:
   {
     T norm = 0;
     for (int i = 0; i < nElements_; i++)
-      norm = CoinMax(norm, CoinAbs(elements_[i]));
+      norm = std::max(norm, CoinAbs(elements_[i]));
     return norm;
   }
   /// sum of vector elements

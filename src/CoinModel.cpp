@@ -101,7 +101,7 @@ void CoinBaseModel::setMessageHandler(CoinMessageHandler *handler)
   if (handler)
     logLevel_ = -1;
   else
-    logLevel_ = CoinMax(0, logLevel_);
+    logLevel_ = std::max(0, logLevel_);
 }
 //#############################################################################
 // Constructors / Destructor / Assignment
@@ -770,7 +770,7 @@ void CoinModel::addRow(int numberInRow, const int *columns,
       printf("duplicates - what do we want\n");
       abort();
     }
-    newColumn = CoinMax(newColumn, last);
+    newColumn = std::max(newColumn, last);
   }
   int newRow = 0;
   CoinBigIndex newElement = 0;
@@ -831,16 +831,16 @@ void CoinModel::addRow(int numberInRow, const int *columns,
         if (links_ == 3)
           columnList_.addHard(first, elements_, rowList_.firstFree(), rowList_.lastFree(),
             rowList_.next());
-        numberElements_ = CoinMax(numberElements_, rowList_.numberElements());
+        numberElements_ = std::max(numberElements_, rowList_.numberElements());
         if (links_ == 3)
           assert(columnList_.numberElements() == rowList_.numberElements());
       } else if (links_ == 2) {
         columnList_.addHard(numberRows_, numberInRow, sortIndices_, sortElements_, elements_,
           hashElements_);
-        numberElements_ = CoinMax(numberElements_, columnList_.numberElements());
+        numberElements_ = std::max(numberElements_, columnList_.numberElements());
       }
     }
-    numberElements_ = CoinMax(numberElements_, hashElements_.numberItems());
+    numberElements_ = std::max(numberElements_, hashElements_.numberItems());
   }
   numberRows_++;
 }
@@ -903,7 +903,7 @@ void CoinModel::addColumn(int numberInColumn, const int *rows,
       printf("duplicates - what do we want\n");
       abort();
     }
-    newRow = CoinMax(newRow, last);
+    newRow = std::max(newRow, last);
   }
   int newColumn = 0;
   CoinBigIndex newElement = 0;
@@ -969,13 +969,13 @@ void CoinModel::addColumn(int numberInColumn, const int *rows,
         if (links_ == 3)
           rowList_.addHard(first, elements_, columnList_.firstFree(), columnList_.lastFree(),
             columnList_.next());
-        numberElements_ = CoinMax(numberElements_, columnList_.numberElements());
+        numberElements_ = std::max(numberElements_, columnList_.numberElements());
         if (links_ == 3)
           assert(columnList_.numberElements() == rowList_.numberElements());
       } else if (links_ == 1) {
         rowList_.addHard(numberColumns_, numberInColumn, sortIndices_, sortElements_, elements_,
           hashElements_);
-        numberElements_ = CoinMax(numberElements_, rowList_.numberElements());
+        numberElements_ = std::max(numberElements_, rowList_.numberElements());
       }
     }
   }
@@ -1035,16 +1035,16 @@ void CoinModel::setElement(int i, int j, double value)
       if (links_ == 3)
         columnList_.addHard(first, elements_, rowList_.firstFree(), rowList_.lastFree(),
           rowList_.next());
-      numberElements_ = CoinMax(numberElements_, rowList_.numberElements());
+      numberElements_ = std::max(numberElements_, rowList_.numberElements());
       if (links_ == 3)
         assert(columnList_.numberElements() == rowList_.numberElements());
     } else if (links_ == 2) {
       columnList_.addHard(i, 1, &j, &value, elements_, hashElements_);
-      numberElements_ = CoinMax(numberElements_, columnList_.numberElements());
+      numberElements_ = std::max(numberElements_, columnList_.numberElements());
     }
-    numberRows_ = CoinMax(numberRows_, i + 1);
+    numberRows_ = std::max(numberRows_, i + 1);
     ;
-    numberColumns_ = CoinMax(numberColumns_, j + 1);
+    numberColumns_ = std::max(numberColumns_, j + 1);
     ;
   }
 }
@@ -1113,16 +1113,16 @@ void CoinModel::setElement(int i, int j, const char *value)
       if (links_ == 3)
         columnList_.addHard(first, elements_, rowList_.firstFree(), rowList_.lastFree(),
           rowList_.next());
-      numberElements_ = CoinMax(numberElements_, rowList_.numberElements());
+      numberElements_ = std::max(numberElements_, rowList_.numberElements());
       if (links_ == 3)
         assert(columnList_.numberElements() == rowList_.numberElements());
     } else if (links_ == 2) {
       columnList_.addHard(i, 1, &j, &dummyValue, elements_, hashElements_);
-      numberElements_ = CoinMax(numberElements_, columnList_.numberElements());
+      numberElements_ = std::max(numberElements_, columnList_.numberElements());
     }
-    numberRows_ = CoinMax(numberRows_, i + 1);
+    numberRows_ = std::max(numberRows_, i + 1);
     ;
-    numberColumns_ = CoinMax(numberColumns_, j + 1);
+    numberColumns_ = std::max(numberColumns_, j + 1);
     ;
     CoinBigIndex position = hashElements_.hash(i, j, elements_);
     assert(position >= 0);
@@ -2790,10 +2790,10 @@ int CoinModel::column(const char *columnName) const
 // Resize
 void CoinModel::resize(int maximumRows, int maximumColumns, CoinBigIndex maximumElements)
 {
-  maximumElements = CoinMax(maximumElements, maximumElements_);
+  maximumElements = std::max(maximumElements, maximumElements_);
   if (type_ == 0 || type_ == 2) {
     // need to redo row stuff
-    maximumRows = CoinMax(maximumRows, numberRows_);
+    maximumRows = std::max(maximumRows, numberRows_);
     if (maximumRows > maximumRows_) {
       bool needFill = rowLower_ == NULL;
       double *tempArray;
@@ -2854,7 +2854,7 @@ void CoinModel::resize(int maximumRows, int maximumColumns, CoinBigIndex maximum
   }
   if (type_ == 1 || type_ == 2) {
     // need to redo column stuff
-    maximumColumns = CoinMax(maximumColumns, numberColumns_);
+    maximumColumns = std::max(maximumColumns, numberColumns_);
     if (maximumColumns > maximumColumns_) {
       bool needFill = columnLower_ == NULL;
       double *tempArray;
@@ -2959,7 +2959,7 @@ void CoinModel::fillRows(int whichRow, bool forceCreation, bool fromAddRow)
     if (type_ == -1) {
       // initial
       type_ = 0;
-      resize(CoinMax(100, whichRow + 1), 0, 1000);
+      resize(std::max(100, whichRow + 1), 0, 1000);
     } else if (type_ == 1) {
       type_ = 2;
     }
@@ -2968,15 +2968,15 @@ void CoinModel::fillRows(int whichRow, bool forceCreation, bool fromAddRow)
       whichRow = numberRows_ - 1;
       numberRows_ = 0;
       if (type_ != 3)
-        resize(CoinMax(100, whichRow + 1), 0, 0);
+        resize(std::max(100, whichRow + 1), 0, 0);
       else
-        resize(CoinMax(1, whichRow + 1), 0, 0);
+        resize(std::max(1, whichRow + 1), 0, 0);
     }
     if (whichRow >= maximumRows_) {
       if (type_ != 3)
-        resize(CoinMax((3 * maximumRows_) / 2, whichRow + 1), 0, 0);
+        resize(std::max((3 * maximumRows_) / 2, whichRow + 1), 0, 0);
       else
-        resize(CoinMax(1, whichRow + 1), 0, 0);
+        resize(std::max(1, whichRow + 1), 0, 0);
     }
   }
   if (whichRow >= numberRows_ && rowLower_) {
@@ -2989,7 +2989,7 @@ void CoinModel::fillRows(int whichRow, bool forceCreation, bool fromAddRow)
     }
   }
   if (!fromAddRow) {
-    numberRows_ = CoinMax(whichRow + 1, numberRows_);
+    numberRows_ = std::max(whichRow + 1, numberRows_);
     // If simple minded then delete start
     if (start_) {
       delete[] start_;
@@ -3006,7 +3006,7 @@ void CoinModel::fillColumns(int whichColumn, bool forceCreation, bool fromAddCol
     if (type_ == -1) {
       // initial
       type_ = 1;
-      resize(0, CoinMax(100, whichColumn + 1), 1000);
+      resize(0, std::max(100, whichColumn + 1), 1000);
     } else if (type_ == 0) {
       type_ = 2;
     }
@@ -3015,15 +3015,15 @@ void CoinModel::fillColumns(int whichColumn, bool forceCreation, bool fromAddCol
       whichColumn = numberColumns_ - 1;
       numberColumns_ = 0;
       if (type_ != 3)
-        resize(0, CoinMax(100, whichColumn + 1), 0);
+        resize(0, std::max(100, whichColumn + 1), 0);
       else
-        resize(0, CoinMax(1, whichColumn + 1), 0);
+        resize(0, std::max(1, whichColumn + 1), 0);
     }
     if (whichColumn >= maximumColumns_) {
       if (type_ != 3)
-        resize(0, CoinMax((3 * maximumColumns_) / 2, whichColumn + 1), 0);
+        resize(0, std::max((3 * maximumColumns_) / 2, whichColumn + 1), 0);
       else
-        resize(0, CoinMax(1, whichColumn + 1), 0);
+        resize(0, std::max(1, whichColumn + 1), 0);
     }
   }
   if (whichColumn >= numberColumns_ && objective_) {
@@ -3038,7 +3038,7 @@ void CoinModel::fillColumns(int whichColumn, bool forceCreation, bool fromAddCol
     }
   }
   if (!fromAddColumn) {
-    numberColumns_ = CoinMax(whichColumn + 1, numberColumns_);
+    numberColumns_ = std::max(whichColumn + 1, numberColumns_);
     // If simple minded then delete start
     if (start_) {
       delete[] start_;

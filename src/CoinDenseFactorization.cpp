@@ -150,7 +150,7 @@ void CoinDenseFactorization::getAreas(int numberOfRows,
 
   numberRows_ = numberOfRows;
   numberColumns_ = numberOfColumns;
-  int size = numberRows_ * (numberRows_ + CoinMax(maximumPivots_, (numberRows_ + 1) >> 1));
+  int size = numberRows_ * (numberRows_ + std::max(maximumPivots_, (numberRows_ + 1) >> 1));
   if (size > maximumSpace_) {
     delete[] elements_;
     elements_ = new CoinFactorizationDouble2[size];

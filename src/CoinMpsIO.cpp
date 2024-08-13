@@ -2667,7 +2667,7 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
 
       for (icolumn = 0; icolumn < numberColumns_; icolumn++) {
         if (integerType_[icolumn]) {
-          collower_[icolumn] = CoinMax(collower_[icolumn], -MAX_INTEGER);
+          collower_[icolumn] = std::max(collower_[icolumn], -MAX_INTEGER);
           // if 0 infinity make 0-1 ???
           if (columnType[icolumn] == COIN_UNSET_BOUND)
             colupper_[icolumn] = defaultBound_;
@@ -3899,7 +3899,7 @@ void CoinConvertDouble(int section, int formatType, double value, char outputVal
       if (value >= 0.0) {
         power10 = static_cast< int >(log10(value));
         if (power10 < 9 && power10 > -4) {
-          decimal = CoinMin(10, 10 - power10);
+          decimal = std::min(10, 10 - power10);
           char format[8];
           sprintf(format, "%%12.%df", decimal);
           sprintf(outputValue, format, value);
@@ -3910,7 +3910,7 @@ void CoinConvertDouble(int section, int formatType, double value, char outputVal
       } else {
         power10 = static_cast< int >(log10(-value)) + 1;
         if (power10 < 8 && power10 > -3) {
-          decimal = CoinMin(9, 9 - power10);
+          decimal = std::min(9, 9 - power10);
           char format[8];
           sprintf(format, "%%12.%df", decimal);
           sprintf(outputValue, format, value);
@@ -4139,7 +4139,7 @@ makeUniqueNames(char **names, int number, char first)
         }
       }
       if (n >= 0)
-        largest = CoinMax(largest, n);
+        largest = std::max(largest, n);
     }
   }
   largest++;
@@ -4197,10 +4197,10 @@ int CoinMpsIO::writeMps(const char *filename, int compression,
   int numberSOS, const CoinSet *setInfo) const
 {
   // Clean up format and numberacross
-  numberAcross = CoinMax(1, numberAcross);
-  numberAcross = CoinMin(2, numberAcross);
-  formatType = CoinMax(0, formatType);
-  formatType = CoinMin(2, formatType);
+  numberAcross = std::max(1, numberAcross);
+  numberAcross = std::min(2, numberAcross);
+  formatType = std::max(0, formatType);
+  formatType = std::min(2, formatType);
   int possibleCompression = 0;
 #ifdef COINUTILS_HAS_ZLIB
   possibleCompression = 1;
@@ -4665,8 +4665,8 @@ int CoinMpsIO::writeMps(const char *filename, int compression,
           double upperValue = columnUpper[i];
           if (isInteger(i)) {
             // Old argument - what are correct ranges for integer variables
-            lowerValue = CoinMax(lowerValue, -MAX_INTEGER);
-            upperValue = CoinMin(upperValue, MAX_INTEGER);
+            lowerValue = std::max(lowerValue, -MAX_INTEGER);
+            upperValue = std::min(upperValue, MAX_INTEGER);
           }
           int numberFields = 1;
           std::string header[2];

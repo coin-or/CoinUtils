@@ -1030,7 +1030,7 @@ int c_ekkcmfd(EKKfactinfo *fact,
             }
           }
           for (kchunk = 0; kchunk < idense; kchunk += 400) {
-            kend = CoinMin(idense - 1, kchunk + 399);
+            kend = std::min(idense - 1, kchunk + 399);
             for (jrow = ndense - 8; jrow >= 1; --jrow) {
               irow = maction[jrow];
               krxs = mrstrt[irow];
@@ -1389,7 +1389,7 @@ int c_ekklfct(EKKfactinfo *fact)
   double save_drtpiv = fact->drtpiv;
   double save_zpivlu = fact->zpivlu;
   if (ifvsol > 0 && fact->invok < 0) {
-    fact->zpivlu = CoinMin(0.9, fact->zpivlu * 10.);
+    fact->zpivlu = std::min(0.9, fact->zpivlu * 10.);
     fact->drtpiv = 1.0e-8;
   }
 
@@ -1448,7 +1448,7 @@ int c_ekklfct(EKKfactinfo *fact)
       if (nrow > 32767) {
         int count = 0;
         for (i = 1; i <= nrow; ++i) {
-          count = CoinMax(count, hinrow[i]);
+          count = std::max(count, hinrow[i]);
         }
         if (count + nrow - fact->npivots > 32767) {
           /* will have to use I*4 version of CMFC */
@@ -1489,8 +1489,8 @@ int c_ekklfct(EKKfactinfo *fact)
   /* give message if tight on memory */
   if (ncompactions > 2) {
     if (1) {
-      int etasize = CoinMax(4 * fact->nnentu + (nnetas - fact->nnentl) + 1000, fact->eta_size);
-      fact->eta_size = CoinMin(static_cast< int >(1.2 * fact->eta_size), etasize);
+      int etasize = std::max(4 * fact->nnentu + (nnetas - fact->nnentl) + 1000, fact->eta_size);
+      fact->eta_size = std::min(static_cast< int >(1.2 * fact->eta_size), etasize);
       if (fact->maxNNetas > 0 && fact->eta_size > fact->maxNNetas) {
         fact->eta_size = fact->maxNNetas;
       }
@@ -2047,7 +2047,7 @@ void c_ekkshfv(EKKfactinfo *fact,
       temp[jpiv] = krs;
       temp2[jpiv] = nin;
 
-      ninbas = CoinMax(kre, ninbas);
+      ninbas = std::max(kre, ninbas);
 
       /* c_ekktria etc ensure that the first row entry is the pivot */
       dvalpv[jpiv] = 1. / dluval[krs];
@@ -2141,7 +2141,7 @@ void c_ekkshfv(EKKfactinfo *fact,
         need_more_space = true;
       }
     }
-    if (nroom > CoinMin(50, maxinv)) {
+    if (nroom > std::min(50, maxinv)) {
       need_more_space = false;
     }
     if (need_more_space) {
@@ -2507,7 +2507,7 @@ void c_ekkshfv(EKKfactinfo *fact,
     }
     back[1] = 0;
 
-    fact->first_dense = CoinMax(fact->first_dense, 4);
+    fact->first_dense = std::max(fact->first_dense, 4);
     fact->numberSlacks = numberSlacks;
     fact->lastSlack = numberSlacks;
     fact->firstNonSlack = hpivco_new[numberSlacks];

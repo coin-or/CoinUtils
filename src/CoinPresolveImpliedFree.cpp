@@ -350,7 +350,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           break;
         }
         const double abs_ait = fabs(colCoeffs[kcol]);
-        ait_max = CoinMax(ait_max, abs_ait);
+        ait_max = std::max(ait_max, abs_ait);
         if (fabs(rlo[i] - rup[i]) < feasTol && abs_ait > .1 * ait_max) {
           possibleRow = true;
         }
@@ -524,7 +524,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           } else {
             ltprime = -COIN_DBL_MAX;
           }
-          impliedLow = CoinMax(impliedLow, ltprime);
+          impliedLow = std::max(impliedLow, ltprime);
         }
         if (rupi < large) {
           if (!infLi) {
@@ -539,7 +539,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           } else {
             utprime = COIN_DBL_MAX;
           }
-          impliedHigh = CoinMin(impliedHigh, utprime);
+          impliedHigh = std::min(impliedHigh, utprime);
         }
       } else {
         if (rloi > -large) {
@@ -555,7 +555,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           } else {
             utprime = COIN_DBL_MAX;
           }
-          impliedHigh = CoinMin(impliedHigh, utprime);
+          impliedHigh = std::min(impliedHigh, utprime);
         }
         if (rupi < large) {
           if (!infLi) {
@@ -570,7 +570,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           } else {
             ltprime = -COIN_DBL_MAX;
           }
-          impliedLow = CoinMax(impliedLow, ltprime);
+          impliedLow = std::max(impliedLow, ltprime);
         }
       }
 #if PRESOLVE_DEBUG > 2
@@ -706,10 +706,10 @@ const CoinPresolveAction *implied_free_action::presolve(
           double newCost = oldCost - (tgtcol_cost * rowCoeffs[krow]) / tgtcol_coeff;
           oldCost = fabs(oldCost);
           newCost = fabs(newCost);
-          //minOldCost=CoinMin(minOldCost,oldCost);
-          maxOldCost = CoinMax(maxOldCost, oldCost);
-          //minNewCost=CoinMin(minNewCost,newCost);
-          maxNewCost = CoinMax(maxNewCost, newCost);
+          //minOldCost=std::min(minOldCost,oldCost);
+          maxOldCost = std::max(maxOldCost, oldCost);
+          //minNewCost=std::min(minNewCost,newCost);
+          maxNewCost = std::max(maxNewCost, newCost);
         }
       }
       if (maxNewCost > 1000.0 * (maxOldCost + 1.0) && maxOldCost) {
@@ -1265,8 +1265,8 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 #endif
 #endif
 
-    xt_lo = CoinMax(xt_lo, lt);
-    xt_up = CoinMin(xt_up, ut);
+    xt_lo = std::max(xt_lo, lt);
+    xt_up = std::min(xt_up, ut);
 
     /*
   Time to make x(t) basic and the logical nonbasic.  The sign of the

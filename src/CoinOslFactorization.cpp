@@ -155,7 +155,7 @@ void CoinOslFactorization::getAreas(int numberOfRows,
   // If we are going to increase then be on safe side
   if (size > oldnnetas)
     size = static_cast< int >(1.1 * size);
-  factInfo_.eta_size = CoinMax(size, oldnnetas);
+  factInfo_.eta_size = std::max(size, oldnnetas);
   //printf("clp size %d, old %d now %d - iteration %d - last count %d - rows %d,%d,%d\n",
   // size,oldnnetas,factInfo_.eta_size,factInfo_.iterno,factInfo_.lastEtaCount,
   //numberRows_,factInfo_.nrowmx,factInfo_.nrow);
@@ -437,7 +437,7 @@ int CoinOslFactorization::updateColumn(CoinIndexedVector *regionSparse,
     int jRow = regionIndex2[j];
     int iRow = permuteIn[jRow];
     region[iRow]=region2[jRow];
-    first=CoinMin(first,iRow);
+    first=std::min(first,iRow);
     region2[jRow]=0.0;
   }
 #endif
@@ -773,7 +773,7 @@ void clp_memory(int type)
       printf("Allocated blocks\n");
       while (previous->previous != &startM) {
         printf("(%d at %d) ", previous->size, previous->when);
-	smallestAlloc = CoinMin(smallestAlloc,previous->when);
+	smallestAlloc = std::min(smallestAlloc,previous->when);
         n++;
         if ((n % 5) == 0)
           printf("\n");
@@ -809,7 +809,7 @@ static void clp_adjust(void *temp, int size, int type)
   malloc_times++;
   malloc_total += size;
   malloc_current += size;
-  malloc_max = CoinMax(malloc_max, malloc_current);
+  malloc_max = std::max(malloc_max, malloc_current);
   for (i = 0; i < malloc_n; i++) {
     if ((int)size <= malloc_amount[i]) {
       malloc_counts[i]++;
@@ -972,7 +972,7 @@ clp_alloc_memory(EKKfactinfo *fact, int type, int *length)
   if ((ntot1 << 1) < ntot2) {
     ntot1 = ntot2 >> 1;
   }
-  ntot3 = CoinMax(ntot3, ntot1);
+  ntot3 = std::max(ntot3, ntot1);
   /*   Row work regions */
   /* must be contiguous so allocate as one chunk */
   /* may only need 2.5 */
@@ -1053,8 +1053,8 @@ static void c_ekksmem(EKKfactinfo *fact, int nrow, int maximumPivots)
   clp_adjust_pointers(fact, +1);
   if (nrow > fact->nrowmx || maximumPivots > fact->maxinv) {
     int length;
-    fact->nrowmx = CoinMax(nrow, fact->nrowmx);
-    fact->maxinv = CoinMax(maximumPivots, fact->maxinv);
+    fact->nrowmx = std::max(nrow, fact->nrowmx);
+    fact->maxinv = std::max(maximumPivots, fact->maxinv);
     clp_free(fact->trueStart);
     fact->trueStart = 0;
     fact->kw1adr = 0;
@@ -1169,9 +1169,9 @@ static void c_ekksmem_copy(EKKfactinfo *fact, const EKKfactinfo *rhsFact)
       int *startR = rhsFact->R_etas_index + n3;
       nCopyEnd = static_cast< int >((rhsFact->xeradr + nnetas) - startR);
       nCopyStart = rhsFact->nnentu;
-      nCopyEnd = CoinMin(nCopyEnd + 20, nnetas);
+      nCopyEnd = std::min(nCopyEnd + 20, nnetas);
       kCopyEnd = nnetas - nCopyEnd;
-      nCopyStart = CoinMin(nCopyStart + 20, nnetas);
+      nCopyStart = std::min(nCopyStart + 20, nnetas);
       if (!n2 && !rhsFact->nnentu && !rhsFact->nnentl) {
         nCopyStart = nCopyEnd = 0;
       }
@@ -1486,7 +1486,7 @@ CoinOslFactorization::conditionNumber() const
     const double dpiv = dluval[kx];
     condition *= dpiv;
   }
-  condition = CoinMax(fabs(condition), 1.0e-50);
+  condition = std::max(fabs(condition), 1.0e-50);
   return 1.0 / condition;
 }
 

@@ -257,7 +257,7 @@ void CoinPackedMatrix::appendRows(const int numrows,
       const int vecsize = rows[i]->getNumElements();
       const int *vecind = rows[i]->getIndices();
       for (int j = vecsize - 1; j >= 0; --j)
-        maxDim = CoinMax(maxDim, vecind[j]);
+        maxDim = std::max(maxDim, vecind[j]);
     }
     maxDim++;
     if (maxDim > majorDim_) {
@@ -916,7 +916,7 @@ void CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix &rhs)
 
   // Allocate sufficient space (resizeForAddingMinorVectors())
 
-  const int newMaxMajorDim_ = CoinMax(maxMajorDim_, CoinLengthWithExtra(majorDim_, extraMajor_));
+  const int newMaxMajorDim_ = std::max(maxMajorDim_, CoinLengthWithExtra(majorDim_, extraMajor_));
 
   if (newMaxMajorDim_ > maxMajorDim_) {
     maxMajorDim_ = newMaxMajorDim_;
@@ -939,7 +939,7 @@ void CoinPackedMatrix::reverseOrderedCopyOf(const CoinPackedMatrix &rhs)
       start_[i + 1] = start_[i] + CoinLengthWithExtra(orthoLength[i], eg);
   }
 
-  const CoinBigIndex newMaxSize = CoinMax(maxSize_, CoinLengthWithExtra(getLastStart(), extraMajor_));
+  const CoinBigIndex newMaxSize = std::max(maxSize_, CoinLengthWithExtra(getLastStart(), extraMajor_));
 
   if (newMaxSize > maxSize_) {
     maxSize_ = newMaxSize;
@@ -1222,12 +1222,12 @@ void CoinPackedMatrix::appendMajorVector(const int vecsize,
   CoinMemcpyN(vecelem, vecsize, element_ + last);
   if (majorDim_ == 0)
     start_[0] = 0;
-  start_[majorDim_ + 1] = CoinMin(last + CoinLengthWithExtra(vecsize, extraGap_), maxSize_);
+  start_[majorDim_ + 1] = std::min(last + CoinLengthWithExtra(vecsize, extraGap_), maxSize_);
 
   // LL: Do we want to allow appending a vector that has more entries than
   // the current size?
   if (vecsize > 0) {
-    minorDim_ = CoinMax(minorDim_,
+    minorDim_ = std::max(minorDim_,
       (*std::max_element(vecind, vecind + vecsize)) + 1);
   }
 
@@ -1635,7 +1635,7 @@ void CoinPackedMatrix::deleteMajorVectors(const int numDel,
     }
     majorDim_ -= numDel;
     const int lastlength = CoinLengthWithExtra(length_[majorDim_ - 1], extraGap_);
-    start_[majorDim_] = CoinMin(start_[majorDim_ - 1] + lastlength, maxSize_);
+    start_[majorDim_] = std::min(start_[majorDim_ - 1] + lastlength, maxSize_);
     size_ -= deleted;
 
     // if the very first major vector was deleted then copy the new first major
@@ -2240,7 +2240,7 @@ CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix &rhs,
     minorDim_ = rhs.majorDim_;
     majorDim_ = rhs.minorDim_;
     maxMajorDim_ = majorDim_ + extraForMajor;
-    maxSize_ = CoinMax(size_ + extraElements, static_cast< CoinBigIndex >(1));
+    maxSize_ = std::max(size_ + extraElements, static_cast< CoinBigIndex >(1));
     assert(maxMajorDim_ > 0);
     length_ = new int[maxMajorDim_];
     start_ = new CoinBigIndex[maxMajorDim_ + 1];
@@ -2376,7 +2376,7 @@ CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix &rhs,
       // If not much smaller then use original size
       if (3 * majorDim_ > 2 * rhs.majorDim_ && 3 * minorDim_ > 2 * rhs.minorDim_) {
         // now create arrays
-        maxSize_ = CoinMax(static_cast< CoinBigIndex >(1), rhs.size_);
+        maxSize_ = std::max(static_cast< CoinBigIndex >(1), rhs.size_);
         start_ = new CoinBigIndex[numberColumns + 1];
         length_ = new int[numberColumns];
         index_ = new int[maxSize_];
@@ -2427,7 +2427,7 @@ CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix &rhs,
           throw CoinError("bad major entries",
             "subset constructor", "CoinPackedMatrix");
         // now create arrays
-        maxSize_ = CoinMax(static_cast< CoinBigIndex >(1), size_);
+        maxSize_ = std::max(static_cast< CoinBigIndex >(1), size_);
         start_ = new CoinBigIndex[numberColumns + 1];
         length_ = new int[numberColumns];
         index_ = new int[maxSize_];
@@ -2473,7 +2473,7 @@ CoinPackedMatrix::CoinPackedMatrix(const CoinPackedMatrix &rhs,
         throw CoinError("bad major entries",
           "subset constructor", "CoinPackedMatrix");
       // now create arrays
-      maxSize_ = CoinMax(static_cast< CoinBigIndex >(1), size_);
+      maxSize_ = std::max(static_cast< CoinBigIndex >(1), size_);
       start_ = new CoinBigIndex[numberColumns + 1];
       length_ = new int[numberColumns];
       index_ = new int[maxSize_];
@@ -2742,7 +2742,7 @@ void CoinPackedMatrix::resizeForAddingMajorVectors(const int numVec,
   const double extra_gap = extraGap_;
   int i;
 
-  maxMajorDim_ = CoinMax(maxMajorDim_, CoinLengthWithExtra(majorDim_ + numVec, extraMajor_));
+  maxMajorDim_ = std::max(maxMajorDim_, CoinLengthWithExtra(majorDim_ + numVec, extraMajor_));
 
   CoinBigIndex *newStart = new CoinBigIndex[maxMajorDim_ + 1];
   int *newLength = new int[maxMajorDim_];
@@ -2761,7 +2761,7 @@ void CoinPackedMatrix::resizeForAddingMajorVectors(const int numVec,
       newStart[i + 1] = newStart[i] + CoinLengthWithExtra(newLength[i], extra_gap);
   }
 
-  maxSize_ = CoinMax(maxSize_, CoinLengthWithExtra(newStart[majorDim_], extraMajor_));
+  maxSize_ = std::max(maxSize_, CoinLengthWithExtra(newStart[majorDim_], extraMajor_));
   majorDim_ -= numVec;
 
   int *newIndex = new int[maxSize_];
@@ -2783,7 +2783,7 @@ void CoinPackedMatrix::resizeForAddingMajorVectors(const int numVec,
 void CoinPackedMatrix::resizeForAddingMinorVectors(const int *addedEntries)
 {
   int i;
-  maxMajorDim_ = CoinMax(CoinLengthWithExtra(majorDim_, extraMajor_), maxMajorDim_);
+  maxMajorDim_ = std::max(CoinLengthWithExtra(majorDim_, extraMajor_), maxMajorDim_);
   CoinBigIndex *newStart = new CoinBigIndex[maxMajorDim_ + 1];
   int *newLength = new int[maxMajorDim_];
   // increase the lengths temporarily so that the correct new start positions
@@ -2806,7 +2806,7 @@ void CoinPackedMatrix::resizeForAddingMinorVectors(const int *addedEntries)
   for (i = majorDim_ - 1; i >= 0; --i)
     newLength[i] -= addedEntries[i];
 
-  maxSize_ = CoinMax(maxSize_, CoinLengthWithExtra(newStart[majorDim_], extraMajor_));
+  maxSize_ = std::max(maxSize_, CoinLengthWithExtra(newStart[majorDim_], extraMajor_));
   int *newIndex = new int[maxSize_];
   double *newElem = new double[maxSize_];
   for (i = majorDim_ - 1; i >= 0; --i) {
@@ -3039,10 +3039,10 @@ int CoinPackedMatrix::appendMajor(const int number,
       int lastMinor = -1;
       for (CoinBigIndex j = 0; j < numberElements; j++) {
         int iIndex = index[j];
-        lastMinor = CoinMax(lastMinor, iIndex);
+        lastMinor = std::max(lastMinor, iIndex);
       }
       // update minorDim if necessary
-      minorDim_ = CoinMax(minorDim_, lastMinor + 1);
+      minorDim_ = std::max(minorDim_, lastMinor + 1);
       CoinMemcpyN(element, numberElements, element_ + size_);
       i = majorDim_;
       starts -= majorDim_;
@@ -3099,7 +3099,7 @@ int CoinPackedMatrix::appendMajor(const int number,
         for (CoinBigIndex j = 0; j < numberElements; j++) {
           int iIndex = index[j];
           index2[j] = iIndex;
-          lastMinor = CoinMax(lastMinor, iIndex);
+          lastMinor = std::max(lastMinor, iIndex);
         }
         CoinMemcpyN(element, numberElements, element_ + start_[majorDim_]);
       } else {
@@ -3111,7 +3111,7 @@ int CoinPackedMatrix::appendMajor(const int number,
           for (CoinBigIndex j = 0; j < length; j++) {
             int iIndex = index1[j];
             index2[j] = iIndex;
-            lastMinor = CoinMax(lastMinor, iIndex);
+            lastMinor = std::max(lastMinor, iIndex);
           }
           CoinMemcpyN(element + starts[i], length,
             element_ + start_[i]);
@@ -3119,7 +3119,7 @@ int CoinPackedMatrix::appendMajor(const int number,
         start_ -= majorDim_;
       }
       // update minorDim if necessary
-      minorDim_ = CoinMax(minorDim_, lastMinor + 1);
+      minorDim_ = std::max(minorDim_, lastMinor + 1);
     }
   } else {
     if (numberOther > 0) {
@@ -3160,7 +3160,7 @@ int CoinPackedMatrix::appendMajor(const int number,
         for (CoinBigIndex j = 0; j < numberElements; j++) {
           int iIndex = index[j];
           index2[j] = iIndex;
-          lastMinor = CoinMax(lastMinor, iIndex);
+          lastMinor = std::max(lastMinor, iIndex);
         }
         CoinMemcpyN(element, numberElements, element_ + start_[majorDim_]);
         start_ += majorDim_;
@@ -3179,7 +3179,7 @@ int CoinPackedMatrix::appendMajor(const int number,
           for (CoinBigIndex j = 0; j < length; j++) {
             int iIndex = index1[j];
             index2[j] = iIndex;
-            lastMinor = CoinMax(lastMinor, iIndex);
+            lastMinor = std::max(lastMinor, iIndex);
           }
           CoinMemcpyN(element + starts[i], length,
             element_ + start_[i]);
@@ -3189,7 +3189,7 @@ int CoinPackedMatrix::appendMajor(const int number,
         start_ -= majorDim_;
       }
       // update minorDim if necessary
-      minorDim_ = CoinMax(minorDim_, lastMinor + 1);
+      minorDim_ = std::max(minorDim_, lastMinor + 1);
     }
   }
   majorDim_ += number;
@@ -3249,7 +3249,7 @@ int CoinPackedMatrix::appendMinor(const int number,
       CoinBigIndex j;
       for (j = starts[i]; j < starts[i + 1]; j++) {
         int iIndex = index[j];
-        largest = CoinMax(largest, iIndex);
+        largest = std::max(largest, iIndex);
       }
     }
     if (largest + 1 > majorDim_) {
@@ -3364,7 +3364,7 @@ void CoinPackedMatrix::appendMinorFast(const int number,
   CoinBigIndex n = 0;
   if (packType) {
     double slack = (static_cast< double >(maxSize_ - size_ - numberAdded)) / static_cast< double >(majorDim_);
-    slack = CoinMax(0.0, slack - 0.01);
+    slack = std::max(0.0, slack - 0.01);
     if (!slack) {
       for (int i = 0; i < majorDim_; ++i) {
         CoinBigIndex thisCount = newStart[i];
@@ -3388,7 +3388,7 @@ void CoinPackedMatrix::appendMinorFast(const int number,
     newStart[majorDim_] = n;
   }
   if (packType) {
-    maxSize_ = CoinMax(maxSize_, n);
+    maxSize_ = std::max(maxSize_, n);
     int *newIndex = new int[maxSize_];
     double *newElem = new double[maxSize_];
     for (int i = majorDim_ - 1; i >= 0; --i) {
@@ -3492,7 +3492,7 @@ int CoinPackedMatrix::verifyMtx(int verbosity, bool zeroesAreError) const
   store. The actual relation is (#coeffs + #gaps) = start_[majDim].
 */
   bool gaps = (size_ < start_[majDim]);
-  CoinBigIndex maxIndex = CoinMin(maxSize_, start_[majDim]) - 1;
+  CoinBigIndex maxIndex = std::min(maxSize_, start_[majDim]) - 1;
 
   if (verbosity >= 3) {
     std::cout
