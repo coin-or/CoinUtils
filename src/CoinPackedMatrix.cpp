@@ -3649,7 +3649,7 @@ int CoinPackedMatrix::verifyMtx(int verbosity, bool zeroesAreError) const
         errs++;
       }
       double aij = coeffs[ii];
-      if (CoinIsnan(aij) || CoinAbs(aij) > largeCoeff) {
+      if (CoinIsnan(aij) || std::abs(aij) > largeCoeff) {
         if (verbosity >= 1) {
           std::cout
             << "  (" << ii << ") a<" << majndx << "," << minndx << "> = "
@@ -3657,7 +3657,7 @@ int CoinPackedMatrix::verifyMtx(int verbosity, bool zeroesAreError) const
         }
         errs++;
       }
-      if (CoinAbs(aij) < smallCoeff) {
+      if (std::abs(aij) < smallCoeff) {
         if (verbosity >= 4 || zeroesAreError) {
           std::cout
             << "  (" << ii << ") a<" << majndx << "," << minndx << "> = "
