@@ -147,7 +147,7 @@ public:
   {
     T norm = 0;
     for (size_t i = 0; i < elements_.size(); i++)
-      norm = std::max(norm, std:abs(elements_[i]));
+      norm = std::max(norm, std::abs(elements_[i]));
     return norm;
   }
   /// sum of vector elements
