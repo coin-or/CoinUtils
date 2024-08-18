@@ -22,6 +22,7 @@
 #include "CoinUtilsConfig.h"
 #include <cstddef>
 #include <utility>
+#include <vector>
 
 /**
  * Monotone heap.
@@ -68,12 +69,12 @@ private:
   /**
    * Priority queue itself
    **/
-  std::pair<size_t, double> *pq_;
+  std::vector<std::pair<size_t, double> > pq_;
 
   /**
    * Indicates the position of each node in pq
    **/
-  size_t *pos_;
+  std::vector<size_t> pos_;
 
   /**
    * Number of nodes of the heap.
