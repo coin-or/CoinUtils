@@ -194,7 +194,7 @@ private:
   /**
    * Try to detect cliques in a constraint
    **/
-  void cliqueDetection( const std::pair< size_t, double > *columns, size_t nz, const double rhs );
+  void cliqueDetection(const std::vector<std::pair<size_t, double> >&columns, size_t nz, const double rhs);
 
   /**
    * Add a clique. It will be stored explicitly or not
@@ -215,7 +215,7 @@ private:
   /**
    * Add a row in the temporary space
    **/
-  void addTmpRow( size_t nz, const std::pair< size_t, double > *els, double rhs);
+  void addTmpRow( size_t nz, const std::vector<std::pair<size_t, double> > &, double rhs);
 
   /**
    * Conflicts stored directly (not as cliques)
@@ -225,12 +225,12 @@ private:
   /**
    * Degree of the nodes
    **/
-  size_t *degree_;
+  std::vector<size_t> degree_;
 
   /**
    * Modified degree of the nodes
    **/
-  size_t *modifiedDegree_;
+  std::vector<size_t> modifiedDegree_;
 
   /**
    * Conflicts stored as cliques
@@ -250,33 +250,13 @@ private:
   /**
    * Temporary space for storing rows
    **/
-  std::pair< size_t, double > *tRowElements;
-  /**
-   * Number of elements of the temporary space for storing rows
-   **/
-  size_t tnEl;
-  /**
-   * Capacity of the temporary space for storing rows
-   **/
-  size_t tElCap;
-  /**
-   * Number of rows stored in the temporary space
-   **/
-  size_t tnRows;
-  /**
-   * Capacity for storing rows in the temporary space
-   **/
-  size_t tnRowCap;
-  /**
-   * Indicates where each row start in the
-   * temporary space
-   **/
-  size_t *tRowStart;
+  std::vector<std::vector<std::pair<size_t, double> > > tRowElements;
+
   /**
    * Stores the right-hand side of each row in the
    * temporary space.
    **/
-  double *tRowRHS;
+  std::vector<double> tRowRHS;
 };
 
 #endif // DYNAMICCONFLICTGRAPH_H

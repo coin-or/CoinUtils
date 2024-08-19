@@ -34,10 +34,6 @@
 
 #define CG_INI_SPACE_NODE_CONFLICTS 32
 
-static void *xmalloc( const size_t size );
-static void *xrealloc( void *ptr, const size_t size );
-static void *xcalloc( const size_t elements, const size_t size );
-
 // used to compare values
 bool isEqual(const double a, const double b) {
 	if (a == b) {
@@ -103,8 +99,8 @@ bool sort_columns(const std::pair< size_t, double > &left, const std::pair< size
 CoinDynamicConflictGraph::CoinDynamicConflictGraph ( size_t _size )
   : CoinConflictGraph ( _size )
   , conflicts( new CoinAdjacencyVector(_size, CG_INI_SPACE_NODE_CONFLICTS)  )
-  , degree_( (size_t*) xmalloc(sizeof(size_t)*_size) )
-  , modifiedDegree_( (size_t*) xcalloc(_size, sizeof(size_t)) )
+  , degree_(std::vector<size_t>(_size))
+  , modifiedDegree_(std::vector<size_t>(_size))
   , largeClqs( new CoinCliqueList( 4096, 32768 ) )
 {
 }
@@ -126,21 +122,17 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   const double* rowRange )
 {
   iniCoinConflictGraph( numCols*2 );
-  degree_ = (size_t*) xmalloc(sizeof(size_t)*(numCols*2));
-  modifiedDegree_ = (size_t*) xcalloc(numCols*2, sizeof(size_t));
+  degree_ = std::vector<size_t>(numCols*2);
+  modifiedDegree_ = std::vector<size_t>(numCols*2);
   largeClqs = new CoinCliqueList( 4096, 32768 );
 
-  this->tElCap = matrixByRow->getNumElements() * 2;
-  this->tRowElements = (std::pair< size_t, double > *) xmalloc( sizeof(std::pair< size_t, double >)*tElCap);
-  this->tnRowCap = matrixByRow->getNumRows() * 2;
-  this->tRowStart = (size_t *) xmalloc(sizeof(size_t) * (tnRowCap+1) );
-  this->tRowStart[0] = 0;
-  this->tRowRHS = (double *) xmalloc(sizeof(double) * tnRowCap );
-  this->tnRows = 0;
-  this->tnEl = 0;
+  this->tRowElements = std::vector<std::vector<std::pair< size_t, double> > >();
+  size_t tnRowCap = matrixByRow->getNumRows() * 2;
+  this->tRowRHS = std::vector<double>();
+  tRowRHS.reserve(tnRowCap);
 
   // temporary area  
-  size_t *clqIdxs = new size_t[numCols*2];
+  std::vector<size_t> clqIdxs(numCols*2);
 
   // maximum number of nonzeros in constraints that
   // will be handled pairwise
@@ -151,10 +143,10 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   const double *coefs = matrixByRow->getElements();
   const CoinBigIndex *start = matrixByRow->getVectorStarts();
   const int *length = matrixByRow->getVectorLengths();
-  std::pair< size_t, double > *columns = new std::pair< size_t, double >[numCols];
+  std::vector<std::pair<size_t, double> > columns(numCols);
 
   smallCliques = new CoinCliqueList( 4096, 3276 );
-  size_t *tmpClq = (size_t *) xmalloc( sizeof(size_t)*size_ );
+  std::vector<size_t> tmpClq(size_);
 
   for (size_t idxRow = 0; idxRow < (size_t)matrixByRow->getNumRows(); idxRow++) {
     const char rowSense = sense[idxRow];
@@ -217,16 +209,16 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
       if (nz >= CoinConflictGraph::minClqRow_) {
         for ( size_t ie=0 ; ie<nz ; ++ie )
           clqIdxs[ie] = columns[ie].first;
-        processClique(clqIdxs, nz);
+        processClique(clqIdxs.data(), nz);
       } else {
         for ( size_t ie=0 ; ie<nz ; ++ie )
           tmpClq[ie] = columns[ie].first;
 
-        smallCliques->addClique( nz, tmpClq );
+        smallCliques->addClique( nz, tmpClq.data() );
       }
     } else {
       if (twoLargest[0]!=twoSmallest[0])
-        std::sort(columns, columns + nz, sort_columns);
+        std::sort(columns.begin(), columns.begin() + nz, sort_columns);
 
       // checking variables where aj > b
       // and updating their bounds
@@ -248,7 +240,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
 
       maxNzOC = std::max(maxNzOC, nz);
       
-      this->addTmpRow( nz, &columns[0], rhs );
+      this->addTmpRow( nz, columns, rhs );
 
       if (rowSense == 'E' || rowSense == 'R') {
         if (rowSense == 'E') {
@@ -269,7 +261,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
         assert(rhs >= 0.0);
 #endif
 
-        this->addTmpRow( nz, &columns[0], rhs );
+        this->addTmpRow( nz, columns, rhs );
         
       } // equality constraints
     } // not explicit clique
@@ -289,8 +281,8 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   }
 
   //detecting cliques in less-structured constraints
-  for ( size_t idxTR =0 ; (idxTR<tnRows ) ; ++idxTR ) {
-    cliqueDetection( &tRowElements[tRowStart[idxTR]], tRowStart[idxTR+1]-tRowStart[idxTR], tRowRHS[idxTR] );
+  for ( size_t idxTR =0 ; (idxTR<tRowElements.size() ) ; ++idxTR ) {
+    cliqueDetection(tRowElements[idxTR], tRowElements[idxTR].size(), tRowRHS[idxTR]);
   }
 
   // at this point large cliques will already be include
@@ -301,33 +293,21 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   {
     smallCliques->computeNodeOccurrences( size_ );
 
-    char *iv = (char *) calloc( size_, sizeof(char) );
-    if (!iv) {
-      fprintf( stderr, "out of memory.\n" );
-      abort();
-    }
+    std::vector<char> iv(size_);
 
     for ( size_t k=0 ; ( k<smallCliques->nDifferentNodes() ) ; ++k ) {
       size_t idxNode = smallCliques->differentNodes()[k];
       const size_t nNodeCliques = smallCliques->nNodeOccurrences(idxNode);
       const size_t *nodeCliques = smallCliques->nodeOccurrences(idxNode);
-      processSmallCliquesNode(idxNode, nodeCliques, nNodeCliques, smallCliques, iv);
+      processSmallCliquesNode(idxNode, nodeCliques, nNodeCliques, smallCliques, iv.data());
     }
 
-    free( iv );
   } // small cliques
   delete smallCliques;
   smallCliques = NULL;
 
   conflicts->flush();
   recomputeDegree();
-
-  delete[] columns;
-  delete[] clqIdxs;
-  free(tRowElements);
-  free(tRowStart);
-  free(tRowRHS);
-  free(tmpClq);
 }
 
 void CoinDynamicConflictGraph::addClique( size_t size, const size_t elements[] ) {
@@ -421,7 +401,7 @@ size_t clique_start(const std::pair< size_t, double > *columns, size_t nz, doubl
   return right + 1;
 }
 
-void CoinDynamicConflictGraph::cliqueDetection(const std::pair< size_t, double > *columns, size_t nz, const double rhs)
+void CoinDynamicConflictGraph::cliqueDetection(const std::vector<std::pair<size_t, double> >&columns, size_t nz, const double rhs)
 {
 #ifdef DEBUGCG
   assert(nz > 1);
@@ -433,7 +413,7 @@ void CoinDynamicConflictGraph::cliqueDetection(const std::pair< size_t, double >
 
   size_t cliqueSize = 0;
   size_t *idxs = new size_t[nz];
-  const size_t cliqueStart = clique_start(columns, nz, rhs);
+  const size_t cliqueStart = clique_start(columns.data(), nz, rhs);
 
 #ifdef DEBUGCG
   assert(cliqueStart >= 0);
@@ -455,7 +435,7 @@ void CoinDynamicConflictGraph::cliqueDetection(const std::pair< size_t, double >
       break;
     }
 
-    size_t position = binary_search(columns, j, rhs, cliqueStart, nz - 1);
+    size_t position = binary_search(columns.data(), j, rhs, cliqueStart, nz - 1);
 
 #ifdef DEBUGCG
     assert(position >= cliqueStart && position <= nz - 1);
@@ -492,8 +472,6 @@ CoinDynamicConflictGraph::~CoinDynamicConflictGraph()
 {
   delete conflicts;
   delete largeClqs;
-  free( degree_ );
-  free(modifiedDegree_);
   if (smallCliques)
     delete smallCliques;
 }
@@ -527,49 +505,10 @@ void CoinDynamicConflictGraph::printInfo() const
   printf("\tncliques: %zu (min: %zu, max: %zu)\n", nCliques(), minClq, maxClq );
 }
 
-void CoinDynamicConflictGraph::addTmpRow( size_t nz, const std::pair< size_t, double > *els, double rhs )
+void CoinDynamicConflictGraph::addTmpRow(size_t nz, const std::vector<std::pair<size_t, double> > &els, double rhs)
 {
-  memcpy( tRowElements + tnEl, els, sizeof(std::pair< size_t, double>)*nz );
-
-  tnEl += nz;
-  
-  tRowRHS[tnRows] = rhs;
-  tnRows++;
-  tRowStart[tnRows] = tRowStart[tnRows-1] + nz;
-}
-
-static void *xrealloc( void *ptr, const size_t size )
-{
-    void * res = realloc( ptr, size );
-    if (!res)
-    {
-       fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-       abort();
-    }
-    
-    return res;
-}
-
-static void *xmalloc( const size_t size )
-{
-   void *result = malloc( size );
-   if (!result)
-   {
-      fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-      abort();
-   }
-
-   return result;
-}
-
-static void *xcalloc( const size_t elements, const size_t size ) {
-    void *result = calloc( elements, size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
-        abort();
-    }
-
-    return result;
+  tRowRHS.push_back(rhs);
+  tRowElements.push_back(std::vector<std::pair<size_t, double> >(els.begin(), els.begin() + nz));
 }
 
 size_t CoinDynamicConflictGraph::nDirectConflicts( size_t idxNode ) const
