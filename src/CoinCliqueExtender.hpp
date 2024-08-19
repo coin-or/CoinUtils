@@ -18,6 +18,7 @@
 #ifndef COINCLIQUEEXTENDER_HPP
 #define COINCLIQUEEXTENDER_HPP
 
+#include <vector>
 class CoinCliqueList;
 class CoinConflictGraph;
 
@@ -130,27 +131,29 @@ private:
   size_t maxCandidates_;
 
   /**
-   * Candidates list
+   * Candidates list, used to temporarily store candidate vertices.
    **/
-  size_t *candidates_, nCandidates_; //used to temporarily store candidate vertices.
+  std::vector<size_t> candidates_;
+  size_t nCandidates_;
   
   /**
    * Auxiliary array used to temporarily
    * store a new extended clique.
    **/
-  size_t *newClique_, nNewClique_;
+  std::vector<size_t> newClique_;
+  size_t nNewClique_;
 
   /**
    * Array containing the cost of each vertex,
    * computed according to the clique extension method.
    * Used to greedy select the candidates to enter a clique.
    **/
-  double *costs_;
+  std::vector<double> costs_;
 
   /**
    * Auxiliary incidence vectors
    **/
-  char *iv_, *iv2_;
+  std::vector<char> iv_, iv2_;
 
   /**
    * Array containing the reduced cost associated

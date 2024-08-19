@@ -30,8 +30,6 @@
 #define CLQEXT_EPS 1e-6
 
 static void shuffle_array(size_t *arr, size_t n);
-static void *xmalloc( size_t size );
-static void *xcalloc( const size_t elements, const size_t size );
 
 struct CompareCost {
     explicit CompareCost(const double *costs) { this->costs_ = costs; }
@@ -54,12 +52,11 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
     cgraph_ = cgraph;
     extendedCliques_ = new CoinCliqueList(4096, 32768);
     nCandidates_ = nNewClique_ = 0;
-    candidates_ = (size_t*)xmalloc(sizeof(size_t) * cgSize);
-    newClique_ = (size_t*)xmalloc(sizeof(size_t) * cgSize);
-    costs_ = NULL;
+    candidates_ = std::vector<size_t>(cgSize);
+    newClique_ = std::vector<size_t>(cgSize);
 
-    iv_ = (char*)xcalloc(cgSize, sizeof(char));
-    iv2_ = (char*)xcalloc(cgSize, sizeof(char));
+    iv_ = std::vector<char>(cgSize);
+    iv2_ = std::vector<char>(cgSize);
 
     extMethod_ = extMethod;
     rc_ = rc;
@@ -79,7 +76,7 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
             break;
         }
         case 2: { //max degree extension
-            costs_ = (double *) xmalloc(sizeof(double) * cgSize);
+            costs_ = std::vector<double>(cgSize);
             for (size_t i = 0; i < cgSize; i++) {
 #ifdef DEBUGCG
                 assert(cgraph_->degree(i) < cgSize);
@@ -90,7 +87,7 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
             break;
         case 3: {//modified degree extension
             double maxModDegree = 0.0;
-            costs_ = (double *) xmalloc(sizeof(double) * cgSize);
+            costs_ = std::vector<double>(cgSize);
             for (size_t i = 0; i < cgSize; i++) {
                 costs_[i] = cgraph_->modifiedDegree(i);
                 maxModDegree = std::max(maxModDegree, costs_[i]);
@@ -108,7 +105,7 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
             break;
         }
         case 5: { //reduced cost + modified degree
-            costs_ = (double *) xmalloc(sizeof(double) * cgSize);
+            costs_ = std::vector<double>(cgSize);
             double minRCost, maxRCost;
             size_t minMDegree, maxMDegree;
             minRCost = maxRCost = rc[0];
@@ -140,14 +137,6 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
 
 CoinCliqueExtender::~CoinCliqueExtender() {
     delete extendedCliques_;
-    free(candidates_);
-    free(newClique_);
-    free(iv_);
-    free(iv2_);
-
-    if (costs_) {
-        free(costs_);
-    }
 }
 
 bool CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t clqSize) {
@@ -161,7 +150,7 @@ bool CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t clq
         return false;
     }
 
-    shuffle_array(candidates_, nCandidates_);
+    shuffle_array(candidates_.data(), nCandidates_);
     nCandidates_ = std::min(nCandidates_, maxCandidates_);
 
     for (size_t i = 0; i < nCandidates_; i++) {
@@ -184,10 +173,10 @@ bool CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t clq
     }
 
 #ifdef DEBUGCG
-    CoinCliqueList::validateClique(cgraph_, newClique_, nNewClique_);
+    CoinCliqueList::validateClique(cgraph_, newClique_.data(), nNewClique_);
 #endif
 
-    extendedCliques_->addClique(nNewClique_, newClique_);
+    extendedCliques_->addClique(nNewClique_, newClique_.data());
 
     return true;
 }
@@ -205,7 +194,7 @@ bool CoinCliqueExtender::greedySelection(const size_t *clqIdxs, const size_t clq
 
     const size_t n = nCandidates_;
     nCandidates_ = std::min(nCandidates_, maxCandidates_);
-    std::partial_sort(candidates_, candidates_ + nCandidates_, candidates_ + n, CompareCost(costs));
+    std::partial_sort(candidates_.begin(), candidates_.begin() + nCandidates_, candidates_.begin() + n, CompareCost(costs));
 
     for (size_t i = 0; i < nCandidates_; i++) {
         /* need to have conflict with all nodes in clique */
@@ -227,10 +216,10 @@ bool CoinCliqueExtender::greedySelection(const size_t *clqIdxs, const size_t clq
     }
 
 #ifdef DEBUGCG
-    CoinCliqueList::validateClique(cgraph_, newClique_, nNewClique_);
+    CoinCliqueList::validateClique(cgraph_, newClique_.data(), nNewClique_);
 #endif
 
-    extendedCliques_->addClique(nNewClique_, newClique_);
+    extendedCliques_->addClique(nNewClique_, newClique_.data());
 
     return true;
 }
@@ -261,16 +250,16 @@ bool CoinCliqueExtender::extendClique(const size_t *clqIdxs, const size_t clqSiz
             result = randomExtension(clqIdxs, clqSize);
             break;
         case 2: //max degree
-            result = greedySelection(clqIdxs, clqSize, costs_);
+            result = greedySelection(clqIdxs, clqSize, costs_.data());
             break;
         case 3: //modified degree
-            result = greedySelection(clqIdxs, clqSize, costs_);
+            result = greedySelection(clqIdxs, clqSize, costs_.data());
             break;
         case 4: //priority greedy (reduced cost)
             result = greedySelection(clqIdxs, clqSize, rc_);
             break;
         case 5: //reduced cost + modified degree
-            result = greedySelection(clqIdxs, clqSize, costs_);
+            result = greedySelection(clqIdxs, clqSize, costs_.data());
             break;
         default:
             fprintf(stderr, "Invalid option %lu\n", extMethod_);
@@ -301,7 +290,7 @@ void CoinCliqueExtender::fillCandidates(const size_t *clqIdxs, const size_t clqS
         iv_[clqIdx] = 1;
     }
 
-    const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(nodeSD, candidates_, iv2_);
+    const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(nodeSD, candidates_.data(), iv2_.data());
 
     for (size_t i = 0; i < rescg.first; i++) {
         const size_t node = rescg.second[i];
@@ -358,26 +347,6 @@ size_t CoinCliqueExtender::getCliqueSize(const size_t i) const {
     assert(i < extendedCliques_->nCliques());
 #endif
     return extendedCliques_->cliqueSize(i);
-}
-
-static void *xmalloc( const size_t size ) {
-    void *result = malloc( size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-        abort();
-    }
-
-    return result;
-}
-
-static void *xcalloc( const size_t elements, const size_t size ) {
-    void *result = calloc( elements, size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
-        abort();
-    }
-
-    return result;
 }
 
 static void shuffle_array (size_t *arr, size_t n) {
