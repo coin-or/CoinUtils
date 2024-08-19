@@ -21,6 +21,7 @@
 #define COINBRONKERBOSCH_HPP
 
 #include <cstddef>
+#include <vector>
 #include "CoinUtilsConfig.h"
 
 class CoinConflictGraph;
@@ -162,12 +163,7 @@ private:
     /**
      * Array of vertices
      **/
-    BKVertex *vertices_;
-
-    /**
-     * Number of vertices of the conflict graph
-     **/
-    size_t nVertices_;
+    std::vector<BKVertex> vertices_;
 
     /**
      * Size of each bit vector
@@ -177,22 +173,23 @@ private:
     /**
      * Bit mask
      **/
-    size_t *mask_;
+    std::vector<size_t> mask_;
 
     /**
      * Conflict graph and its complement represented by bit vectors
      **/
-    size_t **cgBitstring_, **ccgBitstring_;
+    std::vector<std::vector<size_t> > cgBitstring_, ccgBitstring_;
 
     /**
      * Bitstring with all vertices
      **/
-    size_t *allIn_;
+    std::vector<size_t> allIn_;
 
     /**
      * Set C of vertices that are part of the current clique
      **/
-    size_t *C_, nC_;
+    std::vector<size_t> C_;
+    size_t nC_;
 
     /**
      * Sum of the weights of the vertices in C
@@ -201,27 +198,29 @@ private:
 
     /**
      * Set of the candidate vertices to enter in C
-     * Contain a pointer for each depth of BK algorithm.
+     * Contain a vector for each depth of BK algorithm.
      **/
-    size_t **P_, *nP_;
+    std::vector<std::vector<size_t> > P_;
+    std::vector<size_t> nP_;
 
     /**
      * Set of all vertices that have already been considered
-     * in earlier steps by BK. Contain a pointer for each
+     * in earlier steps by BK. Contain a vector for each
      * depth of BK algorithm.
      **/
-    size_t **S_, *nS_;
+    std::vector<std::vector<size_t> > S_;
+    std::vector<size_t> nS_;
 
     /**
      * Set of vertices P excluding the neighbors of a vertex v.
-     * Contain a pointer for each depth of BK algorithm.
+     * Contain a vector for each depth of BK algorithm.
      **/
-    size_t **L_, *nL_;
+    std::vector<std::vector<size_t> > L_;
 
     /**
      * Array that stores the weights of each clique found by BK
      **/
-    double *clqWeight_;
+    std::vector<double> clqWeight_;
 
     /**
      * Current capacity of array clqWeight_

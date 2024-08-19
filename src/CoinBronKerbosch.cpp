@@ -32,17 +32,13 @@
 #define BK_EPS 1e-6
 
 static void shuffle_vertices (BKVertex *vertices, size_t n);
-static void *xmalloc( const size_t size );
-static void *xcalloc( const size_t elements, const size_t size );
-static void *xrealloc( void *ptr, const size_t size );
 
 bool compareNodes(const BKVertex &u, const BKVertex &v) {
     return u.fitness >= v.fitness + BK_EPS;
 }
 
 CoinBronKerbosch::CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights, PivotingStrategy pivotingStrategy)
-  : nVertices_(0)
-  , minWeight_(0.0)
+  : minWeight_(0.0)
   , calls_(0)
   , maxCalls_(std::numeric_limits<size_t >::max())
   , pivotingStrategy_(pivotingStrategy)
@@ -52,86 +48,65 @@ CoinBronKerbosch::CoinBronKerbosch(const CoinConflictGraph *cgraph, const double
     size_t maxDegree = 0;
 
     cliques_ = NULL;
-    mask_ = NULL;
-    cgBitstring_ = ccgBitstring_ = NULL;
-    C_ = NULL;
-    S_ = L_ = P_ = NULL;
-    nS_ = nL_ = nP_ = NULL;
-    allIn_ = NULL;
-    clqWeight_ = NULL;
     cgraph_ = cgraph;
-    vertices_ = (BKVertex*)xmalloc(sizeof(BKVertex) * cgSize);
+    vertices_ = std::vector<BKVertex>();
+    vertices_.reserve(cgSize);
 
     //filling information about vertices
     for (size_t u = 0; u < cgSize; u++) {
         const size_t degree = cgraph_->degree(u);
 
         if (degree > 0) {
-            vertices_[nVertices_].idx = u;
-            vertices_[nVertices_].weight = weights[u];
-            vertices_[nVertices_].degree = degree;
-            nVertices_++;
+            BKVertex bkv;
+            bkv.idx = u;
+            bkv.weight = weights[u];
+            bkv.degree = degree;
+            vertices_.push_back(bkv);
             maxDegree = std::max(maxDegree, degree);
         }
     }
 
-    if (nVertices_ == 0) {
+    if (vertices_.empty()) {
         return;
     }
 
     computeFitness(weights);
-    sizeBitVector_ = (nVertices_ / INT_SIZE) + 1;
+    sizeBitVector_ = (vertices_.size() / INT_SIZE) + 1;
 
     //clique set
     cliques_ = new CoinCliqueList(4096, 32768);
     clqWeightCap_ = 4096;
-    clqWeight_ = (double*)xmalloc(sizeof(double) * clqWeightCap_);
+    clqWeight_ = std::vector<double>(clqWeightCap_);
 
     nC_ = 0;
     weightC_ = 0.0;
-    C_ = (size_t*)xmalloc(sizeof(size_t) * (maxDegree + 1));
+    C_ = std::vector<size_t>(maxDegree + 1);
 
-    allIn_ = (size_t*)xcalloc(sizeBitVector_, sizeof(size_t));
+    allIn_ = std::vector<size_t>(sizeBitVector_);
 
-    nS_ = (size_t*)xcalloc((maxDegree + 2) * 3, sizeof(size_t));
-    nL_ = nS_ + maxDegree + 2;
-    nP_ = nL_ + maxDegree + 2;
+    nS_ = std::vector<size_t>(maxDegree + 2);
+    nP_ = std::vector<size_t>(maxDegree + 2);
 
-    S_ = (size_t**) xmalloc(sizeof(size_t*) * (maxDegree + 2) * 3);
-    L_ = S_ + maxDegree + 2;
-    P_ = L_ + maxDegree + 2;
+    S_ = std::vector<std::vector<size_t> >(maxDegree + 2, std::vector<size_t>(sizeBitVector_));
+    L_ = std::vector<std::vector<size_t> >(maxDegree + 2, std::vector<size_t>(sizeBitVector_));
+    P_ = std::vector<std::vector<size_t> >(maxDegree + 2, std::vector<size_t>(sizeBitVector_));
 
-    S_[0] = (size_t*)xcalloc((maxDegree + 2) * sizeBitVector_ * 3, sizeof(size_t));
-    L_[0] = S_[0] + ((maxDegree + 2) * sizeBitVector_);
-    P_[0] = L_[0] + ((maxDegree + 2) * sizeBitVector_);
-    for (size_t i = 1; i < maxDegree + 2; i++) {
-        S_[i] = S_[i-1] + sizeBitVector_;
-        L_[i] = L_[i-1] + sizeBitVector_;
-        P_[i] = P_[i-1] + sizeBitVector_;
-    }
-
-    mask_ = (size_t*)xmalloc(sizeof(size_t) * INT_SIZE);
+    mask_ = std::vector<size_t>(INT_SIZE);
     mask_[0] = 1;
     for (size_t h = 1; h < INT_SIZE; h++) {
         mask_[h] = mask_[h - 1] << 1U;
     }
 
-    cgBitstring_ = (size_t**)xmalloc(sizeof(size_t*) * nVertices_ * 2);
-    ccgBitstring_ = cgBitstring_ + nVertices_;
-    cgBitstring_[0] = (size_t*)xcalloc(nVertices_ * sizeBitVector_ * 2, sizeof(size_t));
-    ccgBitstring_[0] = cgBitstring_[0] + (nVertices_ * sizeBitVector_);
-    for (size_t i = 1; i < nVertices_; i++) {
-        cgBitstring_[i] = cgBitstring_[i-1] + sizeBitVector_;
-        ccgBitstring_[i] = ccgBitstring_[i-1] + sizeBitVector_;
-    }
+    cgBitstring_ = std::vector<std::vector<size_t> >(vertices_.size(), std::vector<size_t>(sizeBitVector_));
+    ccgBitstring_ = std::vector<std::vector<size_t> >(vertices_.size(), std::vector<size_t>(sizeBitVector_));
 
-    for(size_t u = 0; u < nVertices_; u++) {
+    for(size_t u = 0; u < vertices_.size(); u++) {
         BKVertex &vertexU = vertices_[u];
 
         allIn_[u / INT_SIZE] |= mask_[u % INT_SIZE];
         ccgBitstring_[u][u / INT_SIZE] |= mask_[u % INT_SIZE];
 
-        for(size_t v = u + 1; v < nVertices_; v++) {
+        for(size_t v = u + 1; v < vertices_.size(); v++) {
             BKVertex &vertexV = vertices_[v];
 
             if (cgraph_->conflicting(vertexU.idx, vertexV.idx)) {
@@ -147,18 +122,7 @@ CoinBronKerbosch::CoinBronKerbosch(const CoinConflictGraph *cgraph, const double
 
 
 CoinBronKerbosch::~CoinBronKerbosch() {
-    free(vertices_);
-
-    if (nVertices_ > 0) {
-        free(mask_);
-        free(cgBitstring_[0]);
-        free(cgBitstring_);
-        free(allIn_);
-        free(C_);
-        free(S_[0]);
-        free(S_);
-        free(nS_);
-        free(clqWeight_);
+    if (!vertices_.empty()) {
         delete cliques_;
     }
 }
@@ -196,14 +160,14 @@ void CoinBronKerbosch::bronKerbosch(size_t depth) {
         //checking memory
         if (nCliques + 1 > clqWeightCap_) {
             clqWeightCap_ *= 2;
-            clqWeight_ = (double*) xrealloc(clqWeight_, sizeof(double)*(clqWeightCap_) );
+            clqWeight_.resize(clqWeightCap_);
         }
         //maximal clique above a threshold found
-        cliques_->addClique(nC_, C_);
+        cliques_->addClique(nC_, C_.data());
         clqWeight_[nCliques] = weightC_;
 
 #ifdef DEBUGCG
-        CoinCliqueList::validateClique(cgraph_, C_, nC_);
+        CoinCliqueList::validateClique(cgraph_, C_.data(), nC_);
 #endif
 
         return;
@@ -223,13 +187,8 @@ void CoinBronKerbosch::bronKerbosch(size_t depth) {
 
     if(weightC_ + wP >= minWeight_) {
         //L = P \ N(u)
-        nL_[depth] = 0;
         for(size_t i = 0; i < sizeBitVector_; i++) {
             L_[depth][i] = P_[depth][i] & ccgBitstring_[u][i];
-
-            if(L_[depth][i]) {
-                nL_[depth]++;
-            }
         }
 
         //for each v in L
@@ -290,12 +249,12 @@ void CoinBronKerbosch::bronKerbosch(size_t depth) {
 }
 
 void CoinBronKerbosch::findCliques() {
-    if (nVertices_ == 0) {
+    if (vertices_.empty()) {
         return;
     }
 
-    nP_[0] = nVertices_;
-    for(size_t i = 0; i < nVertices_; i++) {
+    nP_[0] = vertices_.size();
+    for(size_t i = 0; i < vertices_.size(); i++) {
         P_[0][i / INT_SIZE] |= mask_[i % INT_SIZE];
     }
 
@@ -355,101 +314,67 @@ void CoinBronKerbosch::computeFitness(const double *weights) {
             //do nothing
             break;
         case PivotingStrategy::Random: {
-            shuffle_vertices(vertices_, nVertices_);
+            shuffle_vertices(vertices_.data(), vertices_.size());
             break;
         }
         case PivotingStrategy::Degree: {
-            for (size_t u = 0; u < nVertices_; u++) {
+            for (size_t u = 0; u < vertices_.size(); u++) {
                 const size_t uIdx = vertices_[u].idx;
                 vertices_[u].fitness = cgraph_->degree(uIdx);
             }
-            std::sort(vertices_, vertices_ + nVertices_, compareNodes);
+            std::sort(vertices_.begin(), vertices_.end(), compareNodes);
             break;
         }
         case PivotingStrategy::Weight: {
-            for (size_t u = 0; u < nVertices_; u++) {
+            for (size_t u = 0; u < vertices_.size(); u++) {
                 const size_t uIdx = vertices_[u].idx;
                 vertices_[u].fitness = weights[uIdx];
             }
-            std::sort(vertices_, vertices_ + nVertices_, compareNodes);
+            std::sort(vertices_.begin(), vertices_.end(), compareNodes);
             break;
         }
         case PivotingStrategy::ModifiedDegree: {
-            for (size_t u = 0; u < nVertices_; u++) {
+            for (size_t u = 0; u < vertices_.size(); u++) {
                 const size_t uIdx = vertices_[u].idx;
                 vertices_[u].fitness = cgraph_->modifiedDegree(uIdx);
             }
-            std::sort(vertices_, vertices_ + nVertices_, compareNodes);
+            std::sort(vertices_.begin(), vertices_.end(), compareNodes);
             break;
         }
         case PivotingStrategy::ModifiedWeight: {
-            size_t *neighs = (size_t*)xmalloc(sizeof(size_t) * cgraph_->size());
-            char *iv = (char*)xcalloc(cgraph_->size(), sizeof(char));
-            for (size_t u = 0; u < nVertices_; u++) {
+            std::vector<size_t> neighs = std::vector<size_t>(cgraph_->size());
+            std::vector<char> iv = std::vector<char>(cgraph_->size());
+            for (size_t u = 0; u < vertices_.size(); u++) {
                 const size_t uIdx = vertices_[u].idx;
-                const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(uIdx, neighs, iv);
+                const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(uIdx, neighs.data(), iv.data());
                 vertices_[u].fitness = weights[uIdx];
                 for (size_t v = 0; v < rescg.first; v++) {
                     const size_t vIdx = rescg.second[v];
                     vertices_[u].fitness += weights[vIdx];
                 }
             }
-            free(neighs);
-            free(iv);
-            std::sort(vertices_, vertices_ + nVertices_, compareNodes);
+            std::sort(vertices_.begin(), vertices_.end(), compareNodes);
             break;
         }
         case PivotingStrategy::ModifiedDegreeWeight: {
-            size_t *neighs = (size_t*)xmalloc(sizeof(size_t) * cgraph_->size());
-            char *iv = (char*)xcalloc(cgraph_->size(), sizeof(char));
-            for (size_t u = 0; u < nVertices_; u++) {
+            std::vector<size_t> neighs = std::vector<size_t>(cgraph_->size());
+            std::vector<char> iv = std::vector<char>(cgraph_->size());
+            for (size_t u = 0; u < vertices_.size(); u++) {
                 const size_t uIdx = vertices_[u].idx;
-                const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(uIdx, neighs, iv);
+                const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(uIdx, neighs.data(), iv.data());
                 vertices_[u].fitness = weights[uIdx] + cgraph_->modifiedDegree(uIdx);
                 for (size_t v = 0; v < rescg.first; v++) {
                     const size_t vIdx = rescg.second[v];
                     vertices_[u].fitness += (weights[vIdx] + cgraph_->modifiedDegree(vIdx));
                 }
             }
-            free(neighs);
-            free(iv);
-            std::sort(vertices_, vertices_ + nVertices_, compareNodes);
+            std::sort(vertices_.begin(), vertices_.end(), compareNodes);
             break;
         }
         default:
             fprintf(stderr, "Invalid option %lu for pivoting strategy!\n", pivotingStrategy_);
             abort();
     }
-}
-
-static void *xmalloc( const size_t size ) {
-    void *result = malloc( size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-        abort();
-    }
-
-    return result;
-}
-
-static void *xcalloc( const size_t elements, const size_t size ) {
-    void *result = calloc( elements, size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
-        abort();
-    }
-
-    return result;
-}
-
-static void *xrealloc( void *ptr, const size_t size ) {
-    void * res = realloc( ptr, size );
-    if (!res) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinCliqueList", size);
-        abort();
-    }
-
-    return res;
 }
 
 static void shuffle_vertices (BKVertex *vertices, size_t n) {
