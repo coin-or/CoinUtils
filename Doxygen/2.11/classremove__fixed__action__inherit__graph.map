@@ -1,4 +1,0 @@
-<map id="remove_fixed_action" name="remove_fixed_action">
-<area shape="rect" id="node1" title="Excise fixed variables from the model." alt="" coords="5,80,145,107"/>
-<area shape="rect" id="node2" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="7,5,143,32"/>
-</map>

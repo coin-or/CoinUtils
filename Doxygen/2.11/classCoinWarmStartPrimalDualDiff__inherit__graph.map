@@ -1,4 +1,0 @@
-<map id="CoinWarmStartPrimalDualDiff" name="CoinWarmStartPrimalDualDiff">
-<area shape="rect" id="node1" title="A ‘diff’ between two CoinWarmStartPrimalDual objects." alt="" coords="5,80,197,107"/>
-<area shape="rect" id="node2" href="$classCoinWarmStartDiff.html" title="Abstract base class for warm start ‘diff’ objects." alt="" coords="37,5,166,32"/>
-</map>
