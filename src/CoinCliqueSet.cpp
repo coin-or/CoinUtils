@@ -27,108 +27,57 @@ const size_t CoinCliqueSet::sequence_[] = {37, 31, 29, 17, 13, 11, 7, 1};
 const size_t CoinCliqueSet::nSequence_ = 8;
 const size_t CoinCliqueSet::nBuckets_ = 8192;
 
-static void *xmalloc( const size_t size );
-static void *xrealloc( void *ptr, const size_t size );
-
 #define INI_SPACE_BUCKETS 32
-#define NEW_VECTOR(type, size) ((type *) xmalloc((sizeof(type))*(size)))
 
 CoinCliqueSet::CoinCliqueSet(size_t _iniClqCap, size_t _iniClqElCap)
   : CoinCliqueList(_iniClqCap, _iniClqElCap)
-  , hash_(NEW_VECTOR(size_t*, nBuckets_ * 2))
-  , iniHashSpace_(NEW_VECTOR(size_t, (nBuckets_ * INI_SPACE_BUCKETS) + (2 * nBuckets_)))
-  , expandedBucket_(hash_ + nBuckets_)
-  , bucketSize_(iniHashSpace_ + (nBuckets_ * INI_SPACE_BUCKETS))
-  , bucketCap_(bucketSize_ + nBuckets_) {
-    hash_[0] = iniHashSpace_;
+  , hash_(std::vector<std::vector<size_t> >(nBuckets_)) {
     for (size_t i = 1; i < nBuckets_; i++) {
-        hash_[i] = hash_[i-1] + INI_SPACE_BUCKETS;
+        hash_[i].reserve(INI_SPACE_BUCKETS);
     }
-
-    std::fill(bucketSize_, bucketSize_ + nBuckets_, 0);
-    std::fill(bucketCap_, bucketCap_ + nBuckets_, INI_SPACE_BUCKETS);
-    std::fill(expandedBucket_, expandedBucket_ + nBuckets_, (size_t*)NULL);
-
-    tmpClqCap_ = 256;
-    tmpClq_ = (size_t*)xmalloc(sizeof(size_t) * tmpClqCap_);
 }
 
-CoinCliqueSet::~CoinCliqueSet() {
-    for (size_t i = 0; i < nBuckets_; i++) {
-        if (expandedBucket_[i]) {
-            free(expandedBucket_[i]);
-        }
-    }
-
-    free(hash_);
-    free(iniHashSpace_);
-    free(tmpClq_);
-}
+CoinCliqueSet::~CoinCliqueSet() {}
 
 bool CoinCliqueSet::insertIfNotDuplicate(size_t size, const size_t *els) {
-    if (size > tmpClqCap_) {
-        tmpClqCap_ = std::max(size, tmpClqCap_*2);
-        tmpClq_ = (size_t*)xrealloc(tmpClq_, sizeof(size_t) * tmpClqCap_);
-    }
+    std::vector<size_t> tmpClq = std::vector<size_t>(els, els + size);
+    std::sort(tmpClq.begin(), tmpClq.end());
 
-    memcpy(tmpClq_, els, sizeof(size_t) * size);
-    std::sort(tmpClq_, tmpClq_ + size);
-
-    size_t idxBucket = vectorHashCode(size, tmpClq_);
+    size_t idxBucket = vectorHashCode(tmpClq);
 
 #ifdef DEBUGCG
     assert(idxBucket >= 0);
     assert(idxBucket < nBuckets_);
 #endif
 
-    if (alreadyInserted(size, tmpClq_, idxBucket)) {
+    if (alreadyInserted(tmpClq, idxBucket)) {
         return false;
     }
 
-    const size_t currCap = bucketCap_[idxBucket];
-    const size_t currSize = bucketSize_[idxBucket];
+    const size_t currCap = hash_[idxBucket].capacity();
+    const size_t currSize = hash_[idxBucket].size();
 
     /*updating capacity*/
     if (currSize + 1 > currCap) {
-        const size_t newCap = bucketCap_[idxBucket] * 2;
-
-        if (expandedBucket_[idxBucket]) { // already outside initial space
-            bucketCap_[idxBucket] = newCap;
-            hash_[idxBucket] = expandedBucket_[idxBucket] = (size_t *)xrealloc(expandedBucket_[idxBucket], sizeof(size_t) * newCap);
-        } else {
-            size_t iBucket  = idxBucket;
-            while (iBucket >= 1) {
-                --iBucket;
-                if (!expandedBucket_[iBucket]) {
-                    break;
-                }
-            }
-
-            if (iBucket != idxBucket && !expandedBucket_[iBucket]) {
-                bucketCap_[iBucket] += bucketCap_[idxBucket];
-            }
-
-            bucketCap_[idxBucket] = newCap;
-            expandedBucket_[idxBucket] = (size_t*)xmalloc(sizeof(size_t) * newCap);
-            memcpy(expandedBucket_[idxBucket], hash_[idxBucket], sizeof(size_t) * currSize);
-            hash_[idxBucket] = expandedBucket_[idxBucket];
-        }
+        const size_t newCap = currCap * 2;
+        hash_[idxBucket].reserve(newCap);
     }
 
     /*updating hash*/
-    hash_[idxBucket][bucketSize_[idxBucket]++] = nCliques();
+    hash_[idxBucket].push_back(nCliques());
 
     /* inserting into CliqueList */
-    addClique(size, tmpClq_);
+    addClique(size, tmpClq.data());
 
     return true;
 }
 
-size_t CoinCliqueSet::vectorHashCode(size_t size, const size_t els[]) {
+size_t CoinCliqueSet::vectorHashCode(const std::vector<size_t> &els) {
 #ifdef DEBUGCG
     assert(size > 0);
 #endif
 
+    size_t size = els.size();
     size_t code = (size * sequence_[0]);
     code += (els[0] * sequence_[1]);
 
@@ -146,13 +95,15 @@ size_t CoinCliqueSet::vectorHashCode(size_t size, const size_t els[]) {
     return code;
 }
 
-bool CoinCliqueSet::alreadyInserted(size_t size, const size_t els[], size_t hashCode) {
+bool CoinCliqueSet::alreadyInserted(const std::vector<size_t> &els, size_t hashCode) {
 #ifdef DEBUGCG
     assert(hashCode >= 0);
     assert(hashCode < nBuckets_);
 #endif
 
-    for(size_t i = 0; i < bucketSize_[hashCode]; i++) {
+    size_t size = els.size();
+
+    for(size_t i = 0; i < hash_[hashCode].size(); i++) {
         const size_t idxClq = hash_[hashCode][i];
 
 #ifdef DEBUGCG
@@ -181,22 +132,3 @@ bool CoinCliqueSet::alreadyInserted(size_t size, const size_t els[], size_t hash
     return false;
 }
 
-static void *xmalloc( const size_t size ) {
-    void *result = malloc( size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-        abort();
-    }
-
-    return result;
-}
-
-static void *xrealloc( void *ptr, const size_t size ) {
-    void * result = realloc( ptr, size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinCliqueList", size);
-        abort();
-    }
-
-    return result;
-}
