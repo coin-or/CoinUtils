@@ -21,6 +21,7 @@
 
 #include "CoinUtilsConfig.h"
 #include <cstddef>
+#include <vector>
 
 #ifdef DEBUGCG
     class CoinConflictGraph;
@@ -124,11 +125,6 @@ public:
 
 private:
   /**
-   * Number of cliques stored in the list.
-   **/
-  size_t nCliques_;
-
-  /**
    * Capacity to store cliques in the list.
    **/
   size_t cliquesCap_;
@@ -139,37 +135,15 @@ private:
   size_t nCliqueElements_;
 
   /**
-   * Capacity to store the elements of the cliques
-   **/
-  size_t nCliqueElCap_;
-
-  /**
-   * Pointer to indicate where each clique start
-   **/
-  size_t *clqStart_;
-
-  /**
-   * Size of each clique
-   **/
-  size_t *clqSize_;
-
-  /**
    * Pointer with the elements of the cliques
    **/
-  size_t *clqEls_;
+  std::vector<std::vector<size_t> > clqEls_;
 
   /**
    * Store in which clique each node appears.
    * Only filled if computeNodeOccurrences is called.
    **/
-  size_t *nodeOccur_;
-
-  /**
-   * Pointer to indicate where each array of node
-   * occurrence starts. Only filled if
-   * computeNodeOccurrences is called.
-   **/
-  size_t *startNodeOccur_;
+  std::vector<std::vector<size_t> > nodeOccur_;
 
   /**
    * Number of different nodes that are stored
@@ -181,7 +155,7 @@ private:
    * Nodes (without duplicates) that are stored
    * in the clique list.
    **/
-  size_t *diffNodes_;
+  std::vector<size_t> diffNodes_;
 };
 
 #endif // COINCLIQUELIST_H
