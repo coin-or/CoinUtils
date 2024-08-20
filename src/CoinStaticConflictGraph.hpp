@@ -23,6 +23,8 @@
 #include "CoinConflictGraph.hpp"
 #include "CoinDynamicConflictGraph.hpp"
 
+#include <vector>
+
 /**
  * Static conflict graph, optimized for memory usage and query speed,
  * not modifiable.
@@ -188,73 +190,30 @@ private:
   size_t totalCliqueElements_;
 
   /**
-   * Number of cliques stored explicitly.
-   **/
-  size_t nCliques_;
-
-  /**
-   * Required memory for all vectors.
-   **/
-  size_t memSize_;
-
-  /**
-   * Number of direct conflicts per node.
-   **/
-  size_t *nConflictsNode_;
-
-  /**
    * Degree of each node.
    **/
-  size_t *degree_;
+  std::vector<size_t> degree_;
 
   /**
    * Modified degree of each node.
    **/
-  size_t *modifiedDegree_;
-
-  /**
-   * Start position for the direct conflicts
-   * of each node.
-   **/
-  size_t *startConfNodes_;
+  std::vector<size_t> modifiedDegree_;
 
   /**
    * Direct conflicts
    **/
-  size_t *conflicts_;
-
-  /**
-   * Number of cliques that a node appears.
-   **/
-  size_t *nNodeCliques_;
-
-  /**
-   * Indicates the first position of nodeCliques_
-   * that has the indexes of cliques containing
-   * a node. 
-   **/
-  size_t *startNodeCliques_;
+  std::vector<std::vector<size_t> > conflicts_;
 
   /**
    * Array containing, for each node,
    * the cliques that contain this node.
    **/
-  size_t *nodeCliques_;
-
-  /**
-   * Size of the cliques stored explicitly.
-   **/
-  size_t *cliqueSize_;
-
-  /**
-   * First position where each clique starts.
-   **/
-  size_t *startClique_;
+  std::vector<std::vector<size_t> > nodeCliques_;
 
   /**
    * Elements of the cliques stored explicitly.
    **/
-  size_t *cliques_;
+  std::vector<std::vector<size_t> > cliques_;
 };
 
 #endif // STATICCONFLICTGRAPH_H
