@@ -28,37 +28,29 @@
 #define SPATH_INFTY_NODE std::numeric_limits<size_t>::max()
 #define SPATH_INFTY_DIST std::numeric_limits<double>::max()
 
-static void *xmalloc( const size_t size );
-
 CoinShortestPath::CoinShortestPath(size_t nodes, size_t arcs, const size_t *arcStart, const size_t *toNode, const double *dist) {
     nodes_ = nodes;
-    arcs_ = arcs;
     nh_ = new CoinNodeHeap(nodes_);
-    previous_ = (size_t*)xmalloc(sizeof(size_t) * nodes_);
-    dist_ = (double*)xmalloc(sizeof(double) * nodes_);
-    path_ = (size_t*)xmalloc(sizeof(size_t) * nodes_);
-    neighs_ = (std::pair<size_t, double>*)xmalloc(sizeof(std::pair<size_t, double>) * arcs_);
-    startn_ = (std::pair<size_t, double>**)xmalloc(sizeof(std::pair<size_t, double>*) * (nodes_ + 1));
+    previous_ = std::vector<size_t>(nodes_);
+    dist_ = std::vector<double>(nodes_);
+    path_ = std::vector<size_t>(nodes_);
+    neighs_ = std::vector<std::vector<std::pair<size_t, double> > >(nodes_);
 
-    for (size_t idx = 0; idx < arcs_; idx++) {
-        neighs_[idx].first = toNode[idx];
-        neighs_[idx].second = dist[idx];
+    size_t idx = 0;
+    for (size_t n = 0; n < nodes_; n++) {
+        neighs_[n] = std::vector<std::pair<size_t, double> >(arcStart[n+1] - arcStart[n]);
+        for (size_t i = 0; i < neighs_[n].size(); ++i) {
+            neighs_[n][i].first = toNode[idx];
+            neighs_[n][i].second = dist[idx];
 #ifdef DEBUGCG
-        assert(neighs_[idx].first < nodes);
+            assert(neighs_[n][i].first < nodes);
 #endif
-    }
-
-    for (size_t n = 0; n <= nodes_; n++) {
-        startn_[n] = neighs_ + arcStart[n];
+            idx++;
+        }
     }
 }
 
 CoinShortestPath::~CoinShortestPath() {
-    free(neighs_);
-    free(startn_);
-    free(previous_);
-    free(dist_);
-    free(path_);
     delete nh_;
 }
 
@@ -83,7 +75,7 @@ void CoinShortestPath::find(const size_t origin) {
         assert(topCost + SPATH_EPS <= SPATH_INFTY_DIST);
 #endif
         // updating neighbors distances by iterating in all neighbors
-        for (std::pair<size_t, double> *n = startn_[topNode]; n < startn_[topNode+1]; n++) {
+        for (std::vector<std::pair<size_t, double> >::iterator n = neighs_[topNode].begin(); n != neighs_[topNode].end(); ++n) {
             const size_t toNode = n->first;
             const double dist = n->second;
             const double newDist = topCost + dist;
@@ -124,7 +116,7 @@ void CoinShortestPath::find(const size_t origin, const size_t destination) {
             break;
         }
         // updating neighbors distances by iterating in all neighbors
-        for (std::pair<size_t, double> *n = startn_[topNode]; n < startn_[topNode+1]; n++) {
+        for (std::vector<std::pair<size_t, double> >::iterator n = neighs_[topNode].begin(); n != neighs_[topNode].end(); ++n) {
             const size_t toNode = n->first;
             const double dist = n->second;
             const double newDist = topCost + dist;
@@ -170,12 +162,3 @@ size_t CoinShortestPath::previous(size_t node) const {
     return previous_[node];
 }
 
-static void *xmalloc( const size_t size ) {
-    void *result = malloc( size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-        abort();
-    }
-
-    return result;
-}

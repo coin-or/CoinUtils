@@ -23,6 +23,7 @@
 #include "CoinUtilsConfig.h"
 #include <cstddef>
 #include <utility>
+#include <vector>
 
 class CoinNodeHeap;
 
@@ -79,7 +80,7 @@ public:
   /**
    * Return the number of arcs in the graph.
    **/
-  size_t numArcs() const { return arcs_; }
+  size_t numArcs() const { return neighs_.size(); }
 
   /**
    * Return the length of the shortest path
@@ -99,7 +100,7 @@ public:
    * nodes which should be steped to arrive
    * at a given node.
    **/
-  const size_t* previous() const { return previous_; }
+  const size_t* previous() const { return previous_.data(); }
 
 private:
   /**
@@ -108,36 +109,25 @@ private:
   size_t nodes_;
 
   /**
-   * Number of arcs in the graph.
-   **/
-  size_t arcs_;
-
-  /**
    * Array containing all neighbors
    **/
-  std::pair<size_t, double> *neighs_;
-
-  /**
-   * Start of neighbors for node i. The
-   * neighbor ends at startn[i+1].
-   **/
-  std::pair<size_t, double> **startn_;
+  std::vector<std::vector<std::pair<size_t, double> > > neighs_;
 
   /**
    * Length of the shortest paths.
    **/
-  double *dist_;
+  std::vector<double> dist_;
 
   /**
    * Array indexes with all previous nodes which
    * should be steped to arrive at a given node.
    **/
-  size_t *previous_;
+  std::vector<size_t> previous_;
 
   /**
    * Temporary storage for the shortest paths.
    **/
-  size_t *path_;
+  std::vector<size_t> path_;
 
   /**
    * Monotone heap used in Dijkstra's algorithm.
