@@ -20,6 +20,7 @@
 #define COINADJACENCYVECTOR_H
 
 #include <cstddef>
+#include <vector>
 #include "CoinUtilsConfig.h"
 
 /**
@@ -107,13 +108,12 @@ public:
 
   /**
    * Try to add an element to a sorted vector, keeping it sorted.
-   * Return 1 if element was added and 0 if it was already there.
+   * Return `true` if element was added and `false` if it was already there.
    *
    * @param el sorted vector
-   * @param n size of the sorted vector
    * @param newEl element to be added to the sorted vector
    **/
-  static char tryAddElementSortedVector( size_t *el, size_t n, size_t newEl );
+  static bool tryAddElementSortedVector(std::vector<size_t> &el, size_t newEl);
   
   /**
    * Return the total number of elements.
@@ -122,40 +122,14 @@ public:
 
 private:
   /**
-   * Number of nodes
-   **/
-  size_t nRows_;
-
-  /**
    * Pointers to the current neighbor vector of each node
    **/
-  size_t **rows_;
-
-  /**
-   * Pointers to additional memory allocated
-   * to neigbors that don't fit in the initial space.
-   **/
-  size_t **expandedRows_;
-
-  /**
-   * Initial memory allocated to lines of rows_
-   **/
-  size_t *iniRowSpace_;
-
-  /**
-   * Size of each neighbor vector
-   **/
-  size_t *rowSize_;
-
-  /**
-   * Current capacity of each neighbor vector
-   **/
-  size_t *rowCap_;
+  std::vector<std::vector<size_t> > rows_;
 
   /**
    * Elements added that need to be sorted later
    **/
-  size_t *notUpdated_;
+  std::vector<size_t> notUpdated_;
 
   /**
    * Check if a node can receive a new neighbor
