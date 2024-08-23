@@ -8,7 +8,7 @@
 #include <functional>
 #include <new>
 #include <algorithm>
-#include "CoinDistance.hpp"
+#include <iterator>
 
 // Uncomment the next three lines to get thorough initialisation of memory.
 // #ifndef ZEROFAULT
@@ -167,7 +167,7 @@ void CoinSort_2(Iter_S sfirst, Iter_S slast, Iter_T tfirst, const CoinCompare2 &
 {
   typedef typename std::iterator_traits< Iter_S >::value_type S;
   typedef typename std::iterator_traits< Iter_T >::value_type T;
-  const size_t len = coinDistance(sfirst, slast);
+  const size_t len = std::distance(sfirst, slast);
   if (len <= 1)
     return;
 
@@ -209,7 +209,7 @@ void CoinSort_2(Iter_S sfirst, Iter_S slast, Iter_T tfirst)
 template < class S, class T, class CoinCompare2 >
 void CoinSort_2(S *sfirst, S *slast, T *tfirst, const CoinCompare2 &pc)
 {
-  const size_t len = coinDistance(sfirst, slast);
+  const size_t len = std::distance(sfirst, slast);
   if (len <= 1)
     return;
 
@@ -262,7 +262,7 @@ extern int boundary_sort3;
 template < class S, class T >
 void CoinSort_2(S *key, S *lastKey, T *array2)
 {
-  const size_t number = coinDistance(key, lastKey);
+  const size_t number = std::distance(key, lastKey);
   if (number <= 1) {
     return;
   } else if (number > 10000) {
@@ -392,7 +392,7 @@ void CoinSort_2(S *key, S *lastKey, T *array2)
 template < class S, class T >
 void CoinShortSort_2(S *key, S *lastKey, T *array2)
 {
-  const size_t number = coinDistance(key, lastKey);
+  const size_t number = std::distance(key, lastKey);
   if (number <= 2) {
     if (number == 2 && key[0] > key[1]) {
       S tempS = key[0];
@@ -664,7 +664,7 @@ void CoinSort_3(Iter_S sfirst, Iter_S slast, Iter_T tfirst, Iter_U, ufirst,
   typedef typename std::iterator_traits< Iter_S >::value_type S;
   typedef typename std::iterator_traits< Iter_T >::value_type T;
   typedef typename std::iterator_traits< Iter_U >::value_type U;
-  const size_t len = coinDistance(sfirst, slast);
+  const size_t len = std::distance(sfirst, slast);
   if (len <= 1)
     return;
 
@@ -707,7 +707,7 @@ void CoinSort_3(Iter_S sfirst, Iter_S slast, Iter_T tfirst, Iter_U, ufirst)
 template < class S, class T, class U, class CoinCompare3 >
 void CoinSort_3(S *sfirst, S *slast, T *tfirst, U *ufirst, const CoinCompare3 &tc)
 {
-  const size_t len = coinDistance(sfirst, slast);
+  const size_t len = std::distance(sfirst, slast);
   if (len <= 1)
     return;
 
