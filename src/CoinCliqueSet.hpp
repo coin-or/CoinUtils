@@ -55,7 +55,7 @@ private:
 	 * @param size size of the clique
 	 * @param els indexes of the clique
 	 **/
-    static size_t vectorHashCode(size_t size, const size_t els[]);
+    static size_t vectorHashCode(const std::vector<size_t> &els);
 
     /**
      * Return whether a clique has already been
@@ -66,7 +66,7 @@ private:
      * @param hashCode hash value of
      * the clique (call method vectorHashCode)
      **/
-    bool alreadyInserted(size_t size, const size_t els[], size_t hashCode);
+    bool alreadyInserted(const std::vector<size_t> &els, size_t hashCode);
 
     /**
      * hash multipliers
@@ -86,33 +86,7 @@ private:
     /**
      * Pointer to the current elements for each bucket
      **/
-    size_t **hash_;
-
-    /**
-     * Initial memory allocated to the buckets
-     **/
-    size_t *iniHashSpace_;
-
-    /**
-     * Pointers to additional memory allocated
-     * to elements that don't fit in the initial space
-     **/
-    size_t **expandedBucket_;
-
-    /**
-     * Current size of each bucket
-     **/
-    size_t *bucketSize_;
-
-    /**
-     * Current capacity of each bucket
-     **/
-    size_t *bucketCap_;
-
-    /**
-     * Array for temporary storage of a clique
-     **/
-    size_t *tmpClq_, tmpClqCap_;
+    std::vector<std::vector<size_t> > hash_;
 };
 
 

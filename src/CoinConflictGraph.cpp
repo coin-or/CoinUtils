@@ -32,10 +32,6 @@
 
 size_t CoinConflictGraph::minClqRow_ = 256;
 
-static void *xmalloc(const size_t size);
-
-static void *xcalloc(const size_t elements, const size_t size);
-
 CoinConflictGraph::CoinConflictGraph(size_t _size) {
     iniCoinConflictGraph(_size);
 }
@@ -88,33 +84,13 @@ bool CoinConflictGraph::conflicting(size_t n1, size_t n2) const {
     return conflictInCliques(n1, n2);
 }
 
-static void *xmalloc(const size_t size) {
-    void *result = malloc(size);
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-        abort();
-    }
-
-    return result;
-}
-
-static void *xcalloc(const size_t elements, const size_t size) {
-    void *result = calloc(elements, size);
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
-        abort();
-    }
-
-    return result;
-}
-
 void CoinConflictGraph::recomputeDegree() {
     double start = CoinCpuTime();
     this->nConflicts_ = 0;
     minDegree_ = std::numeric_limits<size_t>::max();
     maxDegree_ = std::numeric_limits<size_t>::min();
 
-    char *iv = (char *) xcalloc(size_, sizeof(char));
+    std::vector<char> iv = std::vector<char>(size_);
 
     for (size_t i = 0; (i < size_); ++i) {
         const size_t ndc = nDirectConflicts(i);
@@ -158,7 +134,6 @@ void CoinConflictGraph::recomputeDegree() {
         nConflicts_ += dg;
     }
 
-    free(iv);
     density_ = (double) nConflicts_ / maxConflicts_;
     double secs = CoinCpuTime() - start;
     if (secs>1.0)
@@ -170,7 +145,7 @@ void CoinConflictGraph::computeModifiedDegree() {
         return;
     }
 
-    char *iv = (char *) xcalloc(size_, sizeof(char));
+    std::vector<char> iv = std::vector<char>(size_);
 
     for (size_t i = 0; i < size_; i++) {
         const size_t ndc = nDirectConflicts(i);
@@ -211,7 +186,6 @@ void CoinConflictGraph::computeModifiedDegree() {
     }
 
     updateMDegree = false;
-    free(iv);
 }
 
 std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t node, size_t *temp, char *iv) const {
@@ -333,14 +307,14 @@ void CoinConflictGraph::printSummary() const {
     }
 
     if (numEdges) {
-        size_t *neighs = (size_t *) xmalloc(sizeof(size_t) * size_);
-	char *iv = (char *) xcalloc(size_, sizeof(char));
+        std::vector<size_t> neighs = std::vector<size_t>(size_);
+        std::vector<char> iv = std::vector<char>(size_);
 
         avgDegree = ((double) numEdges) / ((double) numVertices);
         density = (2.0 * ((double) numEdges)) / (((double) numVertices) * (((double) numVertices) - 1.0));
 
         for (size_t i = 0; i < size_; i++) {
-            const std::pair<size_t, const size_t*> rescg = conflictingNodes(i, neighs, iv);
+            const std::pair<size_t, const size_t*> rescg = conflictingNodes(i, neighs.data(), iv.data());
 
             for (size_t j = 0; j < rescg.first; j++) {
                 const size_t vertexNeighbor = rescg.second[j];
@@ -364,9 +338,6 @@ void CoinConflictGraph::printSummary() const {
         confsCompVars = (confsCompVars / ((double)numEdges));
         mixedConfs = (mixedConfs / ((double)numEdges));
         trivialConflicts = (trivialConflicts / ((double)numEdges));
-
-        free(neighs);
-        free(iv);
     }
 
     printf("%ld;%ld;%lf;%ld;%ld;%lf;%lf;%lf;%lf;%lf;", numVertices, numEdges, density, minDegree, maxDegree,

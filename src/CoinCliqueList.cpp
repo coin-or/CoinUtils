@@ -27,104 +27,51 @@
     #include "CoinConflictGraph.hpp"
 #endif
 
-static void *xrealloc( void *ptr, const size_t size );
-static void *xmalloc( const size_t size );
-
 CoinCliqueList::CoinCliqueList( size_t _iniClqCap, size_t _iniClqElCap )
-  : nCliques_( 0 )
-  , cliquesCap_( _iniClqCap )
+  : cliquesCap_( _iniClqCap )
   , nCliqueElements_( 0 )
-  , nCliqueElCap_( _iniClqElCap )
-  , clqStart_( (size_t *) xmalloc( sizeof(size_t)*(cliquesCap_+1) ) )
-  , clqSize_( (size_t *) xmalloc( sizeof(size_t)*(cliquesCap_) ) )
-  , clqEls_( (size_t *) xmalloc( sizeof(size_t)*(nCliqueElCap_) ) )
-  , nodeOccur_( NULL )
-  , startNodeOccur_( NULL )
   , nDifferent_ ( 0 )
-  , diffNodes_( NULL )
 {
-  clqStart_[0] = 0;
 }
 
 void CoinCliqueList::addClique(size_t size, const size_t els[]) {
-  if (nCliques_+1 > cliquesCap_) {
+  if (clqEls_.size()+1 > cliquesCap_) {
     cliquesCap_ *= 2;
-    clqStart_ = (size_t *) xrealloc( clqStart_, sizeof(size_t)*(cliquesCap_+1) );
-    clqSize_= (size_t *) xrealloc( clqSize_, sizeof(size_t)*(cliquesCap_) );
+    this->clqEls_.reserve(cliquesCap_);
   }
-  clqStart_[nCliques_+1] = clqStart_[nCliques_] + size;
-  clqSize_[nCliques_] = size;
 
-  if ( nCliqueElements_ + size > nCliqueElCap_ ) {
-    nCliqueElCap_ = std::max(nCliqueElements_ + size, nCliqueElCap_*2);
-    this->clqEls_ = (size_t *) xrealloc( this->clqEls_, sizeof(size_t)*nCliqueElCap_ );
-  }
-  memcpy( clqEls_ + nCliqueElements_, els, sizeof(size_t)*size );
+  clqEls_.push_back(std::vector<size_t>(els, els + size));
 
-  nCliques_++;
   nCliqueElements_ += size;
 }
 
 size_t CoinCliqueList::cliqueSize( size_t idxClq ) const {
-  return this->clqSize_[idxClq];
+  return this->clqEls_[idxClq].size();
 }
 
 const size_t *CoinCliqueList::cliqueElements( size_t idxClq ) const {
-  return this->clqEls_ + this->clqStart_[idxClq];
+  return this->clqEls_[idxClq].data();
 }
 
 CoinCliqueList::~CoinCliqueList()
 {
-  free( clqStart_ );
-  free( clqSize_ );
-  free( clqEls_ );
-
-  if (nodeOccur_) {
-    free(nodeOccur_);
-    free(startNodeOccur_);
-    free(diffNodes_);
-  }
-}
-
-static void *xmalloc( const size_t size )
-{
-  void *result = malloc( size );
-  if (!result)
-  {
-    fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinCliqueList.\n", size);
-    exit(1);
-  }
-
-  return result;
 }
 
 void CoinCliqueList::computeNodeOccurrences(size_t nNodes)
 {
-  if (nodeOccur_) {
-    free(nodeOccur_);
-    free(startNodeOccur_);
-    free(diffNodes_);
-    nodeOccur_ = startNodeOccur_ = diffNodes_ = NULL;
-  }
-
-  startNodeOccur_ = (size_t *)xmalloc( sizeof(size_t)*(nNodes+1) );
-  nodeOccur_ = (size_t *)xmalloc( sizeof(size_t)*nCliqueElements_ );
+  nodeOccur_ = std::vector<std::vector<size_t> >(nNodes);
 
   // couting number of occurrences for each node
-  size_t *noc = (size_t *)calloc( nNodes, sizeof(size_t) );
-  if (!noc) {
-    fprintf( stderr, "No more memory available.\n" );
-    abort();
+  std::vector<size_t> noc(nNodes, 0);
+  for (size_t i=0; i < clqEls_.size(); ++i) {
+    for (size_t j=0; j < clqEls_[i].size(); ++j)
+        noc[clqEls_[i][j]]++;
   }
 
-  for ( size_t i=0 ; (i<nCliqueElements_) ; ++i )
-    noc[clqEls_[i]]++;
+  for (size_t in=0; in<nNodes; ++in)
+    nodeOccur_[in] = std::vector<size_t>(noc[in]);
 
-  startNodeOccur_[0] = 0;
-  for ( size_t in=1 ; (in<(nNodes+1)) ; ++in )
-    startNodeOccur_[in] = startNodeOccur_[in-1] + noc[in-1];
-
-  memset( noc, 0, sizeof(size_t)*nNodes );
+  std::fill(noc.begin(), noc.end(), 0);
 
   nDifferent_ = 0;
   for ( size_t ic=0 ; ic<nCliques() ; ++ic ) {
@@ -132,44 +79,33 @@ void CoinCliqueList::computeNodeOccurrences(size_t nNodes)
       size_t node = cliqueElements(ic)[j];
       if (!noc[node])
         nDifferent_++;
-      nodeOccur_[ startNodeOccur_[node] + noc[node] ] = ic;
+      nodeOccur_[node][noc[node]] = ic;
       ++noc[node];
     }
   }
 
-  memset( noc, 0, sizeof(size_t)*nNodes );
+  std::fill(noc.begin(), noc.end(), 0);
 
-  diffNodes_ = (size_t *) xmalloc( sizeof(size_t)*nDifferent_ );
+  diffNodes_ = std::vector<size_t>(nDifferent_);
   nDifferent_ = 0;
-  for ( size_t i=0 ; (i<nCliqueElements_) ; ++i ) {
-    if (!noc[clqEls_[i]])
-      diffNodes_[nDifferent_++] = clqEls_[i];
-    noc[clqEls_[i]]++;
+  for (size_t i=0; i < clqEls_.size(); ++i) {
+    for (size_t j=0; j < clqEls_[i].size(); ++j) {
+      size_t node = clqEls_[i][j];
+      if (!noc[node])
+        diffNodes_[nDifferent_++] = node;
+      noc[node]++;
+    }
   }
-
-  free(noc);
 }
 
 size_t CoinCliqueList::nCliques() const
 {
-  return nCliques_;
-}
-
-static void *xrealloc( void *ptr, const size_t size )
-{
-  void * res = realloc( ptr, size );
-  if (!res)
-  {
-    fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinCliqueList", size);
-    abort();
-  }
-
-  return res;
+  return clqEls_.size();
 }
 
 const size_t * CoinCliqueList::differentNodes() const
 {
-  return this->diffNodes_;
+  return this->diffNodes_.data();
 }
 
 size_t CoinCliqueList::nDifferentNodes() const
@@ -179,7 +115,7 @@ size_t CoinCliqueList::nDifferentNodes() const
 
 const size_t * CoinCliqueList::nodeOccurrences(size_t idxNode) const
 {
-  return this->nodeOccur_ + this->startNodeOccur_[idxNode];
+  return this->nodeOccur_[idxNode].data();
 }
 
 size_t CoinCliqueList::totalElements() const {
@@ -188,7 +124,7 @@ size_t CoinCliqueList::totalElements() const {
 
 size_t CoinCliqueList::nNodeOccurrences(size_t idxNode) const
 {
-  return this->startNodeOccur_[idxNode+1] - this->startNodeOccur_[idxNode];
+  return this->nodeOccur_[idxNode].size();
 }
 
 #ifdef DEBUGCG
