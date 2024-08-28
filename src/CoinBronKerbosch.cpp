@@ -372,7 +372,7 @@ void CoinBronKerbosch::computeFitness(const double *weights) {
             break;
         }
         default:
-            fprintf(stderr, "Invalid option %lu for pivoting strategy!\n", pivotingStrategy_);
+            fprintf(stderr, "Invalid option %u for pivoting strategy!\n", pivotingStrategy_);
             abort();
     }
 }
