@@ -248,20 +248,18 @@ CoinStaticConflictGraph::CoinStaticConflictGraph( const CoinConflictGraph *cgrap
     cliques_[i] = std::vector<size_t>(largeClqs.cliqueElements(i), largeClqs.cliqueElements(i) + largeClqs.cliqueSize(i));
   }
 
-  // reusing vector
-  std::vector<size_t> conf = clqEls;
 
   // copying remaining direct conflicts
   // adding new conflicts when they exist
   for ( size_t i=0 ; (i<n) ; ++i ) {
     size_t idxOrig = elements[i];
-    size_t sizeConf = 0;
+    std::vector<size_t> conf;
 
     for ( size_t j=0 ; ( j < cgraph->nDirectConflicts(idxOrig) ) ; ++j ) {
       size_t ni = newIdx[ cgraph->directConflicts(idxOrig)[j] ] ;
       if ( ni == REMOVED )
         continue;
-      conf[sizeConf++] = ni;
+      conf.push_back(ni);
     }
 
     conflicts_[i] = conf;
