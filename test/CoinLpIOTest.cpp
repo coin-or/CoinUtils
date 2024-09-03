@@ -33,7 +33,7 @@ CoinLpIOUnitTest(const std::string& lpDir)
       assert( m.matrixByColumn_ == NULL );
       assert( m.integerType_ == NULL);
       assert( m.fileName_ == NULL );
-      assert( !strcmp( m.problemName_ , ""));
+      assert( !m.problemName_ || !strcmp( m.problemName_ , ""));
       assert( m.objName_[0] == NULL);
    }
    {
