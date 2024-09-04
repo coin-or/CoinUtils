@@ -39,7 +39,7 @@
 /************************************************************************/
 
 CoinLpIO::CoinLpIO()
-  : problemName_(NULL)
+  : problemName_(CoinStrdup(""))
   , defaultHandler_(true)
   , numberRows_(0)
   , numberColumns_(0)
@@ -94,7 +94,7 @@ CoinLpIO::CoinLpIO()
 // Copy constructor
 //-------------------------------------------------------------------
 CoinLpIO::CoinLpIO(const CoinLpIO &rhs)
-  : problemName_(NULL)
+  : problemName_(CoinStrdup(""))
   , defaultHandler_(true)
   , numberRows_(0)
   , numberColumns_(0)
