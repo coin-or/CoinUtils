@@ -14,18 +14,18 @@ class COINUTILSLIB_EXPORT CoinRational
 {
 
 public:
-  long getDenominator() { return denominator_; }
-  long getNumerator() { return numerator_; }
+  int64_t getDenominator() { return denominator_; }
+  int64_t getNumerator() { return numerator_; }
 
   CoinRational()
     : numerator_(0)
     , denominator_(1) {};
 
-  CoinRational(long n, long d)
+  CoinRational(int64_t n, int64_t d)
     : numerator_(n)
     , denominator_(d) {};
 
-  CoinRational(double val, double maxdelta, long maxdnom)
+  CoinRational(double val, double maxdelta, int64_t maxdnom)
   {
     if (!nearestRational_(val, maxdelta, maxdnom)) {
       numerator_ = 0;
@@ -34,10 +34,10 @@ public:
   };
 
 private:
-  long numerator_;
-  long denominator_;
+  int64_t numerator_;
+  int64_t denominator_;
 
-  bool nearestRational_(double val, double maxdelta, long maxdnom);
+  bool nearestRational_(double val, double maxdelta, int64_t maxdnom);
 };
 
 #endif
