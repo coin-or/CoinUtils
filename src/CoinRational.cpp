@@ -2,6 +2,8 @@
 // Copyright 2015, Matthew Saltzman and Ted Ralphs
 // Licensed under the Eclipse Public License 
 
+#include "CoinUtilsConfig.h"
+
 #include <algorithm>
 #include <cmath>
 #ifdef __clang__
@@ -10,6 +12,9 @@
 #include <cstdio>
 #endif
 #include <cassert>
+#ifdef COINUTILS_HAS_STDINT_H
+#include <stdint.h>
+#endif
 
 #include "CoinRational.hpp"
 
@@ -20,7 +25,7 @@
 // Returns closest (or almost, anyway) rational to val with denominator less
 // than or equal to maxdnom.  Return value is true if within tolerance, false
 // otherwise.
-bool CoinRational::nearestRational_(double val, double maxdelta, long maxdnom)
+bool CoinRational::nearestRational_(double val, double maxdelta, int64_t maxdnom)
 {
   double intpart;
   if (floor(val)==val) {
@@ -31,7 +36,7 @@ bool CoinRational::nearestRational_(double val, double maxdelta, long maxdnom)
   double fracpart = fabs(modf(val, &intpart));
   // Consider using remainder() instead?
 
-  long a = 0, b = 1, c = 1, d = 1;
+  int64_t a = 0, b = 1, c = 1, d = 1;
 #define DEBUG_X 1
 #if DEBUG_X
   bool shouldBeOK = false;
@@ -83,7 +88,7 @@ bool CoinRational::nearestRational_(double val, double maxdelta, long maxdnom)
     numerator_ *= -1;
 #if DEBUG_X > 1
   if (shouldBeOK) {
-    printf("val %g is %ld/%ld to accuracy %g\n", val, numerator_, denominator_,
+    printf("val %g is %lld/%lld to accuracy %g\n", val, numerator_, denominator_,
       fabs(val - numerator_ / double(denominator_)));
   }
 #endif
