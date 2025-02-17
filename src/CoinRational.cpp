@@ -2,6 +2,8 @@
 // Copyright 2015, Matthew Saltzman and Ted Ralphs
 // Licensed under the Eclipse Public License 
 
+#include "CoinUtilsConfig.h"
+
 #include <algorithm>
 #include <cmath>
 #ifdef __clang__
@@ -10,6 +12,9 @@
 #include <cstdio>
 #endif
 #include <cassert>
+#ifdef COINUTILS_HAS_STDINT_H
+#include <stdint.h>
+#endif
 
 #include "CoinRational.hpp"
 

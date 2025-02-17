@@ -52,6 +52,7 @@ AC_COIN_DEBUGLEVEL
 AC_CHECK_HEADERS([windows.h])
 AC_CHECK_HEADERS([endian.h])
 AC_CHECK_HEADERS([execinfo.h])
+AC_CHECK_HEADERS([stdint.h])
 
 ############################################################################
 #                 Data type and math function definitions                  #
