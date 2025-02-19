@@ -157,6 +157,7 @@
     <ClCompile Include="..\..\..\test\CoinMpsIOTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinPackedMatrixTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinPackedVectorTest.cpp" />
+    <ClCompile Include="..\..\..\test\CoinRationalTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinShallowPackedVectorTest.cpp" />
     <ClCompile Include="..\..\..\test\unitTest.cpp" />
   </ItemGroup>

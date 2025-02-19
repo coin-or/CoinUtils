@@ -123,7 +123,7 @@ am_unitTest_OBJECTS = CoinLpIOTest.$(OBJEXT) \
 	CoinIndexedVectorTest.$(OBJEXT) \
 	CoinMessageHandlerTest.$(OBJEXT) CoinModelTest.$(OBJEXT) \
 	CoinMpsIOTest.$(OBJEXT) CoinPackedMatrixTest.$(OBJEXT) \
-	CoinPackedVectorTest.$(OBJEXT) \
+	CoinPackedVectorTest.$(OBJEXT) CoinRationalTest.$(OBJEXT) \
 	CoinShallowPackedVectorTest.$(OBJEXT) unitTest.$(OBJEXT)
 unitTest_OBJECTS = $(am_unitTest_OBJECTS)
 am__DEPENDENCIES_1 =
@@ -155,6 +155,7 @@ am__depfiles_remade = ./$(DEPDIR)/CoinDenseVectorTest.Po \
 	./$(DEPDIR)/CoinModelTest.Po ./$(DEPDIR)/CoinMpsIOTest.Po \
 	./$(DEPDIR)/CoinPackedMatrixTest.Po \
 	./$(DEPDIR)/CoinPackedVectorTest.Po \
+	./$(DEPDIR)/CoinRationalTest.Po \
 	./$(DEPDIR)/CoinShallowPackedVectorTest.Po \
 	./$(DEPDIR)/unitTest.Po
 am__mv = mv -f
@@ -361,6 +362,7 @@ unitTest_SOURCES = \
 	CoinMpsIOTest.cpp \
 	CoinPackedMatrixTest.cpp \
 	CoinPackedVectorTest.cpp \
+	CoinRationalTest.cpp \
 	CoinShallowPackedVectorTest.cpp \
 	unitTest.cpp
 
@@ -439,6 +441,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinMpsIOTest.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPackedMatrixTest.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinPackedVectorTest.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinRationalTest.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinShallowPackedVectorTest.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unitTest.Po@am__quote@ # am--include-marker
 
@@ -579,6 +582,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/CoinMpsIOTest.Po
 	-rm -f ./$(DEPDIR)/CoinPackedMatrixTest.Po
 	-rm -f ./$(DEPDIR)/CoinPackedVectorTest.Po
+	-rm -f ./$(DEPDIR)/CoinRationalTest.Po
 	-rm -f ./$(DEPDIR)/CoinShallowPackedVectorTest.Po
 	-rm -f ./$(DEPDIR)/unitTest.Po
 	-rm -f Makefile
@@ -635,6 +639,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/CoinMpsIOTest.Po
 	-rm -f ./$(DEPDIR)/CoinPackedMatrixTest.Po
 	-rm -f ./$(DEPDIR)/CoinPackedVectorTest.Po
+	-rm -f ./$(DEPDIR)/CoinRationalTest.Po
 	-rm -f ./$(DEPDIR)/CoinShallowPackedVectorTest.Po
 	-rm -f ./$(DEPDIR)/unitTest.Po
 	-rm -f Makefile
