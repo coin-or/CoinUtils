@@ -29,8 +29,8 @@ bool CoinRational::nearestRational_(double val, double maxdelta, int64_t maxdnom
 {
   double intpart;
   if (floor(val)==val) {
-    numerator_ = val;
-    denominator_ = 1.0;
+    numerator_ = (int64_t) val;
+    denominator_ = 1;
     return true;
   }
   double fracpart = fabs(modf(val, &intpart));
@@ -83,7 +83,7 @@ bool CoinRational::nearestRational_(double val, double maxdelta, int64_t maxdnom
     assert(inaccuracy <= maxdelta);
   }
 #endif
-  numerator_ += std::abs(intpart) * denominator_;
+  numerator_ += ((int64_t) std::abs(intpart)) * denominator_;
   if (val < 0)
     numerator_ *= -1;
 #if DEBUG_X > 1

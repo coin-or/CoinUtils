@@ -16,6 +16,7 @@
 #include "CoinPragma.hpp"
 #include "CoinFinite.hpp"
 #include "CoinError.hpp"
+#include "CoinRational.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinSort.hpp"
 #include "CoinShallowPackedVector.hpp"
@@ -189,6 +190,9 @@ int main (int argc, const char *argv[])
   testingMessage( "Testing CoinError\n" );
   CoinErrorUnitTest();
   
+  testingMessage("Testing CoinRational\n");
+  CoinRationalUnitTest();
+
   testingMessage( "Testing CoinShallowPackedVector\n" );
   CoinShallowPackedVectorUnitTest();
 

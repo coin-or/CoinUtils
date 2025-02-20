@@ -20,6 +20,7 @@ unitTest_SOURCES = \
 	CoinMpsIOTest.cpp \
 	CoinPackedMatrixTest.cpp \
 	CoinPackedVectorTest.cpp \
+	CoinRationalTest.cpp \	
 	CoinShallowPackedVectorTest.cpp \
 	unitTest.cpp
 
