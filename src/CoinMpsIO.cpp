@@ -417,8 +417,8 @@ CoinMpsCardReader::readToNextSection()
         strcpy(columnName_, "no_name");
       }
       break;
-    } else if (card_[0] != '*' && card_[0] != '#') {
-      // not a comment
+    } else if (card_[0] != '*' && card_[0] != '#' && card_[0] != '\0') {
+      // not a comment (or empty)
       int i;
 
       handler_->message(COIN_MPS_LINE, messages_) << cardNumber_
@@ -1661,9 +1661,42 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
       if (!direction) {
         printf("No MAX/MIN found after OBJSENSE\n");
       } else {
-        printf("%s found after OBJSENSE - Coin sets isMaximization flag\n",
-          (direction > 0 ? "MIN" : "MAX"));
-	isMaximization_ = 1;
+	if (direction < 0) {
+	  printf("MAX found after OBJSENSE - default maximize\n");
+	  isMaximization_ = 1;
+	} else {
+	  printf("MIN found after OBJSENSE - default minimize\n");
+	}
+      }
+      if (!onSameCard)
+	cardReader_->nextField();
+    }
+    // Fudge for what ever code has OBJNAME
+    if (!strncmp(cardReader_->card(), "OBJNAME", 7)) {
+      // Correct format has objective name on next card
+      const char *thisCard = cardReader_->card();
+      char temp[80];
+      cardReader_->strcpyAndCompress(temp,cardReader_->card());
+      bool onSameCard = false;
+      if (strlen(temp)>9) {
+	onSameCard = true;
+	thisCard += 7; // move on
+      }
+      cardReader_->nextField();
+      objectiveName_ =strdup(thisCard);
+      int length = strlen(thisCard);
+      int k = 0;
+      for (int i=0;i<length;i++) {
+	if (thisCard[i]!=' ')
+	  objectiveName_[k++] = thisCard[i];
+      }
+      objectiveName_[k]= '\0';
+      if (!strlen(objectiveName_)) {
+        printf("No objective name found after OBJNAME\n");
+      } else {
+        printf("%s found after OBJNAME - using as objective\n",
+          objectiveName_);
+	gotNrow = true;
       }
       if (!onSameCard)
 	cardReader_->nextField();
@@ -1694,7 +1727,7 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
     while (cardReader_->nextField() == COIN_ROW_SECTION) {
       switch (cardReader_->mpsType()) {
       case COIN_N_ROW:
-        if (!gotNrow) {
+        if (!gotNrow || !strcmp(objectiveName_,cardReader_->columnName())) {
           gotNrow = true;
           // save name of section
           free(objectiveName_);
