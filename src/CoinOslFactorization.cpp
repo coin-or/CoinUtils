@@ -1172,7 +1172,8 @@ static void c_ekksmem_copy(EKKfactinfo *fact, const EKKfactinfo *rhsFact)
       nCopyEnd = std::min(nCopyEnd + 20, nnetas);
       kCopyEnd = nnetas - nCopyEnd;
       nCopyStart = std::min(nCopyStart + 20, nnetas);
-      if (!n2 && !rhsFact->nnentu && !rhsFact->nnentl) {
+      if (!n2 && (!rhsFact->nnentu && !rhsFact->nnentl)||
+	  nCopyEnd<0) {
         nCopyStart = nCopyEnd = 0;
       }
     }
