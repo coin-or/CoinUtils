@@ -12,9 +12,6 @@
 #include <cstdio>
 #endif
 #include <cassert>
-#ifdef COINUTILS_HAS_STDINT_H
-#include <stdint.h>
-#endif
 
 #include "CoinRational.hpp"
 
