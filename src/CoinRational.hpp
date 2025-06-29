@@ -9,6 +9,12 @@
 
 #include "CoinUtilsConfig.h"
 
+#if defined(COINUTILS_HAS_CSTDINT)
+#include <cstdint>
+#elif defined(COINUTILS_HAS_STDINT_H)
+#include <stdint.h>
+#endif
+
 //Small class for rational numbers
 class COINUTILSLIB_EXPORT CoinRational
 {
