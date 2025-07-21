@@ -115,12 +115,13 @@ public:
 #ifdef DEBUGCG
     /**
      * Validate a clique according to a conflict graph.
+     * returns false if bad in some way
      *
      * @param cgraph conflict graph
      * @param idxs indexes of the clique
      * @param size size of the clique
      **/
-    static void validateClique(const CoinConflictGraph *cgraph, const size_t *idxs, const size_t size);
+    static bool validateClique(const CoinConflictGraph *cgraph, const size_t *idxs, const size_t size);
 #endif
 
 private:

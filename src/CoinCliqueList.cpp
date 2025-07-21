@@ -128,7 +128,7 @@ size_t CoinCliqueList::nNodeOccurrences(size_t idxNode) const
 }
 
 #ifdef DEBUGCG
-void CoinCliqueList::validateClique(const CoinConflictGraph *cgraph, const size_t *idxs, const size_t size) {
+bool CoinCliqueList::validateClique(const CoinConflictGraph *cgraph, const size_t *idxs, const size_t size) {
     if (size == 0) {
         fprintf(stderr, "Empty clique!\n");
         abort();
@@ -143,9 +143,10 @@ void CoinCliqueList::validateClique(const CoinConflictGraph *cgraph, const size_
         for (size_t j = i + 1; j < size; j++) {
             if ((!cgraph->conflicting(idxs[i], idxs[j])) || (idxs[i] == idxs[j])) {
                 fprintf(stderr, "ERROR: Nodes %ld and %ld are not in conflict.\n", idxs[i], idxs[j]);
-                abort();
+                return false;// may be infeasible abort();
             }
         }
     }
+    return true;
 }
 #endif

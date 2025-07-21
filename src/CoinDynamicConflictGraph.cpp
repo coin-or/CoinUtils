@@ -199,9 +199,11 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
     if ( twoLargest[0] + twoLargest[1] <= rhs && (rowSense!='E' && rowSense!='R') )
       continue;
 
+    if(rhs < 0.0)
+      continue; // might be infeasible
 #ifdef DEBUGCG
     assert(nz == length[idxRow]);
-    assert(rhs >= 0.0);
+    //assert(rhs >= 0.0);
 #endif
     
     //explicit clique

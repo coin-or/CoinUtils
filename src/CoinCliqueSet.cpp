@@ -73,11 +73,11 @@ bool CoinCliqueSet::insertIfNotDuplicate(size_t size, const size_t *els) {
 }
 
 size_t CoinCliqueSet::vectorHashCode(const std::vector<size_t> &els) {
+
+    size_t size = els.size();
 #ifdef DEBUGCG
     assert(size > 0);
 #endif
-
-    size_t size = els.size();
     size_t code = (size * sequence_[0]);
     code += (els[0] * sequence_[1]);
 
