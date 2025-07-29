@@ -118,8 +118,6 @@ int CoinFactorization::updateColumn(CoinIndexedVector *regionSparse,
         regionIndex[j] = iRow;
       }
     } else {
-#else
-  assert(!regionSparse2->packedMode());
 #endif
       for (int j = 0; j < numberNonZero; j++) {
         int iRow = index[j];
