@@ -1631,6 +1631,8 @@ const CoinPresolveAction
 	int nOther = 0;
 	int nSameCoeff = 0;
 	int nSingletons = 0;
+	// Singletons - all continuous 1 - all binary 2 - other (general or mixed) 3
+	int nMixed = 0;
 	double rhs = canFix[i] == 1 ? rup[i] : rlo[i];
 	double firstCoeff = 0.0;
 	int j = -1;
@@ -1645,8 +1647,9 @@ const CoinPresolveAction
 #endif
 	for (CoinBigIndex k = krs; k < kre; k++) {
 	  j = hcol[k];
-	  if (hincol[j]==1)
+	  if (hincol[j]==1) {
 	    nSingletons++;
+	  }
 	  double coeff = fabs(rowels[k]);
 	  if (cup[j] > clo[j]) {
 	    if (!firstCoeff) {
@@ -1661,11 +1664,24 @@ const CoinPresolveAction
 	    if (prob->colProhibited2(j)) {
 	      nInteger = 1;
 	      nOther = 1;
+	      nMixed = 3;
 	      break;
 	    } else if (integerType[j]) {
 	      nInteger++;
+	      if (clo[j]==0.0&&cup[j]==1.0) {
+		if (!nMixed)
+		  nMixed = 2;
+		else if (nMixed!=2)
+		  nMixed = 3; // be on safe side
+	      } else {
+		nMixed = 3;
+	      }
 	    } else {
 	      nOther++;
+	      if (!nMixed)
+		nMixed = 1;
+	      else if (nMixed!=1)
+		nMixed = 3; // be on safe side
 	    }
 	  } else {
 	    rhs -= coeff * clo[j];
@@ -1673,7 +1689,8 @@ const CoinPresolveAction
 	}
 	if (nSingletons>1) {
 	  //printf("%d singletons nOther %d\n",nSingletons,nOther);
-	  nOther=0;
+	  if (nMixed<3)
+	    nOther=0;
 	}
 	if (!nOther) {
 	  if (nSameCoeff == nInteger) {
