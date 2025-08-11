@@ -796,7 +796,7 @@ void CoinFactorization::replaceColumn1(CoinIndexedVector *regionSparse,
   // Guess at number at end
   if (sparseThreshold_ > 0) {
     if (btranAverageAfterU_) {
-      int newNumber = static_cast< int >(number * btranAverageAfterU_);
+      double newNumber = number * btranAverageAfterU_;
       if (newNumber < sparseThreshold_)
         goSparse = 2;
       else if (newNumber < sparseThreshold2_)
@@ -1946,7 +1946,7 @@ void CoinFactorization::updateColumnTransposeU(CoinIndexedVector *regionSparse,
   // Guess at number at end
   if (sparseThreshold_ > 0) {
     if (btranAverageAfterU_) {
-      int newNumber = static_cast< int >(number * btranAverageAfterU_);
+      double newNumber = number * btranAverageAfterU_;
       if (newNumber < sparseThreshold_)
         goSparse = 2;
       else if (newNumber < sparseThreshold2_)
@@ -2287,7 +2287,7 @@ void CoinFactorization::updateColumnTransposeL(CoinIndexedVector *regionSparse) 
   // we may need to rethink on dense
   if (sparseThreshold_ > 0) {
     if (btranAverageAfterL_) {
-      int newNumber = static_cast< int >(number * btranAverageAfterL_);
+      double newNumber = number * btranAverageAfterL_;
       if (newNumber < sparseThreshold_)
         goSparse = 2;
       else if (newNumber < sparseThreshold2_)
