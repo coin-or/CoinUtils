@@ -2739,14 +2739,14 @@ const CoinPresolveAction
       }
     }
   }
-  // adjust offset
-  if (offset)
-    prob->change_bias(offset);
   if (nactions) {
 #if PRESOLVE_SUMMARY
     printf("Cost offset %g - from %d blocks\n", offset, nactions);
     printf("TWO by TWO blocks:  %d - offset %g\n", nactions, offset);
 #endif
+    // adjust offset
+    if (offset)
+      prob->change_bias(offset);
     action *actions = new action[nactions];
     memcpy(actions, boundRecords, nactions * sizeof(action));
     next = new twoxtwo_action(nactions, actions, next);
