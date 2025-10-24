@@ -164,7 +164,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
     for (size_t j = start[idxRow]; j < (size_t)start[idxRow] + length[idxRow]; j++) {
       const size_t idxCol = idxs[j];
       const double coefCol = coefs[j] * mult;
-      const bool isBinary = ((colType[idxCol] != 0) && (colLB[idxCol] == 1.0 || colLB[idxCol] == 0.0)
+      const bool isBinary = ((colType[idxCol] != 0) && (colLB[idxCol] == 0.0)
         && (colUB[idxCol] == 0.0 || colUB[idxCol] == 1.0));
 
       if (!isBinary) {
