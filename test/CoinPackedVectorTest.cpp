@@ -685,13 +685,9 @@ CoinPackedVectorUnitTest()
     int inx2[ne2] =   { 7,  4,  2,  1  };
     double el2[ne2] = { 7., 4., 2., 1. };
 
-#   ifdef COINUTILS_C_FINITE
     double one = 1.0 ;
     double zero = 0.0 ;
     double infty = one/zero ;
-#   else
-    double infty = COIN_DBL_MAX ;
-#   endif
 
     CoinPackedVector v1;
     CoinPackedVector v2;
@@ -702,11 +698,9 @@ CoinPackedVectorUnitTest()
     rV.setConstant(ne1,inx1,0) ;
     r = v2 / v1;
     assert(r.isEquivalent(rV)) ;
-#  ifdef COINUTILS_C_FINITE
     rV.setConstant(ne1,inx1,infty) ;
     r = v1 / v2;
     assert(r.isEquivalent(rV)) ;
-#   endif
     
     r.isEquivalent(rV) ;
 
