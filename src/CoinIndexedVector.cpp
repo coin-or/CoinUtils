@@ -1836,7 +1836,6 @@ void CoinArrayWithLength::getArray(CoinByteArray size)
     } else {
       offset_ = 0;
     }
-    assert(size > 0);
     char *array = new char[size + offset_];
     if (offset_) {
       // need offset
@@ -1847,7 +1846,6 @@ void CoinArrayWithLength::getArray(CoinByteArray size)
       else
         offset_ = 0;
       array_ = array + offset_;
-      ;
     } else {
       array_ = array;
     }
@@ -1888,7 +1886,12 @@ void CoinArrayWithLength::getCapacity(CoinByteArray numberBytes, CoinByteArray n
     size_ = saveSize;
     getArray(std::max(numberBytes, numberNeeded));
   } else if (size_ < 0) {
-    size_ = -size_ - 2;
+    if (array_) {
+      size_ = -size_ - 2;
+    } else {
+      assert (size_!=-1);
+      getArray(std::max(numberBytes, numberNeeded));
+    }
   }
 }
 /* Alternate Constructor - length in bytes 
@@ -2002,6 +2005,10 @@ void CoinArrayWithLength::setPersistence(int flag, CoinByteArray currentLength)
   if (flag) {
     if (size_ == -1) {
       if (currentLength && array_) {
+	if (flag==3) {
+	  delete[](array_ - offset_);
+	  getArray(size_);
+	}
         size_ = currentLength;
       } else {
         conditionalDelete();
