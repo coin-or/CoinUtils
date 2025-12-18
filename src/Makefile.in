@@ -301,8 +301,8 @@ am__includecoin_HEADERS_DIST = CoinAlloc.hpp CoinBuild.hpp \
 	CoinCliqueSet.hpp CoinConflictGraph.hpp CoinCutPool.hpp \
 	CoinDynamicConflictGraph.hpp CoinNodeHeap.hpp \
 	CoinOddWheelSeparator.hpp CoinShortestPath.hpp \
-	CoinStaticConflictGraph.hpp CoinOslFactorization.hpp \
-	CoinSimpFactorization.hpp
+	CoinStaticConflictGraph.hpp CoinColumnType.hpp \
+	CoinOslFactorization.hpp CoinSimpFactorization.hpp
 HEADERS = $(includecoin_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP) \
 	config.h.in config_coinutils.h.in
@@ -571,7 +571,7 @@ includecoin_HEADERS = CoinAlloc.hpp CoinBuild.hpp CoinDenseVector.hpp \
 	CoinCliqueSet.hpp CoinConflictGraph.hpp CoinCutPool.hpp \
 	CoinDynamicConflictGraph.hpp CoinNodeHeap.hpp \
 	CoinOddWheelSeparator.hpp CoinShortestPath.hpp \
-	CoinStaticConflictGraph.hpp $(am__append_2)
+	CoinStaticConflictGraph.hpp CoinColumnType.hpp $(am__append_2)
 all: config.h config_coinutils.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

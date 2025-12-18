@@ -169,7 +169,8 @@ includecoin_HEADERS = \
 	CoinNodeHeap.hpp \
 	CoinOddWheelSeparator.hpp \
 	CoinShortestPath.hpp \
-	CoinStaticConflictGraph.hpp
+	CoinStaticConflictGraph.hpp \
+	CoinColumnType.hpp
 
 if BUILD_OSLFACTORIZATION
   includecoin_HEADERS += CoinOslFactorization.hpp CoinSimpFactorization.hpp
