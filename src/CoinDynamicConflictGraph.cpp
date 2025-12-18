@@ -2,12 +2,12 @@
  *
  * This file is part of the COIN-OR CBC MIP Solver
  *
- * CoinConflictGraph implementation which supports modifications. 
+ * CoinConflictGraph implementation which supports modifications.
  * For a static conflict graph implemenation with faster queries
  * check CoinStaticConflictGraph.
  *
  * @file CoinDynamicConflictGraph.cpp
- * @brief CoinConflictGraph implementation which supports modifications. 
+ * @brief CoinConflictGraph implementation which supports modifications.
  * @author Samuel Souza Brito and Haroldo Gambini Santos
  * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
  * @date 03/27/2020
@@ -29,6 +29,7 @@
 #include "CoinStaticConflictGraph.hpp"
 #include "CoinPackedMatrix.hpp"
 #include "CoinCliqueList.hpp"
+#include "CoinColumnType.hpp"
 
 #define EPS 1e-6
 
@@ -105,11 +106,11 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph ( size_t _size )
 {
 }
 
-/* first pass: process all 
+/* first pass: process all
  *   cliques that will be stored directly
  *
  * second pass: process constraints where only a part
- *   of the constraint may be a clique 
+ *   of the constraint may be a clique
  **/
 CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   const int numCols,
@@ -131,7 +132,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   this->tRowRHS = std::vector<double>();
   tRowRHS.reserve(tnRowCap);
 
-  // temporary area  
+  // temporary area
   std::vector<size_t> clqIdxs(numCols*2);
 
   // maximum number of nonzeros in constraints that
@@ -143,6 +144,8 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   const double *coefs = matrixByRow->getElements();
   const CoinBigIndex *start = matrixByRow->getVectorStarts();
   const int *length = matrixByRow->getVectorLengths();
+
+  // temporary area to store columns of a row (idx, coef), will be sorted later
   std::vector<std::pair<size_t, double> > columns(numCols);
 
   smallCliques = new CoinCliqueList( 4096, 3276 );
@@ -151,7 +154,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   for (size_t idxRow = 0; idxRow < (size_t)matrixByRow->getNumRows(); idxRow++) {
     const char rowSense = sense[idxRow];
 
-    if (length[idxRow] < 2 || rowSense == 'N') 
+    if (length[idxRow] < 2 || rowSense == 'N')
       continue;
 
     const double mult = (rowSense == 'G') ? -1.0 : 1.0;
@@ -164,10 +167,8 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
     for (size_t j = start[idxRow]; j < (size_t)start[idxRow] + length[idxRow]; j++) {
       const size_t idxCol = idxs[j];
       const double coefCol = coefs[j] * mult;
-      const bool isBinary = ((colType[idxCol] != 0) && (colLB[idxCol] == 0.0)
-        && (colUB[idxCol] == 0.0 || colUB[idxCol] == 1.0));
 
-      if (!isBinary) {
+      if (colType[idxCol] != CoinColumnType::Binary) {
         onlyBinaryVars = false;
         break;
       }
@@ -205,7 +206,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
     assert(nz == length[idxRow]);
     //assert(rhs >= 0.0);
 #endif
-    
+
     //explicit clique
     if ((twoLargest[0] <= rhs) && ((twoSmallest[0] + twoSmallest[1]) >= (rhs + EPS)) && (nz > 2)) {
       if (nz >= CoinConflictGraph::minClqRow_) {
@@ -230,8 +231,10 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
         }
 
         if (columns[j].first < (size_t) numCols) {
+          // original variable
           newBounds_.push_back(std::make_pair(columns[j].first, std::make_pair( 0.0, 0.0)));
         } else {
+          // complement variable
           newBounds_.push_back(std::make_pair(columns[j].first - numCols, std::make_pair( 1.0, 1.0)));
         }
       }
@@ -241,7 +244,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
 #endif
 
       maxNzOC = std::max(maxNzOC, nz);
-      
+
       this->addTmpRow( nz, columns, rhs );
 
       if (rowSense == 'E' || rowSense == 'R') {
@@ -264,7 +267,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
 #endif
 
         this->addTmpRow( nz, columns, rhs );
-        
+
       } // equality constraints
     } // not explicit clique
   } // all rows
@@ -274,9 +277,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
 
   /* inserting trivial conflicts: variable-complement */
   for (size_t i = 0; i < (size_t)numCols; i++) {
-    const bool isBinary = ((colType[i] != 0) && (colLB[i] == 1.0 || colLB[i] == 0.0)
-      && (colUB[i] == 0.0 || colUB[i] == 1.0));
-    if (isBinary) { //consider only binary variables
+    if (colType[i] == CoinColumnType::Binary) { //consider only binary variables
       conflicts->addNeighbor( i, i+numCols );
       conflicts->addNeighbor( numCols+i, i );
     }
@@ -290,7 +291,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   // at this point large cliques will already be include
   this->largeClqs->computeNodeOccurrences( size_ );
 
-  // processing small cliques 
+  // processing small cliques
   if (smallCliques->nCliques())
   {
     smallCliques->computeNodeOccurrences( size_ );
@@ -483,12 +484,12 @@ void CoinDynamicConflictGraph::printInfo() const
 
   size_t minClq = INT_MAX;
   size_t maxClq = 0;
-  
+
   for ( size_t i=0 ; (i<this->nCliques()) ; ++i ) {
     minClq = std::min( minClq, cliqueSize(i) );
     maxClq = std::max( maxClq, cliqueSize(i) );
   }
-  
+
   double totalDegree = 0.0;
   size_t minD = INT_MAX;
   size_t maxD = 0;
@@ -499,7 +500,7 @@ void CoinDynamicConflictGraph::printInfo() const
     maxD = std::max( maxD, conflicts->rowSize(i) );
   }
   double avd = totalDegree /  ((double)size_);
-  
+
   printf("Conflict graph info:\n");
   printf("\tnodes: %zu\n", this->size());
   printf("\tdensity: %.4f\n", this->density() );
@@ -563,7 +564,7 @@ void CoinDynamicConflictGraph::processSmallCliquesNode(
   size_t newConf = 0;
   size_t prevConf = conflicts->rowSize(node);
   const size_t *oldConfs = conflicts->getRow(node);
-  for ( size_t j=0 ; (j<prevConf) ; ++j ) 
+  for ( size_t j=0 ; (j<prevConf) ; ++j )
     iv[oldConfs[j]] = true;
   iv[node] = true;
 

@@ -2,7 +2,7 @@
  *
  * This file is part of the COIN-OR CBC MIP Solver
  *
- * Abstract class for a Conflict Graph, see CoinStaticConflictGraph and 
+ * Abstract class for a Conflict Graph, see CoinStaticConflictGraph and
  * CoinDynamicConflictGraph for concrete implementations.
  *
  * @file CoinConflictGraph.cpp
@@ -30,6 +30,8 @@
 #include "CoinAdjacencyVector.hpp"
 #include "CoinTime.hpp"
 
+// Minimum row length required for the row to be stored as an explicit clique instead of
+// being expanded into pairwise conflicts (tunable via setMinCliqueRow).
 size_t CoinConflictGraph::minClqRow_ = 256;
 
 CoinConflictGraph::CoinConflictGraph(size_t _size) {
