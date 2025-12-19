@@ -151,6 +151,8 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
   smallCliques = new CoinCliqueList( 4096, 3276 );
   std::vector<size_t> tmpClq(size_);
 
+  // inspecting all rows, compute two largest and smallest values to check if
+  // constraint is worth deeper inspection
   for (size_t idxRow = 0; idxRow < (size_t)matrixByRow->getNumRows(); idxRow++) {
     const char rowSense = sense[idxRow];
 
@@ -161,17 +163,29 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph (
     double rhs = mult * rowRHS[idxRow];
     bool onlyBinaryVars = true;
 
+    // discount fixed variables from RHS
+    for (size_t j = start[idxRow]; j < (size_t)start[idxRow] + length[idxRow]; j++) {
+      const size_t idxCol = idxs[j];
+      if (colLB[idxCol] == colUB[idxCol]) {
+        const double coefCol = coefs[j] * mult;
+        rhs -= coefCol * colLB[idxCol];
+      }
+    }
+
     size_t nz = 0;
     double twoLargest[2] = { -(std::numeric_limits< double >::max() / 10.0), -(std::numeric_limits< double >::max() / 10.0) };
     double twoSmallest[2] = { std::numeric_limits< double >::max() / 10.0, std::numeric_limits< double >::max() / 10.0};
     for (size_t j = start[idxRow]; j < (size_t)start[idxRow] + length[idxRow]; j++) {
       const size_t idxCol = idxs[j];
-      const double coefCol = coefs[j] * mult;
 
+      if (colLB[idxCol] == colUB[idxCol]) { // already considered in RHS
+        continue;
+      }
       if (colType[idxCol] != CoinColumnType::Binary) {
         onlyBinaryVars = false;
         break;
       }
+      const double coefCol = coefs[j] * mult;
 
       if (coefCol >= 0.0) {
         columns[nz].first = idxCol;
