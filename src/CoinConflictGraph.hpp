@@ -2,7 +2,7 @@
  *
  * This file is part of the COIN-OR CBC MIP Solver
  *
- * Abstract class for a Conflict Graph, see CoinStaticConflictGraph and 
+ * Abstract class for a Conflict Graph, see CoinStaticConflictGraph and
  * CoinDynamicConflictGraph for concrete implementations.
  *
  * @file CoinConflictGraph.hpp
@@ -162,16 +162,36 @@ public:
    * of the graph.
    **/
   void computeModifiedDegree();
-  
+
   /**
    * Total number of conflicts stored directly.
    **/
   virtual size_t nTotalDirectConflicts() const = 0;
-  
+
   /**
    * Total number of clique elements stored.
    **/
   virtual size_t nTotalCliqueElements() const = 0;
+
+#ifdef CGRAPH_DEEP_DIVE
+  /**
+   * Validate the conflict graph entries against solver data and a mip start.
+   *
+   * @param numCols number of columns in the model.
+   * @param colTypes array indicating the column type (expects 'B' for binaries).
+   * @param colLower column lower bounds.
+   * @param colUpper column upper bounds.
+   * @param colNames vector with column names.
+   * @param mipStart list of (variable name, value) assignments expected to be conflict-free.
+   */
+  void validateConflictGraphUsingFeasibleSolution(
+      size_t numCols,
+      const char *colTypes,
+      const double *colLower,
+      const double *colUpper,
+      const std::vector<std::string> &colNames,
+      const std::vector< std::pair< std::string, double > > &mipStart) const;
+#endif // CGRAPH_DEEP_DIVE
 
   /**
    * Print summarized information about

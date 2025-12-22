@@ -346,5 +346,124 @@ void CoinConflictGraph::printSummary() const {
             avgDegree, confsActiveVars, confsCompVars, mixedConfs, trivialConflicts);
 }
 
+#ifdef CGRAPH_DEEP_DIVE
+#include <unordered_map>
+#include "CoinColumnType.hpp"
+void CoinConflictGraph::validateConflictGraphUsingFeasibleSolution(
+    size_t numCols,
+    const char *colTypes,
+    const double *colLower,
+    const double *colUpper,
+    const std::vector<std::string> &colNames,
+    const std::vector< std::pair< std::string, double > > &mipStart) const {
+    if (!numCols || !colTypes || !colLower || !colUpper) {
+        std::cerr << "CoinConflictGraph::validateConflictGraph: incomplete model data." << std::endl;
+        return;
+    }
+
+    if (size_ != 2 * numCols) {
+        std::cerr << "CoinConflictGraph::validateConflictGraph: conflict graph size (" << size_
+                  << ") is incompatible with solver columns (" << numCols << ")." << std::endl;
+        return;
+    }
+
+    // Validate that only binary variables should have conflicts recorded.
+    for (size_t col = 0; col < numCols; ++col) {
+        const bool isBinary = colTypes[col] == CoinColumnType::Binary;
+        const size_t degActive = degree(col);
+        const size_t degComplement = degree(col + numCols);
+        if (!isBinary && (degActive > 0 || degComplement > 0)) {
+            std::string varName;
+            if (col < colNames.size() && !colNames[col].empty()) {
+                varName = colNames[col];
+            } else {
+                std::ostringstream os;
+                os << "col_" << col;
+                varName = os.str();
+            }
+            std::cerr << "Warning: variable '" << varName
+                      << "' (index=" << col << ", type=" << colTypes[col]
+                      << ", bounds=[" << colLower[col] << ',' << colUpper[col]
+                      << "]) has conflicts but is not binary." << std::endl;
+        }
+    }
+
+    // Build map from column names to indices for quick lookup.
+    std::unordered_map<std::string, size_t> nameToIndex;
+    nameToIndex.reserve(numCols * 2);
+    for (size_t col = 0; col < numCols; ++col) {
+        if (col < colNames.size() && !colNames[col].empty()) {
+            nameToIndex[colNames[col]] = col;
+        }
+    }
+
+    struct StartInfo {
+        size_t index;
+        double value;
+        std::string name;
+    };
+
+    std::vector<StartInfo> binaryAssignments;
+    binaryAssignments.reserve(mipStart.size());
+    std::unordered_map<size_t, size_t> indexToPos;
+
+    const double tol = 1e-6;
+    for (const auto &assignment : mipStart) {
+        auto it = nameToIndex.find(assignment.first);
+        if (it == nameToIndex.end()) {
+            continue;
+        }
+
+        const size_t idx = it->second;
+        if (colTypes[idx] != CoinColumnType::Binary) {
+            continue;
+        }
+
+        const double rawValue = assignment.second;
+        double normalizedValue = rawValue;
+        if (std::fabs(rawValue) <= tol) {
+            normalizedValue = 0.0;
+        } else if (std::fabs(rawValue - 1.0) <= tol) {
+            normalizedValue = 1.0;
+        }
+
+        if (!(normalizedValue == 0.0 || normalizedValue == 1.0)) {
+            std::cerr << "Warning: mipStart assigns value " << rawValue << " to binary variable '"
+                      << assignment.first << "' (index=" << idx << ", type=" << colTypes[idx]
+                      << ", bounds=[" << colLower[idx] << ',' << colUpper[idx] << "]). Expected 0/1.\n";
+            continue;
+        }
+
+        const auto insRes = indexToPos.emplace(idx, binaryAssignments.size());
+        if (insRes.second) {
+            binaryAssignments.push_back({ idx, normalizedValue, assignment.first });
+        } else {
+            binaryAssignments[insRes.first->second].value = normalizedValue;
+        }
+    }
+
+    // Verify that mipStart assignments do not contradict the conflict graph.
+    const size_t nBinaryAssignments = binaryAssignments.size();
+    for (size_t i = 0; i < nBinaryAssignments; ++i) {
+        const StartInfo &vi = binaryAssignments[i];
+        const size_t nodeI = (vi.value == 1.0) ? vi.index : vi.index + numCols;
+        for (size_t j = i + 1; j < nBinaryAssignments; ++j) {
+            const StartInfo &vj = binaryAssignments[j];
+            const size_t nodeJ = (vj.value == 1.0) ? vj.index : vj.index + numCols;
+            if (conflicting(nodeI, nodeJ)) {
+                std::cerr << "Warning: mipStart assigns incompatible binary variables: '"
+                          << vi.name << "' (idx=" << vi.index << ", type=" << colTypes[vi.index]
+                          << ", bounds=[" << colLower[vi.index] << ',' << colUpper[vi.index]
+                          << "], value=" << vi.value << ") and '" << vj.name << "' (idx="
+                          << vj.index << ", type=" << colTypes[vj.index] << ", bounds=["
+                          << colLower[vj.index] << ',' << colUpper[vj.index] << "], value="
+                          << vj.value << ").\n";
+            }
+        }
+    }
+}
+#endif //CGRAPH_DEEP_DIVE
+
+
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
 */
