@@ -8,6 +8,12 @@ config.log
 config.status
 libtool
 dist
+*.Plo
+*.a
+*.la
+*.lo
+*.lai
+*.o
 
 # Ignore VS files
 *.suo
