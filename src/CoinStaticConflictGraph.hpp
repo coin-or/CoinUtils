@@ -8,7 +8,7 @@
  * @file CoinStaticConflictGraph.hpp
  * @brief static CoinConflictGraph implementation with fast queries
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -38,17 +38,29 @@ public:
   CoinStaticConflictGraph ( const CoinConflictGraph *cgraph );
 
   /**
-   * Default constructor.
-   * It constructs a conflict graph from the MILP structure.
+   * Builds a static conflict graph directly from a MILP instance.
    *
-   * @param numCols number of variables
-   * @param colType column types
-   * @param colLB column lower bounds
-   * @param colUB column upper bounds
-   * @param matrixByRow row-wise constraint matrix
-   * @param sense row sense
-   * @param rowRHS row right hand side
-   * @param rowRange row ranges
+   * Internally this constructor instantiates a `CoinDynamicConflictGraph`,
+   * lets it scan every constraint to detect cliques, pairwise conflicts, and
+   * tighter bounds, and then copies the resulting structure into the compact
+   * static layout optimized for query speed. The tighter bounds discovered
+   * during this pass can later be accessed through `updatedBounds()`.
+   *
+   * @param numCols number of original columns.
+   * @param colType column types (used to filter the binary/semicontinuous
+   *                variables that may participate in conflicts).
+   * @param colLB column lower bounds.
+   * @param colUB column upper bounds.
+   * @param matrixByRow row-wise constraint matrix.
+   * @param sense row senses for each constraint (G/E/L/R/N).
+   * @param rowRHS right-hand sides for each row.
+   * @param rowRange row ranges (only relevant for range rows).
+   * @param primalTolerance feasibility tolerance applied while testing a
+   *                        row for conflict generation.
+   * @param infinity threshold used to treat bounds as practically unbounded
+   *                 when discounting continuous columns.
+   * @param colNames column names, only used for diagnostic messages when
+   *                 reporting newly inferred bounds.
    **/
   CoinStaticConflictGraph(
           const int numCols,
@@ -58,7 +70,10 @@ public:
           const CoinPackedMatrix* matrixByRow,
           const char* sense,
           const double* rowRHS,
-          const double* rowRange );
+          const double* rowRange,
+          const double primalTolerance,
+          const double infinity,
+          const std::vector<std::string> &colNames);
 
   /**
    * Clone a conflict graph.
@@ -120,16 +135,16 @@ public:
    * Return the modified degree of a given node.
    **/
   virtual size_t modifiedDegree( const size_t node ) const;
-  
+
   /**
    * Total number of conflicts stored directly.
    **/
   virtual size_t nTotalDirectConflicts() const;
-  
+
   /**
    * Total number of clique elements stored.
    **/
-  virtual size_t nTotalCliqueElements() const;  
+  virtual size_t nTotalCliqueElements() const;
 
   /**
    * Destructor
@@ -182,7 +197,7 @@ private:
    * Number of pairwise conflicts stored.
    **/
   size_t nDirectConflicts_;
-  
+
   /**
    * Number of elements considering all cliques
    * stored explicitly.
