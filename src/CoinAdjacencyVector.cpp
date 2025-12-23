@@ -8,7 +8,7 @@
  * @file CoinAdjacencyVector.cpp
  * @brief Vector of growable vectors
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -74,7 +74,7 @@ void CoinAdjacencyVector::addNeighbor( size_t idxNode, size_t idxNeigh, bool add
 }
 
 
-size_t CoinAdjacencyVector::rowSize( size_t idxRow ) const 
+size_t CoinAdjacencyVector::rowSize( size_t idxRow ) const
 {
   assert(idxRow<this->rows_.size());
 
@@ -107,7 +107,7 @@ void CoinAdjacencyVector::fastAddNeighbor( size_t idxNode, size_t idxNeigh )
   notUpdated_[idxNode]++;
 }
 
-void CoinAdjacencyVector::sort() 
+void CoinAdjacencyVector::sort()
 {
   for ( size_t i=0 ; i<rows_.size() ; ++i )
     std::sort(rows_[i].begin(), rows_[i].end());
@@ -126,7 +126,7 @@ bool CoinAdjacencyVector::tryAddElementSortedVector(std::vector<size_t> &el, siz
   return true;
 }
 
-size_t CoinAdjacencyVector::totalElements() const 
+size_t CoinAdjacencyVector::totalElements() const
 {
   size_t res = 0;
 

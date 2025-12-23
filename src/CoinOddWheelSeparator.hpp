@@ -9,7 +9,7 @@
  * @file CoinOddWheelSeparator.hpp
  * @brief Odd-wheel cut separator
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -152,7 +152,7 @@ private:
    * considered in the cut separation.
    **/
   size_t icaCount_;
-  
+
   /**
    * Interesting columns that will be considered
    * in the cut separation.

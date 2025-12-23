@@ -9,7 +9,7 @@
  * @file CoinShortestPath.hpp
  * @brief Shortest path algorithm
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}

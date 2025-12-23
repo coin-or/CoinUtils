@@ -17,7 +17,7 @@
  * @file CoinCutPool.hpp
  * @brief Class for storing a pool of cuts
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -126,7 +126,7 @@ public:
    * the i-th cut in the pool.
    **/
   const int* cutIdxs(size_t i) const;
-    
+
   /**
    * Return the coefficients of the variables
    * of the i-th cut in the pool.

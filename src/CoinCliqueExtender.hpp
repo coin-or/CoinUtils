@@ -7,7 +7,7 @@
  * @file CoinCliqueExtender.hpp
  * @brief Clique extender
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -43,7 +43,7 @@ public:
    **/
   explicit CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t extMethod = 4, const double *rc = NULL,
           const double maxRC = 100.0);
-  
+
   /**
    * Destructor
    **/
@@ -89,20 +89,20 @@ private:
    * @param clqSize size of the clique to be extended
    **/
   void fillCandidates(const size_t *clqIdxs, const size_t clqSize);
-  
+
   /**
    * Randomly select the vertices to be inserted in the clique.
-   * 
+   *
    * @param clqIdxs indexes of the clique to be extended
    * @param clqIdxs size of the clique to be extended
    **/
   bool randomExtension(const size_t *clqIdxs, const size_t clqSize);
-  
+
   /**
    * Select the vertices to be inserted in the clique using a greedy
    * strategy. Consider the method to extend cliques passed in
    * the constructor.
-   * 
+   *
    * @param clqIdxs indexes of the clique to be extended
    * @param clqIdxs size of the clique to be extended
    **/
@@ -135,7 +135,7 @@ private:
    **/
   std::vector<size_t> candidates_;
   size_t nCandidates_;
-  
+
   /**
    * Auxiliary array used to temporarily
    * store a new extended clique.

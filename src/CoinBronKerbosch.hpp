@@ -9,7 +9,7 @@
  * @file CoinBronKerbosch.hpp
  * @brief Bron-Kerbosch Algorithm
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -98,7 +98,7 @@ public:
    * Return the number of cliques found by BK algorithm.
    **/
   size_t nCliques() const;
-  
+
   /**
    * Return the i-th clique found by BK algorithm.
    **/
@@ -119,12 +119,12 @@ public:
    * to be detected and stored by BK algorithm.
    **/
   void setMinWeight(double minWeight);
-  
+
   /**
    * Set the maximum number of recursive calls of BK algorithm.
    **/
   void setMaxCalls(size_t maxCalls);
-  
+
   /**
    * Return true if BK algorithm ran completely, without
    * stopping by the maximum number of recursive calls.

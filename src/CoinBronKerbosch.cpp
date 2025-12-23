@@ -9,7 +9,7 @@
  * @file CoinBronKerbosch.cpp
  * @brief Bron-Kerbosch Algorithm
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -385,7 +385,7 @@ static void shuffle_vertices (BKVertex *vertices, size_t n) {
     BKVertex tmp;
 
     srand (time(NULL));
-    
+
     for (size_t i = n - 1; i > 0; i--) {
         size_t j = rand() % (i + 1);
         tmp = vertices[i];

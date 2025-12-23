@@ -8,7 +8,7 @@
  * @file CoinAdjacencyVector.hpp
  * @brief Vector of growable vectors
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -31,7 +31,11 @@ class COINUTILSLIB_EXPORT CoinAdjacencyVector
 {
 public:
   /**
-   * Default constructor.
+   * Construct an adjacency structure with `_nRows` rows and reserve
+   * `_iniRowSize` slots for each row to limit reallocations.
+   *
+   * @param _nRows number of nodes/rows that will be tracked
+   * @param _iniRowSize initial capacity reserved for every row
    **/
   CoinAdjacencyVector( size_t _nRows, size_t _iniRowSize );
 
@@ -56,7 +60,7 @@ public:
    * @param idxNeigh neighbor that will be searched
    **/
   bool isNeighbor(size_t idxNode, size_t idxNeigh) const;
- 
+
   /**
    * Add a new neighbor to a node.
    *
@@ -91,10 +95,11 @@ public:
    void sort();
 
 
-   /**
-    * Sort all neighbors of all elements and remove duplicates
-    **/
-   void flush();
+  /**
+   * For every row with pending unsorted entries, sort its neighbors,
+   * remove duplicates, and mark it as up to date.
+   **/
+  void flush();
 
    /**
     * Sort all neighbors of idxRow
@@ -114,7 +119,7 @@ public:
    * @param newEl element to be added to the sorted vector
    **/
   static bool tryAddElementSortedVector(std::vector<size_t> &el, size_t newEl);
-  
+
   /**
    * Return the total number of elements.
    **/
