@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include <map>
 
 /** \file CoinMessageHandler.hpp
     \brief This is a first attempt at a message handler.
@@ -86,7 +87,7 @@ public:
     return externalNumber_;
   }
   /** \brief Set message ID number
-  
+
     In the default CoinMessageHandler, this number is printed in the message
     prefix and is used to determine the message severity level.
   */
@@ -140,7 +141,7 @@ class COINUTILSLIB_EXPORT CoinMessages {
 
 public:
   /** \brief Supported languages
-  
+
     These are the languages that are supported.  At present only
     us_en is serious and the rest are for testing.
   */
@@ -298,7 +299,7 @@ enum CoinMessageMarker {
     CoinMessageHandler can print integers (normal, long, and long long),
     doubles, characters, and strings. See the descriptions of the
     various << operators.
-    
+
     When processing a standard message with a format string, the formatting
     codes specified in the format string will be passed to the sprintf
     function, along with the argument. When generating a message with no
@@ -412,6 +413,19 @@ public:
   */
   void setLogLevel(int which, int value);
 
+  /** \brief Limit the number of times a message may be printed.
+
+      messageNumber corresponds to the internal index passed to
+      CoinMessageHandler::message(). A negative limit disables the cap.
+  */
+  void setMessageLimit(int messageNumber, int maxOccurrences);
+  /// Return the configured limit for a message (-1 if unlimited).
+  int messageLimit(int messageNumber) const;
+  /// Remove all message limits.
+  void clearMessageLimits();
+  /// Reset counters used to track emitted messages (limits remain).
+  void resetMessageLimitCounts();
+
   /// Set the number of significant digits for printing floating point numbers
   void setPrecision(unsigned int new_precision);
   /// Current number of significant digits for printing floating point numbers
@@ -478,7 +492,7 @@ public:
 
   /// Source of current message
   std::string currentSource() const;
-  
+
   /// Output buffer
   inline const char *messageBuffer() const
   {
@@ -528,7 +542,7 @@ public:
   CoinMessageHandler &message(int detail = -1);
 
   /*! \brief Print a complete message
-  
+
     Generate a standard prefix and append \c msg `as is'. This is intended as
     a transition mechanism.  The standard prefix is generated (if enabled),
     and \c msg is appended. The message must be ended with a CoinMessageEol
@@ -584,7 +598,7 @@ public:
   */
   CoinMessageHandler &operator<<(CoinMessageMarker);
   /** Finish (and print) the message.
-  
+
     Equivalent to using the CoinMessageEol marker.
   */
   int finish();
@@ -655,6 +669,23 @@ protected:
   char g_format_[8];
   /// Current number of significant digits for floating point numbers
   int g_precision_;
+  struct MessageLimitInfo {
+    MessageLimitInfo()
+      : limit(-1)
+      , count(0)
+      , noticePrinted(false)
+    {
+    }
+    int limit;
+    int count;
+    bool noticePrinted;
+  };
+  std::map< int, MessageLimitInfo > messageLimits_;
+
+  bool enforceMessageLimit(int internalNumber, int externalNumber,
+    char severity, const std::string &source);
+  void emitSuppressionNotice(int externalNumber, char severity,
+    const std::string &source, int limit);
   //@}
 
 private:
@@ -668,7 +699,7 @@ private:
   char *nextPerCent(char *start, const bool initial = false);
 
   /*! \brief Internal printing function.
-  
+
     Makes it easier to split up print into clean, print and check severity
   */
   int internalPrint();

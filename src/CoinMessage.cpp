@@ -64,6 +64,7 @@ static Coin_message us_english[] = {
   { COIN_CGRAPH_FIX_VAR, 12,  1, "Fixing %d variables based on conflict analysis."},
   { COIN_GENERAL_WARNING, 3007, 1, "%s" },
   { COIN_CGRAPH_FIX_VAR_DIFFER_MIPSTART, 3009,  1, "Variable [%s](%d) has mipstart value of %g and bounds implied by cgraph analysis are [%g,%g]."},
+  { COIN_CGRAPH_INFEASIBLE_IMPLICATION, 3010, 1, "Binary variable [%s](%zu) has contradictory implications: row [%s](%d) implies 0 and row [%s](%d) implies 1. Problem is infeasible."},
   { COIN_DUMMY_END, 999999, 0, "" }
 };
 // **** aiutami!

@@ -427,6 +427,39 @@ void CoinMessageHandler::setLogLevel(int which, int value)
       logLevels_[which] = value;
   }
 }
+
+void CoinMessageHandler::setMessageLimit(int messageNumber, int maxOccurrences)
+{
+  if (maxOccurrences < 0) {
+    messageLimits_.erase(messageNumber);
+  } else {
+    MessageLimitInfo &info = messageLimits_[messageNumber];
+    info.limit = maxOccurrences;
+    if (info.count > info.limit)
+      info.count = info.limit;
+  }
+}
+
+int CoinMessageHandler::messageLimit(int messageNumber) const
+{
+  std::map< int, MessageLimitInfo >::const_iterator it = messageLimits_.find(messageNumber);
+  if (it == messageLimits_.end())
+    return -1;
+  return it->second.limit;
+}
+
+void CoinMessageHandler::clearMessageLimits()
+{
+  messageLimits_.clear();
+}
+
+void CoinMessageHandler::resetMessageLimitCounts()
+{
+  for (std::map< int, MessageLimitInfo >::iterator it = messageLimits_.begin(); it != messageLimits_.end(); ++it) {
+    it->second.count = 0;
+    it->second.noticePrinted = false;
+  }
+}
 void CoinMessageHandler::setPrecision(unsigned int new_precision)
 {
 
@@ -551,6 +584,7 @@ void CoinMessageHandler::gutsOfCopy(const CoinMessageHandler &rhs)
   source_ = rhs.source_;
   strcpy(g_format_, rhs.g_format_);
   g_precision_ = rhs.g_precision_;
+  messageLimits_ = rhs.messageLimits_;
 }
 /* The copy constructor */
 CoinMessageHandler::CoinMessageHandler(const CoinMessageHandler &rhs)
@@ -602,6 +636,40 @@ void CoinMessageHandler::calcPrintStatus(int msglvl, int msgclass)
   }
 }
 
+bool CoinMessageHandler::enforceMessageLimit(int internalNumber, int externalNumber,
+  char severity, const std::string &source)
+{
+  std::map< int, MessageLimitInfo >::iterator it = messageLimits_.find(internalNumber);
+  if (it == messageLimits_.end())
+    return false;
+  MessageLimitInfo &info = it->second;
+  if (info.limit < 0)
+    return false;
+  if (info.count < info.limit) {
+    info.count++;
+    if (info.count == info.limit)
+      info.noticePrinted = false;
+    return false;
+  }
+  if (!info.noticePrinted) {
+    emitSuppressionNotice(externalNumber, severity, source, info.limit);
+    info.noticePrinted = true;
+  }
+  return true;
+}
+
+void CoinMessageHandler::emitSuppressionNotice(int externalNumber, char severity,
+  const std::string &source, int limit)
+{
+  if (prefix_) {
+    fprintf(fp_, "%s%4.4d%c message printed %d times; further occurrences suppressed.\n",
+      source.c_str(), externalNumber, severity, limit);
+  } else {
+    fprintf(fp_, "Message %s%4.4d%c printed %d times; further occurrences suppressed.\n",
+      source.c_str(), externalNumber, severity, limit);
+  }
+}
+
 /*
   Start a message using a standard CoinOneMessage.
 */
@@ -630,6 +698,14 @@ CoinMessageHandler::message(int messageNumber,
 
   // Decide whether or not to print (sets printStatus_)
   calcPrintStatus(currentMessage_.detail_, normalMessages.class_);
+
+  if (!printStatus_) {
+    if (enforceMessageLimit(messageNumber, currentMessage_.externalNumber_,
+          currentMessage_.severity_, source_)) {
+      printStatus_ = 3;
+      return (*this);
+    }
+  }
 
   // If we're printing, initialise the message
   if (!printStatus_) {
