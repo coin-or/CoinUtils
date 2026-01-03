@@ -33,21 +33,41 @@
  **/
 class COINUTILSLIB_EXPORT CoinConflictGraph {
 public:
+  /**
+   * Metadata describing the constraint responsible for an implied bound.
+   */
+  struct ImplicationRow {
+    std::string rowName;
+    int rowIndex = -1;
+  };
+
+  /**
+   * Captures a contradiction where different constraints imply opposite
+   * fixes for the same binary variable.
+   */
+  struct BinaryBoundInfeasibility {
+    size_t variableIndex = 0;
+    std::string variableName;
+    ImplicationRow fixedToZero;
+    ImplicationRow fixedToOne;
+  };
+
   CoinConflictGraph() { }
 
   /**
-   * Default constructor
+   * \brief Construct a conflict graph for a problem with the given number of columns.
    *
-   * @param _cols number of columns in the mixed-integer
-   * linear program. The number of elements in the conflict
-   * graph will be _cols*2 (it consider complementary variables)
-   **/
+   * The conflict graph stores entries for each variable and its complement,
+   * so the internal number of nodes will typically be `2 * _size`.
+   * \param _size Number of columns in the mixed-integer linear program.
+   */
   CoinConflictGraph(size_t _size);
 
   /**
-   * Default constructor
-   * @param other conflict graph to be copied
-   **/
+   * \brief Copy-construct a conflict graph from another instance.
+   * \param other Pointer to the conflict graph to be copied. If `nullptr`,
+   * behavior is undefined.
+   */
   CoinConflictGraph(const CoinConflictGraph *other);
 
   /**
@@ -56,30 +76,28 @@ public:
   virtual ~CoinConflictGraph();
 
   /**
-   * Checks for conflicts between two nodes.
+   * \brief Check whether two nodes conflict.
    *
-   * @param n1 node index
-   * @param n2 node index
-   * @return true if there is an edge between
-   * n1 and n2 in the conflict graph, 0 otherwise.
-   **/
+   * \param n1 First node index.
+   * \param n2 Second node index.
+   * \return `true` if there is an edge between \p n1 and \p n2 in the
+   * conflict graph, `false` otherwise.
+   */
   bool conflicting(size_t n1, size_t n2) const;
 
   /**
-   * Queries all nodes conflicting with a given node.
+   * \brief Return all nodes conflicting with a given node.
    *
-   * @param node node index
-   * @param temp temporary storage area for storing conflicts,
-   * should have space for all elements in the graph (size())
-   * @param iv auxiliary incidence array used to eliminate
-   * duplicates. It should have the size of the graph (size())
-   * and all elements shoud be initialized as false.
-   *
-   * @return pair containing
-   * (number of conflicting nodes, array of conflicting nodes),
-   * the array may be a pointer to temp if the temporary storage
-   * area was used or a pointer to an array in the conflict graph itself.
-   **/
+   * \param node Index of the node whose conflicts are requested.
+   * \param temp Temporary storage area for storing conflicts; should have
+   * space for all elements in the graph (see `size()`).
+   * \param iv Auxiliary incidence array used to eliminate duplicates; it
+   * should have length equal to the graph size and be initialized to `false`.
+   * \return A pair `(n, ptr)` where `n` is the number of conflicting nodes
+   * and `ptr` points to an array of conflicting node indices. The returned
+   * array may be `temp` (if the temporary storage was used) or an internal
+   * array owned by the conflict graph implementation.
+   */
   std::pair< size_t, const size_t* > conflictingNodes ( size_t node, size_t* temp, char *iv ) const;
 
   /**
@@ -175,14 +193,19 @@ public:
 
 #ifdef CGRAPH_DEEP_DIVE
   /**
-   * Validate the conflict graph entries against solver data and a mip start.
+   * \brief Validate the conflict graph entries against solver data and a MIP start.
    *
-   * @param numCols number of columns in the model.
-   * @param colTypes array indicating the column type (expects 'B' for binaries).
-   * @param colLower column lower bounds.
-   * @param colUpper column upper bounds.
-   * @param colNames vector with column names.
-   * @param mipStart list of (variable name, value) assignments expected to be conflict-free.
+   * This routine verifies that the entries stored in the conflict graph are
+   * consistent with the provided solver column information and with a
+   * candidate MIP start (partial assignment). It is intended for debugging
+   * and deep-inspection builds only.
+   *
+   * \param numCols Number of columns in the model.
+   * \param colTypes Array of length \p numCols indicating column types (expects 'B' for binary variables).
+   * \param colLower Array of length \p numCols containing column lower bounds.
+   * \param colUpper Array of length \p numCols containing column upper bounds.
+   * \param colNames Vector of column names (size should be \p numCols).
+   * \param mipStart Vector of (variable name, value) pairs representing a candidate MIP start expected to be conflict-free.
    */
   void validateConflictGraphUsingFeasibleSolution(
       size_t numCols,
@@ -198,6 +221,11 @@ public:
    * the conflict graph.
    **/
   void printSummary() const;
+
+  /**
+   * Return all infeasibilities detected while building the conflict graph.
+   */
+  const std::vector< BinaryBoundInfeasibility > &infeasibleImplications() const;
 
   /**
    * Set the the minimum size of a clique
@@ -220,6 +248,8 @@ protected:
    * (not pairwise).
    **/
   static size_t minClqRow_;
+
+  void registerBoundImplicationInfeasibility(const BinaryBoundInfeasibility &info);
 
   /**
    * Sets the degree of a node
@@ -291,6 +321,8 @@ protected:
    * Maximum degree of the nodes.
    **/
   size_t maxDegree_;
+
+  std::vector< BinaryBoundInfeasibility > infeasibleImplications_;
 };
 
 #endif // CONFLICTGRAPH_H

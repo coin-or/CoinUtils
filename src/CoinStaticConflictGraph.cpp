@@ -42,9 +42,10 @@ CoinStaticConflictGraph::CoinStaticConflictGraph (
   const double *rowRange,
   const double primalTolerance,
   const double infinity,
-  const std::vector<std::string> &colNames)
+  const std::vector<std::string> &colNames,
+  const std::vector<std::string> &rowNames)
 {
-    CoinDynamicConflictGraph *cgraph = new CoinDynamicConflictGraph(numCols, colType, colLB, colUB, matrixByRow, sense, rowRHS, rowRange, primalTolerance, infinity, colNames);
+    CoinDynamicConflictGraph *cgraph = new CoinDynamicConflictGraph(numCols, colType, colLB, colUB, matrixByRow, sense, rowRHS, rowRange, primalTolerance, infinity, colNames, rowNames);
 
     iniCoinStaticConflictGraph(cgraph);
     newBounds_ = cgraph->updatedBounds();
@@ -310,6 +311,7 @@ void CoinStaticConflictGraph::iniCoinStaticConflictGraph(const CoinConflictGraph
     conflicts_ = std::vector<std::vector<size_t> >(size_);
     nodeCliques_ = std::vector<std::vector<size_t> >(size_);
     cliques_ = std::vector<std::vector<size_t> >(cgraph->nCliques());
+    infeasibleImplications_ = cgraph->infeasibleImplications();
 
     // copying direct conflicts
     for ( size_t i=0 ; (i<size()) ; ++i ) {

@@ -1,8 +1,9 @@
 /**
  *
- * This file is part of the COIN-OR CBC MIP Solver
+ * This file is part of the COIN-OR CoinUtils project
  *
  * CoinConflictGraph implementation which supports modifications.
+ *
  * For a static conflict graph implemenation with faster queries
  * check CoinStaticConflictGraph.
  *
@@ -21,6 +22,7 @@
 #define DYNAMICCONFLICTGRAPH_H
 
 #include <vector>
+#include <map>
 #include <utility>
 #include <string>
 
@@ -28,6 +30,8 @@
 #include "CoinTypes.h"
 #include "CoinConflictGraph.hpp"
 #include "CoinAdjacencyVector.hpp"
+#include "CoinTerm.hpp"
+#include "CoinKnapsackRow.hpp"
 
 class CoinPackedMatrix;
 class CoinAdjacencyVector;
@@ -89,7 +93,9 @@ public:
     const double* rowRange,
     const double primalTolerance,
     const double infinity,
-    const std::vector<std::string> &colNames);
+    const std::vector<std::string> &colNames,
+    const std::vector< std::string > &rowNames
+  );
 
   /**
    * Destructor
@@ -173,6 +179,12 @@ public:
   void addCliqueAsNormalConflicts( const size_t idxs[], const size_t len );
 
   /**
+   * Insert trivial conflicts between each binary variable and its
+   * complemented counterpart.
+   */
+  void addVariableComplementConflicts(int numCols, const char *colType);
+
+  /**
    * Recommended tighter bounds for some variables
    *
    * The construction of the conflict graph may discover new tighter
@@ -228,7 +240,7 @@ private:
    *            routine so that comparisons treat nearly tight inequalities as
    *            conflicting.
    **/
-  void cliqueDetection(const std::vector<std::pair<size_t, double> >&columns, size_t nz, const double rhs);
+  void cliqueDetection(const std::vector<CoinTerm> &columns, size_t nz, const double rhs);
 
   /**
    * Add a clique. It will be stored explicitly or not
@@ -283,26 +295,9 @@ private:
    */
   void addTmpRow(
     size_t nz,
-    const std::vector<std::pair<size_t, double> > &columns,
+    const CoinTerm els[],
     double rhs);
 
-  /**
-   * Store a row and, when needed, also store its complemented version.
-   *
-   * Equality and ranged rows induce two constraints: the original one and
-   * another obtained by complementing every binary variable and shifting the
-   * RHS accordingly. This helper records the original row via `addTmpRow`
-   * and, if the sense is `E` or `R`, performs the complement transformation
-   * in-place on `columns`, updates the RHS, and stores the transformed row.
-   */
-  void addTmpRowWithSense(
-    size_t nz,
-    std::vector<std::pair<size_t, double> > &columns,
-    double rhs,
-    char rowSense,
-    double rowRhsValue,
-    double rowRangeValue,
-    size_t numCols);
 
   /**
    * Registers that a column must be fixed to either 0 or 1 in
@@ -312,7 +307,20 @@ private:
   void addFixingBound(size_t columnIdx,
                       size_t numCols,
                       size_t idxRow,
-                      const std::vector<std::string> &colNames);
+                      const std::vector<std::string> &colNames,
+                      const std::vector<std::string> &rowNames
+                    );
+
+  /**
+   * Extracts all fixed variables detected while processing a knapsack row
+   * and registers their implied bounds.
+   */
+  void processKnapsackRowFixings(
+    const CoinKnapsackRow &knapsackRowHelper,
+    size_t numCols,
+    size_t idxRow,
+    const std::vector<std::string> &colNames,
+    const std::vector<std::string> &rowNames);
 
 #ifdef CGRAPH_DEEP_DIVE
   /**
@@ -359,20 +367,33 @@ private:
   std::vector< std::pair< size_t, std::pair< double, double > > > newBounds_;
 
   /**
-   * Stores temporary info of the rows of interest.
+   * Temporary reservoir that holds the “small” cliques (those with fewer than
+   * `CoinConflictGraph::minClqRow_` elements) detected during the initial row
+   * scan.  They are buffered here so that, once all rows are processed and the
+   * large cliques have been indexed, each node can revisit its small cliques
+   * and materialize only the still-missing pairwise conflicts via
+   * `processSmallCliquesNode()`.
    **/
   CoinCliqueList *smallCliques;
 
   /**
-   * Temporary space for storing rows
-   **/
-  std::vector<std::vector<std::pair<size_t, double> > > tRowElements;
+   * Rows that must be revisited later (stores the filtered column/value pairs).
+   */
+  std::vector<std::vector<CoinTerm> > tRowElements;
 
   /**
-   * Stores the right-hand side of each row in the
-   * temporary space.
-   **/
+   * Tightened right-hand side associated with each temporary row above.
+   */
   std::vector<double> tRowRHS;
+
+  /**
+   * Implications detected during conflict graph construction per column.
+   *
+   * For a column j, it stores implications (which can be j for original variable
+   * or j + numCols for complemented variable) and which row caused the
+   * implication (name and index).
+   */
+  std::map<int, std::map<int, std::pair<std::string, int>>> columnRowImplications_;
 };
 
 #endif // DYNAMICCONFLICTGRAPH_H

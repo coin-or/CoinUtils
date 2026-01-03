@@ -279,6 +279,7 @@ void CoinConflictGraph::iniCoinConflictGraph(const CoinConflictGraph *other) {
     minDegree_ = other->minDegree_;
     maxDegree_ = other->maxDegree_;
     updateMDegree = other->updateMDegree;
+    infeasibleImplications_ = infeasibleImplications_;
 }
 
 void CoinConflictGraph::setMinCliqueRow(size_t minClqRow) {
@@ -346,6 +347,16 @@ void CoinConflictGraph::printSummary() const {
             avgDegree, confsActiveVars, confsCompVars, mixedConfs, trivialConflicts);
 }
 
+const std::vector<CoinConflictGraph::BinaryBoundInfeasibility> &CoinConflictGraph::infeasibleImplications() const
+{
+    return infeasibleImplications_;
+}
+
+void CoinConflictGraph::registerBoundImplicationInfeasibility(const BinaryBoundInfeasibility &info)
+{
+    infeasibleImplications_.push_back(info);
+}
+
 #ifdef CGRAPH_DEEP_DIVE
 #include <unordered_map>
 #include "CoinColumnType.hpp"
@@ -356,6 +367,8 @@ void CoinConflictGraph::validateConflictGraphUsingFeasibleSolution(
     const double *colUpper,
     const std::vector<std::string> &colNames,
     const std::vector< std::pair< std::string, double > > &mipStart) const {
+#define MAX_WARNINGS_COLUMNS 10
+    static int nWarningsColumns = 0;
     if (!numCols || !colTypes || !colLower || !colUpper) {
         std::cerr << "CoinConflictGraph::validateConflictGraph: incomplete model data." << std::endl;
         return;
@@ -381,10 +394,13 @@ void CoinConflictGraph::validateConflictGraphUsingFeasibleSolution(
                 os << "col_" << col;
                 varName = os.str();
             }
-            std::cerr << "Warning: variable '" << varName
-                      << "' (index=" << col << ", type=" << colTypes[col]
-                      << ", bounds=[" << colLower[col] << ',' << colUpper[col]
-                      << "]) has conflicts but is not binary." << std::endl;
+            if (nWarningsColumns  < MAX_WARNINGS_COLUMNS) {
+                std::cerr << "Warning: variable '" << varName
+                        << "' (index=" << col << ", type=" << colTypes[col]
+                        << ", bounds=[" << colLower[col] << ',' << colUpper[col]
+                        << "]) has conflicts but is not binary." << std::endl;
+                nWarningsColumns++;
+            }
         }
     }
 
@@ -407,6 +423,8 @@ void CoinConflictGraph::validateConflictGraphUsingFeasibleSolution(
     binaryAssignments.reserve(mipStart.size());
     std::unordered_map<size_t, size_t> indexToPos;
 
+    nWarningsColumns = 0;
+
     const double tol = 1e-6;
     for (const auto &assignment : mipStart) {
         auto it = nameToIndex.find(assignment.first);
@@ -428,9 +446,12 @@ void CoinConflictGraph::validateConflictGraphUsingFeasibleSolution(
         }
 
         if (!(normalizedValue == 0.0 || normalizedValue == 1.0)) {
-            std::cerr << "Warning: mipStart assigns value " << rawValue << " to binary variable '"
-                      << assignment.first << "' (index=" << idx << ", type=" << colTypes[idx]
-                      << ", bounds=[" << colLower[idx] << ',' << colUpper[idx] << "]). Expected 0/1.\n";
+            if (nWarningsColumns < MAX_WARNINGS_COLUMNS) {
+                std::cerr << "Warning: mipStart assigns value " << rawValue << " to binary variable '"
+                        << assignment.first << "' (index=" << idx << ", type=" << colTypes[idx]
+                        << ", bounds=[" << colLower[idx] << ',' << colUpper[idx] << "]). Expected 0/1.\n";
+                nWarningsColumns++;
+            }
             continue;
         }
 
@@ -442,6 +463,8 @@ void CoinConflictGraph::validateConflictGraphUsingFeasibleSolution(
         }
     }
 
+    nWarningsColumns = 0;
+
     // Verify that mipStart assignments do not contradict the conflict graph.
     const size_t nBinaryAssignments = binaryAssignments.size();
     for (size_t i = 0; i < nBinaryAssignments; ++i) {
@@ -451,6 +474,8 @@ void CoinConflictGraph::validateConflictGraphUsingFeasibleSolution(
             const StartInfo &vj = binaryAssignments[j];
             const size_t nodeJ = (vj.value == 1.0) ? vj.index : vj.index + numCols;
             if (conflicting(nodeI, nodeJ)) {
+
+              if (nWarningsColumns  < MAX_WARNINGS_COLUMNS) {
                 std::cerr << "Warning: mipStart assigns incompatible binary variables: '"
                           << vi.name << "' (idx=" << vi.index << ", type=" << colTypes[vi.index]
                           << ", bounds=[" << colLower[vi.index] << ',' << colUpper[vi.index]
@@ -458,6 +483,8 @@ void CoinConflictGraph::validateConflictGraphUsingFeasibleSolution(
                           << vj.index << ", type=" << colTypes[vj.index] << ", bounds=["
                           << colLower[vj.index] << ',' << colUpper[vj.index] << "], value="
                           << vj.value << ").\n";
+                nWarningsColumns++;
+              }
             }
         }
     }

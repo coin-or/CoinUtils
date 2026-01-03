@@ -73,7 +73,9 @@ public:
           const double* rowRange,
           const double primalTolerance,
           const double infinity,
-          const std::vector<std::string> &colNames);
+          const std::vector<std::string> &colNames,
+          const std::vector<std::string> &rowNames
+        );
 
   /**
    * Clone a conflict graph.
