@@ -20,8 +20,9 @@ unitTest_SOURCES = \
 	CoinMpsIOTest.cpp \
 	CoinPackedMatrixTest.cpp \
 	CoinPackedVectorTest.cpp \
-	CoinRationalTest.cpp \	
+	CoinRationalTest.cpp \
 	CoinShallowPackedVectorTest.cpp \
+	CoinKnapsackRowTest.cpp \
 	unitTest.cpp
 
 # List libraries to link into binary
