@@ -1889,7 +1889,7 @@ void CoinArrayWithLength::getCapacity(CoinByteArray numberBytes, CoinByteArray n
     if (array_) {
       size_ = -size_ - 2;
     } else {
-      assert (size_!=-1);
+      //assert (size_!=-1); Appologies - left in test used to debug other change
       getArray(std::max(numberBytes, numberNeeded));
     }
   }
