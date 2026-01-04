@@ -52,6 +52,9 @@ void testingMessage( const char * const msg );
 
 int main (int argc, const char *argv[])
 {
+  // Stop Windows popup
+  WindowsErrorPopupBlocker();
+  
   /*
     Set default location for Data directory, assuming traditional
     package layout.
