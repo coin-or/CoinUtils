@@ -12,6 +12,7 @@ noinst_PROGRAMS = unitTest
 
 unitTest_SOURCES = \
 	CoinLpIOTest.cpp \
+	CoinStaticConflictGraphTest.cpp \
 	CoinDenseVectorTest.cpp \
 	CoinErrorTest.cpp \
 	CoinIndexedVectorTest.cpp \

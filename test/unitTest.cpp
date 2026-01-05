@@ -32,6 +32,7 @@
 void CoinKnapsackRowUnitTest();
 void CoinModelUnitTest(const std::string & mpsDir,
                        const std::string & netlibDir, const std::string & testModel);
+void CoinStaticConflictGraphUnitTest();
 // Function Prototypes. Function definitions is in this file.
 void testingMessage( const char * const msg );
 
@@ -207,6 +208,9 @@ int main (int argc, const char *argv[])
 
   testingMessage( "Testing CoinPackedMatrix\n" );
   CoinPackedMatrixUnitTest();
+
+  testingMessage( "Testing CoinStaticConflictGraph\n" );
+  CoinStaticConflictGraphUnitTest();
 
   testingMessage( "Testing CoinKnapsackRow\n" );
   CoinKnapsackRowUnitTest();
