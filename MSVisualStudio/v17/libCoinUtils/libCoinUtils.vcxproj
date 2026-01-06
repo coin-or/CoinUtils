@@ -179,6 +179,7 @@
     <ClCompile Include="..\..\..\src\CoinFileIO.cpp" />
     <ClCompile Include="..\..\..\src\CoinFinite.cpp" />
     <ClCompile Include="..\..\..\src\CoinIndexedVector.cpp" />
+    <ClCompile Include="..\..\..\src\CoinKnapsackRow.cpp" />
     <ClCompile Include="..\..\..\src\CoinLpIO.cpp" />
     <ClCompile Include="..\..\..\src\CoinMessage.cpp" />
     <ClCompile Include="..\..\..\src\CoinMessageHandler.cpp" />
