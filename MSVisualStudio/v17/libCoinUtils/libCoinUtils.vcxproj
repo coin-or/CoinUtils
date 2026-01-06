@@ -179,6 +179,7 @@
     <ClCompile Include="..\..\..\src\CoinFileIO.cpp" />
     <ClCompile Include="..\..\..\src\CoinFinite.cpp" />
     <ClCompile Include="..\..\..\src\CoinIndexedVector.cpp" />
+    <ClCompile Include="..\..\..\src\CoinKnapsackRow.cpp" />
     <ClCompile Include="..\..\..\src\CoinLpIO.cpp" />
     <ClCompile Include="..\..\..\src\CoinMessage.cpp" />
     <ClCompile Include="..\..\..\src\CoinMessageHandler.cpp" />
@@ -223,6 +224,7 @@
     <ClCompile Include="..\..\..\src\CoinSnapshot.cpp" />
     <ClCompile Include="..\..\..\src\CoinStaticConflictGraph.cpp" />
     <ClCompile Include="..\..\..\src\CoinStructuredModel.cpp" />
+    <ClCompile Include="..\..\..\src\CoinTerm.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartBasis.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartDual.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartPrimalDual.cpp" />
