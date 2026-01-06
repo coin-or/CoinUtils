@@ -151,6 +151,7 @@
     <ClCompile Include="..\..\..\test\CoinDenseVectorTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinErrorTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinIndexedVectorTest.cpp" />
+    <ClCompile Include="..\..\..\test\CoinKnapsackRowTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinLpIOTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinMessageHandlerTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinModelTest.cpp" />
@@ -159,6 +160,7 @@
     <ClCompile Include="..\..\..\test\CoinPackedVectorTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinRationalTest.cpp" />
     <ClCompile Include="..\..\..\test\CoinShallowPackedVectorTest.cpp" />
+    <ClCompile Include="..\..\..\test\CoinStaticConflictGraphTest.cpp" />
     <ClCompile Include="..\..\..\test\unitTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
