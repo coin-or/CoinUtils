@@ -223,6 +223,7 @@
     <ClCompile Include="..\..\..\src\CoinSnapshot.cpp" />
     <ClCompile Include="..\..\..\src\CoinStaticConflictGraph.cpp" />
     <ClCompile Include="..\..\..\src\CoinStructuredModel.cpp" />
+    <ClCompile Include="..\..\..\src\CoinTerm.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartBasis.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartDual.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartPrimalDual.cpp" />
