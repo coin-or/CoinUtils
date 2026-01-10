@@ -39,7 +39,7 @@ struct COINUTILSLIB_EXPORT CoinTerm {
     }
   };
 
-  static COINUTILSLIB_EXPORT constexpr AscendingValueThenIndexComparator AscendingValueThenIndex = AscendingValueThenIndexComparator();
+  static constexpr AscendingValueThenIndexComparator AscendingValueThenIndex = AscendingValueThenIndexComparator();
 };
 
 #endif // COIN_TERM_HPP
