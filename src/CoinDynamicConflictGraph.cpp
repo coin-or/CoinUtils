@@ -249,7 +249,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
   delete smallCliques;
   smallCliques = NULL;
 
-  delete tmpClq;
+  delete[] tmpClq;
   tmpClq = NULL;
 
   conflicts->flush();
