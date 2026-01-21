@@ -51,7 +51,13 @@
 #define CGRAPH_DEEP_DIVE_COLUMN_NAME "C1583"
 #define CGRAPH_DEEP_DIVE_ROW_INDEX 6849
 #endif // CGRAPH_DEEP_DIVE
-
+// Tests involving nan seem to fail with some optimizations and cpu's
+// This should be safe
+inline bool isGoodNumber(double rhs)
+{
+  return (rhs<=std::numeric_limits<double>::max()&&
+	  rhs>=std::numeric_limits<double>::min());
+}
 /**
  * @brief Locates the earliest column index that must belong to a clique.
  *
@@ -198,7 +204,7 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
       const double *twoLargest = knapsackRow.twoLargest();
       const double *twoSmallest = knapsackRow.twoSmallest();
 
-      if ((nz <= 1) || (twoLargest[0] + twoLargest[1] <= rhs + primalTolerance)) {
+      if ((nz <= 1) || (twoLargest[0] + twoLargest[1] <= rhs + primalTolerance) || !isGoodNumber(rhs)) {
         continue; // no conflicts to search here
       }
 
@@ -226,7 +232,9 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
 
   // detecting cliques in less-structured constraints
   for (size_t idxTR = 0; (idxTR < tRowElements.size()); ++idxTR) {
-    cliqueDetection(tRowElements[idxTR], tRowElements[idxTR].size(), tRowRHS[idxTR] + primalTolerance);
+    double rhs = tRowRHS[idxTR];
+    if (isGoodNumber(rhs)) 
+      cliqueDetection(tRowElements[idxTR], tRowElements[idxTR].size(), rhs + primalTolerance);
   }
 
   // at this point large cliques will already be include
