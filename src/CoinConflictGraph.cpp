@@ -92,42 +92,25 @@ void CoinConflictGraph::recomputeDegree() {
     minDegree_ = std::numeric_limits<size_t>::max();
     maxDegree_ = std::numeric_limits<size_t>::min();
 
-    std::vector<char> iv = std::vector<char>(size_);
+    const size_t maxDg = size_ - 1;
 
     for (size_t i = 0; (i < size_); ++i) {
-        const size_t ndc = nDirectConflicts(i);
-        const size_t *dc = directConflicts(i);
+        size_t dg = nDirectConflicts(i);
 
-        iv[i] = 1;
-        for (size_t k = 0; k < ndc; k++) {
-            iv[dc[k]] = 1;
-        }
-
-        size_t dg = ndc;
+        // Approximate degree contribution from cliques:
+        // instead of deduplicating element-by-element (expensive),
+        // add (cliqueSize - 1) per clique. This may overcount when
+        // nodes appear in multiple cliques or overlap with direct
+        // conflicts, but degree is only used for prioritization.
         const size_t nnc = this->nNodeCliques(i);
         const size_t *nc = this->nodeCliques(i);
         for (size_t k = 0; (k < nnc); ++k) {
-            const size_t idxc = nc[k];
-            const size_t clqsize = this->cliqueSize(idxc);
-            const size_t *clqEls = this->cliqueElements(idxc);
-            for (size_t l = 0; (l < clqsize); ++l) {
-                const size_t clqEl = clqEls[l];
-                dg += 1 - ((int) iv[clqEl]);
-                iv[clqEl] = 1;
-            }
+            dg += this->cliqueSize(nc[k]) - 1;
         }
 
-        iv[i] = 0;
-        for (size_t k = 0; (k < ndc); ++k)
-            iv[dc[k]] = 0;
-        for (size_t k = 0; (k < nnc); ++k) {
-            const size_t idxc = nc[k];
-            const size_t clqsize = this->cliqueSize(idxc);
-            const size_t *clqEls = this->cliqueElements(idxc);
-            for (size_t l = 0; (l < clqsize); ++l) {
-                iv[clqEls[l]] = 0;
-            }
-        }
+        // cap at maximum possible degree
+        if (dg > maxDg)
+            dg = maxDg;
 
         setDegree(i, dg);
         setModifiedDegree(i, dg);
@@ -218,7 +201,7 @@ std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t nod
         }
 
 #ifdef DEBUGCG
-        assert(nConf == degree(node));
+        assert(nConf <= degree(node));
 #endif
 
         // clearing iv
@@ -230,7 +213,7 @@ std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t nod
         return std::pair<size_t, const size_t *>(nConf, temp);
     } else {
 #ifdef DEBUGCG
-        assert(nDirectConflicts(node) == degree(node));
+        assert(nDirectConflicts(node) <= degree(node));
 #endif
         // easy, node does not appears on explicit cliques
         return std::pair<size_t, const size_t *>(nDirectConflicts(node), directConflicts(node));
