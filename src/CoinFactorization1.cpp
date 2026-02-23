@@ -476,7 +476,7 @@ int CoinFactorization::factorize(
    This part creates arrays for user to fill.
    maximumL is guessed maximum size of L part of
    final factorization, maximumU of U part.  These are multiplied by
-   areaFactor which can be computed by user or internally.  
+   areaFactor which can be computed by user or internally.
    returns 0 -okay, -99 memory */
 int CoinFactorization::factorizePart1(int numberOfRows,
   int,
@@ -1922,6 +1922,7 @@ void CoinFactorization::cleanup()
   if (maximumU_ > 10 * numberRows_ || numberRows_ < 200) {
     // NO
     numberInColumnPlus_.conditionalDelete();
+    numberInColumnPlusArray_ = NULL;
   } else {
 #endif
     for (i = 0; i < numberColumns_; i++) {

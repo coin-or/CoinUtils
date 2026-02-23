@@ -20,7 +20,7 @@
 #include <iostream>
 #if COIN_FACTORIZATION_DENSE_CODE == 1
 // using simple lapack interface
-extern "C" 
+extern "C"
 {
   /** LAPACK Fortran subroutine DGETRS. */
   void COINUTILS_LAPACK_FUNC(dgetrs,DGETRS)(char *trans, cipfint *n,
@@ -716,6 +716,7 @@ int CoinFactorization::replaceColumn(CoinIndexedVector *regionSparse,
         if (!getColumnSpaceIterateR(iRow, region[iRow], pivotRow)) {
           // printf("Need more space for R\n");
           numberInColumnPlus_.conditionalDelete();
+          numberInColumnPlusArray_ = NULL;
           regionSparse->clear();
           break;
         }
@@ -1167,6 +1168,7 @@ int CoinFactorization::replaceColumn2(CoinIndexedVector *regionSparse,
         if (!getColumnSpaceIterateR(iRow, region[iRow], pivotRow)) {
           // printf("Need more space for R\n");
           numberInColumnPlus_.conditionalDelete();
+          numberInColumnPlusArray_ = NULL;
           regionSparse->clear();
           break;
         }
@@ -1341,7 +1343,7 @@ void CoinFactorization::updateOneColumnTranspose(CoinIndexedVector *regionWork,
 }
 #endif
 /* Updates two columns (BTRAN) from regionSparse2 and 3
-   regionSparse starts as zero and is zero at end 
+   regionSparse starts as zero and is zero at end
    Note - if regionSparse2 packed on input - will be packed on output - same for 3
    NOTE NOTE - Now we assume 2 is packed and 3 is not
    If changes then need to checl setNumElements as that can change packed mode
@@ -1352,8 +1354,8 @@ void CoinFactorization::updateTwoColumnsTranspose(CoinIndexedVector *regionSpars
   int type) const
 {
   /*
-    0 - two separate 
-    1 - two separate but do permutes here 
+    0 - two separate
+    1 - two separate but do permutes here
     2 - do in three chunks
     3 - do in three chunks changing coding
     11 - ABOCA_LITE_FACTORIZATION and as 1 (apart from permute)
@@ -1975,7 +1977,7 @@ void CoinFactorization::updateColumnTransposeU(CoinIndexedVector *regionSparse,
   }
 }
 
-/*  updateColumnTransposeLDensish.  
+/*  updateColumnTransposeLDensish.
     Updates part of column transpose (BTRANL) dense by column */
 void CoinFactorization::updateColumnTransposeLDensish(CoinIndexedVector *regionSparse) const
 {
@@ -2058,7 +2060,7 @@ void CoinFactorization::updateColumnTransposeLDensish(CoinIndexedVector *regionS
   //set counts
   regionSparse->setNumElements(numberNonZero);
 }
-/*  updateColumnTransposeLByRow. 
+/*  updateColumnTransposeLByRow.
     Updates part of column transpose (BTRANL) densish but by row */
 void CoinFactorization::updateColumnTransposeLByRow(CoinIndexedVector *regionSparse) const
 {
@@ -2189,7 +2191,7 @@ void CoinFactorization::updateColumnTransposeLSparsish(CoinIndexedVector *region
   //set counts
   regionSparse->setNumElements(numberNonZero);
 }
-/*  updateColumnTransposeLSparse. 
+/*  updateColumnTransposeLSparse.
     Updates part of column transpose (BTRANL) sparse */
 void CoinFactorization::updateColumnTransposeLSparse(CoinIndexedVector *regionSparse) const
 {
@@ -2815,6 +2817,7 @@ int CoinFactorization::getColumnSpaceIterate(int iColumn, double value,
 {
   if (numberInColumnPlusArray_) {
     numberInColumnPlus_.conditionalDelete();
+    numberInColumnPlusArray_ = NULL;
   }
   int *COIN_RESTRICT numberInRow = numberInRowArray_;
   int *COIN_RESTRICT numberInColumn = numberInColumnArray_;
@@ -3976,6 +3979,7 @@ void CoinFactorization::replaceColumnPart3(CoinIndexedVector *regionSparse,
       if (!getColumnSpaceIterateR(iRow, region[iRow], pivotRowNew)) {
         // printf("Need more space for R\n");
         numberInColumnPlus_.conditionalDelete();
+        numberInColumnPlusArray_ = NULL;
         regionSparse->clear();
         break;
       }
