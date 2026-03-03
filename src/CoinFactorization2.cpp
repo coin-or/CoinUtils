@@ -5,6 +5,7 @@
 #include "CoinPragma.hpp"
 #include "CoinUtilsConfig.h"
 
+#include <atomic>
 #include <cassert>
 #include <cfloat>
 #include <stdio.h>
@@ -34,7 +35,7 @@ int clapack_dgetrf(const enum CBLAS_ORDER Order, const int M, const int N, doubl
 #include "mkl_lapacke.h"
 #endif
 #ifndef NDEBUG
-static int counter1 = 0;
+static std::atomic<int> counter1(0);
 #endif
 //  factorSparse.  Does sparse phase of factorization
 //return code is <0 error, 0= finished
@@ -169,7 +170,7 @@ int CoinFactorization::factorSparseSmall()
               printf("row count for row %d is %d\n", iCount, iRow);
             if (numberInRow[iRow] != iCount) {
               printf("failed debug on %d entry to factorSparse and %d try\n",
-                counter1, counter2);
+                (int)counter1, counter2);
               printf("row %d - count %d number %d\n", iRow, iCount, numberInRow[iRow]);
               abort();
             }
@@ -178,7 +179,7 @@ int CoinFactorization::factorSparseSmall()
             int iColumn = look - numberRows;
             if (numberInColumn[iColumn] != iCount) {
               printf("failed debug on %d entry to factorSparse and %d try\n",
-                counter1, counter2);
+                (int)counter1, counter2);
               printf("column %d - count %d number %d\n", iColumn, iCount, numberInColumn[iColumn]);
               abort();
             }
@@ -231,7 +232,7 @@ int CoinFactorization::factorSparseSmall()
 #ifndef NDEBUG
         if (numberInRow[iRow] != count) {
           printf("failed on %d entry to factorSparse and %d try\n",
-            counter1, counter2);
+            (int)counter1, counter2);
           printf("row %d - count %d number %d\n", iRow, count, numberInRow[iRow]);
           abort();
         }
@@ -1155,7 +1156,7 @@ int CoinFactorization::factorSparseLarge()
               printf("row count for row %d is %d\n", iCount, iRow);
             if (numberInRow[iRow] != iCount) {
               printf("failed debug on %d entry to factorSparse and %d try\n",
-                counter1, counter2);
+                (int)counter1, counter2);
               printf("row %d - count %d number %d\n", iRow, iCount, numberInRow[iRow]);
               abort();
             }
@@ -1164,7 +1165,7 @@ int CoinFactorization::factorSparseLarge()
             int iColumn = look - numberRows;
             if (numberInColumn[iColumn] != iCount) {
               printf("failed debug on %d entry to factorSparse and %d try\n",
-                counter1, counter2);
+                (int)counter1, counter2);
               printf("column %d - count %d number %d\n", iColumn, iCount, numberInColumn[iColumn]);
               abort();
             }
@@ -1217,7 +1218,7 @@ int CoinFactorization::factorSparseLarge()
 #ifndef NDEBUG
         if (numberInRow[iRow] != count) {
           printf("failed on %d entry to factorSparse and %d try\n",
-            counter1, counter2);
+            (int)counter1, counter2);
           printf("row %d - count %d number %d\n", iRow, count, numberInRow[iRow]);
           abort();
         }
