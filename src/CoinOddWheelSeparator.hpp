@@ -111,10 +111,10 @@ private:
   void fillActiveColumns();
 
   /**
-   * Prepare the graph to run the shortest
-   * path algorithm.
+   * Prepare the graph to run the shortest path algorithm.
+   * Returns false if aborted early due to time limit.
    **/
-  void prepareGraph();
+  bool prepareGraph(double startTime);
 
   /**
    * Try to find an odd whole (a most violated) that
