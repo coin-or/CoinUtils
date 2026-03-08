@@ -27,6 +27,7 @@
 #include "CoinOddWheelSeparator.hpp"
 #include "CoinConflictGraph.hpp"
 #include "CoinShortestPath.hpp"
+#include "CoinTime.hpp"
 
 #define ODDWHEEL_SEP_DEF_MIN_FRAC               0.001
 #define ODDWHEEL_SEP_DEF_EPS                    1e-6
@@ -59,6 +60,7 @@ CoinOddWheelSeparator::CoinOddWheelSeparator(const CoinConflictGraph *cgraph, co
     icaActivity_ = std::vector<double>(cgSize);
     fillActiveColumns();
     extMethod_ = extMethod;
+    maxSeconds_ = 0.0;
     spf_ = NULL;
 
     if (icaCount_ > 4) {
@@ -102,7 +104,14 @@ void CoinOddWheelSeparator::searchOddWheels() {
 
     prepareGraph();
 
+    // Check time every 128 nodes so we don't check too frequently on small
+    // instances or too rarely on large ones.
+    const double startTime = (maxSeconds_ > 0.0) ? CoinGetTimeOfDay() : 0.0;
     for (size_t i = 0; i < icaCount_; i++) {
+        if (maxSeconds_ > 0.0 && (i & 127) == 0 && i > 0) {
+            if (CoinGetTimeOfDay() - startTime >= maxSeconds_)
+                break;
+        }
         findOddHolesWithNode(i);
     }
 

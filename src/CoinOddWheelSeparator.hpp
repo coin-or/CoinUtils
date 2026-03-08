@@ -96,6 +96,13 @@ public:
    **/
   size_t wheelCenterSize(const size_t idxOH) const;
 
+  /**
+   * Set a wall-clock time limit (seconds) for searchOddWheels().
+   * The search will abort early when this limit is exceeded.
+   * A value of 0.0 (default) means no limit.
+   **/
+  inline void setMaxSeconds(double maxSeconds) { maxSeconds_ = maxSeconds; }
+
 private:
   /**
    * Select interesting columns that will be
@@ -222,6 +229,11 @@ private:
    * 2 = a clique as wheel center
    **/
   size_t extMethod_;
+
+  /**
+   * Wall-clock time limit for searchOddWheels(), 0 = unlimited.
+   **/
+  double maxSeconds_;
 };
 
 
