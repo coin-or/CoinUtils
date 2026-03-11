@@ -1,0 +1,10 @@
+<map id="CoinWarmStartDiff" name="CoinWarmStartDiff">
+<area shape="rect" id="node1" title="Abstract base class for warm start ‘diff’ objects." alt="" coords="5,188,135,215"/>
+<area shape="rect" id="node2" href="$classCoinWarmStartVectorDiff.html" title=" " alt="" coords="509,9,676,50"/>
+<area shape="rect" id="node3" href="$classCoinWarmStartVectorDiff.html" title=" " alt="" coords="493,303,692,330"/>
+<area shape="rect" id="node4" href="$classCoinWarmStartBasisDiff.html" title="A ‘diff’ between two CoinWarmStartBasis objects." alt="" coords="201,131,364,158"/>
+<area shape="rect" id="node5" href="$classCoinWarmStartDualDiff.html" title="A ‘diff’ between two CoinWarmStartDual objects." alt="" coords="205,188,360,215"/>
+<area shape="rect" id="node6" href="$classCoinWarmStartPrimalDualDiff.html" title="A ‘diff’ between two CoinWarmStartPrimalDual objects." alt="" coords="187,240,379,267"/>
+<area shape="rect" id="node7" href="$classCoinWarmStartVectorDiff.html" title="A ‘diff’ between two CoinWarmStartVector objects." alt="" coords="184,79,381,106"/>
+<area shape="rect" id="node8" href="$classCoinWarmStartVectorPairDiff.html" title=" " alt="" coords="187,366,378,408"/>
+</map>

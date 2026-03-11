@@ -1,0 +1,12 @@
+<map id="CoinSearchTreeBase" name="CoinSearchTreeBase">
+<area shape="rect" id="node1" title=" " alt="" coords="5,472,151,499"/>
+<area shape="rect" id="node2" title=" " alt="" coords="89,383,299,409"/>
+<area shape="rect" id="node3" href="$classCoinTreeSiblings.html" title=" " alt="" coords="134,292,254,319"/>
+<area shape="rect" id="node4" title=" " alt="" coords="67,95,105,121"/>
+<area shape="rect" id="node5" href="$classCoinTreeNode.html" title="A class from which the real tree nodes should be derived from." alt="" coords="189,200,295,227"/>
+<area shape="rect" id="node6" title=" " alt="" coords="209,95,269,121"/>
+<area shape="rect" id="node7" href="$classBitVector128.html" title=" " alt="" coords="331,95,428,121"/>
+<area shape="rect" id="node8" title=" " alt="" coords="334,5,425,32"/>
+<area shape="rect" id="node9" title=" " alt="" coords="281,292,393,319"/>
+<area shape="rect" id="node10" title=" " alt="" coords="319,200,357,227"/>
+</map>

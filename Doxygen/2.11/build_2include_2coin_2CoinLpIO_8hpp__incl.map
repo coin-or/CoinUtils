@@ -1,0 +1,23 @@
+<map id="/home/ted/Projects/CoinUtils/build/include/coin/CoinLpIO.hpp" name="/home/ted/Projects/CoinUtils/build/include/coin/CoinLpIO.hpp">
+<area shape="rect" id="node1" title=" " alt="" coords="165,5,319,61"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,333,63,360"/>
+<area shape="rect" id="node3" href="$build_2include_2coin_2CoinPackedMatrix_8hpp.html" title=" " alt="" coords="391,109,541,136"/>
+<area shape="rect" id="node18" href="$build_2include_2coin_2CoinMessage_8hpp.html" title="This file contains the enum for the standard set of Coin messages and a class definition whose sole p..." alt="" coords="99,109,225,136"/>
+<area shape="rect" id="node21" href="$build_2include_2coin_2CoinFileIO_8hpp.html" title=" " alt="" coords="254,109,361,136"/>
+<area shape="rect" id="node4" href="$build_2include_2coin_2CoinError_8hpp.html" title=" " alt="" coords="503,333,602,360"/>
+<area shape="rect" id="node11" href="$build_2include_2coin_2CoinTypes_8hpp.html" title=" " alt="" coords="87,333,194,360"/>
+<area shape="rect" id="node14" href="$build_2include_2coin_2CoinPackedVectorBase_8hpp.html" title=" " alt="" coords="629,259,813,285"/>
+<area shape="rect" id="node17" href="$build_2include_2coin_2CoinShallowPackedVector_8hpp.html" title=" " alt="" coords="503,184,703,211"/>
+<area shape="rect" id="node5" title=" " alt="" coords="348,408,403,435"/>
+<area shape="rect" id="node6" title=" " alt="" coords="427,408,499,435"/>
+<area shape="rect" id="node7" title=" " alt="" coords="524,408,589,435"/>
+<area shape="rect" id="node8" title=" " alt="" coords="614,408,675,435"/>
+<area shape="rect" id="node9" href="$build_2include_2coin_2CoinUtilsConfig_8h.html" title=" " alt="" coords="196,408,317,435"/>
+<area shape="rect" id="node10" href="$build_2include_2coin_2CoinPragma_8hpp.html" title=" " alt="" coords="699,408,817,435"/>
+<area shape="rect" id="node12" title=" " alt="" coords="22,408,86,435"/>
+<area shape="rect" id="node13" title=" " alt="" coords="110,408,171,435"/>
+<area shape="rect" id="node15" title=" " alt="" coords="749,333,789,360"/>
+<area shape="rect" id="node16" title=" " alt="" coords="677,333,724,360"/>
+<area shape="rect" id="node19" href="$build_2include_2coin_2CoinMessageHandler_8hpp.html" title="This is a first attempt at a message handler." alt="" coords="207,259,378,285"/>
+<area shape="rect" id="node20" title=" " alt="" coords="269,333,327,360"/>
+</map>

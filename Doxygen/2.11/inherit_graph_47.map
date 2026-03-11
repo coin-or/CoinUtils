@@ -1,0 +1,24 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classCoinPresolveAction.html" title="Abstract base class of all presolve routines." alt="" coords="5,544,141,571"/>
+<area shape="rect" id="node2" href="$classdo__tighten__action.html" title=" " alt="" coords="211,5,335,32"/>
+<area shape="rect" id="node3" href="$classdoubleton__action.html" title="Solve ax+by=c for y and substitute y out of the problem." alt="" coords="213,56,333,83"/>
+<area shape="rect" id="node4" href="$classdrop__empty__cols__action.html" title="Physically removes empty columns in presolve, and reinserts empty columns in postsolve." alt="" coords="191,107,354,133"/>
+<area shape="rect" id="node5" href="$classdrop__empty__rows__action.html" title="Physically removes empty rows in presolve, and reinserts empty rows in postsolve." alt="" coords="189,157,356,184"/>
+<area shape="rect" id="node6" href="$classdrop__zero__coefficients__action.html" title="Removal of explicit zeros." alt="" coords="197,209,348,250"/>
+<area shape="rect" id="node7" href="$classdupcol__action.html" title="Detect and remove duplicate columns." alt="" coords="221,275,324,301"/>
+<area shape="rect" id="node8" href="$classduprow3__action.html" title=" " alt="" coords="216,325,329,352"/>
+<area shape="rect" id="node9" href="$classduprow__action.html" title="Detect and remove duplicate rows." alt="" coords="219,376,326,403"/>
+<area shape="rect" id="node10" href="$classforcing__constraint__action.html" title="Detect and process forcing constraints and useless constraints." alt="" coords="210,427,335,469"/>
+<area shape="rect" id="node11" href="$classgubrow__action.html" title="Detect and remove entries whose sum is known." alt="" coords="219,493,326,520"/>
+<area shape="rect" id="node12" href="$classimplied__free__action.html" title="Detect and process implied free variables." alt="" coords="205,544,340,571"/>
+<area shape="rect" id="node13" href="$classisolated__constraint__action.html" title=" " alt="" coords="207,595,338,637"/>
+<area shape="rect" id="node14" href="$classmake__fixed__action.html" title="Fix a variable at a specified bound." alt="" coords="208,661,337,688"/>
+<area shape="rect" id="node15" href="$classremove__dual__action.html" title="Attempt to fix variables by bounding reduced costs." alt="" coords="203,712,342,739"/>
+<area shape="rect" id="node16" href="$classremove__fixed__action.html" title="Excise fixed variables from the model." alt="" coords="203,763,343,789"/>
+<area shape="rect" id="node17" href="$classslack__doubleton__action.html" title="Convert an explicit bound constraint to a column bound." alt="" coords="193,813,352,840"/>
+<area shape="rect" id="node18" href="$classslack__singleton__action.html" title="For variables with one entry." alt="" coords="195,864,350,891"/>
+<area shape="rect" id="node19" href="$classsubst__constraint__action.html" title="Detect and process implied free variables." alt="" coords="193,915,353,941"/>
+<area shape="rect" id="node20" href="$classtripleton__action.html" title="We are only going to do this if it does not increase number of elements?." alt="" coords="217,965,328,992"/>
+<area shape="rect" id="node21" href="$classtwoxtwo__action.html" title="Detect interesting 2 by 2 blocks." alt="" coords="217,1016,329,1043"/>
+<area shape="rect" id="node22" href="$classuseless__constraint__action.html" title=" " alt="" coords="207,1067,338,1109"/>
+</map>

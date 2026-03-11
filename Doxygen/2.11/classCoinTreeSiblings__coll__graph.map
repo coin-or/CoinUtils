@@ -1,0 +1,8 @@
+<map id="CoinTreeSiblings" name="CoinTreeSiblings">
+<area shape="rect" id="node1" title=" " alt="" coords="5,291,125,317"/>
+<area shape="rect" id="node2" title=" " alt="" coords="51,95,90,121"/>
+<area shape="rect" id="node3" href="$classCoinTreeNode.html" title="A class from which the real tree nodes should be derived from." alt="" coords="147,200,253,227"/>
+<area shape="rect" id="node4" title=" " alt="" coords="167,95,227,121"/>
+<area shape="rect" id="node5" href="$classBitVector128.html" title=" " alt="" coords="289,95,386,121"/>
+<area shape="rect" id="node6" title=" " alt="" coords="292,5,383,32"/>
+</map>

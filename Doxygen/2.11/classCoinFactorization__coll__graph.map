@@ -1,0 +1,11 @@
+<map id="CoinFactorization" name="CoinFactorization">
+<area shape="rect" id="node1" title="This deals with Factorization and Updates." alt="" coords="845,468,968,495"/>
+<area shape="rect" id="node2" title=" " alt="" coords="530,279,590,305"/>
+<area shape="rect" id="node3" href="$classCoinUnsignedIntArrayWithLength.html" title="unsigned int * version" alt="" coords="473,442,647,483"/>
+<area shape="rect" id="node4" href="$classCoinArrayWithLength.html" title="Pointer with length in bytes." alt="" coords="175,508,319,535"/>
+<area shape="rect" id="node7" href="$classCoinIntArrayWithLength.html" title="int * version" alt="" coords="481,508,639,535"/>
+<area shape="rect" id="node9" href="$classCoinFactorizationDoubleArrayWithLength.html" title="CoinFactorizationDouble * version." alt="" coords="464,559,656,601"/>
+<area shape="rect" id="node5" title=" " alt="" coords="13,396,52,423"/>
+<area shape="rect" id="node6" title=" " alt="" coords="5,508,60,535"/>
+<area shape="rect" id="node8" title=" " alt="" coords="537,720,583,747"/>
+</map>
