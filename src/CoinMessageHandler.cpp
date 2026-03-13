@@ -288,7 +288,7 @@ void CoinMessages::toCompact()
       }
     }
     // space
-    char *temp = new char[lengthMessages_];
+    char *temp = new char[static_cast<unsigned int>(lengthMessages_)];
     CoinOneMessage **newMessage = reinterpret_cast< CoinOneMessage ** >(temp);
     temp += numberMessages_ * CoinSizeofAsInt(CoinOneMessage *);
     CoinOneMessage message;
