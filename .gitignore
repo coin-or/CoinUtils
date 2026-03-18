@@ -8,3 +8,4 @@ config.log
 config.status
 libtool
 dist
+build/

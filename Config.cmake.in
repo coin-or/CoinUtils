@@ -1,5 +1,28 @@
-
 @PACKAGE_INIT@
 
-include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
-check_required_components("@PROJECT_NAME@")
+# ---------------------------------------------------------------------------
+# CoinUtilsConfig.cmake
+# Provides the imported target Coin::CoinUtils for use with find_package().
+#
+# Usage in consumer projects:
+#   find_package(CoinUtils @PROJECT_VERSION@ REQUIRED)
+#   target_link_libraries(my_target PRIVATE Coin::CoinUtils)
+# ---------------------------------------------------------------------------
+
+set(CoinUtils_VERSION       "@PROJECT_VERSION@")
+set(CoinUtils_VERSION_MAJOR "@PROJECT_VERSION_MAJOR@")
+set(CoinUtils_VERSION_MINOR "@PROJECT_VERSION_MINOR@")
+set(CoinUtils_VERSION_PATCH "@PROJECT_VERSION_PATCH@")
+
+# Paths relocalisables
+set_and_check(CoinUtils_INCLUDE_DIR "@PACKAGE_COINUTILS_INSTALL_INCLUDEDIR@")
+set_and_check(CoinUtils_LIBRARY_DIR "@PACKAGE_CMAKE_INSTALL_LIBDIR@")
+
+# Legacy variables (rétro-compatibilité)
+set(CoinUtils_INCLUDE_DIRS "${CoinUtils_INCLUDE_DIR}")
+mark_as_advanced(CoinUtils_INCLUDE_DIR CoinUtils_LIBRARY_DIR)
+
+# Import des targets (définit Coin::CoinUtils, STATIC ou SHARED selon le build)
+include("${CMAKE_CURRENT_LIST_DIR}/CoinUtilsTargets.cmake")
+
+check_required_components(CoinUtils)
