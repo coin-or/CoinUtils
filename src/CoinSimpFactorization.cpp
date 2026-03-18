@@ -658,7 +658,7 @@ void CoinSimpFactorization::getAreas(int numberOfRows,
 
   numberRows_ = numberOfRows;
   numberColumns_ = numberOfColumns;
-  int size = numberRows_ * (numberRows_ + CoinMax(maximumPivots_, (numberRows_ + 1) >> 1));
+  int size = numberRows_ * (numberRows_ + std::max(maximumPivots_, (numberRows_ + 1) >> 1));
   if (size > maximumSpace_) {
     delete[] elements_;
     elements_ = new CoinFactorizationDouble2[size];
@@ -741,7 +741,7 @@ void CoinSimpFactorization::preProcess()
       int ind = UrowStarts_[iRow] + UrowLengths_[iRow];
       UrowInd_[ind] = column;
       Urows_[ind] = elements_[j];
-      //maxA_=CoinMax( maxA_, fabs(Urows_[ind]) );
+      //maxA_=std::max( maxA_, fabs(Urows_[ind]) );
       ++UrowLengths_[iRow];
     }
   }
@@ -2535,7 +2535,7 @@ void CoinSimpFactorization::newEta(int row, int numNewElements)
     maxEtaRows_ += minIncrease_;
   }
   if (EtaSize_ + numNewElements > EtaMaxCap_) {
-    int number = CoinMax(EtaSize_ + numNewElements - EtaMaxCap_, minIncrease_);
+    int number = std::max(EtaSize_ + numNewElements - EtaMaxCap_, minIncrease_);
 
     int *iaux = new int[EtaMaxCap_ + number];
     memcpy(iaux, EtaInd_, EtaSize_ * sizeof(int));

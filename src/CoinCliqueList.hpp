@@ -8,7 +8,7 @@
  * @file CoinCliqueList.hpp
  * @brief List of cliques
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -21,6 +21,7 @@
 
 #include "CoinUtilsConfig.h"
 #include <cstddef>
+#include <vector>
 
 #ifdef DEBUGCG
     class CoinConflictGraph;
@@ -66,7 +67,7 @@ public:
 
   /**
    * Return the elements of a clique.
-   * 
+   *
    * @param idxClq index of a clique.
    **/
   const size_t *cliqueElements( size_t idxClq ) const;
@@ -114,20 +115,16 @@ public:
 #ifdef DEBUGCG
     /**
      * Validate a clique according to a conflict graph.
+     * returns false if bad in some way
      *
      * @param cgraph conflict graph
      * @param idxs indexes of the clique
      * @param size size of the clique
      **/
-    static void validateClique(const CoinConflictGraph *cgraph, const size_t *idxs, const size_t size);
+    static bool validateClique(const CoinConflictGraph *cgraph, const size_t *idxs, const size_t size);
 #endif
 
 private:
-  /**
-   * Number of cliques stored in the list.
-   **/
-  size_t nCliques_;
-
   /**
    * Capacity to store cliques in the list.
    **/
@@ -139,37 +136,15 @@ private:
   size_t nCliqueElements_;
 
   /**
-   * Capacity to store the elements of the cliques
-   **/
-  size_t nCliqueElCap_;
-
-  /**
-   * Pointer to indicate where each clique start
-   **/
-  size_t *clqStart_;
-
-  /**
-   * Size of each clique
-   **/
-  size_t *clqSize_;
-
-  /**
    * Pointer with the elements of the cliques
    **/
-  size_t *clqEls_;
+  std::vector<std::vector<size_t> > clqEls_;
 
   /**
    * Store in which clique each node appears.
    * Only filled if computeNodeOccurrences is called.
    **/
-  size_t *nodeOccur_;
-
-  /**
-   * Pointer to indicate where each array of node
-   * occurrence starts. Only filled if
-   * computeNodeOccurrences is called.
-   **/
-  size_t *startNodeOccur_;
+  std::vector<std::vector<size_t> > nodeOccur_;
 
   /**
    * Number of different nodes that are stored
@@ -181,7 +156,7 @@ private:
    * Nodes (without duplicates) that are stored
    * in the clique list.
    **/
-  size_t *diffNodes_;
+  std::vector<size_t> diffNodes_;
 };
 
 #endif // COINCLIQUELIST_H

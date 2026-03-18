@@ -196,6 +196,24 @@ void basicTestsWithMessages (const CoinMessages &testMessages, int &errs)
    << "a new line" << CoinMessageNewline
    << "and done." << CoinMessageEol ;
 /*
+  Message limit functionality: allow a message to print once, suppress later
+  occurrences, then reset and ensure the limit can be cleared.
+*/
+  hdl.setMessageLimit(COIN_TST_INT,1);
+  if (hdl.messageLimit(COIN_TST_INT) != 1) {
+    std::cout << "Failed to install message limit." << std::endl;
+    errs++;
+  }
+  hdl.message(COIN_TST_INT,testMessages) << 777 << CoinMessageEol;
+  hdl.message(COIN_TST_INT,testMessages) << 888 << CoinMessageEol;
+  hdl.resetMessageLimitCounts();
+  hdl.message(COIN_TST_INT,testMessages) << 999 << CoinMessageEol;
+  hdl.clearMessageLimits();
+  if (hdl.messageLimit(COIN_TST_INT) != -1) {
+    std::cout << "Failed to clear message limit." << std::endl;
+    errs++;
+  }
+/*
   Construct a message from scratch given nothing at all. hdl.finish is
   equivalent to CoinMessageEol (more accurately, processing CoinMessagEol
   consists of a call to finish).
@@ -253,7 +271,7 @@ bool CoinMessageHandlerUnitTest ()
 { int errs = 0 ;
 
 /*
-  Create a CoinMessages object to hold our messages. 
+  Create a CoinMessages object to hold our messages.
 */
   CoinMessages testMessages(sizeof(us_tstmsgs)/sizeof(MsgDefn)) ;
   strcpy(testMessages.source_,"Test") ;
@@ -274,11 +292,11 @@ bool CoinMessageHandlerUnitTest ()
 */
   testsWithoutMessages(errs) ;
 /*
-  Basic tests with messages. 
+  Basic tests with messages.
 */
   basicTestsWithMessages(testMessages,errs) ;
 /*
-  Advanced tests with messages. 
+  Advanced tests with messages.
 */
   advTestsWithMessages(testMessages,errs) ;
 /*

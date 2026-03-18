@@ -589,6 +589,12 @@ CoinWarmStartBasis::generateDiff(const CoinWarmStart *const oldCWS) const
   const unsigned int *oldStatus = reinterpret_cast< const unsigned int * >(oldBasis->getArtificialStatus());
   const unsigned int *newStatus = reinterpret_cast< const unsigned int * >(newBasis->getArtificialStatus());
   int numberChanged = 0;
+  /* Code taken out incorrectly years ago!
+     When basis expanded all artificials set to basic.
+     It can happen that last one is basic later - so looks same
+     and diff is not created.  Happens very rarely but better to be correct. */
+  if (sizeNewArtif == sizeOldArtif)
+    sizeOldArtif--; // make sure all taken
   int i;
   for (i = 0; i < sizeOldArtif; i++) {
     if (oldStatus[i] != newStatus[i]) {

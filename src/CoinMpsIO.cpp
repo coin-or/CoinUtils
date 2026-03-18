@@ -22,7 +22,6 @@
 #include "CoinHelperFunctions.hpp"
 #include "CoinModel.hpp"
 #include "CoinSort.hpp"
-
 //#############################################################################
 // type - 0 normal, 1 INTEL IEEE, 2 other IEEE
 
@@ -230,7 +229,7 @@ double CoinMpsCardReader::osi_strtod(char *ptr, char **output)
 namespace {
 const static char *section[] = {
   "", "NAME", "ROW", "COLUMN", "RHS", "RANGES", "BOUNDS", "ENDATA", " ", "QSECTION", "CSECTION",
-  "QUADOBJ", "SOS", "BASIS",
+  "QUADOBJ", "SOS", "BASIS", "INDICATORS",
   " "
 };
 
@@ -242,7 +241,7 @@ const static COINMpsType startType[] = {
   COIN_UP_BOUND, COIN_UNKNOWN_MPS_TYPE,
   COIN_UNKNOWN_MPS_TYPE,
   COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_BLANK_COLUMN, COIN_S1_BOUND,
-  COIN_BS_BASIS, COIN_UNKNOWN_MPS_TYPE
+  COIN_BS_BASIS, COIN_IF_INDICATOR, COIN_UNKNOWN_MPS_TYPE
 };
 const static COINMpsType endType[] = {
   COIN_UNKNOWN_MPS_TYPE, COIN_UNKNOWN_MPS_TYPE,
@@ -261,7 +260,7 @@ const static int allowedLength[] = {
   0, 0,
   0, 0,
   0, 2,
-  0
+  2, 0
 };
 
 // names of types
@@ -269,7 +268,7 @@ const static char *mpsTypes[] = {
   "N", "E", "L", "G",
   "  ", "S1", "S2", "S3", "  ", "  ", "  ",
   "  ", "UP", "FX", "LO", "FR", "MI", "PL", "BV", "UI", "LI", "XX", "SC",
-  "X1", "X2", "BS", "XL", "XU", "LL", "UL", "  "
+  "X1", "X2", "BS", "XL", "XU", "LL", "UL", "IF", "  "
 };
 } // namespace {
 
@@ -418,8 +417,8 @@ CoinMpsCardReader::readToNextSection()
         strcpy(columnName_, "no_name");
       }
       break;
-    } else if (card_[0] != '*' && card_[0] != '#') {
-      // not a comment
+    } else if (card_[0] != '*' && card_[0] != '#' && card_[0] != '\0') {
+      // not a comment (or empty)
       int i;
 
       handler_->message(COIN_MPS_LINE, messages_) << cardNumber_
@@ -1398,7 +1397,7 @@ CoinMpsIO::findHash(const char *name, int section) const
 //------------------------------------------------------------------
 double CoinMpsIO::getInfinity() const
 {
-  return infinity_;
+  return infinity_; // if negative then indicators!
 }
 //------------------------------------------------------------------
 // Set value for infinity
@@ -1620,6 +1619,10 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
   COINRowIndex *row;
   double *element;
   objectiveOffset_ = 0.0;
+  // For Indicators
+  COINColumnIndex * binaryInd = NULL;
+  unsigned int * rowInd = NULL;
+  int numberIndicators = 0;
 
   int numberErrors = 0;
   int i;
@@ -1634,9 +1637,17 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
     cardReader_->nextField();
     // Fudge for what ever code has OBJSENSE
     if (!strncmp(cardReader_->card(), "OBJSENSE", 8)) {
+      // Correct format has min/max on next card
+      const char *thisCard = cardReader_->card();
+      char temp[80];
+      cardReader_->strcpyAndCompress(temp,cardReader_->card());
+      bool onSameCard = false;
+      if (strlen(temp)>10) {
+	onSameCard = true;
+	thisCard += 8; // move on
+      }
       cardReader_->nextField();
       int i;
-      const char *thisCard = cardReader_->card();
       int direction = 0;
       for (i = 0; i < 20; i++) {
         if (thisCard[i] != ' ') {
@@ -1647,12 +1658,48 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
           break;
         }
       }
-      if (!direction)
+      if (!direction) {
         printf("No MAX/MIN found after OBJSENSE\n");
-      else
-        printf("%s found after OBJSENSE - Coin ignores\n",
-          (direction > 0 ? "MIN" : "MAX"));
+      } else {
+	if (direction < 0) {
+	  printf("MAX found after OBJSENSE - default maximize\n");
+	  isMaximization_ = 1;
+	} else {
+	  printf("MIN found after OBJSENSE - default minimize\n");
+	}
+      }
+      if (!onSameCard)
+	cardReader_->nextField();
+    }
+    // Fudge for what ever code has OBJNAME
+    if (!strncmp(cardReader_->card(), "OBJNAME", 7)) {
+      // Correct format has objective name on next card
+      const char *thisCard = cardReader_->card();
+      char temp[80];
+      cardReader_->strcpyAndCompress(temp,cardReader_->card());
+      bool onSameCard = false;
+      if (strlen(temp)>9) {
+	onSameCard = true;
+	thisCard += 7; // move on
+      }
       cardReader_->nextField();
+      objectiveName_ =strdup(thisCard);
+      int length = strlen(thisCard);
+      int k = 0;
+      for (int i=0;i<length;i++) {
+	if (thisCard[i]!=' ')
+	  objectiveName_[k++] = thisCard[i];
+      }
+      objectiveName_[k]= '\0';
+      if (!strlen(objectiveName_)) {
+        printf("No objective name found after OBJNAME\n");
+      } else {
+        printf("%s found after OBJNAME - using as objective\n",
+          objectiveName_);
+	gotNrow = true;
+      }
+      if (!onSameCard)
+	cardReader_->nextField();
     }
     if (cardReader_->whichSection() != COIN_ROW_SECTION) {
       handler_->message(COIN_MPS_BADIMAGE, messages_) << cardReader_->cardNumber()
@@ -1680,7 +1727,7 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
     while (cardReader_->nextField() == COIN_ROW_SECTION) {
       switch (cardReader_->mpsType()) {
       case COIN_N_ROW:
-        if (!gotNrow) {
+        if (!gotNrow || !strcmp(objectiveName_,cardReader_->columnName())) {
           gotNrow = true;
           // save name of section
           free(objectiveName_);
@@ -2653,7 +2700,7 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
 
       for (icolumn = 0; icolumn < numberColumns_; icolumn++) {
         if (integerType_[icolumn]) {
-          collower_[icolumn] = CoinMax(collower_[icolumn], -MAX_INTEGER);
+          collower_[icolumn] = std::max(collower_[icolumn], -MAX_INTEGER);
           // if 0 infinity make 0-1 ???
           if (columnType[icolumn] == COIN_UNSET_BOUND)
             colupper_[icolumn] = defaultBound_;
@@ -2680,12 +2727,60 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
       }
     }
     free(columnType);
-    if (cardReader_->whichSection() != COIN_ENDATA_SECTION && cardReader_->whichSection() != COIN_QUAD_SECTION && cardReader_->whichSection() != COIN_CONIC_SECTION) {
+    if (cardReader_->whichSection() != COIN_ENDATA_SECTION
+	&& cardReader_->whichSection() != COIN_QUAD_SECTION
+	&& cardReader_->whichSection() != COIN_INDICATOR_SECTION
+	&& cardReader_->whichSection() != COIN_CONIC_SECTION) {
       handler_->message(COIN_MPS_BADIMAGE, messages_) << cardReader_->cardNumber()
                                                       << cardReader_->card()
                                                       << CoinMessageEol;
       handler_->message(COIN_MPS_RETURNING, messages_) << CoinMessageEol;
       return numberErrors + 100000;
+    } else if (cardReader_->whichSection() == COIN_INDICATOR_SECTION) {
+      memset(lastColumn, '\0', 200);
+      bool gotBound = false;
+      // recreate hash
+      startHash(0);
+      startHash(1);
+      // get space for indicators
+      binaryInd = new COINColumnIndex [numberRows_+1];
+      rowInd = new unsigned int [numberRows_+1];
+      memset(rowInd,0,numberRows_*sizeof(unsigned int));
+      while (cardReader_->nextField() == COIN_INDICATOR_SECTION) {
+	int ifError = 0;
+	if (cardReader_->mpsType() != COIN_IF_INDICATOR) {
+	  ifError = 1;
+	} else {
+          double value = cardReader_->value();
+	  COINColumnIndex ibinary = findHash(cardReader_->rowName(), 1);
+	  COINColumnIndex irow = findHash(cardReader_->columnName(), 0);
+	  if (value !=0.0 && value != 1.0) 
+	    ifError = 2;
+	  else if (irow <0 ) 
+	    ifError = 3;
+	  else if (ibinary <0 ) 
+	    ifError = 4;
+	  if (!ifError) {
+	    binaryInd[numberIndicators] = ibinary;
+	    rowInd[numberIndicators] = (value==0.0) ? irow : irow |0x80000000;
+	    numberIndicators++;
+	  }
+	}
+	if (ifError) {
+	  numberErrors++;
+	  if (numberErrors < 100) {
+	    handler_->message(COIN_MPS_BADIMAGE, messages_)
+	      << cardReader_->cardNumber()
+	      << cardReader_->card()
+	      << CoinMessageEol;
+	  } else if (numberErrors > 100000) {
+	    handler_->message(COIN_MPS_RETURNING, messages_) << CoinMessageEol;
+	    return numberErrors;
+	  }
+        }
+      }
+      stopHash(0);
+      stopHash(1);
     }
   } else {
     // This is very simple format - what should we use?
@@ -2752,6 +2847,58 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
       }
       start[i + 1] = numberElements_;
     }
+  }
+  if (binaryInd) {
+    // indicators
+    // mark by setting infinity!
+    infinity_ = -COIN_DBL_MAX;
+    // add fake elements 
+    // don't bother being very efficient
+    CoinSort_2(binaryInd,binaryInd+numberIndicators,rowInd);
+    binaryInd[numberIndicators]=numberColumns_+1;
+    rowInd[numberIndicators]=0;
+    CoinBigIndex n = start[numberColumns_]+numberIndicators;
+    CoinBigIndex * start2 = reinterpret_cast< CoinBigIndex * >(malloc((numberColumns_ + 1) * sizeof(CoinBigIndex)));
+    COINRowIndex * row2 = reinterpret_cast< COINRowIndex * >(malloc(n * sizeof(COINRowIndex)));
+    double * element2 = reinterpret_cast< double * >(malloc(n * sizeof(double)));
+    start2[0]=0;
+    CoinBigIndex j = 0;
+    int ind = 0;
+    int iColumn = binaryInd[ind];
+    int iRow = rowInd[ind]&0x7fffffff;
+    for (int jColumn=0;jColumn<numberColumns_;jColumn++) {
+      start2[jColumn] = j;
+      for (CoinBigIndex k=start[jColumn];k<start[jColumn+1];k++) {
+	int irow = row[k];
+	double el = element[k];
+	if (i==iColumn)
+	  assert(irow != iRow);
+	row2[j] = irow;
+	element2[j++] = el;
+      }
+      while (jColumn==iColumn) {
+	// now add in
+	double el = COIN_DBL_MAX;
+	if (rowInd[ind]!=iRow)
+	  el = -el;
+	row2[j] = iRow;
+	element2[j++] = el;
+	// onto next
+	ind++;
+	iColumn = binaryInd[ind];
+	iRow = rowInd[ind]&0x7fffffff;
+      }
+    }
+    start2[numberColumns_] = j;
+    numberElements_ = j;
+    free (start);
+    start = start2;
+    free (row);
+    row = row2;
+    free (element);
+    element = element2;
+    delete [] binaryInd;
+    delete [] rowInd;
   }
   // construct packed matrix
   matrixByColumn_ = new CoinPackedMatrix(true,
@@ -3785,7 +3932,7 @@ void CoinConvertDouble(int section, int formatType, double value, char outputVal
       if (value >= 0.0) {
         power10 = static_cast< int >(log10(value));
         if (power10 < 9 && power10 > -4) {
-          decimal = CoinMin(10, 10 - power10);
+          decimal = std::min(10, 10 - power10);
           char format[8];
           sprintf(format, "%%12.%df", decimal);
           sprintf(outputValue, format, value);
@@ -3796,7 +3943,7 @@ void CoinConvertDouble(int section, int formatType, double value, char outputVal
       } else {
         power10 = static_cast< int >(log10(-value)) + 1;
         if (power10 < 8 && power10 > -3) {
-          decimal = CoinMin(9, 9 - power10);
+          decimal = std::min(9, 9 - power10);
           char format[8];
           sprintf(format, "%%12.%df", decimal);
           sprintf(outputValue, format, value);
@@ -4025,7 +4172,7 @@ makeUniqueNames(char **names, int number, char first)
         }
       }
       if (n >= 0)
-        largest = CoinMax(largest, n);
+        largest = std::max(largest, n);
     }
   }
   largest++;
@@ -4083,10 +4230,10 @@ int CoinMpsIO::writeMps(const char *filename, int compression,
   int numberSOS, const CoinSet *setInfo) const
 {
   // Clean up format and numberacross
-  numberAcross = CoinMax(1, numberAcross);
-  numberAcross = CoinMin(2, numberAcross);
-  formatType = CoinMax(0, formatType);
-  formatType = CoinMin(2, formatType);
+  numberAcross = std::max(1, numberAcross);
+  numberAcross = std::min(2, numberAcross);
+  formatType = std::max(0, formatType);
+  formatType = std::min(2, formatType);
   int possibleCompression = 0;
 #ifdef COINUTILS_HAS_ZLIB
   possibleCompression = 1;
@@ -4551,8 +4698,8 @@ int CoinMpsIO::writeMps(const char *filename, int compression,
           double upperValue = columnUpper[i];
           if (isInteger(i)) {
             // Old argument - what are correct ranges for integer variables
-            lowerValue = CoinMax(lowerValue, -MAX_INTEGER);
-            upperValue = CoinMin(upperValue, MAX_INTEGER);
+            lowerValue = std::max(lowerValue, -MAX_INTEGER);
+            upperValue = std::min(upperValue, MAX_INTEGER);
           }
           int numberFields = 1;
           std::string header[2];
@@ -5382,6 +5529,7 @@ CoinMpsIO::CoinMpsIO()
   , maximumStringElements_(0)
   , numberStringElements_(0)
   , stringElements_(NULL)
+  , isMaximization_(0)
 {
   numberHash_[0] = 0;
   hash_[0] = NULL;
@@ -5427,6 +5575,7 @@ CoinMpsIO::CoinMpsIO(const CoinMpsIO &rhs)
   , maximumStringElements_(rhs.maximumStringElements_)
   , numberStringElements_(rhs.numberStringElements_)
   , stringElements_(NULL)
+  , isMaximization_(0)
 {
   numberHash_[0] = 0;
   hash_[0] = NULL;
@@ -5515,6 +5664,7 @@ void CoinMpsIO::gutsOfCopy(const CoinMpsIO &rhs)
   } else {
     stringElements_ = NULL;
   }
+  isMaximization_ = rhs.isMaximization_;
 }
 
 //-------------------------------------------------------------------

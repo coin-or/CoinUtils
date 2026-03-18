@@ -444,6 +444,18 @@ void remove_fixed_action::postsolve(CoinPostsolveMatrix *prob) const
 
   return;
 }
+// Just fixes
+int remove_fixed_action::fix(double * lower, double * upper) const
+{
+  for (int i=0;i<nactions_;i++) {
+    int icol = actions_[i].col;
+    double fix = actions_[i].sol;
+    assert (fix>=lower[icol]&&fix<=upper[icol]);
+    lower[icol] = fix;
+    upper[icol] = fix;
+  }
+  return nactions_;
+}
 
 /*
   Scan the problem for variables that are already fixed, and remove them.
@@ -797,7 +809,9 @@ void transferCosts (CoinPresolveMatrix *prob)
   For unfixed column singletons in equalities, calculate and install transform
   (A) described in the comments at the head of the method.
 */
+#if PRESOLVE_DEBUG > 0
   int nchanged = 0;
+#endif
   for (int js = 0; js < ncols; js++) {
     if (hincol[js] == 1 && cost[js] && cup[js] > clo[js]
 	&& !integerType[js]) {
@@ -817,7 +831,9 @@ void transferCosts (CoinPresolveMatrix *prob)
           cost[j] -= ratio * aij;
         }
         cost[js] = 0.0;
+#if PRESOLVE_DEBUG > 0
         nchanged++;
+#endif
       }
     }
   }
@@ -877,8 +893,8 @@ void transferCosts (CoinPresolveMatrix *prob)
         }
       }
       if (changed) {
-        nchanged += changed;
 #if PRESOLVE_DEBUG > 0
+        nchanged += changed;
         std::cout
           << "    pass " << nPasses++ << " transferred costs to "
           << changed << " integer variables." << std::endl;

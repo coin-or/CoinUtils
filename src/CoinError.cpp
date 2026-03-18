@@ -8,12 +8,14 @@ bool COINUTILSLIB_EXPORT CoinError::printErrors_ = false;
 
 /** A function to block the popup windows that windows creates when the code
     crashes */
-#ifdef HAVE_WINDOWS_H
+#ifdef _MSC_VER
 #include <windows.h>
+#include <stdlib.h>
 COINUTILSLIB_EXPORT
 void WindowsErrorPopupBlocker()
 {
   SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+  _set_abort_behavior(0, _WRITE_ABORT_MSG);
 }
 #else
 COINUTILSLIB_EXPORT

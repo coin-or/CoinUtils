@@ -338,7 +338,9 @@ public:
   {
     setColumnName(whichColumn, columnName);
   }
-  /** Sets integer (if column does not exist then
+  /// Create a name in field given a sequence number - allows >10000000
+  void Coin8CharacterName(char rowColumn, int number, char * field);
+ /** Sets integer (if column does not exist then
       all columns up to this are defined with default values and no elements)
   */
   inline void setColIsInteger(int whichColumn, bool columnIsInteger)

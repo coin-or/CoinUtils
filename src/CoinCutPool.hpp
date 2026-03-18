@@ -17,7 +17,7 @@
  * @file CoinCutPool.hpp
  * @brief Class for storing a pool of cuts
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -30,6 +30,7 @@
 
 #include "CoinUtilsConfig.h"
 #include <cstddef>
+#include <vector>
 
 /**
  * Class for representing a cut.
@@ -44,7 +45,7 @@ public:
    * @param nz size of the cut
    * @param rhs right-hand side of the cut
    **/
-  CoinCut(const int *idxs, const double *coefs, int nz, double rhs);
+  CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs);
 
   /**
    * Destructor
@@ -54,17 +55,17 @@ public:
   /**
    * Return the indexes of the variables of the cut.
    **/
-  const int* idxs() const { return idxs_; }
+  const int* idxs() const { return idxs_.data(); }
 
   /**
    * Return the coefficients of the variables of the cut.
    **/
-  const double* coefs() const { return  coefs_; }
+  const double* coefs() const { return  coefs_.data(); }
 
   /**
    * Return the size of the cut.
    **/
-  int size() const { return nz_; }
+  int size() const { return idxs_.size(); }
 
   /**
    * Return the right-hand side of the cut.
@@ -75,27 +76,19 @@ public:
    * Check if the cut dominates another one.
    *
    * @param other cut to be checked.
-   * @param iv incidence array with size equal to the
-   * number of cols of the MILP. All entries must be
-   * initialized as false.
    **/
-  bool dominates(const CoinCut *other, bool *iv) const;
+  bool dominates(const CoinCut *other) const;
 
 private:
   /**
    * indexes of the variables of the cut
    **/
-  int *idxs_;
+  std::vector<int> idxs_;
 
   /**
    * coefficients of the variables of the cut
    **/
-  double *coefs_;
-
-  /**
-   * size of the cut
-   **/
-  int nz_;
+  std::vector<double> coefs_;
 
   /**
    * right-hand side of the cut
@@ -133,7 +126,7 @@ public:
    * the i-th cut in the pool.
    **/
   const int* cutIdxs(size_t i) const;
-    
+
   /**
    * Return the coefficients of the variables
    * of the i-th cut in the pool.
@@ -208,7 +201,7 @@ private:
   /**
     * Array of pointers to the cuts stored in the pool.
     **/
-  CoinCut **cuts_;
+  std::vector<CoinCut *> cuts_;
 
   /**
    * Number of cuts stored in the pool.
@@ -224,30 +217,18 @@ private:
    * For each cut, stores the number of variables in
    * which it has the best score.
    **/
-  size_t *cutFrequency_;
+  std::vector<size_t> cutFrequency_;
 
   /**
    * Score of each cut
    **/
-  double *cutFitness_;
-
-  /**
-   * Incidence array used in the method
-   * that checks the dominance between two cuts.
-   **/
-  bool *iv_;
-
-  /**
-   * Number of variables of the MILP associated
-   * with the cuts.
-   **/
-  int nCols_;
+  std::vector<double> cutFitness_;
 
   /**
    * For each variable, stores the index of the cut
    * with the best score that contains this variable.
    **/
-  size_t *bestCutByCol_;
+  std::vector<int> bestCutByCol_;
 
   /**
    * Number of cuts that were deleted from the pool.

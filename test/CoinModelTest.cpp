@@ -138,7 +138,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
           assert (i==lastRow[jRow]);
 	  std::cout << "need to fill in rows" << std::endl ;
           for (int k=0;k<jRow;k++) {
-            int start = CoinMax(lastRow[k],model.numberRows());
+            int start = std::max(lastRow[k],model.numberRows());
             int end = lastRow[k+1];
             bool doBounds = rowDone[k]!=0;
             for (int j=start;j<end;j++) {
@@ -180,7 +180,7 @@ void buildRandom(CoinModel & baseModel, double random, double & timeIt, int iPas
           assert (i==lastColumn[jColumn]);
 	  std::cout << "need to fill in columns" << std::endl ;
           for (int k=0;k<jColumn;k++) {
-            int start = CoinMax(lastColumn[k],model.numberColumns());
+            int start = std::max(lastColumn[k],model.numberColumns());
             int end = lastColumn[k+1];
             bool doBounds = columnDone[k]!=0;
             for (int j=start;j<end;j++) {

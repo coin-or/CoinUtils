@@ -5,7 +5,7 @@
 Projects such as this one are maintained by a small group of volunteers under
 the auspices of the non-profit [COIN-OR Foundation](https://www.coin-or.org)
 and we need your help! Please consider [sponsoring our
-activities](https://github.com/sponsors/coin-or).
+activities](https://github.com/sponsors/coin-or) or [volunteering](mailto:volunteer@coin-or.org) to help!
 
 [![Latest Release](https://img.shields.io/github/v/release/coin-or/CoinUtils?sort=semver)](https://github.com/coin-or/CoinUtils/releases)
 
@@ -75,7 +75,7 @@ are archived as part of Cbc
      ```
    * Fedora/Redhat/CentOS:
      ```
-     $ sudo yum install  coin-or-CoinUtils coin-or-CoinUtils-devel
+     $ sudo dnf install  coin-or-CoinUtils coin-or-CoinUtils-devel
      ```
    * freebsd:
      ```
@@ -92,15 +92,15 @@ are archived as part of Cbc
      $ brew install coin-or-tools/coinor/coinutils
      ```
 
-* *conda* (cross-platform, no Windows for now):
+* *conda* (cross-platform):
      ```
-     $ conda install coin-or-coinutils
+     $ conda install coin-or-utils
      ```
 
 Due to license incompatibilities, pre-compiled binaries lack some 
 functionality. If binaries are not available for your platform for the latest 
 version and you would like to request them to be built and posted, feel free 
-to let us know on the mailing list. 
+to open a discussion on Github. 
 
 ### Source
 
@@ -124,7 +124,7 @@ OS by default).
 
 ## BUILDING from source
 
-These quick start instructions assumes you are in a bash shell. 
+These quick start instructions assume you are in a bash shell. 
 
 ### Using `coinbrew`
 
@@ -156,7 +156,7 @@ make install
 
 If you have `Doxygen` available, you can build a HTML documentation by typing
 
-`make doxygen-docs` 
+`make doxydoc` 
 
 in the build directory. If CoinUtils was built via `coinbrew`, then the build
 directory will be `./build/CoinUtils/master` by default. The doxygen documentation main file
@@ -173,5 +173,5 @@ documentation [here](http://coin-or.github.io/CoinUtils/Doxygen).
  * [COIN-OR general discussion forum](https://github.com/orgs/coin-or/discussions)
  * [CoinUtils Discussion forum](https://github.com/coin-or/CoinUtils/discussions)
  * [Report a bug](https://github.com/coin-or/CoinUtils/issues/new)
- * [Doxygen-generated html documentation](http://coin-or.github.io/CoinUtils/Doxygen)
+ * [Doxygen generated documentation](http://coin-or.github.io/CoinUtils/Doxygen)
 

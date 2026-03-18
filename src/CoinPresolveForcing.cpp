@@ -91,7 +91,7 @@ const char *forcing_constraint_action::name() const
 {
   return ("forcing_constraint_action");
 }
-
+bool canBeFeasible(CoinPresolveMatrix *prob,int iRow);
 /*
   It may be the case that the bounds on the variables in a constraint are
   such that no matter what feasible value the variables take, the constraint
@@ -222,24 +222,30 @@ forcing_constraint_action::presolve(CoinPresolveMatrix *prob,
   greater than U(i), we're infeasible.
 */
     if (maxup < PRESOLVE_INF && maxup + inftol < rlo[irow] && !fixInfeasibility) {
-      CoinMessageHandler *hdlr = prob->messageHandler();
-      prob->status_ |= 1;
-      hdlr->message(COIN_PRESOLVE_ROWINFEAS, prob->messages())
-        << irow << rlo[irow] << rup[irow] << CoinMessageEol;
+      // double check
+      if (!canBeFeasible(prob,irow)) {
+	CoinMessageHandler *hdlr = prob->messageHandler();
+	prob->status_ |= 1;
+	hdlr->message(COIN_PRESOLVE_ROWINFEAS, prob->messages())
+	  << irow << rlo[irow] << rup[irow] << CoinMessageEol;
 #if PRESOLVE_DEBUG > 2
-      std::cout << "; infeasible." << std::endl;
+	std::cout << "; infeasible." << std::endl;
 #endif
-      break;
+	break;
+      }
     }
     if (-PRESOLVE_INF < maxdown && rup[irow] < maxdown - inftol && !fixInfeasibility) {
-      CoinMessageHandler *hdlr = prob->messageHandler();
-      prob->status_ |= 1;
-      hdlr->message(COIN_PRESOLVE_ROWINFEAS, prob->messages())
-        << irow << rlo[irow] << rup[irow] << CoinMessageEol;
+      // double check
+      if (!canBeFeasible(prob,irow)) {
+	CoinMessageHandler *hdlr = prob->messageHandler();
+	prob->status_ |= 1;
+	hdlr->message(COIN_PRESOLVE_ROWINFEAS, prob->messages())
+	  << irow << rlo[irow] << rup[irow] << CoinMessageEol;
 #if PRESOLVE_DEBUG > 2
-      std::cout << "; infeasible." << std::endl;
+	std::cout << "; infeasible." << std::endl;
 #endif
-      break;
+	break;
+      }
     }
     /*
   We've dealt with prima facie infeasibility. Now check if the constraint
@@ -711,6 +717,78 @@ forcing_constraint_action::~forcing_constraint_action()
   // delete [] actions_; MS Visual C++ V6 can not compile
   deleteAction(actions_, action *);
 }
+// Checks if constraint can be feasible using all tolerances
+bool canBeFeasible(CoinPresolveMatrix *prob,int iRow)
+{
 
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/
+  // Column bounds
+  double *clo = prob->clo_;
+  double *cup = prob->cup_;
+
+  // Row-major representation
+  const CoinBigIndex *mrstrt = prob->mrstrt_;
+  const double *rowels = prob->rowels_;
+  const int *hcol = prob->hcol_;
+  const int *hinrow = prob->hinrow_;
+
+  const double *rlo = prob->rlo_;
+  const double *rup = prob->rup_;
+
+  const double inftol = prob->feasibilityTolerance_;
+  bool posinf = false;
+  bool neginf = false;
+  double maxup = 0.0;
+  double maxdown = 0.0;
+
+  /*
+  Walk the row and add up the upper and lower bounds on the variables. 
+  Use tolerances
+  */
+  CoinBigIndex krs = mrstrt[iRow];
+  CoinBigIndex kre = krs + hinrow[iRow];
+  for (CoinBigIndex kk = krs; kk < kre; kk++) {
+
+    const int col = hcol[kk];
+    const double coeff = rowels[kk];
+    const double lb = clo[col]-inftol;
+    const double ub = cup[col]+inftol;
+
+    if (coeff > 0.0) {
+      if (PRESOLVE_INF <= ub) {
+        posinf = true;
+        if (neginf)
+          break;
+      } else {
+        maxup += ub * coeff;
+      }
+      if (lb <= -PRESOLVE_INF) {
+        neginf = true;
+        if (posinf)
+          break;
+      } else {
+        maxdown += lb * coeff;
+      }
+    } else {
+      if (PRESOLVE_INF <= ub) {
+        neginf = true;
+        if (posinf)
+          break;
+      } else {
+        maxdown += ub * coeff;
+      }
+      if (lb <= -PRESOLVE_INF) {
+        posinf = true;
+        if (neginf)
+          break;
+      } else {
+        maxup += lb * coeff;
+      }
+    }
+  }
+  bool feasible = true;
+  if (maxup < rlo[iRow] &&  !posinf)
+    feasible = false;
+  if (maxdown > rup[iRow] &&  !neginf)
+    feasible = false;
+  return feasible;
+}

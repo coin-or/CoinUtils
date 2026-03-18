@@ -9,7 +9,7 @@
  * @file CoinOddWheelSeparator.cpp
  * @brief Odd-cycle cut separator
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -27,16 +27,13 @@
 #include "CoinOddWheelSeparator.hpp"
 #include "CoinConflictGraph.hpp"
 #include "CoinShortestPath.hpp"
+#include "CoinTime.hpp"
 
 #define ODDWHEEL_SEP_DEF_MIN_FRAC               0.001
 #define ODDWHEEL_SEP_DEF_EPS                    1e-6
 #define ODDWHEEL_SEP_DEF_MAX_RC                 100.0
 #define ODDWHEEL_SEP_DEF_MIN_VIOL               0.02
 #define ODDWHEEL_SEP_DEF_MAX_WHEEL_CENTERS      ((size_t)256)
-
-static void *xmalloc( const size_t size );
-static void *xrealloc( void *ptr, const size_t size );
-static void *xcalloc( const size_t elements, const size_t size );
 
 struct CompareCost {
     explicit CompareCost(const double *costs) { this->costs_ = costs; }
@@ -59,21 +56,22 @@ CoinOddWheelSeparator::CoinOddWheelSeparator(const CoinConflictGraph *cgraph, co
     x_ = x;
     rc_ = rc;
     icaCount_ = 0;
-    icaIdx_ = (size_t*)xmalloc(sizeof(size_t) * cgSize);
-    icaActivity_ = (double*)xmalloc(sizeof(double) * cgSize);
+    icaIdx_ = std::vector<size_t>(cgSize);
+    icaActivity_ = std::vector<double>(cgSize);
     fillActiveColumns();
-    numOH_ = 0;
     extMethod_ = extMethod;
+    maxSeconds_ = 0.0;
+    spf_ = NULL;
 
     if (icaCount_ > 4) {
-        spArcStart_ = (size_t *) xmalloc(sizeof(size_t) * ((icaCount_ * 2) + 1));
+        spArcStart_ = std::vector<size_t>((icaCount_ * 2) + 1);
         spArcCap_ = icaCount_ * 2;
-        spArcTo_ = (size_t *) xmalloc(sizeof(size_t) * spArcCap_);
-        spArcDist_ = (double*) xmalloc(sizeof(double) * spArcCap_);
+        spArcTo_ = std::vector<size_t>(spArcCap_);
+        spArcDist_ = std::vector<double>(spArcCap_);
 
-        tmp_ = (size_t *) xmalloc(sizeof(size_t) * (cgSize + 1));
+        tmp_ = std::vector<size_t>(cgSize + 1);
 
-        costs_ = (double *) xmalloc(sizeof(double) * cgSize);
+        costs_ = std::vector<double>(cgSize);
         for (size_t i = 0; i < cgSize; i++) {
             if (x_[i] >= ODDWHEEL_SEP_DEF_EPS) {
                 costs_[i] = (x_[i] * 1000.0);
@@ -84,66 +82,18 @@ CoinOddWheelSeparator::CoinOddWheelSeparator(const CoinConflictGraph *cgraph, co
             }
         }
 
-        iv_ = (bool *) xcalloc(cgSize, sizeof(bool));
-        iv2_ = (bool *) xcalloc(cgSize, sizeof(bool));
+        iv_ = std::vector<char>(cgSize);
+        iv2_ = std::vector<char>(cgSize);
 
-        spf_ = NULL;
-
-        ohStart_ = (size_t*)xcalloc(icaCount_ + 1, sizeof(size_t));
-        wcStart_ = (size_t*)xcalloc(icaCount_ + 1, sizeof(size_t));
-        capOHIdxs_ = icaCount_ * 2;
-        ohIdxs_ = (size_t*)xmalloc(sizeof(size_t) * capOHIdxs_);
-        capWCIdx_ = icaCount_ * 2;
-        wcIdxs_ = (size_t*)xmalloc(sizeof(size_t) * capWCIdx_);
-    } else {
-        spArcStart_ = spArcTo_ = tmp_ = NULL;
-        spArcDist_ = NULL;
-        costs_ = NULL;
-        iv_ = iv2_ = NULL;
-        spf_ = NULL;
-        ohStart_ = wcStart_ = ohIdxs_ = wcIdxs_ = NULL;
+        ohIdxs_ = std::vector<std::vector<size_t> >();
+        ohIdxs_.reserve(icaCount_);
+        wcIdxs_ = std::vector<std::vector<size_t> >(icaCount_);
     }
 }
 
 CoinOddWheelSeparator::~CoinOddWheelSeparator() {
-    free(icaIdx_);
-    free(icaActivity_);
-
-    if (spArcStart_) {
-        free(spArcStart_);
-    }
-    if (spArcTo_) {
-        free(spArcTo_);
-    }
-    if (spArcDist_) {
-        free(spArcDist_);
-    }
-    if (tmp_) {
-        free(tmp_);
-    }
-    if (costs_) {
-        free(costs_);
-    }
-    if (iv_) {
-        free(iv_);
-    }
-    if (iv2_) {
-        free(iv2_);
-    }
     if (spf_) {
         delete spf_;
-    }
-    if (ohStart_) {
-        free(ohStart_);
-    }
-    if (ohIdxs_) {
-        free(ohIdxs_);
-    }
-    if (wcIdxs_) {
-        free(wcIdxs_);
-    }
-    if (wcStart_) {
-        free(wcStart_);
     }
 }
 
@@ -152,15 +102,24 @@ void CoinOddWheelSeparator::searchOddWheels() {
         return;
     }
 
-    prepareGraph();
+    const double startTime = (maxSeconds_ > 0.0) ? CoinGetTimeOfDay() : 0.0;
 
+    if (!prepareGraph(startTime))
+        return;
+
+    // Check time every 128 nodes so we don't check too frequently on small
+    // instances or too rarely on large ones.
     for (size_t i = 0; i < icaCount_; i++) {
+        if (maxSeconds_ > 0.0 && (i & 127) == 0 && i > 0) {
+            if (CoinGetTimeOfDay() - startTime >= maxSeconds_)
+                break;
+        }
         findOddHolesWithNode(i);
     }
 
     if (extMethod_ > 0) {
         //try to insert a wheel center
-        for (size_t i = 0; i < numOH_; i++) {
+        for (size_t i = 0; i < ohIdxs_.size(); i++) {
             searchWheelCenter(i);
         }
     }
@@ -198,12 +157,17 @@ void CoinOddWheelSeparator::fillActiveColumns() {
 #endif
 }
 
-void CoinOddWheelSeparator::prepareGraph() {
+bool CoinOddWheelSeparator::prepareGraph(double startTime) {
     size_t idxArc = 0;
     const size_t nodes = icaCount_ * 2;
 
     //Conflicts: (x', y'')
     for (size_t i1 = 0; i1 < icaCount_; i1++) {
+        // Check time every 64 outer iterations (each does icaCount_ inner steps).
+        if (maxSeconds_ > 0.0 && (i1 & 63) == 0 && i1 > 0) {
+            if (CoinGetTimeOfDay() - startTime >= maxSeconds_)
+                return false;
+        }
         spArcStart_[i1] = idxArc;
         const size_t idx1 = icaIdx_[i1];
 
@@ -213,8 +177,8 @@ void CoinOddWheelSeparator::prepareGraph() {
             if (cgraph_->conflicting(idx1, idx2)) {
                 if(idxArc + 1 > spArcCap_) {
                     spArcCap_ *= 2;
-                    spArcTo_ = (size_t*)xrealloc(spArcTo_, sizeof(size_t) * spArcCap_);
-                    spArcDist_ = (double*)xrealloc(spArcDist_, sizeof(double) * spArcCap_);
+                    spArcTo_.resize(spArcCap_);
+                    spArcDist_.resize(spArcCap_);
                 }
                 spArcTo_[idxArc] = icaCount_ + i2;
                 spArcDist_[idxArc] = icaActivity_[i2];
@@ -236,8 +200,8 @@ void CoinOddWheelSeparator::prepareGraph() {
 
             if(idxArc + 1 > spArcCap_) {
                 spArcCap_ *= 2;
-                spArcTo_ = (size_t*)xrealloc(spArcTo_, sizeof(size_t) * spArcCap_);
-                spArcDist_ = (double*)xrealloc(spArcDist_, sizeof(double) * spArcCap_);
+                spArcTo_.resize(spArcCap_);
+                spArcDist_.resize(spArcCap_);
             }
 
             spArcTo_[idxArc] = arcTo;
@@ -247,14 +211,15 @@ void CoinOddWheelSeparator::prepareGraph() {
     }
 
     spArcStart_[icaCount_ * 2] = idxArc;
-    spf_ = new CoinShortestPath(nodes, idxArc, spArcStart_, spArcTo_, spArcDist_);
+    spf_ = new CoinShortestPath(nodes, idxArc, spArcStart_.data(), spArcTo_.data(), spArcDist_.data());
+    return true;
 }
 
 void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
     const size_t dest = icaCount_ + node;
 
     spf_->find(node, dest);
-    size_t oddSize = spf_->path(dest, tmp_);
+    size_t oddSize = spf_->path(dest, tmp_.data());
 
 #ifdef DEBUGCG
     assert(oddSize > 0);
@@ -279,16 +244,16 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
 
         if (iv_[tmp_[i]]) { //repeated entry
             for (size_t j = 0; j <= i; j++) {
-                iv_[tmp_[j]] = false;
+                iv_[tmp_[j]] = 0;
             }
             return;
         }
 
-        iv_[tmp_[i]] = true;
+        iv_[tmp_[i]] = 1;
     }
     // clearing iv
     for (size_t i = 0; i < oddSize; i++) {
-        iv_[tmp_[i]] = false;
+        iv_[tmp_[i]] = 0;
     }
 
     /* checking if it is violated */
@@ -308,43 +273,33 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
     addOddHole(oddSize, tmp_);
 }
 
-bool CoinOddWheelSeparator::addOddHole(size_t nz, const size_t *idxs) {
+bool CoinOddWheelSeparator::addOddHole(size_t nz, const std::vector<size_t> &idxs) {
     // checking for repeated entries
     if (alreadyInserted(nz, idxs)) {
         return false;
     }
 
-    // checking memory
-    if (ohStart_[numOH_] + nz > capOHIdxs_) {
-        capOHIdxs_  = std::max(ohStart_[numOH_] + nz, capOHIdxs_ * 2);
-        ohIdxs_ = (size_t*)xrealloc(ohIdxs_, sizeof(size_t) * capOHIdxs_);
-    }
-
-    // inserting
-    memcpy(ohIdxs_ + ohStart_[numOH_], idxs, sizeof(size_t) * nz);
-    numOH_++;
-    ohStart_[numOH_] = ohStart_[numOH_ - 1] + nz;
+    ohIdxs_.push_back(idxs);
 
     return true;
 }
 
-bool CoinOddWheelSeparator::alreadyInserted(size_t nz, const size_t *idxs) {
+bool CoinOddWheelSeparator::alreadyInserted(size_t nz, const std::vector<size_t> &idxs) {
     bool repeated = false;
 
     for (size_t i = 0; i < nz; i++) {
-        iv_[idxs[i]] = true;
+        iv_[idxs[i]] = 1;
     }
 
-    for (size_t idxOH = 0; idxOH < numOH_; idxOH++) {
+    for (size_t idxOH = 0; idxOH < ohIdxs_.size(); idxOH++) {
         // checking size
-        const size_t otherSize = ohStart_[idxOH + 1] - ohStart_[idxOH];
-        if (nz != otherSize) {
+        if (nz != ohIdxs_[idxOH].size()) {
             continue;
         }
 
         // checking indexes
         bool isEqual = true;
-        const size_t *ohIdx = ohIdxs_ + ohStart_[idxOH];
+        const size_t *ohIdx = ohIdxs_[idxOH].data();
         for (size_t j = 0; j < nz; j++) {
             if (!iv_[ohIdx[j]]) {
                 isEqual = false;
@@ -359,7 +314,7 @@ bool CoinOddWheelSeparator::alreadyInserted(size_t nz, const size_t *idxs) {
 
     // clearing iv
     for (size_t i = 0; i < nz; i++) {
-        iv_[idxs[i]] = false;
+        iv_[idxs[i]] = 0;
     }
 
     return repeated;
@@ -367,12 +322,11 @@ bool CoinOddWheelSeparator::alreadyInserted(size_t nz, const size_t *idxs) {
 
 void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
 #ifdef DEBUGCG
-    assert(idxOH < numOH_);
-    assert(ohStart_[idxOH + 1] >= ohStart_[idxOH]);
+    assert(idxOH < ohIdxs_.size());
 #endif
 
-    const size_t *ohIdxs = ohIdxs_ + ohStart_[idxOH];
-    const size_t ohSize = ohStart_[idxOH + 1] - ohStart_[idxOH];
+    const size_t *ohIdxs = ohIdxs_[idxOH].data();
+    const size_t ohSize = ohIdxs_[idxOH].size();
 
 #ifdef DEBUGCG
     assert(ohSize <= cgraph_->size());
@@ -380,7 +334,7 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
 
     /* picking node with the smallest degree */
     size_t nodeSD = ohIdxs[0], minDegree = cgraph_->degree(ohIdxs[0]);
-    iv_[ohIdxs[0]] = true;
+    iv_[ohIdxs[0]] = 1;
     for (size_t i = 1; i < ohSize; i++) {
         const size_t dg = cgraph_->degree(ohIdxs[i]);
         if (dg < minDegree) {
@@ -388,11 +342,11 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
             nodeSD = ohIdxs[i];
         }
 
-        iv_[ohIdxs[i]] = true;
+        iv_[ohIdxs[i]] = 1;
     }
 
     // generating candidates
-    const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(nodeSD, tmp_, iv2_);
+    const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(nodeSD, tmp_.data(), iv2_.data());
     size_t numCandidates = 0;
     for (size_t i = 0; i < rescg.first; i++) {
         const size_t node = rescg.second[i];
@@ -423,9 +377,7 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
         }
     }
 
-    if (numCandidates == 0) {
-    	wcStart_[idxOH + 1] = wcStart_[idxOH];
-    } else {
+    if (numCandidates != 0) {
     	size_t sizeWC = 0;
 
     	if (extMethod_ == 1) { //wheel center with only one variable
@@ -442,7 +394,7 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
     		assert(extMethod_ == 2);
     		const size_t n = numCandidates;
 	        numCandidates = std::min(numCandidates, ODDWHEEL_SEP_DEF_MAX_WHEEL_CENTERS);
-	        std::partial_sort(tmp_, tmp_ + numCandidates, tmp_ + n, CompareCost(costs_));
+	        std::partial_sort(tmp_.begin(), tmp_.begin() + numCandidates, tmp_.begin() + n, CompareCost(costs_.data()));
 
 	        for (size_t i = 0; i < numCandidates; i++) {
 	            /* need to have conflict with all nodes in clique */
@@ -460,86 +412,51 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
 	        }
     	}
 
-        // checking memory
-        if (wcStart_[idxOH] + sizeWC > capWCIdx_) {
-            capWCIdx_ = std::max(capWCIdx_ * 2, wcStart_[idxOH] + sizeWC);
-            wcIdxs_ = (size_t*)xrealloc(wcIdxs_, sizeof(size_t) * capWCIdx_);
-        }
-        memcpy(wcIdxs_ + wcStart_[idxOH], tmp_, sizeof(size_t) * sizeWC);
-        wcStart_[idxOH + 1] = wcStart_[idxOH] + sizeWC;
+        wcIdxs_[idxOH] = std::vector<size_t>(tmp_.begin(), tmp_.begin() + sizeWC);
     }
 
     // clearing iv
     for (size_t i = 0; i < ohSize; i++) {
-        iv_[ohIdxs[i]] = false;
+        iv_[ohIdxs[i]] = 0;
     }
 }
 
 const size_t* CoinOddWheelSeparator::oddHole(size_t idxOH) const {
 #ifdef DEBUGCG
-    assert(idxOH < numOH_);
+    assert(idxOH < ohIdxs_.size());
 #endif
 
-    return ohIdxs_ + ohStart_[idxOH];
+    return ohIdxs_[idxOH].data();
 }
 
 size_t CoinOddWheelSeparator::oddHoleSize(size_t idxOH) const {
 #ifdef DEBUGCG
-    assert(idxOH < numOH_);
+    assert(idxOH < ohIdxs_.size());
 #endif
 
-    return ohStart_[idxOH + 1] - ohStart_[idxOH];
+    return ohIdxs_[idxOH].size();
 }
 
 double CoinOddWheelSeparator::oddWheelRHS(size_t idxOH) const {
 #ifdef DEBUGCG
-    assert(idxOH < numOH_);
+    assert(idxOH < ohIdxs_.size());
 #endif
 
-    return floor(((double)ohStart_[idxOH + 1] - ohStart_[idxOH]) / 2.0);
+    return floor(static_cast<double>(ohIdxs_[idxOH].size()) / 2.0);
 }
 
 const size_t* CoinOddWheelSeparator::wheelCenter(const size_t idxOH) const {
 #ifdef DEBUGCG
-    assert(idxOH < numOH_);
+    assert(idxOH < ohIdxs_.size());
 #endif
 
-    return wcIdxs_ + wcStart_[idxOH];
+    return wcIdxs_[idxOH].data();
 }
 
 size_t CoinOddWheelSeparator::wheelCenterSize(const size_t idxOH) const {
 #ifdef DEBUGCG
-    assert(idxOH < numOH_);
+    assert(idxOH < ohIdxs_.size());
 #endif
-    return wcStart_[idxOH + 1] - wcStart_[idxOH];
+    return wcIdxs_[idxOH].size();
 }
 
-static void *xmalloc( const size_t size ) {
-    void *result = malloc( size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-        abort();
-    }
-
-    return result;
-}
-
-static void *xrealloc( void *ptr, const size_t size ) {
-    void * res = realloc( ptr, size );
-    if (!res) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes in CoinCliqueList", size);
-        abort();
-    }
-
-    return res;
-}
-
-static void *xcalloc( const size_t elements, const size_t size ) {
-    void *result = calloc( elements, size );
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
-        abort();
-    }
-
-    return result;
-}

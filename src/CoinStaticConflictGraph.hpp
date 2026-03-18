@@ -8,7 +8,7 @@
  * @file CoinStaticConflictGraph.hpp
  * @brief static CoinConflictGraph implementation with fast queries
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -23,6 +23,8 @@
 #include "CoinConflictGraph.hpp"
 #include "CoinDynamicConflictGraph.hpp"
 
+#include <vector>
+
 /**
  * Static conflict graph, optimized for memory usage and query speed,
  * not modifiable.
@@ -36,17 +38,29 @@ public:
   CoinStaticConflictGraph ( const CoinConflictGraph *cgraph );
 
   /**
-   * Default constructor.
-   * It constructs a conflict graph from the MILP structure.
+   * Builds a static conflict graph directly from a MILP instance.
    *
-   * @param numCols number of variables
-   * @param colType column types
-   * @param colLB column lower bounds
-   * @param colUB column upper bounds
-   * @param matrixByRow row-wise constraint matrix
-   * @param sense row sense
-   * @param rowRHS row right hand side
-   * @param rowRange row ranges
+   * Internally this constructor instantiates a `CoinDynamicConflictGraph`,
+   * lets it scan every constraint to detect cliques, pairwise conflicts, and
+   * tighter bounds, and then copies the resulting structure into the compact
+   * static layout optimized for query speed. The tighter bounds discovered
+   * during this pass can later be accessed through `updatedBounds()`.
+   *
+   * @param numCols number of original columns.
+   * @param colType column types (used to filter the binary/semicontinuous
+   *                variables that may participate in conflicts).
+   * @param colLB column lower bounds.
+   * @param colUB column upper bounds.
+   * @param matrixByRow row-wise constraint matrix.
+   * @param sense row senses for each constraint (G/E/L/R/N).
+   * @param rowRHS right-hand sides for each row.
+   * @param rowRange row ranges (only relevant for range rows).
+   * @param primalTolerance feasibility tolerance applied while testing a
+   *                        row for conflict generation.
+   * @param infinity threshold used to treat bounds as practically unbounded
+   *                 when discounting continuous columns.
+   * @param colNames column names, only used for diagnostic messages when
+   *                 reporting newly inferred bounds.
    **/
   CoinStaticConflictGraph(
           const int numCols,
@@ -56,7 +70,12 @@ public:
           const CoinPackedMatrix* matrixByRow,
           const char* sense,
           const double* rowRHS,
-          const double* rowRange );
+          const double* rowRange,
+          const double primalTolerance,
+          const double infinity,
+          const std::vector<std::string> &colNames,
+          const std::vector<std::string> &rowNames
+        );
 
   /**
    * Clone a conflict graph.
@@ -118,16 +137,16 @@ public:
    * Return the modified degree of a given node.
    **/
   virtual size_t modifiedDegree( const size_t node ) const;
-  
+
   /**
    * Total number of conflicts stored directly.
    **/
   virtual size_t nTotalDirectConflicts() const;
-  
+
   /**
    * Total number of clique elements stored.
    **/
-  virtual size_t nTotalCliqueElements() const;  
+  virtual size_t nTotalCliqueElements() const;
 
   /**
    * Destructor
@@ -180,7 +199,7 @@ private:
    * Number of pairwise conflicts stored.
    **/
   size_t nDirectConflicts_;
-  
+
   /**
    * Number of elements considering all cliques
    * stored explicitly.
@@ -188,73 +207,30 @@ private:
   size_t totalCliqueElements_;
 
   /**
-   * Number of cliques stored explicitly.
-   **/
-  size_t nCliques_;
-
-  /**
-   * Required memory for all vectors.
-   **/
-  size_t memSize_;
-
-  /**
-   * Number of direct conflicts per node.
-   **/
-  size_t *nConflictsNode_;
-
-  /**
    * Degree of each node.
    **/
-  size_t *degree_;
+  std::vector<size_t> degree_;
 
   /**
    * Modified degree of each node.
    **/
-  size_t *modifiedDegree_;
-
-  /**
-   * Start position for the direct conflicts
-   * of each node.
-   **/
-  size_t *startConfNodes_;
+  std::vector<size_t> modifiedDegree_;
 
   /**
    * Direct conflicts
    **/
-  size_t *conflicts_;
-
-  /**
-   * Number of cliques that a node appears.
-   **/
-  size_t *nNodeCliques_;
-
-  /**
-   * Indicates the first position of nodeCliques_
-   * that has the indexes of cliques containing
-   * a node. 
-   **/
-  size_t *startNodeCliques_;
+  std::vector<std::vector<size_t> > conflicts_;
 
   /**
    * Array containing, for each node,
    * the cliques that contain this node.
    **/
-  size_t *nodeCliques_;
-
-  /**
-   * Size of the cliques stored explicitly.
-   **/
-  size_t *cliqueSize_;
-
-  /**
-   * First position where each clique starts.
-   **/
-  size_t *startClique_;
+  std::vector<std::vector<size_t> > nodeCliques_;
 
   /**
    * Elements of the cliques stored explicitly.
    **/
-  size_t *cliques_;
+  std::vector<std::vector<size_t> > cliques_;
 };
 
 #endif // STATICCONFLICTGRAPH_H

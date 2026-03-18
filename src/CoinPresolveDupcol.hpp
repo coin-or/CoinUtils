@@ -12,6 +12,11 @@
 */
 
 #define DUPCOL 10
+#ifndef CBC_PREPROCESS_EXPERIMENT
+#define CBC_PREPROCESS_EXPERIMENT 1
+#elif CBC_PREPROCESS_EXPERIMENT == 0
+#undef CBC_PREPROCESS_EXPERIMENT
+#endif
 
 /*! \class dupcol_action
     \brief Detect and remove duplicate columns
@@ -90,21 +95,21 @@ class COINUTILSLIB_EXPORT duprow_action : public CoinPresolveAction {
     double ubound;
   };
 
-  const int nactions_;
-  const action *const actions_;
+  //const int nactions_;
+  //const action *const actions_;
 
   duprow_action()
     : CoinPresolveAction(NULL)
-    , nactions_(0)
-    , actions_(NULL)
+    //, nactions_(0)
+    //, actions_(NULL)
   {
   }
   duprow_action(int nactions,
     const action *actions,
     const CoinPresolveAction *next)
     : CoinPresolveAction(next)
-    , nactions_(nactions)
-    , actions_(actions)
+    //, nactions_(nactions)
+    //, actions_(actions)
   {
   }
 
@@ -126,21 +131,21 @@ class COINUTILSLIB_EXPORT duprow3_action : public CoinPresolveAction {
     double ubound;
   };
 
-  const int nactions_;
-  const action *const actions_;
+  //const int nactions_;
+  //const action *const actions_;
 
   duprow3_action()
     : CoinPresolveAction(NULL)
-    , nactions_(0)
-    , actions_(NULL)
+    //, nactions_(0)
+    //, actions_(NULL)
   {
   }
   duprow3_action(int nactions,
     const action *actions,
     const CoinPresolveAction *next)
     : CoinPresolveAction(next)
-    , nactions_(nactions)
-    , actions_(actions)
+    //, nactions_(nactions)
+    //, actions_(actions)
   {
   }
 

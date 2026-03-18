@@ -54,6 +54,7 @@ enum COINSectionType { COIN_NO_SECTION,
   COIN_QUAD_SECTION,
   COIN_SOS_SECTION,
   COIN_BASIS_SECTION,
+  COIN_INDICATOR_SECTION,
   COIN_UNKNOWN_SECTION
 };
 
@@ -87,6 +88,7 @@ enum COINMpsType { COIN_N_ROW,
   COIN_XU_BASIS,
   COIN_LL_BASIS,
   COIN_UL_BASIS,
+  COIN_IF_INDICATOR,
   COIN_UNKNOWN_MPS_TYPE
 };
 class COINUTILSLIB_EXPORT CoinMpsIO;
@@ -660,6 +662,17 @@ public:
   {
     smallElement_ = value;
   }
+  /// Return true if maximization problem reformulated as minimization
+  inline bool wasMaximization() const
+  {
+    return isMaximization_==-1;
+  }
+  /// Return true if maximization problem and still formulated as maximization
+  inline bool isMaximization() const
+  {
+    return isMaximization_==1;
+  }
+
   //@}
 
   /** @name Methods for problem input and output
@@ -1123,9 +1136,20 @@ protected:
   int numberStringElements_;
   /// String elements
   char **stringElements_;
+  /** Maximization reformulation flag
+      0 - minimization
+      1 - maximization and currently treated as maximization
+      -1 - maximization but currently treated as minimization
+   */
+  int isMaximization_;
+
   //@}
 };
-
+// Special value for Indicator
+#ifndef COIN_INDICATOR_VALUE
+#define COIN_INDICATOR_VALUE COIN_DBL_MAX
+//#define COIN_INDICATOR_VALUE 1.0e7
+#endif
 //#############################################################################
 /** A function that tests the methods in the CoinMpsIO class. The
     only reason for it not to be a member method is that this way it doesn't
@@ -1147,6 +1171,3 @@ COINUTILSLIB_EXPORT
 void CoinConvertDouble(int section, int formatType, double value, char outputValue[24]);
 
 #endif
-
-/* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
-*/

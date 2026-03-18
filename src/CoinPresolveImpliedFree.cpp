@@ -20,6 +20,7 @@
 #if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
+bool canBeFeasible(CoinPresolveMatrix *prob,int iRow);
 int check_row(CoinBigIndex *mrstrt,
   double *rowels, int *hcol, int *hinrow,
   double coeff_factor, double kill_ratio, int irowx, int irowy, int &numberBadElements)
@@ -350,7 +351,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           break;
         }
         const double abs_ait = fabs(colCoeffs[kcol]);
-        ait_max = CoinMax(ait_max, abs_ait);
+        ait_max = std::max(ait_max, abs_ait);
         if (fabs(rlo[i] - rup[i]) < feasTol && abs_ait > .1 * ait_max) {
           possibleRow = true;
         }
@@ -441,8 +442,20 @@ const CoinPresolveAction *implied_free_action::presolve(
               ++infUi;
           }
         }
-        const double maxUinf = maxUi + infUi * 1.0e31;
-        const double maxLinf = maxLi - infLi * 1.0e31;
+        double maxUinf = maxUi + infUi * 1.0e31;
+        double maxLinf = maxLi - infLi * 1.0e31;
+        if (maxUinf < rloi - feasTol) {
+	  // double check
+	  if (canBeFeasible(prob,i)) {
+	    maxUinf = rloi - feasTol;
+	  }
+	}
+        if (maxLinf > rupi + feasTol) {
+	  // double check
+	  if (canBeFeasible(prob,i)) {
+	    maxLinf = rupi + feasTol;
+	  }
+	}
         if (maxUinf <= rupi + feasTol && maxLinf >= rloi - feasTol) {
           infiniteUp[i] = -2;
         } else if (maxUinf < rloi - feasTol && !fixInfeasibility) {
@@ -524,7 +537,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           } else {
             ltprime = -COIN_DBL_MAX;
           }
-          impliedLow = CoinMax(impliedLow, ltprime);
+          impliedLow = std::max(impliedLow, ltprime);
         }
         if (rupi < large) {
           if (!infLi) {
@@ -539,7 +552,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           } else {
             utprime = COIN_DBL_MAX;
           }
-          impliedHigh = CoinMin(impliedHigh, utprime);
+          impliedHigh = std::min(impliedHigh, utprime);
         }
       } else {
         if (rloi > -large) {
@@ -555,7 +568,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           } else {
             utprime = COIN_DBL_MAX;
           }
-          impliedHigh = CoinMin(impliedHigh, utprime);
+          impliedHigh = std::min(impliedHigh, utprime);
         }
         if (rupi < large) {
           if (!infLi) {
@@ -570,7 +583,7 @@ const CoinPresolveAction *implied_free_action::presolve(
           } else {
             ltprime = -COIN_DBL_MAX;
           }
-          impliedLow = CoinMax(impliedLow, ltprime);
+          impliedLow = std::max(impliedLow, ltprime);
         }
       }
 #if PRESOLVE_DEBUG > 2
@@ -706,10 +719,10 @@ const CoinPresolveAction *implied_free_action::presolve(
           double newCost = oldCost - (tgtcol_cost * rowCoeffs[krow]) / tgtcol_coeff;
           oldCost = fabs(oldCost);
           newCost = fabs(newCost);
-          //minOldCost=CoinMin(minOldCost,oldCost);
-          maxOldCost = CoinMax(maxOldCost, oldCost);
-          //minNewCost=CoinMin(minNewCost,newCost);
-          maxNewCost = CoinMax(maxNewCost, newCost);
+          //minOldCost=std::min(minOldCost,oldCost);
+          maxOldCost = std::max(maxOldCost, oldCost);
+          //minNewCost=std::min(minNewCost,newCost);
+          maxNewCost = std::max(maxNewCost, newCost);
         }
       }
       if (maxNewCost > 1000.0 * (maxOldCost + 1.0) && maxOldCost) {
@@ -828,7 +841,9 @@ const CoinPresolveAction *implied_free_action::presolve(
     // if not integer - don't allow much fill
     if (!prob->anyInteger()) {
       int numberFree = unprocessed;
+#if CLP_USEFUL_PRINTOUT
       int nBad = 0;
+#endif
       unprocessed = 0;
       // Take out ones that make much denser or might lead to instability
       /*
@@ -940,10 +955,10 @@ const CoinPresolveAction *implied_free_action::presolve(
 	  Count up the total number of coefficients in entangled rows and mark them as
 	  contaminated.
 	*/
-        int ntotels = 0;
+        //int ntotels = 0;
         for (CoinBigIndex kcol = tgtcs; kcol < tgtce; ++kcol) {
           const int i = rowIndices[kcol];
-          ntotels += rowLengths[i];
+          //ntotels += rowLengths[i];
           PRESOLVEASSERT(!prob->rowUsed(i));
           prob->setRowUsed(i);
           rowsUsed[nRowsUsed++] = i;
@@ -989,8 +1004,10 @@ const CoinPresolveAction *implied_free_action::presolve(
         if (numberBadElements || 3 * numberFill > 2 * (colLengths[tgtcol] + rowLengths[tgtrow])) {
           //printf("Bad subst col %d row %d - %d small elements, fill %d\n",
           //	 tgtcol,tgtrow,numberBadElements,numberFill);
+#if CLP_USEFUL_PRINTOUT
           if (numberBadElements)
             nBad++;
+#endif
         } else {
           whichFree[unprocessed] = tgtcol;
           implied_free[unprocessed++] = tgtrow;
@@ -1261,8 +1278,8 @@ void implied_free_action::postsolve(CoinPostsolveMatrix *prob) const
 #endif
 #endif
 
-    xt_lo = CoinMax(xt_lo, lt);
-    xt_up = CoinMin(xt_up, ut);
+    xt_lo = std::max(xt_lo, lt);
+    xt_up = std::min(xt_up, ut);
 
     /*
   Time to make x(t) basic and the logical nonbasic.  The sign of the

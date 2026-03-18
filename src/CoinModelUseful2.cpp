@@ -816,7 +816,7 @@ yylex(symrec *&symtable, const char *line, int *position, char *&symbuf, int &le
         value = associated[find];
         //printf("symbol %s found with value of %g\n",symbuf,value);
         if (value == unsetValue)
-          error = CoinMax(error, 1);
+          error = std::max(error, 1);
       } else {
         //printf("unknown symbol %s\n",symbuf);
         value = unsetValue;
@@ -1177,7 +1177,7 @@ yyreduce:
 yyerrlab:
   /* If not already recovering from an error, report this error.  */
   if (!yyerrstatus) {
-    error = CoinMax(error, 2);
+    error = std::max(error, 2);
     ++yynerrs;
 #if YYERROR_VERBOSE
     yyn = yypact[yystate];

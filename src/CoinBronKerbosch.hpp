@@ -9,7 +9,7 @@
  * @file CoinBronKerbosch.hpp
  * @brief Bron-Kerbosch Algorithm
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -21,6 +21,7 @@
 #define COINBRONKERBOSCH_HPP
 
 #include <cstddef>
+#include <vector>
 #include "CoinUtilsConfig.h"
 
 class CoinConflictGraph;
@@ -60,15 +61,27 @@ struct BKVertex {
 class COINUTILSLIB_EXPORT CoinBronKerbosch {
 public:
   /**
+   * Pivoting strategies used in BK algorithm.
+   **/
+  enum PivotingStrategy {
+    Off = 0,
+    Random = 1,
+    Degree = 2,
+    Weight = 3,
+    ModifiedDegree = 4,
+    ModifiedWeight = 5,
+    ModifiedDegreeWeight = 6,
+  };
+
+  /**
    * Default constructor.
    *
    * @param cgraph conflict graph
    * @param weights array containing the weights for each vertex
-   * @param pivotingStrategy pivoting strategy used in BK algorithm. Values:
-   * 0 = off; 1 = random; 2 = degree; 3 = weight; 4 = modified degree;
-   * 5 = modified weight; 6 = modified degree + modified weight. Default: 3
+   * @param pivotingStrategy pivoting strategy used in BK algorithm.
    **/
-  CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights, size_t pivotingStrategy = 3);
+  CoinBronKerbosch(const CoinConflictGraph *cgraph, const double *weights,
+    PivotingStrategy pivotingStrategy = PivotingStrategy::Weight);
 
   /**
    * Destructor
@@ -85,7 +98,7 @@ public:
    * Return the number of cliques found by BK algorithm.
    **/
   size_t nCliques() const;
-  
+
   /**
    * Return the i-th clique found by BK algorithm.
    **/
@@ -106,12 +119,12 @@ public:
    * to be detected and stored by BK algorithm.
    **/
   void setMinWeight(double minWeight);
-  
+
   /**
    * Set the maximum number of recursive calls of BK algorithm.
    **/
   void setMaxCalls(size_t maxCalls);
-  
+
   /**
    * Return true if BK algorithm ran completely, without
    * stopping by the maximum number of recursive calls.
@@ -150,12 +163,7 @@ private:
     /**
      * Array of vertices
      **/
-    BKVertex *vertices_;
-
-    /**
-     * Number of vertices of the conflict graph
-     **/
-    size_t nVertices_;
+    std::vector<BKVertex> vertices_;
 
     /**
      * Size of each bit vector
@@ -165,22 +173,23 @@ private:
     /**
      * Bit mask
      **/
-    size_t *mask_;
+    std::vector<size_t> mask_;
 
     /**
      * Conflict graph and its complement represented by bit vectors
      **/
-    size_t **cgBitstring_, **ccgBitstring_;
+    std::vector<std::vector<size_t> > cgBitstring_, ccgBitstring_;
 
     /**
      * Bitstring with all vertices
      **/
-    size_t *allIn_;
+    std::vector<size_t> allIn_;
 
     /**
      * Set C of vertices that are part of the current clique
      **/
-    size_t *C_, nC_;
+    std::vector<size_t> C_;
+    size_t nC_;
 
     /**
      * Sum of the weights of the vertices in C
@@ -189,27 +198,29 @@ private:
 
     /**
      * Set of the candidate vertices to enter in C
-     * Contain a pointer for each depth of BK algorithm.
+     * Contain a vector for each depth of BK algorithm.
      **/
-    size_t **P_, *nP_;
+    std::vector<std::vector<size_t> > P_;
+    std::vector<size_t> nP_;
 
     /**
      * Set of all vertices that have already been considered
-     * in earlier steps by BK. Contain a pointer for each
+     * in earlier steps by BK. Contain a vector for each
      * depth of BK algorithm.
      **/
-    size_t **S_, *nS_;
+    std::vector<std::vector<size_t> > S_;
+    std::vector<size_t> nS_;
 
     /**
      * Set of vertices P excluding the neighbors of a vertex v.
-     * Contain a pointer for each depth of BK algorithm.
+     * Contain a vector for each depth of BK algorithm.
      **/
-    size_t **L_, *nL_;
+    std::vector<std::vector<size_t> > L_;
 
     /**
      * Array that stores the weights of each clique found by BK
      **/
-    double *clqWeight_;
+    std::vector<double> clqWeight_;
 
     /**
      * Current capacity of array clqWeight_
@@ -223,25 +234,19 @@ private:
     double minWeight_;
 
     /**
+     * Number of calls made by BK algorithm
+     **/
+    size_t calls_;
+
+    /**
      * Maximum number of recursive calls of BK algorithm.
      **/
     size_t maxCalls_;
 
-    /** Pivoting strategy used in BK algorithm. Options:
-     * 0 - off
-     * 1 - random
-     * 2 - degree
-     * 3 - weight
-     * 4 - modified degree
-     * 5 - modified weight
-     * 6 - modified degree + modified weight
-     **/
-    size_t pivotingStrategy_;
-
     /**
-     * Number of calls made by BK algorithm
+     * Pivoting strategy used in BK algorithm.
      **/
-    size_t calls_;
+    PivotingStrategy pivotingStrategy_;
 
     /**
      * If BK algorithm ran completely, without stopping

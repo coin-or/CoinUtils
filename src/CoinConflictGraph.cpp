@@ -2,13 +2,13 @@
  *
  * This file is part of the COIN-OR CBC MIP Solver
  *
- * Abstract class for a Conflict Graph, see CoinStaticConflictGraph and 
+ * Abstract class for a Conflict Graph, see CoinStaticConflictGraph and
  * CoinDynamicConflictGraph for concrete implementations.
  *
  * @file CoinConflictGraph.cpp
  * @brief Abstract class for conflict graph
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -30,13 +30,9 @@
 #include "CoinAdjacencyVector.hpp"
 #include "CoinTime.hpp"
 
-using namespace std;
-
+// Minimum row length required for the row to be stored as an explicit clique instead of
+// being expanded into pairwise conflicts (tunable via setMinCliqueRow).
 size_t CoinConflictGraph::minClqRow_ = 256;
-
-static void *xmalloc(const size_t size);
-
-static void *xcalloc(const size_t elements, const size_t size);
 
 CoinConflictGraph::CoinConflictGraph(size_t _size) {
     iniCoinConflictGraph(_size);
@@ -84,85 +80,49 @@ bool CoinConflictGraph::conflicting(size_t n1, size_t n2) const {
         nodeToSearch = n1;
     }
 
-    if (binary_search(dc, dc + ndc, nodeToSearch))
+    if (std::binary_search(dc, dc + ndc, nodeToSearch))
         return true;
 
     return conflictInCliques(n1, n2);
 }
 
-static void *xmalloc(const size_t size) {
-    void *result = malloc(size);
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to allocate %zu bytes.", size);
-        abort();
-    }
-
-    return result;
-}
-
-static void *xcalloc(const size_t elements, const size_t size) {
-    void *result = calloc(elements, size);
-    if (!result) {
-        fprintf(stderr, "No more memory available. Trying to callocate %zu bytes.", size * elements);
-        abort();
-    }
-
-    return result;
-}
-
 void CoinConflictGraph::recomputeDegree() {
     double start = CoinCpuTime();
     this->nConflicts_ = 0;
-    minDegree_ = numeric_limits<size_t>::max();
-    maxDegree_ = numeric_limits<size_t>::min();
+    minDegree_ = std::numeric_limits<size_t>::max();
+    maxDegree_ = std::numeric_limits<size_t>::min();
 
-    vector<bool> iv(size_, false);
+    const size_t maxDg = size_ - 1;
 
     for (size_t i = 0; (i < size_); ++i) {
-        const size_t ndc = nDirectConflicts(i);
-        const size_t *dc = directConflicts(i);
+        size_t dg = nDirectConflicts(i);
 
-        iv[i] = true;
-        for (size_t k = 0; k < ndc; k++) {
-            iv[dc[k]] = true;
-        }
-
-        size_t dg = ndc;
+        // Approximate degree contribution from cliques:
+        // instead of deduplicating element-by-element (expensive),
+        // add (cliqueSize - 1) per clique. This may overcount when
+        // nodes appear in multiple cliques or overlap with direct
+        // conflicts, but degree is only used for prioritization.
         const size_t nnc = this->nNodeCliques(i);
         const size_t *nc = this->nodeCliques(i);
         for (size_t k = 0; (k < nnc); ++k) {
-            const size_t idxc = nc[k];
-            const size_t clqsize = this->cliqueSize(idxc);
-            const size_t *clqEls = this->cliqueElements(idxc);
-            for (size_t l = 0; (l < clqsize); ++l) {
-                const size_t clqEl = clqEls[l];
-                dg += 1 - ((int) iv[clqEl]);
-                iv[clqEl] = true;
-            }
+            dg += this->cliqueSize(nc[k]) - 1;
         }
 
-        iv[i] = false;
-        for (size_t k = 0; (k < ndc); ++k)
-            iv[dc[k]] = false;
-        for (size_t k = 0; (k < nnc); ++k) {
-            const size_t idxc = nc[k];
-            const size_t clqsize = this->cliqueSize(idxc);
-            const size_t *clqEls = this->cliqueElements(idxc);
-            for (size_t l = 0; (l < clqsize); ++l) {
-                iv[clqEls[l]] = false;
-            }
-        }
+        // cap at maximum possible degree
+        if (dg > maxDg)
+            dg = maxDg;
 
         setDegree(i, dg);
         setModifiedDegree(i, dg);
-        minDegree_ = min(minDegree_, dg);
-        maxDegree_ = max(maxDegree_, dg);
+        minDegree_ = std::min(minDegree_, dg);
+        maxDegree_ = std::max(maxDegree_, dg);
         nConflicts_ += dg;
     }
 
     density_ = (double) nConflicts_ / maxConflicts_;
     double secs = CoinCpuTime() - start;
-//  printf("recompute degree took %.3f seconds.\n", secs);
+    if (secs>1.0)
+      printf("recompute degree took %.3f seconds!\n", secs);
 }
 
 void CoinConflictGraph::computeModifiedDegree() {
@@ -170,17 +130,17 @@ void CoinConflictGraph::computeModifiedDegree() {
         return;
     }
 
-    bool *iv = (bool *) xcalloc(size_, sizeof(bool));
+    std::vector<char> iv = std::vector<char>(size_);
 
     for (size_t i = 0; i < size_; i++) {
         const size_t ndc = nDirectConflicts(i);
         const size_t *dc = directConflicts(i);
         size_t mdegree = degree(i);
 
-        iv[i] = true;
+        iv[i] = 1;
         for (size_t k = 0; k < ndc; k++) {
             mdegree += degree(dc[k]);
-            iv[dc[k]] = true;
+            iv[dc[k]] = 1;
         }
 
         const size_t nnc = nNodeCliques(i);
@@ -190,7 +150,7 @@ void CoinConflictGraph::computeModifiedDegree() {
             for (size_t l = 0; l < cliqueSize(nc[k]); l++) {
                 if (!iv[clqEls[l]]) {
                     mdegree += degree(clqEls[l]);
-                    iv[clqEls[l]] = true;
+                    iv[clqEls[l]] = 1;
                 }
             }
         }
@@ -198,32 +158,31 @@ void CoinConflictGraph::computeModifiedDegree() {
         setModifiedDegree(i, mdegree);
 
         //clearing iv
-        iv[i] = false;
+        iv[i] = 0;
         for (size_t k = 0; k < ndc; k++) {
-            iv[dc[k]] = false;
+            iv[dc[k]] = 0;
         }
         for (size_t k = 0; k < nnc; k++) {
             const size_t *clqEls = cliqueElements(nc[k]);
             for (size_t l = 0; l < cliqueSize(nc[k]); l++) {
-                iv[clqEls[l]] = false;
+                iv[clqEls[l]] = 0;
             }
         }
     }
 
     updateMDegree = false;
-    free(iv);
 }
 
-std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t node, size_t *temp, bool *iv) const {
+std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t node, size_t *temp, char *iv) const {
     if (nNodeCliques(node)) {
         const size_t ndc = nDirectConflicts(node);
         const size_t *dc = directConflicts(node);
 
         // adding direct conflicts and after conflicts from cliques
-        iv[node] = true;
+        iv[node] = 1;
         for (size_t k = 0; k < ndc; k++) {
             temp[k] = dc[k];
-            iv[dc[k]] = true;
+            iv[dc[k]] = 1;
         }
 
         size_t nConf = ndc;
@@ -236,25 +195,25 @@ std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t nod
                 const size_t neigh = cliqueElements(idxClq)[j];
                 if (!iv[neigh]) {
                     temp[nConf++] = neigh;
-                    iv[neigh] = true;
+                    iv[neigh] = 1;
                 }
             }
         }
 
 #ifdef DEBUGCG
-        assert(nConf == degree(node));
+        assert(nConf <= degree(node));
 #endif
 
         // clearing iv
-        iv[node] = false;
+        iv[node] = 0;
         for (size_t i = 0; (i < nConf); ++i)
-            iv[temp[i]] = false;
+            iv[temp[i]] = 0;
 
         std::sort(temp, temp + nConf);
         return std::pair<size_t, const size_t *>(nConf, temp);
     } else {
 #ifdef DEBUGCG
-        assert(nDirectConflicts(node) == degree(node));
+        assert(nDirectConflicts(node) <= degree(node));
 #endif
         // easy, node does not appears on explicit cliques
         return std::pair<size_t, const size_t *>(nDirectConflicts(node), directConflicts(node));
@@ -277,7 +236,7 @@ bool CoinConflictGraph::conflictInCliques(size_t n1, size_t n2) const {
         size_t idxClq = nodeCliques(nnc)[i];
         const size_t *clq = cliqueElements(idxClq);
         size_t clqSize = cliqueSize(idxClq);
-        if (binary_search(clq, clq + clqSize, nodeToSearch))
+        if (std::binary_search(clq, clq + clqSize, nodeToSearch))
             return true;
     }
 
@@ -303,6 +262,7 @@ void CoinConflictGraph::iniCoinConflictGraph(const CoinConflictGraph *other) {
     minDegree_ = other->minDegree_;
     maxDegree_ = other->maxDegree_;
     updateMDegree = other->updateMDegree;
+    infeasibleImplications_ = infeasibleImplications_;
 }
 
 void CoinConflictGraph::setMinCliqueRow(size_t minClqRow) {
@@ -333,14 +293,14 @@ void CoinConflictGraph::printSummary() const {
     }
 
     if (numEdges) {
-        size_t *neighs = (size_t *) xmalloc(sizeof(size_t) * size_);
-        bool *iv = (bool*)xcalloc(size_, sizeof(bool));
+        std::vector<size_t> neighs = std::vector<size_t>(size_);
+        std::vector<char> iv = std::vector<char>(size_);
 
         avgDegree = ((double) numEdges) / ((double) numVertices);
         density = (2.0 * ((double) numEdges)) / (((double) numVertices) * (((double) numVertices) - 1.0));
 
         for (size_t i = 0; i < size_; i++) {
-            const std::pair<size_t, const size_t*> rescg = conflictingNodes(i, neighs, iv);
+            const std::pair<size_t, const size_t*> rescg = conflictingNodes(i, neighs.data(), iv.data());
 
             for (size_t j = 0; j < rescg.first; j++) {
                 const size_t vertexNeighbor = rescg.second[j];
@@ -364,14 +324,156 @@ void CoinConflictGraph::printSummary() const {
         confsCompVars = (confsCompVars / ((double)numEdges));
         mixedConfs = (mixedConfs / ((double)numEdges));
         trivialConflicts = (trivialConflicts / ((double)numEdges));
-
-        free(neighs);
-        free(iv);
     }
 
     printf("%ld;%ld;%lf;%ld;%ld;%lf;%lf;%lf;%lf;%lf;", numVertices, numEdges, density, minDegree, maxDegree,
             avgDegree, confsActiveVars, confsCompVars, mixedConfs, trivialConflicts);
 }
+
+const std::vector<CoinConflictGraph::BinaryBoundInfeasibility> &CoinConflictGraph::infeasibleImplications() const
+{
+    return infeasibleImplications_;
+}
+
+void CoinConflictGraph::registerBoundImplicationInfeasibility(const BinaryBoundInfeasibility &info)
+{
+    infeasibleImplications_.push_back(info);
+}
+
+#ifdef CGRAPH_DEEP_DIVE
+#include <unordered_map>
+#include "CoinColumnType.hpp"
+void CoinConflictGraph::validateConflictGraphUsingFeasibleSolution(
+    size_t numCols,
+    const char *colTypes,
+    const double *colLower,
+    const double *colUpper,
+    const std::vector<std::string> &colNames,
+    const std::vector< std::pair< std::string, double > > &mipStart) const {
+#define MAX_WARNINGS_COLUMNS 10
+    static int nWarningsColumns = 0;
+    if (!numCols || !colTypes || !colLower || !colUpper) {
+        std::cerr << "CoinConflictGraph::validateConflictGraph: incomplete model data." << std::endl;
+        return;
+    }
+
+    if (size_ != 2 * numCols) {
+        std::cerr << "CoinConflictGraph::validateConflictGraph: conflict graph size (" << size_
+                  << ") is incompatible with solver columns (" << numCols << ")." << std::endl;
+        return;
+    }
+
+    // Validate that only binary variables should have conflicts recorded.
+    for (size_t col = 0; col < numCols; ++col) {
+        const bool isBinary = colTypes[col] == CoinColumnType::Binary;
+        const size_t degActive = degree(col);
+        const size_t degComplement = degree(col + numCols);
+        if (!isBinary && (degActive > 0 || degComplement > 0)) {
+            std::string varName;
+            if (col < colNames.size() && !colNames[col].empty()) {
+                varName = colNames[col];
+            } else {
+                std::ostringstream os;
+                os << "col_" << col;
+                varName = os.str();
+            }
+            if (nWarningsColumns  < MAX_WARNINGS_COLUMNS) {
+                std::cerr << "Warning: variable '" << varName
+                        << "' (index=" << col << ", type=" << colTypes[col]
+                        << ", bounds=[" << colLower[col] << ',' << colUpper[col]
+                        << "]) has conflicts but is not binary." << std::endl;
+                nWarningsColumns++;
+            }
+        }
+    }
+
+    // Build map from column names to indices for quick lookup.
+    std::unordered_map<std::string, size_t> nameToIndex;
+    nameToIndex.reserve(numCols * 2);
+    for (size_t col = 0; col < numCols; ++col) {
+        if (col < colNames.size() && !colNames[col].empty()) {
+            nameToIndex[colNames[col]] = col;
+        }
+    }
+
+    struct StartInfo {
+        size_t index;
+        double value;
+        std::string name;
+    };
+
+    std::vector<StartInfo> binaryAssignments;
+    binaryAssignments.reserve(mipStart.size());
+    std::unordered_map<size_t, size_t> indexToPos;
+
+    nWarningsColumns = 0;
+
+    const double tol = 1e-6;
+    for (const auto &assignment : mipStart) {
+        auto it = nameToIndex.find(assignment.first);
+        if (it == nameToIndex.end()) {
+            continue;
+        }
+
+        const size_t idx = it->second;
+        if (colTypes[idx] != CoinColumnType::Binary) {
+            continue;
+        }
+
+        const double rawValue = assignment.second;
+        double normalizedValue = rawValue;
+        if (std::fabs(rawValue) <= tol) {
+            normalizedValue = 0.0;
+        } else if (std::fabs(rawValue - 1.0) <= tol) {
+            normalizedValue = 1.0;
+        }
+
+        if (!(normalizedValue == 0.0 || normalizedValue == 1.0)) {
+            if (nWarningsColumns < MAX_WARNINGS_COLUMNS) {
+                std::cerr << "Warning: mipStart assigns value " << rawValue << " to binary variable '"
+                        << assignment.first << "' (index=" << idx << ", type=" << colTypes[idx]
+                        << ", bounds=[" << colLower[idx] << ',' << colUpper[idx] << "]). Expected 0/1.\n";
+                nWarningsColumns++;
+            }
+            continue;
+        }
+
+        const auto insRes = indexToPos.emplace(idx, binaryAssignments.size());
+        if (insRes.second) {
+            binaryAssignments.push_back({ idx, normalizedValue, assignment.first });
+        } else {
+            binaryAssignments[insRes.first->second].value = normalizedValue;
+        }
+    }
+
+    nWarningsColumns = 0;
+
+    // Verify that mipStart assignments do not contradict the conflict graph.
+    const size_t nBinaryAssignments = binaryAssignments.size();
+    for (size_t i = 0; i < nBinaryAssignments; ++i) {
+        const StartInfo &vi = binaryAssignments[i];
+        const size_t nodeI = (vi.value == 1.0) ? vi.index : vi.index + numCols;
+        for (size_t j = i + 1; j < nBinaryAssignments; ++j) {
+            const StartInfo &vj = binaryAssignments[j];
+            const size_t nodeJ = (vj.value == 1.0) ? vj.index : vj.index + numCols;
+            if (conflicting(nodeI, nodeJ)) {
+
+              if (nWarningsColumns  < MAX_WARNINGS_COLUMNS) {
+                std::cerr << "Warning: mipStart assigns incompatible binary variables: '"
+                          << vi.name << "' (idx=" << vi.index << ", type=" << colTypes[vi.index]
+                          << ", bounds=[" << colLower[vi.index] << ',' << colUpper[vi.index]
+                          << "], value=" << vi.value << ") and '" << vj.name << "' (idx="
+                          << vj.index << ", type=" << colTypes[vj.index] << ", bounds=["
+                          << colLower[vj.index] << ',' << colUpper[vj.index] << "], value="
+                          << vj.value << ").\n";
+                nWarningsColumns++;
+              }
+            }
+        }
+    }
+}
+#endif //CGRAPH_DEEP_DIVE
+
 
 /* vi: softtabstop=2 shiftwidth=2 expandtab tabstop=2
 */

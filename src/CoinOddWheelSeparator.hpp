@@ -9,7 +9,7 @@
  * @file CoinOddWheelSeparator.hpp
  * @brief Odd-wheel cut separator
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -21,6 +21,7 @@
 #define COINODDWHEELSEPARATOR_HPP
 
 #include "CoinUtilsConfig.h"
+#include <vector>
 
 class CoinConflictGraph;
 class CoinShortestPath;
@@ -79,7 +80,7 @@ public:
   /**
    * Return the number of cuts separated.
    **/
-  size_t numOddWheels() const { return numOH_; }
+  size_t numOddWheels() const { return ohIdxs_.size(); }
 
   /**
    * The inequality for a discovered odd hole may be
@@ -95,6 +96,13 @@ public:
    **/
   size_t wheelCenterSize(const size_t idxOH) const;
 
+  /**
+   * Set a wall-clock time limit (seconds) for searchOddWheels().
+   * The search will abort early when this limit is exceeded.
+   * A value of 0.0 (default) means no limit.
+   **/
+  inline void setMaxSeconds(double maxSeconds) { maxSeconds_ = maxSeconds; }
+
 private:
   /**
    * Select interesting columns that will be
@@ -103,10 +111,10 @@ private:
   void fillActiveColumns();
 
   /**
-   * Prepare the graph to run the shortest
-   * path algorithm.
+   * Prepare the graph to run the shortest path algorithm.
+   * Returns false if aborted early due to time limit.
    **/
-  void prepareGraph();
+  bool prepareGraph(double startTime);
 
   /**
    * Try to find an odd whole (a most violated) that
@@ -117,12 +125,12 @@ private:
   /**
    * Add a odd hole
    **/
-  bool addOddHole(size_t nz, const size_t *idxs);
+  bool addOddHole(size_t nz, const std::vector<size_t> &idxs);
 
   /**
    * Check if the odd hole has already been inserted.
    **/
-  bool alreadyInserted(size_t nz, const size_t *idxs);
+  bool alreadyInserted(size_t nz, const std::vector<size_t> &idxs);
 
   /**
    * Search an wheel center for the i-th discovered
@@ -151,35 +159,35 @@ private:
    * considered in the cut separation.
    **/
   size_t icaCount_;
-  
+
   /**
    * Interesting columns that will be considered
    * in the cut separation.
    **/
-  size_t *icaIdx_;
+  std::vector<size_t> icaIdx_;
 
   /**
    * Mapping of the fractional solution value to
    * an integer value to made further computations
    * easier.
    **/
-  double *icaActivity_;
+  std::vector<double> icaActivity_;
 
   /**
    * Start index for arcs of each node.
    * Used in the shortest path algorithm.
    **/
-  size_t *spArcStart_;
+  std::vector<size_t> spArcStart_;
   /**
    * Destination of each arc.
    * Used in the shortest path algorithm.
    **/
-  size_t *spArcTo_;
+  std::vector<size_t> spArcTo_;
   /**
    * Distance for each arc.
    * Used in the shortest path algorithm.
    **/
-  double *spArcDist_;
+  std::vector<double> spArcDist_;
   /**
    * Capacity to store arcs.
    **/
@@ -188,17 +196,17 @@ private:
   /**
    * Auxiliary array
    **/
-  size_t *tmp_;
+  std::vector<size_t> tmp_;
 
   /**
    * Auxiliary array used in lifted module.
    **/
-  double *costs_;
+  std::vector<double> costs_;
 
   /**
    * Auxiliary incidence arrays
    **/
-  bool *iv_, *iv2_;
+  std::vector<char> iv_, iv2_;
 
   /**
    * Class that contains the shortest path algorithm.
@@ -206,33 +214,14 @@ private:
   CoinShortestPath *spf_;
 
   /**
-   * Number of discovered odd holes
-   **/
-  size_t numOH_;
-  /**
-   * Capacity for odd hole elements
-   **/
-  size_t capOHIdxs_;
-  /**
-   * Start indexes for the i-th odd hole
-   **/
-  size_t *ohStart_;
-  /**
    * Indexes of all odd holes
    **/
-  size_t *ohIdxs_;
-  /**
-   * Capacity for odd hole wheel centers
-   **/
-  size_t capWCIdx_;
+  std::vector<std::vector<size_t> > ohIdxs_;
+
   /**
    * Indexes of all wheel centers
    **/
-  size_t *wcIdxs_;
-  /**
-   * Positions where each wheel center starts
-   **/
-  size_t *wcStart_;
+  std::vector<std::vector<size_t> > wcIdxs_;
 
   /**
    * Lifting strategy: 0 = no lifting,
@@ -240,6 +229,11 @@ private:
    * 2 = a clique as wheel center
    **/
   size_t extMethod_;
+
+  /**
+   * Wall-clock time limit for searchOddWheels(), 0 = unlimited.
+   **/
+  double maxSeconds_;
 };
 
 

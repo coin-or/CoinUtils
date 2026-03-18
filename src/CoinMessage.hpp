@@ -64,6 +64,9 @@ enum COIN_Message {
   COIN_GENERAL_INFO2,
   COIN_GENERAL_WARNING,
   COIN_CGRAPH_INFO,
+  COIN_CGRAPH_FIX_VAR,
+  COIN_CGRAPH_FIX_VAR_DIFFER_MIPSTART,
+  COIN_CGRAPH_INFEASIBLE_IMPLICATION,
   COIN_DUMMY_END
 };
 
@@ -81,7 +84,7 @@ public:
   /**@name Constructors etc */
   //@{
   /*! \brief Constructor
-  
+
     Build a CoinMessages object and load it with the standard set of
     Coin messages.
   */

@@ -8,7 +8,7 @@
  * @file CoinAdjacencyVector.hpp
  * @brief Vector of growable vectors
  * @author Samuel Souza Brito and Haroldo Gambini Santos
- * Contact: samuelbrito@ufop.edu.br and haroldo@ufop.edu.br
+ * Contact: samuelbrito@ufop.edu.br and haroldo.santos@gmail.com
  * @date 03/27/2020
  *
  * \copyright{Copyright 2020 Brito, S.S. and Santos, H.G.}
@@ -20,6 +20,7 @@
 #define COINADJACENCYVECTOR_H
 
 #include <cstddef>
+#include <vector>
 #include "CoinUtilsConfig.h"
 
 /**
@@ -30,7 +31,11 @@ class COINUTILSLIB_EXPORT CoinAdjacencyVector
 {
 public:
   /**
-   * Default constructor.
+   * Construct an adjacency structure with `_nRows` rows and reserve
+   * `_iniRowSize` slots for each row to limit reallocations.
+   *
+   * @param _nRows number of nodes/rows that will be tracked
+   * @param _iniRowSize initial capacity reserved for every row
    **/
   CoinAdjacencyVector( size_t _nRows, size_t _iniRowSize );
 
@@ -55,7 +60,7 @@ public:
    * @param idxNeigh neighbor that will be searched
    **/
   bool isNeighbor(size_t idxNode, size_t idxNeigh) const;
- 
+
   /**
    * Add a new neighbor to a node.
    *
@@ -90,10 +95,11 @@ public:
    void sort();
 
 
-   /**
-    * Sort all neighbors of all elements and remove duplicates
-    **/
-   void flush();
+  /**
+   * For every row with pending unsorted entries, sort its neighbors,
+   * remove duplicates, and mark it as up to date.
+   **/
+  void flush();
 
    /**
     * Sort all neighbors of idxRow
@@ -107,14 +113,13 @@ public:
 
   /**
    * Try to add an element to a sorted vector, keeping it sorted.
-   * Return 1 if element was added and 0 if it was already there.
+   * Return `true` if element was added and `false` if it was already there.
    *
    * @param el sorted vector
-   * @param n size of the sorted vector
    * @param newEl element to be added to the sorted vector
    **/
-  static char tryAddElementSortedVector( size_t *el, size_t n, size_t newEl );
-  
+  static bool tryAddElementSortedVector(std::vector<size_t> &el, size_t newEl);
+
   /**
    * Return the total number of elements.
    **/
@@ -122,40 +127,14 @@ public:
 
 private:
   /**
-   * Number of nodes
-   **/
-  size_t nRows_;
-
-  /**
    * Pointers to the current neighbor vector of each node
    **/
-  size_t **rows_;
-
-  /**
-   * Pointers to additional memory allocated
-   * to neigbors that don't fit in the initial space.
-   **/
-  size_t **expandedRows_;
-
-  /**
-   * Initial memory allocated to lines of rows_
-   **/
-  size_t *iniRowSpace_;
-
-  /**
-   * Size of each neighbor vector
-   **/
-  size_t *rowSize_;
-
-  /**
-   * Current capacity of each neighbor vector
-   **/
-  size_t *rowCap_;
+  std::vector<std::vector<size_t> > rows_;
 
   /**
    * Elements added that need to be sorted later
    **/
-  size_t *notUpdated_;
+  std::vector<size_t> notUpdated_;
 
   /**
    * Check if a node can receive a new neighbor

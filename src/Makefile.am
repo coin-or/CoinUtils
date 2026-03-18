@@ -76,6 +76,8 @@ libCoinUtils_la_SOURCES = \
 	CoinConflictGraph.cpp \
 	CoinCutPool.cpp \
 	CoinDynamicConflictGraph.cpp \
+	CoinKnapsackRow.cpp \
+	CoinTerm.cpp \
 	CoinNodeHeap.cpp \
 	CoinOddWheelSeparator.cpp \
 	CoinShortestPath.cpp \
@@ -166,10 +168,13 @@ includecoin_HEADERS = \
 	CoinConflictGraph.hpp \
 	CoinCutPool.hpp \
 	CoinDynamicConflictGraph.hpp \
+	CoinKnapsackRow.hpp \
+	CoinTerm.hpp \
 	CoinNodeHeap.hpp \
 	CoinOddWheelSeparator.hpp \
 	CoinShortestPath.hpp \
-	CoinStaticConflictGraph.hpp
+	CoinStaticConflictGraph.hpp \
+	CoinColumnType.hpp
 
 if BUILD_OSLFACTORIZATION
   includecoin_HEADERS += CoinOslFactorization.hpp CoinSimpFactorization.hpp

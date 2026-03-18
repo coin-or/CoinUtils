@@ -27,7 +27,6 @@
 #include "CoinFinite.hpp"
 #include "CoinSort.hpp"
 
-using namespace std;
 #define LPIO_MODIFY_MESSAGES 1
 #if LPIO_MODIFY_MESSAGES == 0
 #define CoinLpIOError(a,b,c,d,e) throw CoinError(a,b,c,d,e)
@@ -1151,7 +1150,7 @@ int CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
 
   fprintf(fp, "Subject To\n");
 
-  int cnt_out_rows = 0;
+  //int cnt_out_rows = 0;
 
   for (i = 0; i < nrow; i++) {
     cnt_print = 0;
@@ -1159,7 +1158,7 @@ int CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
     if (useRowNames) {
       fprintf(fp, "%s: ", rowNames[i]);
     }
-    cnt_out_rows++;
+    //cnt_out_rows++;
 
     for (j = matrixByRow_->getVectorFirst(i);
          j < matrixByRow_->getVectorLast(i); j++) {
@@ -1193,7 +1192,7 @@ int CoinLpIO::writeLp(FILE *fp, const bool useRowNames)
           if (useRowNames) {
             fprintf(fp, "%s_low:", rowNames[i]);
           }
-          cnt_out_rows++;
+          //cnt_out_rows++;
 
           for (j = matrixByRow_->getVectorFirst(i);
                j < matrixByRow_->getVectorLast(i); j++) {
@@ -1470,13 +1469,30 @@ int CoinLpIO::is_free(const char *buff) const
 /*************************************************************************/
 int CoinLpIO::is_inf(const char *buff) const
 {
-
   size_t lbuff = strlen(buff);
+#if 1
+  switch (lbuff) {
+  case 3:
+    return (CoinStrNCaseCmp(buff, "inf", 3) == 0) ? 1 : 0;
+  case 4:
+    return (CoinStrNCaseCmp(buff, "-inf", 4) == 0) ? -1 : 0;
+    break;
+  case 8:
+    return (CoinStrNCaseCmp(buff, "infinity", 8) == 0) ? 1 : 0;
+    break;
+  case 9:
+    return (CoinStrNCaseCmp(buff, "-infinity", 9) == 0) ? -1 : 0;
+    break;
+  default:
+    return 0;
+  }
+#else
 
   if ((lbuff == 3) && (CoinStrNCaseCmp(buff, "inf", 3) == 0)) {
     return (1);
   }
   return (0);
+#endif
 } /* is_inf */
 
 /*************************************************************************/
@@ -1597,7 +1613,8 @@ int CoinLpIO::read_monom_obj(double *coeff, char **name, int *cnt,
   double mult;
   char buff[1024] = "aa", loc_name[1024], *start;
   int read_st = 0;
-
+  int savePos = bufferPosition_;
+  
   int x = fscanfLpIO(buff);
 
   if (x <= 0) {
@@ -1660,8 +1677,33 @@ int CoinLpIO::read_monom_obj(double *coeff, char **name, int *cnt,
     }
   }
 
+  // If first - check not offset
+  int offset = 0;
+  if ((*cnt)==0 && first_is_number(start)) {
+    // see if number to start
+    char *temp = inputBuffer_+bufferPosition_;
+    while (*temp==' ')
+      temp++;
+    if (*temp=='+'||*temp=='-') {
+      offset = atof(start);
+      setObjectiveOffset(-mult*offset);
+      start = temp;
+      offset = (*temp=='+') ? 1 : -1;
+      if (!first_is_number(start)) {
+	start--;
+	start =temp;
+	*start = '1';
+      }
+    }
+  }
   if (first_is_number(start)) {
     coeff[*cnt] = atof(start);
+    if ((*cnt)==0&&offset) {
+      coeff[*cnt] *= offset;
+      bufferPosition_++;
+      while(inputBuffer_[bufferPosition_]==' ')
+	bufferPosition_++;
+    }
     sprintf(loc_name, "aa");
     fscanfLpIO(loc_name);
   } else {
@@ -1779,9 +1821,12 @@ int CoinLpIO::read_monom_obj(double *coeff, char **name, int *cnt,
 #ifdef LPIO_DEBUG
   printf("read_monom_obj: second buff: (%s)\n", buff);
 #endif
-
+  /* First one may just be objective offset
+     - but I don't think it worth fixing as I
+     think more natural at end */
   if (read_st > 0) {
-    setObjectiveOffset(mult * coeff[*cnt]);
+    // offset is stored with sign other way round
+    setObjectiveOffset(-mult * coeff[*cnt]+objectiveOffset());
 
 #ifdef LPIO_DEBUG
     printf("read_monom_obj: objectiveOffset: %f\n", objectiveOffset_);
@@ -1895,7 +1940,7 @@ void CoinLpIO::realloc_row(char ***rowNames, CoinBigIndex **start, double **rhs,
 void CoinLpIO::realloc_col(double **collow, double **colup, char **is_int,
   int *maxcol) const
 {
-  *maxcol += 100;
+  *maxcol += 100 + (*maxcol)/10;
   *collow = reinterpret_cast< double * >(realloc((*collow), (*maxcol + 1) * sizeof(double)));
   *colup = reinterpret_cast< double * >(realloc((*colup), (*maxcol + 1) * sizeof(double)));
   *is_int = reinterpret_cast< char * >(realloc((*is_int), (*maxcol + 1) * sizeof(char)));
@@ -2021,6 +2066,18 @@ void CoinLpIO::readLp(const char *filename)
   // see if just .lp
   int length = strlen(filename);
   if ((length > 3 && !strncmp(filename + length - 3, ".lp", 3))) {
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__CYGWIN32__)
+    // leave problemName_ as null
+#else
+    // find last /
+    length--;
+    while (length>=0) {
+      if (filename[length]=='/')
+	break;
+      length--;
+    }
+    problemName_ = CoinStrdup(filename+length+1);
+#endif
     FILE *fp = fopen(filename, "r");
     if (fp) {
       readable = true;
@@ -2166,7 +2223,8 @@ void CoinLpIO::readLp()
   }
 
   int done = 0;
-
+  // limit number of warnings
+  int warnings = 0;
   while (!done) {
     switch (is_keyword(buff)) {
 
@@ -2191,14 +2249,14 @@ void CoinLpIO::readLp()
         }
 
         int scan_sense = 0;
-        if (first_is_number(start_str)) {
+	// look for infinity
+	int isInf = is_inf(start_str);
+        if (!isInf && first_is_number(start_str)) {
           bnd1 = mult * atof(start_str);
           scan_sense = 1;
-        } else {
-          if (is_inf(start_str)) {
-            bnd1 = mult * lp_inf;
-            scan_sense = 1;
-          }
+        } else if (isInf) {
+	  bnd1 = isInf * mult * lp_inf;
+	  scan_sense = 1;
         }
         if (scan_sense) {
           fscanfLpIO(buff);
@@ -2213,10 +2271,13 @@ void CoinLpIO::readLp()
 
         icol = findHash(buff, 1);
         if (icol < 0) {
-          char printBuffer[512];
-          sprintf(printBuffer, "### CoinLpIO::readLp(): Variable %s does not appear in objective function or constraints", buff);
-          handler_->message(COIN_GENERAL_WARNING, messages_) << printBuffer
-                                                             << CoinMessageEol;
+	  warnings++;
+	  if (warnings<50) {
+	    char printBuffer[512];
+	    sprintf(printBuffer, "### CoinLpIO::readLp(): Variable %s does not appear in objective function or constraints", buff);
+	    handler_->message(COIN_GENERAL_WARNING, messages_) << printBuffer
+							       << CoinMessageEol;
+	  }
           insertHash(buff, 1);
           icol = findHash(buff, 1);
           if (icol == maxcol) {
@@ -2637,6 +2698,12 @@ void CoinLpIO::readLp()
       break;
     }
   }
+  if (warnings>50) {
+    char printBuffer[512];
+    sprintf(printBuffer, "### CoinLpIO::readLp(): %d Variables did not appear in objective function or constraints", warnings);
+    handler_->message(COIN_GENERAL_WARNING, messages_) << printBuffer
+						       << CoinMessageEol;
+  }
 
 #ifdef LPIO_DEBUG
   printf("CoinLpIO::readLp(): Done with reading the Lp file\n");
@@ -2747,7 +2814,12 @@ void CoinLpIO::readLp()
   int saveNumberSets = numberSets_;
   set_ = NULL;
   numberSets_ = 0;
-
+  if (strlen(problemName_))
+    handler_->message(COIN_MPS_STATS, messages_) << problemName_
+						 << numberRows_
+						 << numberColumns_
+						 << numberElements_
+						 << CoinMessageEol;
   setLpDataWithoutRowAndColNames(*matrix, collow, colup,
     const_cast< const double ** >(obj),
     num_objectives, has_int ? is_int : 0, rowlow, rowup);
@@ -3269,7 +3341,7 @@ int CoinLpIO::fscanfLpIO(char *buff) const
       n = bufferLength_ - bufferPosition_;
     } else {
       // partial line - get more
-      start = CoinMax(abs(bufferLength_) - bufferPosition_, 0);
+      start = std::max(abs(bufferLength_) - bufferPosition_, 0);
       memcpy(buff, inputBuffer_ + bufferPosition_, start);
       bufferPosition_ = bufferLength_;
       int returnCode = newCardLpIO();
