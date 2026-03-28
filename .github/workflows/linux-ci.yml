@@ -28,10 +28,6 @@ jobs:
             build_static: false
             flags: CC=clang CXX=clang++
             download_requirements: brew install metis bash
-          - os: macos-15-intel
-            build_static: false
-            flags: CC=gcc-15 CXX=g++-15 ADD_CXXFLAGS=-Wl,-ld_classic
-            download_requirements: brew install metis bash
           - os: macos-26
             build_static: false
             flags: CC=gcc-15 CXX=g++-15 ADD_CXXFLAGS=-Wl,-ld_classic
@@ -40,11 +36,7 @@ jobs:
             build_static: false
             flags: CC=clang CXX=clang++
             download_requirements: brew install metis bash
-          - os: macos-14
-            arch: arm64
-            build_static: false
-            flags: CC=gcc-13 CXX=g++-13 ADD_CXXFLAGS=-Wl,-ld_classic
-            download_requirements: brew install metis bash
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v6
