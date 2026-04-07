@@ -224,6 +224,7 @@
     <ClCompile Include="..\..\..\src\CoinSnapshot.cpp" />
     <ClCompile Include="..\..\..\src\CoinStaticConflictGraph.cpp" />
     <ClCompile Include="..\..\..\src\CoinStructuredModel.cpp" />
+    <ClCompile Include="..\..\..\src\CoinTable.cpp" />
     <ClCompile Include="..\..\..\src\CoinTerm.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartBasis.cpp" />
     <ClCompile Include="..\..\..\src\CoinWarmStartDual.cpp" />
@@ -243,6 +244,7 @@
     <ClInclude Include="..\..\..\src\CoinOddWheelSeparator.hpp" />
     <ClInclude Include="..\..\..\src\CoinShortestPath.hpp" />
     <ClInclude Include="..\..\..\src\CoinStaticConflictGraph.hpp" />
+    <ClInclude Include="..\..\..\src\CoinTable.hpp" />
     <ClInclude Include="..\..\..\src\CoinUtilsConfig.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
