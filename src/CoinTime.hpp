@@ -88,15 +88,13 @@ inline double CoinGetTimeOfDay()
 
 #endif // _MSC_VER
 
-/// Wall-clock epoch seconds at static-initialisation time (before main()).
-/// Defined as an inline variable (C++17) so every translation unit shares
-/// the same object and the value is fixed exactly once.
-inline const double coinWallclockStart = CoinGetTimeOfDay();
-
-/// Returns elapsed wall-clock time in seconds since program start.
+/// Returns elapsed wall-clock time in seconds since the first call.
+/// Uses a static local variable (C++11) so the start time is captured
+/// exactly once, thread-safely, without requiring C++17 inline variables.
 inline double CoinWallclockTime()
 {
-  return CoinGetTimeOfDay() - coinWallclockStart;
+  static const double wallclockStart = CoinGetTimeOfDay();
+  return CoinGetTimeOfDay() - wallclockStart;
 }
 
 //#############################################################################
