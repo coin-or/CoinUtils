@@ -33,6 +33,7 @@
 // Minimum row length required for the row to be stored as an explicit clique instead of
 // being expanded into pairwise conflicts (tunable via setMinCliqueRow).
 size_t CoinConflictGraph::minClqRow_ = 256;
+size_t CoinConflictGraph::maxCliques_ = 1200;
 
 CoinConflictGraph::CoinConflictGraph(size_t _size) {
     iniCoinConflictGraph(_size);
@@ -271,6 +272,14 @@ void CoinConflictGraph::setMinCliqueRow(size_t minClqRow) {
 
 size_t CoinConflictGraph::getMinCliqueRow() {
 	return CoinConflictGraph::minClqRow_;
+}
+
+void CoinConflictGraph::setMaxCliques(size_t maxClq) {
+  CoinConflictGraph::maxCliques_ = maxClq;
+}
+
+size_t CoinConflictGraph::getMaxCliques() {
+  return CoinConflictGraph::maxCliques_;
 }
 
 void CoinConflictGraph::printSummary() const {

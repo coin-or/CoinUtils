@@ -241,6 +241,14 @@ public:
    **/
   static size_t getMinCliqueRow();
 
+  /** Set the maximum number of cliques to store during construction.
+   *  Once reached, further large cliques are skipped (small cliques
+   *  are still expanded into pairwise edges).  Default: 1200. */
+  static void setMaxCliques(size_t maxClq);
+
+  /** Return the maximum cliques limit. */
+  static size_t getMaxCliques();
+
 protected:
   /**
    * Parameter that controls the minimum size of
@@ -248,6 +256,9 @@ protected:
    * (not pairwise).
    **/
   static size_t minClqRow_;
+
+  /** Maximum number of cliques to store. */
+  static size_t maxCliques_;
 
   void registerBoundImplicationInfeasibility(const BinaryBoundInfeasibility &info);
 

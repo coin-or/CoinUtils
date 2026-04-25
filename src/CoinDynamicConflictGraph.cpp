@@ -272,7 +272,8 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
         knapsackRow.copyColumnIndices(tmpClq);
 
         if (nz >= CoinConflictGraph::minClqRow_) {
-          processClique(tmpClq, nz);
+          if (largeClqs->nCliques() < CoinConflictGraph::maxCliques_)
+            processClique(tmpClq, nz);
         } else {
           smallCliques->addClique(nz, tmpClq);
         }
@@ -391,7 +392,8 @@ void CoinDynamicConflictGraph::addCliqueAsNormalConflicts(const size_t idxs[], c
 void CoinDynamicConflictGraph::processClique(const size_t idxs[], const size_t size)
 {
   if (size >= CoinConflictGraph::minClqRow_) {
-    addClique(size, idxs);
+    if (largeClqs->nCliques() < CoinConflictGraph::maxCliques_)
+      addClique(size, idxs);
   } else {
     addCliqueAsNormalConflicts(idxs, size);
   }
