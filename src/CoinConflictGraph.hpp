@@ -333,10 +333,24 @@ public:
     size_t rowsWithFixings = 0;
   };
 
+  /** Per-row profile: stats grouped by (nz_bucket, sense, abs_rhs_bucket). */
+  struct RowProfileStats {
+    int nzBucket = 0;     // 0:<4, 1:<8, 2:<16, 3:<32, 4:<64, 5:<128, 6:<256, 7:>=256
+    char sense = '?';     // 'L','G','E','R'
+    int rhsBucket = 0;    // 0:0, 1:1, 2:2-5, 3:6-20, 4:21-100, 5:>100
+    size_t nRows = 0;
+    double totalTime = 0.0;
+    size_t rowsWithConflicts = 0;
+    size_t rowsWithFixings = 0;
+    size_t totalConflictsFound = 0; // sum of clique sizes across rows
+  };
+
   const RowTypeStats *rowTypeStats() const { return rowTypeStats_; }
+  const std::vector<RowProfileStats> &rowProfileStats() const { return rowProfileStats_; }
 
 protected:
   RowTypeStats rowTypeStats_[16]; // indexed by CoinRowType
+  std::vector<RowProfileStats> rowProfileStats_;
 #endif
 };
 

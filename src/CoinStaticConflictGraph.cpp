@@ -82,6 +82,7 @@ CoinStaticConflictGraph::CoinStaticConflictGraph (
 
 #ifdef CGRAPH_STATS
     memcpy(rowTypeStats_, cgraph->rowTypeStats(), sizeof(rowTypeStats_));
+    rowProfileStats_ = cgraph->rowProfileStats();
 #endif
 
     delete cgraph;
