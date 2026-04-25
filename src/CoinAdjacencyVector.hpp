@@ -112,6 +112,11 @@ public:
   ~CoinAdjacencyVector();
 
   /**
+   * Move the contents of a row out (transfers ownership, leaves row empty).
+   **/
+  std::vector<size_t> moveRow(size_t idxRow) { return std::move(rows_[idxRow]); }
+
+  /**
    * Try to add an element to a sorted vector, keeping it sorted.
    * Return `true` if element was added and `false` if it was already there.
    *

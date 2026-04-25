@@ -73,6 +73,11 @@ public:
   const size_t *cliqueElements( size_t idxClq ) const;
 
   /**
+   * Move the contents of a clique out (transfers ownership, leaves it empty).
+   **/
+  std::vector<size_t> moveClique(size_t idxClq) { return std::move(clqEls_[idxClq]); }
+
+  /**
    * Return the total number of elements
    * considering all cliques.
    **/

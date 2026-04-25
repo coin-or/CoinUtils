@@ -169,6 +169,16 @@ public:
   const size_t *directConflicts( size_t idxNode ) const;
 
   /**
+   * Move the direct-conflict vector for a node (transfers ownership).
+   **/
+  std::vector<size_t> moveDirectConflicts(size_t idxNode);
+
+  /**
+   * Move a clique vector (transfers ownership).
+   **/
+  std::vector<size_t> moveClique(size_t idxClique);
+
+  /**
    * Total number of conflicts stored directly.
    **/
   virtual size_t nTotalDirectConflicts() const;

@@ -47,8 +47,42 @@ CoinStaticConflictGraph::CoinStaticConflictGraph (
 {
     CoinDynamicConflictGraph *cgraph = new CoinDynamicConflictGraph(numCols, colType, colLB, colUB, matrixByRow, sense, rowRHS, rowRange, primalTolerance, infinity, colNames, rowNames);
 
-    iniCoinStaticConflictGraph(cgraph);
+    iniCoinConflictGraph(cgraph);
+    nDirectConflicts_ = cgraph->nTotalDirectConflicts();
+    totalCliqueElements_ = cgraph->nTotalCliqueElements();
+
+    degree_ = std::vector<size_t>(size_, 0);
+    modifiedDegree_ = std::vector<size_t>(size_, 0);
+    conflicts_ = std::vector<std::vector<size_t>>(size_);
+    nodeCliques_ = std::vector<std::vector<size_t>>(size_);
+    cliques_ = std::vector<std::vector<size_t>>(cgraph->nCliques());
+    infeasibleImplications_ = cgraph->infeasibleImplications();
+
+    // move direct conflicts from dynamic graph (avoids copy)
+    for (size_t i = 0; i < size(); ++i)
+      conflicts_[i] = cgraph->moveDirectConflicts(i);
+
+    // move cliques from dynamic graph
+    for (size_t ic = 0; ic < cgraph->nCliques(); ++ic)
+      cliques_[ic] = cgraph->moveClique(ic);
+
+    // filling node cliques
+    for (size_t ic = 0; ic < cliques_.size(); ++ic) {
+      const size_t clqSize = cliques_[ic].size();
+      for (size_t j = 0; j < clqSize; ++j)
+        nodeCliques_[cliques_[ic][j]].push_back(ic);
+    }
+
+    for (size_t i = 0; i < size_; ++i) {
+      this->setDegree(i, cgraph->degree(i));
+      this->setModifiedDegree(i, cgraph->modifiedDegree(i));
+    }
+
     newBounds_ = cgraph->updatedBounds();
+
+#ifdef CGRAPH_STATS
+    memcpy(rowTypeStats_, cgraph->rowTypeStats(), sizeof(rowTypeStats_));
+#endif
 
     delete cgraph;
 }

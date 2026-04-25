@@ -34,6 +34,12 @@
 #include "CoinColumnType.hpp"
 #include "CoinKnapsackRow.hpp"
 
+#ifdef CGRAPH_STATS
+#include <chrono>
+#include <cstring>
+#include "CoinRowType.hpp"
+#endif
+
 #define EPS 1e-6
 
 #define CG_INI_SPACE_NODE_CONFLICTS 32
@@ -155,12 +161,24 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
   // inspecting all rows, compute initially tighthened rhs and
   // two largest and smallest values to check if constraint is
   // worth deeper inspection
+#ifdef CGRAPH_STATS
+  memset(rowTypeStats_, 0, sizeof(rowTypeStats_));
+#endif
   for (size_t idxRow = 0; idxRow < (size_t)matrixByRow->getNumRows(); idxRow++) {
     const char rowSense = sense[idxRow];
     const CoinBigIndex rowStart = start[idxRow];
     const size_t rowLength = static_cast< size_t >(length[idxRow]);
     const int *indexesRow = idxs + rowStart;
     const double *coefficientsRow = coefs + rowStart;
+
+#ifdef CGRAPH_STATS
+    CoinRowType rtype = classifyRow(
+      static_cast<int>(rowLength), indexesRow, coefficientsRow,
+      rowSense, rowRHS[idxRow], colType, colLB, colUB);
+    auto statsT0 = std::chrono::high_resolution_clock::now();
+    bool rowFoundConflict = false;
+    bool rowFoundFixing = false;
+#endif
 
 #ifdef CGRAPH_DEEP_DIVE
     if (idxRow == CGRAPH_DEEP_DIVE_ROW_INDEX) {
@@ -193,6 +211,11 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
 
       processKnapsackRowFixings(knapsackRow, numCols, idxRow, colNames, rowNames);
 
+#ifdef CGRAPH_STATS
+      if (knapsackRow.nFixedVariables() > 0)
+        rowFoundFixing = true;
+#endif
+
       const size_t nz = knapsackRow.nzs();
 
       // before going deeper
@@ -217,14 +240,31 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
         } else {
           smallCliques->addClique(nz, tmpClq);
         }
+#ifdef CGRAPH_STATS
+        rowFoundConflict = true;
+#endif
       } else {
         // partial clique - need to sort columns by coefficient
         if (twoLargest[0] != twoSmallest[0])
           knapsackRow.sortColumns();
 
         addTmpRow(nz, knapsackRow.columns(), rhs);
+#ifdef CGRAPH_STATS
+        rowFoundConflict = true;
+#endif
       } // not explicit clique
     } // row iterations (changed multiplier/rhs)
+
+#ifdef CGRAPH_STATS
+    {
+      auto statsT1 = std::chrono::high_resolution_clock::now();
+      RowTypeStats &s = rowTypeStats_[rtype];
+      s.nRows++;
+      s.totalTime += std::chrono::duration<double>(statsT1 - statsT0).count();
+      if (rowFoundConflict) s.rowsWithConflicts++;
+      if (rowFoundFixing) s.rowsWithFixings++;
+    }
+#endif
 
   } // all rows
 
@@ -674,6 +714,16 @@ size_t CoinDynamicConflictGraph::nDirectConflicts(size_t idxNode) const
 const size_t *CoinDynamicConflictGraph::directConflicts(size_t idxNode) const
 {
   return this->conflicts->getRow(idxNode);
+}
+
+std::vector<size_t> CoinDynamicConflictGraph::moveDirectConflicts(size_t idxNode)
+{
+  return this->conflicts->moveRow(idxNode);
+}
+
+std::vector<size_t> CoinDynamicConflictGraph::moveClique(size_t idxClique)
+{
+  return this->largeClqs->moveClique(idxClique);
 }
 
 size_t CoinDynamicConflictGraph::nCliques() const

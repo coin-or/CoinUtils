@@ -323,6 +323,21 @@ protected:
   size_t maxDegree_;
 
   std::vector< BinaryBoundInfeasibility > infeasibleImplications_;
+
+#ifdef CGRAPH_STATS
+public:
+  struct RowTypeStats {
+    size_t nRows = 0;
+    double totalTime = 0.0;
+    size_t rowsWithConflicts = 0;
+    size_t rowsWithFixings = 0;
+  };
+
+  const RowTypeStats *rowTypeStats() const { return rowTypeStats_; }
+
+protected:
+  RowTypeStats rowTypeStats_[16]; // indexed by CoinRowType
+#endif
 };
 
 #endif // CONFLICTGRAPH_H

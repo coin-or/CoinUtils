@@ -117,7 +117,7 @@ bool CoinAdjacencyVector::tryAddElementSortedVector(std::vector<size_t> &el, siz
 {
   if (el.size()) {
     std::vector<size_t>::iterator pos = std::lower_bound(el.begin(), el.end(), newEl);
-    if (*pos == newEl)
+    if (pos != el.end() && *pos == newEl)
       return false;
     el.insert(pos, newEl);
   } else {

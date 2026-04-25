@@ -123,6 +123,160 @@ ToyMip buildSetPackingExample()
   return mip;
 }
 
+ToyMip buildSetPackingNegated()
+{
+  /*
+   * Sign-flipped set packing (equivalent to buildSetPackingExample):
+   *   Cover1: -x0 - x1 >= -1
+   *   Cover2: -x1 - x2 >= -1
+   * All variables binary. Should produce the same conflicts as the
+   * canonical form x0 + x1 <= 1.
+   */
+  ToyMip mip(3, 2);
+  mip.sense[0] = 'G';
+  mip.sense[1] = 'G';
+  mip.rhs[0] = -1.0;
+  mip.rhs[1] = -1.0;
+
+  mip.starts[0] = 0;
+  mip.indices.push_back(0);
+  mip.elements.push_back(-1.0);
+  mip.indices.push_back(1);
+  mip.elements.push_back(-1.0);
+  mip.lengths[0] = 2;
+
+  mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+  mip.indices.push_back(1);
+  mip.elements.push_back(-1.0);
+  mip.indices.push_back(2);
+  mip.elements.push_back(-1.0);
+  mip.lengths[1] = 2;
+
+  mip.starts[2] = static_cast<CoinBigIndex>(mip.indices.size());
+
+  mip.finalize();
+  return mip;
+}
+
+ToyMip buildSetPartitioningExample()
+{
+  /*
+   * Set partitioning (equality):
+   *   Part1: x0 + x1 + x2 = 1
+   * All variables binary. Every pair conflicts because at most one can be 1.
+   */
+  ToyMip mip(3, 1);
+  mip.sense[0] = 'E';
+  mip.rhs[0] = 1.0;
+
+  mip.starts[0] = 0;
+  for (int c = 0; c < 3; ++c) {
+    mip.indices.push_back(c);
+    mip.elements.push_back(1.0);
+  }
+  mip.lengths[0] = 3;
+  mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+
+  mip.finalize();
+  return mip;
+}
+
+ToyMip buildSetPartitioningNegated()
+{
+  /*
+   * Sign-flipped set partitioning:
+   *   Part1: -x0 - x1 - x2 = -1
+   * Equivalent to x0 + x1 + x2 = 1.
+   */
+  ToyMip mip(3, 1);
+  mip.sense[0] = 'E';
+  mip.rhs[0] = -1.0;
+
+  mip.starts[0] = 0;
+  for (int c = 0; c < 3; ++c) {
+    mip.indices.push_back(c);
+    mip.elements.push_back(-1.0);
+  }
+  mip.lengths[0] = 3;
+  mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+
+  mip.finalize();
+  return mip;
+}
+
+ToyMip buildSetCoveringExample()
+{
+  /*
+   * Set covering (no fixed variables):
+   *   Cov1: x0 + x1 + x2 >= 1
+   * The >= sense with multiplier -1 gives: -x0 - x1 - x2 <= -1.
+   * After complementing: bar{x0} + bar{x1} + bar{x2} <= 2.
+   * The two largest are 1+1=2 which is NOT > 2, so no pairwise conflicts
+   * from this row alone. Covering rows with all-ones coefs and rhs=1
+   * do NOT produce pairwise conflicts (any two can be 0 simultaneously).
+   */
+  ToyMip mip(3, 1);
+  mip.sense[0] = 'G';
+  mip.rhs[0] = 1.0;
+
+  mip.starts[0] = 0;
+  for (int c = 0; c < 3; ++c) {
+    mip.indices.push_back(c);
+    mip.elements.push_back(1.0);
+  }
+  mip.lengths[0] = 3;
+  mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+
+  mip.finalize();
+  return mip;
+}
+
+ToyMip buildSetCoveringNegated()
+{
+  /*
+   * Sign-flipped covering:
+   *   Cov1: -x0 - x1 - x2 <= -1
+   * Equivalent to x0 + x1 + x2 >= 1.
+   */
+  ToyMip mip(3, 1);
+  mip.sense[0] = 'L';
+  mip.rhs[0] = -1.0;
+
+  mip.starts[0] = 0;
+  for (int c = 0; c < 3; ++c) {
+    mip.indices.push_back(c);
+    mip.elements.push_back(-1.0);
+  }
+  mip.lengths[0] = 3;
+  mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+
+  mip.finalize();
+  return mip;
+}
+
+ToyMip buildLargeSetPacking()
+{
+  /*
+   * 4-variable set packing:
+   *   Pack1: x0 + x1 + x2 + x3 <= 1
+   * Every pair of variables conflicts.
+   */
+  ToyMip mip(4, 1);
+  mip.sense[0] = 'L';
+  mip.rhs[0] = 1.0;
+
+  mip.starts[0] = 0;
+  for (int c = 0; c < 4; ++c) {
+    mip.indices.push_back(c);
+    mip.elements.push_back(1.0);
+  }
+  mip.lengths[0] = 4;
+  mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+
+  mip.finalize();
+  return mip;
+}
+
 ToyMip buildCoverWithFixedVariable()
 {
   /*
@@ -489,4 +643,322 @@ void CoinStaticConflictGraphUnitTest()
     { eqCols + 4, 12.0 }
   };
   verifyKnapsackRow(eqGraph, eqGeNodes, eqGeCapacity, "equality row (>= pass)");
+
+  // --- Set packing with negated coefficients ---
+  // -x0 - x1 >= -1  →  mult=-1  →  x0 + x1 <= 1
+  // Original nodes: (x0,x1) and (x1,x2) conflict.
+  // Complement nodes: bar{xi} + bar{xj} is NOT constrained, so no complement conflicts.
+  {
+    const ToyMip negPack = buildSetPackingNegated();
+    CoinStaticConflictGraph g = buildGraph(negPack);
+    announce("set packing negated (-xi - xj >= -1)");
+    assertConflictsMatch(g);
+    const size_t nc = negPack.colNames.size();
+    // Original conflicts — same as canonical packing
+    assert(g.conflicting(0, 1));
+    assert(g.conflicting(1, 2));
+    assert(!g.conflicting(0, 2));
+    // Complement nodes should NOT conflict with each other
+    // (both vars being 0 is always feasible in packing)
+    assert(!g.conflicting(nc + 0, nc + 1));
+    assert(!g.conflicting(nc + 1, nc + 2));
+    assert(!g.conflicting(nc + 0, nc + 2));
+  }
+
+  // --- Set partitioning canonical ---
+  // x0 + x1 + x2 = 1
+  // <= pass: x0+x1+x2 <= 1  →  all original pairs conflict (clique on x0,x1,x2)
+  // >= pass: mult=-1  →  bar{x0}+bar{x1}+bar{x2} <= 2
+  //   1+1=2 which is NOT > 2, so no pairwise complement conflicts.
+  {
+    const ToyMip part = buildSetPartitioningExample();
+    CoinStaticConflictGraph g = buildGraph(part);
+    announce("set partitioning (x0 + x1 + x2 = 1)");
+    assertConflictsMatch(g);
+    const size_t nc = part.colNames.size();
+    // Original: all pairs conflict
+    assert(g.conflicting(0, 1));
+    assert(g.conflicting(0, 2));
+    assert(g.conflicting(1, 2));
+    // Complement: no pairwise conflicts (bar{xi}+bar{xj} <= 2 allows both)
+    assert(!g.conflicting(nc + 0, nc + 1));
+    assert(!g.conflicting(nc + 0, nc + 2));
+    assert(!g.conflicting(nc + 1, nc + 2));
+    // Trivial: each variable conflicts with its own complement
+    assert(g.conflicting(0, nc + 0));
+    assert(g.conflicting(1, nc + 1));
+    assert(g.conflicting(2, nc + 2));
+  }
+
+  // --- Set partitioning negated ---
+  // -x0 - x1 - x2 = -1
+  // <= pass: -x0-x1-x2 <= -1  →  bar{x0}+bar{x1}+bar{x2} <= 2  (no complement conflicts)
+  // >= pass: mult=-1  →  x0+x1+x2 <= 1  →  all original pairs conflict
+  {
+    const ToyMip negPart = buildSetPartitioningNegated();
+    CoinStaticConflictGraph g = buildGraph(negPart);
+    announce("set partitioning negated (-x0 - x1 - x2 = -1)");
+    assertConflictsMatch(g);
+    const size_t nc = negPart.colNames.size();
+    // Original: all pairs conflict (from the >= pass)
+    assert(g.conflicting(0, 1));
+    assert(g.conflicting(0, 2));
+    assert(g.conflicting(1, 2));
+    // Complement: no pairwise conflicts
+    assert(!g.conflicting(nc + 0, nc + 1));
+    assert(!g.conflicting(nc + 0, nc + 2));
+    assert(!g.conflicting(nc + 1, nc + 2));
+  }
+
+  // --- Set covering canonical (3 vars, no fixed vars) ---
+  // x0 + x1 + x2 >= 1
+  // mult=-1  →  bar{x0}+bar{x1}+bar{x2} <= 2
+  // 1+1=2 NOT > 2, so no pairwise conflicts at either level.
+  {
+    const ToyMip cov = buildSetCoveringExample();
+    CoinStaticConflictGraph g = buildGraph(cov);
+    announce("set covering 3-var (x0 + x1 + x2 >= 1)");
+    assertConflictsMatch(g);
+    const size_t nc = cov.colNames.size();
+    // No original conflicts
+    assert(!g.conflicting(0, 1));
+    assert(!g.conflicting(0, 2));
+    assert(!g.conflicting(1, 2));
+    // No complement conflicts (capacity 2 allows any pair)
+    assert(!g.conflicting(nc + 0, nc + 1));
+    assert(!g.conflicting(nc + 0, nc + 2));
+    assert(!g.conflicting(nc + 1, nc + 2));
+  }
+
+  // --- Set covering negated (3 vars) ---
+  // -x0 - x1 - x2 <= -1  →  bar{x0}+bar{x1}+bar{x2} <= 2
+  // Same as canonical covering.
+  {
+    const ToyMip negCov = buildSetCoveringNegated();
+    CoinStaticConflictGraph g = buildGraph(negCov);
+    announce("set covering negated 3-var (-x0 - x1 - x2 <= -1)");
+    assertConflictsMatch(g);
+    const size_t nc = negCov.colNames.size();
+    assert(!g.conflicting(0, 1));
+    assert(!g.conflicting(nc + 0, nc + 1));
+    assert(!g.conflicting(nc + 0, nc + 2));
+  }
+
+  // --- Set covering 2-var: x0 + x1 >= 1 ---
+  // mult=-1  →  bar{x0}+bar{x1} <= 0
+  // Both complements have coef 1, and 1+1=2 > 0, so complements conflict.
+  // Original variables do NOT conflict (both can be 1).
+  {
+    ToyMip cov2(2, 1);
+    cov2.sense[0] = 'G';
+    cov2.rhs[0] = 1.0;
+    cov2.starts[0] = 0;
+    cov2.indices.push_back(0); cov2.elements.push_back(1.0);
+    cov2.indices.push_back(1); cov2.elements.push_back(1.0);
+    cov2.lengths[0] = 2;
+    cov2.starts[1] = static_cast<CoinBigIndex>(cov2.indices.size());
+    cov2.finalize();
+
+    CoinStaticConflictGraph g = buildGraph(cov2);
+    announce("set covering 2-var (x0 + x1 >= 1)");
+    assertConflictsMatch(g);
+    const size_t nc = 2;
+    // Original: no conflict (both can be 1)
+    assert(!g.conflicting(0, 1));
+    // Complements conflict: bar{x0} and bar{x1} can't both be 1
+    assert(g.conflicting(nc + 0, nc + 1));
+  }
+
+  // --- Set covering 2-var negated: -x0 - x1 <= -1 ---
+  // Equivalent to x0 + x1 >= 1. Same complement conflicts.
+  {
+    ToyMip negCov2(2, 1);
+    negCov2.sense[0] = 'L';
+    negCov2.rhs[0] = -1.0;
+    negCov2.starts[0] = 0;
+    negCov2.indices.push_back(0); negCov2.elements.push_back(-1.0);
+    negCov2.indices.push_back(1); negCov2.elements.push_back(-1.0);
+    negCov2.lengths[0] = 2;
+    negCov2.starts[1] = static_cast<CoinBigIndex>(negCov2.indices.size());
+    negCov2.finalize();
+
+    CoinStaticConflictGraph g = buildGraph(negCov2);
+    announce("set covering 2-var negated (-x0 - x1 <= -1)");
+    assertConflictsMatch(g);
+    const size_t nc = 2;
+    assert(!g.conflicting(0, 1));
+    assert(g.conflicting(nc + 0, nc + 1));
+  }
+
+  // --- Larger set packing (4 variables) ---
+  // x0 + x1 + x2 + x3 <= 1
+  // All 6 original pairs conflict. No complement pairs conflict.
+  {
+    const ToyMip lp = buildLargeSetPacking();
+    CoinStaticConflictGraph g = buildGraph(lp);
+    announce("large set packing (x0+x1+x2+x3 <= 1)");
+    assertConflictsMatch(g);
+    const size_t nc = lp.colNames.size();
+    // All original pairs conflict
+    for (int i = 0; i < 4; ++i)
+      for (int j = i + 1; j < 4; ++j)
+        assert(g.conflicting(i, j));
+    // No complement pairs conflict
+    for (int i = 0; i < 4; ++i)
+      for (int j = i + 1; j < 4; ++j)
+        assert(!g.conflicting(nc + i, nc + j));
+  }
+
+  // =================================================================
+  // Negative tests: cases where NO conflicts should be detected
+  // =================================================================
+
+  // --- Continuous slack absorbs packing ---
+  // x0_bin + x1_bin + y_cont <= 10, y_cont in [0, 100]
+  // RHS is so large that no binary pair can violate it.
+  {
+    ToyMip mip(3, 1);
+    mip.colType[2] = CoinColumnType::Continuous;
+    mip.colUB[2] = 100.0;
+    mip.sense[0] = 'L';
+    mip.rhs[0] = 10.0;
+    mip.starts[0] = 0;
+    mip.indices.push_back(0); mip.elements.push_back(1.0);
+    mip.indices.push_back(1); mip.elements.push_back(1.0);
+    mip.indices.push_back(2); mip.elements.push_back(1.0);
+    mip.lengths[0] = 3;
+    mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+    mip.finalize();
+
+    CoinStaticConflictGraph g = buildGraph(mip);
+    announce("no conflict: continuous slack absorbs packing");
+    assertConflictsMatch(g);
+    // y_cont at lb=0 gives rhs'=10-1*0=10, binary pair sums to at most 2 < 10
+    assert(!g.conflicting(0, 1));
+  }
+
+  // --- Negative continuous coef widens RHS enough to prevent conflict ---
+  // x0_bin + x1_bin - y_cont <= 1, y_cont in [1, 10]
+  // After discounting: rhs' = 1 - (-1)*10 = 11 (negative coef uses UB).
+  // Binary pair sums to at most 2 < 11, no conflict.
+  {
+    ToyMip mip(3, 1);
+    mip.colType[2] = CoinColumnType::Continuous;
+    mip.colLB[2] = 1.0;
+    mip.colUB[2] = 10.0;
+    mip.sense[0] = 'L';
+    mip.rhs[0] = 1.0;
+    mip.starts[0] = 0;
+    mip.indices.push_back(0); mip.elements.push_back(1.0);
+    mip.indices.push_back(1); mip.elements.push_back(1.0);
+    mip.indices.push_back(2); mip.elements.push_back(-1.0);
+    mip.lengths[0] = 3;
+    mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+    mip.finalize();
+
+    CoinStaticConflictGraph g = buildGraph(mip);
+    announce("no conflict: negative continuous coef widens RHS");
+    assertConflictsMatch(g);
+    assert(!g.conflicting(0, 1));
+  }
+
+  // --- Positive continuous with nonzero LB absorbs conflict ---
+  // x0_bin + x1_bin + 2*y_cont <= 1, y_cont in [-1, 10]
+  // After discounting: rhs' = 1 - 2*(-1) = 3. Binary pair sums to 2 < 3.
+  {
+    ToyMip mip(3, 1);
+    mip.colType[2] = CoinColumnType::Continuous;
+    mip.colLB[2] = -1.0;
+    mip.colUB[2] = 10.0;
+    mip.sense[0] = 'L';
+    mip.rhs[0] = 1.0;
+    mip.starts[0] = 0;
+    mip.indices.push_back(0); mip.elements.push_back(1.0);
+    mip.indices.push_back(1); mip.elements.push_back(1.0);
+    mip.indices.push_back(2); mip.elements.push_back(2.0);
+    mip.lengths[0] = 3;
+    mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+    mip.finalize();
+
+    CoinStaticConflictGraph g = buildGraph(mip);
+    announce("no conflict: positive continuous with negative LB absorbs");
+    assertConflictsMatch(g);
+    assert(!g.conflicting(0, 1));
+  }
+
+  // --- Continuous [0,1] NOT treated as binary ---
+  // x0_cont + x1_cont <= 1, both in [0,1] but type=Continuous
+  // Continuous variables are discounted from RHS, not treated as binary.
+  {
+    ToyMip mip(2, 1);
+    mip.colType[0] = CoinColumnType::Continuous;
+    mip.colType[1] = CoinColumnType::Continuous;
+    mip.sense[0] = 'L';
+    mip.rhs[0] = 1.0;
+    mip.starts[0] = 0;
+    mip.indices.push_back(0); mip.elements.push_back(1.0);
+    mip.indices.push_back(1); mip.elements.push_back(1.0);
+    mip.lengths[0] = 2;
+    mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+    mip.finalize();
+
+    CoinStaticConflictGraph g = buildGraph(mip);
+    announce("no conflict: continuous [0,1] not treated as binary");
+    assertConflictsMatch(g);
+    const size_t nc = 2;
+    assert(!g.conflicting(0, 1));
+    assert(!g.conflicting(nc + 0, nc + 1));
+  }
+
+  // --- Large RHS eliminates packing conflicts ---
+  // x0 + x1 + x2 <= 2, all binary
+  // Any pair sums to at most 2 which does NOT exceed RHS=2.
+  {
+    ToyMip mip(3, 1);
+    mip.sense[0] = 'L';
+    mip.rhs[0] = 2.0;
+    mip.starts[0] = 0;
+    for (int c = 0; c < 3; ++c) {
+      mip.indices.push_back(c);
+      mip.elements.push_back(1.0);
+    }
+    mip.lengths[0] = 3;
+    mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+    mip.finalize();
+
+    CoinStaticConflictGraph g = buildGraph(mip);
+    announce("no conflict: large RHS (x0+x1+x2 <= 2)");
+    assertConflictsMatch(g);
+    assert(!g.conflicting(0, 1));
+    assert(!g.conflicting(0, 2));
+    assert(!g.conflicting(1, 2));
+  }
+
+  // --- Mixed: continuous absorbs what would be a conflict ---
+  // x0 + x1 + x2 - 2*y_cont <= 1, y_cont in [0.5, 10]
+  // After discounting: rhs' = 1 - (-2)*10 = 21. No binary conflicts.
+  // But also check: without the continuous var it WOULD be a clique.
+  {
+    ToyMip mip(4, 1);
+    mip.colType[3] = CoinColumnType::Continuous;
+    mip.colLB[3] = 0.5;
+    mip.colUB[3] = 10.0;
+    mip.sense[0] = 'L';
+    mip.rhs[0] = 1.0;
+    mip.starts[0] = 0;
+    mip.indices.push_back(0); mip.elements.push_back(1.0);
+    mip.indices.push_back(1); mip.elements.push_back(1.0);
+    mip.indices.push_back(2); mip.elements.push_back(1.0);
+    mip.indices.push_back(3); mip.elements.push_back(-2.0);
+    mip.lengths[0] = 4;
+    mip.starts[1] = static_cast<CoinBigIndex>(mip.indices.size());
+    mip.finalize();
+
+    CoinStaticConflictGraph g = buildGraph(mip);
+    announce("no conflict: continuous var absorbs would-be clique");
+    assertConflictsMatch(g);
+    for (int i = 0; i < 3; ++i)
+      for (int j = i + 1; j < 3; ++j)
+        assert(!g.conflicting(i, j));
+  }
 }
