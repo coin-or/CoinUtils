@@ -183,6 +183,7 @@
     <ClCompile Include="..\..\..\src\CoinLpIO.cpp" />
     <ClCompile Include="..\..\..\src\CoinMessage.cpp" />
     <ClCompile Include="..\..\..\src\CoinMessageHandler.cpp" />
+    <ClCompile Include="..\..\..\src\CoinMILPBoundTightening.cpp" />
     <ClCompile Include="..\..\..\src\CoinModel.cpp" />
     <ClCompile Include="..\..\..\src\CoinModelUseful.cpp" />
     <ClCompile Include="..\..\..\src\CoinModelUseful2.cpp" />
@@ -241,6 +242,7 @@
     <ClInclude Include="..\..\..\src\CoinCutPool.hpp" />
     <ClInclude Include="..\..\..\src\CoinDynamicConflictGraph.hpp" />
     <ClInclude Include="..\..\..\src\CoinNodeHeap.hpp" />
+    <ClInclude Include="..\..\..\src\CoinMILPBoundTightening.hpp" />
     <ClInclude Include="..\..\..\src\CoinOddWheelSeparator.hpp" />
     <ClInclude Include="..\..\..\src\CoinShortestPath.hpp" />
     <ClInclude Include="..\..\..\src\CoinStaticConflictGraph.hpp" />
