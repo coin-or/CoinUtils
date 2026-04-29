@@ -451,6 +451,47 @@ CoinPackedVector::CoinPackedVector(const CoinPackedVector &rhs)
 
 //-----------------------------------------------------------------------------
 
+CoinPackedVector::CoinPackedVector(CoinPackedVector &&rhs) noexcept
+  : CoinPackedVectorBase()
+  , indices_(rhs.indices_)
+  , elements_(rhs.elements_)
+  , nElements_(rhs.nElements_)
+  , origIndices_(rhs.origIndices_)
+  , capacity_(rhs.capacity_)
+{
+  rhs.indices_ = nullptr;
+  rhs.elements_ = nullptr;
+  rhs.origIndices_ = nullptr;
+  rhs.nElements_ = 0;
+  rhs.capacity_ = 0;
+}
+
+//-----------------------------------------------------------------------------
+
+CoinPackedVector &CoinPackedVector::operator=(CoinPackedVector &&rhs) noexcept
+{
+  if (this != &rhs) {
+    delete[] indices_;
+    delete[] origIndices_;
+    delete[] elements_;
+    indices_ = rhs.indices_;
+    elements_ = rhs.elements_;
+    origIndices_ = rhs.origIndices_;
+    nElements_ = rhs.nElements_;
+    capacity_ = rhs.capacity_;
+    rhs.indices_ = nullptr;
+    rhs.elements_ = nullptr;
+    rhs.origIndices_ = nullptr;
+    rhs.nElements_ = 0;
+    rhs.capacity_ = 0;
+    // Reset base class cache
+    clearIndexSet();
+  }
+  return *this;
+}
+
+//-----------------------------------------------------------------------------
+
 CoinPackedVector::~CoinPackedVector()
 {
   delete[] indices_;

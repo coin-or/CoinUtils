@@ -159,6 +159,8 @@ public:
        <code>testForDuplicateIndex</code> setting, and affter copying the data
        it acts accordingly. */
   CoinPackedVector &operator=(const CoinPackedVector &);
+  /** Move assignment operator. */
+  CoinPackedVector &operator=(CoinPackedVector &&rhs) noexcept;
   /** Assignment operator from a CoinPackedVectorBase. <br>
        <strong>NOTE</strong>: This operator keeps the current
        <code>testForDuplicateIndex</code> setting, and affter copying the data
@@ -310,6 +312,8 @@ public:
     bool testForDuplicateIndex = COIN_DEFAULT_VALUE_FOR_DUPLICATE);
   /** Copy constructor. */
   CoinPackedVector(const CoinPackedVector &);
+  /** Move constructor. */
+  CoinPackedVector(CoinPackedVector &&rhs) noexcept;
   /** Copy constructor <em>from a PackedVectorBase</em>. */
   CoinPackedVector(const CoinPackedVectorBase &rhs);
   /** Destructor */
