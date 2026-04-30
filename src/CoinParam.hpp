@@ -401,6 +401,18 @@ public:
   /*! \brief Retrieve the long help message */
   inline std::string longHelp() const { return (longHelp_); }
 
+  /*! \brief Set the topic (semantic category) for this parameter.
+
+    Topics group parameters by function (e.g., "Cuts", "Heuristics",
+    "Stopping", "Output") independently of their data type.  Useful for
+    generating documentation grouped by subject and for topic-filtered
+    help listings.
+  */
+  inline void setTopic(const std::string &topic) { topic_ = topic; }
+
+  /*! \brief Retrieve the topic string (empty if not set) */
+  inline const std::string &topic() const { return (topic_); }
+
   /*! \brief  Print long help
 
     Prints the long help string, plus the valid range and/or keywords if
@@ -568,6 +580,9 @@ protected:
 
   /// Display when processing lists of parameters?
   CoinDisplayPriority display_;
+
+  /// Topic (semantic category, e.g. "Cuts", "Heuristics", "Output")
+  std::string topic_;
   //@}
 };
 
