@@ -67,16 +67,17 @@ bool CoinConflictGraph::conflicting(size_t n1, size_t n2) const {
         return false;
     }
 
-    size_t ndc;
+    size_t ndc1 = nDirectConflicts(n1);
+    size_t ndc2 = nDirectConflicts(n2);
     const size_t *dc;
-    size_t nodeToSearch;
+    size_t ndc, nodeToSearch;
     // checking direct conflicts
-    if (nDirectConflicts(n1) < nDirectConflicts(n2)) {
-        ndc = nDirectConflicts(n1);
+    if (ndc1 < ndc2) {
+        ndc = ndc1;
         dc = directConflicts(n1);
         nodeToSearch = n2;
     } else {
-        ndc = nDirectConflicts(n2);
+        ndc = ndc2;
         dc = directConflicts(n2);
         nodeToSearch = n1;
     }
@@ -222,22 +223,26 @@ std::pair<size_t, const size_t *> CoinConflictGraph::conflictingNodes(size_t nod
 }
 
 bool CoinConflictGraph::conflictInCliques(size_t n1, size_t n2) const {
-    size_t nnc, nodeToSearch;
-    if (nNodeCliques(n1) < nNodeCliques(n2)) {
-        nnc = n1;
+    size_t nc1 = nNodeCliques(n1);
+    size_t nc2 = nNodeCliques(n2);
+    size_t nnc;
+    size_t nodeToSearch;
+    const size_t *clqList;
+    if (nc1 < nc2) {
+        nnc = nc1;
+        clqList = nodeCliques(n1);
         nodeToSearch = n2;
     } else {
-        nnc = n2;
+        nnc = nc2;
+        clqList = nodeCliques(n2);
         nodeToSearch = n1;
     }
 
-    // going trough cliques of the node which appears
-    // in less cliques
-    for (size_t i = 0; (i < nNodeCliques(nnc)); ++i) {
-        size_t idxClq = nodeCliques(nnc)[i];
-        const size_t *clq = cliqueElements(idxClq);
-        size_t clqSize = cliqueSize(idxClq);
-        if (std::binary_search(clq, clq + clqSize, nodeToSearch))
+    for (size_t i = 0; i < nnc; ++i) {
+        size_t idxClq = clqList[i];
+        size_t cs = cliqueSize(idxClq);
+        const size_t *ce = cliqueElements(idxClq);
+        if (std::binary_search(ce, ce + cs, nodeToSearch))
             return true;
     }
 

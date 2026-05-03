@@ -23,6 +23,7 @@
 #include "CoinConflictGraph.hpp"
 #include "CoinDynamicConflictGraph.hpp"
 
+#include <algorithm>
 #include <vector>
 
 /**
@@ -152,6 +153,46 @@ public:
    * Destructor
    **/
   virtual ~CoinStaticConflictGraph();
+
+  /**
+   * Fast non-virtual conflict check.
+   * Hides the base-class method for callers that use
+   * CoinStaticConflictGraph directly (avoids virtual dispatch).
+   **/
+  bool conflicting(size_t n1, size_t n2) const {
+    if (n1 == n2)
+      return false;
+
+    // Check direct conflicts (sorted arrays → binary search)
+    const auto &dc1 = conflicts_[n1];
+    const auto &dc2 = conflicts_[n2];
+    if (dc1.size() < dc2.size()) {
+      if (std::binary_search(dc1.begin(), dc1.end(), n2))
+        return true;
+    } else {
+      if (std::binary_search(dc2.begin(), dc2.end(), n1))
+        return true;
+    }
+
+    // Check clique conflicts
+    const auto &nc1 = nodeCliques_[n1];
+    const auto &nc2 = nodeCliques_[n2];
+    size_t nodeToSearch;
+    const std::vector<size_t> *clqList;
+    if (nc1.size() < nc2.size()) {
+      clqList = &nc1;
+      nodeToSearch = n2;
+    } else {
+      clqList = &nc2;
+      nodeToSearch = n1;
+    }
+    for (size_t idxClq : *clqList) {
+      const auto &clq = cliques_[idxClq];
+      if (std::binary_search(clq.begin(), clq.end(), nodeToSearch))
+        return true;
+    }
+    return false;
+  }
 
   /**
    * Recommended tighter bounds for some variables
