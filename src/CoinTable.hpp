@@ -49,6 +49,8 @@ public:
 
   /** Column definition. */
   struct Col {
+    Col() = default;
+    Col(std::string n, int w, bool la = false) : name(std::move(n)), width(w), leftAlign(la) {}
     std::string name;      ///< Column header label
     int width;             ///< Visual character width (not including sep chars)
     bool leftAlign = false;///< true = left-align header; false (default) = right-align

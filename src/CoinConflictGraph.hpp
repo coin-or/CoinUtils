@@ -37,6 +37,8 @@ public:
    * Metadata describing the constraint responsible for an implied bound.
    */
   struct ImplicationRow {
+    ImplicationRow() = default;
+    ImplicationRow(std::string name, int idx) : rowName(std::move(name)), rowIndex(idx) {}
     std::string rowName;
     int rowIndex = -1;
   };
