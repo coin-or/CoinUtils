@@ -1786,6 +1786,9 @@ typedef const int cipfint;
 #endif
 #endif
 #endif
+#ifdef CLP_NO_DENSE
+#undef COIN_FACTORIZATION_DENSE_CODE
+#endif
 // Extra for ugly include
 #ifdef UGLY_COIN_FACTOR_CODING
 #define FAC_UNSET (FAC_SET + 1)
