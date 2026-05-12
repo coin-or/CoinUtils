@@ -81,16 +81,25 @@ readInteractiveInput(std::deque<std::string> &inputQueue,
 
    while (!input.length()) {
 #ifdef COINUTILS_HAS_READLINE
-     // Get a line from the user.
-     input = std::string(readline(prompt.c_str()));
+     // Get a line from the user. readline returns nullptr on EOF (Ctrl-D).
+     char *line = readline(prompt.c_str());
+     if (!line) {
+       input = "end";
+       break;
+     }
+     input = std::string(line);
      // If the line has any text in it, save it on the history.
      if (input.length() > 0) {
        add_history(input.c_str());
      }
+     free(line);
 #else
      std::cout << prompt;
      fflush(stdout);
-     getline(std::cin, input); 
+     if (!getline(std::cin, input)) {
+       input = "end";
+       break;
+     }
 #endif
      if (!input.length())
        std::cout << "Enter command, ? or end to exit." << std::endl;
