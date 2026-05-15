@@ -77,7 +77,7 @@ libCoinUtils_la_SOURCES = \
 	CoinCutPool.cpp \
 	CoinDynamicConflictGraph.cpp \
 	CoinKnapsackRow.cpp \
-	CoinMILPBoundTightening.cpp \
+	CoinBoundPropagation.cpp \
 	CoinTerm.cpp \
 	CoinNodeHeap.cpp \
 	CoinOddWheelSeparator.cpp \
@@ -171,7 +171,7 @@ includecoin_HEADERS = \
 	CoinCutPool.hpp \
 	CoinDynamicConflictGraph.hpp \
 	CoinKnapsackRow.hpp \
-	CoinMILPBoundTightening.hpp \
+	CoinBoundPropagation.hpp \
 	CoinTerm.hpp \
 	CoinNodeHeap.hpp \
 	CoinOddWheelSeparator.hpp \

@@ -2,8 +2,8 @@
  *
  * This file is part of the COIN-OR CoinUtils package
  *
- * @file   CoinMILPBoundTightening.hpp
- * @brief  Knapsack-based bound tightening for binary variables in a MILP.
+ * @file   CoinBoundPropagation.hpp
+ * @brief  Bound propagation for binary variables in a MILP.
  *
  * Copyright (C) 2025
  * All rights reserved.
@@ -11,8 +11,8 @@
  * This code is licensed under the terms of the Eclipse Public License (EPL).
  */
 
-#ifndef COIN_MILP_BOUND_TIGHTENING_HPP
-#define COIN_MILP_BOUND_TIGHTENING_HPP
+#ifndef COIN_BOUND_PROPAGATION_HPP
+#define COIN_BOUND_PROPAGATION_HPP
 
 #include <cstddef>
 #include <utility>
@@ -26,7 +26,7 @@ class CoinPackedMatrix;
 /**
  * @brief Per-row statistics collected when COIN_BT_STATS is defined.
  *
- * Available via CoinMILPBoundTightening::rowStats().
+ * Available via CoinBoundPropagation::rowStats().
  * Rows that were skipped (unbounded, sense 'N', zero binary variables)
  * have timeSeconds == 0 and nFixings == 0.
  */
@@ -71,7 +71,7 @@ struct CoinBTRowStats {
  * here.  More elaborate probing (fixing a variable and propagating) is out
  * of scope; this class is intentionally lightweight.
  */
-class COINUTILSLIB_EXPORT CoinMILPBoundTightening {
+class COINUTILSLIB_EXPORT CoinBoundPropagation {
 public:
   /**
    * @brief Construct and run the bound-tightening pass.
@@ -100,7 +100,7 @@ public:
    *       original coefficients), it exits early as soon as rhs ≥ maxCoef ≥ 0,
    *       which is typically after just two elements for dense covering rows.
    */
-  CoinMILPBoundTightening(
+  CoinBoundPropagation(
     int numCols,
     const char *colType,
     const double *colLB,
@@ -113,12 +113,12 @@ public:
     double infinity = 1e50,
     int maxRowNz = -1);
 
-  ~CoinMILPBoundTightening() = default;
+  ~CoinBoundPropagation() = default;
 
-  CoinMILPBoundTightening(const CoinMILPBoundTightening &) = delete;
-  CoinMILPBoundTightening &operator=(const CoinMILPBoundTightening &) = delete;
-  CoinMILPBoundTightening(CoinMILPBoundTightening &&) = delete;
-  CoinMILPBoundTightening &operator=(CoinMILPBoundTightening &&) = delete;
+  CoinBoundPropagation(const CoinBoundPropagation &) = delete;
+  CoinBoundPropagation &operator=(const CoinBoundPropagation &) = delete;
+  CoinBoundPropagation(CoinBoundPropagation &&) = delete;
+  CoinBoundPropagation &operator=(CoinBoundPropagation &&) = delete;
 
   /**
    * @brief Tightened bounds discovered during construction.
@@ -204,4 +204,4 @@ private:
 #endif
 };
 
-#endif // COIN_MILP_BOUND_TIGHTENING_HPP
+#endif // COIN_BOUND_PROPAGATION_HPP

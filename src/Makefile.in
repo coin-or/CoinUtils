@@ -170,7 +170,7 @@ am_libCoinUtils_la_OBJECTS = CoinAlloc.lo CoinBuild.lo \
 	CoinCliqueExtender.lo CoinCliqueList.lo CoinCliqueSet.lo \
 	CoinConflictGraph.lo CoinCutPool.lo \
 	CoinDynamicConflictGraph.lo CoinKnapsackRow.lo \
-	CoinMILPBoundTightening.lo CoinTerm.lo CoinNodeHeap.lo \
+	CoinBoundPropagation.lo CoinTerm.lo CoinNodeHeap.lo \
 	CoinOddWheelSeparator.lo CoinShortestPath.lo \
 	CoinStaticConflictGraph.lo CoinTable.lo $(am__objects_1)
 libCoinUtils_la_OBJECTS = $(am_libCoinUtils_la_OBJECTS)
@@ -194,8 +194,9 @@ DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/CoinAdjacencyVector.Plo \
-	./$(DEPDIR)/CoinAlloc.Plo ./$(DEPDIR)/CoinBronKerbosch.Plo \
-	./$(DEPDIR)/CoinBuild.Plo ./$(DEPDIR)/CoinCliqueExtender.Plo \
+	./$(DEPDIR)/CoinAlloc.Plo ./$(DEPDIR)/CoinBoundPropagation.Plo \
+	./$(DEPDIR)/CoinBronKerbosch.Plo ./$(DEPDIR)/CoinBuild.Plo \
+	./$(DEPDIR)/CoinCliqueExtender.Plo \
 	./$(DEPDIR)/CoinCliqueList.Plo ./$(DEPDIR)/CoinCliqueSet.Plo \
 	./$(DEPDIR)/CoinConflictGraph.Plo ./$(DEPDIR)/CoinCutPool.Plo \
 	./$(DEPDIR)/CoinDenseFactorization.Plo \
@@ -207,7 +208,6 @@ am__depfiles_remade = ./$(DEPDIR)/CoinAdjacencyVector.Plo \
 	./$(DEPDIR)/CoinFactorization4.Plo ./$(DEPDIR)/CoinFileIO.Plo \
 	./$(DEPDIR)/CoinFinite.Plo ./$(DEPDIR)/CoinIndexedVector.Plo \
 	./$(DEPDIR)/CoinKnapsackRow.Plo ./$(DEPDIR)/CoinLpIO.Plo \
-	./$(DEPDIR)/CoinMILPBoundTightening.Plo \
 	./$(DEPDIR)/CoinMessage.Plo ./$(DEPDIR)/CoinMessageHandler.Plo \
 	./$(DEPDIR)/CoinModel.Plo ./$(DEPDIR)/CoinModelUseful.Plo \
 	./$(DEPDIR)/CoinModelUseful2.Plo ./$(DEPDIR)/CoinMpsIO.Plo \
@@ -302,7 +302,7 @@ am__includecoin_HEADERS_DIST = CoinAlloc.hpp CoinBuild.hpp \
 	CoinBronKerbosch.hpp CoinCliqueExtender.hpp CoinCliqueList.hpp \
 	CoinCliqueSet.hpp CoinConflictGraph.hpp CoinCutPool.hpp \
 	CoinDynamicConflictGraph.hpp CoinKnapsackRow.hpp \
-	CoinMILPBoundTightening.hpp CoinTerm.hpp CoinNodeHeap.hpp \
+	CoinBoundPropagation.hpp CoinTerm.hpp CoinNodeHeap.hpp \
 	CoinOddWheelSeparator.hpp CoinShortestPath.hpp \
 	CoinStaticConflictGraph.hpp CoinColumnType.hpp CoinTable.hpp \
 	CoinOslFactorization.hpp CoinSimpFactorization.hpp
@@ -529,7 +529,7 @@ libCoinUtils_la_SOURCES = CoinAlloc.cpp CoinBuild.cpp \
 	CoinCliqueExtender.cpp CoinCliqueList.cpp CoinCliqueSet.cpp \
 	CoinConflictGraph.cpp CoinCutPool.cpp \
 	CoinDynamicConflictGraph.cpp CoinKnapsackRow.cpp \
-	CoinMILPBoundTightening.cpp CoinTerm.cpp CoinNodeHeap.cpp \
+	CoinBoundPropagation.cpp CoinTerm.cpp CoinNodeHeap.cpp \
 	CoinOddWheelSeparator.cpp CoinShortestPath.cpp \
 	CoinStaticConflictGraph.cpp CoinTable.cpp $(am__append_1)
 
@@ -574,7 +574,7 @@ includecoin_HEADERS = CoinAlloc.hpp CoinBuild.hpp CoinDenseVector.hpp \
 	CoinBronKerbosch.hpp CoinCliqueExtender.hpp CoinCliqueList.hpp \
 	CoinCliqueSet.hpp CoinConflictGraph.hpp CoinCutPool.hpp \
 	CoinDynamicConflictGraph.hpp CoinKnapsackRow.hpp \
-	CoinMILPBoundTightening.hpp CoinTerm.hpp CoinNodeHeap.hpp \
+	CoinBoundPropagation.hpp CoinTerm.hpp CoinNodeHeap.hpp \
 	CoinOddWheelSeparator.hpp CoinShortestPath.hpp \
 	CoinStaticConflictGraph.hpp CoinColumnType.hpp CoinTable.hpp \
 	$(am__append_2)
@@ -681,6 +681,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinAdjacencyVector.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinAlloc.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinBoundPropagation.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinBronKerbosch.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinBuild.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinCliqueExtender.Plo@am__quote@ # am--include-marker
@@ -701,7 +702,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinIndexedVector.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinKnapsackRow.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinLpIO.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinMILPBoundTightening.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinMessage.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinMessageHandler.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CoinModel.Plo@am__quote@ # am--include-marker
@@ -906,6 +906,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 distclean: distclean-am
 	-rm -f ./$(DEPDIR)/CoinAdjacencyVector.Plo
 	-rm -f ./$(DEPDIR)/CoinAlloc.Plo
+	-rm -f ./$(DEPDIR)/CoinBoundPropagation.Plo
 	-rm -f ./$(DEPDIR)/CoinBronKerbosch.Plo
 	-rm -f ./$(DEPDIR)/CoinBuild.Plo
 	-rm -f ./$(DEPDIR)/CoinCliqueExtender.Plo
@@ -926,7 +927,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/CoinIndexedVector.Plo
 	-rm -f ./$(DEPDIR)/CoinKnapsackRow.Plo
 	-rm -f ./$(DEPDIR)/CoinLpIO.Plo
-	-rm -f ./$(DEPDIR)/CoinMILPBoundTightening.Plo
 	-rm -f ./$(DEPDIR)/CoinMessage.Plo
 	-rm -f ./$(DEPDIR)/CoinMessageHandler.Plo
 	-rm -f ./$(DEPDIR)/CoinModel.Plo
@@ -1024,6 +1024,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/CoinAdjacencyVector.Plo
 	-rm -f ./$(DEPDIR)/CoinAlloc.Plo
+	-rm -f ./$(DEPDIR)/CoinBoundPropagation.Plo
 	-rm -f ./$(DEPDIR)/CoinBronKerbosch.Plo
 	-rm -f ./$(DEPDIR)/CoinBuild.Plo
 	-rm -f ./$(DEPDIR)/CoinCliqueExtender.Plo
@@ -1044,7 +1045,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/CoinIndexedVector.Plo
 	-rm -f ./$(DEPDIR)/CoinKnapsackRow.Plo
 	-rm -f ./$(DEPDIR)/CoinLpIO.Plo
-	-rm -f ./$(DEPDIR)/CoinMILPBoundTightening.Plo
 	-rm -f ./$(DEPDIR)/CoinMessage.Plo
 	-rm -f ./$(DEPDIR)/CoinMessageHandler.Plo
 	-rm -f ./$(DEPDIR)/CoinModel.Plo

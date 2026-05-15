@@ -2,8 +2,8 @@
  *
  * This file is part of the COIN-OR CoinUtils package
  *
- * @file   CoinMILPBoundTightening.cpp
- * @brief  Knapsack-based bound tightening for binary variables in a MILP.
+ * @file   CoinBoundPropagation.cpp
+ * @brief  Bound propagation for binary variables in a MILP.
  *
  * Copyright (C) 2025
  * All rights reserved.
@@ -11,7 +11,7 @@
  * This code is licensed under the terms of the Eclipse Public License (EPL).
  */
 
-#include "CoinMILPBoundTightening.hpp"
+#include "CoinBoundPropagation.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -103,7 +103,7 @@ static bool rowNeedsProcessing(
 
 } // namespace
 
-CoinMILPBoundTightening::CoinMILPBoundTightening(
+CoinBoundPropagation::CoinBoundPropagation(
   int numCols,
   const char *colType,
   const double *colLB,
