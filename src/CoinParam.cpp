@@ -486,8 +486,7 @@ int CoinParam::setVal(double value, std::string *message, ParamPushMode pMode)
 {
    switch(type_){
     case paramDbl:
-      setDblVal(value, message, pMode);
-      return 0;
+      return setDblVal(value, message, pMode);
     case paramAct:
       std::cout << "setVal(): Cannot be called for an action parameter!"
                 << std::endl;
@@ -504,11 +503,9 @@ int CoinParam::setVal(int value, std::string *message, ParamPushMode pMode)
 {
    switch(type_){
     case paramInt:
-      setIntVal(value, message, pMode);
-      return 0;
+      return setIntVal(value, message, pMode);
     case paramKwd:
-      setModeVal(value, message, pMode);
-      return 0;
+      return setModeVal(value, message, pMode);
     case paramAct:
       std::cout << "setVal(): Cannot be called for an action parameter!"
                 << std::endl;
@@ -978,10 +975,14 @@ int CoinParam::setKwdVal(const std::string newKwd, std::string *message,
   int newMode = kwdToMode(newKwd);
   if (newMode >= 0) {
      if (message){
-        std::ostringstream buffer;
-        buffer << "Option for " << name_ << " changed from ";
-        buffer << currentKwd_ << " to " << newKwd << std::endl;
-        *message = buffer.str();
+        if (newMode != currentMode_) {
+          std::ostringstream buffer;
+          buffer << "Option for " << name_ << " changed from ";
+          buffer << currentKwd_ << " to " << newKwd << std::endl;
+          *message = buffer.str();
+        } else {
+          message->clear();
+        }
      }
      currentKwd_ = modeString(newMode); // to get full name
      currentMode_ = newMode;
@@ -1451,10 +1452,14 @@ int CoinParam::setDblVal(double value, std::string *message, ParamPushMode pMode
      return 1;
   } else {
      if (message){
-        std::ostringstream buffer;
-        buffer << name_ << " was changed from ";
-        buffer << dblValue_ << " to " << value << std::endl;
-        *message = buffer.str();
+        if (value != dblValue_) {
+          std::ostringstream buffer;
+          buffer << name_ << " was changed from ";
+          buffer << dblValue_ << " to " << value << std::endl;
+          *message = buffer.str();
+        } else {
+          message->clear();
+        }
      }
      dblValue_ = value;
      if (pMode == pushOn){
@@ -1544,10 +1549,14 @@ int CoinParam::setIntVal(int value, std::string *message, ParamPushMode pMode)
      return 1;
   } else {
      if (message){
-        std::ostringstream buffer;
-        buffer << name_ << " was changed from " << intValue_;
-        buffer << " to " << value << std::endl;
-        *message = buffer.str();
+        if (value != intValue_) {
+          std::ostringstream buffer;
+          buffer << name_ << " was changed from " << intValue_;
+          buffer << " to " << value << std::endl;
+          *message = buffer.str();
+        } else {
+          message->clear();
+        }
      }
      intValue_ = value;
      if (pMode == pushOn){
