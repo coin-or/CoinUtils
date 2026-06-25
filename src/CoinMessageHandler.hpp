@@ -384,6 +384,12 @@ public:
   {
     return logLevel_;
   }
+  /// Clear buffer
+  inline void clearBuffer()
+  {
+    messageOut_=messageBuffer_;
+    *messageOut_='\0';
+  }
   /** \brief Set current log (detail) level.
 
     If the log level is equal or greater than the detail level of a message,
