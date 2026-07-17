@@ -210,6 +210,7 @@ void CoinFactorization::gutsOfInitialize(int type)
     areaFactor_ = 0.0;
     pivotTolerance_ = 1.0e-1;
     zeroTolerance_ = 1.0e-13;
+    timeLimit_ = -1.0;
 #ifndef COIN_FAST_CODE
     slackValue_ = -1.0;
 #endif

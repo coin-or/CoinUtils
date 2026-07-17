@@ -13,6 +13,7 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinFinite.hpp"
+#include "CoinTime.hpp"
 #if COIN_FACTORIZATION_DENSE_CODE == 1
 // using simple lapack interface
 
@@ -409,6 +410,14 @@ int CoinFactorization::factorSparseSmall()
       // This should not need to be trapped here - but be safe
       if (numberGoodU_ == numberRows_)
         count = biggerDimension_ + 1;
+      // Periodic wall-clock deadline check (every 64 pivots to keep overhead
+      // negligible). A slow/degenerate factorization can otherwise run for
+      // many minutes with no way for the caller's time limit to be noticed.
+      if (timeLimit_ > 0.0 && (numberGoodU_ & 63) == 0 && CoinWallclockTime() > timeLimit_) {
+        status = -100;
+        count = biggerDimension_ + 1;
+        break;
+      }
 #if COIN_DEBUG == 2
       checkConsistency();
 #endif
@@ -1396,6 +1405,13 @@ int CoinFactorization::factorSparseLarge()
         // This should not need to be trapped here - but be safe
         if (numberGoodU_ == numberRows_)
           count = biggerDimension_ + 1;
+        // Periodic wall-clock deadline check (every 64 pivots to keep
+        // overhead negligible) - see identical check in factorSparseSmall().
+        if (timeLimit_ > 0.0 && (numberGoodU_ & 63) == 0 && CoinWallclockTime() > timeLimit_) {
+          status = -100;
+          count = biggerDimension_ + 1;
+          break;
+        }
       }
 #if COIN_DEBUG == 2
       checkConsistency();
