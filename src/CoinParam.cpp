@@ -192,6 +192,7 @@ CoinParam::CoinParam(const CoinParam &orig)
   definedKwds_ = orig.definedKwds_;
   shortHelp_ = orig.shortHelp_;
   longHelp_ = orig.longHelp_;
+  topic_ = orig.topic_;
 }
 
 /*
@@ -230,6 +231,7 @@ CoinParam &CoinParam::operator=(const CoinParam &rhs)
     shortHelp_ = rhs.shortHelp_;
     longHelp_ = rhs.longHelp_;
     display_ = rhs.display_;
+    topic_ = rhs.topic_;
   }
 
   return *this;
