@@ -283,9 +283,9 @@ am__includecoin_HEADERS_DIST = CoinAlloc.hpp CoinBuild.hpp \
 	CoinError.hpp CoinFactorization.hpp CoinDenseFactorization.hpp \
 	CoinFileIO.hpp CoinFinite.hpp CoinFloatEqual.hpp \
 	CoinHelperFunctions.hpp CoinIndexedVector.hpp CoinLpIO.hpp \
-	CoinMessage.hpp CoinMessageHandler.hpp CoinModel.hpp \
-	CoinStructuredModel.hpp CoinModelUseful.hpp CoinMpsIO.hpp \
-	CoinPackedMatrix.hpp CoinPackedVector.hpp \
+	CoinMemUsage.hpp CoinMessage.hpp CoinMessageHandler.hpp \
+	CoinModel.hpp CoinStructuredModel.hpp CoinModelUseful.hpp \
+	CoinMpsIO.hpp CoinPackedMatrix.hpp CoinPackedVector.hpp \
 	CoinPackedVectorBase.hpp CoinParam.hpp CoinPragma.hpp \
 	CoinPresolveDoubleton.hpp CoinPresolveDual.hpp \
 	CoinPresolveDupcol.hpp CoinPresolveEmpty.hpp \
@@ -556,9 +556,9 @@ includecoin_HEADERS = CoinAlloc.hpp CoinBuild.hpp CoinBuildInfo.hpp \
 	CoinFactorization.hpp CoinDenseFactorization.hpp \
 	CoinFileIO.hpp CoinFinite.hpp CoinFloatEqual.hpp \
 	CoinHelperFunctions.hpp CoinIndexedVector.hpp CoinLpIO.hpp \
-	CoinMessage.hpp CoinMessageHandler.hpp CoinModel.hpp \
-	CoinStructuredModel.hpp CoinModelUseful.hpp CoinMpsIO.hpp \
-	CoinPackedMatrix.hpp CoinPackedVector.hpp \
+	CoinMemUsage.hpp CoinMessage.hpp CoinMessageHandler.hpp \
+	CoinModel.hpp CoinStructuredModel.hpp CoinModelUseful.hpp \
+	CoinMpsIO.hpp CoinPackedMatrix.hpp CoinPackedVector.hpp \
 	CoinPackedVectorBase.hpp CoinParam.hpp CoinPragma.hpp \
 	CoinPresolveDoubleton.hpp CoinPresolveDual.hpp \
 	CoinPresolveDupcol.hpp CoinPresolveEmpty.hpp \

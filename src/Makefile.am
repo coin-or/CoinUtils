@@ -121,6 +121,7 @@ includecoin_HEADERS = \
 	CoinHelperFunctions.hpp \
 	CoinIndexedVector.hpp \
 	CoinLpIO.hpp \
+	CoinMemUsage.hpp \
 	CoinMessage.hpp \
 	CoinMessageHandler.hpp \
 	CoinModel.hpp \
