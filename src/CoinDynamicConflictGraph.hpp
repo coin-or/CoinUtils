@@ -81,6 +81,18 @@ public:
    *                 when discounting continuous variables
    * @param colNames column names, used exclusively for diagnostic messages
    *                 while reporting newly inferred bounds
+   * @param timeLimit absolute wall-clock deadline (CoinWallclockTime() basis)
+   *                  for the graph-building scan, or -1.0 (default) to
+   *                  disable it. On instances with many large/dense rows the
+   *                  per-row clique detection and the final small-clique
+   *                  expansion pass can take a long time with no other
+   *                  natural place to stop; this deadline is checked
+   *                  periodically (every 64 rows/nodes) so a caller with a
+   *                  time budget (e.g. CBC's overall -seconds limit) can
+   *                  abort cleanly instead of running unbounded. On timeout,
+   *                  the graph is finalized early with whatever conflicts/
+   *                  cliques were already found (a partial but still sound
+   *                  conflict graph) -- see `timeLimitReached()`.
    **/
   CoinDynamicConflictGraph(
     const int numCols,
@@ -94,13 +106,22 @@ public:
     const double primalTolerance,
     const double infinity,
     const std::vector<std::string> &colNames,
-    const std::vector< std::string > &rowNames
+    const std::vector< std::string > &rowNames,
+    const double timeLimit = -1.0
   );
 
   /**
    * Destructor
    **/
   virtual ~CoinDynamicConflictGraph();
+
+  /**
+   * Returns true if the graph-building scan was aborted early because
+   * `timeLimit` (passed to the constructor) was reached. When this happens
+   * the graph is still sound (every conflict/clique that was found is
+   * correct), just possibly incomplete.
+   **/
+  bool timeLimitReached() const { return timeLimitReached_; }
 
   /**
    * Add conflicts to a node to be stored directly (not as cliques).
@@ -404,6 +425,17 @@ private:
    * implication (name and index).
    */
   std::map<int, std::map<int, std::pair<std::string, int>>> columnRowImplications_;
+
+  /**
+   * Absolute wall-clock deadline (CoinWallclockTime() basis) for the
+   * graph-building scan, or -1.0 if disabled. See `timeLimitReached()`.
+   **/
+  double timeLimit_ = -1.0;
+
+  /**
+   * Set to true once `timeLimit_` is reached during construction.
+   **/
+  bool timeLimitReached_ = false;
 };
 
 #endif // DYNAMICCONFLICTGRAPH_H

@@ -62,6 +62,11 @@ public:
    *                 when discounting continuous columns.
    * @param colNames column names, only used for diagnostic messages when
    *                 reporting newly inferred bounds.
+   * @param timeLimit absolute wall-clock deadline (CoinWallclockTime() basis)
+   *                  for the graph-building scan, or -1.0 (default) to
+   *                  disable it. Forwarded as-is to the internal
+   *                  `CoinDynamicConflictGraph`; see its constructor and
+   *                  `timeLimitReached()` for details.
    **/
   CoinStaticConflictGraph(
           const int numCols,
@@ -75,8 +80,17 @@ public:
           const double primalTolerance,
           const double infinity,
           const std::vector<std::string> &colNames,
-          const std::vector<std::string> &rowNames
+          const std::vector<std::string> &rowNames,
+          const double timeLimit = -1.0
         );
+
+  /**
+   * Returns true if the graph-building scan was aborted early because the
+   * `timeLimit` passed to the constructor was reached (see
+   * `CoinDynamicConflictGraph::timeLimitReached()`). The resulting graph is
+   * still sound, just possibly incomplete.
+   **/
+  bool timeLimitReached() const { return timeLimitReached_; }
 
   /**
    * Clone a conflict graph.
@@ -272,6 +286,12 @@ private:
    * Elements of the cliques stored explicitly.
    **/
   std::vector<std::vector<size_t> > cliques_;
+
+  /**
+   * Set to true if the graph-building scan was aborted early due to
+   * reaching the `timeLimit` passed to the constructor.
+   **/
+  bool timeLimitReached_ = false;
 };
 
 #endif // STATICCONFLICTGRAPH_H

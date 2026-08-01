@@ -43,10 +43,12 @@ CoinStaticConflictGraph::CoinStaticConflictGraph (
   const double primalTolerance,
   const double infinity,
   const std::vector<std::string> &colNames,
-  const std::vector<std::string> &rowNames)
+  const std::vector<std::string> &rowNames,
+  const double timeLimit)
 {
-    CoinDynamicConflictGraph *cgraph = new CoinDynamicConflictGraph(numCols, colType, colLB, colUB, matrixByRow, sense, rowRHS, rowRange, primalTolerance, infinity, colNames, rowNames);
+    CoinDynamicConflictGraph *cgraph = new CoinDynamicConflictGraph(numCols, colType, colLB, colUB, matrixByRow, sense, rowRHS, rowRange, primalTolerance, infinity, colNames, rowNames, timeLimit);
 
+    timeLimitReached_ = cgraph->timeLimitReached();
     iniCoinConflictGraph(cgraph);
     nDirectConflicts_ = cgraph->nTotalDirectConflicts();
     totalCliqueElements_ = cgraph->nTotalCliqueElements();

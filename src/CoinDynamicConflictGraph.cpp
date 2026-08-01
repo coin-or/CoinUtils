@@ -33,6 +33,7 @@
 #include "CoinCliqueList.hpp"
 #include "CoinColumnType.hpp"
 #include "CoinKnapsackRow.hpp"
+#include "CoinTime.hpp"
 
 #ifdef CGRAPH_STATS
 #include <chrono>
@@ -114,11 +115,14 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
   const double primalTolerance,
   const double infinity,
   const std::vector< std::string > &colNames,
-  const std::vector< std::string > &rowNames)
+  const std::vector< std::string > &rowNames,
+  const double timeLimit)
   : conflicts(new CoinAdjacencyVector(numCols * 2, CG_INI_SPACE_ADJACENCY_VECTOR))
   , largeClqs(new CoinCliqueList(CG_LARGE_CLIQUE_INIT, CG_LARGE_CLIQUE_GROW))
   , degree_(std::vector< size_t >(numCols * 2))
   , modifiedDegree_(std::vector< size_t >(numCols * 2))
+  , timeLimit_(timeLimit)
+  , timeLimitReached_(false)
 
 {
   iniCoinConflictGraph(numCols * 2);
@@ -175,6 +179,10 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
   memset(rowTypeStats_, 0, sizeof(rowTypeStats_));
 #endif
   for (size_t idxRow = 0; idxRow < nRows; idxRow++) {
+    if (timeLimit_ > 0.0 && (idxRow & 63) == 0 && CoinWallclockTime() > timeLimit_) {
+      timeLimitReached_ = true;
+      break;
+    }
     const char rowSense = sense[idxRow];
     const CoinBigIndex rowStart = start[idxRow];
     const size_t rowLength = static_cast< size_t >(length[idxRow]);
@@ -327,10 +335,16 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
   addVariableComplementConflicts(numCols, colType);
 
   // detecting cliques in less-structured constraints
-  for (size_t idxTR = 0; (idxTR < tRowElements.size()); ++idxTR) {
-    double rhs = tRowRHS[idxTR];
-    if (isGoodNumber(rhs)) 
-      cliqueDetection(tRowElements[idxTR], tRowElements[idxTR].size(), rhs + primalTolerance);
+  if (!timeLimitReached_) {
+    for (size_t idxTR = 0; (idxTR < tRowElements.size()); ++idxTR) {
+      if (timeLimit_ > 0.0 && (idxTR & 63) == 0 && CoinWallclockTime() > timeLimit_) {
+        timeLimitReached_ = true;
+        break;
+      }
+      double rhs = tRowRHS[idxTR];
+      if (isGoodNumber(rhs))
+        cliqueDetection(tRowElements[idxTR], tRowElements[idxTR].size(), rhs + primalTolerance);
+    }
   }
 
   // at this point large cliques will already be include
@@ -343,6 +357,10 @@ CoinDynamicConflictGraph::CoinDynamicConflictGraph(
     std::vector< char > iv(size_);
 
     for (size_t k = 0; (k < smallCliques->nDifferentNodes()); ++k) {
+      if (timeLimit_ > 0.0 && (k & 63) == 0 && CoinWallclockTime() > timeLimit_) {
+        timeLimitReached_ = true;
+        break;
+      }
       size_t idxNode = smallCliques->differentNodes()[k];
       const size_t nNodeCliques = smallCliques->nNodeOccurrences(idxNode);
       const size_t *nodeCliques = smallCliques->nodeOccurrences(idxNode);
