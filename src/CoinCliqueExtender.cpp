@@ -57,6 +57,8 @@ CoinCliqueExtender::CoinCliqueExtender(const CoinConflictGraph *cgraph, size_t e
 
     iv_ = std::vector<char>(cgSize);
     iv2_ = std::vector<char>(cgSize);
+    raw_ = std::vector<size_t>(cgSize);
+    candidatesRanked_ = false;
 
     extMethod_ = extMethod;
     rc_ = rc;
@@ -144,7 +146,7 @@ bool CoinCliqueExtender::randomExtension(const size_t *clqIdxs, const size_t clq
     assert(clqSize > 0);
 #endif
 
-    fillCandidates(clqIdxs, clqSize);
+    fillCandidates(clqIdxs, clqSize, NULL);
 
     if (nCandidates_ == 0) {
         return false;
@@ -186,15 +188,19 @@ bool CoinCliqueExtender::greedySelection(const size_t *clqIdxs, const size_t clq
     assert(clqSize > 0);
 #endif
 
-    fillCandidates(clqIdxs, clqSize);
+    fillCandidates(clqIdxs, clqSize, costs);
 
     if (nCandidates_ == 0) {
         return false;
     }
 
-    const size_t n = nCandidates_;
-    nCandidates_ = std::min(nCandidates_, maxCandidates_);
-    std::partial_sort(candidates_.begin(), candidates_.begin() + nCandidates_, candidates_.begin() + n, CompareCost(costs));
+    if (!candidatesRanked_) {
+        // Fewer survivors than the cap, so every one was verified and they are
+        // still in node order; rank them here as before.
+        const size_t n = nCandidates_;
+        nCandidates_ = std::min(nCandidates_, maxCandidates_);
+        std::partial_sort(candidates_.begin(), candidates_.begin() + nCandidates_, candidates_.begin() + n, CompareCost(costs));
+    }
 
     for (size_t i = 0; i < nCandidates_; i++) {
         /* need to have conflict with all nodes in clique */
@@ -269,7 +275,8 @@ bool CoinCliqueExtender::extendClique(const size_t *clqIdxs, const size_t clqSiz
     return result;
 }
 
-void CoinCliqueExtender::fillCandidates(const size_t *clqIdxs, const size_t clqSize) {
+void CoinCliqueExtender::fillCandidates(const size_t *clqIdxs, const size_t clqSize,
+                                       const double *costs) {
     const size_t cgSize = cgraph_->size();
     size_t nodeSD = 0, minDegree = cgSize;
 
@@ -292,6 +299,12 @@ void CoinCliqueExtender::fillCandidates(const size_t *clqIdxs, const size_t clqS
 
     const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(nodeSD, candidates_.data(), iv2_.data());
 
+    // Cheap filters first: iv_ and the reduced-cost cap cost one array read each,
+    // while the "conflicts with every clique element" test below costs up to
+    // clqSize calls to conflicting(), two binary searches apiece. On the slow
+    // fixtures clqSize is 400-500 and rescg.first is tens of thousands, so that
+    // test is where essentially all of separation time goes.
+    size_t nRaw = 0;
     for (size_t i = 0; i < rescg.first; i++) {
         const size_t node = rescg.second[i];
 
@@ -303,6 +316,27 @@ void CoinCliqueExtender::fillCandidates(const size_t *clqIdxs, const size_t clqS
             continue;
         }
 
+        raw_[nRaw++] = node;
+    }
+
+    // The caller keeps only the maxCandidates_ cheapest survivors, so verifying
+    // the rest is pure waste. Verifying in cost order and stopping at the cap
+    // selects that same set: CompareCost is a strict weak ordering, so "the
+    // cheapest k of all verified" and "verify in cost order, take the first k"
+    // agree.
+    // No clique-size gate: a threshold sweep (0/2/4/8/16 on the eight fixtures
+    // that dominate separation time) found ungated to be best everywhere, and the
+    // short-clique fixtures that appeared to regress -- bnatt400, uct-subprob --
+    // are unchanged when timed serially. Those apparent slowdowns were load noise
+    // from a 12-way parallel harness, on fixtures whose absolute times are ~10ms.
+    candidatesRanked_ = (costs != NULL) && (nRaw > maxCandidates_);
+    if (candidatesRanked_) {
+        std::sort(raw_.begin(), raw_.begin() + nRaw, CompareCost(costs));
+    }
+    const size_t cap = candidatesRanked_ ? maxCandidates_ : nRaw;
+
+    for (size_t i = 0; i < nRaw && nCandidates_ < cap; i++) {
+        const size_t node = raw_[i];
         bool insert = true;
         for (size_t j = 0; j < clqSize; j++) {
             if (!cgraph_->conflicting(node, clqIdxs[j])) {
