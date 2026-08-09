@@ -268,7 +268,10 @@ void CoinConflictGraph::iniCoinConflictGraph(const CoinConflictGraph *other) {
     minDegree_ = other->minDegree_;
     maxDegree_ = other->maxDegree_;
     updateMDegree = other->updateMDegree;
-    infeasibleImplications_ = infeasibleImplications_;
+    // Was a self-assignment, which silently dropped the implications on every
+    // copy/clone. CbcSolver reports these (see its infeasibleImplications()
+    // use), so a cloned graph has to carry them.
+    infeasibleImplications_ = other->infeasibleImplications_;
 }
 
 void CoinConflictGraph::setMinCliqueRow(size_t minClqRow) {

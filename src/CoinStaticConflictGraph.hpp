@@ -218,7 +218,49 @@ public:
    **/
   const std::vector< std::pair< size_t, std::pair< double, double > > > &updatedBounds() const;
 
+  /**
+   * Write this graph to a file, so that `load()` can reconstruct it exactly.
+   *
+   * Building a conflict graph means re-scanning every constraint, and the
+   * result depends on the matrix as it stood at that moment -- a graph built
+   * from a *later* state of the same model is not necessarily the same graph
+   * (`CglCliqueStrengthening` deletes and adds rows after the graph is built,
+   * and `OsiSolverInterface::checkCGraph()` only rebuilds when the column
+   * count changes, so a solver's graph is routinely stale with respect to its
+   * own matrix -- deliberately, since that is the graph its callers agreed
+   * on). Rebuilding is therefore *not* a way to recover a specific graph;
+   * saving it is. This exists so that a stand-alone tool can replay clique
+   * separation or clique extension on precisely the graph some earlier solve
+   * used, without redoing that solve.
+   *
+   * The format is binary, self-describing (magic + version) and fixed-width
+   * (every `size_t` is stored as `uint64_t`), so a file stays readable across
+   * builds and across 32/64-bit boundaries. `nodeCliques_` is not stored: it
+   * is an index derivable from `cliques_` and is rebuilt on load.
+   *
+   * @param fileName destination path, overwritten if it exists
+   * @return 0 on success, non-zero on any I/O failure
+   **/
+  int save( const char *fileName ) const;
+
+  /**
+   * Reconstruct a graph written by `save()`.
+   *
+   * @param fileName path previously passed to `save()`
+   * @return a newly allocated graph the caller owns, or NULL if the file
+   *         cannot be read, is not a conflict-graph file, or was written by
+   *         an incompatible version
+   **/
+  static CoinStaticConflictGraph *load( const char *fileName );
+
 private:
+  /**
+   * Empty graph, for `load()` to fill in field by field. Private because a
+   * default-constructed graph is not a usable one: every base-class scalar is
+   * left indeterminate until read from the file.
+   **/
+  CoinStaticConflictGraph() { }
+
   /**
    * Recommended tighter bounds for some variables.
    **/
