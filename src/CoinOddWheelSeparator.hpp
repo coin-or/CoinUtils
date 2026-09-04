@@ -103,6 +103,40 @@ public:
    **/
   inline void setMaxSeconds(double maxSeconds) { maxSeconds_ = maxSeconds; }
 
+  /**
+   * Counters and per-stage times of the last searchOddWheels() call.
+   * Filled unconditionally; the whole struct costs a dozen clock reads
+   * per call, against loops that are quadratic in activeColumns.
+   *
+   * The rejection counters sum with oddHolesFound to spFindCalls: every
+   * shortest-path call either yields a stored odd hole or is discarded by
+   * exactly one of the four filters.
+   **/
+  struct Stats {
+    size_t activeColumns;        /**< icaCount_: nodes of the doubled graph that are considered */
+    size_t arcs;                 /**< arcs handed to the shortest-path solver */
+    size_t spFindCalls;          /**< calls to CoinShortestPath::find() */
+    size_t oddHolesFound;        /**< odd holes stored (== numOddWheels()) */
+    size_t oddHolesShort;        /**< discarded: cycle shorter than 5 */
+    size_t oddHolesRepeatedNode; /**< discarded: a node appears twice in the cycle */
+    size_t oddHolesNotViolated;  /**< discarded: violation below the threshold */
+    size_t oddHolesDuplicate;    /**< discarded: same node set already stored */
+    size_t wheelCenters;         /**< odd holes that received a non-empty wheel center */
+    size_t wheelCenterElements;  /**< total wheel-center elements over all odd holes */
+    bool timeLimitReached;       /**< searchOddWheels() aborted on maxSeconds_ */
+    double tActiveColumns;       /**< fillActiveColumns() */
+    double tPrepareArcs;         /**< prepareGraph(): the (x',y'') conflict scan */
+    double tPrepareReverse;      /**< prepareGraph(): mirroring them into (x'',y') */
+    double tPrepareShortestPath; /**< prepareGraph(): the CoinShortestPath constructor */
+    double tSearch;              /**< the findOddHolesWithNode() loop */
+    double tWheelCenter;         /**< the searchWheelCenter() loop */
+  };
+
+  /**
+   * Statistics of the last searchOddWheels() call.
+   **/
+  inline const Stats &stats() const { return stats_; }
+
 private:
   /**
    * Select interesting columns that will be
@@ -234,6 +268,11 @@ private:
    * Wall-clock time limit for searchOddWheels(), 0 = unlimited.
    **/
   double maxSeconds_;
+
+  /**
+   * Counters and per-stage times, see stats().
+   **/
+  Stats stats_;
 };
 
 

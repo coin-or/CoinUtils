@@ -58,7 +58,11 @@ CoinOddWheelSeparator::CoinOddWheelSeparator(const CoinConflictGraph *cgraph, co
     icaCount_ = 0;
     icaIdx_ = std::vector<size_t>(cgSize);
     icaActivity_ = std::vector<double>(cgSize);
+    stats_ = Stats(); // value-initialized: every counter and timer starts at zero
+    const double startActive = CoinGetTimeOfDay();
     fillActiveColumns();
+    stats_.tActiveColumns = CoinGetTimeOfDay() - startActive;
+    stats_.activeColumns = icaCount_;
     extMethod_ = extMethod;
     maxSeconds_ = 0.0;
     spf_ = NULL;
@@ -104,24 +108,37 @@ void CoinOddWheelSeparator::searchOddWheels() {
 
     const double startTime = (maxSeconds_ > 0.0) ? CoinGetTimeOfDay() : 0.0;
 
-    if (!prepareGraph(startTime))
+    if (!prepareGraph(startTime)) {
+        stats_.timeLimitReached = true;
         return;
+    }
 
+    const double startSearch = CoinGetTimeOfDay();
     // Check time every 128 nodes so we don't check too frequently on small
     // instances or too rarely on large ones.
     for (size_t i = 0; i < icaCount_; i++) {
         if (maxSeconds_ > 0.0 && (i & 127) == 0 && i > 0) {
-            if (CoinGetTimeOfDay() - startTime >= maxSeconds_)
+            if (CoinGetTimeOfDay() - startTime >= maxSeconds_) {
+                stats_.timeLimitReached = true;
                 break;
+            }
         }
         findOddHolesWithNode(i);
     }
+    stats_.tSearch = CoinGetTimeOfDay() - startSearch;
+    stats_.oddHolesFound = ohIdxs_.size();
 
     if (extMethod_ > 0) {
+        const double startWC = CoinGetTimeOfDay();
         //try to insert a wheel center
         for (size_t i = 0; i < ohIdxs_.size(); i++) {
             searchWheelCenter(i);
+            if (!wcIdxs_[i].empty()) {
+                stats_.wheelCenters++;
+                stats_.wheelCenterElements += wcIdxs_[i].size();
+            }
         }
+        stats_.tWheelCenter = CoinGetTimeOfDay() - startWC;
     }
 }
 
@@ -160,13 +177,16 @@ void CoinOddWheelSeparator::fillActiveColumns() {
 bool CoinOddWheelSeparator::prepareGraph(double startTime) {
     size_t idxArc = 0;
     const size_t nodes = icaCount_ * 2;
+    const double startArcs = CoinGetTimeOfDay();
 
     //Conflicts: (x', y'')
     for (size_t i1 = 0; i1 < icaCount_; i1++) {
         // Check time every 64 outer iterations (each does icaCount_ inner steps).
         if (maxSeconds_ > 0.0 && (i1 & 63) == 0 && i1 > 0) {
-            if (CoinGetTimeOfDay() - startTime >= maxSeconds_)
+            if (CoinGetTimeOfDay() - startTime >= maxSeconds_) {
+                stats_.tPrepareArcs = CoinGetTimeOfDay() - startArcs;
                 return false;
+            }
         }
         spArcStart_[i1] = idxArc;
         const size_t idx1 = icaIdx_[i1];
@@ -186,6 +206,9 @@ bool CoinOddWheelSeparator::prepareGraph(double startTime) {
             } // conflict found
         } // i2
     } // i1
+
+    stats_.tPrepareArcs = CoinGetTimeOfDay() - startArcs;
+    const double startRev = CoinGetTimeOfDay();
 
     //Conflicts: (x'', y')
     for (size_t i1 = 0; i1 < icaCount_; i1++) {
@@ -211,13 +234,19 @@ bool CoinOddWheelSeparator::prepareGraph(double startTime) {
     }
 
     spArcStart_[icaCount_ * 2] = idxArc;
+    stats_.tPrepareReverse = CoinGetTimeOfDay() - startRev;
+    stats_.arcs = idxArc;
+
+    const double startSpf = CoinGetTimeOfDay();
     spf_ = new CoinShortestPath(nodes, idxArc, spArcStart_.data(), spArcTo_.data(), spArcDist_.data());
+    stats_.tPrepareShortestPath = CoinGetTimeOfDay() - startSpf;
     return true;
 }
 
 void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
     const size_t dest = icaCount_ + node;
 
+    stats_.spFindCalls++;
     spf_->find(node, dest);
     size_t oddSize = spf_->path(dest, tmp_.data());
 
@@ -229,6 +258,7 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
     oddSize--;
 
     if (oddSize < 5) {
+        stats_.oddHolesShort++;
         return;
     }
 
@@ -246,6 +276,7 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
             for (size_t j = 0; j <= i; j++) {
                 iv_[tmp_[j]] = 0;
             }
+            stats_.oddHolesRepeatedNode++;
             return;
         }
 
@@ -267,6 +298,7 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
     const double rhs = floor(oddSize / 2.0);
     const double viol = lhs - rhs;
     if (viol + ODDWHEEL_SEP_DEF_EPS <= ODDWHEEL_SEP_DEF_MIN_VIOL) {
+        stats_.oddHolesNotViolated++;
         return;
     }
 
@@ -276,10 +308,24 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
 bool CoinOddWheelSeparator::addOddHole(size_t nz, const std::vector<size_t> &idxs) {
     // checking for repeated entries
     if (alreadyInserted(nz, idxs)) {
+        stats_.oddHolesDuplicate++;
         return false;
     }
 
-    ohIdxs_.push_back(idxs);
+    /* Only the first nz entries of idxs describe the hole -- it is the shared
+     * tmp_ scratch buffer, sized cgSize + 1. Pushing the whole vector made
+     * oddHoleSize() report cgSize + 1 and oddWheelRHS() report floor(cgSize/2)
+     * = numCols, with the tail carrying stale (mostly zero-initialised)
+     * entries. Three consequences, all measured on the 237 replay fixtures:
+     *   - CglOddWheel translated the stale tail into cut coefficients, so
+     *     every hole hit its repeated-column guard and was discarded
+     *     (2528 of 2528, zero cuts ever emitted);
+     *   - alreadyInserted() compares nz against the stored size, which could
+     *     then never match, so the duplicate-hole check never fired (0 hits);
+     *   - searchWheelCenter() filtered candidates on `degree < ohSize` with
+     *     ohSize = cgSize + 1, rejecting every wheel centre (0 found), and
+     *     ran its conflicting() loop over the whole tail. */
+    ohIdxs_.push_back(std::vector<size_t>(idxs.begin(), idxs.begin() + nz));
 
     return true;
 }
