@@ -34,6 +34,25 @@
 #define ODDWHEEL_SEP_DEF_MAX_RC                 100.0
 #define ODDWHEEL_SEP_DEF_MIN_VIOL               0.02
 #define ODDWHEEL_SEP_DEF_MAX_WHEEL_CENTERS      ((size_t)256)
+#define ODDWHEEL_SEP_NOT_ACTIVE                 (std::numeric_limits<size_t>::max())
+
+/**
+ * Append one arc, growing the arrays if needed.
+ *
+ * Factored out only so the two ways of finding the conflicts cannot drift in
+ * how they emit them.
+ **/
+static inline void pushArc(std::vector<size_t> &arcTo, std::vector<double> &arcDist,
+                           size_t &arcCap, size_t &idxArc, size_t to, double dist) {
+    if (idxArc + 1 > arcCap) {
+        arcCap *= 2;
+        arcTo.resize(arcCap);
+        arcDist.resize(arcCap);
+    }
+    arcTo[idxArc] = to;
+    arcDist[idxArc] = dist;
+    idxArc++;
+}
 
 struct CompareCost {
     explicit CompareCost(const double *costs) { this->costs_ = costs; }
@@ -65,6 +84,7 @@ CoinOddWheelSeparator::CoinOddWheelSeparator(const CoinConflictGraph *cgraph, co
     stats_.activeColumns = icaCount_;
     extMethod_ = extMethod;
     maxSeconds_ = 0.0;
+    verifyPrepare_ = false;
     spf_ = NULL;
 
     if (icaCount_ > 4) {
@@ -174,40 +194,245 @@ void CoinOddWheelSeparator::fillActiveColumns() {
 #endif
 }
 
+/**
+ * Number of node visits the neighbour walk in buildForwardArcs() would make.
+ *
+ * That is exactly what conflictingNodes() reads for each active node: its direct
+ * conflicts, then every element of every clique it belongs to. The pairwise loop
+ * makes icaCount_ * icaCount_ conflicting() calls instead, so the two are
+ * directly comparable and the cheaper one can be picked per graph.
+ *
+ * Computing it is itself cheap -- O(icaCount_ + total node-clique memberships),
+ * with no element ever touched -- so it is worth paying to avoid the case where
+ * the active subgraph is dense and the walk would lose. That case is real: the
+ * analogous sparse rewrite in Gomory was bit-exact and 100x *slower* on wide
+ * rows until it was cost-gated.
+ **/
+size_t CoinOddWheelSeparator::neighborWalkCost() const {
+    size_t cost = 0;
+
+    for (size_t i = 0; i < icaCount_; i++) {
+        const size_t idx = icaIdx_[i];
+        cost += cgraph_->nDirectConflicts(idx);
+
+        const size_t nCliques = cgraph_->nNodeCliques(idx);
+        if (nCliques) {
+            const size_t *cliques = cgraph_->nodeCliques(idx);
+            for (size_t c = 0; c < nCliques; c++) {
+                cost += cgraph_->cliqueSize(cliques[c]);
+            }
+        }
+    }
+
+    return cost;
+}
+
+/**
+ * Build the (x', y'') arcs, either by testing all icaCount_^2 pairs or by
+ * walking each active node's neighbourhood.
+ *
+ * The two produce the same arcs in the same order. The pairwise loop emits i2
+ * ascending, and the walk gets there for free: conflictingNodes() returns the
+ * neighbour set sorted, fillActiveColumns() builds icaIdx_ in strictly
+ * increasing node order, so posInActive is monotone and sorted neighbours map to
+ * ascending positions. No sort is needed here, and since the arc *order* decides
+ * which of several equal-length cycles the shortest path returns, that is what
+ * keeps the cut set identical rather than merely equivalent.
+ *
+ * Two asymmetries between the paths are handled explicitly:
+ *  - conflicting(n, n) returns false, so the pairwise loop never emits a self
+ *    arc. The clique-merge branch of conflictingNodes() excludes the node too,
+ *    but its fast path returns directConflicts() unfiltered, so the i2 == i1
+ *    skip below is load-bearing, not defensive.
+ *  - conflicting() searches only the shorter of the two adjacency lists, so it
+ *    is only well defined on a symmetric graph -- which addNeighbor() does not
+ *    itself guarantee, it is the callers' responsibility. The walk reads one
+ *    direction only, so it would diverge on an asymmetric graph. That is what
+ *    setVerifyPrepare() exists to rule out empirically.
+ *  - a repeated neighbour. conflictingNodes() copies directConflicts() into its
+ *    scratch buffer without consulting iv, and its fast path returns that array
+ *    untouched, so a pair recorded twice in the graph is reported twice; the
+ *    pairwise loop tests each i2 once and cannot repeat one. Since the list is
+ *    sorted the repeats are adjacent, so skipping them costs one comparison.
+ *
+ * All of that rests on the neighbour list being sorted, which is also what
+ * conflicting()'s own binary_search assumes -- but nothing enforces it, so it is
+ * checked here rather than trusted: a mapped position that goes backwards sets
+ * *sawUnsorted, and prepareGraph() then discards the walk and rebuilds pairwise.
+ *
+ * Writes through the parameters rather than the members so the verification in
+ * prepareGraph() can run the unselected path into scratch vectors, leaving the
+ * selected path's output and timing untouched.
+ *
+ * @return false if the wall-clock limit was hit, in which case the arrays are
+ * incomplete and the caller must abandon them.
+ **/
+bool CoinOddWheelSeparator::buildForwardArcs(bool useWalk, double startTime,
+                                             std::vector<size_t> &arcStart,
+                                             std::vector<size_t> &arcTo,
+                                             std::vector<double> &arcDist,
+                                             size_t &arcCap, size_t &idxArc,
+                                             bool *sawUnsorted) {
+    std::vector<size_t> posInActive;
+    if (useWalk) {
+        posInActive.assign(cgraph_->size(), ODDWHEEL_SEP_NOT_ACTIVE);
+        for (size_t i = 0; i < icaCount_; i++) {
+            posInActive[icaIdx_[i]] = i;
+        }
+    }
+
+    for (size_t i1 = 0; i1 < icaCount_; i1++) {
+        // Check time every 64 outer iterations (each does icaCount_ inner steps
+        // pairwise, or one neighbourhood walk).
+        if (maxSeconds_ > 0.0 && (i1 & 63) == 0 && i1 > 0) {
+            if (CoinGetTimeOfDay() - startTime >= maxSeconds_) {
+                return false;
+            }
+        }
+        arcStart[i1] = idxArc;
+        const size_t idx1 = icaIdx_[i1];
+
+        if (useWalk) {
+            const std::pair<size_t, const size_t *> conf =
+                cgraph_->conflictingNodes(idx1, tmp_.data(), iv2_.data());
+
+            size_t prevPos = ODDWHEEL_SEP_NOT_ACTIVE;
+            for (size_t k = 0; k < conf.first; k++) {
+                const size_t i2 = posInActive[conf.second[k]];
+
+                if (i2 == ODDWHEEL_SEP_NOT_ACTIVE || i2 == i1) {
+                    continue;
+                }
+
+                if (prevPos != ODDWHEEL_SEP_NOT_ACTIVE) {
+                    if (i2 == prevPos) {
+                        continue; // the same neighbour reported twice
+                    }
+                    if (i2 < prevPos && sawUnsorted) {
+                        *sawUnsorted = true;
+                    }
+                }
+                prevPos = i2;
+
+                pushArc(arcTo, arcDist, arcCap, idxArc, icaCount_ + i2, icaActivity_[i2]);
+            } // neighbors of idx1
+        } else {
+            for (size_t i2 = 0; i2 < icaCount_; i2++) {
+                const size_t idx2 = icaIdx_[i2];
+
+                if (cgraph_->conflicting(idx1, idx2)) {
+                    pushArc(arcTo, arcDist, arcCap, idxArc, icaCount_ + i2, icaActivity_[i2]);
+                } // conflict found
+            } // i2
+        }
+    } // i1
+
+    return true;
+}
+
 bool CoinOddWheelSeparator::prepareGraph(double startTime) {
     size_t idxArc = 0;
     const size_t nodes = icaCount_ * 2;
     const double startArcs = CoinGetTimeOfDay();
 
+    const size_t walkCost = neighborWalkCost();
+    // Compare against icaCount_ * icaCount_ without forming the product, which
+    // would overflow a 32-bit size_t at icaCount_ > 65535 (the largest graph in
+    // the fixture set has 380804 nodes). Integer division gets the boundary
+    // exactly right: walkCost == icaCount_^2 keeps the pairwise loop.
+    bool useWalk = (walkCost / icaCount_) < icaCount_;
+    stats_.prepareWalkCost = walkCost;
+
     //Conflicts: (x', y'')
-    for (size_t i1 = 0; i1 < icaCount_; i1++) {
-        // Check time every 64 outer iterations (each does icaCount_ inner steps).
-        if (maxSeconds_ > 0.0 && (i1 & 63) == 0 && i1 > 0) {
-            if (CoinGetTimeOfDay() - startTime >= maxSeconds_) {
-                stats_.tPrepareArcs = CoinGetTimeOfDay() - startArcs;
-                return false;
-            }
+    bool sawUnsorted = false;
+    if (!buildForwardArcs(useWalk, startTime, spArcStart_, spArcTo_, spArcDist_, spArcCap_,
+                          idxArc, &sawUnsorted)) {
+        stats_.prepareMethod = useWalk ? 2 : 1;
+        stats_.tPrepareArcs = CoinGetTimeOfDay() - startArcs;
+        return false;
+    }
+
+    if (sawUnsorted) {
+        // A neighbour list came back out of order, so the walk cannot reproduce
+        // the ascending arc order the pairwise loop emits -- and the arc order
+        // decides which of several equal-length cycles is returned. Throw the
+        // walk away and pay for the pairwise loop, which is the only thing here
+        // that does not depend on the graph being sorted.
+        idxArc = 0;
+        useWalk = false;
+        stats_.prepareUnsorted = 1;
+        if (!buildForwardArcs(false, startTime, spArcStart_, spArcTo_, spArcDist_, spArcCap_,
+                              idxArc, NULL)) {
+            stats_.prepareMethod = 1;
+            stats_.tPrepareArcs = CoinGetTimeOfDay() - startArcs;
+            return false;
         }
-        spArcStart_[i1] = idxArc;
-        const size_t idx1 = icaIdx_[i1];
+    }
 
-        for (size_t i2 = 0; i2 < icaCount_; i2++) {
-            const size_t idx2 = icaIdx_[i2];
-
-            if (cgraph_->conflicting(idx1, idx2)) {
-                if(idxArc + 1 > spArcCap_) {
-                    spArcCap_ *= 2;
-                    spArcTo_.resize(spArcCap_);
-                    spArcDist_.resize(spArcCap_);
-                }
-                spArcTo_[idxArc] = icaCount_ + i2;
-                spArcDist_[idxArc] = icaActivity_[i2];
-                idxArc++;
-            } // conflict found
-        } // i2
-    } // i1
-
+    stats_.prepareMethod = useWalk ? 2 : 1;
     stats_.tPrepareArcs = CoinGetTimeOfDay() - startArcs;
+
+    if (verifyPrepare_) {
+        // Run whichever path was not selected into scratch vectors and compare
+        // element by element. Nothing here writes a member, so the selected
+        // path's arcs are unchanged and only its timing already stands recorded.
+        size_t vArcCap = icaCount_ * 2;
+        std::vector<size_t> vArcStart((icaCount_ * 2) + 1, 0);
+        std::vector<size_t> vArcTo(vArcCap);
+        std::vector<double> vArcDist(vArcCap);
+        size_t vIdxArc = 0;
+
+        // A time-limited run can leave the second path truncated, which is not a
+        // disagreement about the graph, so only a completed pair is compared.
+        if (buildForwardArcs(!useWalk, startTime, vArcStart, vArcTo, vArcDist, vArcCap, vIdxArc,
+                             NULL)) {
+            /* Compare the two as *sets* per node, not position by position. A
+             * single extra arc early on shifts every later position, which once
+             * reported 164353 mismatches for a real disagreement of 395 arcs and
+             * said nothing about its nature. Both sides are ascending and
+             * duplicate-free per node, so one merge pass gives the symmetric
+             * difference, split by which method has the surplus -- and that split
+             * is the diagnosis: arcs only the walk has mean it saw a conflict
+             * conflicting() denies, arcs only the pairwise loop has mean the walk
+             * missed one, and the two have opposite verdicts about which method to
+             * trust. */
+            size_t onlySel = 0, onlyVer = 0;
+
+            for (size_t i1 = 0; i1 < icaCount_; i1++) {
+                size_t a = spArcStart_[i1];
+                const size_t aEnd = (i1 + 1 < icaCount_) ? spArcStart_[i1 + 1] : idxArc;
+                size_t b = vArcStart[i1];
+                const size_t bEnd = (i1 + 1 < icaCount_) ? vArcStart[i1 + 1] : vIdxArc;
+
+                while (a < aEnd && b < bEnd) {
+                    if (spArcTo_[a] == vArcTo[b]) {
+                        // Exact comparison on purpose: both sides copy the same
+                        // icaActivity_ entry, so any difference at all is real.
+                        if (spArcDist_[a] != vArcDist[b]) {
+                            onlySel++;
+                            onlyVer++;
+                        }
+                        a++;
+                        b++;
+                    } else if (spArcTo_[a] < vArcTo[b]) {
+                        onlySel++;
+                        a++;
+                    } else {
+                        onlyVer++;
+                        b++;
+                    }
+                }
+                onlySel += aEnd - a;
+                onlyVer += bEnd - b;
+            }
+
+            stats_.prepareVerifyArcs = vIdxArc;
+            stats_.prepareMismatches = onlySel + onlyVer;
+            stats_.prepareWalkOnly = useWalk ? onlySel : onlyVer;
+            stats_.preparePairOnly = useWalk ? onlyVer : onlySel;
+        }
+    }
+
     const double startRev = CoinGetTimeOfDay();
 
     //Conflicts: (x'', y')

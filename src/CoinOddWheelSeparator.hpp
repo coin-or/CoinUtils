@@ -104,6 +104,19 @@ public:
   inline void setMaxSeconds(double maxSeconds) { maxSeconds_ = maxSeconds; }
 
   /**
+   * Build the arcs of the auxiliary graph *both* ways and check that they agree,
+   * reporting the result in Stats::prepareMismatches.
+   *
+   * prepareGraph() picks between testing all pairs of active nodes and walking
+   * each one's neighbourhood, which are equivalent only on a symmetric conflict
+   * graph -- something addNeighbor() leaves to its callers rather than enforcing.
+   * This exists to settle that empirically per graph. Off by default: it roughly
+   * doubles the cost of graph preparation, and the check is additive, so the
+   * selected path's arcs and timing are the same either way.
+   **/
+  inline void setVerifyPrepare(bool verify) { verifyPrepare_ = verify; }
+
+  /**
    * Counters and per-stage times of the last searchOddWheels() call.
    * Filled unconditionally; the whole struct costs a dozen clock reads
    * per call, against loops that are quadratic in activeColumns.
@@ -115,6 +128,13 @@ public:
   struct Stats {
     size_t activeColumns;        /**< icaCount_: nodes of the doubled graph that are considered */
     size_t arcs;                 /**< arcs handed to the shortest-path solver */
+    size_t prepareMethod;        /**< how prepareGraph() found the conflicts: 1 = all pairs, 2 = neighbour walk */
+    size_t prepareWalkCost;      /**< neighborWalkCost(): what method 2 costs, against activeColumns^2 for method 1 */
+    size_t prepareUnsorted;      /**< 1 if a neighbour list came back out of order and the walk was discarded */
+    size_t prepareVerifyArcs;    /**< setVerifyPrepare(): arcs the *other* method produced */
+    size_t prepareMismatches;    /**< setVerifyPrepare(): arcs in the symmetric difference of the two; must be 0 */
+    size_t prepareWalkOnly;      /**< setVerifyPrepare(): of those, the ones only the neighbour walk found */
+    size_t preparePairOnly;      /**< setVerifyPrepare(): of those, the ones only the pairwise loop found */
     size_t spFindCalls;          /**< calls to CoinShortestPath::find() */
     size_t oddHolesFound;        /**< odd holes stored (== numOddWheels()) */
     size_t oddHolesShort;        /**< discarded: cycle shorter than 5 */
@@ -149,6 +169,29 @@ private:
    * Returns false if aborted early due to time limit.
    **/
   bool prepareGraph(double startTime);
+
+  /**
+   * Cost of the neighbour-walk way of finding the conflicts, for comparison
+   * against the icaCount_^2 of testing every pair. See the .cpp.
+   **/
+  size_t neighborWalkCost() const;
+
+  /**
+   * Build the (x', y'') arcs into the given arrays, by testing all pairs of
+   * active nodes (useWalk false) or by walking each one's neighbourhood
+   * (useWalk true). Both emit the same arcs in the same order; see the .cpp.
+   *
+   * sawUnsorted, when not NULL, is set if a neighbour list came back out of
+   * order, which is the one case where the walk cannot reproduce the pairwise
+   * order; the caller must then discard its output. Never written false, so a
+   * caller may reuse one flag across calls.
+   *
+   * Returns false if aborted early due to time limit.
+   **/
+  bool buildForwardArcs(bool useWalk, double startTime,
+                        std::vector<size_t> &arcStart, std::vector<size_t> &arcTo,
+                        std::vector<double> &arcDist, size_t &arcCap, size_t &idxArc,
+                        bool *sawUnsorted);
 
   /**
    * Try to find an odd whole (a most violated) that
@@ -268,6 +311,12 @@ private:
    * Wall-clock time limit for searchOddWheels(), 0 = unlimited.
    **/
   double maxSeconds_;
+
+  /**
+   * Whether prepareGraph() cross-checks its two ways of finding the conflicts,
+   * see setVerifyPrepare().
+   **/
+  bool verifyPrepare_;
 
   /**
    * Counters and per-stage times, see stats().
