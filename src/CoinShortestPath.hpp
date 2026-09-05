@@ -133,6 +133,57 @@ private:
    * Monotone heap used in Dijkstra's algorithm.
    **/
   CoinNodeHeap *nh_;
+
+  /**
+   * Nodes whose dist_/previous_ entries were written by the last find(), so
+   * that the next one restores just those instead of all nodes_. See
+   * clearState() for why the arrays stay fully valid, which is what keeps
+   * previous(), previous(node) and distance(node) unchanged.
+   **/
+  std::vector<size_t> touched_;
+
+  /**
+   * Set when touched_ grew past the point where replaying it beats a full
+   * rewrite, after which clearState() does the full loop.
+   **/
+  bool touchedOverflow_;
+
+  /**
+   * Size of touched_ at which replaying it stops being cheaper than rewriting
+   * all nodes_ entries, so both touch() and clearState() give up on it.
+   *
+   * The full loop writes two words per node sequentially; a replay writes two
+   * words per entry by random access, which costs several times more each, so
+   * the crossover sits well below nodes_. A quarter is the conservative choice.
+   *
+   * touch() stops recording at the same threshold clearState() gives up at,
+   * rather than at nodes_. Once the run is past it the replay will not be used,
+   * so every further push_back is pure waste -- and on a *dense* active
+   * subgraph, where almost every node is reached, that is the only way this
+   * scheme could come out slower than the loop it replaces. Capping here bounds
+   * the overhead in that case at nodes_/4 sequential writes against the
+   * 2*nodes_ the full loop does anyway.
+   **/
+  inline size_t fullResetThreshold() const { return nodes_ / 4; }
+
+  /**
+   * Reset dist_/previous_ to their unvisited values.
+   **/
+  void clearState();
+
+  /**
+   * Record that node had its dist_/previous_ entries written.
+   **/
+  inline void touch(size_t node) {
+    if (touchedOverflow_) {
+      return;
+    }
+    if (touched_.size() >= fullResetThreshold()) {
+      touchedOverflow_ = true;
+      return;
+    }
+    touched_.push_back(node);
+  }
 };
 
 

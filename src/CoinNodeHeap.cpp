@@ -38,17 +38,52 @@ CoinNodeHeap::CoinNodeHeap(size_t numNodes) {
     numNodes_ = numNodes;
     pq_ = std::vector<std::pair<size_t, double> >(numNodes);
     pos_ = std::vector<size_t>(numNodes);
+    touchedOverflow_ = true; // the first reset() has nothing to replay
     reset();
 }
 
 CoinNodeHeap::~CoinNodeHeap() {}
 
+/**
+ * Restore the initial state: pq_[i] == (i, INFTY) and pos_[i] == i.
+ *
+ * Rewriting all numNodes_ entries dominated the one caller that matters.
+ * CoinOddWheelSeparator runs one shortest path per active node over a graph
+ * with 2 * activeColumns nodes, so a full reset per call is quadratic in the
+ * active count *regardless of how sparse the graph is*: on the bab6 fixture
+ * that is 18407 calls over 36814 nodes to find no odd hole at all.
+ *
+ * Replaying only the positions that were written reproduces the initial state
+ * exactly. Untouched positions still hold their initial (i, INFTY) since
+ * nothing wrote them. For pos_, note that a node only ever leaves a position
+ * by a write to that position -- update() and removeFirst() move nodes with
+ * std::swap or by overwriting pq_[0] and pq_[numNodes_-1], all of which are
+ * recorded -- so pos_[x] != x implies position x was touched, and setting
+ * pos_[p] = p over the touched set restores every entry that moved.
+ *
+ * Because the array contents end up identical rather than merely equivalent,
+ * every later comparison, and so every tie-break in the heap order, is
+ * unchanged. That matters here: the arc weights are 1001 - 1000*x and repeat
+ * often, and a different tie-break would silently return a different odd cycle.
+ */
 void CoinNodeHeap::reset() {
-    for (size_t i = 0; i < numNodes_; i++) {
-        pq_[i].first = i;
-        pq_[i].second = NODEHEAP_INFTY;
-        pos_[i] = i;
+    if (touchedOverflow_ || touched_.size() >= fullResetThreshold()) {
+        for (size_t i = 0; i < numNodes_; i++) {
+            pq_[i].first = i;
+            pq_[i].second = NODEHEAP_INFTY;
+            pos_[i] = i;
+        }
+    } else {
+        for (size_t i = 0; i < touched_.size(); i++) {
+            const size_t p = touched_[i];
+            pq_[p].first = p;
+            pq_[p].second = NODEHEAP_INFTY;
+            pos_[p] = p;
+        }
     }
+
+    touched_.clear();
+    touchedOverflow_ = false;
 }
 
 void CoinNodeHeap::update(size_t node, double cost) {
@@ -57,10 +92,13 @@ void CoinNodeHeap::update(size_t node, double cost) {
 
     assert(cost + NODEHEAP_EPS <= pq_[pos].second);
     pq_[pos].second = cost;
+    touch(pos);
 
     while ((root = rootPos(child)) != std::numeric_limits<size_t>::max()) {
         if (pq_[root].second >= pq_[child].second + NODEHEAP_EPS) {
             std::swap(pq_[child], pq_[root]);
+            touch(child);
+            touch(root);
             pos_[pq_[root].first] = root;
             pos_[pq_[child].first] = child;
             child = root;
@@ -78,6 +116,8 @@ double CoinNodeHeap::removeFirst(size_t *node) {
     pq_[0] = pq_[posLastNode];
     pq_[posLastNode].first = (*node);
     pq_[posLastNode].second = NODEHEAP_INFTY;
+    touch(0);
+    touch(posLastNode);
     pos_[pq_[0].first] = 0;
     pos_[(*node)] = posLastNode;
 
@@ -91,6 +131,8 @@ double CoinNodeHeap::removeFirst(size_t *node) {
 
         if (pq_[root].second >= pq_[child].second + NODEHEAP_EPS) {
             std::swap(pq_[root], pq_[child]);
+            touch(root);
+            touch(child);
             pos_[pq_[root].first] = root;
             pos_[pq_[child].first] = child;
             root = child;

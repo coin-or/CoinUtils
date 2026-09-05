@@ -80,6 +80,47 @@ private:
    * Number of nodes of the heap.
    **/
   size_t numNodes_;
+
+  /**
+   * Positions of pq_ written since the last reset(), so that reset() can
+   * restore just those instead of rewriting all numNodes_ entries. See the
+   * comment on reset() in the .cpp for why restoring exactly the written
+   * positions reproduces the initial state.
+   **/
+  std::vector<size_t> touched_;
+
+  /**
+   * Set when touched_ grew past the point where replaying it beats a full
+   * rewrite, after which reset() does the full loop.
+   **/
+  bool touchedOverflow_;
+
+  /**
+   * Size of touched_ at which replaying it stops being cheaper than rewriting
+   * all numNodes_ entries, so both touch() and reset() give up on it.
+   *
+   * reset() writes three words per position sequentially; a replay writes the
+   * same three by random access, at several times the cost each, so the
+   * crossover is well below numNodes_. touch() stops recording at the same
+   * threshold reset() abandons the replay at, since past that point every
+   * further push_back is work whose result is never read -- the case that
+   * arises when the active subgraph is dense enough that most positions move.
+   **/
+  inline size_t fullResetThreshold() const { return numNodes_ / 4; }
+
+  /**
+   * Record that position pos of pq_ was written.
+   **/
+  inline void touch(size_t pos) {
+    if (touchedOverflow_) {
+      return;
+    }
+    if (touched_.size() >= fullResetThreshold()) {
+      touchedOverflow_ = true;
+      return;
+    }
+    touched_.push_back(pos);
+  }
 };
 
 

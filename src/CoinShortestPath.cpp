@@ -31,8 +31,11 @@
 CoinShortestPath::CoinShortestPath(size_t nodes, size_t arcs, const size_t *arcStart, const size_t *toNode, const double *dist) {
     nodes_ = nodes;
     nh_ = new CoinNodeHeap(nodes_);
-    previous_ = std::vector<size_t>(nodes_);
-    dist_ = std::vector<double>(nodes_);
+    // Start in the unvisited state so clearState() has nothing to undo before
+    // the first find(); previously each find() established this itself.
+    previous_ = std::vector<size_t>(nodes_, SPATH_INFTY_NODE);
+    dist_ = std::vector<double>(nodes_, SPATH_INFTY_DIST);
+    touchedOverflow_ = false;
     path_ = std::vector<size_t>(nodes_);
     neighs_ = std::vector<std::vector<std::pair<size_t, double> > >(nodes_);
 
@@ -54,17 +57,46 @@ CoinShortestPath::~CoinShortestPath() {
     delete nh_;
 }
 
+/**
+ * Return dist_/previous_ to the unvisited state.
+ *
+ * Both arrays are only ever written for a node that entered the heap, so
+ * restoring exactly those nodes leaves the arrays *fully* valid rather than
+ * valid-where-stamped. That is deliberate: distance(), previous(node) and the
+ * previous() array accessor keep reading the arrays directly and need no
+ * change, and callers see the same values as before.
+ *
+ * The loop this replaces was the second half of the cost of a find() that
+ * terminates immediately: CoinOddWheelSeparator's active subgraphs are
+ * extremely sparse -- 6368 arcs over 36814 nodes on bab6, 36 arcs over 3832 on
+ * fiball -- so most origins have no outgoing arc, yet each call still paid two
+ * O(nodes_) sweeps plus the heap's own.
+ */
+void CoinShortestPath::clearState() {
+    if (touchedOverflow_ || touched_.size() >= fullResetThreshold()) {
+        for (size_t i = 0; i < nodes_; i++) {
+            previous_[i] = SPATH_INFTY_NODE;
+            dist_[i] = SPATH_INFTY_DIST;
+        }
+    } else {
+        for (size_t i = 0; i < touched_.size(); i++) {
+            previous_[touched_[i]] = SPATH_INFTY_NODE;
+            dist_[touched_[i]] = SPATH_INFTY_DIST;
+        }
+    }
+
+    touched_.clear();
+    touchedOverflow_ = false;
+}
+
 void CoinShortestPath::find(const size_t origin) {
     assert(origin < this->nodes_);
 
     nh_->reset();
-
-    for (size_t i = 0; i < nodes_; i++) {
-        previous_[i] = SPATH_INFTY_NODE;
-        dist_[i] = SPATH_INFTY_DIST;
-    }
+    clearState();
 
     dist_[origin] = 0.0;
+    touch(origin);
     nh_->update(origin, 0.0);
 
     size_t topNode;
@@ -86,6 +118,7 @@ void CoinShortestPath::find(const size_t origin) {
             if (dist_[toNode] >= newDist + SPATH_EPS) {
                 previous_[toNode] = topNode;
                 dist_[toNode] = newDist;
+                touch(toNode);
                 nh_->update(toNode, newDist);
             } // updating heap if necessary
         } // going through node neighbors
@@ -96,13 +129,10 @@ void CoinShortestPath::find(const size_t origin, const size_t destination) {
     assert(origin < this->nodes_);
     assert(destination < this->nodes_);
     nh_->reset();
-
-    for (size_t i = 0; i < nodes_; i++) {
-        previous_[i] = SPATH_INFTY_NODE;
-        dist_[i] = SPATH_INFTY_DIST;
-    }
+    clearState();
 
     dist_[origin] = 0.0;
+    touch(origin);
     nh_->update(origin, 0.0);
 
     size_t topNode;
@@ -124,6 +154,7 @@ void CoinShortestPath::find(const size_t origin, const size_t destination) {
             if (dist_[toNode] >= newDist + SPATH_EPS) {
                 previous_[toNode] = topNode;
                 dist_[toNode] = newDist;
+                touch(toNode);
                 nh_->update(toNode, newDist);
             } // updating heap if necessary
         } // going through node neighbors
