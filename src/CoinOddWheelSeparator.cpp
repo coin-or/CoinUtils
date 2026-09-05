@@ -444,7 +444,12 @@ bool CoinOddWheelSeparator::prepareGraph(double startTime) {
             assert(spArcTo_[i2] >= icaCount_);
 #endif
             const size_t arcTo = spArcTo_[i2] - icaCount_;
-            const size_t arcDist = spArcDist_[i2];
+            /* double, not size_t: the weights are icaActivity_ = 1001 - 1000*x
+             * and are not integral. Truncating here gave the reverse copy
+             * (y'', x') of a conflict a length up to 1 shorter than its forward
+             * arc (x', y''), so the two directions of the same edge disagreed and
+             * a path was cheaper the more reverse arcs it used. */
+            const double arcDist = spArcDist_[i2];
 
             if(idxArc + 1 > spArcCap_) {
                 spArcCap_ *= 2;
