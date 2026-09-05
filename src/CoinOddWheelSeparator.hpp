@@ -143,6 +143,28 @@ public:
     size_t oddHolesDuplicate;    /**< discarded: same node set already stored */
     size_t wheelCenters;         /**< odd holes that received a non-empty wheel center */
     size_t wheelCenterElements;  /**< total wheel-center elements over all odd holes */
+
+    /* searchWheelCenter() attribution.  A wheel centre must conflict with every
+     * node of the cycle, so the candidate pool is the neighbourhood of the
+     * cycle's *minimum-degree* node -- a correct superset, since a centre
+     * conflicting with all of C conflicts with that node in particular.  Each
+     * pooled node is then dropped by exactly one of four filters or survives:
+     *   wcPool == wcRejInCycle + wcRejDegree + wcRejAdjacency + wcRejCost
+     *             + wcCandidates
+     * Only the first three are validity conditions.  wcRejCost is a *heuristic*
+     * gate (x >= EPS or rc <= MAX_RC): admitting one of those nodes would still
+     * give a valid wheel, it just adds alpha * z*_w = 0 to the measured
+     * violation.  So a large wcRejCost means stronger cuts are being declined,
+     * whereas a large wcRejAdjacency means the graph simply has no centre. */
+    size_t wcCalls;              /**< searchWheelCenter() invocations (== odd holes stored) */
+    size_t wcPool;               /**< nodes returned by conflictingNodes(minDegreeNode), summed */
+    size_t wcRejInCycle;         /**< dropped: node is itself in the cycle */
+    size_t wcRejDegree;          /**< dropped: degree < |C|, so it cannot conflict with all of C */
+    size_t wcRejAdjacency;       /**< dropped: fails to conflict with some node of C */
+    size_t wcRejCost;            /**< dropped: x < EPS and rc > MAX_RC (heuristic gate, not validity) */
+    size_t wcCandidates;         /**< survived all four filters, summed over calls */
+    size_t wcCliqueDropped;      /**< extMethod 2: candidates rejected by the clique test */
+
     bool timeLimitReached;       /**< searchOddWheels() aborted on maxSeconds_ */
     double tActiveColumns;       /**< fillActiveColumns() */
     double tPrepareArcs;         /**< prepareGraph(): the (x',y'') conflict scan */

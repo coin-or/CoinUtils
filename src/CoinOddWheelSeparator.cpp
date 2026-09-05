@@ -624,15 +624,19 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
     // generating candidates
     const std::pair<size_t, const size_t*> rescg = cgraph_->conflictingNodes(nodeSD, tmp_.data(), iv2_.data());
     size_t numCandidates = 0;
+    stats_.wcCalls++;
+    stats_.wcPool += rescg.first;
     for (size_t i = 0; i < rescg.first; i++) {
         const size_t node = rescg.second[i];
 
         //already inserted
         if (iv_[node]) {
+            stats_.wcRejInCycle++;
             continue;
         }
 
         if (cgraph_->degree(node) < ohSize) {
+            stats_.wcRejDegree++;
             continue;
         }
 
@@ -644,14 +648,18 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
             }
         }
         if (!insert) {
+            stats_.wcRejAdjacency++;
             continue;
         }
 
         //new candidate
         if (x_[node] >= ODDWHEEL_SEP_DEF_EPS || rc_[node] <= ODDWHEEL_SEP_DEF_MAX_RC) {
             tmp_[numCandidates++] = node;
+        } else {
+            stats_.wcRejCost++;
         }
     }
+    stats_.wcCandidates += numCandidates;
 
     if (numCandidates != 0) {
     	size_t sizeWC = 0;
@@ -684,6 +692,8 @@ void CoinOddWheelSeparator::searchWheelCenter(size_t idxOH) {
 	            }
 	            if (insert) {
 	                tmp_[sizeWC++] = selected;
+	            } else {
+	                stats_.wcCliqueDropped++;
 	            }
 	        }
     	}
