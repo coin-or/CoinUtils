@@ -35,7 +35,9 @@ CoinShortestPath::CoinShortestPath(size_t nodes, size_t arcs, const size_t *arcS
     // the first find(); previously each find() established this itself.
     previous_ = std::vector<size_t>(nodes_, SPATH_INFTY_NODE);
     dist_ = std::vector<double>(nodes_, SPATH_INFTY_DIST);
-    touchedOverflow_ = false;
+    recording_ = true;
+    skipped_ = false;
+    skipsLeft_ = 0;
     path_ = std::vector<size_t>(nodes_);
     neighs_ = std::vector<std::vector<std::pair<size_t, double> > >(nodes_);
 
@@ -71,22 +73,38 @@ CoinShortestPath::~CoinShortestPath() {
  * extremely sparse -- 6368 arcs over 36814 nodes on bab6, 36 arcs over 3832 on
  * fiball -- so most origins have no outgoing arc, yet each call still paid two
  * O(nodes_) sweeps plus the heap's own.
+ *
+ * Either branch leaves the arrays in the same state, so which one runs is
+ * invisible to every caller and to the heap order; only the cost differs.
  */
 void CoinShortestPath::clearState() {
-    if (touchedOverflow_ || touched_.size() >= fullResetThreshold()) {
-        for (size_t i = 0; i < nodes_; i++) {
-            previous_[i] = SPATH_INFTY_NODE;
-            dist_[i] = SPATH_INFTY_DIST;
-        }
-    } else {
+    if (recording_) {
         for (size_t i = 0; i < touched_.size(); i++) {
             previous_[touched_[i]] = SPATH_INFTY_NODE;
             dist_[touched_[i]] = SPATH_INFTY_DIST;
         }
+    } else {
+        for (size_t i = 0; i < nodes_; i++) {
+            previous_[i] = SPATH_INFTY_NODE;
+            dist_[i] = SPATH_INFTY_DIST;
+        }
+        // Recording was on and the call outgrew the list: the subgraph is dense
+        // enough that the replay will not be used, so stop paying for it.
+        if (!skipped_) {
+            skipsLeft_ = recordBackoff();
+        }
     }
 
     touched_.clear();
-    touchedOverflow_ = false;
+
+    if (skipsLeft_ > 0) {
+        skipsLeft_--;
+        recording_ = false;
+        skipped_ = true;
+    } else {
+        recording_ = true;
+        skipped_ = false;
+    }
 }
 
 void CoinShortestPath::find(const size_t origin) {

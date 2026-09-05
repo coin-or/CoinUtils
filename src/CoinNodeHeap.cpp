@@ -38,7 +38,11 @@ CoinNodeHeap::CoinNodeHeap(size_t numNodes) {
     numNodes_ = numNodes;
     pq_ = std::vector<std::pair<size_t, double> >(numNodes);
     pos_ = std::vector<size_t>(numNodes);
-    touchedOverflow_ = true; // the first reset() has nothing to replay
+    // The first reset() has nothing to replay, and that is not a density
+    // signal, so it must not start the backoff either.
+    recording_ = false;
+    skipped_ = true;
+    skipsLeft_ = 0;
     reset();
 }
 
@@ -67,23 +71,36 @@ CoinNodeHeap::~CoinNodeHeap() {}
  * often, and a different tie-break would silently return a different odd cycle.
  */
 void CoinNodeHeap::reset() {
-    if (touchedOverflow_ || touched_.size() >= fullResetThreshold()) {
-        for (size_t i = 0; i < numNodes_; i++) {
-            pq_[i].first = i;
-            pq_[i].second = NODEHEAP_INFTY;
-            pos_[i] = i;
-        }
-    } else {
+    if (recording_) {
         for (size_t i = 0; i < touched_.size(); i++) {
             const size_t p = touched_[i];
             pq_[p].first = p;
             pq_[p].second = NODEHEAP_INFTY;
             pos_[p] = p;
         }
+    } else {
+        for (size_t i = 0; i < numNodes_; i++) {
+            pq_[i].first = i;
+            pq_[i].second = NODEHEAP_INFTY;
+            pos_[i] = i;
+        }
+        // Recording was on and the use outgrew the list: enough of the heap
+        // moves that the replay will not be used, so stop paying for it.
+        if (!skipped_) {
+            skipsLeft_ = recordBackoff();
+        }
     }
 
     touched_.clear();
-    touchedOverflow_ = false;
+
+    if (skipsLeft_ > 0) {
+        skipsLeft_--;
+        recording_ = false;
+        skipped_ = true;
+    } else {
+        recording_ = true;
+        skipped_ = false;
+    }
 }
 
 void CoinNodeHeap::update(size_t node, double cost) {

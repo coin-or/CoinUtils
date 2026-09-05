@@ -143,10 +143,23 @@ private:
   std::vector<size_t> touched_;
 
   /**
-   * Set when touched_ grew past the point where replaying it beats a full
-   * rewrite, after which clearState() does the full loop.
+   * Whether the find() now in progress is recording into touched_. Cleared by
+   * touch() when the list grows past fullResetThreshold(), and by clearState()
+   * for a deliberately skipped call (see skipsLeft_).
    **/
-  bool touchedOverflow_;
+  bool recording_;
+
+  /**
+   * Whether recording was *deliberately* off for the call that just finished,
+   * which is what separates "this graph is dense" from "we chose not to look".
+   * Only the former should extend the backoff.
+   **/
+  bool skipped_;
+
+  /**
+   * Calls remaining with recording deliberately off.
+   **/
+  size_t skipsLeft_;
 
   /**
    * Size of touched_ at which replaying it stops being cheaper than rewriting
@@ -155,16 +168,23 @@ private:
    * The full loop writes two words per node sequentially; a replay writes two
    * words per entry by random access, which costs several times more each, so
    * the crossover sits well below nodes_. A quarter is the conservative choice.
-   *
-   * touch() stops recording at the same threshold clearState() gives up at,
-   * rather than at nodes_. Once the run is past it the replay will not be used,
-   * so every further push_back is pure waste -- and on a *dense* active
-   * subgraph, where almost every node is reached, that is the only way this
-   * scheme could come out slower than the loop it replaces. Capping here bounds
-   * the overhead in that case at nodes_/4 sequential writes against the
-   * 2*nodes_ the full loop does anyway.
    **/
   inline size_t fullResetThreshold() const { return nodes_ / 4; }
+
+  /**
+   * How many calls to stop recording for once a call has proved the graph too
+   * dense for the replay to be used.
+   *
+   * On a dense active subgraph almost every node is reached, so recording pays
+   * fullResetThreshold() push_backs and clearState() then does the full loop
+   * anyway -- the one way this scheme can come out slower than the loop it
+   * replaces, and measured at roughly 15% on the densest odd-wheel fixtures.
+   * Backing off spreads that cost over 33 calls, leaving under 1%, while the
+   * periodic re-probe means a graph that turns sparse is picked straight back
+   * up. Correctness does not depend on the value: a full rewrite is always a
+   * valid reset, so this only ever trades one reset strategy for the other.
+   **/
+  inline size_t recordBackoff() const { return 32; }
 
   /**
    * Reset dist_/previous_ to their unvisited values.
@@ -175,11 +195,11 @@ private:
    * Record that node had its dist_/previous_ entries written.
    **/
   inline void touch(size_t node) {
-    if (touchedOverflow_) {
+    if (!recording_) {
       return;
     }
     if (touched_.size() >= fullResetThreshold()) {
-      touchedOverflow_ = true;
+      recording_ = false;
       return;
     }
     touched_.push_back(node);

@@ -90,10 +90,23 @@ private:
   std::vector<size_t> touched_;
 
   /**
-   * Set when touched_ grew past the point where replaying it beats a full
-   * rewrite, after which reset() does the full loop.
+   * Whether the heap use now in progress is recording into touched_. Cleared by
+   * touch() when the list grows past fullResetThreshold(), and by reset() for a
+   * deliberately skipped use (see skipsLeft_).
    **/
-  bool touchedOverflow_;
+  bool recording_;
+
+  /**
+   * Whether recording was *deliberately* off for the use that just finished,
+   * which is what separates "this graph is dense" from "we chose not to look".
+   * Only the former should extend the backoff.
+   **/
+  bool skipped_;
+
+  /**
+   * Uses remaining with recording deliberately off.
+   **/
+  size_t skipsLeft_;
 
   /**
    * Size of touched_ at which replaying it stops being cheaper than rewriting
@@ -101,22 +114,27 @@ private:
    *
    * reset() writes three words per position sequentially; a replay writes the
    * same three by random access, at several times the cost each, so the
-   * crossover is well below numNodes_. touch() stops recording at the same
-   * threshold reset() abandons the replay at, since past that point every
-   * further push_back is work whose result is never read -- the case that
-   * arises when the active subgraph is dense enough that most positions move.
+   * crossover is well below numNodes_.
    **/
   inline size_t fullResetThreshold() const { return numNodes_ / 4; }
+
+  /**
+   * How many resets to stop recording for once one has proved the heap use too
+   * broad for the replay to be used. See CoinShortestPath::recordBackoff() for
+   * the reasoning; correctness never depends on the value, since rewriting all
+   * numNodes_ entries is always a valid reset.
+   **/
+  inline size_t recordBackoff() const { return 32; }
 
   /**
    * Record that position pos of pq_ was written.
    **/
   inline void touch(size_t pos) {
-    if (touchedOverflow_) {
+    if (!recording_) {
       return;
     }
     if (touched_.size() >= fullResetThreshold()) {
-      touchedOverflow_ = true;
+      recording_ = false;
       return;
     }
     touched_.push_back(pos);
