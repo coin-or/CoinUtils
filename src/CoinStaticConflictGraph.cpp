@@ -621,8 +621,15 @@ CoinStaticConflictGraph *CoinStaticConflictGraph::load( const char *fileName )
         return NULL;
     }
     cg->cliques_.resize(nCliques);
-    for (uint64_t ic = 0; ic < nCliques && rd.ok; ++ic)
+    for (uint64_t ic = 0; ic < nCliques && rd.ok; ++ic) {
         rd.vecU64(cg->cliques_[ic]);
+        /* Deserializing must not be a way to build a graph that violates the
+         * invariant its own conflicting() depends on. Files written before
+         * CoinCliqueList::addClique started sorting hold unsorted cliques, and
+         * leaving them that way would make a replayed graph answer conflicting()
+         * differently from a freshly built one. */
+        std::sort(cg->cliques_[ic].begin(), cg->cliques_[ic].end());
+    }
 
     const uint64_t nBounds = rd.u64();
     if (!rd.ok || nBounds > (uint64_t)(rd.end - rd.p) / 24) {

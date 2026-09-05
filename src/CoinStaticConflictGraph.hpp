@@ -188,7 +188,7 @@ public:
         return true;
     }
 
-    // Check clique conflicts
+    // Check clique conflicts (also sorted → binary search; CoinCliqueList::addClique)
     const auto &nc1 = nodeCliques_[n1];
     const auto &nc2 = nodeCliques_[n2];
     size_t nodeToSearch;

@@ -42,6 +42,20 @@ void CoinCliqueList::addClique(size_t size, const size_t els[]) {
 
   clqEls_.push_back(std::vector<size_t>(els, els + size));
 
+  /* Sorted is an invariant, not a convenience: CoinConflictGraph::conflictInCliques
+   * and CoinStaticConflictGraph::nodeInClique both std::binary_search this list,
+   * so an unsorted clique makes conflicting() answer *false* for a pair that
+   * really does share a clique. The callers do not hand us sorted elements --
+   * CoinDynamicConflictGraph builds them from a row whose columns are ordered by
+   * coefficient value, not by index -- and on 6 of the 358 replay instances that
+   * left 17.8% of all cliques unsorted, costing neos-4532248-waihi 163016 real
+   * conflicts and one odd-wheel cut. CoinCliqueSet::insertIfNotDuplicate already
+   * sorts before calling us, which is where the invariant was already assumed.
+   *
+   * Sorting here rather than at each query keeps it O(k log k) once instead of
+   * O(k) per lookup, and cliques are searched far more often than they are built. */
+  std::sort(clqEls_.back().begin(), clqEls_.back().end());
+
   nCliqueElements_ += size;
 }
 
