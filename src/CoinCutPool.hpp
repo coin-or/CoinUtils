@@ -31,6 +31,7 @@
 #include "CoinUtilsConfig.h"
 #include <cstddef>
 #include <vector>
+#include <unordered_set>
 
 /**
  * Class for representing a cut.
@@ -108,8 +109,29 @@ public:
    *
    * @param x current solution of the LP relaxation of the MILP.
    * @param numCols number of variables of the MILP.
+   * @param tag optional identifier (e.g. generator name) printed with
+   *        per-pool candidate/kept counts when the CBC_CLIQUE_POOL_DEBUG
+   *        env var is set; nullptr (default) means no debug output.
    **/
-  CoinCutPool(const double *x, int numCols);
+  CoinCutPool(const double *x, int numCols, const char *tag = nullptr);
+
+  /**
+   * Enable/disable the expensive per-column best-score filtering (the
+   * fitness-based contest in updateCutFrequency()/calculateFitness()).
+   * Exact-duplicate cuts are always rejected regardless of this setting
+   * (via a cheap hash check in add()) -- this only controls whether
+   * *non-duplicate* candidates additionally compete for a "best cut per
+   * column" slot. Callers that already know their candidate count
+   * up front (e.g. a clique list already fully built) should measure it
+   * against a caller-chosen threshold and pass the result here *before*
+   * the add() loop starts; leaving filtering enabled on a large batch of
+   * candidates is what actually prunes redundant/dominated cuts, but
+   * doing so on a handful of candidates only adds cost for no benefit
+   * (see CBC_CLIQUE_POOL_DEBUG measurements: <=20 candidates are almost
+   * never filtered in practice). Defaults to enabled (the original,
+   * always-filter behaviour) for any caller that doesn't call this.
+   **/
+  void setFilteringEnabled(bool enabled) { filterEnabled_ = enabled; }
 
   /**
    * Destructor
@@ -191,6 +213,13 @@ private:
   void checkMemory();
 
   /**
+   * Compute a hash over a cut's (sorted) variable indices, coefficients,
+   * and rhs, used to reject exact-duplicate candidates cheaply (O(1)
+   * amortized) independent of whether score-based filtering is enabled.
+   **/
+  size_t hashCut(const CoinCut *cut) const;
+
+  /**
    * Check the dominance relation between two cuts
    * in the pool. Return 0 if cut idxA dominates
    * cut idxB, 1 if cut idxB dominates cut idxA,
@@ -239,6 +268,30 @@ private:
    * Current solution of the LP relaxation of the MILP.
    **/
   const double *x_;
+
+  /**
+   * Total number of candidate cuts submitted via add(), including ones
+   * later filtered out by the best-score-per-column rule -- tracked only
+   * to report a candidates-vs-kept ratio under CBC_CLIQUE_POOL_DEBUG.
+   **/
+  size_t numCandidates_;
+
+  /**
+   * Optional tag identifying the calling generator, for debug output.
+   **/
+  const char *tag_;
+
+  /**
+   * Whether the per-column best-score filtering is active for this pool
+   * instance (see setFilteringEnabled()). Defaults to true.
+   **/
+  bool filterEnabled_;
+
+  /**
+   * Hashes of cuts already accepted into the pool, used to reject exact
+   * duplicates regardless of filterEnabled_.
+   **/
+  std::unordered_set<size_t> seenHashes_;
 };
 
 

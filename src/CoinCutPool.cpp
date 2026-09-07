@@ -31,6 +31,7 @@
 #include <cmath>
 #include <cassert>
 #include <algorithm>
+#include <cstring>
 
 #define CUTPOOL_EPS 1e-8
 
@@ -149,9 +150,12 @@ bool CoinCut::dominates(const CoinCut *other) const {
     return true;
 }
 
-CoinCutPool::CoinCutPool(const double *x, int numCols) {
+CoinCutPool::CoinCutPool(const double *x, int numCols, const char *tag) {
     x_ = x;
     nullCuts_ = 0;
+    numCandidates_ = 0;
+    tag_ = tag;
+    filterEnabled_ = true;
 
     bestCutByCol_ = std::vector<int>(numCols, -1);
 
@@ -163,19 +167,67 @@ CoinCutPool::CoinCutPool(const double *x, int numCols) {
 }
 
 CoinCutPool::~CoinCutPool() {
+    if (tag_ && getenv("CBC_CLIQUE_POOL_DEBUG")) {
+        const size_t kept = nCuts_ - nullCuts_;
+        fprintf(stderr, "[cutpool] %s: candidates=%zu kept=%zu (filtered=%zu, %.1f%%) filterEnabled=%d\n",
+            tag_, numCandidates_, kept, numCandidates_ - kept,
+            numCandidates_ ? 100.0 * (numCandidates_ - kept) / numCandidates_ : 0.0,
+            (int)filterEnabled_);
+    }
     for (size_t i = 0; i < nCuts_; i++) {
         delete cuts_[i];
     }
 }
 
+size_t CoinCutPool::hashCut(const CoinCut *cut) const {
+    // FNV-1a style combine over the cut's (already sorted, per CoinCut's
+    // constructor) indices/coefficients/rhs.
+    size_t h = 1469598103934665603ULL;
+    auto mix = [&h](size_t v) {
+        h ^= v;
+        h *= 1099511628211ULL;
+    };
+    const int size = cut->size();
+    mix(static_cast<size_t>(size));
+    const int *idxs = cut->idxs();
+    const double *coefs = cut->coefs();
+    for (int i = 0; i < size; i++) {
+        mix(static_cast<size_t>(idxs[i]));
+        size_t bits;
+        memcpy(&bits, &coefs[i], sizeof(bits));
+        mix(bits);
+    }
+    double rhs = cut->rhs();
+    size_t rbits;
+    memcpy(&rbits, &rhs, sizeof(rbits));
+    mix(rbits);
+    return h;
+}
+
 bool CoinCutPool::add(const int *idxs, const double *coefs, int nz, double rhs) {
+    numCandidates_++;
     CoinCut *cut = new CoinCut(idxs, coefs, nz, rhs);
+
+    // Always reject exact-duplicate candidates (same vars/coefs/rhs),
+    // independent of filterEnabled_ -- generators that search from
+    // different starting points (e.g. CglImpliedClique's per-hub search,
+    // CglBKClique's clique extension) can rediscover the same clique
+    // more than once.
+    if (!seenHashes_.insert(hashCut(cut)).second) {
+        delete cut;
+        return false;
+    }
 
     checkMemory();
 
-    if (updateCutFrequency(cut) == 0) {
-        delete cut;
-        return false;
+    if (filterEnabled_) {
+        if (updateCutFrequency(cut) == 0) {
+            delete cut;
+            return false;
+        }
+    } else {
+        cutFitness_[nCuts_] = 0.0;
+        cutFrequency_[nCuts_] = 1;
     }
 
     cuts_[nCuts_++] = cut;
