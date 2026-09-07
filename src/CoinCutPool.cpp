@@ -156,6 +156,7 @@ CoinCutPool::CoinCutPool(const double *x, int numCols, const char *tag) {
     numCandidates_ = 0;
     tag_ = tag;
     filterEnabled_ = true;
+    maxParallelism_ = 1.0;
 
     bestCutByCol_ = std::vector<int>(numCols, -1);
 
@@ -220,13 +221,15 @@ bool CoinCutPool::add(const int *idxs, const double *coefs, int nz, double rhs) 
 
     checkMemory();
 
+    const double fitness = calculateFitness(cut);
+    cutFitness_[nCuts_] = fitness;
+
     if (filterEnabled_) {
-        if (updateCutFrequency(cut) == 0) {
+        if (updateCutFrequency(cut, fitness) == 0) {
             delete cut;
             return false;
         }
     } else {
-        cutFitness_[nCuts_] = 0.0;
         cutFrequency_[nCuts_] = 1;
     }
 
@@ -234,12 +237,10 @@ bool CoinCutPool::add(const int *idxs, const double *coefs, int nz, double rhs) 
     return true;
 }
 
-size_t CoinCutPool::updateCutFrequency(const CoinCut *cut) {
+size_t CoinCutPool::updateCutFrequency(const CoinCut *cut, double fitness) {
     const int nz = cut->size();
     const int *idxs = cut->idxs();
-    const double fitness = calculateFitness(cut);
 
-    cutFitness_[nCuts_] = fitness;
     cutFrequency_[nCuts_] = 0;
 
     for (int i = 0; i < nz; i++) {
@@ -304,6 +305,100 @@ double CoinCutPool::calculateFitness(const CoinCut *cut) const {
 #endif
 
     return ((violation / ((double) activeCols)) * 100000.0) + ((1.0 / (diffOfCoefs + 1.0)) * 1000.0);
+}
+
+double CoinCutPool::parallelism(const CoinCut *a, const CoinCut *b) const {
+    const int sizeA = a->size(), sizeB = b->size();
+    const int *idxsA = a->idxs(), *idxsB = b->idxs();
+    const double *coefsA = a->coefs(), *coefsB = b->coefs();
+
+    double normA = 0.0, normB = 0.0, dot = 0.0;
+    for (int i = 0; i < sizeA; i++) {
+        normA += coefsA[i] * coefsA[i];
+    }
+    for (int i = 0; i < sizeB; i++) {
+        normB += coefsB[i] * coefsB[i];
+    }
+
+    // idxs() is sorted ascending (CoinCut's constructor invariant), so a
+    // single merge pass finds the dot product over the shared support.
+    int i = 0, j = 0;
+    while (i < sizeA && j < sizeB) {
+        if (idxsA[i] == idxsB[j]) {
+            dot += coefsA[i] * coefsB[j];
+            i++;
+            j++;
+        } else if (idxsA[i] < idxsB[j]) {
+            i++;
+        } else {
+            j++;
+        }
+    }
+
+    const double denom = std::sqrt(normA) * std::sqrt(normB);
+    if (denom <= CUTPOOL_EPS) {
+        return 0.0;
+    }
+
+    return dot / denom;
+}
+
+void CoinCutPool::filterByParallelism() {
+    if (maxParallelism_ >= 1.0 - CUTPOOL_EPS) {
+        return; // disabled
+    }
+
+    if (nullCuts_) {
+        removeNullCuts();
+    }
+
+    if (nCuts_ <= 1) {
+        return;
+    }
+
+    // Greedily accept cuts by descending fitness (the same score already
+    // used by updateCutFrequency()'s per-column contest), skipping any
+    // candidate too parallel (cosine similarity > maxParallelism_) to an
+    // already-accepted cut. Mirrors HiGHS's HighsCutPool (maxpar=0.1) and
+    // SCIP's cutsel_hybrid/cutsel_dynamic (minortho=0.9, i.e.
+    // maxparallelism=0.1) orthogonality-based cut selection.
+    std::vector<size_t> order(nCuts_);
+    for (size_t i = 0; i < nCuts_; i++) {
+        order[i] = i;
+    }
+    std::sort(order.begin(), order.end(), [this](size_t a, size_t b) {
+        return cutFitness_[a] > cutFitness_[b];
+    });
+
+    std::vector<size_t> keptIdx;
+    keptIdx.reserve(nCuts_);
+    std::vector<bool> keep(nCuts_, false);
+
+    for (size_t oi : order) {
+        bool tooParallel = false;
+        for (size_t ki : keptIdx) {
+            if (parallelism(cuts_[oi], cuts_[ki]) > maxParallelism_) {
+                tooParallel = true;
+                break;
+            }
+        }
+        if (!tooParallel) {
+            keep[oi] = true;
+            keptIdx.push_back(oi);
+        }
+    }
+
+    for (size_t i = 0; i < nCuts_; i++) {
+        if (!keep[i]) {
+            delete cuts_[i];
+            cuts_[i] = NULL;
+            nullCuts_++;
+        }
+    }
+
+    if (nullCuts_) {
+        removeNullCuts();
+    }
 }
 
 void CoinCutPool::checkMemory() {

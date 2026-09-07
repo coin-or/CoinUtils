@@ -134,6 +134,31 @@ public:
   void setFilteringEnabled(bool enabled) { filterEnabled_ = enabled; }
 
   /**
+   * Set the maximum cosine-similarity ("parallelism") allowed between a
+   * kept cut and any other cut already kept, applied by
+   * filterByParallelism(). Two cuts pointing in nearly the same
+   * direction add little beyond what the first already provides (to the
+   * reoptimized LP) while still costing a row -- this is the same
+   * orthogonality/parallelism-based selection idea used by HiGHS
+   * (HighsCutPool: maxpar=0.1) and SCIP (cutsel_hybrid/cutsel_dynamic:
+   * minortho=0.9, i.e. maxparallelism=0.1), neither of which CBC
+   * previously implemented for its clique-cut pool. Default 1.0 means
+   * "disabled" (no two non-identical cuts have cosine similarity of
+   * exactly 1.0, since exact duplicates are already rejected in add()).
+   **/
+  void setMaxParallelism(double maxParallelism) { maxParallelism_ = maxParallelism; }
+
+  /**
+   * Greedily select cuts by descending fitness, skipping any candidate
+   * whose cosine similarity to an already-selected cut exceeds
+   * maxParallelism_ (see setMaxParallelism()). No-op if maxParallelism_
+   * is 1.0 (the default/disabled value). Should be called after the
+   * add() loop (and, ideally, after removeNullCuts()) and before
+   * reading cuts out via cutIdxs()/cutCoefs()/etc.
+   **/
+  void filterByParallelism();
+
+  /**
    * Destructor
    **/
   ~CoinCutPool();
@@ -199,12 +224,20 @@ private:
    * to reflect this calculation. Return the number
    * of variables for which the cut has the best score.
    **/
-    size_t updateCutFrequency(const CoinCut *cut);
+    size_t updateCutFrequency(const CoinCut *cut, double fitness);
 
   /**
    * Compute the score of the cut.
    **/
   double calculateFitness(const CoinCut *cut) const;
+
+  /**
+   * Compute the cosine similarity ("parallelism", in [-1, 1]) between
+   * the coefficient vectors of two cuts, treating missing entries as 0.
+   * Both cuts' idxs() are sorted ascending (CoinCut's constructor
+   * invariant), so this runs in a single O(sizeA + sizeB) merge pass.
+   **/
+  double parallelism(const CoinCut *a, const CoinCut *b) const;
 
   /**
    * Check if it is necessary expand the memory
@@ -292,6 +325,12 @@ private:
    * duplicates regardless of filterEnabled_.
    **/
   std::unordered_set<size_t> seenHashes_;
+
+  /**
+   * Maximum cosine similarity allowed between two kept cuts (see
+   * setMaxParallelism()). Defaults to 1.0 (disabled).
+   **/
+  double maxParallelism_;
 };
 
 
