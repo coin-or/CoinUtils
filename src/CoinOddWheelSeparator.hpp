@@ -117,6 +117,54 @@ public:
   inline void setVerifyPrepare(bool verify) { verifyPrepare_ = verify; }
 
   /**
+   * Enable (default) or disable the futility gate.
+   *
+   * The gate proves, per active node, that no shortest-path call from it can
+   * produce a cut, and skips the call. It is a certificate and not a heuristic --
+   * see buildFutilityGate() -- so the cut set is unchanged; only Stats::spFindCalls
+   * and the rejection counters move. The setter exists so that can be *checked*
+   * rather than asserted, by replaying a fixture both ways and comparing every
+   * output field.
+   **/
+  inline void setUseFutilityGate(bool use) { useGate_ = use; }
+
+  /**
+   * Record, per active node, which of the five outcomes its shortest-path call
+   * reached. Off by default; diagnostic only. Costs one byte per active node and
+   * one store per call, so it does not perturb what is measured -- the point is
+   * to be able to *label* nodes for a feature study rather than infer the label
+   * from aggregate counters, which cannot be done at all (541356 of 643697 calls
+   * land in one bucket).
+   *
+   * Run this with the futility gate OFF, or every skipped node reports
+   * OUTCOME_NOT_CALLED and the labels are missing exactly where the gate fired.
+   **/
+  inline void setRecordNodeOutcomes(bool record) { recordOutcomes_ = record; }
+
+  /** Outcome codes stored in nodeOutcomes(). */
+  enum NodeOutcome {
+    OUTCOME_NOT_CALLED = 0,  /**< the gate skipped it, or the time limit cut the loop short */
+    OUTCOME_SHORT = 1,       /**< oddSize < 5: a triangle, or no odd walk at all */
+    OUTCOME_REPEATED = 2,    /**< a column appeared twice, so it is a walk and not a hole */
+    OUTCOME_NOT_VIOLATED = 3,/**< a genuine odd hole, but not violated by enough */
+    OUTCOME_DUPLICATE = 4,   /**< violated, but the same hole was already stored */
+    OUTCOME_KEPT = 5         /**< stored in ohIdxs_ */
+  };
+
+  /**
+   * Per active node outcome, indexed the way icaIdx_ is: ascending column index
+   * over the doubled graph, filtered by degree >= 2 and x > MIN_FRAC. Empty
+   * unless setRecordNodeOutcomes(true) was called.
+   **/
+  inline const std::vector<unsigned char> &nodeOutcomes() const { return nodeOutcome_; }
+
+  /** Number of active nodes, i.e. the length of nodeOutcomes(). */
+  inline size_t activeCount() const { return icaCount_; }
+
+  /** Column (in the doubled graph) of active node i. */
+  inline size_t activeColumn(size_t i) const { return icaIdx_[i]; }
+
+  /**
    * Counters and per-stage times of the last searchOddWheels() call.
    * Filled unconditionally; the whole struct costs a dozen clock reads
    * per call, against loops that are quadratic in activeColumns.
@@ -165,11 +213,31 @@ public:
     size_t wcCandidates;         /**< survived all four filters, summed over calls */
     size_t wcCliqueDropped;      /**< extMethod 2: candidates rejected by the clique test */
 
+    /* buildFutilityGate() attribution.  Each skipped node carries a proof that a
+     * shortest-path call from it cannot yield a cut, so gateSkipped is time saved
+     * and never a cut lost.  The four reasons are disjoint and gateSkipped is
+     * their sum.
+     *
+     * The first three are not tested in strength order but in *weakness* order,
+     * on purpose.  One certificate -- "some biconnected block containing the node
+     * is non-bipartite" -- decides "lies on an odd cycle" exactly, and it strictly
+     * subsumes both the bipartite-component and the outside-the-2-core tests.  So
+     * a single check makes the skip decision, and the two older predicates are
+     * kept only to attribute it: whichever weaker certificate would also have
+     * caught this node gets the count, and gateBlockOnly is therefore exactly what
+     * the block certificate adds over the two it replaced. */
+    size_t gateSkipped;          /**< active nodes whose shortest-path call was skipped */
+    size_t gateBipartite;        /**< skipped: the node's component admits no odd closed walk at all */
+    size_t gateNoCycle;          /**< skipped: outside the 2-core, so on no simple cycle and in no hole */
+    size_t gateBlockOnly;        /**< skipped: on no odd cycle, and neither weaker certificate saw it */
+    size_t gateTriangle;         /**< skipped: the lightest odd walk through it is provably a triangle */
+
     bool timeLimitReached;       /**< searchOddWheels() aborted on maxSeconds_ */
     double tActiveColumns;       /**< fillActiveColumns() */
     double tPrepareArcs;         /**< prepareGraph(): the (x',y'') conflict scan */
     double tPrepareReverse;      /**< prepareGraph(): mirroring them into (x'',y') */
     double tPrepareShortestPath; /**< prepareGraph(): the CoinShortestPath constructor */
+    double tGate;                /**< buildFutilityGate() */
     double tSearch;              /**< the findOddHolesWithNode() loop */
     double tWheelCenter;         /**< the searchWheelCenter() loop */
   };
@@ -214,6 +282,13 @@ private:
                         std::vector<size_t> &arcStart, std::vector<size_t> &arcTo,
                         std::vector<double> &arcDist, size_t &arcCap, size_t &idxArc,
                         bool *sawUnsorted);
+
+  /**
+   * Mark active nodes whose shortest-path call provably cannot yield a cut.
+   * Reads the arcs prepareGraph() built; fills gateSkip_. See the .cpp for the
+   * four certificates and why each one is sound.
+   **/
+  void buildFutilityGate();
 
   /**
    * Try to find an odd whole (a most violated) that
@@ -291,6 +366,26 @@ private:
    * Capacity to store arcs.
    **/
   size_t spArcCap_;
+
+  /**
+   * buildFutilityGate(): 1 if the search should skip this active node.
+   **/
+  std::vector<char> gateSkip_;
+
+  /**
+   * Whether to run buildFutilityGate() at all. See setUseFutilityGate().
+   **/
+  bool useGate_;
+
+  /**
+   * Per active node outcome, see setRecordNodeOutcomes().
+   **/
+  std::vector<unsigned char> nodeOutcome_;
+
+  /**
+   * Whether nodeOutcome_ is filled. See setRecordNodeOutcomes().
+   **/
+  bool recordOutcomes_;
 
   /**
    * Auxiliary array

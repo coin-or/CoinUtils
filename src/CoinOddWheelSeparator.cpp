@@ -35,6 +35,10 @@
 #define ODDWHEEL_SEP_DEF_MIN_VIOL               0.02
 #define ODDWHEEL_SEP_DEF_MAX_WHEEL_CENTERS      ((size_t)256)
 #define ODDWHEEL_SEP_NOT_ACTIVE                 (std::numeric_limits<size_t>::max())
+/* Lightest out-neighbours examined when looking for a dominating triangle.
+ * Being incomplete costs a skip that could have been taken, never a cut, so
+ * the cap trades gate strength for gate cost and nothing else. */
+#define ODDWHEEL_SEP_GATE_TRI_CAND              ((size_t)16)
 
 /**
  * Append one arc, growing the arrays if needed.
@@ -85,6 +89,8 @@ CoinOddWheelSeparator::CoinOddWheelSeparator(const CoinConflictGraph *cgraph, co
     extMethod_ = extMethod;
     maxSeconds_ = 0.0;
     verifyPrepare_ = false;
+    useGate_ = true;
+    recordOutcomes_ = false;
     spf_ = NULL;
 
     if (icaCount_ > 4) {
@@ -133,6 +139,14 @@ void CoinOddWheelSeparator::searchOddWheels() {
         return;
     }
 
+    if (useGate_) {
+        buildFutilityGate();
+    }
+
+    if (recordOutcomes_) {
+        nodeOutcome_.assign(icaCount_, OUTCOME_NOT_CALLED);
+    }
+
     const double startSearch = CoinGetTimeOfDay();
     // Check time every 128 nodes so we don't check too frequently on small
     // instances or too rarely on large ones.
@@ -142,6 +156,9 @@ void CoinOddWheelSeparator::searchOddWheels() {
                 stats_.timeLimitReached = true;
                 break;
             }
+        }
+        if (useGate_ && gateSkip_[i]) {
+            continue;
         }
         findOddHolesWithNode(i);
     }
@@ -473,6 +490,514 @@ bool CoinOddWheelSeparator::prepareGraph(double startTime) {
     return true;
 }
 
+/**
+ * Mark the active nodes whose shortest-path call cannot produce a cut.
+ *
+ * findOddHolesWithNode(v) asks CoinShortestPath for the minimum-weight path from
+ * v' to v''. prepareGraph() builds the bipartite double cover -- forward arcs
+ * (i1 -> icaCount_+i2) and their mirrors (icaCount_+i1 -> i2) -- so such a path
+ * is exactly an odd-length closed walk through v in the conflict graph, and each
+ * arc carries its *destination* node's activity, so the path's weight is the sum
+ * of the activities of the nodes it enters: 3 terms for a triangle, at least 5
+ * for anything longer. Activities are 1001 - 1000x in [1, 1001], strictly
+ * positive, so length can only add weight.
+ *
+ * That gives four certificates. Each is a proof about what the call *must*
+ * return, not a guess about what it probably returns, so a skipped node cannot
+ * cost a cut -- which is the whole point, since the caller has no way to notice a
+ * cut that was never generated.
+ *
+ * Certificates 1 and 3 are stated first because they are how this was built and
+ * because they are what certificate 4 is measured against; certificate 4 decides
+ * the same question exactly and subsumes both, so it is the one that actually
+ * makes the skip. Only certificate 2 is independent of it.
+ *
+ *  1. **Bipartite component.** Two-colour the node's component of the
+ *     symmetrised active subgraph. If that succeeds every arc joins unlike
+ *     colours, so every closed walk has even length and no v' -> v'' path exists
+ *     at all. find() then leaves previous_[v''] unset, path() returns just the
+ *     destination, and the call is charged to oddHolesShort. (Which is why
+ *     "short" must not be read as "found a triangle": oddSize == 0 lands there
+ *     too.)
+ *
+ *  2. **Triangle dominance.** Any odd closed walk of length L >= 5 through v
+ *     enters a neighbour of v at position 1, a neighbour of v at position L-1 --
+ *     two entries in the multiset even when they are the same node -- and at
+ *     least L-3 >= 2 further active nodes. Bounding those two interior entries by
+ *     the *global* minimum activity is far too generous. Instead all four are
+ *     charged to shortest k-arc walks out of and into v, split every possible way:
+ *
+ *          acti(v) + max over 0<=k<=4 of ( h_k[v] + g_(4-k)[v] )
+ *
+ *     which is strictly larger termwise and computable in four passes over the
+ *     arcs. See hOut/gIn below for the derivation and for why the old form
+ *     collapsed on any instance holding a variable at 0 or 1.
+ *
+ *     If some triangle through v beats that bound, the minimum-weight odd walk
+ *     through v *is* a triangle, find() must return one, and oddSize < 5 discards
+ *     it. Note that walks out of v and walks into v are tracked separately rather
+ *     than collapsed into one relation: nothing in CoinConflictGraph guarantees a
+ *     symmetric adjacency (addNeighbor() is one-directional and symmetry is the
+ *     callers' responsibility), and assuming it here would make the bound too
+ *     large, hence the gate too strong, hence able to lose a cut.
+ *
+ *  3. **Outside the 2-core.** A node peeled away by repeatedly removing
+ *     symmetrised degree < 2 lies on no simple cycle, so it lies in no odd
+ *     *hole*, so no call from it can store one.
+ *
+ *     Certificate 3 is about cuts and NOT about oddHolesShort, and the difference
+ *     is easy to get wrong. The doubled graph lets a walk traverse the same edge
+ *     twice, because v' and v'' are distinct nodes: v of degree 1 whose only
+ *     neighbour a sits on a triangle a-b-c admits the perfectly legal five-arc
+ *     path v' -> a'' -> b' -> c'' -> a' -> v''. So these calls come back long and
+ *     are discarded by the repeated-node filter, not the short-cycle one. A check
+ *     that predicted oddHolesShort for them reported a soundness failure on 31 of
+ *     336 fixtures; the gate was right and the check was wrong.
+ *
+ *  4. **A non-bipartite block.** An odd cycle is 2-connected, so it lies inside a
+ *     single biconnected component; and in a 2-connected non-bipartite graph every
+ *     vertex lies on an odd cycle. So v lies on an odd cycle *if and only if* some
+ *     block containing v is non-bipartite, and a node on no odd cycle is in no odd
+ *     hole. This is exact rather than a bound, and it strictly subsumes 1 and 3: a
+ *     bipartite component has only bipartite blocks, and a node outside the 2-core
+ *     lies only in bridge blocks, which are single edges. It also decides cases
+ *     neither reaches -- a 4-cycle sharing one vertex with a triangle puts the
+ *     4-cycle's other nodes in a non-bipartite component and inside the 2-core,
+ *     yet on no odd cycle. Certificates 1 and 3 are kept only to attribute the
+ *     skip, so gateBlockOnly prices exactly what this adds.
+ *
+ * Cost is O(arcs) for the transpose, the merge, the peel, the colouring, the four
+ * walk-bound passes and the block decomposition, plus a bounded triangle probe per
+ * surviving node -- against a Dijkstra over the whole doubled graph per node
+ * saved. Measured over 337 replay fixtures it skips 88.9% of the calls (945677 ->
+ * 104683), worth 11.41x on total separation time (1374.06s -> 120.43s) for 1.08s
+ * of gate, i.e. 0.9% of what is left. Every one of the 63 non-timing output fields
+ * is string-identical on all 337, and the skipped calls account exactly:
+ * dSpFindCalls == d(oddHolesShort + oddHolesRepeatedNode) == gateSkipped.
+ **/
+void CoinOddWheelSeparator::buildFutilityGate() {
+    const double startGate = CoinGetTimeOfDay();
+    const size_t n = icaCount_;
+
+    /* Stage trace, off unless ODDWHEEL_GATE_TRACE is set in the environment.
+     * tGate alone cannot say which certificate is expensive, and on a large sparse
+     * graph the answer was not the one the asymptotics suggested. */
+    const bool trace = (getenv("ODDWHEEL_GATE_TRACE") != NULL);
+    double tMark = startGate;
+#define ODDWHEEL_GATE_MARK(what)                                              \
+    if (trace) {                                                              \
+        const double now = CoinGetTimeOfDay();                                \
+        fprintf(stderr, "  gate %-12s %8.3fs\n", what, now - tMark);          \
+        tMark = now;                                                          \
+    }
+
+    gateSkip_.assign(n, 0);
+
+    /* The primed half's arcs, i.e. the forward ones. prepareGraph() writes
+     * spArcStart_[icaCount_] when it starts mirroring, so it is the count. */
+    const size_t fwdArcs = spArcStart_[n];
+
+    /* Transpose them, in active-position space. Filling in increasing source
+     * order leaves each in-list sorted, which the merge below relies on. */
+    std::vector<size_t> inStart(n + 1, 0);
+    for (size_t k = 0; k < fwdArcs; k++) {
+        inStart[spArcTo_[k] - n + 1]++;
+    }
+    for (size_t i = 0; i < n; i++) {
+        inStart[i + 1] += inStart[i];
+    }
+    std::vector<size_t> inTo(fwdArcs);
+    {
+        std::vector<size_t> fill(inStart.begin(), inStart.end() - 1);
+        for (size_t i = 0; i < n; i++) {
+            for (size_t k = spArcStart_[i]; k < spArcStart_[i + 1]; k++) {
+                inTo[fill[spArcTo_[k] - n]++] = i;
+            }
+        }
+    }
+    ODDWHEEL_GATE_MARK("transpose")
+
+    /* Merge the sorted out- and in-lists into one *deduplicated* undirected
+     * adjacency.
+     *
+     * Materialising this rather than walking the two directed lists in turn is
+     * not tidiness: the peel below must decrement each endpoint once per
+     * undirected edge, and on a symmetric graph -- which every fixture here is --
+     * a neighbour appears in *both* directed lists. Decrementing twice peels
+     * nodes that are in the 2-core, which would make certificate 3 skip a node
+     * that really is on an odd hole, i.e. lose a cut. The same merge also
+     * absorbs a pair recorded twice within one list. */
+    std::vector<size_t> symStart(n + 1, 0), symTo;
+    symTo.reserve(2 * fwdArcs);
+    for (size_t i = 0; i < n; i++) {
+        symStart[i] = symTo.size();
+        size_t a = spArcStart_[i], b = inStart[i];
+        const size_t aEnd = spArcStart_[i + 1], bEnd = inStart[i + 1];
+        size_t prev = ODDWHEEL_SEP_NOT_ACTIVE;
+        while (a < aEnd || b < bEnd) {
+            size_t v;
+            if (b >= bEnd || (a < aEnd && spArcTo_[a] - n <= inTo[b])) {
+                v = spArcTo_[a] - n;
+                a++;
+            } else {
+                v = inTo[b];
+                b++;
+            }
+            if (v != prev) {
+                symTo.push_back(v);
+                prev = v;
+            }
+        }
+    }
+    symStart[n] = symTo.size();
+    ODDWHEEL_GATE_MARK("merge")
+
+    /* Certificate 2's bound on a path of >= 5 arcs, in the tightest form one
+     * O(arcs) sweep can give.
+     *
+     * Both parities of a node have the same successor set in the search graph --
+     * forward arcs send i' to j'' and their mirrors send i'' to j' for the same j
+     * -- so one relation Fwd() describes every hop, and a closed walk
+     * v -> n1 -> ... -> n(L-1) -> v of L >= 5 arcs weighs
+     * acti(v) + sum acti(n_j), where n1..n(L-1) is a walk out of v and
+     * n(L-1)..n1 is a walk into v.
+     *
+     * Let h_k[i] be the least weight of a k-arc walk leaving i (counting the nodes
+     * entered) and g_k[i] the same for walks arriving at i. Each is one pass over
+     * the arcs given the previous:
+     *
+     *     h_0 = 0,  h_k[i] = min over a in Fwd(i) [ acti(a) + h_(k-1)[a] ]
+     *     g_0 = 0,  g_k[i] = min over d in In(i)  [ acti(d) + g_(k-1)[d] ]
+     *
+     * For any 0 <= k <= 4 the first k interior nodes form a k-arc walk out of v and
+     * the last 4-k form a (4-k)-arc walk into v, so
+     *
+     *     weight >= acti(v) + h_k[v] + g_(4-k)[v]
+     *
+     * is valid -- for L = 5 those are all four interior nodes, and for L >= 7 the
+     * two stretches are disjoint and the terms left over are positive. Five valid
+     * bounds, so their maximum is valid too, and it is far stronger than charging
+     * two of the interior nodes the *global* minimum activity as this did before.
+     *
+     * That mattered: activities are 1001 - 1000x, so a single variable sitting at
+     * x = 1 -- or the complement of one at x = 0, which the doubled graph creates
+     * whenever any variable is at 0 -- drags the global minimum to 1 and empties
+     * two of the five terms. Measured over 79 replay fixtures the best triangle
+     * through a node overshot the old bound by a median of 188 weight units, and
+     * 36944 nodes carrying a triangle failed the proof for that reason alone --
+     * every one of which then came back from the search with a triangle.
+     *
+     * INFTY propagates: a node with no k-arc walk contributes no bound from that
+     * split rather than a wrapped-around sum. If every split is infinite there is
+     * no >= 5 path through v at all and the node is certainly futile, but that
+     * cannot happen on a symmetric adjacency, so rather than add a skip class for
+     * it the node is simply left to the search -- fewer skips is the safe way to
+     * be wrong. */
+    const double INFW = std::numeric_limits<double>::max();
+    const size_t HOPS = 4;
+    std::vector<double> hOut((HOPS + 1) * n, INFW), gIn((HOPS + 1) * n, INFW);
+    for (size_t i = 0; i < n; i++) {
+        hOut[i] = 0.0;
+        gIn[i] = 0.0;
+    }
+    for (size_t k = 1; k <= HOPS; k++) {
+        double *hk = &hOut[k * n], *hp = &hOut[(k - 1) * n];
+        double *gk = &gIn[k * n], *gp = &gIn[(k - 1) * n];
+        for (size_t i = 0; i < n; i++) {
+            for (size_t e = spArcStart_[i]; e < spArcStart_[i + 1]; e++) {
+                const size_t a = spArcTo_[e] - n;
+                if (hp[a] == INFW) {
+                    continue;
+                }
+                const double w = icaActivity_[a] + hp[a];
+                if (w < hk[i]) {
+                    hk[i] = w;
+                }
+            }
+            for (size_t e = inStart[i]; e < inStart[i + 1]; e++) {
+                const size_t d = inTo[e];
+                if (gp[d] == INFW) {
+                    continue;
+                }
+                const double w = icaActivity_[d] + gp[d];
+                if (w < gk[i]) {
+                    gk[i] = w;
+                }
+            }
+        }
+    }
+
+    /* The best of the five splits, per node. INFW marks "no bound available". */
+    std::vector<double> lbPath(n, INFW);
+    for (size_t i = 0; i < n; i++) {
+        double best = -1.0;
+        for (size_t k = 0; k <= HOPS; k++) {
+            const double a = hOut[k * n + i], b = gIn[(HOPS - k) * n + i];
+            if (a == INFW || b == INFW) {
+                continue;
+            }
+            if (a + b > best) {
+                best = a + b;
+            }
+        }
+        if (best >= 0.0) {
+            lbPath[i] = icaActivity_[i] + best;
+        }
+    }
+    ODDWHEEL_GATE_MARK("karc")
+
+    /* Certificate 3: peel down to the 2-core. Peeling the *undirected* graph is
+     * the conservative direction -- it has at least as many edges as the directed
+     * one, so its 2-core contains every node that lies on a directed cycle. */
+    std::vector<size_t> symDeg(n);
+    for (size_t i = 0; i < n; i++) {
+        symDeg[i] = symStart[i + 1] - symStart[i];
+    }
+    std::vector<char> peeled(n, 0);
+    std::vector<size_t> stack;
+    for (size_t i = 0; i < n; i++) {
+        if (symDeg[i] < 2) {
+            peeled[i] = 1;
+            stack.push_back(i);
+        }
+    }
+    while (!stack.empty()) {
+        const size_t v = stack.back();
+        stack.pop_back();
+        for (size_t k = symStart[v]; k < symStart[v + 1]; k++) {
+            const size_t u = symTo[k];
+            if (peeled[u] || u == v) {
+                continue;
+            }
+            if (symDeg[u]) {
+                symDeg[u]--;
+            }
+            if (symDeg[u] < 2) {
+                peeled[u] = 1;
+                stack.push_back(u);
+            }
+        }
+    }
+    ODDWHEEL_GATE_MARK("peel")
+
+    /* Certificate 1: two-colour each component. Undirected again, and again the
+     * conservative direction: more edges means the colouring fails more often,
+     * so fewer nodes are certified. */
+    std::vector<signed char> colour(n, -1);
+    std::vector<char> bipartite(n, 0);
+    std::vector<size_t> comp, queue;
+    for (size_t s = 0; s < n; s++) {
+        if (colour[s] >= 0) {
+            continue;
+        }
+        comp.clear();
+        queue.clear();
+        colour[s] = 0;
+        queue.push_back(s);
+        bool twoColourable = true;
+        for (size_t head = 0; head < queue.size(); head++) {
+            const size_t v = queue[head];
+            comp.push_back(v);
+            for (size_t k = symStart[v]; k < symStart[v + 1]; k++) {
+                const size_t u = symTo[k];
+                if (colour[u] < 0) {
+                    colour[u] = colour[v] ^ 1;
+                    queue.push_back(u);
+                } else if (colour[u] == colour[v]) {
+                    twoColourable = false;
+                }
+            }
+        }
+        if (twoColourable) {
+            for (size_t k = 0; k < comp.size(); k++) {
+                bipartite[comp[k]] = 1;
+            }
+        }
+    }
+    ODDWHEEL_GATE_MARK("colour")
+
+    /* Certificate 4, which strictly subsumes both of the two above and is exact
+     * rather than a bound.
+     *
+     * An odd cycle is 2-connected, so it lies entirely inside one block
+     * (biconnected component). Conversely, in a 2-connected non-bipartite graph
+     * every vertex lies on an odd cycle. Hence
+     *
+     *     v lies on an odd cycle  <=>  some block containing v is non-bipartite
+     *
+     * and a node on no odd cycle is in no odd hole, so no call from it can yield
+     * a cut. Both older certificates are special cases: a bipartite component has
+     * only bipartite blocks, and a node outside the 2-core lies only in bridge
+     * blocks, which are single edges and therefore bipartite. It also decides
+     * cases neither can reach -- a node inside a bipartite block hanging off a cut
+     * vertex whose other block is not, say a 4-cycle sharing one vertex with a
+     * triangle: the component is non-bipartite (certificate 1 fails) and the node
+     * is in the 2-core (certificate 3 fails), yet it is on no odd cycle.
+     *
+     * The bipartiteness of a block is decided from DFS depth parity, not by
+     * re-colouring it. The DFS tree restricted to a block is a spanning tree of
+     * that block, cycle parity is linear over GF(2), so the block is bipartite iff
+     * every fundamental cycle is even -- and the fundamental cycle closed by an
+     * edge (v,u) has length depth[v] - depth[u] + 1, which is odd exactly when the
+     * two depths share parity. Tree edges always join opposite parities, so the
+     * same test can be applied to every edge of the block without distinguishing
+     * them. That makes the whole certificate one O(n + arcs) pass with no nested
+     * containers.
+     *
+     * A self-loop, if the graph ever carried one, joins equal parities and so
+     * marks its node as on an odd cycle: no skip, which is the safe direction.
+     */
+    std::vector<size_t> disc(n, 0), low(n, 0), iter(n, 0);
+    std::vector<size_t> dfsPar(n, ODDWHEEL_SEP_NOT_ACTIVE);
+    std::vector<char> dpar(n, 0);
+    std::vector<char> onOddCycle(n, 0);
+    std::vector<std::pair<size_t, size_t> > estack, blk;
+    std::vector<size_t> dfs;
+    size_t timer = 0;
+
+    for (size_t s = 0; s < n; s++) {
+        if (disc[s]) {
+            continue;
+        }
+        dfs.clear();
+        disc[s] = low[s] = ++timer;
+        iter[s] = symStart[s];
+        dfsPar[s] = ODDWHEEL_SEP_NOT_ACTIVE;
+        dpar[s] = 0;
+        dfs.push_back(s);
+        while (!dfs.empty()) {
+            const size_t v = dfs.back();
+            if (iter[v] < symStart[v + 1]) {
+                const size_t u = symTo[iter[v]++];
+                if (u == v) {
+                    /* Self-loop: an odd closed walk of length 1 through v. */
+                    onOddCycle[v] = 1;
+                } else if (!disc[u]) {
+                    estack.push_back(std::pair<size_t, size_t>(v, u));
+                    dfsPar[u] = v;
+                    dpar[u] = dpar[v] ^ 1;
+                    disc[u] = low[u] = ++timer;
+                    iter[u] = symStart[u];
+                    dfs.push_back(u);
+                } else if (u != dfsPar[v] && disc[u] < disc[v]) {
+                    /* A back edge. symTo is deduplicated, so the parent appears
+                     * exactly once and skipping it cannot discard a second,
+                     * genuinely distinct edge. */
+                    estack.push_back(std::pair<size_t, size_t>(v, u));
+                    if (disc[u] < low[v]) {
+                        low[v] = disc[u];
+                    }
+                }
+            } else {
+                dfs.pop_back();
+                if (dfs.empty()) {
+                    break;
+                }
+                const size_t p = dfs.back();
+                if (low[v] < low[p]) {
+                    low[p] = low[v];
+                }
+                if (low[v] >= disc[p]) {
+                    /* p articulates v's subtree (or is the root): everything
+                     * pushed since the tree edge (p,v) is exactly one block. */
+                    blk.clear();
+                    while (!estack.empty()) {
+                        const std::pair<size_t, size_t> e = estack.back();
+                        estack.pop_back();
+                        blk.push_back(e);
+                        if (e.first == p && e.second == v) {
+                            break;
+                        }
+                    }
+                    bool oddBlock = false;
+                    for (size_t k = 0; k < blk.size(); k++) {
+                        if (((dpar[blk[k].first] ^ dpar[blk[k].second]) & 1) == 0) {
+                            oddBlock = true;
+                            break;
+                        }
+                    }
+                    if (oddBlock) {
+                        for (size_t k = 0; k < blk.size(); k++) {
+                            onOddCycle[blk[k].first] = 1;
+                            onOddCycle[blk[k].second] = 1;
+                        }
+                    }
+                }
+            }
+        }
+        /* Nothing should be left for this root, but do not let a stray edge leak
+         * into the next root's blocks if it ever is. */
+        estack.clear();
+    }
+    ODDWHEEL_GATE_MARK("blocks")
+
+    /* Certificate 2, and the tally. The exact verdict comes first, so the
+     * triangle probe only runs on nodes that really do lie on an odd cycle. */
+    std::vector<std::pair<double, size_t> > cand;
+    for (size_t i = 0; i < n; i++) {
+        if (!onOddCycle[i]) {
+            gateSkip_[i] = 1;
+            /* One skip, attributed to the weakest certificate that also reaches
+             * it, so gateBlockOnly prices exactly what certificate 4 adds. */
+            if (bipartite[i]) {
+                stats_.gateBipartite++;
+            } else if (peeled[i]) {
+                stats_.gateNoCycle++;
+            } else {
+                stats_.gateBlockOnly++;
+            }
+            continue;
+        }
+
+        if (lbPath[i] != INFW) {
+            const double lb5 = lbPath[i];
+
+            cand.clear();
+            for (size_t k = spArcStart_[i]; k < spArcStart_[i + 1]; k++) {
+                const size_t v = spArcTo_[k] - n;
+                cand.push_back(std::pair<double, size_t>(icaActivity_[v], v));
+            }
+            std::sort(cand.begin(), cand.end());
+            if (cand.size() > ODDWHEEL_SEP_GATE_TRI_CAND) {
+                cand.resize(ODDWHEEL_SEP_GATE_TRI_CAND);
+            }
+
+            bool dominated = false;
+            for (size_t a = 0; a < cand.size() && !dominated; a++) {
+                const size_t va = cand[a].second;
+                for (size_t k = spArcStart_[va]; k < spArcStart_[va + 1]; k++) {
+                    const size_t vb = spArcTo_[k] - n;
+                    if (vb == i || vb == va) {
+                        continue;
+                    }
+                    /* The closing arc vb -> i must exist in the graph the search
+                     * actually walks, so ask the arc list and not the conflict
+                     * graph. spArcTo_ is emitted in ascending order per node. */
+                    if (!std::binary_search(spArcTo_.begin() + spArcStart_[vb],
+                                            spArcTo_.begin() + spArcStart_[vb + 1],
+                                            i + n)) {
+                        continue;
+                    }
+                    if (icaActivity_[i] + cand[a].first + icaActivity_[vb] < lb5) {
+                        dominated = true;
+                        break;
+                    }
+                }
+            }
+            if (dominated) {
+                gateSkip_[i] = 1;
+                stats_.gateTriangle++;
+                continue;
+            }
+        }
+    }
+    ODDWHEEL_GATE_MARK("triangle")
+#undef ODDWHEEL_GATE_MARK
+    stats_.gateSkipped = stats_.gateBipartite + stats_.gateNoCycle
+        + stats_.gateBlockOnly + stats_.gateTriangle;
+    stats_.tGate = CoinGetTimeOfDay() - startGate;
+}
+
 void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
     const size_t dest = icaCount_ + node;
 
@@ -489,6 +1014,9 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
 
     if (oddSize < 5) {
         stats_.oddHolesShort++;
+        if (recordOutcomes_) {
+            nodeOutcome_[node] = OUTCOME_SHORT;
+        }
         return;
     }
 
@@ -507,6 +1035,9 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
                 iv_[tmp_[j]] = 0;
             }
             stats_.oddHolesRepeatedNode++;
+            if (recordOutcomes_) {
+                nodeOutcome_[node] = OUTCOME_REPEATED;
+            }
             return;
         }
 
@@ -529,10 +1060,16 @@ void CoinOddWheelSeparator::findOddHolesWithNode(size_t node) {
     const double viol = lhs - rhs;
     if (viol + ODDWHEEL_SEP_DEF_EPS <= ODDWHEEL_SEP_DEF_MIN_VIOL) {
         stats_.oddHolesNotViolated++;
+        if (recordOutcomes_) {
+            nodeOutcome_[node] = OUTCOME_NOT_VIOLATED;
+        }
         return;
     }
 
-    addOddHole(oddSize, tmp_);
+    const bool stored = addOddHole(oddSize, tmp_);
+    if (recordOutcomes_) {
+        nodeOutcome_[node] = stored ? OUTCOME_KEPT : OUTCOME_DUPLICATE;
+    }
 }
 
 bool CoinOddWheelSeparator::addOddHole(size_t nz, const std::vector<size_t> &idxs) {
