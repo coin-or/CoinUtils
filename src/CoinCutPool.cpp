@@ -45,10 +45,11 @@ struct CompareIdxs {
     const int *idxs_;
 };
 
-CoinCut::CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs)
+CoinCut::CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs, size_t tag)
   : idxs_(std::vector<int>(nz))
   , coefs_(std::vector<double>(nz))
   , rhs_(rhs)
+  , tag_(tag)
 {
     for (size_t i = 0; i < nz; i++) {
         idxs_[i] = i;
@@ -205,9 +206,9 @@ size_t CoinCutPool::hashCut(const CoinCut *cut) const {
     return h;
 }
 
-bool CoinCutPool::add(const int *idxs, const double *coefs, int nz, double rhs) {
+bool CoinCutPool::add(const int *idxs, const double *coefs, int nz, double rhs, size_t tag) {
     numCandidates_++;
-    CoinCut *cut = new CoinCut(idxs, coefs, nz, rhs);
+    CoinCut *cut = new CoinCut(idxs, coefs, nz, rhs, tag);
 
     // Always reject exact-duplicate candidates (same vars/coefs/rhs),
     // independent of filterEnabled_ -- generators that search from
@@ -510,6 +511,14 @@ double CoinCutPool::cutRHS(size_t i) const {
     assert(cuts_[i]);
 #endif
     return cuts_[i]->rhs();
+}
+
+size_t CoinCutPool::cutTag(size_t i) const {
+#ifdef DEBUGCG
+    assert(i < nCuts_);
+    assert(cuts_[i]);
+#endif
+    return cuts_[i]->tag();
 }
 
 void CoinCutPool::removeNullCuts() {

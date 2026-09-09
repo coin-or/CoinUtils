@@ -45,8 +45,12 @@ public:
    * @param coefs coefficients of the variables the cut
    * @param nz size of the cut
    * @param rhs right-hand side of the cut
+   * @param tag opaque caller-supplied identifier (e.g. the cut's original
+   *        index in some external OsiCuts collection), carried through
+   *        unchanged so callers can recover which of their original cuts
+   *        survived the pool's filtering. Defaults to SIZE_MAX (unused).
    **/
-  CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs);
+  CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs, size_t tag = static_cast<size_t>(-1));
 
   /**
    * Destructor
@@ -74,6 +78,14 @@ public:
   double rhs() const { return rhs_; }
 
   /**
+   * Return the opaque caller-supplied tag, if any (see constructor).
+   * Survives pool compaction (removeNullCuts()/filterByParallelism())
+   * unchanged, since it travels with the CoinCut object rather than a
+   * position in a parallel array.
+   **/
+  size_t tag() const { return tag_; }
+
+  /**
    * Check if the cut dominates another one.
    *
    * @param other cut to be checked.
@@ -95,6 +107,11 @@ private:
    * right-hand side of the cut
    **/
   double rhs_;
+
+  /**
+   * opaque caller-supplied tag (see tag() accessor)
+   **/
+  size_t tag_;
 };
 
 /**
@@ -193,6 +210,12 @@ public:
   double cutRHS(size_t i) const;
 
   /**
+   * Return the opaque caller-supplied tag of the i-th cut in the pool
+   * (see CoinCut::tag()). SIZE_MAX if none was supplied to add().
+   **/
+  size_t cutTag(size_t i) const;
+
+  /**
    * Try to add a cut in the pool. Return true
    * if the cut was added.
    *
@@ -202,8 +225,11 @@ public:
    * the cut to be added.
    * @param nz size of the cut to be added
    * @param rhs right-hand side of the cut to be added
+   * @param tag optional opaque identifier for this cut, retrievable via
+   * cutTag() after filtering (e.g. its original index in some caller-side
+   * OsiCuts collection). Defaults to SIZE_MAX (unused).
    **/
-  bool add(const int *idxs, const double *coefs, int nz, double rhs);
+  bool add(const int *idxs, const double *coefs, int nz, double rhs, size_t tag = static_cast<size_t>(-1));
 
   /**
    * Remove dominated cuts.
