@@ -26,6 +26,22 @@ bool CoinRational::nearestRational_(double val, double maxdelta, int64_t maxdnom
 {
   double intpart;
   if (floor(val)==val) {
+    // An integral double can still lie far outside int64_t's range, and the
+    // conversion is then undefined behaviour -- on x86 it yields INT64_MIN.
+    // Returning that as a numerator poisons every gcd/lcm derived from it, and
+    // INT64_MIN % -1 is a signed-division overflow, i.e. SIGFPE. That is how a
+    // CglGMI cut carrying an rhs of 3.6e300 crashed
+    // OsiCuts::insertIfNotDuplicateAndClean.
+    //
+    // Report "no nearby rational" instead. The constructor turns a false return
+    // into 0/1, which every caller already handles as "cannot scale" -- this
+    // path is not otherwise reachable, because the early return here is the
+    // only one that skips the accuracy check at the end of the function.
+    //
+    // Both bounds are exactly representable (they are +/-2^63), and writing the
+    // test negated also rejects NaN.
+    if (!(val >= -9223372036854775808.0 && val < 9223372036854775808.0))
+      return false;
     numerator_ = (int64_t) val;
     denominator_ = 1;
     return true;
