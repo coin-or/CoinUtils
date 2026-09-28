@@ -385,6 +385,41 @@ public:
   /*! \brief Print possible options for a keyword parameter */
   void printOptions(std::string *message = NULL);
 
+  /*! \name Auto values
+
+    An integer or double parameter may be allowed the value `auto', meaning
+    that the application resolves the value itself, typically from features
+    of the instance. `auto' is stored as a sentinel (autoIntValue() or
+    autoDblValue()) that lies outside every valid range, so no number the
+    user can type collides with it. The setters accept the sentinel whatever
+    the range, readValue() maps the word `auto' to it, and valueString()
+    prints it as `auto'. intVal() and dblVal() return the sentinel itself, so
+    test isAuto() before using the value.
+  */
+  //@{
+  /*! \brief The stored value of an integer parameter set to `auto' */
+  static inline int autoIntValue() { return std::numeric_limits< int >::min(); }
+
+  /*! \brief The stored value of a double parameter set to `auto' */
+  static inline double autoDblValue()
+  {
+    return -std::numeric_limits< double >::infinity();
+  }
+
+  /*! \brief Allow (or forbid) the value `auto' */
+  inline void setAutoAllowed(bool yes = true) { autoAllowed_ = yes; }
+
+  /*! \brief Whether the value `auto' is allowed */
+  inline bool autoAllowed() const { return autoAllowed_; }
+
+  /*! \brief Whether the current value is `auto' */
+  bool isAuto() const;
+
+  /*! \brief Current value of an integer or double parameter as text,
+             `auto' if it is auto */
+  std::string valueString() const;
+  //@}
+
   /*! \brief Add a short help string to a parameter */
   inline void setShortHelp(const std::string help) { shortHelp_ = help; }
 
@@ -583,6 +618,9 @@ protected:
 
   /// Topic (semantic category, e.g. "Cuts", "Heuristics", "Output")
   std::string topic_;
+
+  /// Whether an integer or double parameter accepts the value `auto'
+  bool autoAllowed_;
   //@}
 };
 

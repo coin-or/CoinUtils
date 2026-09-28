@@ -53,6 +53,7 @@ CoinParam::CoinParam()
   , shortHelp_()
   , longHelp_()
   , display_(displayPriorityNone)
+  , autoAllowed_(false)
 {
   /* Nothing to be done here */
 }
@@ -88,6 +89,7 @@ CoinParam::CoinParam(std::string name, std::string help,
   , shortHelp_(help)
   , longHelp_(longHelp)
   , display_(displayPriority)
+  , autoAllowed_(false)
 {
   processName();
 }
@@ -123,6 +125,7 @@ CoinParam::CoinParam(std::string name, std::string help,
   , shortHelp_(help)
   , longHelp_(longHelp)
   , display_(displayPriority)
+  , autoAllowed_(false)
 {
   processName();
 }
@@ -158,6 +161,7 @@ CoinParam::CoinParam(std::string name, CoinParamType type,
   , shortHelp_(help)
   , longHelp_(longHelp)
   , display_(displayPriority)
+  , autoAllowed_(false)
 {
   processName();
 }
@@ -186,6 +190,7 @@ CoinParam::CoinParam(const CoinParam &orig)
   , pushFunc_(orig.pushFunc_)
   , pullFunc_(orig.pullFunc_)
   , display_(orig.display_)
+  , autoAllowed_(orig.autoAllowed_)
 {
   name_ = orig.name_;
   strValue_ = orig.strValue_;
@@ -232,6 +237,7 @@ CoinParam &CoinParam::operator=(const CoinParam &rhs)
     longHelp_ = rhs.longHelp_;
     display_ = rhs.display_;
     topic_ = rhs.topic_;
+    autoAllowed_ = rhs.autoAllowed_;
   }
 
   return *this;
@@ -382,8 +388,8 @@ std::string CoinParam::printLongHelp() const
   switch (type_) {
    case paramDbl: {
       buffer << "<Range of values is " << lowerDblValue_ << " to "
-             << upperDblValue_ << ";\n\tcurrent " << dblValue_ << ">"
-             << std::endl;
+             << upperDblValue_ << (autoAllowed_ ? ", or auto" : "")
+             << ";\n\tcurrent " << valueString() << ">" << std::endl;
       assert(upperDblValue_ > lowerDblValue_);
       break;
    }
@@ -419,8 +425,8 @@ std::string CoinParam::printLongHelp() const
 	}
       }
       buffer << "<Range of values is " << lowerIntValue_ << " to "
-             << upperIntValue_ << ";\n\tcurrent " << intValue_ << ">"
-             << std::endl;
+             << upperIntValue_ << (autoAllowed_ ? ", or auto" : "")
+             << ";\n\tcurrent " << valueString() << ">" << std::endl;
       assert(upperIntValue_ > lowerIntValue_);
       break;
    }
@@ -748,7 +754,7 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
 
    if (field.empty()){
       std::ostringstream buffer;
-      buffer << "Parameter '" << name_ << "' has value " << intValue_
+      buffer << "Parameter '" << name_ << "' has value " << valueString()
              << std::endl;
       *message = buffer.str();
       return 2;
@@ -765,6 +771,11 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       return 1;
    }
 #endif
+
+   if (autoAllowed_ && field == "auto") {
+      value = autoIntValue();
+      return 0;
+   }
 
    char c;
    std::stringstream ss(field);
@@ -838,7 +849,7 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
 
    if (field.empty()){
       std::ostringstream buffer;
-      buffer << "Parameter '" << name_ << "' has value " << dblValue_
+      buffer << "Parameter '" << name_ << "' has value " << valueString()
              << std::endl;
       *message = buffer.str();
       return 2;
@@ -854,6 +865,11 @@ int CoinParam::readValue(std::deque<std::string> &inputQueue,
       return 1;
    }
 #endif
+
+   if (autoAllowed_ && field == "auto") {
+      value = autoDblValue();
+      return 0;
+   }
 
    char c;
    std::stringstream ss(field);
@@ -1443,7 +1459,8 @@ int CoinParam::setDblVal(double value, std::string *message, ParamPushMode pMode
 {
   assert(type_ == paramDbl);
 
-  if (value < lowerDblValue_ || value > upperDblValue_) {
+  bool isAutoValue = autoAllowed_ && value == autoDblValue();
+  if (!isAutoValue && (value < lowerDblValue_ || value > upperDblValue_)) {
      if (message){
         std::ostringstream buffer;
         buffer << value << " was provided for " << name_;
@@ -1457,7 +1474,12 @@ int CoinParam::setDblVal(double value, std::string *message, ParamPushMode pMode
         if (value != dblValue_) {
           std::ostringstream buffer;
           buffer << name_ << " was changed from ";
-          buffer << dblValue_ << " to " << value << std::endl;
+          buffer << valueString() << " to ";
+          if (isAutoValue)
+            buffer << "auto";
+          else
+            buffer << value;
+          buffer << std::endl;
           *message = buffer.str();
         } else {
           message->clear();
@@ -1475,7 +1497,8 @@ int CoinParam::setDblValDefault(double value, std::string *message)
 {
   assert(type_ == paramDbl);
 
-  if (value < lowerDblValue_ || value > upperDblValue_) {
+  bool isAutoValue = autoAllowed_ && value == autoDblValue();
+  if (!isAutoValue && (value < lowerDblValue_ || value > upperDblValue_)) {
      if (message){
         std::ostringstream buffer;
         buffer << value << " was provided as default value for " << name_;
@@ -1485,13 +1508,9 @@ int CoinParam::setDblValDefault(double value, std::string *message)
      }
      return 1;
   } else {
-     if (message){
-        std::ostringstream buffer;
-        buffer << name_ << " default was set to " << value << std::endl;
-        *message = buffer.str();
-     }
-
      dblDefaultValue_ = dblValue_ = value;
+     if (message)
+        *message = name_ + " default was set to " + valueString() + "\n";
 
      return 0;
   }
@@ -1540,7 +1559,8 @@ int CoinParam::setIntVal(int value, std::string *message, ParamPushMode pMode)
 {
   assert(type_ == paramInt);
 
-  if (value < lowerIntValue_ || value > upperIntValue_) {
+  bool isAutoValue = autoAllowed_ && value == autoIntValue();
+  if (!isAutoValue && (value < lowerIntValue_ || value > upperIntValue_)) {
      if (message){
         std::ostringstream buffer;
         buffer << value << " was provided for " << name_;
@@ -1553,8 +1573,13 @@ int CoinParam::setIntVal(int value, std::string *message, ParamPushMode pMode)
      if (message){
         if (value != intValue_) {
           std::ostringstream buffer;
-          buffer << name_ << " was changed from " << intValue_;
-          buffer << " to " << value << std::endl;
+          buffer << name_ << " was changed from " << valueString();
+          buffer << " to ";
+          if (isAutoValue)
+            buffer << "auto";
+          else
+            buffer << value;
+          buffer << std::endl;
           *message = buffer.str();
         } else {
           message->clear();
@@ -1572,7 +1597,8 @@ int CoinParam::setIntValDefault(int value, std::string *message)
 {
   assert(type_ == paramInt);
 
-  if (value < lowerIntValue_ || value > upperIntValue_) {
+  bool isAutoValue = autoAllowed_ && value == autoIntValue();
+  if (!isAutoValue && (value < lowerIntValue_ || value > upperIntValue_)) {
      if (message){
         std::ostringstream buffer;
         buffer << value << " was provided as default value for " << name_;
@@ -1582,13 +1608,9 @@ int CoinParam::setIntValDefault(int value, std::string *message)
      }
      return 1;
   } else {
-     if (message){
-        std::ostringstream buffer;
-        buffer << name_ << " default was set to " << value << std::endl;
-        *message = buffer.str();
-     }
-
      intDefaultValue_ = intValue_ = value;
+     if (message)
+        *message = name_ + " default was set to " + valueString() + "\n";
 
      return 0;
   }
@@ -1627,6 +1649,33 @@ int CoinParam::upperIntVal() const
   assert(type_ == paramInt);
 
   return(upperIntValue_);
+}
+
+/*
+  Methods for the value `auto' of an integer or double parameter.
+*/
+
+bool CoinParam::isAuto() const
+{
+  if (!autoAllowed_)
+    return false;
+  if (type_ == paramInt)
+    return intValue_ == autoIntValue();
+  if (type_ == paramDbl)
+    return dblValue_ == autoDblValue();
+  return false;
+}
+
+std::string CoinParam::valueString() const
+{
+  if (isAuto())
+    return "auto";
+  std::ostringstream buffer;
+  if (type_ == paramInt)
+    buffer << intValue_;
+  else if (type_ == paramDbl)
+    buffer << dblValue_;
+  return buffer.str();
 }
 
 // Prints parameter options
@@ -1670,11 +1719,9 @@ void CoinParam::printOptions(std::string *message)
 std::ostream &operator<<(std::ostream &s, const CoinParam &param)
 {
   switch (param.type()) {
-  case CoinParam::paramDbl: {
-    return (s << param.dblVal());
-  }
+  case CoinParam::paramDbl:
   case CoinParam::paramInt: {
-    return (s << param.intVal());
+    return (s << param.valueString());
   }
   case CoinParam::paramKwd: {
     return (s << param.kwdVal());
