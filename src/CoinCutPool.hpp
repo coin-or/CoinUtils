@@ -115,6 +115,34 @@ private:
 };
 
 /**
+ * When a conflict-graph cut generator (CglBKClique, CglOddWheel,
+ * CglImpliedClique) turns on its CoinCutPool's filtering. The generator
+ * applies these itself, before its add() loop:
+ *   - minCols: on a model with fewer columns, filtering and the
+ *     parallelism filter are both skipped (unless alwaysFilter);
+ *   - minCandidates: filtering is skipped when there are fewer candidate
+ *     cuts than this (CglBKClique and CglOddWheel only, since they know
+ *     their candidate count up front);
+ *   - maxParallelism: passed to setMaxParallelism(); 1.0 disables it;
+ *   - alwaysFilter: filter regardless of minCols and minCandidates.
+ * Cbc sets these from its cliqueFilter* parameters.
+ **/
+struct CoinCutPoolGate {
+  size_t minCols;
+  size_t minCandidates;
+  double maxParallelism;
+  bool alwaysFilter;
+
+  CoinCutPoolGate()
+    : minCols(500)
+    , minCandidates(20)
+    , maxParallelism(1.0)
+    , alwaysFilter(false)
+  {
+  }
+};
+
+/**
  * Class for storing a pool of cuts, removing
  * the repeated and dominated ones. It also filters the cuts
  * according to their scores.
@@ -145,7 +173,8 @@ public:
    * candidates is what actually prunes redundant/dominated cuts, but
    * doing so on a handful of candidates only adds cost for no benefit
    * (see CBC_CLIQUE_POOL_DEBUG measurements: <=20 candidates are almost
-   * never filtered in practice). Defaults to enabled (the original,
+   * never filtered in practice; CoinCutPoolGate holds the thresholds the
+   * conflict-graph generators use). Defaults to enabled (the original,
    * always-filter behaviour) for any caller that doesn't call this.
    **/
   void setFilteringEnabled(bool enabled) { filterEnabled_ = enabled; }
