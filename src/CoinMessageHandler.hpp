@@ -352,6 +352,9 @@ public:
   /** Print message, return 0 normally.
   */
   virtual int print();
+  /** Print message, return 0 normally.
+  */
+  int oldStylePrint();
   /** Check message severity - if too bad then abort
   */
   virtual void checkSeverity();
@@ -440,7 +443,9 @@ public:
   /// Switch message prefix on or off.
   void setPrefix(bool yesNo);
   /// Current setting for printing message prefix.
-  bool prefix() const;
+  int prefix() const;
+  /// Allow for setting prefix on and old style messages
+  void setPrefix(int prefix);
   /*! \brief Values of double fields already processed.
 
     As the parameter for a double field is processed, the value is saved
