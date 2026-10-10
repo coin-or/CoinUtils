@@ -168,8 +168,23 @@ CoinCutPool::CoinCutPool(const double *x, int numCols, const char *tag) {
     cutFitness_ = std::vector<double>(cutsCap_);
 }
 
+// True if CBC_CLIQUE_POOL_DEBUG is set. MSVC's /sdl (on in the v17 projects)
+// turns the deprecation warning for getenv() into an error, so use
+// _dupenv_s() there.
+static bool cutPoolDebugEnabled() {
+#ifdef _MSC_VER
+    char *value = NULL;
+    size_t length = 0;
+    const bool set = _dupenv_s(&value, &length, "CBC_CLIQUE_POOL_DEBUG") == 0 && value != NULL;
+    free(value);
+    return set;
+#else
+    return getenv("CBC_CLIQUE_POOL_DEBUG") != NULL;
+#endif
+}
+
 CoinCutPool::~CoinCutPool() {
-    if (tag_ && getenv("CBC_CLIQUE_POOL_DEBUG")) {
+    if (tag_ && cutPoolDebugEnabled()) {
         const size_t kept = nCuts_ - nullCuts_;
         fprintf(stderr, "[cutpool] %s: candidates=%zu kept=%zu (filtered=%zu, %.1f%%) filterEnabled=%d\n",
             tag_, numCandidates_, kept, numCandidates_ - kept,
