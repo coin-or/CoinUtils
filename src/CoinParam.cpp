@@ -1666,6 +1666,24 @@ bool CoinParam::isAuto() const
   return false;
 }
 
+bool CoinParam::isDefault() const
+{
+  switch (type_) {
+  case paramKwd:
+    return currentMode_ == defaultMode_;
+  case paramInt:
+    return intValue_ == intDefaultValue_;
+  case paramDbl:
+    return dblValue_ == dblDefaultValue_;
+  case paramStr:
+    return strValue_ == strDefaultValue_;
+  case paramAct:
+    return true;
+  default:
+    return false;
+  }
+}
+
 std::string CoinParam::valueString() const
 {
   if (isAuto())

@@ -415,6 +415,15 @@ public:
   /*! \brief Whether the current value is `auto' */
   bool isAuto() const;
 
+  /*! \brief Whether the current value matches the default value */
+  bool isDefault() const;
+
+  /*! \brief Default mode for a keyword parameter */
+  inline int defaultMode() const { return defaultMode_; }
+
+  /*! \brief Default keyword for a keyword parameter */
+  inline std::string defaultKwd() const { return defaultKwd_; }
+
   /*! \brief Current value of an integer or double parameter as text,
              `auto' if it is auto */
   std::string valueString() const;
