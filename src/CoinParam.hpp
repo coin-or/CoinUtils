@@ -412,8 +412,24 @@ public:
   /*! \brief Whether the value `auto' is allowed */
   inline bool autoAllowed() const { return autoAllowed_; }
 
-  /*! \brief Whether the current value is `auto' */
+  /*! \brief Whether the current value is `auto'
+
+    For a keyword parameter that allows `auto', this is true until the user
+    sets a value explicitly: the application then picks the value itself (and
+    may call setModeValAuto() to record its pick without clearing `auto').
+  */
   bool isAuto() const;
+
+  /*! \brief Set a keyword parameter on behalf of the application
+
+    Like setModeVal(), but the parameter stays in the `auto' state (isDefault()
+    remains true, valueString() still prints `auto').
+  */
+  int setModeValAuto(int value, std::string *message = NULL,
+                     ParamPushMode pMode = pushDefault);
+
+  /*! \brief Whether a keyword parameter was set explicitly by the user */
+  inline bool isUserSet() const { return userSet_; }
 
   /*! \brief Whether the current value matches the default value */
   bool isDefault() const;
@@ -630,6 +646,9 @@ protected:
 
   /// Whether an integer or double parameter accepts the value `auto'
   bool autoAllowed_;
+
+  /// Whether a keyword parameter was explicitly set (see isAuto())
+  bool userSet_;
   //@}
 };
 

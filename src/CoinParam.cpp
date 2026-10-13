@@ -54,6 +54,7 @@ CoinParam::CoinParam()
   , longHelp_()
   , display_(displayPriorityNone)
   , autoAllowed_(false)
+  , userSet_(false)
 {
   /* Nothing to be done here */
 }
@@ -90,6 +91,7 @@ CoinParam::CoinParam(std::string name, std::string help,
   , longHelp_(longHelp)
   , display_(displayPriority)
   , autoAllowed_(false)
+  , userSet_(false)
 {
   processName();
 }
@@ -126,6 +128,7 @@ CoinParam::CoinParam(std::string name, std::string help,
   , longHelp_(longHelp)
   , display_(displayPriority)
   , autoAllowed_(false)
+  , userSet_(false)
 {
   processName();
 }
@@ -162,6 +165,7 @@ CoinParam::CoinParam(std::string name, CoinParamType type,
   , longHelp_(longHelp)
   , display_(displayPriority)
   , autoAllowed_(false)
+  , userSet_(false)
 {
   processName();
 }
@@ -191,6 +195,7 @@ CoinParam::CoinParam(const CoinParam &orig)
   , pullFunc_(orig.pullFunc_)
   , display_(orig.display_)
   , autoAllowed_(orig.autoAllowed_)
+  , userSet_(orig.userSet_)
 {
   name_ = orig.name_;
   strValue_ = orig.strValue_;
@@ -238,6 +243,7 @@ CoinParam &CoinParam::operator=(const CoinParam &rhs)
     display_ = rhs.display_;
     topic_ = rhs.topic_;
     autoAllowed_ = rhs.autoAllowed_;
+    userSet_ = rhs.userSet_;
   }
 
   return *this;
@@ -606,6 +612,7 @@ int CoinParam::restoreDefault(){
     case paramKwd:
       currentMode_ = defaultMode_;
       currentKwd_ = defaultKwd_;
+      userSet_ = false;
       return 0;
     default:
       std::cout << "restoreDefault() is illegal for parameter of this type!"
@@ -990,6 +997,17 @@ int CoinParam::setKwdVal(const std::string newKwd, std::string *message,
 {
   assert(type_ == paramKwd);
 
+  if (autoAllowed_ && newKwd == "auto") {
+     currentMode_ = defaultMode_;
+     currentKwd_ = defaultKwd_;
+     userSet_ = false;
+     if (message)
+        message->clear();
+     if (pMode == pushOn){
+        pushFunc_(*this);
+     }
+     return 0;
+  }
   int newMode = kwdToMode(newKwd);
   if (newMode >= 0) {
      if (message){
@@ -1004,6 +1022,7 @@ int CoinParam::setKwdVal(const std::string newKwd, std::string *message,
      }
      currentKwd_ = modeString(newMode); // to get full name
      currentMode_ = newMode;
+     userSet_ = true;
      if (pMode == pushOn){
         pushFunc_(*this);
      }
@@ -1034,6 +1053,7 @@ int CoinParam::setKwdValDefault(const std::string newKwd, std::string *message)
 
      defaultKwd_ = currentKwd_ = newKwd;
      defaultMode_ = currentMode_ = newMode;
+     userSet_ = false;
 
      return 0;
   }else{
@@ -1078,11 +1098,21 @@ int CoinParam::setModeVal(int newMode, std::string *message, ParamPushMode pMode
      }
      currentKwd_ = newKwd;
      currentMode_ = newMode;
+     userSet_ = true;
      if (pMode == pushOn){
         pushFunc_(*this);
      }
      return 0;
   }
+}
+
+int CoinParam::setModeValAuto(int newMode, std::string *message,
+                              ParamPushMode pMode)
+{
+  bool wasUserSet = userSet_;
+  int rc = setModeVal(newMode, message, pMode);
+  userSet_ = wasUserSet;
+  return rc;
 }
 
 int CoinParam::setModeValDefault(int newMode, std::string *message)
@@ -1114,6 +1144,7 @@ int CoinParam::setModeValDefault(int newMode, std::string *message)
 
      defaultKwd_ = currentKwd_ = newKwd;
      defaultMode_ = currentMode_ = newMode;
+     userSet_ = false;
 
      return 0;
   }
@@ -1659,6 +1690,8 @@ bool CoinParam::isAuto() const
 {
   if (!autoAllowed_)
     return false;
+  if (type_ == paramKwd)
+    return !userSet_;
   if (type_ == paramInt)
     return intValue_ == autoIntValue();
   if (type_ == paramDbl)
@@ -1670,6 +1703,8 @@ bool CoinParam::isDefault() const
 {
   switch (type_) {
   case paramKwd:
+    if (autoAllowed_)
+      return !userSet_;
     return currentMode_ == defaultMode_;
   case paramInt:
     return intValue_ == intDefaultValue_;
@@ -1712,6 +1747,8 @@ void CoinParam::printOptions(std::string *message)
       }
       buffer << " " << thisOne;
    }
+   if (autoAllowed_)
+      buffer << " auto";
    assert(currentMode_ >= 0 &&
           currentMode_ < static_cast< int >(definedKwds_.size()));
    std::string::size_type shriekPos = currentKwd_.find('!');
@@ -1721,6 +1758,8 @@ void CoinParam::printOptions(std::string *message)
       current = currentKwd_.substr(0, shriekPos) + "(" +
          currentKwd_.substr(shriekPos + 1) + ")";
    }
+   if (isAuto())
+      current = "auto";
    buffer << "\nCurrent setting is " << current << std::endl;
 
    if (message == NULL){
