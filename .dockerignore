@@ -1,0 +1,20 @@
+# Project Files unneeded by docker
+ci/cache
+ci/docker
+.coin-or
+.git
+.gitignore
+.github
+.dockerignore
+.clang-format
+AUTHORS
+INSTALL
+install-sh
+missing
+README.md
+
+build/
+
+# Editor directories and files
+*.user
+*.swp
