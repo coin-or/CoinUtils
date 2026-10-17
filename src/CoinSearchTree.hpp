@@ -33,7 +33,7 @@ public:
   std::string str() const;
 };
 
-bool operator<(const BitVector128 &b0, const BitVector128 &b1);
+COINUTILSLIB_EXPORT bool operator<(const BitVector128 &b0, const BitVector128 &b1);
 
 //#############################################################################
 
