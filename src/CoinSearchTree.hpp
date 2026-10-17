@@ -17,6 +17,12 @@
 
 //#############################################################################
 
+// operator< is declared (with COINUTILSLIB_EXPORT) before it is declared as a
+// friend of BitVector128, since MSVC doesn't accept adding __declspec(dllexport)
+// in a later declaration.
+class BitVector128;
+COINUTILSLIB_EXPORT bool operator<(const BitVector128 &b0, const BitVector128 &b1);
+
 class COINUTILSLIB_EXPORT BitVector128 {
   friend bool operator<(const BitVector128 &b0, const BitVector128 &b1);
 
@@ -32,8 +38,6 @@ public:
   void clearBit(int i);
   std::string str() const;
 };
-
-bool operator<(const BitVector128 &b0, const BitVector128 &b1);
 
 //#############################################################################
 
