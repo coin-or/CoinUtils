@@ -163,6 +163,7 @@
     <ClCompile Include="..\..\..\src\CoinAlloc.cpp" />
     <ClCompile Include="..\..\..\src\CoinBronKerbosch.cpp" />
     <ClCompile Include="..\..\..\src\CoinBuild.cpp" />
+    <ClCompile Include="..\..\..\src\CoinBuildInfo.cpp" />
     <ClCompile Include="..\..\..\src\CoinCliqueExtender.cpp" />
     <ClCompile Include="..\..\..\src\CoinCliqueList.cpp" />
     <ClCompile Include="..\..\..\src\CoinCliqueSet.cpp" />
