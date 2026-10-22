@@ -377,7 +377,10 @@ int CoinMessageHandler::internalPrint()
       *buffer = '\0';
     }
     // Now do print which can be overridden
-    returnCode = print();
+    if ((prefix_&512)==0)
+      returnCode = print();
+    else
+      returnCode = oldStylePrint();
     // See what to do on error
     checkSeverity();
   }
@@ -388,6 +391,10 @@ extern int coinFlushBufferFlag;
 #endif
 // Print message, return 0 normally
 int CoinMessageHandler::print()
+{
+  return oldStylePrint();
+}
+int CoinMessageHandler::oldStylePrint()
 {
   fprintf(fp_, "%s\n", messageBuffer_);
 #if FLUSH_PRINT_BUFFER
@@ -493,14 +500,22 @@ void CoinMessageHandler::setPrecision(unsigned int new_precision)
 }
 void CoinMessageHandler::setPrefix(bool value)
 {
-  if (value)
+  int prefix = static_cast<int>(value);
+  if (!prefix)
+    prefix_ = 0;
+  else if ((prefix&512)==0)
     prefix_ = 255;
   else
-    prefix_ = 0;
+    prefix_ = 255|512;
 }
-bool CoinMessageHandler::prefix() const
+// So we can do old style
+void CoinMessageHandler::setPrefix(int prefix)
 {
-  return (prefix_ != 0);
+  prefix_ = prefix;
+}
+int CoinMessageHandler::prefix() const
+{
+  return prefix_;
 }
 // Constructor
 CoinMessageHandler::CoinMessageHandler()
