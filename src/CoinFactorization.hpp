@@ -143,6 +143,21 @@ public:
   {
     status_ = value;
   }
+  /** Returns absolute wall-clock deadline (CoinWallclockTime() basis) for
+      the current factorization, or -1.0 if no deadline is set. Checked
+      periodically inside the Markowitz pivot loop (factorSparseSmall()/
+      factorSparseLarge()) so a very slow factorization can be aborted
+      cleanly (status -100) instead of stalling past the caller's time
+      limit with no way to detect it. */
+  inline double timeLimit() const
+  {
+    return timeLimit_;
+  }
+  /// Sets wall-clock deadline (-1.0 to disable)
+  inline void setTimeLimit(double value)
+  {
+    timeLimit_ = value;
+  }
   /// Returns number of pivots since factorization
   inline int pivots() const
   {
@@ -1470,6 +1485,8 @@ protected:
   CoinIntArrayWithLength pivotColumnBack_;
   /// Status of factorization
   int status_;
+  /// Absolute wall-clock deadline for factorization loop, -1.0 if disabled
+  double timeLimit_;
 
   /** 0 - no increasing rows - no permutations,
    1 - no increasing rows but permutations 

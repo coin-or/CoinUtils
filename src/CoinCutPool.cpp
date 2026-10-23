@@ -31,6 +31,7 @@
 #include <cmath>
 #include <cassert>
 #include <algorithm>
+#include <cstring>
 
 #define CUTPOOL_EPS 1e-8
 
@@ -44,10 +45,11 @@ struct CompareIdxs {
     const int *idxs_;
 };
 
-CoinCut::CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs)
+CoinCut::CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs, size_t tag)
   : idxs_(std::vector<int>(nz))
   , coefs_(std::vector<double>(nz))
   , rhs_(rhs)
+  , tag_(tag)
 {
     for (size_t i = 0; i < nz; i++) {
         idxs_[i] = i;
@@ -149,9 +151,13 @@ bool CoinCut::dominates(const CoinCut *other) const {
     return true;
 }
 
-CoinCutPool::CoinCutPool(const double *x, int numCols) {
+CoinCutPool::CoinCutPool(const double *x, int numCols, const char *tag) {
     x_ = x;
     nullCuts_ = 0;
+    numCandidates_ = 0;
+    tag_ = tag;
+    filterEnabled_ = true;
+    maxParallelism_ = 1.0;
 
     bestCutByCol_ = std::vector<int>(numCols, -1);
 
@@ -162,32 +168,95 @@ CoinCutPool::CoinCutPool(const double *x, int numCols) {
     cutFitness_ = std::vector<double>(cutsCap_);
 }
 
+// True if CBC_CLIQUE_POOL_DEBUG is set. MSVC's /sdl (on in the v17 projects)
+// turns the deprecation warning for getenv() into an error, so use
+// _dupenv_s() there.
+static bool cutPoolDebugEnabled() {
+#ifdef _MSC_VER
+    char *value = NULL;
+    size_t length = 0;
+    const bool set = _dupenv_s(&value, &length, "CBC_CLIQUE_POOL_DEBUG") == 0 && value != NULL;
+    free(value);
+    return set;
+#else
+    return getenv("CBC_CLIQUE_POOL_DEBUG") != NULL;
+#endif
+}
+
 CoinCutPool::~CoinCutPool() {
+    if (tag_ && cutPoolDebugEnabled()) {
+        const size_t kept = nCuts_ - nullCuts_;
+        fprintf(stderr, "[cutpool] %s: candidates=%zu kept=%zu (filtered=%zu, %.1f%%) filterEnabled=%d\n",
+            tag_, numCandidates_, kept, numCandidates_ - kept,
+            numCandidates_ ? 100.0 * (numCandidates_ - kept) / numCandidates_ : 0.0,
+            (int)filterEnabled_);
+    }
     for (size_t i = 0; i < nCuts_; i++) {
         delete cuts_[i];
     }
 }
 
-bool CoinCutPool::add(const int *idxs, const double *coefs, int nz, double rhs) {
-    CoinCut *cut = new CoinCut(idxs, coefs, nz, rhs);
+size_t CoinCutPool::hashCut(const CoinCut *cut) const {
+    // FNV-1a style combine over the cut's (already sorted, per CoinCut's
+    // constructor) indices/coefficients/rhs.
+    size_t h = 1469598103934665603ULL;
+    auto mix = [&h](size_t v) {
+        h ^= v;
+        h *= 1099511628211ULL;
+    };
+    const int size = cut->size();
+    mix(static_cast<size_t>(size));
+    const int *idxs = cut->idxs();
+    const double *coefs = cut->coefs();
+    for (int i = 0; i < size; i++) {
+        mix(static_cast<size_t>(idxs[i]));
+        size_t bits;
+        memcpy(&bits, &coefs[i], sizeof(bits));
+        mix(bits);
+    }
+    double rhs = cut->rhs();
+    size_t rbits;
+    memcpy(&rbits, &rhs, sizeof(rbits));
+    mix(rbits);
+    return h;
+}
+
+bool CoinCutPool::add(const int *idxs, const double *coefs, int nz, double rhs, size_t tag) {
+    numCandidates_++;
+    CoinCut *cut = new CoinCut(idxs, coefs, nz, rhs, tag);
+
+    // Always reject exact-duplicate candidates (same vars/coefs/rhs),
+    // independent of filterEnabled_ -- generators that search from
+    // different starting points (e.g. CglImpliedClique's per-hub search,
+    // CglBKClique's clique extension) can rediscover the same clique
+    // more than once.
+    if (!seenHashes_.insert(hashCut(cut)).second) {
+        delete cut;
+        return false;
+    }
 
     checkMemory();
 
-    if (updateCutFrequency(cut) == 0) {
-        delete cut;
-        return false;
+    const double fitness = calculateFitness(cut);
+    cutFitness_[nCuts_] = fitness;
+
+    if (filterEnabled_) {
+        if (updateCutFrequency(cut, fitness) == 0) {
+            delete cut;
+            return false;
+        }
+    } else {
+        cutFrequency_[nCuts_] = 1;
     }
 
     cuts_[nCuts_++] = cut;
     return true;
 }
 
-size_t CoinCutPool::updateCutFrequency(const CoinCut *cut) {
+size_t CoinCutPool::updateCutFrequency(const CoinCut *cut, double fitness) {
     const int nz = cut->size();
     const int *idxs = cut->idxs();
-    const double fitness = calculateFitness(cut);
 
-    cutFitness_[nCuts_] = fitness;
     cutFrequency_[nCuts_] = 0;
 
     for (int i = 0; i < nz; i++) {
@@ -252,6 +321,100 @@ double CoinCutPool::calculateFitness(const CoinCut *cut) const {
 #endif
 
     return ((violation / ((double) activeCols)) * 100000.0) + ((1.0 / (diffOfCoefs + 1.0)) * 1000.0);
+}
+
+double CoinCutPool::parallelism(const CoinCut *a, const CoinCut *b) const {
+    const int sizeA = a->size(), sizeB = b->size();
+    const int *idxsA = a->idxs(), *idxsB = b->idxs();
+    const double *coefsA = a->coefs(), *coefsB = b->coefs();
+
+    double normA = 0.0, normB = 0.0, dot = 0.0;
+    for (int i = 0; i < sizeA; i++) {
+        normA += coefsA[i] * coefsA[i];
+    }
+    for (int i = 0; i < sizeB; i++) {
+        normB += coefsB[i] * coefsB[i];
+    }
+
+    // idxs() is sorted ascending (CoinCut's constructor invariant), so a
+    // single merge pass finds the dot product over the shared support.
+    int i = 0, j = 0;
+    while (i < sizeA && j < sizeB) {
+        if (idxsA[i] == idxsB[j]) {
+            dot += coefsA[i] * coefsB[j];
+            i++;
+            j++;
+        } else if (idxsA[i] < idxsB[j]) {
+            i++;
+        } else {
+            j++;
+        }
+    }
+
+    const double denom = std::sqrt(normA) * std::sqrt(normB);
+    if (denom <= CUTPOOL_EPS) {
+        return 0.0;
+    }
+
+    return dot / denom;
+}
+
+void CoinCutPool::filterByParallelism() {
+    if (maxParallelism_ >= 1.0 - CUTPOOL_EPS) {
+        return; // disabled
+    }
+
+    if (nullCuts_) {
+        removeNullCuts();
+    }
+
+    if (nCuts_ <= 1) {
+        return;
+    }
+
+    // Greedily accept cuts by descending fitness (the same score already
+    // used by updateCutFrequency()'s per-column contest), skipping any
+    // candidate too parallel (cosine similarity > maxParallelism_) to an
+    // already-accepted cut. Mirrors HiGHS's HighsCutPool (maxpar=0.1) and
+    // SCIP's cutsel_hybrid/cutsel_dynamic (minortho=0.9, i.e.
+    // maxparallelism=0.1) orthogonality-based cut selection.
+    std::vector<size_t> order(nCuts_);
+    for (size_t i = 0; i < nCuts_; i++) {
+        order[i] = i;
+    }
+    std::sort(order.begin(), order.end(), [this](size_t a, size_t b) {
+        return cutFitness_[a] > cutFitness_[b];
+    });
+
+    std::vector<size_t> keptIdx;
+    keptIdx.reserve(nCuts_);
+    std::vector<bool> keep(nCuts_, false);
+
+    for (size_t oi : order) {
+        bool tooParallel = false;
+        for (size_t ki : keptIdx) {
+            if (parallelism(cuts_[oi], cuts_[ki]) > maxParallelism_) {
+                tooParallel = true;
+                break;
+            }
+        }
+        if (!tooParallel) {
+            keep[oi] = true;
+            keptIdx.push_back(oi);
+        }
+    }
+
+    for (size_t i = 0; i < nCuts_; i++) {
+        if (!keep[i]) {
+            delete cuts_[i];
+            cuts_[i] = NULL;
+            nullCuts_++;
+        }
+    }
+
+    if (nullCuts_) {
+        removeNullCuts();
+    }
 }
 
 void CoinCutPool::checkMemory() {
@@ -363,6 +526,14 @@ double CoinCutPool::cutRHS(size_t i) const {
     assert(cuts_[i]);
 #endif
     return cuts_[i]->rhs();
+}
+
+size_t CoinCutPool::cutTag(size_t i) const {
+#ifdef DEBUGCG
+    assert(i < nCuts_);
+    assert(cuts_[i]);
+#endif
+    return cuts_[i]->tag();
 }
 
 void CoinCutPool::removeNullCuts() {

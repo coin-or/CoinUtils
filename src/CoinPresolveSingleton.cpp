@@ -611,23 +611,30 @@ slack_singleton_action::presolve(CoinPresolveMatrix *prob,
         // check everything else a bit later
         if (acoeff != 1.0)
           continue;
-        double currentLower = rlo[iRow];
-        double currentUpper = rup[iRow];
-        if (coeff == 1.0 && currentLower == 1.0 && currentUpper == 1.0) {
-          // leave if integer slack on sum x == 1
-          bool allInt = true;
-          for (CoinBigIndex j = mrstrt[iRow];
-               j < mrstrt[iRow] + hinrow[iRow]; j++) {
-            int iColumn = hcol[j];
-            double value = fabs(rowels[j]);
-            if (!integerType[iColumn] || value != 1.0) {
-              allInt = false;
-              break;
-            }
+        // Leave unit-coefficient integer singletons in an all-integer,
+        // all-unit-coefficient row alone (packing/covering/assignment-like
+        // rows: sum x <= k, sum x >= k, or sum x == k, and also equality
+        // rows of the form col_j - col_i = rhs, which reduce to this same
+        // pattern once every coefficient has |value| == 1).  Substituting
+        // such a singleton out folds its bounds into the row's rlo/rup and
+        // silently drops the constraint linking it to the rest of the row;
+        // B&B can then set the other row variable(s) to a value that
+        // violates the original row, and postsolve propagates that wrong
+        // value back into col_i.  This protects both the coeff == 1 sum-to-1
+        // equality case (the original guard) and its symmetric coeff == -1
+        // and non-equality (<=, >=) counterparts.
+        bool allInt = true;
+        for (CoinBigIndex j = mrstrt[iRow];
+             j < mrstrt[iRow] + hinrow[iRow]; j++) {
+          int iColumn = hcol[j];
+          double value = fabs(rowels[j]);
+          if (!integerType[iColumn] || value != 1.0) {
+            allInt = false;
+            break;
           }
-          if (allInt)
-            continue; // leave as may help search
         }
+        if (allInt)
+          continue; // leave as may help search
       }
       if (!prob->colProhibited(iCol)) {
         double currentLower = rlo[iRow];

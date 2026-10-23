@@ -187,9 +187,12 @@ int lookupParam(std::string name, CoinParamVec &paramVec,
   if (queryCntp && *queryCntp == 999)
     printMessage = false;
 
-  *matchCntp = 0;
-  *shortCntp = 0;
-  *queryCntp = 0;
+  if (matchCntp != 0)
+    *matchCntp = 0;
+  if (shortCntp != 0)
+    *shortCntp = 0;
+  if (queryCntp != 0)
+    *queryCntp = 0;
 
   /*
   Is there anything here at all? 

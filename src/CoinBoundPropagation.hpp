@@ -22,6 +22,46 @@
 
 class CoinPackedMatrix;
 
+/**
+ * @brief One bound-tightening event captured for offline verification.
+ *
+ * Each case corresponds to a single bound change produced by FBBT
+ * (non-binary variables) or the binary knapsack.
+ *
+ * The constraint is stored in ≤ form with the multiplier already applied:
+ *   Σ vars[k].coef * x[k] ≤ beff
+ *
+ * Variable bounds in vars[] are snapshotted at scan time (before any
+ * in-row modifications), which is the same point at which beff was
+ * computed — so an LP built from this data is self-consistent.
+ *
+ * Verification LP:
+ *   If isUB: maximize  x[tightenedIdx]  s.t. row constraint + bounds
+ *            → LP optimal should equal claimedBound (± tol; floor for integers)
+ *   If !isUB: minimize x[tightenedIdx]  s.t. row constraint + bounds
+ *            → LP optimal should equal claimedBound (± tol; ceil for integers)
+ *
+ * isBinaryFix distinguishes knapsack binary fixings (case a) from FBBT
+ * tightenings (cases b/c/d in the user-facing categorisation).
+ */
+struct CoinBPCase {
+  struct Var {
+    double coef;  ///< multiplier-adjusted coefficient
+    double lb;    ///< lower bound at scan time
+    double ub;    ///< upper bound at scan time
+    int    type;  ///< 0=continuous, 1=binary, 2=general-integer
+  };
+  std::vector< Var > vars;   ///< all row variables (bounds at scan time)
+  double beff;               ///< effective RHS (fixed vars discounted)
+  int    tightenedIdx;       ///< index into vars[] of the tightened variable
+  double oldLB;              ///< lower bound of tightened var before event
+  double oldUB;              ///< upper bound of tightened var before event
+  double claimedBound;       ///< new UB (isUB=true) or new LB (isUB=false)
+  bool   isUB;               ///< true → UB was tightened; false → LB was tightened
+  bool   isBinaryFix;        ///< true → binary knapsack; false → FBBT
+  int    rowIdx;             ///< constraint row index (informational)
+};
+
 #ifdef COIN_BT_STATS
 /**
  * @brief Per-row statistics collected when COIN_BT_STATS is defined.
@@ -111,7 +151,15 @@ public:
     const double *rowRange,
     double primalTolerance = 1e-7,
     double infinity = 1e50,
-    int maxRowNz = -1);
+    int maxRowNz = -1,
+    bool collectCases = false,
+    bool nonBinaryFBBT = true,
+    const std::vector< bool > *dirtyRowsFBBT = nullptr,
+    const double *cachedRowMinAct = nullptr,
+    const double *cachedRowMaxAct = nullptr,
+    const int *cachedRowNUnbLB = nullptr,
+    const int *cachedRowNUnbUB = nullptr,
+    const bool *rowHasBinary = nullptr);
 
   ~CoinBoundPropagation() = default;
 
@@ -137,8 +185,20 @@ public:
     return newBounds_;
   }
 
-  /** @brief Number of variable fixings discovered. */
-  size_t nFixings() const { return newBounds_.size(); }
+  /** @brief Number of variable fixings discovered (binary variables only). */
+  size_t nFixings() const
+  {
+    return newBounds_.size() - static_cast< size_t >(nContinuousTightened_);
+  }
+
+  /**
+   * @brief Number of non-binary variable bounds tightened by FBBT.
+   *
+   * Counts continuous and general-integer bounds tightened during
+   * the activity-based FBBT pass integrated into this class.
+   * Always zero when the problem has no non-binary variables.
+   */
+  int nContinuousTightened() const { return nContinuousTightened_; }
 
   /**
    * @brief True if the bound-tightening pass detected infeasibility.
@@ -182,6 +242,15 @@ public:
    */
   bool isComplete() const { return complete_; }
 
+  /**
+   * @brief Bound-tightening cases collected for verification.
+   *
+   * Non-empty only when the constructor was called with collectCases=true.
+   * Each entry is a self-contained LP verification problem: build the LP
+   * from the vars/beff data and check that the LP optimal equals claimedBound.
+   */
+  const std::vector< CoinBPCase > &bpCases() const { return bpCases_; }
+
 #ifdef COIN_BT_STATS
   /**
    * @brief Per-row statistics (only available when compiled with COIN_BT_STATS).
@@ -199,6 +268,8 @@ private:
   int infeasibleRow_; ///< row that triggered infeasibility (-1 if none / unknown)
   int infeasibleCol_; ///< column in contradictory fixing (-1 if none / unknown)
   bool complete_;     ///< false if any row was hard-skipped via maxRowNz
+  int nContinuousTightened_; ///< non-binary bounds tightened by FBBT (0 when !hasNonBinary)
+  std::vector< CoinBPCase > bpCases_; ///< empty unless collectCases=true
 #ifdef COIN_BT_STATS
   std::vector< CoinBTRowStats > rowStats_;
 #endif

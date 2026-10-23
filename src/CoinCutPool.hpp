@@ -31,6 +31,7 @@
 #include "CoinUtilsConfig.h"
 #include <cstddef>
 #include <vector>
+#include <unordered_set>
 
 /**
  * Class for representing a cut.
@@ -44,8 +45,12 @@ public:
    * @param coefs coefficients of the variables the cut
    * @param nz size of the cut
    * @param rhs right-hand side of the cut
+   * @param tag opaque caller-supplied identifier (e.g. the cut's original
+   *        index in some external OsiCuts collection), carried through
+   *        unchanged so callers can recover which of their original cuts
+   *        survived the pool's filtering. Defaults to SIZE_MAX (unused).
    **/
-  CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs);
+  CoinCut(const int *idxs, const double *coefs, size_t nz, double rhs, size_t tag = static_cast<size_t>(-1));
 
   /**
    * Destructor
@@ -73,6 +78,14 @@ public:
   double rhs() const { return rhs_; }
 
   /**
+   * Return the opaque caller-supplied tag, if any (see constructor).
+   * Survives pool compaction (removeNullCuts()/filterByParallelism())
+   * unchanged, since it travels with the CoinCut object rather than a
+   * position in a parallel array.
+   **/
+  size_t tag() const { return tag_; }
+
+  /**
    * Check if the cut dominates another one.
    *
    * @param other cut to be checked.
@@ -94,6 +107,39 @@ private:
    * right-hand side of the cut
    **/
   double rhs_;
+
+  /**
+   * opaque caller-supplied tag (see tag() accessor)
+   **/
+  size_t tag_;
+};
+
+/**
+ * When a conflict-graph cut generator (CglBKClique, CglOddWheel,
+ * CglImpliedClique) turns on its CoinCutPool's filtering. The generator
+ * applies these itself, before its add() loop:
+ *   - minCols: on a model with fewer columns, filtering and the
+ *     parallelism filter are both skipped (unless alwaysFilter);
+ *   - minCandidates: filtering is skipped when there are fewer candidate
+ *     cuts than this (CglBKClique and CglOddWheel only, since they know
+ *     their candidate count up front);
+ *   - maxParallelism: passed to setMaxParallelism(); 1.0 disables it;
+ *   - alwaysFilter: filter regardless of minCols and minCandidates.
+ * Cbc sets these from its cliqueFilter* parameters.
+ **/
+struct CoinCutPoolGate {
+  size_t minCols;
+  size_t minCandidates;
+  double maxParallelism;
+  bool alwaysFilter;
+
+  CoinCutPoolGate()
+    : minCols(500)
+    , minCandidates(20)
+    , maxParallelism(1.0)
+    , alwaysFilter(false)
+  {
+  }
 };
 
 /**
@@ -108,8 +154,55 @@ public:
    *
    * @param x current solution of the LP relaxation of the MILP.
    * @param numCols number of variables of the MILP.
+   * @param tag optional identifier (e.g. generator name) printed with
+   *        per-pool candidate/kept counts when the CBC_CLIQUE_POOL_DEBUG
+   *        env var is set; nullptr (default) means no debug output.
    **/
-  CoinCutPool(const double *x, int numCols);
+  CoinCutPool(const double *x, int numCols, const char *tag = nullptr);
+
+  /**
+   * Enable/disable the expensive per-column best-score filtering (the
+   * fitness-based contest in updateCutFrequency()/calculateFitness()).
+   * Exact-duplicate cuts are always rejected regardless of this setting
+   * (via a cheap hash check in add()) -- this only controls whether
+   * *non-duplicate* candidates additionally compete for a "best cut per
+   * column" slot. Callers that already know their candidate count
+   * up front (e.g. a clique list already fully built) should measure it
+   * against a caller-chosen threshold and pass the result here *before*
+   * the add() loop starts; leaving filtering enabled on a large batch of
+   * candidates is what actually prunes redundant/dominated cuts, but
+   * doing so on a handful of candidates only adds cost for no benefit
+   * (see CBC_CLIQUE_POOL_DEBUG measurements: <=20 candidates are almost
+   * never filtered in practice; CoinCutPoolGate holds the thresholds the
+   * conflict-graph generators use). Defaults to enabled (the original,
+   * always-filter behaviour) for any caller that doesn't call this.
+   **/
+  void setFilteringEnabled(bool enabled) { filterEnabled_ = enabled; }
+
+  /**
+   * Set the maximum cosine-similarity ("parallelism") allowed between a
+   * kept cut and any other cut already kept, applied by
+   * filterByParallelism(). Two cuts pointing in nearly the same
+   * direction add little beyond what the first already provides (to the
+   * reoptimized LP) while still costing a row -- this is the same
+   * orthogonality/parallelism-based selection idea used by HiGHS
+   * (HighsCutPool: maxpar=0.1) and SCIP (cutsel_hybrid/cutsel_dynamic:
+   * minortho=0.9, i.e. maxparallelism=0.1), neither of which CBC
+   * previously implemented for its clique-cut pool. Default 1.0 means
+   * "disabled" (no two non-identical cuts have cosine similarity of
+   * exactly 1.0, since exact duplicates are already rejected in add()).
+   **/
+  void setMaxParallelism(double maxParallelism) { maxParallelism_ = maxParallelism; }
+
+  /**
+   * Greedily select cuts by descending fitness, skipping any candidate
+   * whose cosine similarity to an already-selected cut exceeds
+   * maxParallelism_ (see setMaxParallelism()). No-op if maxParallelism_
+   * is 1.0 (the default/disabled value). Should be called after the
+   * add() loop (and, ideally, after removeNullCuts()) and before
+   * reading cuts out via cutIdxs()/cutCoefs()/etc.
+   **/
+  void filterByParallelism();
 
   /**
    * Destructor
@@ -146,6 +239,12 @@ public:
   double cutRHS(size_t i) const;
 
   /**
+   * Return the opaque caller-supplied tag of the i-th cut in the pool
+   * (see CoinCut::tag()). SIZE_MAX if none was supplied to add().
+   **/
+  size_t cutTag(size_t i) const;
+
+  /**
    * Try to add a cut in the pool. Return true
    * if the cut was added.
    *
@@ -155,8 +254,11 @@ public:
    * the cut to be added.
    * @param nz size of the cut to be added
    * @param rhs right-hand side of the cut to be added
+   * @param tag optional opaque identifier for this cut, retrievable via
+   * cutTag() after filtering (e.g. its original index in some caller-side
+   * OsiCuts collection). Defaults to SIZE_MAX (unused).
    **/
-  bool add(const int *idxs, const double *coefs, int nz, double rhs);
+  bool add(const int *idxs, const double *coefs, int nz, double rhs, size_t tag = static_cast<size_t>(-1));
 
   /**
    * Remove dominated cuts.
@@ -177,7 +279,7 @@ private:
    * to reflect this calculation. Return the number
    * of variables for which the cut has the best score.
    **/
-    size_t updateCutFrequency(const CoinCut *cut);
+    size_t updateCutFrequency(const CoinCut *cut, double fitness);
 
   /**
    * Compute the score of the cut.
@@ -185,10 +287,25 @@ private:
   double calculateFitness(const CoinCut *cut) const;
 
   /**
+   * Compute the cosine similarity ("parallelism", in [-1, 1]) between
+   * the coefficient vectors of two cuts, treating missing entries as 0.
+   * Both cuts' idxs() are sorted ascending (CoinCut's constructor
+   * invariant), so this runs in a single O(sizeA + sizeB) merge pass.
+   **/
+  double parallelism(const CoinCut *a, const CoinCut *b) const;
+
+  /**
    * Check if it is necessary expand the memory
    * allocated for storing the cuts.
    **/
   void checkMemory();
+
+  /**
+   * Compute a hash over a cut's (sorted) variable indices, coefficients,
+   * and rhs, used to reject exact-duplicate candidates cheaply (O(1)
+   * amortized) independent of whether score-based filtering is enabled.
+   **/
+  size_t hashCut(const CoinCut *cut) const;
 
   /**
    * Check the dominance relation between two cuts
@@ -239,6 +356,36 @@ private:
    * Current solution of the LP relaxation of the MILP.
    **/
   const double *x_;
+
+  /**
+   * Total number of candidate cuts submitted via add(), including ones
+   * later filtered out by the best-score-per-column rule -- tracked only
+   * to report a candidates-vs-kept ratio under CBC_CLIQUE_POOL_DEBUG.
+   **/
+  size_t numCandidates_;
+
+  /**
+   * Optional tag identifying the calling generator, for debug output.
+   **/
+  const char *tag_;
+
+  /**
+   * Whether the per-column best-score filtering is active for this pool
+   * instance (see setFilteringEnabled()). Defaults to true.
+   **/
+  bool filterEnabled_;
+
+  /**
+   * Hashes of cuts already accepted into the pool, used to reject exact
+   * duplicates regardless of filterEnabled_.
+   **/
+  std::unordered_set<size_t> seenHashes_;
+
+  /**
+   * Maximum cosine similarity allowed between two kept cuts (see
+   * setMaxParallelism()). Defaults to 1.0 (disabled).
+   **/
+  double maxParallelism_;
 };
 
 

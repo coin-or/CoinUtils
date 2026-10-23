@@ -133,6 +133,77 @@ private:
    * Monotone heap used in Dijkstra's algorithm.
    **/
   CoinNodeHeap *nh_;
+
+  /**
+   * Nodes whose dist_/previous_ entries were written by the last find(), so
+   * that the next one restores just those instead of all nodes_. See
+   * clearState() for why the arrays stay fully valid, which is what keeps
+   * previous(), previous(node) and distance(node) unchanged.
+   **/
+  std::vector<size_t> touched_;
+
+  /**
+   * Whether the find() now in progress is recording into touched_. Cleared by
+   * touch() when the list grows past fullResetThreshold(), and by clearState()
+   * for a deliberately skipped call (see skipsLeft_).
+   **/
+  bool recording_;
+
+  /**
+   * Whether recording was *deliberately* off for the call that just finished,
+   * which is what separates "this graph is dense" from "we chose not to look".
+   * Only the former should extend the backoff.
+   **/
+  bool skipped_;
+
+  /**
+   * Calls remaining with recording deliberately off.
+   **/
+  size_t skipsLeft_;
+
+  /**
+   * Size of touched_ at which replaying it stops being cheaper than rewriting
+   * all nodes_ entries, so both touch() and clearState() give up on it.
+   *
+   * The full loop writes two words per node sequentially; a replay writes two
+   * words per entry by random access, which costs several times more each, so
+   * the crossover sits well below nodes_. A quarter is the conservative choice.
+   **/
+  inline size_t fullResetThreshold() const { return nodes_ / 4; }
+
+  /**
+   * How many calls to stop recording for once a call has proved the graph too
+   * dense for the replay to be used.
+   *
+   * On a dense active subgraph almost every node is reached, so recording pays
+   * fullResetThreshold() push_backs and clearState() then does the full loop
+   * anyway -- the one way this scheme can come out slower than the loop it
+   * replaces, and measured at roughly 15% on the densest odd-wheel fixtures.
+   * Backing off spreads that cost over 33 calls, leaving under 1%, while the
+   * periodic re-probe means a graph that turns sparse is picked straight back
+   * up. Correctness does not depend on the value: a full rewrite is always a
+   * valid reset, so this only ever trades one reset strategy for the other.
+   **/
+  inline size_t recordBackoff() const { return 32; }
+
+  /**
+   * Reset dist_/previous_ to their unvisited values.
+   **/
+  void clearState();
+
+  /**
+   * Record that node had its dist_/previous_ entries written.
+   **/
+  inline void touch(size_t node) {
+    if (!recording_) {
+      return;
+    }
+    if (touched_.size() >= fullResetThreshold()) {
+      recording_ = false;
+      return;
+    }
+    touched_.push_back(node);
+  }
 };
 
 

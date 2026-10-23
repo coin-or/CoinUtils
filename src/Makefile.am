@@ -18,6 +18,7 @@ lib_LTLIBRARIES = libCoinUtils.la
 libCoinUtils_la_SOURCES = \
 	CoinAlloc.cpp \
 	CoinBuild.cpp \
+	CoinBuildInfo.cpp \
 	CoinDenseVector.cpp \
 	CoinError.cpp \
 	CoinFactorization1.cpp \
@@ -108,6 +109,7 @@ includecoindir = $(pkgincludedir)
 includecoin_HEADERS = \
 	CoinAlloc.hpp \
 	CoinBuild.hpp \
+	CoinBuildInfo.hpp \
 	CoinDenseVector.hpp \
 	CoinDistance.hpp \
 	CoinError.hpp \
@@ -119,6 +121,7 @@ includecoin_HEADERS = \
 	CoinHelperFunctions.hpp \
 	CoinIndexedVector.hpp \
 	CoinLpIO.hpp \
+	CoinMemUsage.hpp \
 	CoinMessage.hpp \
 	CoinMessageHandler.hpp \
 	CoinModel.hpp \

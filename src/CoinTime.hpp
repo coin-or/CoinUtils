@@ -88,13 +88,38 @@ inline double CoinGetTimeOfDay()
 
 #endif // _MSC_VER
 
-/// Returns elapsed wall-clock time in seconds since the first call.
-/// Uses a static local variable (C++11) so the start time is captured
-/// exactly once, thread-safely, without requiring C++17 inline variables.
+/// Returns absolute wall-clock time in seconds since the Unix epoch --
+/// exactly equivalent to CoinGetTimeOfDay(), just under the name callers
+/// throughout COIN-OR expect for wall-clock (as opposed to CPU) time.
+///
+/// This intentionally does NOT return "time since first call" any more (an
+/// earlier version used a function-local static to capture an implicit
+/// per-process baseline on first invocation). That scheme was fragile in
+/// two ways: (1) the baseline depended on whichever code path happened to
+/// call this function first, which could be well after true process start
+/// if the first caller was buried deep in some phase; and (2) in a
+/// long-lived process that solves multiple independent models (e.g. a
+/// library embedding -- Cbc's C interface, Python-MIP, a service that keeps
+/// a solver object alive across requests), the baseline was fixed forever
+/// at the very first call in the process's lifetime, so it could not
+/// distinguish "time since this solve started" from "time since some much
+/// earlier, unrelated solve started".
+///
+/// Since every correct use of this function computes a DIFFERENCE between
+/// two calls (elapsed = CoinWallclockTime() - startTime, where startTime
+/// was itself captured via an earlier CoinWallclockTime() call scoped to
+/// the current solve/phase) or an absolute deadline (deadline = value +
+/// CoinWallclockTime(), checked later via CoinWallclockTime() >= deadline),
+/// switching the baseline to the Unix epoch is a no-op for all such
+/// differences/deadlines -- and removes the hidden global state and the
+/// (magic-static, thread-safe-init) branch on every call, so this is also
+/// a little cheaper. Callers must still take care never to print or
+/// otherwise use a single raw call as if it were itself a small "elapsed
+/// since solve start" duration -- always diff against an explicit,
+/// solve/phase-scoped start timestamp instead.
 inline double CoinWallclockTime()
 {
-  static const double wallclockStart = CoinGetTimeOfDay();
-  return CoinGetTimeOfDay() - wallclockStart;
+  return CoinGetTimeOfDay();
 }
 
 //#############################################################################

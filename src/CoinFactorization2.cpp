@@ -13,6 +13,7 @@
 #include "CoinIndexedVector.hpp"
 #include "CoinHelperFunctions.hpp"
 #include "CoinFinite.hpp"
+#include "CoinTime.hpp"
 #if COIN_FACTORIZATION_DENSE_CODE == 1
 // using simple lapack interface
 
@@ -409,6 +410,14 @@ int CoinFactorization::factorSparseSmall()
       // This should not need to be trapped here - but be safe
       if (numberGoodU_ == numberRows_)
         count = biggerDimension_ + 1;
+      // Periodic wall-clock deadline check (every 64 pivots to keep overhead
+      // negligible). A slow/degenerate factorization can otherwise run for
+      // many minutes with no way for the caller's time limit to be noticed.
+      if (timeLimit_ > 0.0 && (numberGoodU_ & 63) == 0 && CoinWallclockTime() > timeLimit_) {
+        status = -100;
+        count = biggerDimension_ + 1;
+        break;
+      }
 #if COIN_DEBUG == 2
       checkConsistency();
 #endif
@@ -512,6 +521,14 @@ int CoinFactorization::factorDense()
   if (sizeof(int) == 4 && numberDense_ >= 2 << 15) {
     abort();
   }
+  // Wall-clock deadline check before doing any dense-phase work. The dense
+  // fallback (LAPACK dgetrf below) is a single atomic call with no way to
+  // interrupt it mid-flight once started, so unlike the sparse Markowitz
+  // loop (which can check periodically between pivots) the only place we
+  // can bail out here is before committing to it at all.
+  if (timeLimit_ > 0.0 && CoinWallclockTime() > timeLimit_) {
+    return -100;
+  }
   int full;
   if (denseThreshold_ > 0 || true)
     full = numberDense_ * numberDense_;
@@ -601,6 +618,14 @@ int CoinFactorization::factorDense()
   if (denseThreshold_ /*>0*/) {
     assert(numberGoodU_ == numberRows_);
     numberGoodL_ = numberRows_;
+    // Re-check the deadline here: building the dense submatrix above is
+    // O(numberDense_^2) and can itself take a while for a large dense
+    // block, so the entry guard at the top of this function may already
+    // be stale by the time we are about to commit to the O(numberDense_^3)
+    // dgetrf call below, which cannot be interrupted once started.
+    if (timeLimit_ > 0.0 && CoinWallclockTime() > timeLimit_) {
+      return -100;
+    }
     //now factorize
     //dgef(denseAreaAddress_,&numberDense_,&numberDense_,densePermute_);
 #if COIN_FACTORIZATION_DENSE_CODE == 1
@@ -1396,6 +1421,13 @@ int CoinFactorization::factorSparseLarge()
         // This should not need to be trapped here - but be safe
         if (numberGoodU_ == numberRows_)
           count = biggerDimension_ + 1;
+        // Periodic wall-clock deadline check (every 64 pivots to keep
+        // overhead negligible) - see identical check in factorSparseSmall().
+        if (timeLimit_ > 0.0 && (numberGoodU_ & 63) == 0 && CoinWallclockTime() > timeLimit_) {
+          status = -100;
+          count = biggerDimension_ + 1;
+          break;
+        }
       }
 #if COIN_DEBUG == 2
       checkConsistency();

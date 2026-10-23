@@ -24,6 +24,7 @@ enum CoinRowType {
   CoinRowKnapsack,
   CoinRowIntKnapsack,
   CoinRowBinPacking,
+  CoinRowHubImplication,
   CoinRowFlowBin,
   CoinRowFlowMixed,
   CoinRowMixedBin,
@@ -38,7 +39,7 @@ inline const char *coinRowTypeName(CoinRowType t)
   static const char *names[] = {
     "Packing", "Partitioning", "Covering",
     "Cardinality", "InvKnapsack", "Knapsack", "IntKnapsack",
-    "BinPacking", "FlowBin", "FlowMixed", "MixedBin",
+    "BinPacking", "HubImplication", "FlowBin", "FlowMixed", "MixedBin",
     "GenInt", "Singleton", "Other"
   };
   return (t >= 0 && t < CoinRowTypeCount) ? names[t] : "Unknown";
@@ -122,6 +123,11 @@ inline CoinRowType classifyRow(
         return allInt ? CoinRowIntKnapsack : CoinRowKnapsack;
       if (rhs >= 1.1 && nNeg == 1 && nz >= 2)
         return CoinRowBinPacking;
+      // Same "exactly one coefficient of the minority sign" shape as
+      // BinPacking, but rhs < 1.1 (typically 0) -- "x1+x2+...+xk <= M*y"
+      // written as "x1+x2+...+xk - M*y <= 0" ("x1 OR x2 OR ... -> y").
+      if (rhs < 1.1 && nNeg == 1 && nz >= 2)
+        return CoinRowHubImplication;
     }
 
     if (nNeg >= 2 && nPos >= 2 && sense == 'E')
