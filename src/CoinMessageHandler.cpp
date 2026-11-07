@@ -951,11 +951,12 @@ CoinMessageHandler::operator<<(double doublevalue)
       char *next = nextPerCent(format_ + 1);
       // could check
       if (!printStatus_ && !skipConsumeCode(format_, messageOut_)) {
-        if (format_[1] == '.' && format_[2] >= '0' && format_[2] <= '9') {
-          // an explicitly specified precision currently overrides the
-          // precision of the message handler
+        if (!format_[1] || !strchr("eEfFgGaA", format_[1])) {
+          // flags, a width or a precision given explicitly (%.3g, %15.6e,
+          // %-8.2f, ...) override the precision of the message handler
           sprintf(messageOut_, format_, doublevalue);
         } else {
+          // a bare code (%g, %f, %e) uses the handler's precision
           sprintf(messageOut_, g_format_, doublevalue);
           if (next != format_ + 2) {
             messageOut_ += strlen(messageOut_);

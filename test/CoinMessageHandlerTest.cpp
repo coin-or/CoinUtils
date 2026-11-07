@@ -36,6 +36,7 @@ enum COIN_TestMessage
   COIN_TST_CONSUMEFIRST,
   COIN_TST_CONSUMEOPT,
   COIN_TST_NULL,
+  COIN_TST_DBLWIDTH,
   COIN_TST_END
 } ;
 
@@ -69,6 +70,7 @@ MsgDefn us_tstmsgs[] =
   {COIN_TST_CONSUMEFIRST,11,1,"%~dLeading value consumed."},
   {COIN_TST_CONSUMEOPT,12,1,"Start%? (opt%~d)%? end %d."},
   {COIN_TST_NULL,13,1,""},
+  {COIN_TST_DBLWIDTH,14,1,"[%12.4e][%-8.2f][%+.3g][%g]"},
   {COIN_TST_END,7,1,"This is the dummy end marker."}
 } ;
 
@@ -353,6 +355,14 @@ void languageTests (const CoinMessages &testMessages, int &errs)
   hdl.printing(false) << 1 ;
   hdl.printing(true) << 2 << CoinMessageEol ;
   checkOutput("%~ in skipped part",hdl,"Start end 2.\n",errs) ;
+/*
+  A double's code can give flags, a width and a precision; a bare code uses
+  the handler's precision.
+*/
+  hdl.message(COIN_TST_DBLWIDTH,testMessages)
+    << 1234.5 << 3.14159 << 2.5 << (1.0/3.0) << CoinMessageEol ;
+  checkOutput("double widths",hdl,
+              "[  1.2345e+03][3.14    ][+2.5][0.33333333]\n",errs) ;
 /*
   A null message prints nothing, not even its prefix, whatever values are
   sent to it, and doesn't disturb the next message.
