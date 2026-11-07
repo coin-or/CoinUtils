@@ -12,6 +12,26 @@
 #include <cstddef>
 #include <map>
 
+/*
+  A `%~' format code (%~d, %~g, %~.3g, ...) consumes a value without printing
+  it. If the code at format is one, copy just the literal text that follows
+  the conversion (up to the next code, which nextPerCent has zapped) to out,
+  advance out past it and return true. Otherwise return false.
+*/
+static bool skipConsumeCode(const char *format, char *&out)
+{
+  if (format[1] != '~')
+    return false;
+  const char *text = format + 2;
+  while (*text && !strchr("diouxXeEfFgGaAcsp", *text))
+    text++;
+  if (*text)
+    text++;
+  strcpy(out, text);
+  out += strlen(out);
+  return true;
+}
+
 /* Default constructor. */
 CoinOneMessage::CoinOneMessage()
 {
@@ -717,6 +737,11 @@ CoinMessageHandler::message(int messageNumber,
   // Decide whether or not to print (sets printStatus_)
   calcPrintStatus(currentMessage_.detail_, normalMessages.class_);
 
+  // A message with empty text is a null message: print nothing, not even
+  // the prefix, and ignore its values (a language uses this to drop a message)
+  if (!printStatus_ && currentMessage_.message_[0] == '\0')
+    printStatus_ = 3;
+
   if (!printStatus_) {
     if (enforceMessageLimit(messageNumber, currentMessage_.externalNumber_,
           currentMessage_.severity_, source_)) {
@@ -900,7 +925,7 @@ CoinMessageHandler::operator<<(int intvalue)
       *format_ = '%';
       char *next = nextPerCent(format_ + 1);
       // could check
-      if (!printStatus_) {
+      if (!printStatus_ && !skipConsumeCode(format_, messageOut_)) {
         sprintf(messageOut_, format_, intvalue);
         messageOut_ += strlen(messageOut_);
       }
@@ -925,12 +950,13 @@ CoinMessageHandler::operator<<(double doublevalue)
       *format_ = '%';
       char *next = nextPerCent(format_ + 1);
       // could check
-      if (!printStatus_) {
-        if (format_[1] == '.' && format_[2] >= '0' && format_[2] <= '9') {
-          // an explicitly specified precision currently overrides the
-          // precision of the message handler
+      if (!printStatus_ && !skipConsumeCode(format_, messageOut_)) {
+        if (!format_[1] || !strchr("eEfFgGaA", format_[1])) {
+          // flags, a width or a precision given explicitly (%.3g, %15.6e,
+          // %-8.2f, ...) override the precision of the message handler
           sprintf(messageOut_, format_, doublevalue);
         } else {
+          // a bare code (%g, %f, %e) uses the handler's precision
           sprintf(messageOut_, g_format_, doublevalue);
           if (next != format_ + 2) {
             messageOut_ += strlen(messageOut_);
@@ -962,7 +988,7 @@ CoinMessageHandler::operator<<(long longvalue)
       *format_ = '%';
       char *next = nextPerCent(format_ + 1);
       // could check
-      if (!printStatus_) {
+      if (!printStatus_ && !skipConsumeCode(format_, messageOut_)) {
         sprintf(messageOut_, format_, longvalue);
         messageOut_ += strlen(messageOut_);
       }
@@ -987,7 +1013,7 @@ CoinMessageHandler::operator<<(long long longvalue)
       *format_ = '%';
       char *next = nextPerCent(format_ + 1);
       // could check
-      if (!printStatus_) {
+      if (!printStatus_ && !skipConsumeCode(format_, messageOut_)) {
         sprintf(messageOut_, format_, longvalue);
         messageOut_ += strlen(messageOut_);
       }
@@ -1012,7 +1038,7 @@ CoinMessageHandler::operator<<(const std::string &stringvalue)
       *format_ = '%';
       char *next = nextPerCent(format_ + 1);
       // could check
-      if (!printStatus_) {
+      if (!printStatus_ && !skipConsumeCode(format_, messageOut_)) {
         sprintf(messageOut_, format_, stringvalue.c_str());
         messageOut_ += strlen(messageOut_);
       }
@@ -1036,7 +1062,7 @@ CoinMessageHandler::operator<<(char charvalue)
       *format_ = '%';
       char *next = nextPerCent(format_ + 1);
       // could check
-      if (!printStatus_) {
+      if (!printStatus_ && !skipConsumeCode(format_, messageOut_)) {
         sprintf(messageOut_, format_, charvalue);
         messageOut_ += strlen(messageOut_);
       }
@@ -1060,7 +1086,7 @@ CoinMessageHandler::operator<<(const char *stringvalue)
       *format_ = '%';
       char *next = nextPerCent(format_ + 1);
       // could check
-      if (!printStatus_) {
+      if (!printStatus_ && !skipConsumeCode(format_, messageOut_)) {
         sprintf(messageOut_, format_, stringvalue);
         messageOut_ += strlen(messageOut_);
       }

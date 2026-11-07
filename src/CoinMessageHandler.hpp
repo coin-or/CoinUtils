@@ -142,13 +142,21 @@ class COINUTILSLIB_EXPORT CoinMessages {
 public:
   /** \brief Supported languages
 
-    These are the languages that are supported.  At present only
-    us_en is serious and the rest are for testing.
+    These are the languages that are supported. us_en is the standard
+    language. en_tabular is an output style rather than a language: a
+    project can give it different texts for the messages that make up its
+    tables, so that choosing the language chooses the output style. uk_en
+    and it are for testing.
+
+    A language can leave out values that us_en prints with `%~' format
+    codes, and can drop a message altogether by giving it an empty text
+    (see CoinMessageHandler).
   */
   enum Language {
     us_en = 0,
     uk_en,
-    it
+    it,
+    en_tabular
   };
 
   /**@name Constructors etc */
@@ -337,6 +345,35 @@ enum CoinMessageMarker {
     \verbatim
     A message with a double 53.5.
     \endverbatim
+
+    The code `%~' followed by an ordinary conversion, such as `%~d', `%~g'
+    or `%~.3g', consumes a value without printing it. The text that follows
+    the code is printed as usual, and the value is still available to a
+    derived handler through #intValue, #doubleValue and so on. This lets
+    the texts of different languages (see CoinMessages::Language) show
+    different subsets of the values that a call sends. For example, given
+    the us_en text
+    \verbatim
+    "Pass %d took %d iterations%~d, objective %g"
+    \endverbatim
+    and the en_tabular text
+    \verbatim
+    "%5d %~d%8d %14.6e"
+    \endverbatim
+    for the same message, the call
+    \code
+    hdl.message(PASS,msgs) << 2 << 15 << 40 << 3.5 << CoinMessageEol ;
+    \endcode
+    prints `Pass 2 took 15 iterations, objective 3.5' in us_en, and in
+    en_tabular a table row with the pass, the total of 40 iterations and the
+    objective.
+
+    A standard message whose text is empty is a null message: nothing is
+    printed for it, not even its prefix, and any values sent to it are
+    ignored, as if its detail level were above the log level. A language
+    can use this to drop a message that another language prints. (A message
+    with a nonempty text can still have values appended to it with default
+    format codes once its own codes are used up.)
 
     For additional examples of usage, see CoinMessageHandlerUnitTest in
     CoinMessageHandlerTest.cpp.
@@ -532,7 +569,8 @@ public:
 
     Look up the specified message. A prefix will be generated if enabled.
     The message will be printed if the current log level is equal or greater
-    than the log level of the message.
+    than the log level of the message, unless its text is empty (a null
+    message, which prints nothing).
   */
   CoinMessageHandler &message(int messageNumber,
     const CoinMessages &messages);
