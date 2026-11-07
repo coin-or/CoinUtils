@@ -13,6 +13,7 @@
 
 #include "CoinPragma.hpp"
 #include "CoinMessageHandler.hpp"
+#include "CoinMessage.hpp"
 #include <cstring>
 #include <string>
 
@@ -392,6 +393,20 @@ void languageTests (const CoinMessages &testMessages, int &errs)
   hdl.message(COIN_TST_NOFIELDS,testMessages) << CoinMessageEol ;
   checkOutput("us_en unchanged",hdl,
               "This message has no parts and no fields.\n",errs) ;
+/*
+  CoinUtils' own messages in en_tabular: the presolve summary is dropped,
+  the rest keep their us_en text.
+*/
+  CoinMessage coinTab(CoinMessages::en_tabular) ;
+  hdl.setLogLevel(2) ;
+  hdl.message(COIN_PRESOLVE_STATS,coinTab)
+    << 10 << -2 << 20 << -3 << 50 << -7 << CoinMessageEol ;
+  checkOutput("CoinMessage en_tabular drops presolve stats",hdl,"",errs) ;
+  hdl.message(COIN_MPS_STATS,coinTab)
+    << "p" << 10 << 20 << 50 << CoinMessageEol ;
+  checkOutput("CoinMessage en_tabular keeps others",hdl,
+              "Problem p has 10 rows, 20 columns and 50 elements\n",errs) ;
+  hdl.setLogLevel(1) ;
 
   return ; }
 
