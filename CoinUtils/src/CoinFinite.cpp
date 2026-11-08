@@ -6,13 +6,7 @@
 #include "CoinFinite.hpp"
 #include "CoinUtilsConfig.h"
 
-#ifdef HAVE_CFLOAT
 #include <cfloat>
-#else
-#ifdef HAVE_FLOAT_H
-#include <float.h>
-#endif
-#endif
 
 #ifdef HAVE_CMATH
 #include <cmath>
