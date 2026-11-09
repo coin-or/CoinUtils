@@ -677,11 +677,13 @@ int CoinStructuredModel::addBlock(const std::string &rowBlock,
   if (numberElementBlocks_ == maximumElementBlocks_) {
     maximumElementBlocks_ = 3 * (maximumElementBlocks_ + 10) / 2;
     CoinBaseModel **temp = new CoinBaseModel *[maximumElementBlocks_];
-    memcpy(temp, blocks_, numberElementBlocks_ * sizeof(CoinBaseModel *));
+    if (numberElementBlocks_)
+      memcpy(temp, blocks_, numberElementBlocks_ * sizeof(CoinBaseModel *));
     delete[] blocks_;
     blocks_ = temp;
     CoinModelBlockInfo *temp2 = new CoinModelBlockInfo[maximumElementBlocks_];
-    memcpy(temp2, blockType_, numberElementBlocks_ * sizeof(CoinModelBlockInfo));
+    if (numberElementBlocks_)
+      memcpy(temp2, blockType_, numberElementBlocks_ * sizeof(CoinModelBlockInfo));
     delete[] blockType_;
     blockType_ = temp2;
     if (coinModelBlocks_) {
