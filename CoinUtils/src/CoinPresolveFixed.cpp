@@ -850,7 +850,7 @@ void transferCosts(CoinPresolveMatrix *prob)
                   nThen++;
               }
               if (nThen > nNow) {
-                const double ratio = cost[js] / colels[jsstrt];
+                const double ratio = cost[js] / colels[ii];
                 bias += rlo[i] * ratio;
                 for (CoinBigIndex jj = istrt; jj < iend; jj++) {
                   int j = hcol[jj];
