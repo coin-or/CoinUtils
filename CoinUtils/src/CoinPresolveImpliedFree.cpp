@@ -21,6 +21,7 @@
 #if PRESOLVE_DEBUG > 0 || PRESOLVE_CONSISTENCY > 0
 #include "CoinPresolvePsdebug.hpp"
 #endif
+bool canBeFeasible(CoinPresolveMatrix *prob, int iRow);
 static
 int check_row(CoinBigIndex *mrstrt,
   double *rowels, int *hcol, int *hinrow,
@@ -443,8 +444,20 @@ const CoinPresolveAction *implied_free_action::presolve(
               ++infUi;
           }
         }
-        const double maxUinf = maxUi + infUi * 1.0e31;
-        const double maxLinf = maxLi - infLi * 1.0e31;
+        double maxUinf = maxUi + infUi * 1.0e31;
+        double maxLinf = maxLi - infLi * 1.0e31;
+        if (maxUinf < rloi - feasTol) {
+	  // double check
+	  if (canBeFeasible(prob,i)) {
+	    maxUinf = rloi - feasTol;
+	  }
+	}
+        if (maxLinf > rupi + feasTol) {
+	  // double check
+	  if (canBeFeasible(prob,i)) {
+	    maxLinf = rupi + feasTol;
+	  }
+	}
         if (maxUinf <= rupi + feasTol && maxLinf >= rloi - feasTol) {
           infiniteUp[i] = -2;
         } else if (maxUinf < rloi - feasTol && !fixInfeasibility) {
@@ -660,6 +673,8 @@ const CoinPresolveAction *implied_free_action::presolve(
 #if PRESOLVE_SUMMARY > 0 || PRESOLVE_DEBUG > 0
     std::cout << "  IMPLIED_FREE: infeasible." << std::endl;
 #endif
+    if (actions) 
+      delete[] actions;
     return (next);
   }
 

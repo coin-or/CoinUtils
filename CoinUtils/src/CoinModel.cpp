@@ -10,6 +10,33 @@
 #include "CoinMpsIO.hpp"
 #include "CoinFloatEqual.hpp"
 
+// Create a name given a sequence number - allows >10000000
+static void Coin8CharacterName(char rowColumn,
+  int number, char *field)
+{
+  if (number < 10000000) {
+    sprintf(field, "%c%7.7d", rowColumn, number);
+  } else {
+    field[0] = rowColumn;
+    int put = 8;
+    // just using a to z in a fairly random order
+    while (number >= 26) {
+      field[--put] = static_cast< char >('a' + (number % 26));
+      number /= 26;
+    }
+    if (number)
+      field[--put] = static_cast< char >('a' + (number % 26));
+    // move up
+    int n = 8 - put;
+    for (int i = 0; i < n; i++)
+      field[i + 1] = field[put++];
+    // pad out
+    for (int i = n; i < 7; i++)
+      field[i + 1] = '0';
+    field[8] = '\0';
+  }
+}
+
 //#############################################################################
 // Constructors / Destructor / Assignment
 //#############################################################################
@@ -797,7 +824,7 @@ void CoinModel::addRow(int numberInRow, const int *columns,
     rowName_.addHash(numberRows_, name);
   } else if (!noNames_) {
     char name[9];
-    sprintf(name, "r%7.7d", numberRows_);
+    Coin8CharacterName('r', numberRows_, name);
     rowName_.addHash(numberRows_, name);
   }
   rowLower_[numberRows_] = rowLower;
@@ -930,7 +957,7 @@ void CoinModel::addColumn(int numberInColumn, const int *rows,
     columnName_.addHash(numberColumns_, name);
   } else if (!noNames_) {
     char name[9];
-    sprintf(name, "c%7.7d", numberColumns_);
+    Coin8CharacterName('c', numberColumns_, name);
     columnName_.addHash(numberColumns_, name);
   }
   columnLower_[numberColumns_] = columnLower;

@@ -244,7 +244,7 @@ void CoinFactorization::updateColumnL(CoinIndexedVector *regionSparse,
     // Guess at number at end
     if (sparseThreshold_ > 0) {
       if (ftranAverageAfterL_) {
-        int newNumber = static_cast< int >(number * ftranAverageAfterL_);
+        double newNumber = number * ftranAverageAfterL_;
         if (newNumber < sparseThreshold_ && (numberL_ << 2) > newNumber)
           goSparse = 2;
         else if (newNumber < sparseThreshold2_ && (numberL_ << 1) > newNumber)
@@ -742,7 +742,7 @@ int goSparse = 0;
 if (sparseThreshold_ > 0) {
   int numberNonZero = (regionUpdate->getNumElements() + regionFT->getNumElements()) >> 1;
   if (ftranAverageAfterR_) {
-    int newNumber = static_cast< int >(numberNonZero * ftranAverageAfterU_);
+    double newNumber = numberNonZero * ftranAverageAfterU_;
     if (newNumber < sparseThreshold_)
       goSparse = 2;
     else if (newNumber < sparseThreshold2_)
@@ -983,7 +983,7 @@ void CoinFactorization::updateColumnU(CoinIndexedVector *regionSparse,
   // Guess at number at end
   if (sparseThreshold_ > 0) {
     if (ftranAverageAfterR_) {
-      int newNumber = static_cast< int >(numberNonZero * ftranAverageAfterU_);
+      double newNumber = numberNonZero * ftranAverageAfterU_;
       if (newNumber < sparseThreshold_)
         goSparse = 2;
       else if (newNumber < sparseThreshold2_)
