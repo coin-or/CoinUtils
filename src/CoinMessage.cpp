@@ -73,6 +73,14 @@ static Coin_message italian[] = {
   { COIN_MPS_STATS, 2, 1, "matrice %s ha %d file, %d colonne and %d elementi (diverso da zero)" },
   { COIN_DUMMY_END, 999999, 0, "" }
 };
+/*
+  Tabular output style: drop the messages that a tabular display replaces
+  with its own lines (Clp's LP table prints its own presolve summary).
+*/
+static Coin_message en_tabular_messages[] = {
+  { COIN_PRESOLVE_STATS, 506, 2, "" },
+  { COIN_DUMMY_END, 999999, 0, "" }
+};
 /* Constructor */
 CoinMessage::CoinMessage(Language language)
   : CoinMessages(sizeof(us_english) / sizeof(Coin_message))
@@ -95,6 +103,9 @@ CoinMessage::CoinMessage(Language language)
   switch (language) {
   case it:
     message = italian;
+    break;
+  case en_tabular:
+    message = en_tabular_messages;
     break;
 
   default:

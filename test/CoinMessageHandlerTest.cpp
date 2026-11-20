@@ -5,14 +5,17 @@
 /*
   A brief test of CoinMessageHandler. Tests that we can print basic messages,
   and checks that we can handle messages with parts. Does a few more subtle
-  tests involving cloning and handlers with no associated messages.
+  tests involving cloning and handlers with no associated messages, and
+  checks the `%~' format codes, null messages and a second language.
 
   Does not attempt to test any of the various enbryonic features.
 */
 
 #include "CoinPragma.hpp"
 #include "CoinMessageHandler.hpp"
+#include "CoinMessage.hpp"
 #include <cstring>
+#include <string>
 
 namespace { // begin file-local namespace
 
@@ -28,6 +31,12 @@ enum COIN_TestMessage
   COIN_TST_STRING,
   COIN_TST_MULTIPART,
   COIN_TST_NOCODES,
+  COIN_TST_PASS,
+  COIN_TST_CONSUMETYPES,
+  COIN_TST_CONSUMEFIRST,
+  COIN_TST_CONSUMEOPT,
+  COIN_TST_NULL,
+  COIN_TST_DBLWIDTH,
   COIN_TST_END
 } ;
 
@@ -55,7 +64,13 @@ MsgDefn us_tstmsgs[] =
   {COIN_TST_STRING,6,1,"This message has a string field: (%s)"},
   {COIN_TST_MULTIPART,7,1,
     "Prefix%? Part 1%? Part 2 with integer in hex %#.4x%? Part 3%? suffix."},
-  {COIN_TST_NOCODES,8,1,""},
+  {COIN_TST_NOCODES,8,1,"A message without format codes:"},
+  {COIN_TST_PASS,9,1,"Pass %d took %d iterations%~d, objective %.4g%~.2f"},
+  {COIN_TST_CONSUMETYPES,10,1,"Types:%~s%~c%~d%~ld%~lld%~g%~s done."},
+  {COIN_TST_CONSUMEFIRST,11,1,"%~dLeading value consumed."},
+  {COIN_TST_CONSUMEOPT,12,1,"Start%? (opt%~d)%? end %d."},
+  {COIN_TST_NULL,13,1,""},
+  {COIN_TST_DBLWIDTH,14,1,"[%12.4e][%-8.2f][%+.3g][%g]"},
   {COIN_TST_END,7,1,"This is the dummy end marker."}
 } ;
 
@@ -186,8 +201,9 @@ void basicTestsWithMessages (const CoinMessages &testMessages, int &errs)
   hdl.printing(true) ;
   hdl.printing(true) << CoinMessageEol ;
 /*
-  Construct a message from scratch given an empty message. Parameters are
-  printed with default format codes.
+  Construct a message from a text without format codes. Further parameters
+  are printed with default format codes. (A message with an empty text is a
+  null message and prints nothing; see languageTests.)
 */
   hdl.message(COIN_TST_NOCODES,testMessages) ;
   hdl.message() << "Standardised prefix, free form remainder:" ;
@@ -264,6 +280,146 @@ void advTestsWithMessages (const CoinMessages &testMessages, int &errs)
 
   return ; }
 
+/*
+  A handler that collects what it prints, so that the tests can check it.
+*/
+class CaptureHandler : public CoinMessageHandler {
+public:
+  std::string out ;
+  virtual int print()
+  { out += messageBuffer() ;
+    out += '\n' ;
+    return 0 ; }
+  virtual CoinMessageHandler *clone() const
+  { return new CaptureHandler(*this) ; }
+} ;
+
+void checkOutput (const char *what, CaptureHandler &hdl,
+                  const std::string &expected, int &errs)
+{ if (hdl.out != expected)
+  { std::cout
+      << what << ": expected \"" << expected << "\", got \"" << hdl.out
+      << "\"" << std::endl ;
+    errs++ ; }
+  else
+  { std::cout << what << ": OK" << std::endl ; }
+  hdl.out.clear() ; }
+
+/*
+  The `%~' format codes, which consume a value without printing it; null
+  messages (empty text), which print nothing; and a second language,
+  en_tabular, that shows a different subset of the same values.
+*/
+void languageTests (const CoinMessages &testMessages, int &errs)
+{
+  if (CoinMessages::us_en != 0 || CoinMessages::uk_en != 1 ||
+      CoinMessages::it != 2 || CoinMessages::en_tabular != 3)
+  { std::cout << "Language values have changed!" << std::endl ;
+    errs++ ; }
+
+  CaptureHandler hdl ;
+  hdl.setPrefix(false) ;
+/*
+  Values consumed between, at the end of, and before printed ones, with the
+  text after each code still printed.
+*/
+  hdl.message(COIN_TST_PASS,testMessages)
+    << 2 << 15 << 40 << 3.14159 << 0.25 << CoinMessageEol ;
+  checkOutput("%~ in us_en",hdl,
+              "Pass 2 took 15 iterations, objective 3.142\n",errs) ;
+  hdl.message(COIN_TST_CONSUMEFIRST,testMessages) << 7 << CoinMessageEol ;
+  checkOutput("%~ first",hdl,"Leading value consumed.\n",errs) ;
+/*
+  Every type of value can be consumed, and consumed values are still
+  recorded for derived handlers.
+*/
+  hdl.message(COIN_TST_CONSUMETYPES,testMessages)
+    << std::string("str") << 'c' << 1 << 2L << 3LL << 4.5 << "cstr" ;
+  if (hdl.numberStringFields() != 2 || hdl.stringValue(0) != "str" ||
+      hdl.stringValue(1) != "cstr" || hdl.numberCharFields() != 1 ||
+      hdl.charValue(0) != 'c' || hdl.numberIntFields() != 3 ||
+      hdl.intValue(0) != 1 || hdl.intValue(1) != 2 || hdl.intValue(2) != 3 ||
+      hdl.numberDoubleFields() != 1 || hdl.doubleValue(0) != 4.5)
+  { std::cout << "Consumed values were not recorded." << std::endl ;
+    errs++ ; }
+  hdl << CoinMessageEol ;
+  checkOutput("%~ all types",hdl,"Types: done.\n",errs) ;
+/*
+  Inside optional parts.
+*/
+  hdl.message(COIN_TST_CONSUMEOPT,testMessages) ;
+  hdl.printing(true) << 1 ;
+  hdl.printing(true) << 2 << CoinMessageEol ;
+  checkOutput("%~ in printed part",hdl,"Start (opt) end 2.\n",errs) ;
+  hdl.message(COIN_TST_CONSUMEOPT,testMessages) ;
+  hdl.printing(false) << 1 ;
+  hdl.printing(true) << 2 << CoinMessageEol ;
+  checkOutput("%~ in skipped part",hdl,"Start end 2.\n",errs) ;
+/*
+  A double's code can give flags, a width and a precision; a bare code uses
+  the handler's precision.
+*/
+  hdl.message(COIN_TST_DBLWIDTH,testMessages)
+    << 1234.5 << 3.14159 << 2.5 << (1.0/3.0) << CoinMessageEol ;
+  checkOutput("double widths",hdl,
+              "[  1.2345e+03][3.14    ][+2.5][0.33333333]\n",errs) ;
+/*
+  A null message prints nothing, not even its prefix, whatever values are
+  sent to it, and doesn't disturb the next message.
+*/
+  hdl.setPrefix(true) ;
+  hdl.message(COIN_TST_NULL,testMessages)
+    << 42 << 4.2 << "x" << CoinMessageEol ;
+  checkOutput("null message, prefix",hdl,"",errs) ;
+  hdl.message(COIN_TST_NULL,testMessages) ;
+  hdl.message(COIN_TST_INT,testMessages) << 5 << CoinMessageEol ;
+  checkOutput("after null message, prefix",hdl,
+              "Test0003I This message has an integer field: (5)\n",errs) ;
+  hdl.setPrefix(false) ;
+  hdl.message(COIN_TST_NULL,testMessages) << 42 << CoinMessageEol ;
+  checkOutput("null message, no prefix",hdl,"",errs) ;
+/*
+  A second language: en_tabular replaces some texts. It shows a different
+  subset of the same values, drops a message by giving it an empty text, and
+  keeps the us_en text of the messages it doesn't replace.
+*/
+  CoinMessages tabMessages(testMessages) ;
+  tabMessages.setLanguage(CoinMessages::en_tabular) ;
+  tabMessages.replaceMessage(COIN_TST_PASS,"%d %~d%d %.4g %.2f") ;
+  tabMessages.replaceMessage(COIN_TST_NOFIELDS,"") ;
+  if (tabMessages.language() != CoinMessages::en_tabular)
+  { std::cout << "Cannot set/get language en_tabular!" << std::endl ;
+    errs++ ; }
+  hdl.message(COIN_TST_PASS,tabMessages)
+    << 2 << 15 << 40 << 3.14159 << 0.25 << CoinMessageEol ;
+  checkOutput("%~ in en_tabular",hdl,"2 40 3.142 0.25\n",errs) ;
+  hdl.setPrefix(true) ;
+  hdl.message(COIN_TST_NOFIELDS,tabMessages) << CoinMessageEol ;
+  checkOutput("message dropped in en_tabular",hdl,"",errs) ;
+  hdl.setPrefix(false) ;
+  hdl.message(COIN_TST_INT,tabMessages) << 6 << CoinMessageEol ;
+  checkOutput("us_en text kept in en_tabular",hdl,
+              "This message has an integer field: (6)\n",errs) ;
+  hdl.message(COIN_TST_NOFIELDS,testMessages) << CoinMessageEol ;
+  checkOutput("us_en unchanged",hdl,
+              "This message has no parts and no fields.\n",errs) ;
+/*
+  CoinUtils' own messages in en_tabular: the presolve summary is dropped,
+  the rest keep their us_en text.
+*/
+  CoinMessage coinTab(CoinMessages::en_tabular) ;
+  hdl.setLogLevel(2) ;
+  hdl.message(COIN_PRESOLVE_STATS,coinTab)
+    << 10 << -2 << 20 << -3 << 50 << -7 << CoinMessageEol ;
+  checkOutput("CoinMessage en_tabular drops presolve stats",hdl,"",errs) ;
+  hdl.message(COIN_MPS_STATS,coinTab)
+    << "p" << 10 << 20 << 50 << CoinMessageEol ;
+  checkOutput("CoinMessage en_tabular keeps others",hdl,
+              "Problem p has 10 rows, 20 columns and 50 elements\n",errs) ;
+  hdl.setLogLevel(1) ;
+
+  return ; }
+
 } // end file-local namespace
 
 bool CoinMessageHandlerUnitTest ()
@@ -299,6 +455,10 @@ bool CoinMessageHandlerUnitTest ()
   Advanced tests with messages.
 */
   advTestsWithMessages(testMessages,errs) ;
+/*
+  Format codes that consume values, null messages and a second language.
+*/
+  languageTests(testMessages,errs) ;
 /*
   Did we make it without error?
 */
