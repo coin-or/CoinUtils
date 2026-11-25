@@ -227,10 +227,26 @@ static inline double CoinCpuTimeJustChildren()
  query is written into the stream, in the latter case timing is not tested at
  all, rather the supposed result is read out from the stream. This makes it
  possible to exactly retrace time sensitive program execution.
+
+ By default the timer measures the CPU time of the process (CoinCpuTime()).
+ Constructed with CoinTimer::Wallclock it measures elapsed time
+ (CoinWallclockTime()) instead, which is usually what a multithreaded code
+ wants.
 */
 class COINUTILSLIB_EXPORT CoinTimer
 {
+public:
+  /// Which clock the timer measures
+  enum Clock {
+    /// CPU time of the process, CoinCpuTime() (the default)
+    Cpu,
+    /// Elapsed (wall clock) time, CoinWallclockTime()
+    Wallclock
+  };
+
 private:
+  /// The clock the timer measures
+  Clock clockType;
   /// When the timer was initialized/reset/restarted
   double start;
   ///
@@ -242,6 +258,11 @@ private:
 #endif
 
 private:
+  /// The current time on the timer's clock
+  inline double now() const
+  {
+    return clockType == Wallclock ? CoinWallclockTime() : CoinCpuTime();
+  }
 #ifdef COIN_COMPILE_WITH_TRACING
   inline bool evaluate(bool b_tmp) const
   {
@@ -278,7 +299,8 @@ private:
 public:
   /// Default constructor creates a timer with no time limit and no tracing
   CoinTimer()
-    : start(0)
+    : clockType(Cpu)
+    , start(0)
     , limit(1e100)
     , end(1e100)
 #ifdef COIN_COMPILE_WITH_TRACING
@@ -288,9 +310,11 @@ public:
   {
   }
 
-  /// Create a timer with the given time limit and with no tracing
-  CoinTimer(double lim)
-    : start(CoinCpuTime())
+  /** Create a timer with the given time limit and with no tracing, measuring
+       CPU time or, with \c Wallclock, elapsed time */
+  CoinTimer(double lim, Clock clock = Cpu)
+    : clockType(clock)
+    , start(now())
     , limit(lim)
     , end(start + lim)
 #ifdef COIN_COMPILE_WITH_TRACING
@@ -304,7 +328,8 @@ public:
   /** Create a timer with no time limit and with writing/reading the trace
        to/from the given stream, depending on the argument \c write. */
   CoinTimer(std::fstream *s, bool write)
-    : start(0)
+    : clockType(Cpu)
+    , start(0)
     , limit(1e100)
     , end(1e100)
     , stream(s)
@@ -314,8 +339,9 @@ public:
 
   /** Create a timer with the given time limit and with writing/reading the
        trace to/from the given stream, depending on the argument \c write. */
-  CoinTimer(double lim, std::fstream *s, bool w)
-    : start(CoinCpuTime())
+  CoinTimer(double lim, std::fstream *s, bool w, Clock clock = Cpu)
+    : clockType(clock)
+    , start(now())
     , limit(lim)
     , end(start + lim)
     , stream(s)
@@ -327,7 +353,7 @@ public:
   /// Restart the timer (keeping the same time limit)
   inline void restart()
   {
-    start = CoinCpuTime();
+    start = now();
     end = start + limit;
   }
   /// An alternate name for \c restart()
@@ -343,31 +369,31 @@ public:
        the timer was started */
   inline bool isPastPercent(double pct) const
   {
-    return evaluate(start + limit * pct < CoinCpuTime());
+    return evaluate(start + limit * pct < now());
   }
   /** Return whether the given amount of time has elapsed since the timer was
        started */
   inline bool isPast(double lim) const
   {
-    return evaluate(start + lim < CoinCpuTime());
+    return evaluate(start + lim < now());
   }
   /** Return whether the originally specified time limit has passed since the
        timer was started */
   inline bool isExpired() const
   {
-    return evaluate(end < CoinCpuTime());
+    return evaluate(end < now());
   }
 
   /** Return how much time is left on the timer */
   inline double timeLeft() const
   {
-    return evaluate(end - CoinCpuTime());
+    return evaluate(end - now());
   }
 
   /** Return how much time has elapsed */
   inline double timeElapsed() const
   {
-    return evaluate(CoinCpuTime() - start);
+    return evaluate(now() - start);
   }
 
   inline void setLimit(double l)
