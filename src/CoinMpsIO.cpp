@@ -1582,6 +1582,12 @@ int CoinMpsIO::readMps()
   delete[] sets;
   return returnCode;
 }
+// Read one line of the simple (non-MPS) format; the buffer is left empty at end of file
+static bool readSimpleLine(CoinFileInput *input, char *buffer)
+{
+  buffer[0] = '\0';
+  return input->gets(buffer, 1000) != NULL;
+}
 int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
 {
   bool ifmps;
@@ -1974,9 +1980,16 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
       case COIN_S2_COLUMN:
       case COIN_S3_COLUMN:
       case COIN_SOSEND:
-        std::cout << "** code sos etc later" << std::endl;
-        abort();
-        break;
+        // Sets given by 'MARKER' 'SOSORG' ... 'SOSEND' lines in COLUMNS are
+        // not supported (sets can be given in an SOS section). Stop with an
+        // error instead of aborting.
+        handler_->message(COIN_MPS_BADIMAGE, messages_) << cardReader_->cardNumber()
+                                                        << cardReader_->card()
+                                                        << CoinMessageEol;
+        handler_->message(COIN_GENERAL_WARNING, messages_)
+          << "SOS markers in the COLUMNS section are not supported; use an SOS section"
+          << CoinMessageEol;
+        return numberErrors + 100000;
       default:
         numberErrors++;
         if (numberErrors < 100) {
@@ -2784,69 +2797,105 @@ int CoinMpsIO::readMps(int &numberSets, CoinSet **&sets)
     }
   } else {
     // This is very simple format - what should we use?
+    // After the first line: a line "rows columns elements", one line
+    // "i lower upper" for each row, then for each column a line
+    // "j n lower upper objective" followed by n lines "row element".
+    // Every line is checked, so a file that is not in this format gives an
+    // error instead of a crash.
     COINColumnIndex i;
-
-    /* old: 
-       FILE * fp = cardReader_->filePointer();
-       fscanf ( fp, "%d %d %d\n", &numberRows_, &numberColumns_, &i);
-    */
-    // new:
     char buffer[1000];
-    cardReader_->fileInput()->gets(buffer, 1000);
-    sscanf(buffer, "%d %d %d\n", &numberRows_, &numberColumns_, &i);
+    int lineNumber = cardReader_->cardNumber();
+    bool bad = false;
+    CoinFileInput *input = cardReader_->fileInput();
+    start = NULL;
+    row = NULL;
+    element = NULL;
 
-    numberElements_ = i; // done this way in case numberElements_ long
-
-    rowlower_ = reinterpret_cast< double * >(malloc(numberRows_ * sizeof(double)));
-    rowupper_ = reinterpret_cast< double * >(malloc(numberRows_ * sizeof(double)));
-    for (i = 0; i < numberRows_; i++) {
-      int j;
-
-      // old: fscanf ( fp, "%d %lg %lg\n", &j, &rowlower_[i], &rowupper_[i] );
-      // new:
-      cardReader_->fileInput()->gets(buffer, 1000);
-      sscanf(buffer, "%d %lg %lg\n", &j, &rowlower_[i], &rowupper_[i]);
-
-      assert(i == j);
+    lineNumber++;
+    if (!readSimpleLine(input, buffer)
+      || sscanf(buffer, "%d %d %d", &numberRows_, &numberColumns_, &i) != 3
+      || numberRows_ < 0 || numberColumns_ < 0 || i < 0) {
+      bad = true;
+      numberRows_ = 0;
+      numberColumns_ = 0;
+      i = 0;
     }
-    collower_ = reinterpret_cast< double * >(malloc(numberColumns_ * sizeof(double)));
-    colupper_ = reinterpret_cast< double * >(malloc(numberColumns_ * sizeof(double)));
-    objective_ = reinterpret_cast< double * >(malloc(numberColumns_ * sizeof(double)));
-    start = reinterpret_cast< CoinBigIndex * >(malloc((numberColumns_ + 1) * sizeof(CoinBigIndex)));
-    row = reinterpret_cast< COINRowIndex * >(malloc(numberElements_ * sizeof(COINRowIndex)));
-    element = reinterpret_cast< double * >(malloc(numberElements_ * sizeof(double)));
-
-    start[0] = 0;
+    CoinBigIndex maxElements = i; // done this way in case numberElements_ long
     numberElements_ = 0;
-    for (i = 0; i < numberColumns_; i++) {
+
+    if (!bad) {
+      rowlower_ = reinterpret_cast< double * >(malloc(numberRows_ * sizeof(double)));
+      rowupper_ = reinterpret_cast< double * >(malloc(numberRows_ * sizeof(double)));
+      bad = numberRows_ && (!rowlower_ || !rowupper_);
+    }
+    for (i = 0; i < numberRows_ && !bad; i++) {
+      int j;
+      lineNumber++;
+      bad = (!readSimpleLine(input, buffer)
+        || sscanf(buffer, "%d %lg %lg", &j, &rowlower_[i], &rowupper_[i]) != 3
+        || j != i);
+    }
+    if (!bad) {
+      collower_ = reinterpret_cast< double * >(malloc(numberColumns_ * sizeof(double)));
+      colupper_ = reinterpret_cast< double * >(malloc(numberColumns_ * sizeof(double)));
+      objective_ = reinterpret_cast< double * >(malloc(numberColumns_ * sizeof(double)));
+      start = reinterpret_cast< CoinBigIndex * >(malloc((numberColumns_ + 1) * sizeof(CoinBigIndex)));
+      row = reinterpret_cast< COINRowIndex * >(malloc(maxElements * sizeof(COINRowIndex)));
+      element = reinterpret_cast< double * >(malloc(maxElements * sizeof(double)));
+      bad = !start || (numberColumns_ && (!collower_ || !colupper_ || !objective_))
+        || (maxElements && (!row || !element));
+      if (!bad)
+        start[0] = 0;
+    }
+    for (i = 0; i < numberColumns_ && !bad; i++) {
       int j;
       int n;
-
-      /* old:
-	 fscanf ( fp, "%d %d %lg %lg %lg\n", &j, &n, 
-	          &collower_[i], &colupper_[i],
-	          &objective_[i] );
-      */
-      // new:
-      cardReader_->fileInput()->gets(buffer, 1000);
-      sscanf(buffer, "%d %d %lg %lg %lg\n", &j, &n,
-        &collower_[i], &colupper_[i], &objective_[i]);
-
-      assert(i == j);
-      for (j = 0; j < n; j++) {
-        /* old:
-	   fscanf ( fp, "       %d %lg\n", &row[numberElements_],
-		 &element[numberElements_] );
-	*/
-        // new:
-        cardReader_->fileInput()->gets(buffer, 1000);
-        sscanf(buffer, "       %d %lg\n", &row[numberElements_],
-          &element[numberElements_]);
-
-        numberElements_++;
+      lineNumber++;
+      bad = (!readSimpleLine(input, buffer)
+        || sscanf(buffer, "%d %d %lg %lg %lg", &j, &n, &collower_[i], &colupper_[i], &objective_[i]) != 5
+        || j != i || n < 0 || n > maxElements - numberElements_);
+      for (j = 0; j < n && !bad; j++) {
+        lineNumber++;
+        bad = (!readSimpleLine(input, buffer)
+          || sscanf(buffer, "%d %lg", &row[numberElements_], &element[numberElements_]) != 2
+          || row[numberElements_] < 0 || row[numberElements_] >= numberRows_);
+        if (!bad)
+          numberElements_++;
       }
-      start[i + 1] = numberElements_;
+      if (!bad)
+        start[i + 1] = numberElements_;
     }
+    if (bad) {
+      const char *shown = buffer[0] ? buffer : "(end of file)";
+      for (char *p = buffer; *p; p++) {
+        if (*p == '\n' || *p == '\r') {
+          *p = '\0';
+          break;
+        }
+      }
+      handler_->message(COIN_MPS_BADIMAGE, messages_) << lineNumber
+                                                      << shown
+                                                      << CoinMessageEol;
+      free(start);
+      free(row);
+      free(element);
+      free(rowlower_);
+      free(rowupper_);
+      free(collower_);
+      free(colupper_);
+      free(objective_);
+      rowlower_ = NULL;
+      rowupper_ = NULL;
+      collower_ = NULL;
+      colupper_ = NULL;
+      objective_ = NULL;
+      numberRows_ = 0;
+      numberColumns_ = 0;
+      numberElements_ = 0;
+      return numberErrors + 100000;
+    }
+    // this format has no names, so make the default ones
+    setMpsDataColAndRowNames(NULL, NULL);
   }
   if (binaryInd) {
     // indicators
@@ -5400,7 +5449,7 @@ void CoinMpsIO::copyInIntegerInformation(const char *integerType)
 // names - returns NULL if out of range
 const char *CoinMpsIO::rowName(int index) const
 {
-  if (index >= 0 && index < numberRows_) {
+  if (index >= 0 && index < numberRows_ && names_[0]) {
     return names_[0][index];
   } else {
     return NULL;
@@ -5408,7 +5457,7 @@ const char *CoinMpsIO::rowName(int index) const
 }
 const char *CoinMpsIO::columnName(int index) const
 {
-  if (index >= 0 && index < numberColumns_) {
+  if (index >= 0 && index < numberColumns_ && names_[1]) {
     return names_[1][index];
   } else {
     return NULL;
