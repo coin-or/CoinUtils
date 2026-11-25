@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <cerrno>
 #include <algorithm>
 #include "CoinTypes.h"
 #include "CoinError.hpp"
@@ -959,7 +960,19 @@ inline char CoinFindDirSeparator()
       break;
     delete[] buf;
     buf = 0;
+    // getcwd() fails with ERANGE when the buffer is too small; any other
+    // failure (e.g. the current directory has been removed) won't go away
+    // with a bigger buffer.
+    if (errno != ERANGE || size > (1 << 24))
+      break;
     size = 2 * size;
+  }
+  if (!buf) {
+#ifdef _WIN32
+    return '\\';
+#else
+    return '/';
+#endif
   }
   // if first char is '/' then it's unix and the dirsep is '/'. otherwise we
   // assume it's dos and the dirsep is '\'
