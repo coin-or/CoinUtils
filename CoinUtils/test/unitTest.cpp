@@ -8,6 +8,10 @@
 #undef NDEBUG
 #endif
 
+#ifndef COINUTILS_BUILD
+  #error  "COINUTILS_BUILD not defined"
+#endif
+
 #include <cassert>
 #include <iostream>
 
@@ -31,10 +35,10 @@ void testingMessage( const char * const msg );
 
 //----------------------------------------------------------------
 // unitTest [-mpsDir=V1] [-netlibDir=V2] [-testModel=V3]
-// 
+//
 // where (unix defaults):
 //   -mpsDir: directory containing mps test files
-//       Default value V1="../../Data/Sample"    
+//       Default value V1="../../Data/Sample"
 //   -netlibDir: directory containing netlib files
 //       Default value V2="../../Data/Netlib"
 //   -testModel: name of model in netlibdir for testing CoinModel
@@ -70,7 +74,7 @@ int main (int argc, const char *argv[])
   /*
     Set parameter defaults.
   */
-  //TKR: Don't set defaults, must be specified. 
+  //TKR: Don't set defaults, must be specified.
   std::string mpsDir = ""; // = dataDir + dirsep + "Sample" + dirsep ;
   std::string netlibDir = ""; // = dataDir + dirsep + "Netlib" + dirsep ;
   std::string testModel = ""; // = "p0033.mps" ;
@@ -110,7 +114,7 @@ int main (int argc, const char *argv[])
     }
     parms[key] = value ;
   }
-  // Deal with any values given on the command line 
+  // Deal with any values given on the command line
   if (parms.find("-mpsDir") != parms.end())
     mpsDir = parms["-mpsDir"] + dirsep;
   if (parms.find("-netlibDir") != parms.end())
@@ -120,7 +124,7 @@ int main (int argc, const char *argv[])
 
   bool allOK = true ;
 
-  // *FIXME* : these tests should be written... 
+  // *FIXME* : these tests should be written...
   //  testingMessage( "Testing CoinHelperFunctions\n" );
   //  CoinHelperFunctionsUnitTest();
   //  testingMessage( "Testing CoinSort\n" );
@@ -179,10 +183,10 @@ int main (int argc, const char *argv[])
      testingMessage( "Testing CoinModel\n" );
      CoinModelUnitTest(mpsDir,netlibDir,testModel);
   }
-  
+
   testingMessage( "Testing CoinError\n" );
   CoinErrorUnitTest();
-  
+
   testingMessage( "Testing CoinShallowPackedVector\n" );
   CoinShallowPackedVectorUnitTest();
 
@@ -210,7 +214,7 @@ int main (int argc, const char *argv[])
      testingMessage( "Testing CoinLpIO\n" );
      CoinLpIOUnitTest(mpsDir);
   }
-  
+
   testingMessage( "Testing CoinMessageHandler\n" );
   if (!CoinMessageHandlerUnitTest())
   { allOK = false ; }
@@ -225,7 +229,7 @@ int main (int argc, const char *argv[])
     return (1) ; }
 }
 
- 
+
 // Display message on stdout and stderr
 void testingMessage( const char * const msg )
 {
